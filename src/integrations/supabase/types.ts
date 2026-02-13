@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           customer_contact: string | null
+          customer_id: string | null
           customer_name: string | null
           end_date: string
           forklift_id: string
@@ -29,6 +30,7 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_contact?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           end_date: string
           forklift_id: string
@@ -40,6 +42,7 @@ export type Database = {
         Update: {
           created_at?: string
           customer_contact?: string | null
+          customer_id?: string | null
           customer_name?: string | null
           end_date?: string
           forklift_id?: string
@@ -50,6 +53,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bookings_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
@@ -57,6 +67,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       forklifts: {
         Row: {
@@ -117,6 +163,53 @@ export type Database = {
           year?: number | null
         }
         Relationships: []
+      }
+      maintenance_logs: {
+        Row: {
+          cost: number | null
+          created_at: string
+          description: string | null
+          forklift_id: string
+          id: string
+          next_service_date: string | null
+          performed_at: string
+          performed_by: string | null
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          forklift_id: string
+          id?: string
+          next_service_date?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          forklift_id?: string
+          id?: string
+          next_service_date?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_logs_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       status_logs: {
         Row: {
