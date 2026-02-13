@@ -1,27 +1,77 @@
 
-# Snappier Forklift Delete
+# Equipment Configuration Module
 
-## What changes
-Make the delete action feel instant by navigating away immediately after the user confirms, rather than waiting for the database operations to complete.
+## Overview
+Create a configuration system where you can pre-define manufacturers, their models, and default specs (capacity, mast height, fuel type). When adding a forklift, these fields become cascading dropdowns instead of free-text inputs, eliminating typos and speeding up data entry.
 
-## Approach
-Two small tweaks -- no new files needed:
+## How it works
 
-### 1. Optimistic navigation (`ForkliftDetail.tsx`)
-- Navigate to `/fleet` and show the success toast **before** the mutation resolves, right when the user clicks "Delete" in the confirmation dialog.
-- Use `mutateAsync` wrapped in a try/catch so errors still surface, but the happy path feels instant.
+1. **Pick a Manufacturer** from a dropdown (e.g., Hyster, Toyota, Linde)
+2. **Pick a Model** -- the list filters to only show models from that manufacturer
+3. **Specs auto-fill** -- capacity, mast height, and fuel type populate automatically from the selected model's defaults (but remain editable)
 
-### 2. Optimistic cache removal (`useForkliftData.ts`)
-- Add an `onMutate` callback to `useDeleteForklift` that immediately removes the deleted forklift from the cached `forklifts` list (so the fleet table never briefly shows the deleted row).
-- Store the previous cache for rollback in `onError`.
+You will still be able to type a custom serial number and name, since those are unique per unit.
 
-### Technical detail
+## What gets built
 
-**`src/hooks/useForkliftData.ts`** -- add optimistic update to `useDeleteForklift`:
-- `onMutate`: cancel outgoing queries, snapshot cache, remove item from `["forklifts"]` query data.
-- `onError`: restore snapshot.
-- Keep existing `onSuccess` invalidation for consistency.
+### New database table: `equipment_models`
+Stores the master catalog of manufacturer + model combinations with their default specs:
+- `id` (uuid, primary key)
+- `manufacturer` (text, required)
+- `model` (text, required)
+- `default_capacity_kg` (numeric, nullable)
+- `default_mast_height_m` (numeric, nullable)
+- `default_fuel_type` (text, default "Diesel")
+- `created_at` / `updated_at` (timestamps)
 
-**`src/pages/ForkliftDetail.tsx`** -- change `handleDelete`:
-- Immediately call `navigate("/fleet")` and `toast.success(...)`.
-- Fire `deleteForklift.mutate(...)` in the background (fire-and-forget with an `onError` fallback toast).
+### New page: Equipment Configuration (`/settings/equipment`)
+A simple management page where you can:
+- View all manufacturer/model entries in a table
+- Add a new manufacturer + model with default specs via a dialog form
+- Edit existing entries inline or via dialog
+- Delete entries you no longer need
+
+### Updated Add Forklift form (`/fleet/new`)
+- **Manufacturer** field becomes a searchable dropdown populated from distinct manufacturers in `equipment_models`
+- **Model** field becomes a filtered dropdown showing only models for the selected manufacturer
+- When a model is selected, capacity, mast height, and fuel type auto-fill (user can still override)
+- In edit mode, existing values are preserved and dropdowns pre-select correctly
+
+### New sidebar link
+- "Equipment Config" entry under a "Settings" group in the sidebar (using a Settings/Cog icon)
+
+### New data hooks
+- `useEquipmentModels()` -- fetch all entries
+- `useCreateEquipmentModel()` -- add new entry
+- `useUpdateEquipmentModel()` -- edit entry
+- `useDeleteEquipmentModel()` -- remove entry
+
+## Technical details
+
+### Files to create
+- `supabase/migrations/..._equipment_models.sql` -- table creation with RLS policy
+- `src/pages/EquipmentConfigPage.tsx` -- configuration management UI
+- `src/hooks/useEquipmentModels.ts` -- TanStack Query hooks for CRUD
+
+### Files to modify
+- `src/integrations/supabase/types.ts` -- auto-updated after migration
+- `src/pages/ForkliftForm.tsx` -- replace manufacturer/model text inputs with cascading selects; auto-fill specs on model selection
+- `src/components/AppSidebar.tsx` -- add "Equipment Config" nav item
+- `src/App.tsx` -- add route for `/settings/equipment`
+
+### Forklift form cascade logic
+```text
+User selects Manufacturer
+  -> filter equipment_models to that manufacturer
+  -> populate Model dropdown
+
+User selects Model
+  -> look up the matching equipment_model record
+  -> set capacity_kg, mast_height_m, fuel_type from defaults
+  -> user can still manually override any value
+```
+
+### Edge cases handled
+- If no equipment models exist yet, the form falls back to free-text inputs with a hint to configure models first
+- Edit mode pre-selects the correct manufacturer and model from the existing forklift data
+- Deleting an equipment model does not affect existing forklifts (no foreign key constraint -- the forklift stores its own copy of manufacturer/model as text)
