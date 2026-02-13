@@ -11,8 +11,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { FormActions } from "@/components/FormActions";
-import { Search, PlusCircle, Edit } from "lucide-react";
+import { Search, PlusCircle, Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const emptyCustomer = {
   name: "", email: "", phone: "", address: "", notes: "",
@@ -21,6 +22,7 @@ const emptyCustomer = {
 
 export default function CustomersPage() {
   const { data: customers, isLoading } = useCustomers();
+  const navigate = useNavigate();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
   const [search, setSearch] = useState("");
@@ -97,7 +99,8 @@ export default function CustomersPage() {
                     <TableCell>{c.email || "—"}</TableCell>
                     <TableCell>{c.phone || "—"}</TableCell>
                     <TableCell>{c.contact_person || "—"}</TableCell>
-                    <TableCell>
+                    <TableCell className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${c.id}`)}><Eye className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>
                     </TableCell>
                   </TableRow>

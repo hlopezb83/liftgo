@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, eachDayOfInterval, isWithinInterval, parseISO, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
-import { useState } from "react";
+import { format, eachDayOfInterval, isWithinInterval, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays } from "date-fns";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 
 const BOOKING_COLORS = [
   "hsl(217, 91%, 60%)",
@@ -25,15 +25,44 @@ export default function CalendarPage() {
   const monthEnd = endOfMonth(currentMonth);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  const forkliftMap = useMemo(() => new Map(forklifts?.map((f) => [f.id, f])), [forklifts]);
+
+  // Bookings ending within 3 days
+  const endingSoon = useMemo(() => {
+    if (!bookings) return [];
+    return bookings.filter((b: any) => {
+      const endDate = parseISO(b.end_date);
+      const daysLeft = differenceInDays(endDate, new Date());
+      return b.status === "confirmed" && daysLeft >= 0 && daysLeft <= 3;
+    });
+  }, [bookings]);
+
   if (bLoading || fLoading) {
     return <div className="p-6"><Skeleton className="h-96" /></div>;
   }
 
-  const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
-
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Availability Calendar" subtitle="View bookings across your fleet" />
+
+      {endingSoon.length > 0 && (
+        <Card className="border-status-maintenance/30 bg-status-maintenance/5">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="h-4 w-4 text-status-maintenance" />
+              <span className="font-medium text-sm">Bookings ending soon ({endingSoon.length})</span>
+            </div>
+            <div className="space-y-1">
+              {endingSoon.map((b: any) => (
+                <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
+                  <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
+                  <span className="text-xs text-muted-foreground">Ends: {b.end_date}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -50,7 +79,6 @@ export default function CalendarPage() {
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <div className="min-w-[800px]">
-            {/* Header row with dates */}
             <div className="flex border-b pb-2 mb-2">
               <div className="w-36 shrink-0 text-xs font-medium text-muted-foreground">Forklift</div>
               <div className="flex-1 flex">
@@ -62,7 +90,6 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* Rows per forklift */}
             {forklifts?.map((fl, flIdx) => (
               <div key={fl.id} className="flex items-center border-b py-1.5 hover:bg-muted/30">
                 <div className="w-36 shrink-0 flex items-center gap-2 pr-2">
@@ -100,7 +127,6 @@ export default function CalendarPage() {
         </CardContent>
       </Card>
 
-      {/* Booking list */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">All Bookings</CardTitle>

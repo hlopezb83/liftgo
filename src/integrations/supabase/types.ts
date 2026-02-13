@@ -23,6 +23,7 @@ export type Database = {
           end_date: string
           forklift_id: string
           id: string
+          return_status: string | null
           start_date: string
           status: string
           updated_at: string
@@ -35,6 +36,7 @@ export type Database = {
           end_date: string
           forklift_id: string
           id?: string
+          return_status?: string | null
           start_date: string
           status?: string
           updated_at?: string
@@ -47,6 +49,7 @@ export type Database = {
           end_date?: string
           forklift_id?: string
           id?: string
+          return_status?: string | null
           start_date?: string
           status?: string
           updated_at?: string
@@ -113,6 +116,108 @@ export type Database = {
           tax_id?: string | null
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      deliveries: {
+        Row: {
+          address: string | null
+          booking_id: string | null
+          completed_at: string | null
+          created_at: string
+          driver_name: string | null
+          driver_phone: string | null
+          forklift_id: string
+          id: string
+          notes: string | null
+          scheduled_date: string
+          scheduled_time: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          booking_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          forklift_id: string
+          id?: string
+          notes?: string | null
+          scheduled_date: string
+          scheduled_time?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          booking_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          forklift_id?: string
+          id?: string
+          notes?: string | null
+          scheduled_date?: string
+          scheduled_time?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          uploaded_by?: string | null
         }
         Relationships: []
       }
@@ -324,6 +429,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "maintenance_logs_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      return_inspections: {
+        Row: {
+          booking_id: string
+          condition: string
+          created_at: string
+          damage_cost: number | null
+          damage_notes: string | null
+          forklift_id: string
+          fuel_level: string | null
+          hours_used: number | null
+          id: string
+          inspected_at: string
+          inspected_by: string | null
+        }
+        Insert: {
+          booking_id: string
+          condition?: string
+          created_at?: string
+          damage_cost?: number | null
+          damage_notes?: string | null
+          forklift_id: string
+          fuel_level?: string | null
+          hours_used?: number | null
+          id?: string
+          inspected_at?: string
+          inspected_by?: string | null
+        }
+        Update: {
+          booking_id?: string
+          condition?: string
+          created_at?: string
+          damage_cost?: number | null
+          damage_notes?: string | null
+          forklift_id?: string
+          fuel_level?: string | null
+          hours_used?: number | null
+          id?: string
+          inspected_at?: string
+          inspected_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_inspections_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_inspections_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
             referencedRelation: "forklifts"

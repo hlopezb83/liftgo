@@ -1,4 +1,4 @@
-import { LayoutDashboard, Truck, CalendarDays, PlusCircle, Users, Wrench, BookOpen, Receipt, Settings } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -17,10 +17,11 @@ const navItems = [
   { title: "Fleet", url: "/fleet", icon: Truck },
   { title: "Calendar", url: "/calendar", icon: CalendarDays },
   { title: "Bookings", url: "/bookings/new", icon: BookOpen },
+  { title: "Returns", url: "/returns", icon: ClipboardCheck },
+  { title: "Deliveries", url: "/deliveries", icon: TruckIcon },
   { title: "Customers", url: "/customers", icon: Users },
   { title: "Invoices", url: "/invoices", icon: Receipt },
   { title: "Maintenance", url: "/maintenance", icon: Wrench },
-  
   { title: "Equipment Config", url: "/settings/equipment", icon: Settings },
 ];
 
