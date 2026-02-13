@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useForklift, useStatusLogs, useBookings, useUpdateStatus } from "@/hooks/useForkliftData";
+import { useForklift, useStatusLogs, useBookings, useUpdateStatus, useDeleteForklift, useMaintenanceLogs } from "@/hooks/useForkliftData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Edit, Truck, DollarSign, History } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Edit, Truck, DollarSign, History, Trash2, CalendarDays, Wrench, StickyNote } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -16,8 +18,11 @@ export default function ForkliftDetail() {
   const { data: forklift, isLoading } = useForklift(id);
   const { data: logs } = useStatusLogs(id);
   const { data: bookings } = useBookings(id);
+  const { data: maintenanceLogs } = useMaintenanceLogs(id);
   const updateStatus = useUpdateStatus();
+  const deleteForklift = useDeleteForklift();
   const [newStatus, setNewStatus] = useState("");
+  const [statusNote, setStatusNote] = useState("");
 
   if (isLoading) {
     return <div className="p-6"><Skeleton className="h-96" /></div>;
@@ -30,14 +35,25 @@ export default function ForkliftDetail() {
   const handleStatusChange = () => {
     if (!newStatus || newStatus === forklift.status) return;
     updateStatus.mutate(
-      { forkliftId: forklift.id, fromStatus: forklift.status, toStatus: newStatus },
+      { forkliftId: forklift.id, fromStatus: forklift.status, toStatus: newStatus, note: statusNote || undefined },
       {
         onSuccess: () => {
           toast.success("Status updated");
           setNewStatus("");
+          setStatusNote("");
         },
       }
     );
+  };
+
+  const handleDelete = () => {
+    deleteForklift.mutate(forklift.id, {
+      onSuccess: () => {
+        toast.success("Forklift deleted");
+        navigate("/fleet");
+      },
+      onError: () => toast.error("Failed to delete forklift"),
+    });
   };
 
   const specs = [
@@ -66,6 +82,27 @@ export default function ForkliftDetail() {
         <Button variant="outline" size="sm" onClick={() => navigate(`/fleet/${id}/edit`)}>
           <Edit className="h-4 w-4 mr-1" /> Edit
         </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="h-4 w-4 mr-1" /> Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {forklift.name}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this forklift and all its related bookings, maintenance logs, and status history. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,12 +136,24 @@ export default function ForkliftDetail() {
         </Card>
       </div>
 
+      {/* Notes */}
+      {forklift.notes && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2"><StickyNote className="h-4 w-4" /> Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm whitespace-pre-wrap">{forklift.notes}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Status change */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Change Status</CardTitle>
         </CardHeader>
-        <CardContent className="flex gap-3 items-end">
+        <CardContent className="flex gap-3 items-end flex-wrap">
           <Select value={newStatus} onValueChange={setNewStatus}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select new status" />
@@ -115,9 +164,69 @@ export default function ForkliftDetail() {
               ))}
             </SelectContent>
           </Select>
+          <Input
+            placeholder="Reason for change (optional)"
+            value={statusNote}
+            onChange={(e) => setStatusNote(e.target.value)}
+            className="w-[280px]"
+          />
           <Button onClick={handleStatusChange} disabled={!newStatus || updateStatus.isPending} size="sm">
             Update Status
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Bookings */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Bookings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {bookings && bookings.length > 0 ? (
+            <div className="space-y-2">
+              {bookings.map((b: any) => (
+                <div key={b.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
+                  <div>
+                    <span className="font-medium">{b.customer_name || "Unknown"}</span>
+                    <span className="text-muted-foreground ml-2">
+                      {format(new Date(b.start_date), "MMM d")} – {format(new Date(b.end_date), "MMM d, yyyy")}
+                    </span>
+                  </div>
+                  <StatusBadge status={b.status} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No bookings yet</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Maintenance */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" /> Maintenance History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {maintenanceLogs && maintenanceLogs.length > 0 ? (
+            <div className="space-y-2">
+              {maintenanceLogs.map((m) => (
+                <div key={m.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
+                  <div>
+                    <span className="font-medium">{m.service_type}</span>
+                    {m.performed_by && <span className="text-muted-foreground ml-2">by {m.performed_by}</span>}
+                    {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs text-muted-foreground">{format(new Date(m.performed_at), "MMM d, yyyy")}</span>
+                    {m.cost ? <p className="text-xs font-medium">${m.cost}</p> : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No maintenance records</p>
+          )}
         </CardContent>
       </Card>
 

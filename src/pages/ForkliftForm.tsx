@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormActions } from "@/components/FormActions";
 import { ArrowLeft } from "lucide-react";
@@ -23,6 +24,7 @@ const emptyForm = {
   daily_rate: "",
   weekly_rate: "",
   monthly_rate: "",
+  notes: "",
 };
 
 export default function ForkliftForm() {
@@ -49,6 +51,7 @@ export default function ForkliftForm() {
         daily_rate: existing.daily_rate?.toString() || "",
         weekly_rate: existing.weekly_rate?.toString() || "",
         monthly_rate: existing.monthly_rate?.toString() || "",
+        notes: existing.notes || "",
       });
     }
   }, [existing]);
@@ -75,6 +78,7 @@ export default function ForkliftForm() {
       daily_rate: form.daily_rate ? parseFloat(form.daily_rate) : 0,
       weekly_rate: form.weekly_rate ? parseFloat(form.weekly_rate) : 0,
       monthly_rate: form.monthly_rate ? parseFloat(form.monthly_rate) : 0,
+      notes: form.notes || null,
     };
 
     if (isEdit) {
@@ -164,6 +168,18 @@ export default function ForkliftForm() {
               <Label>Monthly Rate ($)</Label>
               <Input type="number" placeholder="2500" value={form.monthly_rate} onChange={(e) => set("monthly_rate", e.target.value)} />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder="Internal notes about this forklift..."
+              value={form.notes}
+              onChange={(e) => set("notes", e.target.value)}
+              rows={3}
+            />
           </CardContent>
         </Card>
 
