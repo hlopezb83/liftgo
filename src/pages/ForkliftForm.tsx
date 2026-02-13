@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useForklift, useCreateForklift, useUpdateForklift } from "@/hooks/useForkliftData";
+import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormActions } from "@/components/FormActions";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const emptyForm = {
@@ -34,7 +35,20 @@ export default function ForkliftForm() {
   const { data: existing } = useForklift(id);
   const create = useCreateForklift();
   const update = useUpdateForklift();
+  const { data: equipmentModels } = useEquipmentModels();
   const [form, setForm] = useState(emptyForm);
+
+  const hasModels = equipmentModels && equipmentModels.length > 0;
+
+  const manufacturers = useMemo(() => {
+    if (!equipmentModels) return [];
+    return [...new Set(equipmentModels.map((m) => m.manufacturer))].sort();
+  }, [equipmentModels]);
+
+  const filteredModels = useMemo(() => {
+    if (!equipmentModels || !form.manufacturer) return [];
+    return equipmentModels.filter((m) => m.manufacturer === form.manufacturer);
+  }, [equipmentModels, form.manufacturer]);
 
   useEffect(() => {
     if (existing) {
@@ -57,6 +71,23 @@ export default function ForkliftForm() {
   }, [existing]);
 
   const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleManufacturerChange = (value: string) => {
+    setForm((prev) => ({ ...prev, manufacturer: value, model: "" }));
+  };
+
+  const handleModelChange = (value: string) => {
+    const match = equipmentModels?.find((m) => m.manufacturer === form.manufacturer && m.model === value);
+    setForm((prev) => ({
+      ...prev,
+      model: value,
+      ...(match ? {
+        capacity_kg: match.default_capacity_kg?.toString() ?? prev.capacity_kg,
+        mast_height_m: match.default_mast_height_m?.toString() ?? prev.mast_height_m,
+        fuel_type: match.default_fuel_type ?? prev.fuel_type,
+      } : {}),
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,16 +123,6 @@ export default function ForkliftForm() {
     }
   };
 
-  const fields = [
-    { key: "name", label: "Name / ID", placeholder: "FL-007", required: true },
-    { key: "model", label: "Model", placeholder: "H50", required: true },
-    { key: "manufacturer", label: "Manufacturer", placeholder: "Hyster" },
-    { key: "year", label: "Year", placeholder: "2023", type: "number" },
-    { key: "capacity_kg", label: "Capacity (kg)", placeholder: "2500", type: "number" },
-    { key: "mast_height_m", label: "Mast Height (m)", placeholder: "4.5", type: "number" },
-    { key: "serial_number", label: "Serial Number", placeholder: "HY-2023-007" },
-  ];
-
   return (
     <div className="p-6 max-w-3xl">
       <div className="flex items-center gap-3 mb-6">
@@ -115,17 +136,74 @@ export default function ForkliftForm() {
         <Card>
           <CardHeader><CardTitle className="text-base">Equipment Details</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {fields.map((f) => (
-              <div key={f.key} className="space-y-1.5">
-                <Label>{f.label}{f.required && " *"}</Label>
-                <Input
-                  type={f.type || "text"}
-                  placeholder={f.placeholder}
-                  value={(form as any)[f.key]}
-                  onChange={(e) => set(f.key, e.target.value)}
-                />
-              </div>
-            ))}
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Label>Name / ID *</Label>
+              <Input placeholder="FL-007" value={form.name} onChange={(e) => set("name", e.target.value)} />
+            </div>
+
+            {/* Manufacturer */}
+            <div className="space-y-1.5">
+              <Label>Manufacturer</Label>
+              {hasModels ? (
+                <Select value={form.manufacturer} onValueChange={handleManufacturerChange}>
+                  <SelectTrigger><SelectValue placeholder="Select manufacturer" /></SelectTrigger>
+                  <SelectContent>
+                    {manufacturers.map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input placeholder="Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} />
+              )}
+            </div>
+
+            {/* Model */}
+            <div className="space-y-1.5">
+              <Label>Model *</Label>
+              {hasModels ? (
+                <Select value={form.model} onValueChange={handleModelChange} disabled={!form.manufacturer}>
+                  <SelectTrigger><SelectValue placeholder={form.manufacturer ? "Select model" : "Pick manufacturer first"} /></SelectTrigger>
+                  <SelectContent>
+                    {filteredModels.map((m) => (
+                      <SelectItem key={m.id} value={m.model}>{m.model}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input placeholder="H50" value={form.model} onChange={(e) => set("model", e.target.value)} />
+              )}
+              {!hasModels && (
+                <p className="text-xs text-muted-foreground">Tip: Configure models in Equipment Config to use dropdowns here.</p>
+              )}
+            </div>
+
+            {/* Year */}
+            <div className="space-y-1.5">
+              <Label>Year</Label>
+              <Input type="number" placeholder="2023" value={form.year} onChange={(e) => set("year", e.target.value)} />
+            </div>
+
+            {/* Capacity */}
+            <div className="space-y-1.5">
+              <Label>Capacity (kg)</Label>
+              <Input type="number" placeholder="2500" value={form.capacity_kg} onChange={(e) => set("capacity_kg", e.target.value)} />
+            </div>
+
+            {/* Mast Height */}
+            <div className="space-y-1.5">
+              <Label>Mast Height (m)</Label>
+              <Input type="number" placeholder="4.5" value={form.mast_height_m} onChange={(e) => set("mast_height_m", e.target.value)} />
+            </div>
+
+            {/* Serial Number */}
+            <div className="space-y-1.5">
+              <Label>Serial Number</Label>
+              <Input placeholder="HY-2023-007" value={form.serial_number} onChange={(e) => set("serial_number", e.target.value)} />
+            </div>
+
+            {/* Fuel Type */}
             <div className="space-y-1.5">
               <Label>Fuel Type</Label>
               <Select value={form.fuel_type} onValueChange={(v) => set("fuel_type", v)}>
@@ -137,6 +215,7 @@ export default function ForkliftForm() {
                 </SelectContent>
               </Select>
             </div>
+
             {!isEdit && (
               <div className="space-y-1.5">
                 <Label>Initial Status</Label>

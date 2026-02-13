@@ -104,6 +104,39 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_models: {
+        Row: {
+          created_at: string
+          default_capacity_kg: number | null
+          default_fuel_type: string
+          default_mast_height_m: number | null
+          id: string
+          manufacturer: string
+          model: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_capacity_kg?: number | null
+          default_fuel_type?: string
+          default_mast_height_m?: number | null
+          id?: string
+          manufacturer: string
+          model: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_capacity_kg?: number | null
+          default_fuel_type?: string
+          default_mast_height_m?: number | null
+          id?: string
+          manufacturer?: string
+          model?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       forklifts: {
         Row: {
           capacity_kg: number | null

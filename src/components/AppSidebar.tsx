@@ -1,4 +1,4 @@
-import { LayoutDashboard, Truck, CalendarDays, PlusCircle, Users, Wrench, BookOpen, Receipt } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, PlusCircle, Users, Wrench, BookOpen, Receipt, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -21,6 +21,7 @@ const navItems = [
   { title: "Invoices", url: "/invoices", icon: Receipt },
   { title: "Maintenance", url: "/maintenance", icon: Wrench },
   { title: "Add Forklift", url: "/fleet/new", icon: PlusCircle },
+  { title: "Equipment Config", url: "/settings/equipment", icon: Settings },
 ];
 
 export function AppSidebar() {
