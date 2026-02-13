@@ -45,7 +45,7 @@ export default function BookingForm() {
     );
   };
 
-  const availableForklifts = forklifts?.filter((f) => f.status === "available" || f.status === "rented");
+  const availableForklifts = forklifts?.filter((f) => f.status === "available");
 
   return (
     <div className="p-6 max-w-3xl">
