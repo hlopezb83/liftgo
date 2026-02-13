@@ -13,6 +13,9 @@ import CalendarPage from "./pages/CalendarPage";
 import BookingForm from "./pages/BookingForm";
 import CustomersPage from "./pages/CustomersPage";
 import MaintenancePage from "./pages/MaintenancePage";
+import InvoicesPage from "./pages/InvoicesPage";
+import InvoiceForm from "./pages/InvoiceForm";
+import InvoiceDetail from "./pages/InvoiceDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,10 @@ const App = () => (
                 <Route path="/bookings/new" element={<BookingForm />} />
                 <Route path="/customers" element={<CustomersPage />} />
                 <Route path="/maintenance" element={<MaintenancePage />} />
+                <Route path="/invoices" element={<InvoicesPage />} />
+                <Route path="/invoices/new" element={<InvoiceForm />} />
+                <Route path="/invoices/:id" element={<InvoiceDetail />} />
+                <Route path="/invoices/:id/edit" element={<InvoiceForm />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
