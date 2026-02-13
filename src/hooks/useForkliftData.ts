@@ -69,12 +69,20 @@ export function useDeleteForklift() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      // Delete related records first
       await supabase.from("status_logs").delete().eq("forklift_id", id);
       await supabase.from("maintenance_logs").delete().eq("forklift_id", id);
       await supabase.from("bookings").delete().eq("forklift_id", id);
       const { error } = await supabase.from("forklifts").delete().eq("id", id);
       if (error) throw error;
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["forklifts"] });
+      const previous = qc.getQueryData<Forklift[]>(["forklifts"]);
+      qc.setQueryData<Forklift[]>(["forklifts"], (old) => old?.filter((f) => f.id !== id));
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) qc.setQueryData(["forklifts"], context.previous);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["forklifts"] }),
   });
