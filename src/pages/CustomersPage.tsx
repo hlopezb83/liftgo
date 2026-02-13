@@ -15,7 +15,7 @@ import { Search, PlusCircle, Edit } from "lucide-react";
 import { toast } from "sonner";
 
 const emptyCustomer = {
-  name: "", email: "", phone: "", company: "", address: "", notes: "",
+  name: "", email: "", phone: "", address: "", notes: "",
   tax_id: "", website: "", contact_person: "", billing_address: "",
 };
 
@@ -39,7 +39,7 @@ export default function CustomersPage() {
   const openEdit = (c: any) => {
     setEditId(c.id);
     setForm({
-      name: c.name, email: c.email || "", phone: c.phone || "", company: c.company || "",
+      name: c.name, email: c.email || "", phone: c.phone || "",
       address: c.address || "", notes: c.notes || "", tax_id: c.tax_id || "",
       website: c.website || "", contact_person: c.contact_person || "",
       billing_address: c.billing_address || "",
@@ -51,8 +51,8 @@ export default function CustomersPage() {
     e.preventDefault();
     if (!form.name) { toast.error("Name is required"); return; }
     const payload = {
-      name: form.name, email: form.email || null, phone: form.phone || null,
-      company: form.company || null, address: form.address || null, notes: form.notes || null,
+      name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
+      address: form.address || null, notes: form.notes || null,
       tax_id: form.tax_id || null, website: form.website || null,
       contact_person: form.contact_person || null, billing_address: form.billing_address || null,
     };
@@ -84,9 +84,9 @@ export default function CustomersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Company</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>Contact Person</TableHead>
                   <TableHead className="w-16"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -94,9 +94,9 @@ export default function CustomersPage() {
                 {filtered?.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell>{c.company || "—"}</TableCell>
                     <TableCell>{c.email || "—"}</TableCell>
                     <TableCell>{c.phone || "—"}</TableCell>
+                    <TableCell>{c.contact_person || "—"}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>
                     </TableCell>
@@ -116,12 +116,11 @@ export default function CustomersPage() {
             {/* Identity */}
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Identity</p>
-              <div className="space-y-1.5">
-                <Label>Name *</Label>
-                <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="John Doe" />
-              </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5"><Label>Company</Label><Input value={form.company} onChange={(e) => set("company", e.target.value)} placeholder="ABC Construction" /></div>
+                <div className="space-y-1.5">
+                  <Label>Name / Company *</Label>
+                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="ABC Construction" />
+                </div>
                 <div className="space-y-1.5"><Label>Tax / VAT ID</Label><Input value={form.tax_id} onChange={(e) => set("tax_id", e.target.value)} placeholder="DE123456789" /></div>
               </div>
             </div>
