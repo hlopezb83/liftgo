@@ -8,13 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, Wrench, CalendarIcon } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { TableSkeleton } from "@/components/TableSkeleton";
+import { EmptyRow } from "@/components/EmptyRow";
+import { DatePickerField } from "@/components/DatePickerField";
+import { FormActions } from "@/components/FormActions";
+import { PlusCircle, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 const SERVICE_TYPES = ["Routine Inspection", "Oil Change", "Battery Service", "Tire Replacement", "Hydraulic Repair", "Brake Service", "Electrical Repair", "Other"];
 
@@ -40,20 +41,14 @@ export default function MaintenancePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!forkliftId || !serviceType) { toast.error("Forklift and service type are required"); return; }
-
     createLog.mutate(
       {
-        forklift_id: forkliftId,
-        service_type: serviceType,
-        description: description || null,
-        cost: cost ? parseFloat(cost) : 0,
-        performed_by: performedBy || null,
+        forklift_id: forkliftId, service_type: serviceType, description: description || null,
+        cost: cost ? parseFloat(cost) : 0, performed_by: performedBy || null,
         performed_at: format(performedAt, "yyyy-MM-dd"),
         next_service_date: nextServiceDate ? format(nextServiceDate, "yyyy-MM-dd") : null,
       },
-      {
-        onSuccess: () => { toast.success("Maintenance log added"); setDialogOpen(false); resetForm(); },
-      }
+      { onSuccess: () => { toast.success("Maintenance log added"); setDialogOpen(false); resetForm(); } }
     );
   };
 
@@ -61,30 +56,20 @@ export default function MaintenancePage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Maintenance</h1>
-          <p className="text-muted-foreground text-sm">{logs?.length || 0} service records — ${totalCost.toLocaleString()} total cost</p>
-        </div>
-        <Button onClick={() => { resetForm(); setDialogOpen(true); }} size="sm">
-          <PlusCircle className="h-4 w-4 mr-1" /> Log Service
-        </Button>
-      </div>
+      <PageHeader
+        title="Maintenance"
+        subtitle={`${logs?.length || 0} service records — $${totalCost.toLocaleString()} total cost`}
+        action={<Button onClick={() => { resetForm(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Log Service</Button>}
+      />
 
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-6 space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-12" />)}</div>
-          ) : (
+          {isLoading ? <TableSkeleton /> : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Forklift</TableHead>
-                  <TableHead>Service Type</TableHead>
-                  <TableHead>Performed By</TableHead>
-                  <TableHead className="text-right">Cost</TableHead>
-                  <TableHead>Next Service</TableHead>
+                  <TableHead>Date</TableHead><TableHead>Forklift</TableHead><TableHead>Service Type</TableHead>
+                  <TableHead>Performed By</TableHead><TableHead className="text-right">Cost</TableHead><TableHead>Next Service</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -98,11 +83,7 @@ export default function MaintenancePage() {
                     <TableCell className="text-sm text-muted-foreground">{log.next_service_date || "—"}</TableCell>
                   </TableRow>
                 ))}
-                {(!logs || logs.length === 0) && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">No maintenance records yet</TableCell>
-                  </TableRow>
-                )}
+                {(!logs || logs.length === 0) && <EmptyRow colSpan={6} message="No maintenance records yet" />}
               </TableBody>
             </Table>
           )}
@@ -111,30 +92,20 @@ export default function MaintenancePage() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" /> Log Maintenance</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" /> Log Maintenance</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Forklift *</Label>
               <Select value={forkliftId} onValueChange={setForkliftId}>
                 <SelectTrigger><SelectValue placeholder="Select forklift" /></SelectTrigger>
-                <SelectContent>
-                  {forklifts?.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>
-                  ))}
-                </SelectContent>
+                <SelectContent>{forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Service Type *</Label>
               <Select value={serviceType} onValueChange={setServiceType}>
                 <SelectTrigger><SelectValue placeholder="Select service type" /></SelectTrigger>
-                <SelectContent>
-                  {SERVICE_TYPES.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
+                <SelectContent>{SERVICE_TYPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
@@ -142,49 +113,14 @@ export default function MaintenancePage() {
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details about the service..." rows={3} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Cost ($)</Label>
-                <Input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Performed By</Label>
-                <Input value={performedBy} onChange={(e) => setPerformedBy(e.target.value)} placeholder="Technician name" />
-              </div>
+              <div className="space-y-1.5"><Label>Cost ($)</Label><Input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0" /></div>
+              <div className="space-y-1.5"><Label>Performed By</Label><Input value={performedBy} onChange={(e) => setPerformedBy(e.target.value)} placeholder="Technician name" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Service Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(performedAt, "PPP")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={performedAt} onSelect={(d) => d && setPerformedAt(d)} initialFocus className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Next Service Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !nextServiceDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {nextServiceDate ? format(nextServiceDate, "PPP") : "Optional"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={nextServiceDate} onSelect={setNextServiceDate} initialFocus className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <DatePickerField label="Service Date" date={performedAt} onSelect={(d) => d && setPerformedAt(d)} />
+              <DatePickerField label="Next Service Date" date={nextServiceDate} onSelect={setNextServiceDate} placeholder="Optional" />
             </div>
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={createLog.isPending}>Add Log</Button>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            </div>
+            <FormActions submitLabel="Add Log" isPending={createLog.isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
       </Dialog>

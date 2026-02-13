@@ -1,18 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useForklifts } from "@/hooks/useForkliftData";
-import { useCustomers, useCreateBooking } from "@/hooks/useForkliftData";
+import { useForklifts, useCustomers, useCreateBooking } from "@/hooks/useForkliftData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, CalendarIcon } from "lucide-react";
+import { DatePickerField } from "@/components/DatePickerField";
+import { FormActions } from "@/components/FormActions";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 export default function BookingForm() {
   const navigate = useNavigate();
@@ -29,17 +27,10 @@ export default function BookingForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forkliftId || !startDate || !endDate) {
-      toast.error("Forklift, start date, and end date are required");
-      return;
-    }
-    if (endDate < startDate) {
-      toast.error("End date must be after start date");
-      return;
-    }
+    if (!forkliftId || !startDate || !endDate) { toast.error("Forklift, start date, and end date are required"); return; }
+    if (endDate < startDate) { toast.error("End date must be after start date"); return; }
 
     const selectedCustomer = customers?.find((c) => c.id === customerId);
-
     createBooking.mutate(
       {
         forklift_id: forkliftId,
@@ -50,12 +41,7 @@ export default function BookingForm() {
         customer_id: customerId || null,
         status: "confirmed",
       },
-      {
-        onSuccess: () => {
-          toast.success("Booking created");
-          navigate("/calendar");
-        },
-      }
+      { onSuccess: () => { toast.success("Booking created"); navigate("/calendar"); } }
     );
   };
 
@@ -64,9 +50,7 @@ export default function BookingForm() {
   return (
     <div className="p-6 max-w-3xl">
       <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
         <h1 className="text-2xl font-bold">New Booking</h1>
       </div>
 
@@ -85,36 +69,9 @@ export default function BookingForm() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Start Date *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-1.5">
-                <Label>End Date *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <DatePickerField label="Start Date" date={startDate} onSelect={setStartDate} required />
+              <DatePickerField label="End Date" date={endDate} onSelect={setEndDate} required />
             </div>
           </CardContent>
         </Card>
@@ -152,10 +109,7 @@ export default function BookingForm() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-3">
-          <Button type="submit" disabled={createBooking.isPending}>Create Booking</Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
-        </div>
+        <FormActions submitLabel="Create Booking" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
       </form>
     </div>
   );

@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useForklifts, useBookings } from "@/hooks/useForkliftData";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PageHeader } from "@/components/PageHeader";
 import { Truck, CheckCircle, Clock, Wrench } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,17 +55,11 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm">Fleet overview at a glance</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => navigate("/fleet/new")} size="sm">
-            Add Forklift
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Fleet overview at a glance"
+        action={<Button onClick={() => navigate("/fleet/new")} size="sm">Add Forklift</Button>}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => (

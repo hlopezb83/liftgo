@@ -1,6 +1,7 @@
 import { useBookings, useForklifts } from "@/hooks/useForkliftData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, eachDayOfInterval, isWithinInterval, parseISO, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { useState } from "react";
@@ -32,10 +33,7 @@ export default function CalendarPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Availability Calendar</h1>
-        <p className="text-muted-foreground text-sm">View bookings across your fleet</p>
-      </div>
+      <PageHeader title="Availability Calendar" subtitle="View bookings across your fleet" />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">

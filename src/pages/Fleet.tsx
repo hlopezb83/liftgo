@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useForklifts } from "@/hooks/useForkliftData";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PageHeader } from "@/components/PageHeader";
+import { TableSkeleton } from "@/components/TableSkeleton";
+import { EmptyRow } from "@/components/EmptyRow";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { Search, PlusCircle } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
@@ -27,15 +29,11 @@ export default function Fleet() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Fleet Inventory</h1>
-          <p className="text-muted-foreground text-sm">{forklifts?.length || 0} forklifts in fleet</p>
-        </div>
-        <Button onClick={() => navigate("/fleet/new")} size="sm">
-          <PlusCircle className="h-4 w-4 mr-1" /> Add Forklift
-        </Button>
-      </div>
+      <PageHeader
+        title="Fleet Inventory"
+        subtitle={`${forklifts?.length || 0} forklifts in fleet`}
+        action={<Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Add Forklift</Button>}
+      />
 
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
@@ -59,9 +57,7 @@ export default function Fleet() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12" />)}
-            </div>
+            <TableSkeleton />
           ) : (
             <Table>
               <TableHeader>
@@ -91,13 +87,7 @@ export default function Fleet() {
                     <TableCell className="text-right font-medium">${f.daily_rate || 0}/day</TableCell>
                   </TableRow>
                 ))}
-                {filtered?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
-                      No forklifts found
-                    </TableCell>
-                  </TableRow>
-                )}
+                {filtered?.length === 0 && <EmptyRow colSpan={7} message="No forklifts found" />}
               </TableBody>
             </Table>
           )}
