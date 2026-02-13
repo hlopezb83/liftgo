@@ -1,37 +1,31 @@
 
-# Enhance Customer Form
+# Fix: Forklift status not updating when booked
 
-## What changes
-Add four new fields to the customer record and improve the form layout for a more complete CRM experience.
+## Problem
+When a booking is created, the forklift's status stays "available" because the booking process never updates it. There are two issues:
 
-### New fields
+1. **The `useCreateBooking` mutation only inserts a booking row** -- it never changes the forklift status to "rented"
+2. **The forklift dropdown in the booking form shows both "available" and "rented" forklifts**, which is confusing
 
-| Field | Column name | Type | Required |
-|---|---|---|---|
-| Tax / VAT ID | `tax_id` | text | No |
-| Website | `website` | text | No |
-| Contact Person | `contact_person` | text | No |
-| Billing Address | `billing_address` | text | No |
+## Solution
 
-### Database
-A migration adds the four new nullable text columns to the `customers` table. No data is lost -- existing rows simply get `NULL` for the new fields.
+### 1. Update `useCreateBooking` hook (`src/hooks/useForkliftData.ts`)
+After inserting a booking, automatically:
+- Update the forklift's status to "rented"
+- Log the status change in `status_logs`
 
-### Customer form dialog (`CustomersPage.tsx`)
-The dialog form is reorganized into logical groups:
-- **Identity**: Name (required), Company, Tax/VAT ID
-- **Contact**: Contact Person, Email, Phone, Website
-- **Addresses**: Address, Billing Address
-- **Internal**: Notes (converted to a textarea for longer text)
+### 2. Fix the forklift filter in `BookingForm.tsx`
+- Only show forklifts with status "available" in the dropdown (not "rented")
+- This prevents double-booking
 
-### Customer table
-The table stays focused on the key columns (Name, Company, Email, Phone) to avoid clutter. The new fields are visible when editing a customer.
-
-### Data hooks
-The `useCreateCustomer` and `useUpdateCustomer` mutations in `useForkliftData.ts` are updated to include the four new fields in their payloads.
+### 3. Fix existing data
+- Run a one-time update to set FL-001's status to "rented" since it already has an active booking
 
 ## Technical details
 
 ### Files modified
-- **Database migration** -- `ALTER TABLE customers ADD COLUMN` for `tax_id`, `website`, `contact_person`, `billing_address`
-- **`src/hooks/useForkliftData.ts`** -- update create/update mutation payloads to include new fields
-- **`src/pages/CustomersPage.tsx`** -- expand the form state, add input fields in a grouped layout, and pass new fields through to mutations
+- **`src/hooks/useForkliftData.ts`** -- In `useCreateBooking`, after inserting the booking, call `supabase.from("forklifts").update({ status: "rented" })` and insert a status log entry
+- **`src/pages/BookingForm.tsx`** -- Change line 48 filter from `f.status === "available" || f.status === "rented"` to `f.status === "available"` only
+
+### Database fix
+- Update FL-001's status to "rented" to reflect its current booking
