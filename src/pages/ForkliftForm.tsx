@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormActions } from "@/components/FormActions";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -166,12 +167,7 @@ export default function ForkliftForm() {
           </CardContent>
         </Card>
 
-        <div className="flex gap-3">
-          <Button type="submit" disabled={create.isPending || update.isPending}>
-            {isEdit ? "Save Changes" : "Add Forklift"}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
-        </div>
+        <FormActions submitLabel={isEdit ? "Save Changes" : "Add Forklift"} isPending={create.isPending || update.isPending} onCancel={() => navigate(-1)} />
       </form>
     </div>
   );
