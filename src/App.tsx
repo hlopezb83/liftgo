@@ -16,6 +16,7 @@ import MaintenancePage from "./pages/MaintenancePage";
 import InvoicesPage from "./pages/InvoicesPage";
 import InvoiceForm from "./pages/InvoiceForm";
 import InvoiceDetail from "./pages/InvoiceDetail";
+import EquipmentConfigPage from "./pages/EquipmentConfigPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
                 <Route path="/invoices/new" element={<InvoiceForm />} />
                 <Route path="/invoices/:id" element={<InvoiceDetail />} />
                 <Route path="/invoices/:id/edit" element={<InvoiceForm />} />
+                <Route path="/settings/equipment" element={<EquipmentConfigPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
