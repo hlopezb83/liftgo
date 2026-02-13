@@ -12,11 +12,14 @@ import ForkliftForm from "./pages/ForkliftForm";
 import CalendarPage from "./pages/CalendarPage";
 import BookingForm from "./pages/BookingForm";
 import CustomersPage from "./pages/CustomersPage";
+import CustomerDetailPage from "./pages/CustomerDetailPage";
 import MaintenancePage from "./pages/MaintenancePage";
 import InvoicesPage from "./pages/InvoicesPage";
 import InvoiceForm from "./pages/InvoiceForm";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import EquipmentConfigPage from "./pages/EquipmentConfigPage";
+import ReturnInspectionPage from "./pages/ReturnInspectionPage";
+import DeliveriesPage from "./pages/DeliveriesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,11 +46,14 @@ const App = () => (
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings/new" element={<BookingForm />} />
                 <Route path="/customers" element={<CustomersPage />} />
+                <Route path="/customers/:id" element={<CustomerDetailPage />} />
                 <Route path="/maintenance" element={<MaintenancePage />} />
                 <Route path="/invoices" element={<InvoicesPage />} />
                 <Route path="/invoices/new" element={<InvoiceForm />} />
                 <Route path="/invoices/:id" element={<InvoiceDetail />} />
                 <Route path="/invoices/:id/edit" element={<InvoiceForm />} />
+                <Route path="/returns" element={<ReturnInspectionPage />} />
+                <Route path="/deliveries" element={<DeliveriesPage />} />
                 <Route path="/settings/equipment" element={<EquipmentConfigPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

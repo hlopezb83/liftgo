@@ -11,6 +11,7 @@ import { ArrowLeft, Edit, Truck, DollarSign, History, Trash2, CalendarDays, Wren
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { DocumentAttachments } from "@/components/DocumentAttachments";
 
 export default function ForkliftDetail() {
   const { id } = useParams();
@@ -227,6 +228,9 @@ export default function ForkliftDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Document attachments */}
+      {id && <DocumentAttachments entityType="forklift" entityId={id} />}
 
       {/* Status history */}
       <Card>
