@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useForklifts, useBookings } from "@/hooks/useForkliftData";
+import { useForklifts, useBookings, useInvoices } from "@/hooks/useForkliftData";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/PageHeader";
-import { Truck, CheckCircle, Clock, Wrench } from "lucide-react";
+import { Truck, CheckCircle, Clock, Wrench, Receipt } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ const STATUS_COLORS = {
 export default function Dashboard() {
   const { data: forklifts, isLoading } = useForklifts();
   const { data: bookings } = useBookings();
+  const { data: invoices } = useInvoices();
   const navigate = useNavigate();
 
   const counts = {
@@ -33,19 +34,22 @@ export default function Dashboard() {
     { name: "Maintenance", value: counts.maintenance, color: STATUS_COLORS.maintenance },
   ].filter((d) => d.value > 0);
 
+  const outstandingRevenue = invoices?.filter((i) => i.status !== "paid").reduce((sum, i) => sum + Number(i.total), 0) || 0;
+
   const statCards = [
     { label: "Total Fleet", value: counts.total, icon: Truck, color: "text-primary" },
     { label: "Available", value: counts.available, icon: CheckCircle, color: "text-status-available" },
     { label: "Rented", value: counts.rented, icon: Clock, color: "text-status-rented" },
     { label: "In Maintenance", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
+    { label: "Outstanding", value: `€${outstandingRevenue.toFixed(0)}`, icon: Receipt, color: "text-primary" },
   ];
 
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {[1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
         </div>
@@ -61,7 +65,7 @@ export default function Dashboard() {
         action={<Button onClick={() => navigate("/fleet/new")} size="sm">Add Forklift</Button>}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((card) => (
           <Card key={card.label} className="hover:shadow-md transition-shadow">
             <CardContent className="p-5 flex items-center gap-4">

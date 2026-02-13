@@ -6,6 +6,11 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   rented: { label: "Rented", className: "bg-status-rented text-white border-transparent" },
   maintenance: { label: "Maintenance", className: "bg-status-maintenance text-white border-transparent" },
   retired: { label: "Retired", className: "bg-status-retired text-white border-transparent" },
+  draft: { label: "Draft", className: "bg-muted text-muted-foreground border-transparent" },
+  sent: { label: "Sent", className: "bg-status-rented text-white border-transparent" },
+  paid: { label: "Paid", className: "bg-status-available text-white border-transparent" },
+  overdue: { label: "Overdue", className: "bg-destructive text-destructive-foreground border-transparent" },
+  confirmed: { label: "Confirmed", className: "bg-status-available text-white border-transparent" },
 };
 
 export function StatusBadge({ status }: { status: string }) {
