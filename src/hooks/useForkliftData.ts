@@ -143,9 +143,21 @@ export function useCreateBooking() {
     mutationFn: async (booking: TablesInsert<"bookings">) => {
       const { data, error } = await supabase.from("bookings").insert(booking).select().single();
       if (error) throw error;
+      // Update forklift status to "rented"
+      await supabase.from("forklifts").update({ status: "rented" }).eq("id", booking.forklift_id);
+      await supabase.from("status_logs").insert({
+        forklift_id: booking.forklift_id,
+        from_status: "available",
+        to_status: "rented",
+        note: "Booked",
+      });
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      qc.invalidateQueries({ queryKey: ["forklifts"] });
+      qc.invalidateQueries({ queryKey: ["status_logs"] });
+    },
   });
 }
 
