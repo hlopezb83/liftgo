@@ -20,7 +20,7 @@ const navItems = [
   { title: "Customers", url: "/customers", icon: Users },
   { title: "Invoices", url: "/invoices", icon: Receipt },
   { title: "Maintenance", url: "/maintenance", icon: Wrench },
-  { title: "Add Forklift", url: "/fleet/new", icon: PlusCircle },
+  
   { title: "Equipment Config", url: "/settings/equipment", icon: Settings },
 ];
 
