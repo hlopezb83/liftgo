@@ -1,53 +1,76 @@
 
-# Forklift Rental ERP — Fleet Management
 
-## Overview
-A modern, visual ERP system for managing a forklift rental fleet. Built with a real Supabase database for persistent data. Starting focused on fleet management with room to grow.
+# Refactor: Extract Shared Patterns into Reusable Components
+
+## Problem
+Several UI patterns are duplicated across pages: page headers, date pickers, table loading skeletons, empty table states, and form action buttons. Extracting these into shared components will reduce total lines of code significantly and improve consistency.
+
+## Changes
+
+### 1. New shared component: `DatePickerField`
+The calendar-popover date picker pattern is repeated 4 times (BookingForm x2, MaintenancePage x2). Extract into a single reusable component.
+
+**File:** `src/components/DatePickerField.tsx`
+
+### 2. New shared component: `PageHeader`
+Every page renders the same header block: title, subtitle, and optional action button. Extract into one component.
+
+**File:** `src/components/PageHeader.tsx`
+
+### 3. New shared component: `TableSkeleton`
+The loading skeleton pattern (3 rows of `Skeleton` inside a card) is used in Fleet, CustomersPage, and MaintenancePage. Consolidate.
+
+**File:** `src/components/TableSkeleton.tsx`
+
+### 4. New shared component: `EmptyRow`
+The "No X found" empty table row is repeated in Fleet, CustomersPage, MaintenancePage. Extract.
+
+**File:** `src/components/EmptyRow.tsx`
+
+### 5. New shared component: `FormActions`
+Submit + Cancel button pair is in ForkliftForm, BookingForm, CustomersPage, MaintenancePage.
+
+**File:** `src/components/FormActions.tsx`
+
+### 6. Refactor all pages to use new components
+- **Dashboard.tsx** -- use PageHeader
+- **Fleet.tsx** -- use PageHeader, TableSkeleton, EmptyRow
+- **ForkliftForm.tsx** -- use FormActions
+- **ForkliftDetail.tsx** -- no major changes (already concise)
+- **CalendarPage.tsx** -- use PageHeader
+- **BookingForm.tsx** -- use DatePickerField, FormActions
+- **CustomersPage.tsx** -- use PageHeader, TableSkeleton, EmptyRow, FormActions
+- **MaintenancePage.tsx** -- use PageHeader, TableSkeleton, EmptyRow, DatePickerField, FormActions
+
+### Estimated reduction
+Roughly 80-100 lines removed across pages by extracting ~60 lines of shared components. Net reduction of ~30-40 lines plus much better consistency and maintainability.
 
 ---
 
-## Pages & Features
+## Technical Details
 
-### 1. Dashboard
-- Overview cards showing key stats: total forklifts, currently rented, available, in maintenance
-- Visual charts (pie chart for fleet status breakdown, bar chart for rentals over time)
-- Quick-action buttons to add a forklift or log a status change
+### DatePickerField props
+```typescript
+{ label: string; date?: Date; onSelect: (d?: Date) => void; placeholder?: string; required?: boolean }
+```
 
-### 2. Fleet Inventory
-- Table/grid view of all forklifts with colorful status badges (Available = green, Rented = blue, Maintenance = orange, Retired = gray)
-- Each forklift shows: name/ID, model, capacity, fuel type, mast height, year, current status
-- Search and filter by status, model, or specs
-- Click a forklift to see its full detail page
+### PageHeader props
+```typescript
+{ title: string; subtitle?: string; action?: ReactNode }
+```
 
-### 3. Forklift Detail Page
-- Full specs card with all equipment details
-- Status history timeline
-- Rental pricing section (daily / weekly / monthly rates)
-- Edit forklift info and pricing inline
+### TableSkeleton props
+```typescript
+{ rows?: number }  // defaults to 3
+```
 
-### 4. Availability Calendar
-- Visual calendar view showing which forklifts are booked and when
-- Color-coded by status
-- Click a date range to see available forklifts for that period
+### EmptyRow props
+```typescript
+{ colSpan: number; message?: string }
+```
 
-### 5. Add/Edit Forklift Form
-- Form to add a new forklift or edit an existing one
-- Fields: name/ID, model, manufacturer, year, capacity, mast height, fuel type, serial number
-- Set rental rates (daily, weekly, monthly)
-- Set initial status
+### FormActions props
+```typescript
+{ submitLabel: string; isPending: boolean; onCancel: () => void }
+```
 
----
-
-## Database (Supabase)
-- **Forklifts table**: stores all forklift details, specs, and pricing
-- **Status log table**: tracks status changes over time (who changed it, when, from/to)
-- **Bookings table**: date ranges when a forklift is reserved/rented (for calendar view)
-
----
-
-## Design
-- Modern, visual style with a sidebar navigation
-- Colorful status badges and progress indicators
-- Charts on the dashboard using Recharts
-- Clean cards and tables with hover effects
-- Responsive layout for desktop use
