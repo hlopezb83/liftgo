@@ -10,6 +10,9 @@ import Fleet from "./pages/Fleet";
 import ForkliftDetail from "./pages/ForkliftDetail";
 import ForkliftForm from "./pages/ForkliftForm";
 import CalendarPage from "./pages/CalendarPage";
+import BookingForm from "./pages/BookingForm";
+import CustomersPage from "./pages/CustomersPage";
+import MaintenancePage from "./pages/MaintenancePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +37,9 @@ const App = () => (
                 <Route path="/fleet/:id" element={<ForkliftDetail />} />
                 <Route path="/fleet/:id/edit" element={<ForkliftForm />} />
                 <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/bookings/new" element={<BookingForm />} />
+                <Route path="/customers" element={<CustomersPage />} />
+                <Route path="/maintenance" element={<MaintenancePage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

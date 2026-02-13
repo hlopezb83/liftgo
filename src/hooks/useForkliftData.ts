@@ -5,6 +5,10 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 export type Forklift = Tables<"forklifts">;
 export type Booking = Tables<"bookings">;
 export type StatusLog = Tables<"status_logs">;
+export type Customer = Tables<"customers">;
+export type MaintenanceLog = Tables<"maintenance_logs">;
+
+// ─── Forklifts ────────────────────────────────────────
 
 export function useForklifts() {
   return useQuery({
@@ -29,42 +33,12 @@ export function useForklift(id: string | undefined) {
   });
 }
 
-export function useStatusLogs(forkliftId: string | undefined) {
-  return useQuery({
-    queryKey: ["status_logs", forkliftId],
-    enabled: !!forkliftId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("status_logs")
-        .select("*")
-        .eq("forklift_id", forkliftId!)
-        .order("changed_at", { ascending: false });
-      if (error) throw error;
-      return data as StatusLog[];
-    },
-  });
-}
-
-export function useBookings(forkliftId?: string) {
-  return useQuery({
-    queryKey: ["bookings", forkliftId],
-    queryFn: async () => {
-      let query = supabase.from("bookings").select("*, forklifts(name, model)").order("start_date");
-      if (forkliftId) query = query.eq("forklift_id", forkliftId);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-  });
-}
-
 export function useCreateForklift() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (forklift: TablesInsert<"forklifts">) => {
       const { data, error } = await supabase.from("forklifts").insert(forklift).select().single();
       if (error) throw error;
-      // Log initial status
       await supabase.from("status_logs").insert({
         forklift_id: data.id,
         to_status: forklift.status || "available",
@@ -95,27 +69,123 @@ export function useUpdateStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      forkliftId,
-      fromStatus,
-      toStatus,
-      note,
-    }: {
-      forkliftId: string;
-      fromStatus: string;
-      toStatus: string;
-      note?: string;
-    }) => {
+      forkliftId, fromStatus, toStatus, note,
+    }: { forkliftId: string; fromStatus: string; toStatus: string; note?: string }) => {
       await supabase.from("forklifts").update({ status: toStatus }).eq("id", forkliftId);
       await supabase.from("status_logs").insert({
-        forklift_id: forkliftId,
-        from_status: fromStatus,
-        to_status: toStatus,
-        note,
+        forklift_id: forkliftId, from_status: fromStatus, to_status: toStatus, note,
       });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["forklifts"] });
       qc.invalidateQueries({ queryKey: ["status_logs"] });
     },
+  });
+}
+
+// ─── Status Logs ──────────────────────────────────────
+
+export function useStatusLogs(forkliftId: string | undefined) {
+  return useQuery({
+    queryKey: ["status_logs", forkliftId],
+    enabled: !!forkliftId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("status_logs").select("*").eq("forklift_id", forkliftId!)
+        .order("changed_at", { ascending: false });
+      if (error) throw error;
+      return data as StatusLog[];
+    },
+  });
+}
+
+// ─── Bookings ─────────────────────────────────────────
+
+export function useBookings(forkliftId?: string) {
+  return useQuery({
+    queryKey: ["bookings", forkliftId],
+    queryFn: async () => {
+      let query = supabase.from("bookings").select("*, forklifts(name, model)").order("start_date");
+      if (forkliftId) query = query.eq("forklift_id", forkliftId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCreateBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (booking: TablesInsert<"bookings">) => {
+      const { data, error } = await supabase.from("bookings").insert(booking).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+}
+
+// ─── Customers ────────────────────────────────────────
+
+export function useCustomers() {
+  return useQuery({
+    queryKey: ["customers"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("customers").select("*").order("name");
+      if (error) throw error;
+      return data as Customer[];
+    },
+  });
+}
+
+export function useCreateCustomer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (customer: TablesInsert<"customers">) => {
+      const { data, error } = await supabase.from("customers").insert(customer).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+  });
+}
+
+export function useUpdateCustomer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: TablesUpdate<"customers"> & { id: string }) => {
+      const { data, error } = await supabase.from("customers").update(updates).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+  });
+}
+
+// ─── Maintenance Logs ─────────────────────────────────
+
+export function useMaintenanceLogs(forkliftId?: string) {
+  return useQuery({
+    queryKey: ["maintenance_logs", forkliftId],
+    queryFn: async () => {
+      let query = supabase.from("maintenance_logs").select("*").order("performed_at", { ascending: false });
+      if (forkliftId) query = query.eq("forklift_id", forkliftId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as MaintenanceLog[];
+    },
+  });
+}
+
+export function useCreateMaintenanceLog() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (log: TablesInsert<"maintenance_logs">) => {
+      const { data, error } = await supabase.from("maintenance_logs").insert(log).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["maintenance_logs"] }),
   });
 }
