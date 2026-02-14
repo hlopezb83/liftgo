@@ -30,7 +30,7 @@ export default function InvoiceForm() {
   const [customerName, setCustomerName] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
-  const [taxRate, setTaxRate] = useState(0);
+  const [taxRate, setTaxRate] = useState(16);
   const [dueDate, setDueDate] = useState<Date>();
   const [notes, setNotes] = useState("");
 
@@ -195,7 +195,7 @@ export default function InvoiceForm() {
                 <span className="font-mono w-28 text-right">{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex items-center gap-4 text-sm">
-                <span className="text-muted-foreground">Tax rate (%)</span>
+                <span className="text-muted-foreground">VAT rate (%)</span>
                 <Input type="number" step="0.1" min={0} value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value))} className="w-20 h-8 text-right" />
                 <span className="font-mono w-28 text-right">{formatCurrency(taxAmount)}</span>
               </div>

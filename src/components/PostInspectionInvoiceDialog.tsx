@@ -31,7 +31,7 @@ export function PostInspectionInvoiceDialog({
 }: PostInspectionInvoiceDialogProps) {
   const navigate = useNavigate();
   const createInvoice = useCreateInvoice();
-  const [taxRate, setTaxRate] = useState(21);
+  const [taxRate, setTaxRate] = useState(16);
 
   const rentalItems = generateLineItems(forklift, booking.start_date, booking.end_date);
   const allItems: LineItem[] = [
@@ -96,13 +96,13 @@ export function PostInspectionInvoiceDialog({
           </div>
 
           <div className="flex items-center gap-2">
-            <Label className="shrink-0">Tax %</Label>
+            <Label className="shrink-0">VAT %</Label>
             <Input type="number" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value))} className="w-20" />
           </div>
 
           <div className="border-t pt-2 space-y-1 text-sm">
             <div className="flex justify-between"><span>Subtotal</span><span className="font-mono">{formatCurrency(subtotal)}</span></div>
-            <div className="flex justify-between"><span>Tax ({taxRate}%)</span><span className="font-mono">{formatCurrency(taxAmount)}</span></div>
+            <div className="flex justify-between"><span>VAT ({taxRate}%)</span><span className="font-mono">{formatCurrency(taxAmount)}</span></div>
             <div className="flex justify-between font-semibold"><span>Total</span><span className="font-mono">{formatCurrency(total)}</span></div>
           </div>
         </div>

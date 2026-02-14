@@ -99,7 +99,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.text(`€${Number(invoice.subtotal).toFixed(2)}`, pw - mg, y, { align: "right" });
 
       y += 7;
-      doc.text(`Tax (${invoice.tax_rate}%):`, pw - mg - 50, y, { align: "right" });
+      doc.text(`VAT (${invoice.tax_rate}%):`, pw - mg - 50, y, { align: "right" });
       doc.text(`€${Number(invoice.tax_amount).toFixed(2)}`, pw - mg, y, { align: "right" });
 
       y += 4;
