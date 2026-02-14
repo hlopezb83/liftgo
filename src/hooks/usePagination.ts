@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
+import { APP_CONFIG } from "@/lib/config";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = APP_CONFIG.PAGE_SIZE;
 
 export function usePagination<T>(items: T[] | undefined) {
   const [page, setPage] = useState(1);
