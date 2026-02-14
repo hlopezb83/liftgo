@@ -122,7 +122,7 @@ export default function InvoiceForm() {
                 <Select value={bookingId} onValueChange={handleBookingSelect}>
                   <SelectTrigger><SelectValue placeholder="Select a booking (optional)" /></SelectTrigger>
                   <SelectContent>
-                    {bookings?.map((b) => (
+                    {bookings?.filter((b) => b.status === "confirmed").map((b) => (
                       <SelectItem key={b.id} value={b.id}>
                         {b.forklifts?.name} — {b.customer_name || "No customer"} ({b.start_date} → {b.end_date})
                       </SelectItem>
