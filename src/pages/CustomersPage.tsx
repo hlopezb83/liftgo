@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useForkliftData";
+import type { Customer } from "@/hooks/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +39,7 @@ export default function CustomersPage() {
 
   const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
   const openCreate = () => { setEditId(null); setForm(emptyCustomer); setDialogOpen(true); };
-  const openEdit = (c: any) => {
+  const openEdit = (c: Customer) => {
     setEditId(c.id);
     setForm({
       name: c.name, email: c.email || "", phone: c.phone || "",

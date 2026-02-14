@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useForkliftData";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
@@ -73,7 +74,7 @@ export default function InvoicesPage() {
                   <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${inv.id}`)}>
                     <TableCell className="font-medium">{inv.invoice_number}</TableCell>
                     <TableCell>{inv.customer_name || "—"}</TableCell>
-                    <TableCell className="text-right font-mono">€{Number(inv.total).toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">{formatCurrency(Number(inv.total))}</TableCell>
                     <TableCell><StatusBadge status={inv.status} /></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{inv.issued_at}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{inv.due_date || "—"}</TableCell>

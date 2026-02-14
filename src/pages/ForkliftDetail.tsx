@@ -12,6 +12,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 export default function ForkliftDetail() {
   const { id } = useParams();
@@ -128,9 +129,9 @@ export default function ForkliftDetail() {
             <CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4" /> Rental Rates</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Daily</span><span className="font-semibold">${forklift.daily_rate || 0}</span></div>
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Weekly</span><span className="font-semibold">${forklift.weekly_rate || 0}</span></div>
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Monthly</span><span className="font-semibold">${forklift.monthly_rate || 0}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Daily</span><span className="font-semibold">{formatCurrency(forklift.daily_rate || 0)}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Weekly</span><span className="font-semibold">{formatCurrency(forklift.weekly_rate || 0)}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Monthly</span><span className="font-semibold">{formatCurrency(forklift.monthly_rate || 0)}</span></div>
           </CardContent>
         </Card>
       </div>
@@ -183,7 +184,7 @@ export default function ForkliftDetail() {
         <CardContent>
           {bookings && bookings.length > 0 ? (
             <div className="space-y-2">
-              {bookings.map((b: any) => (
+              {bookings.map((b) => (
                 <div key={b.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
                   <div>
                     <span className="font-medium">{b.customer_name || "Unknown"}</span>
@@ -218,7 +219,7 @@ export default function ForkliftDetail() {
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs text-muted-foreground">{format(new Date(m.performed_at), "MMM d, yyyy")}</span>
-                    {m.cost ? <p className="text-xs font-medium">${m.cost}</p> : null}
+                    {m.cost ? <p className="text-xs font-medium">{formatCurrency(m.cost)}</p> : null}
                   </div>
                 </div>
               ))}

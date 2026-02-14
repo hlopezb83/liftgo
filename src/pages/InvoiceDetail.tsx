@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useInvoice, useUpdateInvoice } from "@/hooks/useForkliftData";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -87,8 +88,8 @@ export default function InvoiceDetail() {
                 <TableRow key={idx}>
                   <TableCell>{item.description}</TableCell>
                   <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right font-mono">€{Number(item.unit_price).toFixed(2)}</TableCell>
-                  <TableCell className="text-right font-mono">€{Number(item.total).toFixed(2)}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrency(Number(item.unit_price))}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrency(Number(item.total))}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -101,15 +102,15 @@ export default function InvoiceDetail() {
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-4 text-sm">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-mono w-28 text-right">€{Number(invoice.subtotal).toFixed(2)}</span>
+              <span className="font-mono w-28 text-right">{formatCurrency(Number(invoice.subtotal))}</span>
             </div>
             <div className="flex items-center gap-4 text-sm">
               <span className="text-muted-foreground">Tax ({Number(invoice.tax_rate)}%)</span>
-              <span className="font-mono w-28 text-right">€{Number(invoice.tax_amount).toFixed(2)}</span>
+              <span className="font-mono w-28 text-right">{formatCurrency(Number(invoice.tax_amount))}</span>
             </div>
             <div className="flex items-center gap-4 text-base font-bold border-t pt-2">
               <span>Total</span>
-              <span className="font-mono w-28 text-right">€{Number(invoice.total).toFixed(2)}</span>
+              <span className="font-mono w-28 text-right">{formatCurrency(Number(invoice.total))}</span>
             </div>
           </div>
         </CardContent>
