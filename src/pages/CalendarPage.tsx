@@ -29,6 +29,17 @@ export default function CalendarPage() {
 
   const forkliftMap = useMemo(() => new Map(forklifts?.map((f) => [f.id, f])), [forklifts]);
 
+  // Pre-index bookings by forklift_id for O(1) lookups
+  const bookingsByForklift = useMemo(() => {
+    const map = new Map<string, BookingWithForklift[]>();
+    bookings?.forEach((b) => {
+      const list = map.get(b.forklift_id);
+      if (list) list.push(b);
+      else map.set(b.forklift_id, [b]);
+    });
+    return map;
+  }, [bookings]);
+
   const endingSoon = useMemo(() => {
     if (!bookings) return [];
     return bookings.filter((b) => {
@@ -99,9 +110,8 @@ export default function CalendarPage() {
                 </div>
                 <div className="flex-1 flex">
                   {days.map((day) => {
-                    const booking = bookings?.find(
+                    const booking = bookingsByForklift.get(fl.id)?.find(
                       (b) =>
-                        b.forklift_id === fl.id &&
                         isWithinInterval(day, {
                           start: parseISO(b.start_date),
                           end: parseISO(b.end_date),
