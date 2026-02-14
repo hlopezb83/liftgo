@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CustomerSelector } from "@/components/CustomerSelector";
 import { DatePickerField } from "@/components/DatePickerField";
+import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { ArrowLeft } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -30,8 +32,7 @@ export default function QuoteForm() {
   const [forkliftId, setForkliftId] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [taxRate, setTaxRate] = useState("16");
   const [notes, setNotes] = useState("");
   const [validUntil, setValidUntil] = useState<Date>();
@@ -41,8 +42,7 @@ export default function QuoteForm() {
       setForkliftId(existingQuote.forklift_id || "");
       setCustomerId(existingQuote.customer_id || "");
       setCustomerName(existingQuote.customer_name || "");
-      setStartDate(new Date(existingQuote.start_date));
-      setEndDate(new Date(existingQuote.end_date));
+      setDateRange({ from: new Date(existingQuote.start_date), to: new Date(existingQuote.end_date) });
       setTaxRate(String(existingQuote.tax_rate));
       setNotes(existingQuote.notes || "");
       setValidUntil(existingQuote.valid_until ? new Date(existingQuote.valid_until) : undefined);
@@ -52,6 +52,8 @@ export default function QuoteForm() {
   }, [existingQuote]);
 
   const forklift = forklifts?.find((f) => f.id === forkliftId);
+  const startDate = dateRange?.from;
+  const endDate = dateRange?.to;
   const lineItems: LineItem[] = useMemo(() => {
     if (!forklift || !startDate || !endDate) return [];
     return generateLineItems(forklift, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
@@ -103,10 +105,7 @@ export default function QuoteForm() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DatePickerField label="Start Date *" date={startDate} onSelect={setStartDate} required />
-              <DatePickerField label="End Date *" date={endDate} onSelect={setEndDate} required />
-            </div>
+            <DateRangePickerField label="Rental Period" dateRange={dateRange} onSelect={setDateRange} required />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>VAT Rate (%)</Label>
