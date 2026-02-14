@@ -49,10 +49,12 @@ export default function ForkliftDetail() {
   };
 
   const handleDelete = () => {
-    navigate("/fleet");
-    toast.success("Forklift deleted");
     deleteForklift.mutate(forklift.id, {
-      onError: () => toast.error("Delete failed — the forklift may still exist"),
+      onSuccess: () => {
+        toast.success("Forklift deleted");
+        navigate("/fleet");
+      },
+      onError: () => toast.error("Delete failed"),
     });
   };
 

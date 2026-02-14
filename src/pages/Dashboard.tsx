@@ -2,7 +2,6 @@ import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/ho
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { AlertsRow } from "@/components/dashboard/AlertsRow";
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
@@ -38,20 +37,22 @@ export default function Dashboard() {
   const { data: maintenanceLogs } = useMaintenanceLogs();
   const navigate = useNavigate();
 
-  const counts = {
+  const counts = useMemo(() => ({
     total: forklifts?.length || 0,
     available: forklifts?.filter((f) => f.status === "available").length || 0,
     rented: forklifts?.filter((f) => f.status === "rented").length || 0,
     maintenance: forklifts?.filter((f) => f.status === "maintenance").length || 0,
-  };
+  }), [forklifts]);
 
-  const pieData = [
+  const pieData = useMemo(() => [
     { name: "Available", value: counts.available, color: STATUS_COLORS.available },
     { name: "Rented", value: counts.rented, color: STATUS_COLORS.rented },
     { name: "Maintenance", value: counts.maintenance, color: STATUS_COLORS.maintenance },
-  ].filter((d) => d.value > 0);
+  ].filter((d) => d.value > 0), [counts]);
 
-  const outstandingRevenue = invoices?.filter((i) => i.status !== "paid").reduce((sum, i) => sum + Number(i.total), 0) || 0;
+  const outstandingRevenue = useMemo(() =>
+    invoices?.filter((i) => i.status !== "paid").reduce((sum, i) => sum + Number(i.total), 0) || 0
+  , [invoices]);
 
   const overdueInvoices = useMemo(() => {
     if (!invoices) return [];
@@ -147,13 +148,13 @@ export default function Dashboard() {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).slice(-6).map(([, data]) => data);
   }, [invoices]);
 
-  const statCards = [
+  const statCards = useMemo(() => [
     { label: "Total Fleet", value: counts.total, icon: Truck, color: "text-primary" },
     { label: "Available", value: counts.available, icon: CheckCircle, color: "text-status-available" },
     { label: "Rented", value: counts.rented, icon: Clock, color: "text-status-rented" },
     { label: "In Maintenance", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
     { label: "Outstanding", value: formatCurrency(outstandingRevenue), icon: Receipt, color: "text-primary" },
-  ];
+  ], [counts, outstandingRevenue]);
 
   if (isLoading) {
     return (

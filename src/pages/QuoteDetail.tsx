@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { TotalsSummary } from "@/components/TotalsSummary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -52,7 +53,7 @@ export default function QuoteDetail() {
   if (isLoading) return <div className="p-6"><Skeleton className="h-64" /></div>;
   if (!quote) return <div className="p-6 text-muted-foreground">Quote not found</div>;
 
-  const lineItems = (quote.line_items as LineItem[]) || [];
+  const lineItems = (quote.line_items as unknown as LineItem[]) || [];
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -125,24 +126,12 @@ export default function QuoteDetail() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-mono w-28 text-right">{formatCurrency(quote.subtotal)}</span>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-muted-foreground">Tax ({quote.tax_rate}%)</span>
-              <span className="font-mono w-28 text-right">{formatCurrency(quote.tax_amount)}</span>
-            </div>
-            <div className="flex items-center gap-4 text-base font-bold border-t pt-2">
-              <span>Total</span>
-              <span className="font-mono w-28 text-right">{formatCurrency(quote.total)}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <TotalsSummary
+        subtotal={quote.subtotal}
+        taxRate={quote.tax_rate}
+        taxAmount={quote.tax_amount}
+        total={quote.total}
+      />
 
       {quote.notes && (
         <Card>

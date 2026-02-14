@@ -1,21 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-export type DamageRecord = {
-  id: string;
-  inspection_id: string | null;
-  forklift_id: string;
-  booking_id: string | null;
-  customer_id: string | null;
-  description: string;
-  estimated_cost: number;
-  actual_cost: number;
-  status: string;
-  maintenance_log_id: string | null;
-  invoice_id: string | null;
-  created_at: string;
-  updated_at: string;
-};
+export type DamageRecord = Tables<"damage_records">;
 
 export function useDamageRecords() {
   return useQuery({
@@ -26,7 +13,7 @@ export function useDamageRecords() {
         .select("*, forklifts(name, model), customers(name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as (DamageRecord & { forklifts: { name: string; model: string } | null; customers: { name: string } | null })[];
+      return data;
     },
   });
 }
@@ -34,8 +21,8 @@ export function useDamageRecords() {
 export function useCreateDamageRecord() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (record: Partial<DamageRecord>) => {
-      const { data, error } = await supabase.from("damage_records").insert(record as any).select().single();
+    mutationFn: async (record: TablesInsert<"damage_records">) => {
+      const { data, error } = await supabase.from("damage_records").insert(record).select().single();
       if (error) throw error;
       return data;
     },
@@ -46,7 +33,7 @@ export function useCreateDamageRecord() {
 export function useUpdateDamageRecord() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+    mutationFn: async ({ id, ...updates }: TablesUpdate<"damage_records"> & { id: string }) => {
       const { data, error } = await supabase.from("damage_records").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
