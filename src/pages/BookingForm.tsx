@@ -2,10 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { useForklifts, useCustomers, useCreateBooking, useBookings, useMaintenanceLogs } from "@/hooks/useForkliftData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { CustomerSelector } from "@/components/CustomerSelector";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
@@ -130,38 +130,15 @@ export default function BookingForm() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader><CardTitle className="text-base">Customer</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {customers && customers.length > 0 && (
-              <div className="space-y-1.5">
-                <Label>Select Existing Customer</Label>
-                <Select value={customerId} onValueChange={(v) => {
-                  setCustomerId(v);
-                  const c = customers.find((c) => c.id === v);
-                  if (c) { setCustomerName(c.name); setCustomerContact(c.email || ""); }
-                }}>
-                  <SelectTrigger><SelectValue placeholder="Choose a customer (optional)" /></SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` — ${c.company}` : ""}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Customer Name</Label>
-                <Input placeholder="Company or person name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Contact</Label>
-                <Input placeholder="Email or phone" value={customerContact} onChange={(e) => setCustomerContact(e.target.value)} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <CustomerSelector
+          customers={customers}
+          customerId={customerId}
+          customerName={customerName}
+          onCustomerIdChange={setCustomerId}
+          onCustomerNameChange={setCustomerName}
+          customerContact={customerContact}
+          onCustomerContactChange={setCustomerContact}
+        />
 
         <FormActions submitLabel="Create Booking" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
       </form>

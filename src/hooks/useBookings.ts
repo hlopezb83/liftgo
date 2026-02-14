@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Booking = Tables<"bookings">;
 export type BookingWithForklift = Booking & {
@@ -46,7 +46,7 @@ export function useCreateBooking() {
 export function useUpdateBooking() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+    mutationFn: async ({ id, ...updates }: TablesUpdate<"bookings"> & { id: string }) => {
       const { data, error } = await supabase.from("bookings").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;

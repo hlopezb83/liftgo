@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CustomerSelector } from "@/components/CustomerSelector";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { ArrowLeft } from "lucide-react";
@@ -69,7 +70,7 @@ export default function QuoteForm() {
       forklift_id: forkliftId,
       start_date: format(startDate, "yyyy-MM-dd"),
       end_date: format(endDate, "yyyy-MM-dd"),
-      line_items: lineItems,
+      line_items: lineItems as any,
       subtotal, tax_rate: Number(taxRate), tax_amount: taxAmount, total,
       status: existingQuote?.status || "draft",
       valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
@@ -116,30 +117,13 @@ export default function QuoteForm() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader><CardTitle className="text-base">Customer</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {customers && customers.length > 0 && (
-              <div className="space-y-1.5">
-                <Label>Existing Customer</Label>
-                <Select value={customerId} onValueChange={(v) => {
-                  setCustomerId(v);
-                  const c = customers.find((c) => c.id === v);
-                  if (c) setCustomerName(c.name);
-                }}>
-                  <SelectTrigger><SelectValue placeholder="Choose customer (optional)" /></SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` — ${c.company}` : ""}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <Label>Customer Name</Label>
-              <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Customer name" />
-            </div>
-          </CardContent>
-        </Card>
+        <CustomerSelector
+          customers={customers}
+          customerId={customerId}
+          customerName={customerName}
+          onCustomerIdChange={setCustomerId}
+          onCustomerNameChange={setCustomerName}
+        />
 
         {lineItems.length > 0 && (
           <Card>

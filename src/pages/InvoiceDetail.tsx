@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useInvoice, useUpdateInvoice } from "@/hooks/useForkliftData";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { TotalsSummary } from "@/components/TotalsSummary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -99,24 +100,12 @@ export default function InvoiceDetail() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-mono w-28 text-right">{formatCurrency(Number(invoice.subtotal))}</span>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-muted-foreground">Tax ({Number(invoice.tax_rate)}%)</span>
-              <span className="font-mono w-28 text-right">{formatCurrency(Number(invoice.tax_amount))}</span>
-            </div>
-            <div className="flex items-center gap-4 text-base font-bold border-t pt-2">
-              <span>Total</span>
-              <span className="font-mono w-28 text-right">{formatCurrency(Number(invoice.total))}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <TotalsSummary
+        subtotal={Number(invoice.subtotal)}
+        taxRate={Number(invoice.tax_rate)}
+        taxAmount={Number(invoice.tax_amount)}
+        total={Number(invoice.total)}
+      />
 
       {invoice.notes && (
         <Card>

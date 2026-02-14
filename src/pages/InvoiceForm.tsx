@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 export default function InvoiceForm() {
   const { id } = useParams();
@@ -170,7 +171,7 @@ export default function InvoiceForm() {
                     <TableCell>
                       <Input type="number" step="0.01" min={0} value={item.unit_price} onChange={(e) => updateItem(idx, "unit_price", Number(e.target.value))} className="h-8" />
                     </TableCell>
-                    <TableCell className="text-right font-mono">€{item.total.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">{formatCurrency(item.total)}</TableCell>
                     <TableCell>
                       <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeItem(idx)}>
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
@@ -191,16 +192,16 @@ export default function InvoiceForm() {
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-mono w-28 text-right">€{subtotal.toFixed(2)}</span>
+                <span className="font-mono w-28 text-right">{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-muted-foreground">Tax rate (%)</span>
                 <Input type="number" step="0.1" min={0} value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value))} className="w-20 h-8 text-right" />
-                <span className="font-mono w-28 text-right">€{taxAmount.toFixed(2)}</span>
+                <span className="font-mono w-28 text-right">{formatCurrency(taxAmount)}</span>
               </div>
               <div className="flex items-center gap-4 text-base font-bold border-t pt-2">
                 <span>Total</span>
-                <span className="font-mono w-28 text-right">€{total.toFixed(2)}</span>
+                <span className="font-mono w-28 text-right">{formatCurrency(total)}</span>
               </div>
             </div>
           </CardContent>
