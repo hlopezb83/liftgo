@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_feed: {
+        Row: {
+          created_at: string
+          description: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string
@@ -23,6 +53,8 @@ export type Database = {
           end_date: string
           forklift_id: string
           id: string
+          last_billed_date: string | null
+          recurring_billing: boolean
           return_status: string | null
           start_date: string
           status: string
@@ -36,6 +68,8 @@ export type Database = {
           end_date: string
           forklift_id: string
           id?: string
+          last_billed_date?: string | null
+          recurring_billing?: boolean
           return_status?: string | null
           start_date: string
           status?: string
@@ -49,6 +83,8 @@ export type Database = {
           end_date?: string
           forklift_id?: string
           id?: string
+          last_billed_date?: string | null
+          recurring_billing?: boolean
           return_status?: string | null
           start_date?: string
           status?: string
@@ -118,6 +154,97 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      damage_records: {
+        Row: {
+          actual_cost: number | null
+          booking_id: string | null
+          created_at: string
+          customer_id: string | null
+          description: string
+          estimated_cost: number | null
+          forklift_id: string
+          id: string
+          inspection_id: string | null
+          invoice_id: string | null
+          maintenance_log_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          booking_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description: string
+          estimated_cost?: number | null
+          forklift_id: string
+          id?: string
+          inspection_id?: string | null
+          invoice_id?: string | null
+          maintenance_log_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          booking_id?: string | null
+          created_at?: string
+          customer_id?: string | null
+          description?: string
+          estimated_cost?: number | null
+          forklift_id?: string
+          id?: string
+          inspection_id?: string | null
+          invoice_id?: string | null
+          maintenance_log_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_records_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_records_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_records_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "return_inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_records_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_records_maintenance_log_id_fkey"
+            columns: ["maintenance_log_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_logs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       deliveries: {
         Row: {
@@ -436,6 +563,108 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          customer_name: string | null
+          end_date: string
+          forklift_id: string | null
+          id: string
+          line_items: Json
+          notes: string | null
+          quote_number: string
+          start_date: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          end_date: string
+          forklift_id?: string | null
+          id?: string
+          line_items?: Json
+          notes?: string | null
+          quote_number: string
+          start_date: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          end_date?: string
+          forklift_id?: string | null
+          id?: string
+          line_items?: Json
+          notes?: string | null
+          quote_number?: string
+          start_date?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       return_inspections: {
         Row: {
           booking_id: string
@@ -528,15 +757,41 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       next_invoice_number: { Args: never; Returns: string }
+      next_quote_number: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "dispatcher" | "mechanic"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -663,6 +918,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "dispatcher", "mechanic"],
+    },
   },
 } as const
