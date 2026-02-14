@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DatePickerField } from "@/components/DatePickerField";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useForklifts } from "@/hooks/useForkliftData";
 import { useUpdateBooking, type BookingWithForklift } from "@/hooks/useBookings";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
-import { CalendarPlus, Undo2 } from "lucide-react";
+import { CalendarPlus, Undo2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -51,6 +52,13 @@ export function BookingActions({ booking }: BookingActionsProps) {
     );
   };
 
+  const handleCancel = () => {
+    updateBooking.mutate(
+      { id: booking.id, status: "cancelled" },
+      { onSuccess: () => toast.success("Booking cancelled") }
+    );
+  };
+
   return (
     <div className="flex gap-1">
       <Button variant="ghost" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
@@ -59,6 +67,28 @@ export function BookingActions({ booking }: BookingActionsProps) {
       <Button variant="ghost" size="sm" onClick={() => { setEarlyReturnDate(undefined); setReturnOpen(true); }}>
         <Undo2 className="h-3.5 w-3.5 mr-1" />Early Return
       </Button>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+            <XCircle className="h-3.5 w-3.5 mr-1" />Cancel
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will cancel the booking for {booking.customer_name || "this customer"} ({booking.start_date} → {booking.end_date}). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Cancel Booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={extendOpen} onOpenChange={setExtendOpen}>
         <DialogContent>
