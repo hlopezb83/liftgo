@@ -1,39 +1,72 @@
 
-# Auto-Schedule Delivery After Booking
+# Fix: Reset Forklift Status on Booking Cancellation
 
-When a booking is created, the system will automatically prompt the user to schedule the delivery -- with most fields pre-filled from the booking data.
+## The Problem
 
-## How it will work
+When you cancel a booking, the code only updates the booking's status to "cancelled" but never changes the forklift back to "available". The `create_booking` database function correctly sets the forklift to "rented" on creation, but there is no equivalent logic for cancellation.
 
-1. After clicking "Create Booking", a success dialog appears instead of immediately navigating away
-2. The dialog says "Booking created! Schedule the delivery?" with two options:
-   - **Schedule Delivery** -- opens a pre-filled delivery form right in the dialog
-   - **Skip** -- navigates to the calendar as before
-3. The delivery form is pre-filled with:
-   - Type: "delivery" (locked)
-   - Forklift: auto-set from the booking
-   - Linked Booking: auto-set
-   - Date: set to the booking's start date
-   - Address: pulled from the customer's address (if an existing customer was selected)
-4. The user only needs to optionally add driver info, time, and notes, then hit "Schedule"
-5. After scheduling (or skipping), the user is navigated to the calendar
+## The Fix
+
+Create a new database function `cancel_booking` that atomically:
+1. Sets the booking status to "cancelled"
+2. Checks if the forklift has any other active (confirmed) bookings
+3. If no other active bookings exist, sets the forklift back to "available"
+4. Logs the status change in the status_logs table
+
+Then update the cancel button in the UI to call this new function instead of doing a simple update.
 
 ## Technical Details
 
-### 1. Modify `BookingForm.tsx`
+### 1. New database migration -- `cancel_booking` RPC function
 
-- Add a new state: `postBookingState` that stores the newly created booking ID, forklift ID, start date, and customer address after a successful booking
-- Instead of navigating on `onSuccess`, show a confirmation dialog
-- Import `useCreateDelivery` from the deliveries hook
-- Add a `Dialog` with a compact delivery form that has fields pre-filled:
-  - `forklift_id` = the selected forklift
-  - `booking_id` = the returned booking ID
-  - `scheduled_date` = the booking start date
-  - `address` = selected customer's address (if available)
-  - `type` = "delivery"
-- On delivery submit success, navigate to `/calendar` with a combined success toast
-- "Skip" button also navigates to `/calendar`
+```sql
+CREATE OR REPLACE FUNCTION public.cancel_booking(p_booking_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_forklift_id uuid;
+  v_old_status text;
+  v_other_active int;
+BEGIN
+  -- Get forklift from booking
+  SELECT forklift_id INTO v_forklift_id
+  FROM bookings WHERE id = p_booking_id;
 
-### 2. No other file changes needed
+  -- Cancel the booking
+  UPDATE bookings SET status = 'cancelled', updated_at = now()
+  WHERE id = p_booking_id;
 
-The `useCreateDelivery` hook and `deliveries` table already exist. No schema changes required. The booking form just gains a post-creation step.
+  -- Check if forklift has other active bookings
+  SELECT count(*) INTO v_other_active
+  FROM bookings
+  WHERE forklift_id = v_forklift_id
+    AND id != p_booking_id
+    AND status = 'confirmed';
+
+  -- If no other active bookings, set forklift back to available
+  IF v_other_active = 0 THEN
+    SELECT status INTO v_old_status FROM forklifts WHERE id = v_forklift_id;
+    UPDATE forklifts SET status = 'available', updated_at = now()
+    WHERE id = v_forklift_id;
+    INSERT INTO status_logs (forklift_id, from_status, to_status, note)
+    VALUES (v_forklift_id, v_old_status, 'available', 'Booking cancelled');
+  END IF;
+END;
+$$;
+```
+
+### 2. Update `BookingActions.tsx`
+
+Replace the `handleCancel` function to call `supabase.rpc('cancel_booking', { p_booking_id: booking.id })` instead of the simple `updateBooking.mutate`. Invalidate both `bookings` and `forklifts` query caches on success.
+
+### 3. Fix existing data
+
+Run a data update to set the 6 forklifts that are currently stuck as "rented" (with all bookings cancelled) back to "available".
+
+### Files affected
+- **New migration**: `cancel_booking` function
+- **Modified**: `src/components/BookingActions.tsx` -- new cancel handler using the RPC
+- **Data fix**: one-time update to correct current forklift statuses
