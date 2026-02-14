@@ -40,6 +40,11 @@ export function useCreateInvoice() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to create invoice", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
 
@@ -54,6 +59,11 @@ export function useUpdateInvoice() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
       qc.invalidateQueries({ queryKey: ["invoices", data.id] });
+    },
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to update invoice", description: err.message, variant: "destructive" })
+      );
     },
   });
 }

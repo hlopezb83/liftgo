@@ -39,6 +39,11 @@ export function useCreateQuote() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["quotes"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to create quote", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
 
@@ -51,6 +56,11 @@ export function useUpdateQuote() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["quotes"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to update quote", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
 

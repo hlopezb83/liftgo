@@ -24,6 +24,11 @@ export function useCreateCustomer() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to create customer", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
 
@@ -36,5 +41,10 @@ export function useUpdateCustomer() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to update customer", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }

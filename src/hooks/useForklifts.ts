@@ -44,6 +44,11 @@ export function useCreateForklift() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["forklifts"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to create forklift", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
 
@@ -59,6 +64,11 @@ export function useUpdateForklift() {
       qc.invalidateQueries({ queryKey: ["forklifts"] });
       qc.invalidateQueries({ queryKey: ["forklifts", data.id] });
     },
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to update forklift", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
 
@@ -66,10 +76,7 @@ export function useDeleteForklift() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from("status_logs").delete().eq("forklift_id", id);
-      await supabase.from("maintenance_logs").delete().eq("forklift_id", id);
-      await supabase.from("bookings").delete().eq("forklift_id", id);
-      const { error } = await supabase.from("forklifts").delete().eq("id", id);
+      const { error } = await supabase.rpc("delete_forklift", { p_forklift_id: id });
       if (error) throw error;
     },
     onMutate: async (id) => {

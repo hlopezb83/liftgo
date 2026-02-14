@@ -780,6 +780,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_return_inspection: {
+        Args: {
+          p_booking_id: string
+          p_condition?: string
+          p_damage_cost?: number
+          p_damage_notes?: string
+          p_forklift_id: string
+          p_fuel_level?: string
+          p_hours_used?: number
+          p_inspected_by?: string
+        }
+        Returns: string
+      }
+      create_booking: {
+        Args: {
+          p_customer_contact?: string
+          p_customer_id?: string
+          p_customer_name?: string
+          p_end_date?: string
+          p_forklift_id: string
+          p_recurring_billing?: boolean
+          p_start_date?: string
+        }
+        Returns: string
+      }
+      delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

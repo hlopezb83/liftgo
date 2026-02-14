@@ -19,23 +19,17 @@ export function useCreateReturnInspection() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (inspection: TablesInsert<"return_inspections">) => {
-      const { data, error } = await supabase.from("return_inspections").insert(inspection).select().single();
-      if (error) throw error;
-
-      // Update booking return_status
-      await supabase.from("bookings").update({ return_status: "returned", status: "completed" }).eq("id", inspection.booking_id);
-
-      // Update forklift status back to available
-      await supabase.from("forklifts").update({ status: "available" }).eq("id", inspection.forklift_id);
-
-      // Log status change
-      await supabase.from("status_logs").insert({
-        forklift_id: inspection.forklift_id,
-        from_status: "rented",
-        to_status: "available",
-        note: `Returned — condition: ${inspection.condition || "good"}`,
+      const { data, error } = await supabase.rpc("complete_return_inspection", {
+        p_booking_id: inspection.booking_id,
+        p_forklift_id: inspection.forklift_id,
+        p_condition: inspection.condition ?? "good",
+        p_damage_notes: inspection.damage_notes ?? undefined,
+        p_damage_cost: inspection.damage_cost ?? 0,
+        p_hours_used: inspection.hours_used ?? undefined,
+        p_fuel_level: inspection.fuel_level ?? undefined,
+        p_inspected_by: inspection.inspected_by ?? undefined,
       });
-
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
@@ -43,6 +37,11 @@ export function useCreateReturnInspection() {
       qc.invalidateQueries({ queryKey: ["bookings"] });
       qc.invalidateQueries({ queryKey: ["forklifts"] });
       qc.invalidateQueries({ queryKey: ["status_logs"] });
+    },
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to complete return inspection", description: err.message, variant: "destructive" })
+      );
     },
   });
 }

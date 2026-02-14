@@ -26,5 +26,10 @@ export function useCreateMaintenanceLog() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["maintenance_logs"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to create maintenance log", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
