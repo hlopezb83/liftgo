@@ -29,7 +29,9 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `invoice-${invoiceId}.pdf`;
+      const disposition = response.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="(.+)"/);
+      link.download = match?.[1] || `invoice-${invoiceId}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (err: any) {
