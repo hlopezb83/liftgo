@@ -14,6 +14,7 @@ import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FormActions } from "@/components/FormActions";
+import { PostInspectionInvoiceDialog } from "@/components/PostInspectionInvoiceDialog";
 import { useFormState } from "@/hooks/useFormState";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
@@ -32,6 +33,12 @@ const initialForm = {
   inspectedBy: "" as string,
 };
 
+interface InvoicePromptData {
+  booking: { id: string; customer_name: string | null; customer_id: string | null; start_date: string; end_date: string; forklift_id: string };
+  forklift: any;
+  damageCost: number;
+}
+
 export default function ReturnInspectionPage() {
   const { data: bookings } = useBookings();
   const { data: forklifts } = useForklifts();
@@ -39,6 +46,7 @@ export default function ReturnInspectionPage() {
   const createInspection = useCreateReturnInspection();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
+  const [invoicePrompt, setInvoicePrompt] = useState<InvoicePromptData | null>(null);
 
   const activeBookings = bookings?.filter(
     (b) => b.status === "confirmed" && !b.return_status
@@ -52,13 +60,15 @@ export default function ReturnInspectionPage() {
     const booking = bookings?.find((b) => b.id === form.bookingId);
     if (!booking) return;
 
+    const damageCost = form.damageCost ? parseFloat(form.damageCost) : 0;
+
     createInspection.mutate(
       {
         booking_id: form.bookingId,
         forklift_id: booking.forklift_id,
         condition: form.condition,
         damage_notes: form.damageNotes || null,
-        damage_cost: form.damageCost ? parseFloat(form.damageCost) : 0,
+        damage_cost: damageCost,
         hours_used: form.hoursUsed ? parseFloat(form.hoursUsed) : null,
         fuel_level: form.fuelLevel || null,
         inspected_by: form.inspectedBy || null,
@@ -67,6 +77,22 @@ export default function ReturnInspectionPage() {
         onSuccess: () => {
           toast.success("Return inspection recorded — forklift marked available");
           setDialogOpen(false);
+
+          const fl = forkliftMap.get(booking.forklift_id);
+          if (fl) {
+            setInvoicePrompt({
+              booking: {
+                id: booking.id,
+                customer_name: booking.customer_name,
+                customer_id: booking.customer_id,
+                start_date: booking.start_date,
+                end_date: booking.end_date,
+                forklift_id: booking.forklift_id,
+              },
+              forklift: fl,
+              damageCost,
+            });
+          }
           reset();
         },
       }
@@ -193,6 +219,16 @@ export default function ReturnInspectionPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {invoicePrompt && (
+        <PostInspectionInvoiceDialog
+          open={!!invoicePrompt}
+          onOpenChange={(open) => { if (!open) setInvoicePrompt(null); }}
+          booking={invoicePrompt.booking}
+          forklift={invoicePrompt.forklift}
+          damageCost={invoicePrompt.damageCost}
+        />
+      )}
     </div>
   );
 }

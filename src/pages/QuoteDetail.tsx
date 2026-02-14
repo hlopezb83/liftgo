@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
+import { useCustomers } from "@/hooks/useCustomers";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
 import { ArrowLeft, Edit, Send, CheckCircle, XCircle, BookOpen, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
+import { useForklifts } from "@/hooks/useForklifts";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -18,6 +22,13 @@ export default function QuoteDetail() {
   const { data: quote, isLoading } = useQuote(id);
   const updateQuote = useUpdateQuote();
   const createBooking = useCreateBooking();
+  const { data: customers } = useCustomers();
+  const { data: forklifts } = useForklifts();
+
+  // Feature 3: Post-booking delivery dialog
+  const [deliveryDialog, setDeliveryDialog] = useState<{
+    bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null;
+  } | null>(null);
 
   const setStatus = (status: string) => {
     if (!id) return;
@@ -36,10 +47,19 @@ export default function QuoteDetail() {
         status: "confirmed",
       },
       {
-        onSuccess: () => {
+        onSuccess: (bookingId: string) => {
           updateQuote.mutate({ id: quote.id, status: "accepted" });
           toast.success("Booking created from quote");
-          navigate("/calendar");
+
+          const fl = forklifts?.find((f) => f.id === quote.forklift_id);
+          const cust = customers?.find((c) => c.id === quote.customer_id);
+          setDeliveryDialog({
+            bookingId,
+            forkliftId: quote.forklift_id!,
+            forkliftName: fl?.name || "Forklift",
+            startDate: quote.start_date,
+            customerAddress: cust?.address || null,
+          });
         },
       }
     );
@@ -138,6 +158,20 @@ export default function QuoteDetail() {
           <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
           <CardContent><p className="text-sm text-muted-foreground">{quote.notes}</p></CardContent>
         </Card>
+      )}
+
+      {/* Feature 3: Post-booking delivery dialog */}
+      {deliveryDialog && (
+        <PostBookingDeliveryDialog
+          open={!!deliveryDialog}
+          onOpenChange={(open) => { if (!open) setDeliveryDialog(null); }}
+          bookingId={deliveryDialog.bookingId}
+          forkliftId={deliveryDialog.forkliftId}
+          forkliftName={deliveryDialog.forkliftName}
+          startDate={deliveryDialog.startDate}
+          customerAddress={deliveryDialog.customerAddress}
+          onSkip={() => { setDeliveryDialog(null); navigate("/calendar"); }}
+        />
       )}
     </div>
   );

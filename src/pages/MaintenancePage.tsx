@@ -13,6 +13,7 @@ import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
+import { MarkAvailableDialog } from "@/components/MarkAvailableDialog";
 import { useFormState } from "@/hooks/useFormState";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { PlusCircle, Wrench, Download } from "lucide-react";
@@ -39,11 +40,17 @@ export default function MaintenancePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
 
+  // Feature 5: Mark available prompt
+  const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
+
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.forkliftId || !form.serviceType) { toast.error("Forklift and service type are required"); return; }
+
+    const selectedForklift = forkliftMap.get(form.forkliftId);
+
     createLog.mutate(
       {
         forklift_id: form.forkliftId, service_type: form.serviceType, description: form.description || null,
@@ -51,7 +58,18 @@ export default function MaintenancePage() {
         performed_at: format(form.performedAt, "yyyy-MM-dd"),
         next_service_date: form.nextServiceDate ? format(form.nextServiceDate, "yyyy-MM-dd") : null,
       },
-      { onSuccess: () => { toast.success("Maintenance log added"); setDialogOpen(false); reset(); } }
+      {
+        onSuccess: () => {
+          toast.success("Maintenance log added");
+          setDialogOpen(false);
+
+          // Feature 5: Prompt to mark available if forklift is in maintenance
+          if (selectedForklift && selectedForklift.status === "maintenance") {
+            setAvailablePrompt({ forkliftId: selectedForklift.id, forkliftName: selectedForklift.name });
+          }
+          reset();
+        },
+      }
     );
   };
 
@@ -132,6 +150,16 @@ export default function MaintenancePage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Feature 5: Mark available prompt */}
+      {availablePrompt && (
+        <MarkAvailableDialog
+          open={!!availablePrompt}
+          onOpenChange={(open) => { if (!open) setAvailablePrompt(null); }}
+          forkliftId={availablePrompt.forkliftId}
+          forkliftName={availablePrompt.forkliftName}
+        />
+      )}
     </div>
   );
 }

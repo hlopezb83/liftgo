@@ -16,6 +16,7 @@ import { EmptyRow } from "@/components/EmptyRow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
+import { PostDeliveryPickupDialog } from "@/components/PostDeliveryPickupDialog";
 import { useFormState } from "@/hooks/useFormState";
 import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -41,6 +42,13 @@ export default function DeliveriesPage() {
   const updateDelivery = useUpdateDelivery();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
+
+  // Feature 4: Post-completion pickup prompt
+  const [pickupPrompt, setPickupPrompt] = useState<{
+    delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
+    bookingEndDate: string;
+    forkliftName: string;
+  } | null>(null);
 
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
@@ -70,9 +78,32 @@ export default function DeliveriesPage() {
   };
 
   const markComplete = (id: string) => {
+    const delivery = deliveries?.find((d) => d.id === id);
     updateDelivery.mutate(
       { id, status: "completed", completed_at: new Date().toISOString() },
-      { onSuccess: () => toast.success("Marked complete") }
+      {
+        onSuccess: () => {
+          toast.success("Marked complete");
+          // Feature 4: Prompt pickup scheduling for completed deliveries
+          if (delivery && delivery.type === "delivery" && delivery.booking_id) {
+            const booking = bookings?.find((b) => b.id === delivery.booking_id);
+            const fl = forkliftMap.get(delivery.forklift_id);
+            if (booking && fl) {
+              setPickupPrompt({
+                delivery: {
+                  forklift_id: delivery.forklift_id,
+                  booking_id: delivery.booking_id,
+                  address: delivery.address,
+                  driver_name: delivery.driver_name,
+                  driver_phone: delivery.driver_phone,
+                },
+                bookingEndDate: booking.end_date,
+                forkliftName: fl.name,
+              });
+            }
+          }
+        },
+      }
     );
   };
 
@@ -202,6 +233,17 @@ export default function DeliveriesPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Feature 4: Post-completion pickup prompt */}
+      {pickupPrompt && (
+        <PostDeliveryPickupDialog
+          open={!!pickupPrompt}
+          onOpenChange={(open) => { if (!open) setPickupPrompt(null); }}
+          delivery={pickupPrompt.delivery}
+          bookingEndDate={pickupPrompt.bookingEndDate}
+          forkliftName={pickupPrompt.forkliftName}
+        />
+      )}
     </div>
   );
 }

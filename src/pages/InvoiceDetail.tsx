@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useInvoice, useUpdateInvoice } from "@/hooks/useForkliftData";
+import { useUpdateBooking } from "@/hooks/useBookings";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,12 +18,24 @@ export default function InvoiceDetail() {
   const navigate = useNavigate();
   const { data: invoice, isLoading } = useInvoice(id);
   const updateInvoice = useUpdateInvoice();
+  const updateBooking = useUpdateBooking();
 
   const setStatus = (status: string, paidAt?: string) => {
     if (!id) return;
     updateInvoice.mutate(
       { id, status, ...(paidAt ? { paid_at: paidAt } : {}) },
-      { onSuccess: () => toast.success(`Invoice marked as ${status}`) }
+      {
+        onSuccess: (data) => {
+          toast.success(`Invoice marked as ${status}`);
+          // Feature 2: Auto-complete booking when invoice is paid
+          if (status === "paid" && data.booking_id) {
+            updateBooking.mutate(
+              { id: data.booking_id, status: "completed" },
+              { onSuccess: () => toast.success("Linked booking marked as completed") }
+            );
+          }
+        },
+      }
     );
   };
 
