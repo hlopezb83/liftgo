@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useForklifts } from "@/hooks/useForkliftData";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/TablePagination";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/PageHeader";
@@ -27,6 +29,8 @@ export default function Fleet() {
     const matchesStatus = statusFilter === "all" || f.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   return (
     <div className="p-6 space-y-6">
@@ -73,7 +77,7 @@ export default function Fleet() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered?.map((f) => (
+                {paginatedItems.map((f) => (
                   <TableRow
                     key={f.id}
                     className="cursor-pointer hover:bg-accent/50"
@@ -88,10 +92,11 @@ export default function Fleet() {
                     <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/day</TableCell>
                   </TableRow>
                 ))}
-                {filtered?.length === 0 && <EmptyRow colSpan={7} message="No forklifts found" />}
+                {paginatedItems.length === 0 && <EmptyRow colSpan={7} message="No forklifts found" />}
               </TableBody>
             </Table>
           )}
+          <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </CardContent>
       </Card>
     </div>

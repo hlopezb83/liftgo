@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useForkliftData";
 import type { Customer } from "@/hooks/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +15,8 @@ import { FormActions } from "@/components/FormActions";
 import { Search, PlusCircle, Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/TablePagination";
 
 const emptyCustomer = {
   name: "", email: "", phone: "", address: "", notes: "",
@@ -36,6 +38,8 @@ export default function CustomersPage() {
     (c.company || "").toLowerCase().includes(search.toLowerCase()) ||
     (c.email || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
   const openCreate = () => { setEditId(null); setForm(emptyCustomer); setDialogOpen(true); };
@@ -83,32 +87,35 @@ export default function CustomersPage() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? <TableSkeleton /> : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Contact Person</TableHead>
-                  <TableHead className="w-16"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered?.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell>{c.email || "—"}</TableCell>
-                    <TableCell>{c.phone || "—"}</TableCell>
-                    <TableCell>{c.contact_person || "—"}</TableCell>
-                    <TableCell className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${c.id}`)}><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Contact Person</TableHead>
+                    <TableHead className="w-16"></TableHead>
                   </TableRow>
-                ))}
-                {filtered?.length === 0 && <EmptyRow colSpan={5} message="No customers found" />}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedItems.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">{c.name}</TableCell>
+                      <TableCell>{c.email || "—"}</TableCell>
+                      <TableCell>{c.phone || "—"}</TableCell>
+                      <TableCell>{c.contact_person || "—"}</TableCell>
+                      <TableCell className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${c.id}`)}><Eye className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paginatedItems.length === 0 && <EmptyRow colSpan={5} message="No customers found" />}
+                </TableBody>
+              </Table>
+              <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            </>
           )}
         </CardContent>
       </Card>

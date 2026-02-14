@@ -12,6 +12,8 @@ import { PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/TablePagination";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 
@@ -26,6 +28,8 @@ export default function QuotesPage() {
     const matchStatus = statusFilter === "all" || q.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   return (
     <div className="p-6 space-y-6">
@@ -46,32 +50,35 @@ export default function QuotesPage() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? <TableSkeleton /> : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Quote #</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Valid Until</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered && filtered.length > 0 ? filtered.map((q) => (
-                  <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/quotes/${q.id}`)}>
-                    <TableCell className="font-mono font-medium">{q.quote_number}</TableCell>
-                    <TableCell>{q.customer_name || "—"}</TableCell>
-                    <TableCell className="text-sm">{q.start_date} → {q.end_date}</TableCell>
-                    <TableCell className="font-mono">{formatCurrency(q.total)}</TableCell>
-                    <TableCell><StatusBadge status={q.status} /></TableCell>
-                    <TableCell>{q.valid_until || "—"}</TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Quote #</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Dates</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Valid Until</TableHead>
                   </TableRow>
-                )) : (
-                  <EmptyRow colSpan={6} message="No quotes yet" />
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedItems.length > 0 ? paginatedItems.map((q) => (
+                    <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/quotes/${q.id}`)}>
+                      <TableCell className="font-mono font-medium">{q.quote_number}</TableCell>
+                      <TableCell>{q.customer_name || "—"}</TableCell>
+                      <TableCell className="text-sm">{q.start_date} → {q.end_date}</TableCell>
+                      <TableCell className="font-mono">{formatCurrency(q.total)}</TableCell>
+                      <TableCell><StatusBadge status={q.status} /></TableCell>
+                      <TableCell>{q.valid_until || "—"}</TableCell>
+                    </TableRow>
+                  )) : (
+                    <EmptyRow colSpan={6} message="No quotes yet" />
+                  )}
+                </TableBody>
+              </Table>
+              <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            </>
           )}
         </CardContent>
       </Card>

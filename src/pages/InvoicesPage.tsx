@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useForkliftData";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/TablePagination";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
@@ -29,6 +31,8 @@ export default function InvoicesPage() {
     }
     return true;
   });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   if (isLoading) return <div className="p-6"><TableSkeleton rows={5} /></div>;
 
@@ -69,8 +73,8 @@ export default function InvoicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered && filtered.length > 0 ? (
-                filtered.map((inv) => (
+              {paginatedItems.length > 0 ? (
+                paginatedItems.map((inv) => (
                   <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${inv.id}`)}>
                     <TableCell className="font-medium">{inv.invoice_number}</TableCell>
                     <TableCell>{inv.customer_name || "—"}</TableCell>
@@ -86,6 +90,7 @@ export default function InvoicesPage() {
               )}
             </TableBody>
           </Table>
+          <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </CardContent>
       </Card>
     </div>
