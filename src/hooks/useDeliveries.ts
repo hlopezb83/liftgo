@@ -24,6 +24,11 @@ export function useCreateDelivery() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["deliveries"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to create delivery", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }
 
@@ -36,5 +41,10 @@ export function useUpdateDelivery() {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["deliveries"] }),
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to update delivery", description: err.message, variant: "destructive" })
+      );
+    },
   });
 }

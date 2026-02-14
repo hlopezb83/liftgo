@@ -24,21 +24,27 @@ export function useCreateBooking() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (booking: TablesInsert<"bookings">) => {
-      const { data, error } = await supabase.from("bookings").insert(booking).select().single();
-      if (error) throw error;
-      await supabase.from("forklifts").update({ status: "rented" }).eq("id", booking.forklift_id);
-      await supabase.from("status_logs").insert({
-        forklift_id: booking.forklift_id,
-        from_status: "available",
-        to_status: "rented",
-        note: "Booked",
+      const { data, error } = await supabase.rpc("create_booking", {
+        p_forklift_id: booking.forklift_id,
+        p_customer_id: booking.customer_id ?? undefined,
+        p_customer_name: booking.customer_name ?? undefined,
+        p_customer_contact: booking.customer_contact ?? undefined,
+        p_start_date: booking.start_date,
+        p_end_date: booking.end_date,
+        p_recurring_billing: booking.recurring_billing ?? false,
       });
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bookings"] });
       qc.invalidateQueries({ queryKey: ["forklifts"] });
       qc.invalidateQueries({ queryKey: ["status_logs"] });
+    },
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to create booking", description: err.message, variant: "destructive" })
+      );
     },
   });
 }
@@ -53,6 +59,11 @@ export function useUpdateBooking() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bookings"] });
+    },
+    onError: (err: Error) => {
+      import("@/hooks/use-toast").then(({ toast }) =>
+        toast({ title: "Failed to update booking", description: err.message, variant: "destructive" })
+      );
     },
   });
 }

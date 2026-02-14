@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AuthGuard } from "@/components/AuthGuard";
 import { RoleGuard } from "@/components/RoleGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Dashboard from "./pages/Dashboard";
 import Fleet from "./pages/Fleet";
 import ForkliftDetail from "./pages/ForkliftDetail";
@@ -53,6 +54,7 @@ const App = () => (
                 <header className="h-12 flex items-center border-b px-4 bg-card">
                   <SidebarTrigger />
                 </header>
+                <ErrorBoundary>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/fleet" element={<Fleet />} />
@@ -81,6 +83,7 @@ const App = () => (
                   <Route path="/users" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><UserManagementPage /></RoleGuard>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </ErrorBoundary>
               </main>
             </div>
           </SidebarProvider>
