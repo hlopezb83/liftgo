@@ -780,6 +780,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
       complete_return_inspection: {
         Args: {
           p_booking_id: string
