@@ -1,6 +1,8 @@
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import type { AppRole } from "@/hooks/useUserRole";
 import {
   Sidebar,
   SidebarContent,
@@ -15,25 +17,38 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
-const navItems = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: React.ElementType;
+  roles?: AppRole[]; // undefined = all roles
+};
+
+const navItems: NavItem[] = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Fleet", url: "/fleet", icon: Truck },
   { title: "Calendar", url: "/calendar", icon: CalendarDays },
-  { title: "Bookings", url: "/bookings/new", icon: BookOpen },
-  { title: "Quotes", url: "/quotes", icon: FileText },
-  { title: "Returns", url: "/returns", icon: ClipboardCheck },
-  { title: "Deliveries", url: "/deliveries", icon: TruckIcon },
+  { title: "Bookings", url: "/bookings/new", icon: BookOpen, roles: ["admin", "dispatcher"] },
+  { title: "Quotes", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher"] },
+  { title: "Returns", url: "/returns", icon: ClipboardCheck, roles: ["admin", "dispatcher"] },
+  { title: "Deliveries", url: "/deliveries", icon: TruckIcon, roles: ["admin", "dispatcher"] },
   { title: "Customers", url: "/customers", icon: Users },
-  { title: "Invoices", url: "/invoices", icon: Receipt },
+  { title: "Invoices", url: "/invoices", icon: Receipt, roles: ["admin", "dispatcher"] },
   { title: "Maintenance", url: "/maintenance", icon: Wrench },
   { title: "Damage Tracking", url: "/damage", icon: AlertTriangle },
   { title: "Activity", url: "/activity", icon: Activity },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
-  { title: "Equipment Config", url: "/settings/equipment", icon: Settings },
+  { title: "Reports", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher"] },
+  { title: "Equipment Config", url: "/settings/equipment", icon: Settings, roles: ["admin"] },
+  { title: "User Management", url: "/users", icon: ShieldCheck, roles: ["admin"] },
 ];
 
 export function AppSidebar() {
   const { user, signOut } = useAuth();
+  const { data: role } = useUserRole();
+
+  const visibleItems = navItems.filter(
+    (item) => !item.roles || (role && item.roles.includes(role))
+  );
 
   return (
     <Sidebar>
@@ -53,7 +68,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {visibleItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
