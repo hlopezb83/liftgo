@@ -1,7 +1,7 @@
 /** Application-wide configuration constants */
 export const APP_CONFIG = {
   /** Default tax rate percentage applied to invoices */
-  DEFAULT_TAX_RATE: 21,
+  DEFAULT_TAX_RATE: 16,
   /** Currency code for formatting */
   CURRENCY: "EUR",
   /** Currency symbol for display */

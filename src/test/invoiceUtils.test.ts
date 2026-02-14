@@ -42,10 +42,10 @@ describe("computeTotals", () => {
       { description: "A", quantity: 1, unit_price: 100, total: 100 },
       { description: "B", quantity: 2, unit_price: 50, total: 100 },
     ];
-    const result = computeTotals(items, 21);
+    const result = computeTotals(items, 16);
     expect(result.subtotal).toBe(200);
-    expect(result.taxAmount).toBe(42);
-    expect(result.total).toBe(242);
+    expect(result.taxAmount).toBe(32);
+    expect(result.total).toBe(232);
   });
 
   it("handles zero tax rate", () => {
@@ -56,7 +56,7 @@ describe("computeTotals", () => {
   });
 
   it("handles empty line items", () => {
-    const result = computeTotals([], 21);
+    const result = computeTotals([], 16);
     expect(result.subtotal).toBe(0);
     expect(result.total).toBe(0);
   });

@@ -32,7 +32,7 @@ export default function QuoteForm() {
   const [customerName, setCustomerName] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  const [taxRate, setTaxRate] = useState("21");
+  const [taxRate, setTaxRate] = useState("16");
   const [notes, setNotes] = useState("");
   const [validUntil, setValidUntil] = useState<Date>();
 
@@ -109,7 +109,7 @@ export default function QuoteForm() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Tax Rate (%)</Label>
+                <Label>VAT Rate (%)</Label>
                 <Input type="number" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
               </div>
               <DatePickerField label="Valid Until" date={validUntil} onSelect={setValidUntil} />
@@ -137,7 +137,7 @@ export default function QuoteForm() {
               ))}
               <div className="border-t pt-2 mt-2 space-y-1">
                 <div className="flex justify-between text-sm"><span>Subtotal</span><span className="font-mono">{formatCurrency(subtotal)}</span></div>
-                <div className="flex justify-between text-sm"><span>Tax ({taxRate}%)</span><span className="font-mono">{formatCurrency(taxAmount)}</span></div>
+                <div className="flex justify-between text-sm"><span>VAT ({taxRate}%)</span><span className="font-mono">{formatCurrency(taxAmount)}</span></div>
                 <div className="flex justify-between font-bold"><span>Total</span><span className="font-mono">{formatCurrency(total)}</span></div>
               </div>
             </CardContent>

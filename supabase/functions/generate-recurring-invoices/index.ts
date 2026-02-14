@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
         total: monthlyRate,
       }];
 
-      const taxRate = 21;
+      const taxRate = 16;
       const taxAmount = Math.round(monthlyRate * (taxRate / 100) * 100) / 100;
       const total = Math.round((monthlyRate + taxAmount) * 100) / 100;
 
