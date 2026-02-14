@@ -12,7 +12,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { FormActions } from "@/components/FormActions";
-import { Search, PlusCircle, Edit, Eye } from "lucide-react";
+import { Search, PlusCircle, Edit, Eye, Download } from "lucide-react";
+import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
@@ -76,7 +77,12 @@ export default function CustomersPage() {
       <PageHeader
         title="Customers"
         subtitle={`${customers?.length || 0} customers`}
-        action={<Button onClick={openCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Add Customer</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("customers.csv", (filtered || []).map(c => ({ Name: c.name, Email: c.email || "", Phone: c.phone || "", Contact: c.contact_person || "", Address: c.address || "" })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+            <Button onClick={openCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Add Customer</Button>
+          </div>
+        }
       />
 
       <div className="relative max-w-sm">

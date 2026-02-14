@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { Search, PlusCircle } from "lucide-react";
+import { Search, PlusCircle, Download } from "lucide-react";
+import { exportToCsv } from "@/lib/exportCsv";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
@@ -37,7 +38,12 @@ export default function Fleet() {
       <PageHeader
         title="Fleet Inventory"
         subtitle={`${forklifts?.length || 0} forklifts in fleet`}
-        action={<Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Add Forklift</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("fleet.csv", (filtered || []).map(f => ({ Name: f.name, Model: f.model, Manufacturer: f.manufacturer || "", Capacity: f.capacity_kg || "", Fuel: f.fuel_type || "", Status: f.status, "Daily Rate": f.daily_rate || 0 })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+            <Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Add Forklift</Button>
+          </div>
+        }
       />
 
       <div className="flex gap-3">
