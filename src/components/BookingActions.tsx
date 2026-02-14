@@ -6,6 +6,8 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useForklifts } from "@/hooks/useForkliftData";
 import { useUpdateBooking, type BookingWithForklift } from "@/hooks/useBookings";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
 import { CalendarPlus, Undo2, XCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -22,7 +24,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
   const [earlyReturnDate, setEarlyReturnDate] = useState<Date>();
   const { data: forklifts } = useForklifts();
   const updateBooking = useUpdateBooking();
-
+  const queryClient = useQueryClient();
   if (booking.status !== "confirmed") return null;
 
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
@@ -52,11 +54,17 @@ export function BookingActions({ booking }: BookingActionsProps) {
     );
   };
 
-  const handleCancel = () => {
-    updateBooking.mutate(
-      { id: booking.id, status: "cancelled" },
-      { onSuccess: () => toast.success("Booking cancelled") }
-    );
+  const handleCancel = async () => {
+    try {
+      const { error } = await supabase.rpc('cancel_booking', { p_booking_id: booking.id });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
+      toast.success("Booking cancelled");
+    } catch (err: any) {
+      toast.error("Failed to cancel booking: " + err.message);
+    }
   };
 
   return (
