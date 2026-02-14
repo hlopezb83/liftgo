@@ -100,16 +100,19 @@ export default function ReturnInspectionPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inspections && inspections.length > 0 ? inspections.map((ins) => (
+                {inspections && inspections.length > 0 ? inspections.map((ins) => {
+                  const insWithJoins = ins as typeof ins & { forklifts?: { name: string; model: string }; bookings?: { customer_name: string | null } };
+                  return (
                   <TableRow key={ins.id}>
                     <TableCell className="font-mono text-sm">{format(new Date(ins.inspected_at), "MMM d, yyyy")}</TableCell>
-                    <TableCell className="font-medium">{(ins as any).forklifts?.name || "—"}</TableCell>
-                    <TableCell>{(ins as any).bookings?.customer_name || "—"}</TableCell>
+                    <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
+                    <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>
                     <TableCell><StatusBadge status={ins.condition} /></TableCell>
                     <TableCell className="font-mono">{ins.damage_cost ? formatCurrency(ins.damage_cost) : "—"}</TableCell>
                     <TableCell>{ins.inspected_by || "—"}</TableCell>
                   </TableRow>
-                )) : (
+                  );
+                }) : (
                   <EmptyRow colSpan={6} message="No return inspections yet" />
                 )}
               </TableBody>

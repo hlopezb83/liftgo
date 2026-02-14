@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       if (daysSinceLastBill < 30) continue;
 
       // Generate monthly invoice
-      const forklift = booking.forklifts as any;
+      const forklift = booking.forklifts as { name?: string; model?: string; daily_rate?: number; weekly_rate?: number; monthly_rate?: number } | null;
       const monthlyRate = forklift?.monthly_rate || 0;
       if (monthlyRate === 0) continue;
 

@@ -83,7 +83,7 @@ export default function InvoiceForm() {
       booking_id: bookingId || null,
       customer_id: customerId,
       customer_name: customerName || null,
-      line_items: lineItems as any,
+      line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
       subtotal,
       tax_rate: taxRate,
       tax_amount: taxAmount,
@@ -97,7 +97,7 @@ export default function InvoiceForm() {
         onSuccess: () => { toast.success("Invoice updated"); navigate(`/invoices/${id}`); },
       });
     } else {
-      createInvoice.mutate(payload as any, {
+      createInvoice.mutate(payload as Omit<import("@/integrations/supabase/types").TablesInsert<"invoices">, "invoice_number">, {
         onSuccess: (data) => { toast.success(`Invoice ${data.invoice_number} created`); navigate(`/invoices/${data.id}`); },
       });
     }
