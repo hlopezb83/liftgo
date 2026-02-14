@@ -1,29 +1,39 @@
 
-# Unified Date Range Picker for Bookings
+# Auto-Schedule Delivery After Booking
 
-Replace the two separate date pickers (Start Date / End Date) with a single inline date range calendar. After picking the start date, the calendar stays open and lets you pick the end date -- no extra clicks needed.
+When a booking is created, the system will automatically prompt the user to schedule the delivery -- with most fields pre-filled from the booking data.
 
 ## How it will work
 
-1. A single "Booking Dates" field shows the selected range (e.g. "Feb 14 - Mar 10")
-2. Clicking it opens a popover with a calendar in **range** mode
-3. First click sets the start date, second click sets the end date, then the popover closes automatically
-4. The selected range is visually highlighted on the calendar
+1. After clicking "Create Booking", a success dialog appears instead of immediately navigating away
+2. The dialog says "Booking created! Schedule the delivery?" with two options:
+   - **Schedule Delivery** -- opens a pre-filled delivery form right in the dialog
+   - **Skip** -- navigates to the calendar as before
+3. The delivery form is pre-filled with:
+   - Type: "delivery" (locked)
+   - Forklift: auto-set from the booking
+   - Linked Booking: auto-set
+   - Date: set to the booking's start date
+   - Address: pulled from the customer's address (if an existing customer was selected)
+4. The user only needs to optionally add driver info, time, and notes, then hit "Schedule"
+5. After scheduling (or skipping), the user is navigated to the calendar
 
 ## Technical Details
 
-### 1. New `DateRangePickerField` component (`src/components/DateRangePickerField.tsx`)
-- Uses `react-day-picker` in `mode="range"` with a `DateRange` type (`{ from?: Date; to?: Date }`)
-- Wrapped in a Popover that auto-closes once both `from` and `to` are set
-- Displays formatted range in the trigger button (e.g. "Feb 14 - Mar 10, 2026")
-- Shows two months side-by-side on desktop (`numberOfMonths={2}`)
+### 1. Modify `BookingForm.tsx`
 
-### 2. Update `BookingForm.tsx`
-- Replace the two `DatePickerField` components and the `startDate`/`endDate` state with a single `dateRange: DateRange` state
-- Wire the new `DateRangePickerField` into the form
-- Keep all existing conflict detection and recurring billing logic -- just source dates from `dateRange.from` and `dateRange.to` instead of separate state variables
+- Add a new state: `postBookingState` that stores the newly created booking ID, forklift ID, start date, and customer address after a successful booking
+- Instead of navigating on `onSuccess`, show a confirmation dialog
+- Import `useCreateDelivery` from the deliveries hook
+- Add a `Dialog` with a compact delivery form that has fields pre-filled:
+  - `forklift_id` = the selected forklift
+  - `booking_id` = the returned booking ID
+  - `scheduled_date` = the booking start date
+  - `address` = selected customer's address (if available)
+  - `type` = "delivery"
+- On delivery submit success, navigate to `/calendar` with a combined success toast
+- "Skip" button also navigates to `/calendar`
 
-### 3. No changes needed to
-- The existing `DatePickerField` component (still used elsewhere for single dates)
-- Database schema or backend logic
-- Any other pages
+### 2. No other file changes needed
+
+The `useCreateDelivery` hook and `deliveries` table already exist. No schema changes required. The booking form just gains a post-creation step.
