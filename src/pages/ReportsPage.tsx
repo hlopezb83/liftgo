@@ -3,8 +3,9 @@ import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/ho
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerField } from "@/components/DatePickerField";
+import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { UtilizationReport } from "@/components/reports/UtilizationReport";
+import type { DateRange } from "react-day-picker";
 import { RevenueReport } from "@/components/reports/RevenueReport";
 import { MaintenanceCostReport } from "@/components/reports/MaintenanceCostReport";
 import { subMonths } from "date-fns";
@@ -17,8 +18,9 @@ const REPORT_TYPES = [
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState("utilization");
-  const [startDate, setStartDate] = useState<Date>(subMonths(new Date(), 3));
-  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [dateRange, setDateRange] = useState<DateRange>({ from: subMonths(new Date(), 3), to: new Date() });
+  const startDate = dateRange?.from ?? subMonths(new Date(), 3);
+  const endDate = dateRange?.to ?? new Date();
 
   const { data: forklifts } = useForklifts();
   const { data: bookings } = useBookings();
@@ -40,8 +42,7 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <DatePickerField label="From" date={startDate} onSelect={(d) => d && setStartDate(d)} />
-            <DatePickerField label="To" date={endDate} onSelect={(d) => d && setEndDate(d)} />
+            <DateRangePickerField label="Date Range" dateRange={dateRange} onSelect={(r) => r && setDateRange(r)} />
           </div>
         </CardContent>
       </Card>
