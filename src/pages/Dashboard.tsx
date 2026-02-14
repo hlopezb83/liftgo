@@ -58,7 +58,7 @@ export default function Dashboard() {
     if (!invoices) return [];
     return invoices.filter(
       (i) => (i.status === "sent" || i.status === "overdue") && i.due_date && isPast(parseISO(i.due_date))
-    );
+    ).map((i) => ({ ...i, booking_id: i.booking_id }));
   }, [invoices]);
 
   const agingBuckets = useMemo(() => {

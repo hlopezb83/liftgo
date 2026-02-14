@@ -1,7 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Wrench } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Wrench, CheckCircle, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useUpdateInvoice } from "@/hooks/useInvoices";
+import { useUpdateBooking } from "@/hooks/useBookings";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { toast } from "sonner";
 
 interface OverdueInvoice {
   id: string;
@@ -9,6 +13,7 @@ interface OverdueInvoice {
   customer_name: string | null;
   total: number;
   due_date: string | null;
+  booking_id?: string | null;
 }
 
 interface MaintenanceAlert {
@@ -30,8 +35,28 @@ interface AlertsRowProps {
 
 export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: AlertsRowProps) {
   const navigate = useNavigate();
+  const updateInvoice = useUpdateInvoice();
+  const updateBooking = useUpdateBooking();
 
   if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0) return null;
+
+  const handleMarkPaid = (inv: OverdueInvoice, e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateInvoice.mutate(
+      { id: inv.id, status: "paid", paid_at: new Date().toISOString().split("T")[0] },
+      {
+        onSuccess: (data) => {
+          toast.success(`${inv.invoice_number} marked as paid`);
+          if (data.booking_id) {
+            updateBooking.mutate(
+              { id: data.booking_id, status: "completed" },
+              { onSuccess: () => toast.success("Linked booking completed") }
+            );
+          }
+        },
+      }
+    );
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -53,9 +78,20 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
                   <span className="font-medium">{inv.invoice_number}</span>
                   <span className="text-muted-foreground ml-2">{inv.customer_name}</span>
                 </div>
-                <div className="text-right">
-                  <span className="font-mono font-semibold text-destructive">{formatCurrency(Number(inv.total))}</span>
-                  <p className="text-xs text-muted-foreground">Due: {inv.due_date}</p>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <span className="font-mono font-semibold text-destructive">{formatCurrency(Number(inv.total))}</span>
+                    <p className="text-xs text-muted-foreground">Due: {inv.due_date}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={(e) => handleMarkPaid(inv, e)}
+                    title="Mark Paid"
+                  >
+                    <CheckCircle className="h-4 w-4 text-status-available" />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -88,7 +124,18 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
                 onClick={() => navigate(`/fleet/${a.forkliftId}`)}
               >
                 <span className="font-medium">{a.forkliftName}</span>
-                <span className="text-xs text-muted-foreground">Due: {a.nextDate}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Due: {a.nextDate}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={(e) => { e.stopPropagation(); navigate("/maintenance"); }}
+                    title="Log Service"
+                  >
+                    <ClipboardList className="h-4 w-4 text-status-maintenance" />
+                  </Button>
+                </div>
               </div>
             ))}
           </CardContent>
