@@ -6,12 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { CustomerSelector } from "@/components/CustomerSelector";
-import { DatePickerField } from "@/components/DatePickerField";
+import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { format, parseISO, areIntervalsOverlapping, isPast, differenceInDays } from "date-fns";
+import type { DateRange } from "react-day-picker";
 
 export default function BookingForm() {
   const navigate = useNavigate();
@@ -25,9 +26,11 @@ export default function BookingForm() {
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerContact, setCustomerContact] = useState("");
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [recurringBilling, setRecurringBilling] = useState(false);
+
+  const startDate = dateRange?.from;
+  const endDate = dateRange?.to;
 
   // Check for booking conflicts
   const conflict = useMemo(() => {
@@ -106,10 +109,7 @@ export default function BookingForm() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DatePickerField label="Start Date" date={startDate} onSelect={setStartDate} required />
-              <DatePickerField label="End Date" date={endDate} onSelect={setEndDate} required />
-            </div>
+            <DateRangePickerField label="Booking Dates" dateRange={dateRange} onSelect={setDateRange} required />
 
             {conflict && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
