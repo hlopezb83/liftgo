@@ -1,4 +1,5 @@
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -41,6 +42,20 @@ const navItems: NavItem[] = [
   { title: "Equipment Config", url: "/settings/equipment", icon: Settings, roles: ["admin"] },
   { title: "User Management", url: "/users", icon: ShieldCheck, roles: ["admin"] },
 ];
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
+    >
+      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
+  );
+}
 
 export function AppSidebar() {
   const { user, signOut } = useAuth();
@@ -87,12 +102,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
+      <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
         <div className="flex items-center justify-between">
           <p className="text-xs text-sidebar-foreground/60 truncate max-w-[140px]">{user?.email}</p>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-            <LogOut className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-1">
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>
