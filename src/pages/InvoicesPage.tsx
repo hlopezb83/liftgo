@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Eye } from "lucide-react";
+import { Plus, Search, Eye, Download } from "lucide-react";
+import { exportToCsv } from "@/lib/exportCsv";
 
 const STATUSES = ["all", "draft", "sent", "paid", "overdue"] as const;
 
@@ -41,7 +42,12 @@ export default function InvoicesPage() {
       <PageHeader
         title="Invoices"
         subtitle="Manage billing and track payments"
-        action={<Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />New Invoice</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("invoices.csv", (filtered || []).map(inv => ({ "Invoice #": inv.invoice_number, Customer: inv.customer_name || "", Total: inv.total, Status: inv.status, Issued: inv.issued_at, Due: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+            <Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />New Invoice</Button>
+          </div>
+        }
       />
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

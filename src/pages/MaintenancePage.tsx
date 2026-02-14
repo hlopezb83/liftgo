@@ -15,7 +15,8 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { PlusCircle, Wrench } from "lucide-react";
+import { PlusCircle, Wrench, Download } from "lucide-react";
+import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -61,7 +62,12 @@ export default function MaintenancePage() {
       <PageHeader
         title="Maintenance"
         subtitle={`${logs?.length || 0} service records — ${formatCurrency(totalCost)} total cost`}
-        action={<Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Log Service</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("maintenance.csv", (logs || []).map(l => ({ Date: l.performed_at, Forklift: forkliftMap.get(l.forklift_id)?.name || "", Service: l.service_type, "Performed By": l.performed_by || "", Cost: l.cost || 0, "Next Service": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+            <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Log Service</Button>
+          </div>
+        }
       />
 
       <Card>
