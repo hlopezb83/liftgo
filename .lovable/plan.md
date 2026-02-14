@@ -1,86 +1,188 @@
 
 
-# Bug Fixes and Code Refactoring Plan
+# Production Readiness Plan for ForkliftERP
 
-## Bugs Found
+This plan covers everything needed to take the current MVP to a production-grade application, organized by priority.
 
-### 1. React ref warning on ReturnInspectionPage
-The console shows "Function components cannot be given refs" for `Dialog` and `EmptyRow` inside `ReturnInspectionPage`. The `EmptyRow` component is used inside `TableBody` but is not wrapped with `React.forwardRef`, which Radix UI table components expect.
+---
 
-### 2. `StatusBadge` missing many statuses
-The `StatusBadge` component only maps 9 statuses but the app uses many more: `accepted`, `declined`, `expired`, `completed`, `reported`, `in_repair`, `repaired`, `invoiced`, `good`, `minor_damage`, `major_damage`, `needs_repair`, `created`, `updated`. These all fall through to the unstyled default, making damage conditions and quote statuses look broken.
+## Phase 1: Security Hardening (Critical)
 
-### 3. Dashboard `counts` not memoized
-The `counts`, `pieData`, `statCards`, and `outstandingRevenue` values in `Dashboard.tsx` are recalculated on every render. While not a crash bug, it's wasteful and inconsistent with the rest of the dashboard which uses `useMemo`.
+The biggest blocker for production is that **all 13 data tables have wide-open security policies** (`USING (true)` / `WITH CHECK (true)`). Any authenticated user can read, modify, or delete any record. This must be fixed before going live.
 
-### 4. `handleDelete` in ForkliftDetail navigates before mutation completes
-`handleDelete` calls `navigate("/fleet")` and `toast.success` immediately, then fires the delete mutation. If the delete fails, the user has already left the page and sees a confusing error toast.
+### 1A. Lock down database policies
 
-### 5. `useQuotes` hook defines a manual `Quote` type instead of using `Tables<"quotes">`
-This can drift out of sync with the database schema and bypasses type safety from the auto-generated types.
+Replace the permissive "allow everything" policies on all tables with role-aware rules using the existing `has_role()` function. The approach:
 
-### 6. `useDamageRecords` uses `Partial<DamageRecord>` for inserts
-The `useCreateDamageRecord` accepts `Partial<DamageRecord>` which allows missing required fields. Should use `TablesInsert<"damage_records">`.
+- **Admins**: Full CRUD on all tables
+- **Dispatchers**: Full CRUD on bookings, customers, invoices, quotes, deliveries, return inspections, damage records
+- **Mechanics**: Read-only on most tables; full CRUD on maintenance_logs and status_logs
 
-### 7. `useUpdateBooking` / `useUpdateQuote` / `useUpdateDamageRecord` use `{ id: string; [key: string]: any }`
-These bypass TypeScript entirely. Should use proper update types.
+Tables affected: `forklifts`, `bookings`, `customers`, `invoices`, `quotes`, `deliveries`, `maintenance_logs`, `status_logs`, `return_inspections`, `damage_records`, `equipment_models`, `documents`, `activity_feed`
 
-### 8. `BookingActions` fetches entire forklifts list just for one forklift
-It calls `useForklifts()` to find a single forklift by ID, when the booking already has `forklifts` joined data. The daily/weekly/monthly rates are needed but not on the join -- however this is still wasteful and could use a targeted query.
+### 1B. Enforce RoleGuard on routes
 
-### 9. InvoiceForm hardcodes euro symbol `"€"` instead of using `formatCurrency`
-Lines 173, 194, 199, 202 use `€${value.toFixed(2)}` while the rest of the app uses `formatCurrency()`.
+The `RoleGuard` component exists but is never used. Wrap route groups so mechanics cannot access invoices/quotes pages, and dispatchers cannot access equipment config.
 
-## Refactoring Plan
+### 1C. Add a user management screen (admin only)
 
-### A. Fix EmptyRow ref warning
-Add `React.forwardRef` to the `EmptyRow` component.
+Admins need a way to view users and assign roles without direct database access. A simple table showing profiles + role with an edit dropdown.
 
-### B. Expand StatusBadge
-Add all missing status mappings: `accepted`, `declined`, `expired`, `completed`, `reported`, `in_repair`, `repaired`, `invoiced`, `good`, `minor_damage`, `major_damage`, `needs_repair`.
+---
 
-### C. Memoize Dashboard calculations
-Wrap `counts`, `pieData`, `outstandingRevenue`, and `statCards` in `useMemo`.
+## Phase 2: Data Integrity & Error Handling
 
-### D. Fix ForkliftDetail delete ordering
-Move `navigate` and `toast.success` into the `onSuccess` callback of the mutation.
+### 2A. Wrap multi-table mutations in database functions
 
-### E. Use generated types in hooks
-- `useQuotes.ts`: Replace manual `Quote` type with `Tables<"quotes">`, use `TablesInsert`/`TablesUpdate` for mutations.
-- `useDamageRecords.ts`: Same -- use `Tables<"damage_records">`, `TablesInsert`, `TablesUpdate`.
-- `useBookings.ts` (`useUpdateBooking`): Use `TablesUpdate<"bookings"> & { id: string }`.
+Several operations modify multiple tables without transactions:
+- **Create Booking**: inserts booking, updates forklift status, inserts status_log -- if step 2 or 3 fails, data is inconsistent
+- **Delete Forklift**: deletes status_logs, maintenance_logs, bookings, then forklift
+- **Return Inspection**: inserts inspection, updates booking return_status, updates forklift status
 
-### F. Use `formatCurrency` consistently in InvoiceForm
-Replace the 4 hardcoded `€` usages with `formatCurrency()`.
+Create server-side database functions (RPC) that wrap these in a single transaction.
 
-### G. Deduplicate Invoice/Quote detail summary pattern
-Both `InvoiceDetail` and `QuoteDetail` have an identical totals summary card. Extract a shared `TotalsSummary` component.
+### 2B. Add global error boundary
 
-### H. Deduplicate Invoice/Quote form customer selector
-Both `QuoteForm` and `BookingForm` share nearly identical customer selection UI. Extract a `CustomerSelector` component.
+There is no React error boundary. A crash in any component takes down the entire app. Add an `ErrorBoundary` component wrapping the route content.
 
-## Technical Details
+### 2C. Add `onError` handlers to all mutations
 
-### Files to modify:
-| File | Change |
-|------|--------|
-| `src/components/EmptyRow.tsx` | Add `forwardRef` |
-| `src/components/StatusBadge.tsx` | Add ~12 missing status entries |
-| `src/pages/Dashboard.tsx` | Wrap 4 values in `useMemo` |
-| `src/pages/ForkliftDetail.tsx` | Move navigate/toast into `onSuccess` |
-| `src/hooks/useQuotes.ts` | Use `Tables<"quotes">`, `TablesInsert`, `TablesUpdate` |
-| `src/hooks/useDamageRecords.ts` | Use `Tables<"damage_records">`, `TablesInsert`, `TablesUpdate` |
-| `src/hooks/useBookings.ts` | Type `useUpdateBooking` properly |
-| `src/pages/InvoiceForm.tsx` | Replace `€` with `formatCurrency` |
-| `src/components/TotalsSummary.tsx` | **New** -- shared totals card |
-| `src/components/CustomerSelector.tsx` | **New** -- shared customer picker |
-| `src/pages/InvoiceDetail.tsx` | Use `TotalsSummary` |
-| `src/pages/QuoteDetail.tsx` | Use `TotalsSummary` |
-| `src/pages/QuoteForm.tsx` | Use `CustomerSelector` |
-| `src/pages/BookingForm.tsx` | Use `CustomerSelector` |
+Most mutations (create booking, create maintenance log, create inspection) silently fail. Add `onError` callbacks with user-facing toast messages.
 
-### Files to create:
-- `src/components/TotalsSummary.tsx` (small shared component)
-- `src/components/CustomerSelector.tsx` (shared customer select + name input)
+---
 
-No database changes required. No new dependencies needed.
+## Phase 3: Performance & Scalability
+
+### 3A. Move to server-side pagination
+
+The current client-side pagination fetches all rows then slices in the browser. For production with hundreds or thousands of records, this needs database-level `LIMIT`/`OFFSET` with count queries. Affected pages: Fleet, Invoices, Quotes, Customers, Maintenance, Deliveries, Damage Tracking.
+
+### 3B. Fix the calendar O(n x m) rendering
+
+`CalendarPage` runs `bookings.find()` for every cell (forklifts x days). With 50 forklifts and 31 days, that is 1,550 array scans per render. Pre-index bookings by forklift ID into a `Map<string, Booking[]>` to make lookups O(1).
+
+### 3C. Add database indexes
+
+Add indexes on frequently queried columns:
+- `bookings(forklift_id)`
+- `bookings(customer_id)`
+- `invoices(customer_id)`
+- `invoices(booking_id)`
+- `maintenance_logs(forklift_id)`
+- `status_logs(forklift_id)`
+- `damage_records(forklift_id)`
+
+### 3D. Add foreign key constraints
+
+Currently no foreign keys exist between tables (e.g., `bookings.forklift_id` does not reference `forklifts.id`). This means orphaned records can accumulate. Add proper FK constraints with `ON DELETE` rules.
+
+---
+
+## Phase 4: UX Polish
+
+### 4A. Add loading and empty states consistently
+
+Some pages show `<Skeleton>` during load, others show nothing. Standardize all pages to use `<TableSkeleton>` for tables and card skeletons for detail pages.
+
+### 4B. Add form validation with Zod
+
+Forms currently use basic `if (!field)` checks. Use `react-hook-form` + `zod` (both already installed) for proper validation with inline field errors. Priority forms: BookingForm, InvoiceForm, QuoteForm, ForkliftForm.
+
+### 4C. Add confirmation dialogs for destructive actions
+
+Only ForkliftDetail has a delete confirmation. Add similar dialogs for:
+- Canceling a booking
+- Deleting an invoice
+- Updating damage status to "invoiced"
+
+### 4D. Make the app responsive
+
+The calendar and data tables overflow on mobile. Add responsive layouts:
+- Collapse tables to card views on small screens
+- Make the sidebar default to collapsed on mobile
+- Stack form fields vertically on narrow viewports
+
+### 4E. Add dark mode toggle
+
+The CSS already defines a full `.dark` theme but there is no toggle to activate it. Add a theme switcher in the sidebar footer using the installed `next-themes` package.
+
+---
+
+## Phase 5: Operational Features
+
+### 5A. Add CSV/PDF export
+
+`exportCsv.ts` exists but is never used. Wire it up to Fleet, Invoices, Customers, and Maintenance tables with an "Export" button.
+
+### 5B. Add audit trail visibility
+
+The `activity_feed` table and `log_activity()` trigger exist but the triggers are not attached to any tables. Attach the trigger to key tables (bookings, invoices, forklifts, maintenance_logs) so the Activity page actually shows data.
+
+### 5C. Add password reset flow
+
+The auth page has sign-in and sign-up but no "Forgot password?" link. Add a password reset request form using the built-in auth capabilities.
+
+### 5D. Add email notifications via backend functions
+
+Create backend functions for:
+- Invoice overdue reminders (triggered by a scheduled function)
+- Booking confirmation emails
+- Maintenance due alerts
+
+---
+
+## Phase 6: Code Quality
+
+### 6A. Remove remaining `as any` casts
+
+Found in:
+- `InvoiceForm.tsx` lines 86, 100 (`line_items as any`)
+- `ReturnInspectionPage.tsx` lines 106-107 (`ins as any`)
+- `generate-recurring-invoices` edge function (`forklift as any`)
+
+Fix by defining proper types for JSONB fields and using typed joins.
+
+### 6B. Add automated tests
+
+The project has `vitest` configured but only a placeholder test. Add:
+- Unit tests for utility functions (`formatCurrency`, `exportCsv`, `invoiceUtils`)
+- Integration tests for key hooks (`useBookings`, `useInvoices`)
+- Component tests for critical forms
+
+### 6C. Add environment-based configuration
+
+Hardcoded values like tax rate (21%), currency (EUR), and page size (25) should be moved to a configuration file or environment variables so they can be customized per deployment.
+
+---
+
+## Implementation Priority
+
+| Priority | Phase | Effort | Impact |
+|----------|-------|--------|--------|
+| 1 (do first) | Phase 1: Security | High | Blocks production launch |
+| 2 | Phase 2: Data Integrity | Medium | Prevents data corruption |
+| 3 | Phase 3A-3B: Performance | Medium | Required at scale |
+| 4 | Phase 4B, 4C: Validation | Medium | User trust |
+| 5 | Phase 5B, 5C: Audit + Auth | Low | Operational needs |
+| 6 | Phase 4D, 4E: Responsive + Dark | Low | Polish |
+| 7 | Phase 6: Code Quality | Low | Long-term maintenance |
+
+---
+
+## Technical Summary
+
+| Area | Current State | Production Target |
+|------|--------------|-------------------|
+| RLS Policies | 13 tables with `USING (true)` | Role-scoped per table |
+| Route Protection | `RoleGuard` unused | Applied to all route groups |
+| Transactions | Multi-table writes without TX | Database RPCs with transactions |
+| Error Handling | No error boundary, sparse `onError` | Global boundary + all mutations handled |
+| Pagination | Client-side (all rows fetched) | Server-side with `LIMIT`/`OFFSET` |
+| Foreign Keys | None defined | All relationships constrained |
+| Indexes | None beyond primary keys | On all FK columns |
+| Form Validation | Manual `if` checks | Zod schemas with inline errors |
+| Tests | 1 placeholder test | Utilities + hooks + critical forms |
+| Type Safety | Several `as any` casts | Zero `any` usage |
+
+Would you like me to start with Phase 1 (Security Hardening)?
+
