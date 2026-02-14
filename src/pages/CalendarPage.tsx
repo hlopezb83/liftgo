@@ -112,6 +112,7 @@ export default function CalendarPage() {
                   {days.map((day) => {
                     const booking = bookingsByForklift.get(fl.id)?.find(
                       (b) =>
+                        b.status === "confirmed" &&
                         isWithinInterval(day, {
                           start: parseISO(b.start_date),
                           end: parseISO(b.end_date),
