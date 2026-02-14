@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
@@ -26,6 +27,7 @@ export default function BookingForm() {
   const [customerContact, setCustomerContact] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [recurringBilling, setRecurringBilling] = useState(false);
 
   // Check for booking conflicts
   const conflict = useMemo(() => {
@@ -57,6 +59,7 @@ export default function BookingForm() {
         customer_contact: selectedCustomer?.email || customerContact || null,
         customer_id: customerId || null,
         status: "confirmed",
+        recurring_billing: recurringBilling,
       },
       { onSuccess: () => { toast.success("Booking created"); navigate("/calendar"); } }
     );
@@ -112,6 +115,16 @@ export default function BookingForm() {
               <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 <span>Conflict: This forklift is booked from {conflict.start_date} to {conflict.end_date} for {conflict.customer_name || "another customer"}.</span>
+              </div>
+            )}
+
+            {startDate && endDate && differenceInDays(endDate, startDate) >= 30 && (
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                <div>
+                  <p className="text-sm font-medium">Enable Recurring Billing</p>
+                  <p className="text-xs text-muted-foreground">Auto-generate monthly invoices for this long-term booking</p>
+                </div>
+                <Switch checked={recurringBilling} onCheckedChange={setRecurringBilling} />
               </div>
             )}
           </CardContent>

@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Printer, Send, CheckCircle, Edit } from "lucide-react";
+import { InvoicePDFButton } from "@/components/InvoicePDFButton";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 
@@ -51,6 +52,7 @@ export default function InvoiceDetail() {
               <CheckCircle className="h-4 w-4 mr-1" />Mark Paid
             </Button>
           )}
+          {id && <InvoicePDFButton invoiceId={id} />}
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" />Print</Button>
         </div>
       </div>

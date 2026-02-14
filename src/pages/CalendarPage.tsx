@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format, eachDayOfInterval, isWithinInterval, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays } from "date-fns";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertTriangle, Repeat } from "lucide-react";
+import { BookingActions } from "@/components/BookingActions";
 
 const BOOKING_COLORS = [
   "hsl(217, 91%, 60%)",
@@ -140,9 +141,13 @@ export default function CalendarPage() {
                     <p className="font-medium text-sm">{forkliftMap.get(b.forklift_id)?.name} — {forkliftMap.get(b.forklift_id)?.model}</p>
                     <p className="text-xs text-muted-foreground">{b.customer_name} ({b.customer_contact})</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{b.start_date} → {b.end_date}</p>
-                    <StatusBadge status={b.status} />
+                  <div className="flex items-center gap-2">
+                    {b.recurring_billing && <Repeat className="h-3.5 w-3.5 text-primary" />}
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{b.start_date} → {b.end_date}</p>
+                      <StatusBadge status={b.status} />
+                    </div>
+                    <BookingActions booking={b} />
                   </div>
                 </div>
               ))}

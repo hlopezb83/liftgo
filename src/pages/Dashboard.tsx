@@ -9,6 +9,7 @@ import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
 import { InvoiceBreakdown } from "@/components/dashboard/InvoiceBreakdown";
 import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Truck, CheckCircle, Clock, Wrench, Receipt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -185,6 +186,8 @@ export default function Dashboard() {
       <UtilizationCharts utilizationData={utilizationData} revenuePerUnit={revenuePerUnit} />
 
       <CashFlowChart data={cashFlowData} />
+
+      <RecentActivity />
 
       {/* Active Bookings */}
       <Card>

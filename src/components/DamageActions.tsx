@@ -1,0 +1,54 @@
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useUpdateDamageRecord, type DamageRecord } from "@/hooks/useDamageRecords";
+import { useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import { Wrench, Receipt } from "lucide-react";
+import { toast } from "sonner";
+
+interface DamageActionsProps {
+  record: DamageRecord & { forklifts?: { name: string; model: string } | null };
+}
+
+export function DamageActions({ record }: DamageActionsProps) {
+  const navigate = useNavigate();
+  const updateDamage = useUpdateDamageRecord();
+  const createMaintenance = useCreateMaintenanceLog();
+
+  const handleCreateWorkOrder = () => {
+    createMaintenance.mutate(
+      {
+        forklift_id: record.forklift_id,
+        service_type: "Damage Repair",
+        description: record.description,
+        cost: record.estimated_cost || 0,
+      },
+      {
+        onSuccess: (data) => {
+          updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id });
+          toast.success("Maintenance work order created");
+        },
+      }
+    );
+  };
+
+  const handleCreateInvoice = () => {
+    navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}&amount=${record.estimated_cost}`);
+  };
+
+  if (record.status === "invoiced") return <span className="text-xs text-muted-foreground">Complete</span>;
+
+  return (
+    <div className="flex gap-1">
+      {(record.status === "reported") && (
+        <Button variant="ghost" size="sm" onClick={handleCreateWorkOrder} disabled={createMaintenance.isPending}>
+          <Wrench className="h-3.5 w-3.5 mr-1" />Repair
+        </Button>
+      )}
+      {(record.status === "repaired" || record.status === "reported") && (
+        <Button variant="ghost" size="sm" onClick={handleCreateInvoice}>
+          <Receipt className="h-3.5 w-3.5 mr-1" />Charge
+        </Button>
+      )}
+    </div>
+  );
+}
