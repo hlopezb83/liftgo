@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForklifts } from "@/hooks/useForkliftData";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
@@ -84,7 +85,7 @@ export default function Fleet() {
                     <TableCell>{f.capacity_kg ? `${f.capacity_kg} kg` : "—"}</TableCell>
                     <TableCell>{f.fuel_type}</TableCell>
                     <TableCell><StatusBadge status={f.status} /></TableCell>
-                    <TableCell className="text-right font-medium">${f.daily_rate || 0}/day</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/day</TableCell>
                   </TableRow>
                 ))}
                 {filtered?.length === 0 && <EmptyRow colSpan={7} message="No forklifts found" />}

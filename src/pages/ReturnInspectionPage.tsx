@@ -14,11 +14,23 @@ import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FormActions } from "@/components/FormActions";
+import { useFormState } from "@/hooks/useFormState";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 const CONDITIONS = ["good", "minor_damage", "major_damage", "needs_repair"];
+
+const initialForm = {
+  bookingId: "" as string,
+  condition: "good" as string,
+  damageNotes: "" as string,
+  damageCost: "" as string,
+  hoursUsed: "" as string,
+  fuelLevel: "" as string,
+  inspectedBy: "" as string,
+};
 
 export default function ReturnInspectionPage() {
   const { data: bookings } = useBookings();
@@ -26,49 +38,36 @@ export default function ReturnInspectionPage() {
   const { data: inspections, isLoading } = useReturnInspections();
   const createInspection = useCreateReturnInspection();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { form, set, reset } = useFormState(initialForm);
 
-  const [bookingId, setBookingId] = useState("");
-  const [condition, setCondition] = useState("good");
-  const [damageNotes, setDamageNotes] = useState("");
-  const [damageCost, setDamageCost] = useState("");
-  const [hoursUsed, setHoursUsed] = useState("");
-  const [fuelLevel, setFuelLevel] = useState("");
-  const [inspectedBy, setInspectedBy] = useState("");
-
-  // Only show active/confirmed bookings for returns (not already returned)
   const activeBookings = bookings?.filter(
-    (b: any) => b.status === "confirmed" && !b.return_status
+    (b) => b.status === "confirmed" && !b.return_status
   );
 
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
-  const resetForm = () => {
-    setBookingId(""); setCondition("good"); setDamageNotes(""); setDamageCost("");
-    setHoursUsed(""); setFuelLevel(""); setInspectedBy("");
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingId) { toast.error("Select a booking to return"); return; }
-    const booking = bookings?.find((b: any) => b.id === bookingId);
+    if (!form.bookingId) { toast.error("Select a booking to return"); return; }
+    const booking = bookings?.find((b) => b.id === form.bookingId);
     if (!booking) return;
 
     createInspection.mutate(
       {
-        booking_id: bookingId,
+        booking_id: form.bookingId,
         forklift_id: booking.forklift_id,
-        condition,
-        damage_notes: damageNotes || null,
-        damage_cost: damageCost ? parseFloat(damageCost) : 0,
-        hours_used: hoursUsed ? parseFloat(hoursUsed) : null,
-        fuel_level: fuelLevel || null,
-        inspected_by: inspectedBy || null,
+        condition: form.condition,
+        damage_notes: form.damageNotes || null,
+        damage_cost: form.damageCost ? parseFloat(form.damageCost) : 0,
+        hours_used: form.hoursUsed ? parseFloat(form.hoursUsed) : null,
+        fuel_level: form.fuelLevel || null,
+        inspected_by: form.inspectedBy || null,
       },
       {
         onSuccess: () => {
           toast.success("Return inspection recorded — forklift marked available");
           setDialogOpen(false);
-          resetForm();
+          reset();
         },
       }
     );
@@ -80,7 +79,7 @@ export default function ReturnInspectionPage() {
         title="Returns & Check-in"
         subtitle="Inspect returned equipment and update fleet status"
         action={
-          <Button onClick={() => { resetForm(); setDialogOpen(true); }} size="sm">
+          <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
             <PlusCircle className="h-4 w-4 mr-1" /> New Return
           </Button>
         }
@@ -101,13 +100,13 @@ export default function ReturnInspectionPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {inspections && inspections.length > 0 ? inspections.map((ins: any) => (
+                {inspections && inspections.length > 0 ? inspections.map((ins) => (
                   <TableRow key={ins.id}>
                     <TableCell className="font-mono text-sm">{format(new Date(ins.inspected_at), "MMM d, yyyy")}</TableCell>
-                    <TableCell className="font-medium">{ins.forklifts?.name || "—"}</TableCell>
-                    <TableCell>{ins.bookings?.customer_name || "—"}</TableCell>
+                    <TableCell className="font-medium">{(ins as any).forklifts?.name || "—"}</TableCell>
+                    <TableCell>{(ins as any).bookings?.customer_name || "—"}</TableCell>
                     <TableCell><StatusBadge status={ins.condition} /></TableCell>
-                    <TableCell className="font-mono">{ins.damage_cost ? `€${ins.damage_cost}` : "—"}</TableCell>
+                    <TableCell className="font-mono">{ins.damage_cost ? formatCurrency(ins.damage_cost) : "—"}</TableCell>
                     <TableCell>{ins.inspected_by || "—"}</TableCell>
                   </TableRow>
                 )) : (
@@ -129,10 +128,10 @@ export default function ReturnInspectionPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Booking to Return *</Label>
-              <Select value={bookingId} onValueChange={setBookingId}>
+              <Select value={form.bookingId} onValueChange={(v) => set("bookingId", v)}>
                 <SelectTrigger><SelectValue placeholder="Select active booking" /></SelectTrigger>
                 <SelectContent>
-                  {activeBookings?.map((b: any) => (
+                  {activeBookings?.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Unknown"} ({b.start_date} → {b.end_date})
                     </SelectItem>
@@ -143,7 +142,7 @@ export default function ReturnInspectionPage() {
 
             <div className="space-y-1.5">
               <Label>Condition *</Label>
-              <Select value={condition} onValueChange={setCondition}>
+              <Select value={form.condition} onValueChange={(v) => set("condition", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {CONDITIONS.map((c) => (
@@ -155,24 +154,24 @@ export default function ReturnInspectionPage() {
 
             <div className="space-y-1.5">
               <Label>Damage Notes</Label>
-              <Textarea value={damageNotes} onChange={(e) => setDamageNotes(e.target.value)} placeholder="Describe any damage..." rows={3} />
+              <Textarea value={form.damageNotes} onChange={(e) => set("damageNotes", e.target.value)} placeholder="Describe any damage..." rows={3} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Damage Cost (€)</Label>
-                <Input type="number" step="0.01" value={damageCost} onChange={(e) => setDamageCost(e.target.value)} placeholder="0" />
+                <Input type="number" step="0.01" value={form.damageCost} onChange={(e) => set("damageCost", e.target.value)} placeholder="0" />
               </div>
               <div className="space-y-1.5">
                 <Label>Hours Used</Label>
-                <Input type="number" step="0.1" value={hoursUsed} onChange={(e) => setHoursUsed(e.target.value)} placeholder="0" />
+                <Input type="number" step="0.1" value={form.hoursUsed} onChange={(e) => set("hoursUsed", e.target.value)} placeholder="0" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Fuel Level</Label>
-                <Select value={fuelLevel} onValueChange={setFuelLevel}>
+                <Select value={form.fuelLevel} onValueChange={(v) => set("fuelLevel", v)}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
                     {["Full", "3/4", "1/2", "1/4", "Empty"].map((l) => (
@@ -183,7 +182,7 @@ export default function ReturnInspectionPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Inspected By</Label>
-                <Input value={inspectedBy} onChange={(e) => setInspectedBy(e.target.value)} placeholder="Inspector name" />
+                <Input value={form.inspectedBy} onChange={(e) => set("inspectedBy", e.target.value)} placeholder="Inspector name" />
               </div>
             </div>
 

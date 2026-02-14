@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Mail, Phone, Globe, MapPin, Receipt, CalendarDays } from "lucide-react";
-import { format } from "date-fns";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
@@ -15,7 +15,7 @@ export default function CustomerDetailPage() {
   const { data: allInvoices } = useInvoices();
 
   const customer = customers?.find((c) => c.id === id);
-  const bookings = allBookings?.filter((b: any) => b.customer_id === id);
+  const bookings = allBookings?.filter((b) => b.customer_id === id);
   const invoices = allInvoices?.filter((i) => i.customer_id === id);
 
   const totalInvoiced = invoices?.reduce((sum, i) => sum + Number(i.total), 0) || 0;
@@ -37,7 +37,6 @@ export default function CustomerDetailPage() {
         </div>
       </div>
 
-      {/* Contact info + financial summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader><CardTitle className="text-base">Contact Information</CardTitle></CardHeader>
@@ -68,21 +67,20 @@ export default function CustomerDetailPage() {
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total Invoiced</span>
-              <span className="font-mono font-semibold">€{totalInvoiced.toFixed(2)}</span>
+              <span className="font-mono font-semibold">{formatCurrency(totalInvoiced)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total Paid</span>
-              <span className="font-mono font-semibold text-status-available">€{totalPaid.toFixed(2)}</span>
+              <span className="font-mono font-semibold text-status-available">{formatCurrency(totalPaid)}</span>
             </div>
             <div className="flex justify-between text-sm border-t pt-2">
               <span className="font-medium">Outstanding</span>
-              <span className={`font-mono font-bold ${outstanding > 0 ? "text-destructive" : ""}`}>€{outstanding.toFixed(2)}</span>
+              <span className={`font-mono font-bold ${outstanding > 0 ? "text-destructive" : ""}`}>{formatCurrency(outstanding)}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Booking history */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Booking History</CardTitle>
@@ -90,7 +88,7 @@ export default function CustomerDetailPage() {
         <CardContent>
           {bookings && bookings.length > 0 ? (
             <div className="space-y-2">
-              {bookings.map((b: any) => (
+              {bookings.map((b) => (
                 <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
                   <div>
                     <p className="font-medium">{b.forklifts?.name || "—"} — {b.forklifts?.model || ""}</p>
@@ -106,7 +104,6 @@ export default function CustomerDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Invoices */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4" /> Invoices</CardTitle>
@@ -125,7 +122,7 @@ export default function CustomerDetailPage() {
                     <p className="text-xs text-muted-foreground">{inv.issued_at}{inv.due_date ? ` — Due: ${inv.due_date}` : ""}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono font-semibold">€{Number(inv.total).toFixed(2)}</span>
+                    <span className="font-mono font-semibold">{formatCurrency(Number(inv.total))}</span>
                     <StatusBadge status={inv.status} />
                   </div>
                 </div>

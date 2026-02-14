@@ -1,0 +1,59 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+
+export function useInvoices() {
+  return useQuery({
+    queryKey: ["invoices"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useInvoice(id: string | undefined) {
+  return useQuery({
+    queryKey: ["invoices", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invoices").select("*").eq("id", id!).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useCreateInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number">) => {
+      const { data: numData, error: numError } = await supabase.rpc("next_invoice_number");
+      if (numError) throw numError;
+      const { data, error } = await supabase
+        .from("invoices")
+        .insert({ ...invoice, invoice_number: numData as string })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+  });
+}
+
+export function useUpdateInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: TablesUpdate<"invoices"> & { id: string }) => {
+      const { data, error } = await supabase.from("invoices").update(updates).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      qc.invalidateQueries({ queryKey: ["invoices", data.id] });
+    },
+  });
+}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForklifts, useBookings } from "@/hooks/useForkliftData";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
+import type { BookingWithForklift } from "@/hooks/useBookings";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +16,22 @@ import { EmptyRow } from "@/components/EmptyRow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
+import { useFormState } from "@/hooks/useFormState";
 import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+const initialForm = {
+  forkliftId: "" as string,
+  bookingId: "" as string,
+  type: "delivery" as string,
+  scheduledDate: new Date() as Date,
+  scheduledTime: "" as string,
+  address: "" as string,
+  driverName: "" as string,
+  driverPhone: "" as string,
+  notes: "" as string,
+};
 
 export default function DeliveriesPage() {
   const { data: forklifts } = useForklifts();
@@ -26,44 +40,30 @@ export default function DeliveriesPage() {
   const createDelivery = useCreateDelivery();
   const updateDelivery = useUpdateDelivery();
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  const [forkliftId, setForkliftId] = useState("");
-  const [bookingId, setBookingId] = useState("");
-  const [type, setType] = useState("delivery");
-  const [scheduledDate, setScheduledDate] = useState<Date>(new Date());
-  const [scheduledTime, setScheduledTime] = useState("");
-  const [address, setAddress] = useState("");
-  const [driverName, setDriverName] = useState("");
-  const [driverPhone, setDriverPhone] = useState("");
-  const [notes, setNotes] = useState("");
+  const { form, set, reset } = useFormState(initialForm);
 
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
-  const resetForm = () => {
-    setForkliftId(""); setBookingId(""); setType("delivery"); setScheduledDate(new Date());
-    setScheduledTime(""); setAddress(""); setDriverName(""); setDriverPhone(""); setNotes("");
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forkliftId || !scheduledDate) { toast.error("Forklift and date are required"); return; }
+    if (!form.forkliftId || !form.scheduledDate) { toast.error("Forklift and date are required"); return; }
     createDelivery.mutate(
       {
-        forklift_id: forkliftId,
-        booking_id: bookingId || null,
-        type,
-        scheduled_date: format(scheduledDate, "yyyy-MM-dd"),
-        scheduled_time: scheduledTime || null,
-        address: address || null,
-        driver_name: driverName || null,
-        driver_phone: driverPhone || null,
-        notes: notes || null,
+        forklift_id: form.forkliftId,
+        booking_id: form.bookingId || null,
+        type: form.type,
+        scheduled_date: format(form.scheduledDate, "yyyy-MM-dd"),
+        scheduled_time: form.scheduledTime || null,
+        address: form.address || null,
+        driver_name: form.driverName || null,
+        driver_phone: form.driverPhone || null,
+        notes: form.notes || null,
       },
       {
         onSuccess: () => {
           toast.success("Delivery scheduled");
           setDialogOpen(false);
-          resetForm();
+          reset();
         },
       }
     );
@@ -82,7 +82,7 @@ export default function DeliveriesPage() {
         title="Deliveries & Pickups"
         subtitle="Schedule and track equipment transport"
         action={
-          <Button onClick={() => { resetForm(); setDialogOpen(true); }} size="sm">
+          <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
             <PlusCircle className="h-4 w-4 mr-1" /> Schedule
           </Button>
         }
@@ -104,11 +104,11 @@ export default function DeliveriesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {deliveries && deliveries.length > 0 ? deliveries.map((d: any) => (
+                {deliveries && deliveries.length > 0 ? deliveries.map((d) => (
                   <TableRow key={d.id}>
                     <TableCell className="font-mono text-sm">{d.scheduled_date}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
                     <TableCell className="capitalize">{d.type}</TableCell>
-                    <TableCell className="font-medium">{d.forklifts?.name || forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
+                    <TableCell className="font-medium">{(d as any).forklifts?.name || forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
                     <TableCell>{d.driver_name || "—"}</TableCell>
                     <TableCell><StatusBadge status={d.status} /></TableCell>
@@ -138,7 +138,7 @@ export default function DeliveriesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Type *</Label>
-                <Select value={type} onValueChange={setType}>
+                <Select value={form.type} onValueChange={(v) => set("type", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="delivery">Delivery</SelectItem>
@@ -148,7 +148,7 @@ export default function DeliveriesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Forklift *</Label>
-                <Select value={forkliftId} onValueChange={setForkliftId}>
+                <Select value={form.forkliftId} onValueChange={(v) => set("forkliftId", v)}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
                     {forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}
@@ -159,10 +159,10 @@ export default function DeliveriesPage() {
 
             <div className="space-y-1.5">
               <Label>Linked Booking</Label>
-              <Select value={bookingId} onValueChange={setBookingId}>
+              <Select value={form.bookingId} onValueChange={(v) => set("bookingId", v)}>
                 <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
                 <SelectContent>
-                  {bookings?.map((b: any) => (
+                  {bookings?.map((b) => (
                     <SelectItem key={b.id} value={b.id}>{b.customer_name || "Unknown"} ({b.start_date} → {b.end_date})</SelectItem>
                   ))}
                 </SelectContent>
@@ -170,32 +170,32 @@ export default function DeliveriesPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <DatePickerField label="Date *" date={scheduledDate} onSelect={(d) => d && setScheduledDate(d)} />
+              <DatePickerField label="Date *" date={form.scheduledDate} onSelect={(d) => d && set("scheduledDate", d)} />
               <div className="space-y-1.5">
                 <Label>Time</Label>
-                <Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} />
+                <Input type="time" value={form.scheduledTime} onChange={(e) => set("scheduledTime", e.target.value)} />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <Label>Delivery Address</Label>
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Construction Site Rd" />
+              <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="123 Construction Site Rd" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Driver Name</Label>
-                <Input value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder="John Driver" />
+                <Input value={form.driverName} onChange={(e) => set("driverName", e.target.value)} placeholder="John Driver" />
               </div>
               <div className="space-y-1.5">
                 <Label>Driver Phone</Label>
-                <Input value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} placeholder="+1 555 0123" />
+                <Input value={form.driverPhone} onChange={(e) => set("driverPhone", e.target.value)} placeholder="+1 555 0123" />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <Label>Notes</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Special instructions..." rows={2} />
+              <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Special instructions..." rows={2} />
             </div>
 
             <FormActions submitLabel="Schedule" isPending={createDelivery.isPending} onCancel={() => setDialogOpen(false)} />

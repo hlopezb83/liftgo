@@ -31,7 +31,7 @@ export default function BookingForm() {
   const conflict = useMemo(() => {
     if (!forkliftId || !startDate || !endDate || !allBookings) return null;
     return allBookings.find(
-      (b: any) =>
+      (b) =>
         b.forklift_id === forkliftId &&
         b.status !== "completed" &&
         areIntervalsOverlapping(
@@ -111,7 +111,7 @@ export default function BookingForm() {
             {conflict && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>Conflict: This forklift is booked from {(conflict as any).start_date} to {(conflict as any).end_date} for {(conflict as any).customer_name || "another customer"}.</span>
+                <span>Conflict: This forklift is booked from {conflict.start_date} to {conflict.end_date} for {conflict.customer_name || "another customer"}.</span>
               </div>
             )}
           </CardContent>

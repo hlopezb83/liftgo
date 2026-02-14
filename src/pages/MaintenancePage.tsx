@@ -13,53 +13,55 @@ import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
+import { useFormState } from "@/hooks/useFormState";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { PlusCircle, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 const SERVICE_TYPES = ["Routine Inspection", "Oil Change", "Battery Service", "Tire Replacement", "Hydraulic Repair", "Brake Service", "Electrical Repair", "Other"];
 
+const initialForm = {
+  forkliftId: "" as string,
+  serviceType: "" as string,
+  description: "" as string,
+  cost: "" as string,
+  performedBy: "" as string,
+  performedAt: new Date() as Date,
+  nextServiceDate: undefined as Date | undefined,
+};
+
 export default function MaintenancePage() {
   const { data: forklifts } = useForklifts();
   const { data: logs, isLoading } = useMaintenanceLogs();
   const createLog = useCreateMaintenanceLog();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [forkliftId, setForkliftId] = useState("");
-  const [serviceType, setServiceType] = useState("");
-  const [description, setDescription] = useState("");
-  const [cost, setCost] = useState("");
-  const [performedBy, setPerformedBy] = useState("");
-  const [performedAt, setPerformedAt] = useState<Date>(new Date());
-  const [nextServiceDate, setNextServiceDate] = useState<Date>();
+  const { form, set, reset } = useFormState(initialForm);
 
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
-  const resetForm = () => {
-    setForkliftId(""); setServiceType(""); setDescription(""); setCost(""); setPerformedBy(""); setPerformedAt(new Date()); setNextServiceDate(undefined);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forkliftId || !serviceType) { toast.error("Forklift and service type are required"); return; }
+    if (!form.forkliftId || !form.serviceType) { toast.error("Forklift and service type are required"); return; }
     createLog.mutate(
       {
-        forklift_id: forkliftId, service_type: serviceType, description: description || null,
-        cost: cost ? parseFloat(cost) : 0, performed_by: performedBy || null,
-        performed_at: format(performedAt, "yyyy-MM-dd"),
-        next_service_date: nextServiceDate ? format(nextServiceDate, "yyyy-MM-dd") : null,
+        forklift_id: form.forkliftId, service_type: form.serviceType, description: form.description || null,
+        cost: form.cost ? parseFloat(form.cost) : 0, performed_by: form.performedBy || null,
+        performed_at: format(form.performedAt, "yyyy-MM-dd"),
+        next_service_date: form.nextServiceDate ? format(form.nextServiceDate, "yyyy-MM-dd") : null,
       },
-      { onSuccess: () => { toast.success("Maintenance log added"); setDialogOpen(false); resetForm(); } }
+      { onSuccess: () => { toast.success("Maintenance log added"); setDialogOpen(false); reset(); } }
     );
   };
 
-  const totalCost = logs?.reduce((sum, l: any) => sum + (l.cost || 0), 0) || 0;
+  const totalCost = logs?.reduce((sum, l) => sum + (l.cost || 0), 0) || 0;
 
   return (
     <div className="p-6 space-y-6">
       <PageHeader
         title="Maintenance"
-        subtitle={`${logs?.length || 0} service records — $${totalCost.toLocaleString()} total cost`}
-        action={<Button onClick={() => { resetForm(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Log Service</Button>}
+        subtitle={`${logs?.length || 0} service records — ${formatCurrency(totalCost)} total cost`}
+        action={<Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Log Service</Button>}
       />
 
       <Card>
@@ -73,13 +75,13 @@ export default function MaintenancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs?.map((log: any) => (
+                {logs?.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="font-mono text-sm">{log.performed_at}</TableCell>
                     <TableCell className="font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</TableCell>
                     <TableCell>{log.service_type}</TableCell>
                     <TableCell>{log.performed_by || "—"}</TableCell>
-                    <TableCell className="text-right font-medium">${log.cost || 0}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(log.cost || 0)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{log.next_service_date || "—"}</TableCell>
                   </TableRow>
                 ))}
@@ -96,29 +98,29 @@ export default function MaintenancePage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Forklift *</Label>
-              <Select value={forkliftId} onValueChange={setForkliftId}>
+              <Select value={form.forkliftId} onValueChange={(v) => set("forkliftId", v)}>
                 <SelectTrigger><SelectValue placeholder="Select forklift" /></SelectTrigger>
                 <SelectContent>{forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Service Type *</Label>
-              <Select value={serviceType} onValueChange={setServiceType}>
+              <Select value={form.serviceType} onValueChange={(v) => set("serviceType", v)}>
                 <SelectTrigger><SelectValue placeholder="Select service type" /></SelectTrigger>
                 <SelectContent>{SERVICE_TYPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details about the service..." rows={3} />
+              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Details about the service..." rows={3} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Cost ($)</Label><Input type="number" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0" /></div>
-              <div className="space-y-1.5"><Label>Performed By</Label><Input value={performedBy} onChange={(e) => setPerformedBy(e.target.value)} placeholder="Technician name" /></div>
+              <div className="space-y-1.5"><Label>Cost (€)</Label><Input type="number" value={form.cost} onChange={(e) => set("cost", e.target.value)} placeholder="0" /></div>
+              <div className="space-y-1.5"><Label>Performed By</Label><Input value={form.performedBy} onChange={(e) => set("performedBy", e.target.value)} placeholder="Technician name" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <DatePickerField label="Service Date" date={performedAt} onSelect={(d) => d && setPerformedAt(d)} />
-              <DatePickerField label="Next Service Date" date={nextServiceDate} onSelect={setNextServiceDate} placeholder="Optional" />
+              <DatePickerField label="Service Date" date={form.performedAt} onSelect={(d) => d && set("performedAt", d)} />
+              <DatePickerField label="Next Service Date" date={form.nextServiceDate} onSelect={(d) => set("nextServiceDate", d)} placeholder="Optional" />
             </div>
             <FormActions submitLabel="Add Log" isPending={createLog.isPending} onCancel={() => setDialogOpen(false)} />
           </form>

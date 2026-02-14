@@ -1,4 +1,5 @@
 import { useBookings, useForklifts } from "@/hooks/useForkliftData";
+import type { BookingWithForklift } from "@/hooks/useBookings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/PageHeader";
@@ -27,10 +28,9 @@ export default function CalendarPage() {
 
   const forkliftMap = useMemo(() => new Map(forklifts?.map((f) => [f.id, f])), [forklifts]);
 
-  // Bookings ending within 3 days
   const endingSoon = useMemo(() => {
     if (!bookings) return [];
-    return bookings.filter((b: any) => {
+    return bookings.filter((b) => {
       const endDate = parseISO(b.end_date);
       const daysLeft = differenceInDays(endDate, new Date());
       return b.status === "confirmed" && daysLeft >= 0 && daysLeft <= 3;
@@ -53,7 +53,7 @@ export default function CalendarPage() {
               <span className="font-medium text-sm">Bookings ending soon ({endingSoon.length})</span>
             </div>
             <div className="space-y-1">
-              {endingSoon.map((b: any) => (
+              {endingSoon.map((b) => (
                 <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
                   <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
                   <span className="text-xs text-muted-foreground">Ends: {b.end_date}</span>
@@ -99,7 +99,7 @@ export default function CalendarPage() {
                 <div className="flex-1 flex">
                   {days.map((day) => {
                     const booking = bookings?.find(
-                      (b: any) =>
+                      (b) =>
                         b.forklift_id === fl.id &&
                         isWithinInterval(day, {
                           start: parseISO(b.start_date),
@@ -112,7 +112,7 @@ export default function CalendarPage() {
                           <div
                             className="w-full h-5 rounded-sm mx-px"
                             style={{ background: BOOKING_COLORS[flIdx % BOOKING_COLORS.length] }}
-                            title={`${(booking as any).customer_name}: ${(booking as any).start_date} → ${(booking as any).end_date}`}
+                            title={`${booking.customer_name}: ${booking.start_date} → ${booking.end_date}`}
                           />
                         ) : (
                           <div className="w-full h-5 bg-muted/30 rounded-sm mx-px" />
@@ -134,7 +134,7 @@ export default function CalendarPage() {
         <CardContent>
           {bookings && bookings.length > 0 ? (
             <div className="space-y-2">
-              {bookings.map((b: any) => (
+              {bookings.map((b) => (
                 <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
                   <div>
                     <p className="font-medium text-sm">{forkliftMap.get(b.forklift_id)?.name} — {forkliftMap.get(b.forklift_id)?.model}</p>
