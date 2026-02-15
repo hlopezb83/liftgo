@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useForklift, useCreateForklift, useUpdateForklift } from "@/hooks/useForkliftData";
+import { useForklifts } from "@/hooks/useForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -88,10 +89,23 @@ export default function ForkliftForm() {
     }));
   };
 
+  const { data: allForklifts } = useForklifts();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.model) {
       toast.error("Name and model are required");
+      return;
+    }
+
+    // Client-side duplicate check
+    const others = allForklifts?.filter((f) => f.id !== id) ?? [];
+    if (others.some((f) => f.name === form.name)) {
+      toast.error("A forklift with this name already exists");
+      return;
+    }
+    if (form.serial_number && others.some((f) => f.serial_number === form.serial_number)) {
+      toast.error("A forklift with this serial number already exists");
       return;
     }
 
@@ -111,13 +125,25 @@ export default function ForkliftForm() {
       notes: form.notes || null,
     };
 
+    const onError = (err: Error) => {
+      if (err.message?.includes("forklifts_name_unique")) {
+        toast.error("A forklift with this name already exists");
+      } else if (err.message?.includes("forklifts_serial_number_unique")) {
+        toast.error("A forklift with this serial number already exists");
+      } else {
+        toast.error(err.message);
+      }
+    };
+
     if (isEdit) {
       update.mutate({ id, ...payload }, {
         onSuccess: () => { toast.success("Forklift updated"); navigate(`/fleet/${id}`); },
+        onError,
       });
     } else {
       create.mutate(payload, {
         onSuccess: () => { toast.success("Forklift added"); navigate("/fleet"); },
+        onError,
       });
     }
   };
