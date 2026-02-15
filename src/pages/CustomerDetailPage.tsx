@@ -4,8 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Mail, Phone, Globe, MapPin, Receipt, CalendarDays } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Globe, MapPin, Receipt, CalendarDays, UserPlus } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
@@ -13,6 +21,13 @@ export default function CustomerDetailPage() {
   const { data: customers, isLoading } = useCustomers();
   const { data: allBookings } = useBookings();
   const { data: allInvoices } = useInvoices();
+  const { data: role } = useUserRole();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   const customer = customers?.find((c) => c.id === id);
   const bookings = allBookings?.filter((b) => b.customer_id === id);
@@ -22,21 +37,55 @@ export default function CustomerDetailPage() {
   const totalPaid = invoices?.filter((i) => i.status === "paid").reduce((sum, i) => sum + Number(i.total), 0) || 0;
   const outstanding = totalInvoiced - totalPaid;
 
+  const hasPortalAccess = !!(customer as any)?.user_id;
+
+  const handleInvite = async () => {
+    if (!inviteEmail || !id) return;
+    setInviting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("invite-customer", {
+        body: { customer_id: id, email: inviteEmail },
+      });
+      if (res.error) throw new Error(res.error.message);
+      if (res.data?.error) throw new Error(res.data.error);
+      toast({ title: "Invitation sent", description: `Portal access created for ${inviteEmail}` });
+      setInviteOpen(false);
+      setInviteEmail("");
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setInviting(false);
+    }
+  };
+
   if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
   if (!customer) return <div className="p-6 text-muted-foreground">Customer not found</div>;
 
   return (
     <div className="p-6 space-y-6 max-w-5xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/customers")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{customer.name}</h1>
-          {customer.company && <p className="text-sm text-muted-foreground">{customer.company}</p>}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/customers")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">{customer.name}</h1>
+            {customer.company && <p className="text-sm text-muted-foreground">{customer.company}</p>}
+          </div>
         </div>
+        {role === "admin" && !hasPortalAccess && (
+          <Button variant="outline" onClick={() => { setInviteEmail(customer.email || ""); setInviteOpen(true); }}>
+            <UserPlus className="h-4 w-4 mr-2" /> Invite to Portal
+          </Button>
+        )}
+        {hasPortalAccess && (
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Portal access active</span>
+        )}
       </div>
 
+      {/* Contact + Financial cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader><CardTitle className="text-base">Contact Information</CardTitle></CardHeader>
@@ -81,6 +130,7 @@ export default function CustomerDetailPage() {
         </Card>
       </div>
 
+      {/* Booking History */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Booking History</CardTitle>
@@ -104,6 +154,7 @@ export default function CustomerDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Invoices */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4" /> Invoices</CardTitle>
@@ -140,6 +191,36 @@ export default function CustomerDetailPage() {
           <CardContent><p className="text-sm whitespace-pre-wrap">{customer.notes}</p></CardContent>
         </Card>
       )}
+
+      {/* Invite Dialog */}
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite to Customer Portal</DialogTitle>
+            <DialogDescription>
+              Create a portal account for {customer.name}. They'll receive a password reset email to set their credentials.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="invite-email">Email Address</Label>
+              <Input
+                id="invite-email"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="customer@example.com"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
+            <Button onClick={handleInvite} disabled={inviting || !inviteEmail}>
+              {inviting ? "Sending..." : "Send Invitation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -278,6 +278,7 @@ export type Database = {
           rfc: string | null
           tax_id: string | null
           updated_at: string
+          user_id: string | null
           uso_cfdi: string | null
           website: string | null
         }
@@ -297,6 +298,7 @@ export type Database = {
           rfc?: string | null
           tax_id?: string | null
           updated_at?: string
+          user_id?: string | null
           uso_cfdi?: string | null
           website?: string | null
         }
@@ -316,6 +318,7 @@ export type Database = {
           rfc?: string | null
           tax_id?: string | null
           updated_at?: string
+          user_id?: string | null
           uso_cfdi?: string | null
           website?: string | null
         }
@@ -1134,6 +1137,7 @@ export type Database = {
         Returns: string
       }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
+      get_customer_id_for_user: { Args: { p_user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1146,7 +1150,7 @@ export type Database = {
       next_quote_number: { Args: never; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "dispatcher" | "mechanic"
+      app_role: "admin" | "dispatcher" | "mechanic" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1274,7 +1278,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "dispatcher", "mechanic"],
+      app_role: ["admin", "dispatcher", "mechanic", "customer"],
     },
   },
 } as const
