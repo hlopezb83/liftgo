@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
@@ -18,12 +18,25 @@ interface DateRangePickerFieldProps {
 
 export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Pick dates", required }: DateRangePickerFieldProps) {
   const [open, setOpen] = useState(false);
+  const initialRangeRef = useRef<{ from?: Date; to?: Date }>({});
 
-  // Auto-close when both dates are selected
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      initialRangeRef.current = { from: dateRange?.from, to: dateRange?.to };
+    }
+    setOpen(nextOpen);
+  };
+
+  // Auto-close only when a NEW complete range is selected
   useEffect(() => {
     if (open && dateRange?.from && dateRange?.to) {
-      const t = setTimeout(() => setOpen(false), 300);
-      return () => clearTimeout(t);
+      const changed =
+        dateRange.from.getTime() !== initialRangeRef.current.from?.getTime() ||
+        dateRange.to.getTime() !== initialRangeRef.current.to?.getTime();
+      if (changed) {
+        const t = setTimeout(() => setOpen(false), 300);
+        return () => clearTimeout(t);
+      }
     }
   }, [open, dateRange?.from, dateRange?.to]);
 
@@ -36,7 +49,7 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
   return (
     <div className="space-y-1.5">
       <Label>{label}{required && " *"}</Label>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dateRange?.from && "text-muted-foreground")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
