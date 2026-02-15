@@ -1,24 +1,68 @@
 
-# Fix: Date Range Picker Closes Immediately When Reopening
 
-## The Problem
+# Reorder Forms: Pick Dates First, Then Show Available Forklifts
 
-The `DateRangePickerField` has an auto-close effect that triggers whenever both `from` and `to` dates are set. When you reopen the picker to edit an already-selected range, both dates are already present, so the effect fires instantly and closes the popover after 300ms -- too fast to make any change.
+## What Changes
 
-## The Fix
+Both the **New Booking** and **New Quote** forms will be restructured so that:
 
-In `src/components/DateRangePickerField.tsx`, track when the popover was opened and only auto-close after a **new** selection is made (i.e., the dates actually change while the popover is open).
+1. The user selects the **Rental Period** (date range) first
+2. The **Forklift selector** appears below, filtered to only show forklifts that have no overlapping confirmed bookings during that period
+3. If no dates are selected yet, the forklift dropdown shows a disabled/placeholder state prompting the user to pick dates first
 
-Replace the current `useEffect` with logic that:
-1. Records the initial `from`/`to` values when the popover opens
-2. Only auto-closes when the dates differ from what they were at open time (meaning the user made a new selection)
+This removes the current "pick a forklift, then get a conflict warning" pattern and replaces it with a streamlined flow where only genuinely available equipment is shown.
 
-### Implementation
+---
 
-- Add a `useRef` to store the date values at the moment the popover opens
-- On `onOpenChange(true)`, snapshot the current `dateRange.from` and `dateRange.to`
-- In the `useEffect`, compare current values against the snapshot -- only close if they changed
+## Booking Form (`src/pages/BookingForm.tsx`)
 
-## File to Modify
+### UI reorder
+- Move the `DateRangePickerField` above the Forklift `Select`
+- Disable the forklift selector until both `startDate` and `endDate` are set
 
-- **`src/components/DateRangePickerField.tsx`** -- Update the auto-close logic (lines 22-28) and add a ref to track initial values
+### Filtering logic
+- Current: `availableForklifts` filters by `status === "available"` and maintenance-due check
+- New: Add an additional filter that excludes forklifts with any overlapping **confirmed** booking in the selected date range (using the already-fetched `allBookings` data)
+- Remove the separate `conflict` check and warning banner (no longer needed since conflicting forklifts won't appear)
+- Reset `forkliftId` if the user changes dates and the previously selected forklift is no longer available
+
+### Updated available forklifts logic (pseudo-code):
+```text
+availableForklifts = forklifts
+  .filter(status === "available" AND not maintenance-due)
+  .filter(no overlapping confirmed booking in allBookings for [startDate, endDate])
+```
+
+## Quote Form (`src/pages/QuoteForm.tsx`)
+
+### UI reorder
+- Move the `DateRangePickerField` above the Forklift `Select`
+- Disable the forklift selector until both dates are set
+
+### Filtering logic
+- Currently no availability filtering exists -- add the same overlapping-booking filter using the `allBookings` data (requires importing `useBookings`)
+- Also apply the maintenance-due filter for consistency (requires importing `useMaintenanceLogs`)
+- Reset `forkliftId` when dates change and the selected forklift becomes unavailable
+
+---
+
+## Technical Details
+
+### BookingForm.tsx changes
+- Reorder JSX: `DateRangePickerField` moves before the Forklift `Select` inside the Card
+- Update `availableForklifts` memo to incorporate date-range overlap check using `areIntervalsOverlapping`
+- Add a `useEffect` that clears `forkliftId` if it's no longer in the filtered list when dates change
+- Remove the `conflict` memo and the conflict warning banner (lines ~65-75 and ~175-180)
+- Add `disabled` prop or conditional rendering on the Select when no dates are chosen
+
+### QuoteForm.tsx changes
+- Import `useBookings` and `useMaintenanceLogs` (via `useForkliftData` barrel)
+- Reorder JSX: move `DateRangePickerField` above the Forklift `Select`
+- Add `availableForklifts` memo with the same overlap + maintenance logic
+- Add `useEffect` to clear `forkliftId` on date change if no longer available
+- Disable forklift selector when dates are not set
+
+### Files to modify
+- `src/pages/BookingForm.tsx` -- reorder fields, update filtering, remove conflict warning
+- `src/pages/QuoteForm.tsx` -- reorder fields, add availability filtering
+
