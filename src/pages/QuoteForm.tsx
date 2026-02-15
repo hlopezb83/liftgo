@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useForklifts, useCustomers } from "@/hooks/useForkliftData";
+import { useForklifts, useCustomers, useBookings, useMaintenanceLogs } from "@/hooks/useForkliftData";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
 import { generateLineItems, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
-import { format, addDays } from "date-fns";
+import { format, addDays, parseISO, areIntervalsOverlapping, isPast, differenceInDays } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 export default function QuoteForm() {
@@ -24,6 +24,8 @@ export default function QuoteForm() {
   const navigate = useNavigate();
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
+  const { data: allBookings } = useBookings();
+  const { data: maintenanceLogs } = useMaintenanceLogs();
   const { data: existingQuote } = useQuote(id);
   const { data: nextNumber } = useNextQuoteNumber();
   const createQuote = useCreateQuote();
@@ -51,9 +53,52 @@ export default function QuoteForm() {
     }
   }, [existingQuote]);
 
-  const forklift = forklifts?.find((f) => f.id === forkliftId);
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
+  const datesSelected = !!startDate && !!endDate;
+
+  // Forklifts due for maintenance
+  const maintenanceDueIds = useMemo(() => {
+    if (!maintenanceLogs) return new Set<string>();
+    const ids = new Set<string>();
+    const seen = new Set<string>();
+    maintenanceLogs.forEach((log) => {
+      if (!seen.has(log.forklift_id)) {
+        seen.add(log.forklift_id);
+        if (log.next_service_date && (isPast(parseISO(log.next_service_date)) || differenceInDays(parseISO(log.next_service_date), new Date()) <= 3)) {
+          ids.add(log.forklift_id);
+        }
+      }
+    });
+    return ids;
+  }, [maintenanceLogs]);
+
+  // Filter to forklifts available for the selected dates
+  const availableForklifts = useMemo(() => {
+    if (!forklifts || !datesSelected) return [];
+    return forklifts.filter((f) => {
+      if (f.status !== "available" || maintenanceDueIds.has(f.id)) return false;
+      const hasOverlap = allBookings?.some(
+        (b) =>
+          b.forklift_id === f.id &&
+          b.status !== "completed" &&
+          areIntervalsOverlapping(
+            { start: startDate!, end: endDate! },
+            { start: parseISO(b.start_date), end: parseISO(b.end_date) }
+          )
+      );
+      return !hasOverlap;
+    });
+  }, [forklifts, datesSelected, startDate, endDate, allBookings, maintenanceDueIds]);
+
+  // Reset forklift if no longer available after date change
+  useEffect(() => {
+    if (forkliftId && datesSelected && !availableForklifts.some((f) => f.id === forkliftId)) {
+      setForkliftId("");
+    }
+  }, [availableForklifts, forkliftId, datesSelected]);
+
+  const forklift = forklifts?.find((f) => f.id === forkliftId);
   const lineItems: LineItem[] = useMemo(() => {
     if (!forklift || !startDate || !endDate) return [];
     return generateLineItems(forklift, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
@@ -96,16 +141,23 @@ export default function QuoteForm() {
         <Card>
           <CardHeader><CardTitle className="text-base">Quote Details</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <DateRangePickerField label="Rental Period *" dateRange={dateRange} onSelect={setDateRange} required />
+
             <div className="space-y-1.5">
               <Label>Forklift *</Label>
-              <Select value={forkliftId} onValueChange={setForkliftId}>
-                <SelectTrigger><SelectValue placeholder="Select a forklift" /></SelectTrigger>
+              <Select value={forkliftId} onValueChange={setForkliftId} disabled={!datesSelected}>
+                <SelectTrigger>
+                  <SelectValue placeholder={datesSelected ? "Select a forklift" : "Select dates first"} />
+                </SelectTrigger>
                 <SelectContent>
-                  {forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}
+                  {availableForklifts.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {datesSelected && availableForklifts.length === 0 && (
+                <p className="text-xs text-muted-foreground">No forklifts available for the selected dates.</p>
+              )}
             </div>
-            <DateRangePickerField label="Rental Period" dateRange={dateRange} onSelect={setDateRange} required />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>VAT Rate (%)</Label>
