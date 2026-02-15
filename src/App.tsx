@@ -31,6 +31,7 @@ import ActivityPage from "./pages/ActivityPage";
 import ReportsPage from "./pages/ReportsPage";
 import DamageTrackingPage from "./pages/DamageTrackingPage";
 import UserManagementPage from "./pages/UserManagementPage";
+import CompanySettingsPage from "./pages/CompanySettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +83,7 @@ const App = () => (
                   <Route path="/reports" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ReportsPage /></RoleGuard>} />
                   <Route path="/damage" element={<DamageTrackingPage />} />
                   <Route path="/settings/operations" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><OperationsSetupPage /></RoleGuard>} />
+                  <Route path="/settings/company" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><CompanySettingsPage /></RoleGuard>} />
                   <Route path="/users" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><UserManagementPage /></RoleGuard>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

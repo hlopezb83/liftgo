@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useForkliftData";
 import type { Customer } from "@/hooks/useCustomers";
+import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
@@ -23,6 +25,7 @@ import { TablePagination } from "@/components/TablePagination";
 const emptyCustomer = {
   name: "", email: "", phone: "", address: "", notes: "",
   tax_id: "", website: "", contact_person: "", billing_address: "",
+  rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
 };
 
 export default function CustomersPage() {
@@ -51,6 +54,8 @@ export default function CustomersPage() {
       address: c.address || "", notes: c.notes || "", tax_id: c.tax_id || "",
       website: c.website || "", contact_person: c.contact_person || "",
       billing_address: c.billing_address || "",
+      rfc: (c as any).rfc || "", regimen_fiscal: (c as any).regimen_fiscal || "",
+      uso_cfdi: (c as any).uso_cfdi || "", domicilio_fiscal_cp: (c as any).domicilio_fiscal_cp || "",
     });
     setDialogOpen(true);
   };
@@ -63,6 +68,8 @@ export default function CustomersPage() {
       address: form.address || null, notes: form.notes || null,
       tax_id: form.tax_id || null, website: form.website || null,
       contact_person: form.contact_person || null, billing_address: form.billing_address || null,
+      rfc: form.rfc || null, regimen_fiscal: form.regimen_fiscal || null,
+      uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
     };
 
     if (editId) {
@@ -98,6 +105,7 @@ export default function CustomersPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>RFC</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Contact Person</TableHead>
@@ -108,6 +116,7 @@ export default function CustomersPage() {
                   {paginatedItems.map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.name}</TableCell>
+                      <TableCell className="font-mono text-xs">{(c as any).rfc || "—"}</TableCell>
                       <TableCell>{c.email || "—"}</TableCell>
                       <TableCell>{c.phone || "—"}</TableCell>
                       <TableCell>{c.contact_person || "—"}</TableCell>
@@ -117,7 +126,7 @@ export default function CustomersPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {paginatedItems.length === 0 && <EmptyRow colSpan={5} message="No customers found" />}
+                  {paginatedItems.length === 0 && <EmptyRow colSpan={6} message="No customers found" />}
                 </TableBody>
               </Table>
               <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
@@ -142,11 +151,49 @@ export default function CustomersPage() {
             </div>
 
             <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Datos Fiscales (CFDI)</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>RFC</Label>
+                  <Input value={form.rfc} onChange={(e) => set("rfc", e.target.value.toUpperCase())} placeholder="XAXX010101000" maxLength={13} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>C.P. Fiscal</Label>
+                  <Input value={form.domicilio_fiscal_cp} onChange={(e) => set("domicilio_fiscal_cp", e.target.value)} placeholder="06600" maxLength={5} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Régimen Fiscal</Label>
+                  <Select value={form.regimen_fiscal} onValueChange={(v) => set("regimen_fiscal", v)}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                    <SelectContent>
+                      {REGIMEN_FISCAL.map((r) => (
+                        <SelectItem key={r.code} value={r.code}>{r.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Uso CFDI</Label>
+                  <Select value={form.uso_cfdi} onValueChange={(v) => set("uso_cfdi", v)}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                    <SelectContent>
+                      {USO_CFDI.map((u) => (
+                        <SelectItem key={u.code} value={u.code}>{u.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Contact</p>
               <div className="space-y-1.5"><Label>Contact Person</Label><Input value={form.contact_person} onChange={(e) => set("contact_person", e.target.value)} placeholder="Jane Smith" /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5"><Label>Email</Label><Input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="john@example.com" /></div>
-                <div className="space-y-1.5"><Label>Phone</Label><Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+1 555 0123" /></div>
+                <div className="space-y-1.5"><Label>Phone</Label><Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+52 55 1234 5678" /></div>
               </div>
               <div className="space-y-1.5"><Label>Website</Label><Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://example.com" /></div>
             </div>
