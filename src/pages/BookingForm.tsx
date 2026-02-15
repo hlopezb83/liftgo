@@ -12,8 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { CustomerSelector } from "@/components/CustomerSelector";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
-import { ArrowLeft, AlertTriangle, Truck, CheckCircle2 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { ArrowLeft, Truck, CheckCircle2 } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { format, parseISO, areIntervalsOverlapping, isPast, differenceInDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
@@ -52,26 +52,54 @@ export default function BookingForm() {
 
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
+  const datesSelected = !!startDate && !!endDate;
 
-  // Check for booking conflicts
-  const conflict = useMemo(() => {
-    if (!forkliftId || !startDate || !endDate || !allBookings) return null;
-    return allBookings.find(
-      (b) =>
-        b.forklift_id === forkliftId &&
-        b.status !== "completed" &&
-        areIntervalsOverlapping(
-          { start: startDate, end: endDate },
-          { start: parseISO(b.start_date), end: parseISO(b.end_date) }
-        )
-    );
-  }, [forkliftId, startDate, endDate, allBookings]);
+  // Forklifts due for maintenance
+  const maintenanceDueIds = useMemo(() => {
+    if (!maintenanceLogs) return new Set<string>();
+    const ids = new Set<string>();
+    const seen = new Set<string>();
+    maintenanceLogs.forEach((log) => {
+      if (!seen.has(log.forklift_id)) {
+        seen.add(log.forklift_id);
+        if (log.next_service_date && (isPast(parseISO(log.next_service_date)) || differenceInDays(parseISO(log.next_service_date), new Date()) <= 3)) {
+          ids.add(log.forklift_id);
+        }
+      }
+    });
+    return ids;
+  }, [maintenanceLogs]);
+
+  // Filter forklifts: available status, not maintenance-due, no overlapping bookings
+  const availableForklifts = useMemo(() => {
+    if (!forklifts || !datesSelected) return [];
+    return forklifts.filter((f) => {
+      if (f.status !== "available" || maintenanceDueIds.has(f.id)) return false;
+      // Check for overlapping confirmed bookings
+      const hasOverlap = allBookings?.some(
+        (b) =>
+          b.forklift_id === f.id &&
+          b.status !== "completed" &&
+          areIntervalsOverlapping(
+            { start: startDate!, end: endDate! },
+            { start: parseISO(b.start_date), end: parseISO(b.end_date) }
+          )
+      );
+      return !hasOverlap;
+    });
+  }, [forklifts, datesSelected, startDate, endDate, allBookings, maintenanceDueIds]);
+
+  // Reset forklift selection when dates change and it's no longer available
+  useEffect(() => {
+    if (forkliftId && datesSelected && !availableForklifts.some((f) => f.id === forkliftId)) {
+      setForkliftId("");
+    }
+  }, [availableForklifts, forkliftId, datesSelected]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!forkliftId || !startDate || !endDate) { toast.error("Forklift, start date, and end date are required"); return; }
     if (endDate < startDate) { toast.error("End date must be after start date"); return; }
-    if (conflict) { toast.error("This forklift is already booked for the selected dates"); return; }
 
     const selectedCustomer = customers?.find((c) => c.id === customerId);
     createBooking.mutate(
@@ -128,24 +156,6 @@ export default function BookingForm() {
     navigate("/calendar");
   };
 
-  // Forklifts due for maintenance (block from booking)
-  const maintenanceDueIds = useMemo(() => {
-    if (!maintenanceLogs) return new Set<string>();
-    const ids = new Set<string>();
-    const seen = new Set<string>();
-    maintenanceLogs.forEach((log) => {
-      if (!seen.has(log.forklift_id)) {
-        seen.add(log.forklift_id);
-        if (log.next_service_date && (isPast(parseISO(log.next_service_date)) || differenceInDays(parseISO(log.next_service_date), new Date()) <= 3)) {
-          ids.add(log.forklift_id);
-        }
-      }
-    });
-    return ids;
-  }, [maintenanceLogs]);
-
-  const availableForklifts = forklifts?.filter((f) => f.status === "available" && !maintenanceDueIds.has(f.id));
-
   const selectedForkliftName = forklifts?.find((f) => f.id === postBooking?.forkliftId);
 
   return (
@@ -159,25 +169,24 @@ export default function BookingForm() {
         <Card>
           <CardHeader><CardTitle className="text-base">Booking Details</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <DateRangePickerField label="Booking Dates *" dateRange={dateRange} onSelect={setDateRange} required />
+
             <div className="space-y-1.5">
               <Label>Forklift *</Label>
-              <Select value={forkliftId} onValueChange={setForkliftId}>
-                <SelectTrigger><SelectValue placeholder="Select a forklift" /></SelectTrigger>
+              <Select value={forkliftId} onValueChange={setForkliftId} disabled={!datesSelected}>
+                <SelectTrigger>
+                  <SelectValue placeholder={datesSelected ? "Select a forklift" : "Select dates first"} />
+                </SelectTrigger>
                 <SelectContent>
-                  {availableForklifts?.map((f) => (
+                  {availableForklifts.map((f) => (
                     <SelectItem key={f.id} value={f.id}>{f.name} — {f.model} ({f.status})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {datesSelected && availableForklifts.length === 0 && (
+                <p className="text-xs text-muted-foreground">No forklifts available for the selected dates.</p>
+              )}
             </div>
-            <DateRangePickerField label="Booking Dates" dateRange={dateRange} onSelect={setDateRange} required />
-
-            {conflict && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-                <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>Conflict: This forklift is booked from {conflict.start_date} to {conflict.end_date} for {conflict.customer_name || "another customer"}.</span>
-              </div>
-            )}
 
             {startDate && endDate && differenceInDays(endDate, startDate) >= 30 && (
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
