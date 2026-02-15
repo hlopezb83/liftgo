@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useInvoice, useUpdateInvoice } from "@/hooks/useForkliftData";
 import { useUpdateBooking } from "@/hooks/useBookings";
+import { usePayments } from "@/hooks/usePayments";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { TotalsSummary } from "@/components/TotalsSummary";
+import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { CANCELLATION_REASONS } from "@/lib/satCatalogs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download } from "lucide-react";
+import { ArrowLeft, Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign } from "lucide-react";
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +30,9 @@ export default function InvoiceDetail() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("02");
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const { data: payments } = usePayments(id);
+  const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
 
   const setStatus = (status: string, paidAt?: string) => {
     if (!id) return;
@@ -104,6 +109,7 @@ export default function InvoiceDetail() {
   const inv = invoice as any;
   const lineItems = (invoice.line_items as unknown as LineItem[]) || [];
   const cfdiStatus = inv.cfdi_status || "pending";
+  const balance = Number(invoice.total) - totalPaid;
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -144,6 +150,11 @@ export default function InvoiceDetail() {
                 <XCircle className="h-4 w-4 mr-1" />Cancelar CFDI
               </Button>
             </>
+          )}
+          {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "partial") && (
+            <Button variant="outline" size="sm" onClick={() => setPaymentDialogOpen(true)}>
+              <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
+            </Button>
           )}
           {id && <InvoicePDFButton invoiceId={id} />}
           <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" />Print</Button>
@@ -232,6 +243,63 @@ export default function InvoiceDetail() {
           <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
           <CardContent><p className="text-sm text-muted-foreground">{invoice.notes}</p></CardContent>
         </Card>
+      )}
+
+      {/* Balance Due */}
+      {totalPaid > 0 && (
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Pagado</p>
+                <p className="text-lg font-mono font-bold text-green-600">{formatCurrency(totalPaid)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
+                <p className={`text-lg font-mono font-bold ${balance <= 0 ? "text-green-600" : "text-destructive"}`}>{formatCurrency(balance)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Payments History */}
+      {payments && payments.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Historial de Pagos</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Método</TableHead>
+                  <TableHead>Referencia</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="text-sm">{p.payment_date}</TableCell>
+                    <TableCell className="text-sm capitalize">{p.payment_method || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{p.reference_number || "—"}</TableCell>
+                    <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Record Payment Dialog */}
+      {id && (
+        <RecordPaymentDialog
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          invoiceId={id}
+          balance={balance}
+        />
       )}
 
       {/* Cancel CFDI Dialog */}

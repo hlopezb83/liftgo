@@ -1,4 +1,4 @@
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2 } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
   { title: "Calendar", url: "/calendar", icon: CalendarDays },
   { title: "Bookings", url: "/bookings/new", icon: BookOpen, roles: ["admin", "dispatcher"] },
   { title: "Quotes", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher"] },
+  { title: "Contracts", url: "/contracts", icon: ScrollText, roles: ["admin", "dispatcher"] },
   { title: "Returns", url: "/returns", icon: ClipboardCheck, roles: ["admin", "dispatcher"] },
   { title: "Deliveries", url: "/deliveries", icon: TruckIcon, roles: ["admin", "dispatcher"] },
   { title: "Customers", url: "/customers", icon: Users },
