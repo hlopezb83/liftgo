@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useForkliftData";
 import type { Customer } from "@/hooks/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { FormActions } from "@/components/FormActions";
+import { useFormState } from "@/hooks/useFormState";
 import { Search, PlusCircle, Edit, Eye, Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyCustomer);
+  const { form, set, setForm, reset } = useFormState(emptyCustomer);
 
   const filtered = customers?.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -42,8 +43,7 @@ export default function CustomersPage() {
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
-  const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
-  const openCreate = () => { setEditId(null); setForm(emptyCustomer); setDialogOpen(true); };
+  const openCreate = () => { setEditId(null); reset(); setDialogOpen(true); };
   const openEdit = (c: Customer) => {
     setEditId(c.id);
     setForm({
@@ -68,7 +68,7 @@ export default function CustomersPage() {
     if (editId) {
       updateCustomer.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Customer updated"); setDialogOpen(false); } });
     } else {
-      createCustomer.mutate(payload, { onSuccess: () => { toast.success("Customer added"); setDialogOpen(false); setForm(emptyCustomer); } });
+      createCustomer.mutate(payload, { onSuccess: () => { toast.success("Customer added"); setDialogOpen(false); reset(); } });
     }
   };
 
@@ -130,7 +130,6 @@ export default function CustomersPage() {
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editId ? "Edit Customer" : "Add Customer"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Identity */}
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Identity</p>
               <div className="grid grid-cols-2 gap-4">
@@ -142,7 +141,6 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            {/* Contact */}
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Contact</p>
               <div className="space-y-1.5"><Label>Contact Person</Label><Input value={form.contact_person} onChange={(e) => set("contact_person", e.target.value)} placeholder="Jane Smith" /></div>
@@ -153,7 +151,6 @@ export default function CustomersPage() {
               <div className="space-y-1.5"><Label>Website</Label><Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://example.com" /></div>
             </div>
 
-            {/* Addresses */}
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Addresses</p>
               <div className="grid grid-cols-2 gap-4">
@@ -162,7 +159,6 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            {/* Internal */}
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Internal</p>
               <div className="space-y-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Any additional notes..." rows={3} /></div>

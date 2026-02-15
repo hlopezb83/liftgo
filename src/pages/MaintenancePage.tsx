@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForklifts, useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useForkliftData";
+import { usePagination } from "@/hooks/usePagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,18 +11,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
+import { TablePagination } from "@/components/TablePagination";
 import { EmptyRow } from "@/components/EmptyRow";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { MarkAvailableDialog } from "@/components/MarkAvailableDialog";
 import { useFormState } from "@/hooks/useFormState";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { PlusCircle, Wrench, Download } from "lucide-react";
+import { SERVICE_TYPES } from "@/lib/constants";
+import { PlusCircle, Wrench, Download, Search } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
-const SERVICE_TYPES = ["Routine Inspection", "Oil Change", "Battery Service", "Tire Replacement", "Hydraulic Repair", "Brake Service", "Electrical Repair", "Other"];
 
 const initialForm = {
   forkliftId: "" as string,
@@ -39,11 +40,24 @@ export default function MaintenancePage() {
   const createLog = useCreateMaintenanceLog();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
+  const [search, setSearch] = useState("");
+  const [forkliftFilter, setForkliftFilter] = useState("all");
 
-  // Feature 5: Mark available prompt
   const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
 
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
+
+  const filtered = logs?.filter((log) => {
+    const matchesSearch =
+      log.service_type.toLowerCase().includes(search.toLowerCase()) ||
+      (log.performed_by || "").toLowerCase().includes(search.toLowerCase()) ||
+      (log.description || "").toLowerCase().includes(search.toLowerCase()) ||
+      (forkliftMap.get(log.forklift_id)?.name || "").toLowerCase().includes(search.toLowerCase());
+    const matchesForklift = forkliftFilter === "all" || log.forklift_id === forkliftFilter;
+    return matchesSearch && matchesForklift;
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +77,6 @@ export default function MaintenancePage() {
           toast.success("Maintenance log added");
           setDialogOpen(false);
 
-          // Feature 5: Prompt to mark available if forklift is in maintenance
           if (selectedForklift && selectedForklift.status === "maintenance") {
             setAvailablePrompt({ forkliftId: selectedForklift.id, forkliftName: selectedForklift.name });
           }
@@ -88,6 +101,24 @@ export default function MaintenancePage() {
         }
       />
 
+      <div className="flex gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search by service, technician..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Select value={forkliftFilter} onValueChange={setForkliftFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All forklifts" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All forklifts</SelectItem>
+            {forklifts?.map((f) => (
+              <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card>
         <CardContent className="p-0">
           {isLoading ? <TableSkeleton /> : (
@@ -99,7 +130,7 @@ export default function MaintenancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs?.map((log) => (
+                {paginatedItems.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="font-mono text-sm">{log.performed_at}</TableCell>
                     <TableCell className="font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</TableCell>
@@ -109,10 +140,11 @@ export default function MaintenancePage() {
                     <TableCell className="text-sm text-muted-foreground">{log.next_service_date || "—"}</TableCell>
                   </TableRow>
                 ))}
-                {(!logs || logs.length === 0) && <EmptyRow colSpan={6} message="No maintenance records yet" />}
+                {paginatedItems.length === 0 && <EmptyRow colSpan={6} message="No maintenance records found" />}
               </TableBody>
             </Table>
           )}
+          <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </CardContent>
       </Card>
 
@@ -151,7 +183,6 @@ export default function MaintenancePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Feature 5: Mark available prompt */}
       {availablePrompt && (
         <MarkAvailableDialog
           open={!!availablePrompt}

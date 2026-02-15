@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { Search, PlusCircle, Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
+import { FORKLIFT_STATUSES } from "@/lib/constants";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
@@ -57,10 +58,9 @@ export default function Fleet() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="available">Available</SelectItem>
-            <SelectItem value="rented">Rented</SelectItem>
-            <SelectItem value="maintenance">Maintenance</SelectItem>
-            <SelectItem value="retired">Retired</SelectItem>
+            {FORKLIFT_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

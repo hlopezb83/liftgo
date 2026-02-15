@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useBookings, useForklifts } from "@/hooks/useForkliftData";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,11 +17,10 @@ import { FormActions } from "@/components/FormActions";
 import { PostInspectionInvoiceDialog } from "@/components/PostInspectionInvoiceDialog";
 import { useFormState } from "@/hooks/useFormState";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { INSPECTION_CONDITIONS, FUEL_LEVELS } from "@/lib/constants";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
-const CONDITIONS = ["good", "minor_damage", "major_damage", "needs_repair"];
 
 const initialForm = {
   bookingId: "" as string,
@@ -174,7 +173,7 @@ export default function ReturnInspectionPage() {
               <Select value={form.condition} onValueChange={(v) => set("condition", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {CONDITIONS.map((c) => (
+                  {INSPECTION_CONDITIONS.map((c) => (
                     <SelectItem key={c} value={c} className="capitalize">{c.replace(/_/g, " ")}</SelectItem>
                   ))}
                 </SelectContent>
@@ -203,7 +202,7 @@ export default function ReturnInspectionPage() {
                 <Select value={form.fuelLevel} onValueChange={(v) => set("fuelLevel", v)}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
-                    {["Full", "3/4", "1/2", "1/4", "Empty"].map((l) => (
+                    {FUEL_LEVELS.map((l) => (
                       <SelectItem key={l} value={l}>{l}</SelectItem>
                     ))}
                   </SelectContent>

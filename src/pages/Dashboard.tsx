@@ -1,7 +1,7 @@
 import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/hooks/useForkliftData";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { StatCards } from "@/components/dashboard/StatCards";
 import { AlertsRow } from "@/components/dashboard/AlertsRow";
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
@@ -190,27 +190,6 @@ export default function Dashboard() {
 
       <RecentActivity />
 
-      {/* Active Bookings */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Active Bookings</CardTitle></CardHeader>
-        <CardContent>
-          {bookings && bookings.length > 0 ? (
-            <div className="space-y-3">
-              {bookings.slice(0, 5).map((b) => (
-                <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div>
-                    <p className="font-medium text-sm">{b.forklifts?.name} — {b.forklifts?.model}</p>
-                    <p className="text-xs text-muted-foreground">{b.customer_name}</p>
-                  </div>
-                  <div className="text-right text-xs text-muted-foreground">{b.start_date} → {b.end_date}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm text-center py-10">No bookings yet</p>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

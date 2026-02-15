@@ -1,15 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useCustomers, useCreateBooking, useAvailableForklifts } from "@/hooks/useForkliftData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { CustomerSelector } from "@/components/CustomerSelector";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
+import { FormPageHeader } from "@/components/FormPageHeader";
+import { ForkliftSelector } from "@/components/ForkliftSelector";
 import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
-import { ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
@@ -87,10 +85,7 @@ export default function BookingForm() {
 
   return (
     <div className="p-6 max-w-3xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
-        <h1 className="text-2xl font-bold">New Booking</h1>
-      </div>
+      <FormPageHeader title="New Booking" />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
@@ -98,22 +93,13 @@ export default function BookingForm() {
           <CardContent className="space-y-4">
             <DateRangePickerField label="Booking Dates *" dateRange={dateRange} onSelect={setDateRange} required />
 
-            <div className="space-y-1.5">
-              <Label>Forklift *</Label>
-              <Select value={forkliftId} onValueChange={setForkliftId} disabled={!datesSelected}>
-                <SelectTrigger>
-                  <SelectValue placeholder={datesSelected ? "Select a forklift" : "Select dates first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableForklifts.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>{f.name} — {f.model} ({f.status})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {datesSelected && availableForklifts.length === 0 && (
-                <p className="text-xs text-muted-foreground">No forklifts available for the selected dates.</p>
-              )}
-            </div>
+            <ForkliftSelector
+              value={forkliftId}
+              onValueChange={setForkliftId}
+              availableForklifts={availableForklifts}
+              datesSelected={datesSelected}
+              showStatus
+            />
 
             {startDate && endDate && differenceInDays(endDate, startDate) >= 30 && (
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
