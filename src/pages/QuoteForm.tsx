@@ -3,21 +3,20 @@ import { useCustomers, useAvailableForklifts } from "@/hooks/useForkliftData";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
 import { generateLineItems, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CustomerSelector } from "@/components/CustomerSelector";
 import { DatePickerField } from "@/components/DatePickerField";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
-import { ArrowLeft } from "lucide-react";
+import { FormPageHeader } from "@/components/FormPageHeader";
+import { ForkliftSelector } from "@/components/ForkliftSelector";
+import { CostSummaryCard } from "@/components/CostSummaryCard";
+import { NotesCard } from "@/components/NotesCard";
 import { useState, useEffect, useMemo } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
-import { formatCurrency } from "@/lib/formatCurrency";
 
 export default function QuoteForm() {
   const { id } = useParams();
@@ -54,7 +53,6 @@ export default function QuoteForm() {
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
 
-  // Reset forklift if no longer available after date change
   useEffect(() => {
     if (forkliftId && datesSelected && !availableForklifts.some((f) => f.id === forkliftId)) {
       setForkliftId("");
@@ -96,30 +94,19 @@ export default function QuoteForm() {
 
   return (
     <div className="p-6 max-w-3xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
-        <h1 className="text-2xl font-bold">{id ? "Edit Quote" : "New Quote"}</h1>
-      </div>
+      <FormPageHeader title={id ? "Edit Quote" : "New Quote"} />
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader><CardTitle className="text-base">Quote Details</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <DateRangePickerField label="Rental Period *" dateRange={dateRange} onSelect={setDateRange} required />
 
-            <div className="space-y-1.5">
-              <Label>Forklift *</Label>
-              <Select value={forkliftId} onValueChange={setForkliftId} disabled={!datesSelected}>
-                <SelectTrigger>
-                  <SelectValue placeholder={datesSelected ? "Select a forklift" : "Select dates first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableForklifts.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {datesSelected && availableForklifts.length === 0 && (
-                <p className="text-xs text-muted-foreground">No forklifts available for the selected dates.</p>
-              )}
-            </div>
+            <ForkliftSelector
+              value={forkliftId}
+              onValueChange={setForkliftId}
+              availableForklifts={availableForklifts}
+              datesSelected={datesSelected}
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -139,31 +126,9 @@ export default function QuoteForm() {
           onCustomerNameChange={setCustomerName}
         />
 
-        {lineItems.length > 0 && (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Cost Preview</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
-              {lineItems.map((item, i) => (
-                <div key={i} className="flex justify-between text-sm">
-                  <span>{item.description} × {item.quantity}</span>
-                  <span className="font-mono">{formatCurrency(item.total)}</span>
-                </div>
-              ))}
-              <div className="border-t pt-2 mt-2 space-y-1">
-                <div className="flex justify-between text-sm"><span>Subtotal</span><span className="font-mono">{formatCurrency(subtotal)}</span></div>
-                <div className="flex justify-between text-sm"><span>VAT ({taxRate}%)</span><span className="font-mono">{formatCurrency(taxAmount)}</span></div>
-                <div className="flex justify-between font-bold"><span>Total</span><span className="font-mono">{formatCurrency(total)}</span></div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} />
 
-        <Card>
-          <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
-          <CardContent>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes..." rows={3} />
-          </CardContent>
-        </Card>
+        <NotesCard value={notes} onChange={setNotes} />
 
         <FormActions submitLabel={id ? "Update Quote" : "Create Quote"} isPending={createQuote.isPending || updateQuote.isPending} onCancel={() => navigate(-1)} />
       </form>

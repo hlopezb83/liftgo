@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { FORKLIFT_STATUSES } from "@/lib/constants";
 
 export default function ForkliftDetail() {
   const { id } = useParams();
@@ -161,7 +162,7 @@ export default function ForkliftDetail() {
               <SelectValue placeholder="Select new status" />
             </SelectTrigger>
             <SelectContent>
-              {["available", "rented", "maintenance", "retired"].filter((s) => s !== forklift.status).map((s) => (
+              {FORKLIFT_STATUSES.filter((s) => s !== forklift.status).map((s) => (
                 <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>
               ))}
             </SelectContent>

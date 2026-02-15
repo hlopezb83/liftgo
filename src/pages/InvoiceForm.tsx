@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
+import { FormPageHeader } from "@/components/FormPageHeader";
+import { NotesCard } from "@/components/NotesCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -107,10 +108,7 @@ export default function InvoiceForm() {
 
   return (
     <div className="p-6 max-w-4xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-4 w-4" /></Button>
-        <h1 className="text-2xl font-bold">{isEdit ? "Edit Invoice" : "New Invoice"}</h1>
-      </div>
+      <FormPageHeader title={isEdit ? "Edit Invoice" : "New Invoice"} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
@@ -207,12 +205,7 @@ export default function InvoiceForm() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <Label>Notes</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes…" className="mt-1.5" />
-          </CardContent>
-        </Card>
+        <NotesCard value={notes} onChange={setNotes} placeholder="Additional notes…" />
 
         <FormActions submitLabel={isEdit ? "Update Invoice" : "Create Invoice"} isPending={isPending} onCancel={() => navigate(-1)} />
       </form>
