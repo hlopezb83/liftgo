@@ -31,6 +31,7 @@ import ContractForm from "./pages/ContractForm";
 import QuoteForm from "./pages/QuoteForm";
 import QuoteDetail from "./pages/QuoteDetail";
 import ActivityPage from "./pages/ActivityPage";
+import AuditTrailPage from "./pages/AuditTrailPage";
 import ReportsPage from "./pages/ReportsPage";
 import DamageTrackingPage from "./pages/DamageTrackingPage";
 import UserManagementPage from "./pages/UserManagementPage";
@@ -87,6 +88,7 @@ const App = () => (
                   <Route path="/contracts/:id" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ContractDetail /></RoleGuard>} />
                   <Route path="/contracts/:id/edit" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ContractForm /></RoleGuard>} />
                   <Route path="/activity" element={<ActivityPage />} />
+                  <Route path="/audit" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><AuditTrailPage /></RoleGuard>} />
                   <Route path="/reports" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ReportsPage /></RoleGuard>} />
                   <Route path="/damage" element={<DamageTrackingPage />} />
                   <Route path="/settings/operations" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><OperationsSetupPage /></RoleGuard>} />
