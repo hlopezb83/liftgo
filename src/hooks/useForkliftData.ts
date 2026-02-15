@@ -7,3 +7,4 @@ export * from "./useMaintenanceLogs";
 export * from "./useQuotes";
 export * from "./useActivityFeed";
 export * from "./useDamageRecords";
+export * from "./useAvailableForklifts";

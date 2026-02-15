@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useForklifts, useCustomers, useBookings, useMaintenanceLogs } from "@/hooks/useForkliftData";
+import { useCustomers, useAvailableForklifts } from "@/hooks/useForkliftData";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
 import { generateLineItems, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,16 +16,13 @@ import { ArrowLeft } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
-import { format, addDays, parseISO, areIntervalsOverlapping, isPast, differenceInDays } from "date-fns";
+import { format, addDays } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 export default function QuoteForm() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
-  const { data: allBookings } = useBookings();
-  const { data: maintenanceLogs } = useMaintenanceLogs();
   const { data: existingQuote } = useQuote(id);
   const { data: nextNumber } = useNextQuoteNumber();
   const createQuote = useCreateQuote();
@@ -53,43 +50,9 @@ export default function QuoteForm() {
     }
   }, [existingQuote]);
 
+  const { availableForklifts, forklifts, datesSelected } = useAvailableForklifts(dateRange);
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
-  const datesSelected = !!startDate && !!endDate;
-
-  // Forklifts due for maintenance
-  const maintenanceDueIds = useMemo(() => {
-    if (!maintenanceLogs) return new Set<string>();
-    const ids = new Set<string>();
-    const seen = new Set<string>();
-    maintenanceLogs.forEach((log) => {
-      if (!seen.has(log.forklift_id)) {
-        seen.add(log.forklift_id);
-        if (log.next_service_date && (isPast(parseISO(log.next_service_date)) || differenceInDays(parseISO(log.next_service_date), new Date()) <= 3)) {
-          ids.add(log.forklift_id);
-        }
-      }
-    });
-    return ids;
-  }, [maintenanceLogs]);
-
-  // Filter to forklifts available for the selected dates
-  const availableForklifts = useMemo(() => {
-    if (!forklifts || !datesSelected) return [];
-    return forklifts.filter((f) => {
-      if (f.status !== "available" || maintenanceDueIds.has(f.id)) return false;
-      const hasOverlap = allBookings?.some(
-        (b) =>
-          b.forklift_id === f.id &&
-          b.status !== "completed" &&
-          areIntervalsOverlapping(
-            { start: startDate!, end: endDate! },
-            { start: parseISO(b.start_date), end: parseISO(b.end_date) }
-          )
-      );
-      return !hasOverlap;
-    });
-  }, [forklifts, datesSelected, startDate, endDate, allBookings, maintenanceDueIds]);
 
   // Reset forklift if no longer available after date change
   useEffect(() => {
