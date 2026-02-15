@@ -1,150 +1,146 @@
 
 
-# CFDI 4.0 Compatible Invoicing
+# Add Contracts and Payment Tracking Modules
 
 ## Overview
 
-This plan adds the data fields and workflows needed for Mexican CFDI 4.0 compliance. Full CFDI requires a PAC (authorized certification provider) for XML stamping, which is an external service integration. This plan focuses on **preparing the data model, UI, and an edge function integration point** so the system captures all required SAT information and can connect to a PAC when ready.
+Two major gaps in the current ERP workflow:
+
+1. **Contracts**: When a booking is confirmed, there is no formal rental agreement document. We will add a Contracts module that auto-generates a contract from a booking and lets users track its signature status.
+
+2. **Payment Tracking**: Currently an invoice is either unpaid or fully paid. We need to support partial payments, security deposits, and an accounts receivable ledger that shows payment history per invoice.
 
 ---
 
-## What Changes
+## Part 1: Contracts / Rental Agreements
 
-### Phase 1: Database -- Add CFDI Fields
+### Database
 
-**Issuer settings table** (`company_settings`): stores your business fiscal data (only one row needed).
+**`contracts` table:**
 
 | Column | Type | Notes |
 |--------|------|-------|
-| id | uuid (PK) | Single row |
-| rfc | text NOT NULL | Issuer RFC (e.g. "XAXX010101000") |
-| razon_social | text NOT NULL | Legal business name |
-| regimen_fiscal | text NOT NULL | SAT fiscal regime code (e.g. "601") |
-| lugar_expedicion | text NOT NULL | Postal code where invoices are issued |
-| logo_url | text | Optional logo |
+| id | uuid (PK) | Auto-generated |
+| contract_number | text NOT NULL | Auto-generated (CTR-0001) |
+| booking_id | uuid | Links to the booking |
+| customer_id | uuid | Links to the customer |
+| forklift_id | uuid | Links to the forklift |
+| start_date | date | Rental start |
+| end_date | date | Rental end |
+| daily_rate | numeric | Snapshot of rate |
+| weekly_rate | numeric | Snapshot of rate |
+| monthly_rate | numeric | Snapshot of rate |
+| deposit_amount | numeric DEFAULT 0 | Required security deposit |
+| terms_text | text | Free-form terms and conditions |
+| status | text DEFAULT 'draft' | draft / sent / signed / cancelled |
+| signed_at | timestamptz | When customer signed |
+| signed_by | text | Who signed |
+| created_at / updated_at | timestamptz | Auto-managed |
+| notes | text | Optional |
 
-**Customer table updates** -- add columns to `customers`:
+A database function `next_contract_number()` will auto-generate sequential numbers (CTR-0001, CTR-0002...).
 
-| New Column | Type | Notes |
-|------------|------|-------|
-| rfc | text | Receiver RFC |
-| regimen_fiscal | text | Receiver fiscal regime code |
-| uso_cfdi | text | Default CFDI usage code (e.g. "G03" for general expenses) |
-| domicilio_fiscal_cp | text | Receiver fiscal postal code |
+RLS: Admin and Dispatcher full access, Mechanic read-only.
 
-**Invoice table updates** -- add columns to `invoices`:
+### UI
 
-| New Column | Type | Notes |
-|------------|------|-------|
-| serie | text | Invoice series (e.g. "A") |
-| folio | text | Sequential folio within series |
-| forma_pago | text | Payment form code (e.g. "01" = cash, "03" = transfer) |
-| metodo_pago | text | "PUE" (single payment) or "PPD" (installments) |
-| uso_cfdi | text | CFDI usage code for this invoice |
-| moneda | text DEFAULT 'MXN' | Currency code |
-| tipo_cambio | numeric | Exchange rate (1 if MXN) |
-| receptor_rfc | text | Receiver RFC (snapshot) |
-| receptor_razon_social | text | Receiver legal name (snapshot) |
-| receptor_regimen_fiscal | text | Receiver fiscal regime |
-| receptor_domicilio_fiscal_cp | text | Receiver fiscal postal code |
-| cfdi_uuid | uuid | UUID returned by the PAC after stamping |
-| cfdi_xml | text | Signed XML returned by PAC |
-| cfdi_status | text DEFAULT 'pending' | pending / stamped / cancelled |
-| cancelled_at | timestamptz | When cancellation was processed |
-| cancellation_reason | text | SAT cancellation reason code |
+- **Contracts list page** (`/contracts`): Table with filters by status, search by customer/contract number.
+- **Contract detail page** (`/contracts/:id`): Shows all contract info, status badge, PDF download button, and actions (Mark Sent, Mark Signed, Cancel).
+- **Generate from Booking**: A "Generate Contract" button on the booking detail (calendar page) that pre-fills a new contract with the booking data.
+- **Contract PDF**: A "Download Contract PDF" button that generates a branded PDF with terms, rates, and signature lines using jsPDF (same pattern as InvoicePDFButton).
 
-**Line items** (stored in JSONB `line_items`) -- each item will gain:
-- `clave_prod_serv` -- SAT product/service catalog code (e.g. "78181500" for equipment rental)
-- `clave_unidad` -- SAT unit code (e.g. "E48" = service unit, "DAY" = day)
-- `objeto_imp` -- Tax object code ("02" = taxable)
+### New files
+- `src/pages/ContractsPage.tsx` -- List page
+- `src/pages/ContractDetail.tsx` -- Detail/view page
+- `src/pages/ContractForm.tsx` -- Create/edit form
+- `src/hooks/useContracts.ts` -- CRUD hooks
+- `src/components/ContractPDFButton.tsx` -- PDF generation
 
-### Phase 2: SAT Catalog Reference Tables
+### Modified files
+- `src/components/AppSidebar.tsx` -- Add "Contracts" nav item
+- `src/App.tsx` -- Add routes
+- Database migration -- Create table, function, and RLS policies
 
-Create a `sat_catalog` table (or hardcoded constants) for the most-used codes:
-- Fiscal regimes (c_RegimenFiscal)
-- CFDI usage codes (c_UsoCFDI)
-- Payment form codes (c_FormaPago)
-- Payment method codes (c_MetodoPago)
-- Common product/service keys for rental equipment
+---
 
-These will populate dropdowns in the UI so users pick from valid SAT codes instead of typing them.
+## Part 2: Payment Tracking
 
-### Phase 3: UI Updates
+### Database
 
-**Company Settings page** (new, under Settings):
-- Form to enter issuer RFC, legal name, fiscal regime, postal code
-- Single-row table, edit-in-place
+**`payments` table:**
 
-**Customer form** (`CustomersPage.tsx`):
-- Add RFC, fiscal regime, CFDI usage, and fiscal postal code fields
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid (PK) | Auto-generated |
+| invoice_id | uuid NOT NULL | Links to the invoice |
+| amount | numeric NOT NULL | Payment amount |
+| payment_date | date NOT NULL DEFAULT CURRENT_DATE | When payment was received |
+| payment_method | text | cash / transfer / check / card |
+| reference_number | text | Bank reference or check number |
+| notes | text | Optional |
+| created_at | timestamptz | Auto-managed |
 
-**Invoice form** (`InvoiceForm.tsx`):
-- Add section for CFDI fields: serie, folio, payment form, payment method, CFDI usage, currency
-- Auto-populate receiver fields from the selected customer
-- Line item table gains SAT code columns (product key, unit key)
-- Default product key to "78181500" (equipment rental) and unit to "DAY"
+RLS: Admin and Dispatcher full access, Mechanic read-only.
 
-**Invoice detail** (`InvoiceDetail.tsx`):
-- Display CFDI status badge (pending / stamped / cancelled)
-- Show CFDI UUID when stamped
-- Add "Stamp with PAC" button (calls edge function)
-- Add "Cancel CFDI" button with reason selector
-- Add "Download XML" button when stamped
+### Logic changes
 
-**PDF generation** (`InvoicePDFButton.tsx`):
-- Include issuer and receiver RFC, fiscal regimes
-- Show CFDI UUID, serie/folio
-- Add SAT-required QR code placeholder area
-- Change currency symbol from Euro to $ (MXN)
+- **Invoice balance**: Instead of a binary paid/unpaid status, calculate `balance = total - sum(payments)`.
+- **Auto-status update**: When a payment is recorded that brings balance to zero, automatically mark the invoice as "paid" and set `paid_at`.
+- **Partial payment support**: Invoices with payments but remaining balance show status "partial".
 
-### Phase 4: PAC Integration Edge Function
+### UI changes
 
-Create `supabase/functions/stamp-cfdi/index.ts`:
-- Accepts an invoice ID
-- Reads invoice + company settings + line items
-- Builds CFDI 4.0 XML structure
-- Sends to PAC API for stamping (initially stubbed -- returns mock UUID)
-- Stores the returned UUID and signed XML back in the invoice record
-- The PAC provider (Facturama, Finkok, etc.) can be configured later via a secret
+**Invoice Detail page** (modify `InvoiceDetail.tsx`):
+- Add a "Payments" section below the totals showing a table of all recorded payments.
+- Add a "Record Payment" button that opens a dialog to enter amount, date, method, and reference.
+- Show "Balance Due" prominently: `total - sum(payments)`.
+- Pre-fill the payment amount with the remaining balance.
 
-Create `supabase/functions/cancel-cfdi/index.ts`:
-- Accepts invoice ID + cancellation reason code
-- Calls PAC cancellation API
-- Updates invoice status to "cancelled"
+**Invoices list page** (modify `InvoicesPage.tsx`):
+- Add "partial" to the status filter tabs.
+- Show balance column alongside total.
 
-### Phase 5: Cancellation Workflow
+### New files
+- `src/hooks/usePayments.ts` -- Query payments by invoice, create payment mutation
+- `src/components/RecordPaymentDialog.tsx` -- Dialog for recording a payment
 
-- CFDI 4.0 requires cancellation requests to go through SAT
-- Add cancellation reason dropdown (SAT codes: "01" = receipt with errors, "02" = receipt without need, "03" = related operation cancelled, "04" = related to global invoice)
-- For invoices > $1,000 MXN, SAT requires receiver approval -- display a warning
+### Modified files
+- `src/pages/InvoiceDetail.tsx` -- Add payments section and record button
+- `src/pages/InvoicesPage.tsx` -- Add "partial" tab, balance column
+
+---
+
+## Implementation Sequence
+
+1. Database migration: Create `contracts` and `payments` tables with RLS and helper functions
+2. Create `useContracts.ts` and `usePayments.ts` hooks
+3. Build Contracts pages (list, detail, form) and PDF button
+4. Add payment recording to Invoice Detail
+5. Update Invoice list with partial status and balance
+6. Update sidebar and routing
 
 ---
 
 ## Technical Details
 
-### Files to create
-- `supabase/functions/stamp-cfdi/index.ts` -- PAC stamping edge function (initially stubbed)
-- `supabase/functions/cancel-cfdi/index.ts` -- PAC cancellation edge function (initially stubbed)
-- `src/lib/satCatalogs.ts` -- Hardcoded SAT catalog constants for dropdowns
-- `src/hooks/useCompanySettings.ts` -- CRUD hook for company_settings table
-- `src/pages/CompanySettingsPage.tsx` -- Issuer fiscal data form
+### Database migration SQL summary
 
-### Files to modify
-- **Database migration** -- add `company_settings` table, add columns to `customers` and `invoices`
-- `src/pages/CustomersPage.tsx` -- add RFC and fiscal fields to customer form
-- `src/pages/InvoiceForm.tsx` -- add CFDI fields section, SAT codes on line items
-- `src/pages/InvoiceDetail.tsx` -- add CFDI status, stamp/cancel buttons, XML download
-- `src/components/InvoicePDFButton.tsx` -- include CFDI data in PDF, fix currency to MXN
-- `src/components/PostInspectionInvoiceDialog.tsx` -- pass default CFDI fields
-- `src/components/AppSidebar.tsx` -- add Company Settings nav item
-- `src/App.tsx` -- add route for company settings
+- `contracts` table with auto-increment contract number function
+- `payments` table with invoice foreign key
+- RLS policies matching existing patterns (admin/dispatcher full, mechanic read)
+- `updated_at` trigger on contracts
+- Add "partial" as a recognized invoice status in the workflow
 
-### PAC Integration Note
-The edge functions will initially use a **stub mode** that generates a mock CFDI UUID without calling a real PAC. When you are ready to go live, you will need to:
-1. Choose a PAC provider (Facturama, Finkok, or Digibox are popular options)
-2. Add the PAC API key as a secret
-3. Upload your CSD (digital certificate) files
-4. Update the edge function to call the real PAC API
+### Routing additions
 
-This approach lets you build and test the full workflow now, and "flip the switch" to real stamping later.
+| Route | Component | Roles |
+|-------|-----------|-------|
+| /contracts | ContractsPage | admin, dispatcher |
+| /contracts/new | ContractForm | admin, dispatcher |
+| /contracts/:id | ContractDetail | admin, dispatcher |
+| /contracts/:id/edit | ContractForm | admin, dispatcher |
+
+### Sidebar addition
+
+- "Contracts" nav item with a `FileText` (or `ScrollText`) icon, positioned between "Quotes" and "Deliveries" in the navigation order.
 
