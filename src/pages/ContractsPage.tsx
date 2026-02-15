@@ -38,9 +38,9 @@ export default function ContractsPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Contratos"
-        subtitle="Gestiona contratos de renta"
-        action={<Button size="sm" onClick={() => navigate("/contracts/new")}><Plus className="h-4 w-4 mr-1" />Nuevo Contrato</Button>}
+        title="Contracts"
+        subtitle="Manage rental agreements"
+        action={<Button size="sm" onClick={() => navigate("/contracts/new")}><Plus className="h-4 w-4 mr-1" />New Contract</Button>}
       />
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -51,7 +51,7 @@ export default function ContractsPage() {
         </Tabs>
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar contratos…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search contracts…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
@@ -60,12 +60,12 @@ export default function ContractsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Contrato #</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Equipo</TableHead>
-                <TableHead>Inicio</TableHead>
-                <TableHead>Fin</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>Contract #</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Equipment</TableHead>
+                <TableHead>Start</TableHead>
+                <TableHead>End</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -83,7 +83,7 @@ export default function ContractsPage() {
                   </TableRow>
                 ))
               ) : (
-                <EmptyRow colSpan={7} message="No se encontraron contratos" />
+                <EmptyRow colSpan={7} message="No contracts found" />
               )}
             </TableBody>
           </Table>
