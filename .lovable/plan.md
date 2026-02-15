@@ -1,40 +1,21 @@
 
+# Fix: Allow Booking Creation from Accepted Quotes
 
-# Use Date Range Picker for Start/End Date Pairs
+## The Problem
 
-## What changes
+The "Convert to Booking" and "Convert to Invoice" buttons on the Quote Detail page only appear when the quote status is `draft` or `sent`. Once you click "Accept", the status changes to `accepted` and those action buttons vanish -- even though accepting a quote is the natural moment to convert it into a booking.
 
-Replace paired start/end date pickers with the single-prompt date range picker (the same one used in Bookings) in two places:
+## The Fix
 
-### 1. Quote Form (`src/pages/QuoteForm.tsx`)
-- Remove the two separate `DatePickerField` components for "Start Date" and "End Date"
-- Replace with a single `DateRangePickerField` component labeled "Rental Period"
-- Manage state as a single `dateRange` object (type `DateRange`) instead of separate `startDate` / `endDate` states
-- Extract `startDate` and `endDate` from `dateRange.from` and `dateRange.to` for the rest of the form logic (line items, submission)
-- The "Valid Until" picker remains a single date picker -- no change there
+In `src/pages/QuoteDetail.tsx`, expand the condition on line 95 to also include the `"accepted"` status:
 
-### 2. Reports Page (`src/pages/ReportsPage.tsx`)
-- Replace the two separate "From" and "To" `DatePickerField` components with a single `DateRangePickerField` labeled "Date Range"
-- Manage state as a single `dateRange` object, deriving `startDate` and `endDate` from it
+```
+Before:  quote.status === "draft" || quote.status === "sent"
+After:   quote.status === "draft" || quote.status === "sent" || quote.status === "accepted"
+```
 
-### What stays the same
-- All single-date pickers (Invoice due date, Booking extend/early return, Delivery date, Maintenance service dates, Quote valid-until) remain as `DatePickerField` -- they are not date ranges
-- The `DateRangePickerField` component itself needs no changes -- it already works correctly
+This ensures that after accepting a quote, the user can still convert it to a booking or invoice. The buttons will only disappear once the quote reaches a terminal state like `"declined"`.
 
----
+## Files to Modify
 
-## Technical Details
-
-### QuoteForm changes
-- Remove `import { DatePickerField }` (still needed for "Valid Until") -- actually keep both imports
-- Add `import { DateRangePickerField }` and `import type { DateRange } from "react-day-picker"`
-- Replace `const [startDate, setStartDate] = useState<Date>()` and `const [endDate, setEndDate] = useState<Date>()` with `const [dateRange, setDateRange] = useState<DateRange | undefined>()`
-- Derive `const startDate = dateRange?.from` and `const endDate = dateRange?.to` for use in `useMemo` / `handleSubmit`
-- In the `useEffect` for loading existing quote data, set `setDateRange({ from: new Date(...), to: new Date(...) })` instead of two separate calls
-- Replace the two-column grid of DatePickerFields with: `<DateRangePickerField label="Rental Period" dateRange={dateRange} onSelect={setDateRange} required />`
-
-### ReportsPage changes
-- Replace `DatePickerField` import with `DateRangePickerField`
-- Replace two date states with a single `dateRange` state, initialized with `{ from: subMonths(new Date(), 1), to: new Date() }`
-- Derive `startDate` and `endDate` from the range for report filtering
-- Replace the two picker fields with one `DateRangePickerField`
+- **`src/pages/QuoteDetail.tsx`** -- One line change to the status condition (line 95)
