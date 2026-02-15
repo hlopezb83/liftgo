@@ -1,21 +1,24 @@
 
-# Fix: Allow Booking Creation from Accepted Quotes
+# Fix: Date Range Picker Closes Immediately When Reopening
 
 ## The Problem
 
-The "Convert to Booking" and "Convert to Invoice" buttons on the Quote Detail page only appear when the quote status is `draft` or `sent`. Once you click "Accept", the status changes to `accepted` and those action buttons vanish -- even though accepting a quote is the natural moment to convert it into a booking.
+The `DateRangePickerField` has an auto-close effect that triggers whenever both `from` and `to` dates are set. When you reopen the picker to edit an already-selected range, both dates are already present, so the effect fires instantly and closes the popover after 300ms -- too fast to make any change.
 
 ## The Fix
 
-In `src/pages/QuoteDetail.tsx`, expand the condition on line 95 to also include the `"accepted"` status:
+In `src/components/DateRangePickerField.tsx`, track when the popover was opened and only auto-close after a **new** selection is made (i.e., the dates actually change while the popover is open).
 
-```
-Before:  quote.status === "draft" || quote.status === "sent"
-After:   quote.status === "draft" || quote.status === "sent" || quote.status === "accepted"
-```
+Replace the current `useEffect` with logic that:
+1. Records the initial `from`/`to` values when the popover opens
+2. Only auto-closes when the dates differ from what they were at open time (meaning the user made a new selection)
 
-This ensures that after accepting a quote, the user can still convert it to a booking or invoice. The buttons will only disappear once the quote reaches a terminal state like `"declined"`.
+### Implementation
 
-## Files to Modify
+- Add a `useRef` to store the date values at the moment the popover opens
+- On `onOpenChange(true)`, snapshot the current `dateRange.from` and `dateRange.to`
+- In the `useEffect`, compare current values against the snapshot -- only close if they changed
 
-- **`src/pages/QuoteDetail.tsx`** -- One line change to the status condition (line 95)
+## File to Modify
+
+- **`src/components/DateRangePickerField.tsx`** -- Update the auto-close logic (lines 22-28) and add a ref to track initial values
