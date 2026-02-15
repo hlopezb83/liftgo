@@ -18,6 +18,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { PostDeliveryPickupDialog } from "@/components/PostDeliveryPickupDialog";
 import { useFormState } from "@/hooks/useFormState";
+import { useActiveDrivers } from "@/hooks/useDrivers";
 import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -37,6 +38,7 @@ const initialForm = {
 export default function DeliveriesPage() {
   const { data: forklifts } = useForklifts();
   const { data: bookings } = useBookings();
+  const { data: activeDrivers } = useActiveDrivers();
   const { data: deliveries, isLoading } = useDeliveries();
   const createDelivery = useCreateDelivery();
   const updateDelivery = useUpdateDelivery();
@@ -215,8 +217,20 @@ export default function DeliveriesPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Driver Name</Label>
-                <Input value={form.driverName} onChange={(e) => set("driverName", e.target.value)} placeholder="John Driver" />
+                <Label>Driver</Label>
+                <Select
+                  value={form.driverName}
+                  onValueChange={(v) => {
+                    set("driverName", v);
+                    const driver = activeDrivers?.find((d) => d.name === v);
+                    if (driver?.phone) set("driverPhone", driver.phone);
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select driver" /></SelectTrigger>
+                  <SelectContent>
+                    {activeDrivers?.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label>Driver Phone</Label>
