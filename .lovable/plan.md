@@ -1,71 +1,130 @@
 
-# Refactor: Streamline Duplicated Code
 
-## 1. Extract `useAvailableForklifts` hook
+# Production-Ready Refactoring Plan
 
-The `maintenanceDueIds` memo, `availableForklifts` memo, and the forklift-reset effect are **identical** in both `BookingForm.tsx` and `QuoteForm.tsx` (~40 lines each). Extract them into a single reusable hook.
+## Overview
 
-**New file: `src/hooks/useAvailableForklifts.ts`**
+After a thorough review of the entire codebase, here are the most impactful refactoring and optimization opportunities organized by priority.
 
-```text
-useAvailableForklifts(dateRange) => {
-  - Calls useForklifts(), useBookings(), useMaintenanceLogs() internally
-  - Computes maintenanceDueIds (3-day buffer)
-  - Filters by status === "available", no maintenance due, no overlapping bookings
-  - Returns { availableForklifts, forklifts (all), isLoading }
-}
-```
+---
 
-Both forms will replace ~40 lines of hook/memo/effect code with a single call:
+## 1. Extract Shared "Forklift Selector" Component
 
-```typescript
-const { availableForklifts, forklifts } = useAvailableForklifts(dateRange);
-```
+The forklift `Select` dropdown with availability filtering and the "no forklifts available" message is duplicated identically in `BookingForm.tsx` and `QuoteForm.tsx` (~15 lines each). Extract into a `ForkliftSelector` component.
 
-The forklift-reset effect stays in each form (it depends on local `forkliftId` state) but shrinks to 3 lines using the hook's output.
+**Files:**
+- Create `src/components/ForkliftSelector.tsx`
+- Edit `src/pages/BookingForm.tsx` -- replace inline select
+- Edit `src/pages/QuoteForm.tsx` -- replace inline select
 
-## 2. Use existing `PostBookingDeliveryDialog` in BookingForm
+---
 
-`BookingForm.tsx` has the delivery dialog **fully inlined** (~70 lines of JSX + 6 state variables + 2 handlers), despite `PostBookingDeliveryDialog.tsx` already existing as a standalone component with the exact same UI and logic.
+## 2. Centralize Status and Constants
 
-Replace the inline dialog and all its state (`showDeliveryForm`, `driverName`, `driverPhone`, `scheduledTime`, `deliveryAddress`, `deliveryNotes`) with:
+Statuses like `["available", "rented", "maintenance", "retired"]` appear in at least 4 files (Fleet, ForkliftDetail, ForkliftForm, StatusBadge). Fuel types `["Diesel", "Electric", "LPG", "Gasoline"]` appear in 2 files. Service types in MaintenancePage, conditions in ReturnInspectionPage -- all hardcoded inline.
 
-```tsx
-<PostBookingDeliveryDialog
-  open={!!postBooking}
-  onOpenChange={(o) => { if (!o) handleSkipDelivery(); }}
-  bookingId={postBooking?.bookingId}
-  forkliftId={postBooking?.forkliftId}
-  forkliftName={selectedForkliftName?.name}
-  startDate={postBooking?.startDate}
-  customerAddress={postBooking?.customerAddress}
-  onSkip={handleSkipDelivery}
-/>
-```
+Move all domain constants into a single `src/lib/constants.ts` file and import from there. This prevents drift and makes them easy to update when the business changes.
 
-This removes ~80 lines and 6 state variables from BookingForm.
+**Files:**
+- Create `src/lib/constants.ts`
+- Edit 6+ files to import from constants
 
-## 3. Remove unused imports from BookingForm
+---
 
-After using the dialog component, these imports are no longer needed in BookingForm:
-- `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter`
-- `Textarea`, `Input` (only used in the delivery dialog section)
-- `Truck`, `CheckCircle2`
-- `useCreateDelivery`
+## 3. Extract Reusable "Cost Preview" Card
 
-## Summary of impact
+The cost preview section in `QuoteForm.tsx` (lines 142-159) -- showing line items, subtotal, VAT, and total -- is also used in `InvoiceForm.tsx` (lines 190-208) with slightly different styling. Extract into a `CostSummaryCard` component.
 
-| File | Change | Lines saved (approx) |
-|------|--------|---------------------|
-| `src/hooks/useAvailableForklifts.ts` | New shared hook | +35 |
-| `src/pages/BookingForm.tsx` | Use hook + use dialog component | -120 |
-| `src/pages/QuoteForm.tsx` | Use hook | -35 |
-| `src/hooks/useForkliftData.ts` | Re-export new hook | +1 |
+**Files:**
+- Create `src/components/CostSummaryCard.tsx`
+- Edit `src/pages/QuoteForm.tsx`
+- Edit `src/pages/InvoiceForm.tsx`
 
-Net reduction: ~120 lines removed, single source of truth for availability logic.
+---
 
-## Files to modify
-- **Create**: `src/hooks/useAvailableForklifts.ts`
-- **Edit**: `src/pages/BookingForm.tsx` -- use hook + replace inline dialog with component
-- **Edit**: `src/pages/QuoteForm.tsx` -- use hook
-- **Edit**: `src/hooks/useForkliftData.ts` -- add barrel re-export
+## 4. Extract "Notes" Card Pattern
+
+A `Card` with a `Textarea` for notes appears identically in `QuoteForm`, `InvoiceForm`, and `ForkliftForm` (~8 lines each). Extract into a `NotesCard` component.
+
+**Files:**
+- Create `src/components/NotesCard.tsx`
+- Edit `src/pages/QuoteForm.tsx`, `InvoiceForm.tsx`, `ForkliftForm.tsx`
+
+---
+
+## 5. Standardize Form Page Header
+
+The back-button + title pattern (`Button variant="ghost" + ArrowLeft + h1`) is copy-pasted across `BookingForm`, `QuoteForm`, `InvoiceForm`, `ForkliftForm`, and `ForkliftDetail` (5 files, ~4 lines each). Extract into a `FormPageHeader` component or extend the existing `PageHeader`.
+
+**Files:**
+- Create `src/components/FormPageHeader.tsx` (or extend `PageHeader`)
+- Edit 5 form pages
+
+---
+
+## 6. Replace `(d as any)` Type Casts
+
+In `DeliveriesPage.tsx` line 142, there's an unsafe `(d as any).forklifts?.name` cast. The deliveries query should be updated to use a proper join (`select("*, forklifts(name)")`) in `useDeliveries`, then the type will be correct without casting.
+
+**Files:**
+- Edit `src/hooks/useDeliveries.ts` -- add join in query
+- Edit `src/pages/DeliveriesPage.tsx` -- remove `as any`
+
+---
+
+## 7. Add Missing Pagination
+
+`DamageTrackingPage`, `MaintenancePage`, and `CalendarPage` (All Bookings section) display all records without pagination. As data grows, these will become slow. Add `usePagination` + `TablePagination` to these pages for consistency with Fleet, Customers, Invoices, and Quotes.
+
+**Files:**
+- Edit `src/pages/DamageTrackingPage.tsx`
+- Edit `src/pages/MaintenancePage.tsx`
+
+---
+
+## 8. Migrate ForkliftForm to `useFormState` Hook
+
+`ForkliftForm` and `CustomersPage` use manual `useState` + inline `set` functions instead of the project's `useFormState` hook (already used in DeliveriesPage, MaintenancePage, ReturnInspectionPage). Migrating keeps form state management consistent.
+
+**Files:**
+- Edit `src/pages/ForkliftForm.tsx`
+- Edit `src/pages/CustomersPage.tsx`
+
+---
+
+## 9. Clean Up Unused Import in Dashboard
+
+`Dashboard.tsx` imports `Card, CardContent, CardHeader, CardTitle` plus several icons and date utilities. The `formatCurrency` import at the top is used, but `format` from date-fns is used in cashFlowData but the function could be simplified. More importantly, the `Active Bookings` section at the bottom is a duplicate of what already exists on the Calendar page -- consider removing it or linking to the Calendar.
+
+**Files:**
+- Edit `src/pages/Dashboard.tsx` -- clean up
+
+---
+
+## 10. Add Search/Filter to Maintenance and Damage Pages
+
+Fleet, Customers, Invoices, and Quotes all have search + filter bars. Maintenance and Damage pages are missing these, making it harder to find records as data grows.
+
+**Files:**
+- Edit `src/pages/MaintenancePage.tsx` -- add search input + forklift filter
+- Edit `src/pages/DamageTrackingPage.tsx` -- add search + status filter
+
+---
+
+## Summary
+
+| # | Change | Impact | Files |
+|---|--------|--------|-------|
+| 1 | ForkliftSelector component | Removes duplication | 3 |
+| 2 | Constants file | Single source of truth | 7+ |
+| 3 | CostSummaryCard | Removes duplication | 3 |
+| 4 | NotesCard | Removes duplication | 4 |
+| 5 | FormPageHeader | Removes duplication | 6 |
+| 6 | Fix unsafe type cast | Type safety | 2 |
+| 7 | Add pagination | Performance at scale | 2 |
+| 8 | Consistent useFormState | Code consistency | 2 |
+| 9 | Dashboard cleanup | Remove redundancy | 1 |
+| 10 | Search/filter on all tables | Usability consistency | 2 |
+
+Estimated net: ~5 new small files, ~100 lines removed from existing pages, much more consistent patterns across the app.
+
