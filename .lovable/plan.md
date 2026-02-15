@@ -1,146 +1,185 @@
 
-
-# Add Contracts and Payment Tracking Modules
+# Customer Portal (Self-Service)
 
 ## Overview
 
-Two major gaps in the current ERP workflow:
-
-1. **Contracts**: When a booking is confirmed, there is no formal rental agreement document. We will add a Contracts module that auto-generates a contract from a booking and lets users track its signature status.
-
-2. **Payment Tracking**: Currently an invoice is either unpaid or fully paid. We need to support partial payments, security deposits, and an accounts receivable ledger that shows payment history per invoice.
+Add a separate, publicly accessible portal where your customers can log in with their own credentials and view their rental data -- active bookings, contracts, invoices, and payment history. They will NOT share the same login system as your internal staff; instead, each customer record gets linked to a dedicated auth account with a new "customer" role.
 
 ---
 
-## Part 1: Contracts / Rental Agreements
+## How It Works
 
-### Database
+The portal reuses the same authentication system but introduces a **fourth role**: `customer`. When a customer logs in, the `AuthGuard` detects their role and routes them to a completely separate layout (no sidebar, no admin tools) -- a clean, read-only dashboard showing only their own data.
 
-**`contracts` table:**
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid (PK) | Auto-generated |
-| contract_number | text NOT NULL | Auto-generated (CTR-0001) |
-| booking_id | uuid | Links to the booking |
-| customer_id | uuid | Links to the customer |
-| forklift_id | uuid | Links to the forklift |
-| start_date | date | Rental start |
-| end_date | date | Rental end |
-| daily_rate | numeric | Snapshot of rate |
-| weekly_rate | numeric | Snapshot of rate |
-| monthly_rate | numeric | Snapshot of rate |
-| deposit_amount | numeric DEFAULT 0 | Required security deposit |
-| terms_text | text | Free-form terms and conditions |
-| status | text DEFAULT 'draft' | draft / sent / signed / cancelled |
-| signed_at | timestamptz | When customer signed |
-| signed_by | text | Who signed |
-| created_at / updated_at | timestamptz | Auto-managed |
-| notes | text | Optional |
-
-A database function `next_contract_number()` will auto-generate sequential numbers (CTR-0001, CTR-0002...).
-
-RLS: Admin and Dispatcher full access, Mechanic read-only.
-
-### UI
-
-- **Contracts list page** (`/contracts`): Table with filters by status, search by customer/contract number.
-- **Contract detail page** (`/contracts/:id`): Shows all contract info, status badge, PDF download button, and actions (Mark Sent, Mark Signed, Cancel).
-- **Generate from Booking**: A "Generate Contract" button on the booking detail (calendar page) that pre-fills a new contract with the booking data.
-- **Contract PDF**: A "Download Contract PDF" button that generates a branded PDF with terms, rates, and signature lines using jsPDF (same pattern as InvoicePDFButton).
-
-### New files
-- `src/pages/ContractsPage.tsx` -- List page
-- `src/pages/ContractDetail.tsx` -- Detail/view page
-- `src/pages/ContractForm.tsx` -- Create/edit form
-- `src/hooks/useContracts.ts` -- CRUD hooks
-- `src/components/ContractPDFButton.tsx` -- PDF generation
-
-### Modified files
-- `src/components/AppSidebar.tsx` -- Add "Contracts" nav item
-- `src/App.tsx` -- Add routes
-- Database migration -- Create table, function, and RLS policies
+```text
++------------------+          +---------------------+
+|   Staff Login    |          |  Customer Login     |
+|  (admin/disp/    |          |  (portal/login)     |
+|   mechanic)      |          |                     |
++--------+---------+          +---------+-----------+
+         |                              |
+    role: admin/                   role: customer
+    dispatcher/mechanic                 |
+         |                              |
+    Full ERP App               Customer Portal
+    (sidebar + all pages)      (read-only dashboard)
++--------+---------+          +---------+-----------+
+| Fleet, Invoices, |          | My Rentals          |
+| Contracts, etc.  |          | My Invoices         |
+|                  |          | My Contracts        |
+|                  |          | Download PDFs       |
++------------------+          +---------------------+
+```
 
 ---
 
-## Part 2: Payment Tracking
+## What Changes
 
-### Database
+### 1. Database
 
-**`payments` table:**
+**Add `customer` to the `app_role` enum:**
+- Extend the existing enum: `ALTER TYPE app_role ADD VALUE 'customer';`
 
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid (PK) | Auto-generated |
-| invoice_id | uuid NOT NULL | Links to the invoice |
-| amount | numeric NOT NULL | Payment amount |
-| payment_date | date NOT NULL DEFAULT CURRENT_DATE | When payment was received |
-| payment_method | text | cash / transfer / check / card |
-| reference_number | text | Bank reference or check number |
-| notes | text | Optional |
-| created_at | timestamptz | Auto-managed |
+**Link customers to auth accounts -- add column to `customers`:**
+- `user_id` (uuid, nullable, references auth.users) -- when set, this customer has portal access
 
-RLS: Admin and Dispatcher full access, Mechanic read-only.
+**RLS policies for customer role:**
+- Customers can SELECT their own rows from `bookings`, `invoices`, `contracts`, `payments`, `deliveries` where `customer_id` matches their linked customer record
+- A helper function `get_customer_id_for_user(uuid)` returns the customer.id for a given auth user_id
 
-### Logic changes
+### 2. Customer Invitation Flow (Admin UI)
 
-- **Invoice balance**: Instead of a binary paid/unpaid status, calculate `balance = total - sum(payments)`.
-- **Auto-status update**: When a payment is recorded that brings balance to zero, automatically mark the invoice as "paid" and set `paid_at`.
-- **Partial payment support**: Invoices with payments but remaining balance show status "partial".
+On the **Customer Detail page**, add an "Invite to Portal" button:
+1. Admin enters the customer's email
+2. System creates a Supabase auth account (via edge function using service role key)
+3. Assigns the `customer` role to that account
+4. Links the `customers.user_id` to the new auth user
+5. Sends a password reset email so the customer can set their password
 
-### UI changes
+This is done via an edge function (`invite-customer`) since creating accounts on behalf of others requires the service role key.
 
-**Invoice Detail page** (modify `InvoiceDetail.tsx`):
-- Add a "Payments" section below the totals showing a table of all recorded payments.
-- Add a "Record Payment" button that opens a dialog to enter amount, date, method, and reference.
-- Show "Balance Due" prominently: `total - sum(payments)`.
-- Pre-fill the payment amount with the remaining balance.
+### 3. Auth Routing
 
-**Invoices list page** (modify `InvoicesPage.tsx`):
-- Add "partial" to the status filter tabs.
-- Show balance column alongside total.
+**Modify `AuthGuard.tsx`:**
+- After login, check the user's role
+- If role is `customer`, render the `CustomerPortalLayout` instead of the main ERP layout
+- Internal users continue to see the full ERP as before
 
-### New files
-- `src/hooks/usePayments.ts` -- Query payments by invoice, create payment mutation
-- `src/components/RecordPaymentDialog.tsx` -- Dialog for recording a payment
+**New portal routes** (all under `/portal/`):
+| Route | Component | Description |
+|-------|-----------|-------------|
+| /portal | PortalDashboard | Summary: active rentals, outstanding invoices |
+| /portal/rentals | PortalRentals | List of bookings with status |
+| /portal/invoices | PortalInvoices | List of invoices with download |
+| /portal/invoices/:id | PortalInvoiceDetail | Invoice detail + payment history |
+| /portal/contracts | PortalContracts | List of contracts with PDF download |
 
-### Modified files
-- `src/pages/InvoiceDetail.tsx` -- Add payments section and record button
-- `src/pages/InvoicesPage.tsx` -- Add "partial" tab, balance column
+### 4. Portal UI
+
+**CustomerPortalLayout** -- a minimal layout with:
+- A top header bar with company logo, customer name, and logout button
+- No sidebar (clean, simple interface)
+- Navigation tabs: Dashboard | Rentals | Invoices | Contracts
+
+**PortalDashboard:**
+- Card: Active Rentals count + list of current bookings
+- Card: Outstanding Balance (sum of unpaid invoices)
+- Card: Recent Invoices (last 5)
+
+**PortalRentals:**
+- Table showing all bookings: forklift name, dates, status
+- Read-only (no edit/cancel ability)
+
+**PortalInvoices:**
+- Table: invoice number, date, total, balance, status
+- Click to view detail
+- "Download PDF" button per invoice
+
+**PortalInvoiceDetail:**
+- Full invoice details with line items
+- Payment history table
+- Download PDF button
+
+**PortalContracts:**
+- Table: contract number, dates, status
+- "Download PDF" button per contract
+
+### 5. Edge Function: `invite-customer`
+
+- Accepts: `customer_id`, `email`
+- Uses service role key to create auth user
+- Inserts `customer` role into `user_roles`
+- Updates `customers.user_id`
+- Sends password reset email
+- Returns success/error
 
 ---
 
-## Implementation Sequence
+## Files to Create
 
-1. Database migration: Create `contracts` and `payments` tables with RLS and helper functions
-2. Create `useContracts.ts` and `usePayments.ts` hooks
-3. Build Contracts pages (list, detail, form) and PDF button
-4. Add payment recording to Invoice Detail
-5. Update Invoice list with partial status and balance
-6. Update sidebar and routing
+| File | Purpose |
+|------|---------|
+| `supabase/functions/invite-customer/index.ts` | Edge function to create customer auth account |
+| `src/layouts/CustomerPortalLayout.tsx` | Minimal portal shell (header + tabs) |
+| `src/pages/portal/PortalDashboard.tsx` | Customer dashboard |
+| `src/pages/portal/PortalRentals.tsx` | Bookings list |
+| `src/pages/portal/PortalInvoices.tsx` | Invoices list |
+| `src/pages/portal/PortalInvoiceDetail.tsx` | Invoice + payments detail |
+| `src/pages/portal/PortalContracts.tsx` | Contracts list |
+| `src/hooks/useCustomerPortal.ts` | Hook to fetch the customer record linked to current auth user |
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| DB migration | Add `customer` to enum, add `user_id` to customers, RLS policies |
+| `src/App.tsx` | Add portal routes |
+| `src/components/AuthGuard.tsx` | Route customer-role users to portal layout |
+| `src/pages/CustomerDetailPage.tsx` | Add "Invite to Portal" button |
+| `src/hooks/useUserRole.ts` | Add `customer` to AppRole type |
 
 ---
 
 ## Technical Details
 
-### Database migration SQL summary
+### RLS Helper Function
 
-- `contracts` table with auto-increment contract number function
-- `payments` table with invoice foreign key
-- RLS policies matching existing patterns (admin/dispatcher full, mechanic read)
-- `updated_at` trigger on contracts
-- Add "partial" as a recognized invoice status in the workflow
+```sql
+CREATE OR REPLACE FUNCTION get_customer_id_for_user(p_user_id uuid)
+RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT id FROM customers WHERE user_id = p_user_id LIMIT 1;
+$$;
+```
 
-### Routing additions
+### Customer RLS Policy Example (invoices)
 
-| Route | Component | Roles |
-|-------|-----------|-------|
-| /contracts | ContractsPage | admin, dispatcher |
-| /contracts/new | ContractForm | admin, dispatcher |
-| /contracts/:id | ContractDetail | admin, dispatcher |
-| /contracts/:id/edit | ContractForm | admin, dispatcher |
+```sql
+CREATE POLICY "Customers read own invoices"
+ON invoices FOR SELECT TO authenticated
+USING (
+  has_role(auth.uid(), 'customer') AND
+  customer_id = get_customer_id_for_user(auth.uid())
+);
+```
 
-### Sidebar addition
+This pattern repeats for bookings, contracts, payments, and deliveries.
 
-- "Contracts" nav item with a `FileText` (or `ScrollText`) icon, positioned between "Quotes" and "Deliveries" in the navigation order.
+### Security Considerations
 
+- Customer accounts can ONLY read data -- no INSERT, UPDATE, or DELETE
+- Data is scoped to their own customer_id via RLS
+- The invite edge function uses the service role key (already available as a secret)
+- Customers cannot access any internal ERP routes; the AuthGuard redirects them to `/portal`
+- Internal users cannot accidentally get the `customer` role (invitation is admin-controlled)
+
+### Implementation Sequence
+
+1. Database migration: extend enum, add `user_id` column, create helper function, add RLS policies
+2. Create `invite-customer` edge function
+3. Build portal layout and pages
+4. Modify AuthGuard for role-based routing
+5. Add invitation button to CustomerDetailPage
+6. Update AppRole type
