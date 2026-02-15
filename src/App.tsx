@@ -21,7 +21,7 @@ import MaintenancePage from "./pages/MaintenancePage";
 import InvoicesPage from "./pages/InvoicesPage";
 import InvoiceForm from "./pages/InvoiceForm";
 import InvoiceDetail from "./pages/InvoiceDetail";
-import EquipmentConfigPage from "./pages/EquipmentConfigPage";
+import OperationsSetupPage from "./pages/OperationsSetupPage";
 import ReturnInspectionPage from "./pages/ReturnInspectionPage";
 import DeliveriesPage from "./pages/DeliveriesPage";
 import QuotesPage from "./pages/QuotesPage";
@@ -81,7 +81,7 @@ const App = () => (
                   <Route path="/activity" element={<ActivityPage />} />
                   <Route path="/reports" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ReportsPage /></RoleGuard>} />
                   <Route path="/damage" element={<DamageTrackingPage />} />
-                  <Route path="/settings/equipment" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><EquipmentConfigPage /></RoleGuard>} />
+                  <Route path="/settings/operations" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><OperationsSetupPage /></RoleGuard>} />
                   <Route path="/users" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><UserManagementPage /></RoleGuard>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

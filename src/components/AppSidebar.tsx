@@ -39,7 +39,7 @@ const navItems: NavItem[] = [
   { title: "Damage Tracking", url: "/damage", icon: AlertTriangle },
   { title: "Activity", url: "/activity", icon: Activity },
   { title: "Reports", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher"] },
-  { title: "Equipment Config", url: "/settings/equipment", icon: Settings, roles: ["admin"] },
+  { title: "Operations Setup", url: "/settings/operations", icon: Settings, roles: ["admin"] },
   { title: "User Management", url: "/users", icon: ShieldCheck, roles: ["admin"] },
 ];
 

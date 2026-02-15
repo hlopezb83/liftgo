@@ -17,6 +17,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { MarkAvailableDialog } from "@/components/MarkAvailableDialog";
 import { useFormState } from "@/hooks/useFormState";
+import { useActiveMechanics } from "@/hooks/useMechanics";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { SERVICE_TYPES } from "@/lib/constants";
 import { PlusCircle, Wrench, Download, Search } from "lucide-react";
@@ -37,6 +38,7 @@ const initialForm = {
 export default function MaintenancePage() {
   const { data: forklifts } = useForklifts();
   const { data: logs, isLoading } = useMaintenanceLogs();
+  const { data: activeMechanics } = useActiveMechanics();
   const createLog = useCreateMaintenanceLog();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
@@ -172,7 +174,15 @@ export default function MaintenancePage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5"><Label>Cost (€)</Label><Input type="number" value={form.cost} onChange={(e) => set("cost", e.target.value)} placeholder="0" /></div>
-              <div className="space-y-1.5"><Label>Performed By</Label><Input value={form.performedBy} onChange={(e) => set("performedBy", e.target.value)} placeholder="Technician name" /></div>
+              <div className="space-y-1.5">
+                <Label>Performed By</Label>
+                <Select value={form.performedBy} onValueChange={(v) => set("performedBy", v)}>
+                  <SelectTrigger><SelectValue placeholder="Select mechanic" /></SelectTrigger>
+                  <SelectContent>
+                    {activeMechanics?.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}{m.specialization ? ` (${m.specialization})` : ""}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <DatePickerField label="Service Date" date={form.performedAt} onSelect={(d) => d && set("performedAt", d)} />
