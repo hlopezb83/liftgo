@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Search, Eye, Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 
-const STATUSES = ["all", "draft", "sent", "paid", "overdue"] as const;
+const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
 export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();

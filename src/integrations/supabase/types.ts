@@ -140,6 +140,91 @@ export type Database = {
         }
         Relationships: []
       }
+      contracts: {
+        Row: {
+          booking_id: string | null
+          contract_number: string
+          created_at: string
+          customer_id: string | null
+          daily_rate: number | null
+          deposit_amount: number | null
+          end_date: string | null
+          forklift_id: string | null
+          id: string
+          monthly_rate: number | null
+          notes: string | null
+          signed_at: string | null
+          signed_by: string | null
+          start_date: string | null
+          status: string
+          terms_text: string | null
+          updated_at: string
+          weekly_rate: number | null
+        }
+        Insert: {
+          booking_id?: string | null
+          contract_number: string
+          created_at?: string
+          customer_id?: string | null
+          daily_rate?: number | null
+          deposit_amount?: number | null
+          end_date?: string | null
+          forklift_id?: string | null
+          id?: string
+          monthly_rate?: number | null
+          notes?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          start_date?: string | null
+          status?: string
+          terms_text?: string | null
+          updated_at?: string
+          weekly_rate?: number | null
+        }
+        Update: {
+          booking_id?: string | null
+          contract_number?: string
+          created_at?: string
+          customer_id?: string | null
+          daily_rate?: number | null
+          deposit_amount?: number | null
+          end_date?: string | null
+          forklift_id?: string | null
+          id?: string
+          monthly_rate?: number | null
+          notes?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          start_date?: string | null
+          status?: string
+          terms_text?: string | null
+          updated_at?: string
+          weekly_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -728,6 +813,47 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          reference_number: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference_number?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          reference_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -979,6 +1105,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_contract_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
     }
