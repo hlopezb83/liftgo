@@ -107,6 +107,39 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          lugar_expedicion: string
+          razon_social: string
+          regimen_fiscal: string
+          rfc: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          lugar_expedicion: string
+          razon_social: string
+          regimen_fiscal: string
+          rfc: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          lugar_expedicion?: string
+          razon_social?: string
+          regimen_fiscal?: string
+          rfc?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
@@ -114,13 +147,17 @@ export type Database = {
           company: string | null
           contact_person: string | null
           created_at: string
+          domicilio_fiscal_cp: string | null
           email: string | null
           id: string
           name: string
           notes: string | null
           phone: string | null
+          regimen_fiscal: string | null
+          rfc: string | null
           tax_id: string | null
           updated_at: string
+          uso_cfdi: string | null
           website: string | null
         }
         Insert: {
@@ -129,13 +166,17 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          domicilio_fiscal_cp?: string | null
           email?: string | null
           id?: string
           name: string
           notes?: string | null
           phone?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
           tax_id?: string | null
           updated_at?: string
+          uso_cfdi?: string | null
           website?: string | null
         }
         Update: {
@@ -144,13 +185,17 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          domicilio_fiscal_cp?: string | null
           email?: string | null
           id?: string
           name?: string
           notes?: string | null
           phone?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
           tax_id?: string | null
           updated_at?: string
+          uso_cfdi?: string | null
           website?: string | null
         }
         Relationships: []
@@ -480,60 +525,108 @@ export type Database = {
       invoices: {
         Row: {
           booking_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cfdi_status: string | null
+          cfdi_uuid: string | null
+          cfdi_xml: string | null
           created_at: string
           customer_id: string | null
           customer_name: string | null
           due_date: string | null
+          folio: string | null
+          forma_pago: string | null
           id: string
           invoice_number: string
           issued_at: string
           line_items: Json
+          metodo_pago: string | null
+          moneda: string | null
           notes: string | null
           paid_at: string | null
+          receptor_domicilio_fiscal_cp: string | null
+          receptor_razon_social: string | null
+          receptor_regimen_fiscal: string | null
+          receptor_rfc: string | null
+          serie: string | null
           status: string
           subtotal: number
           tax_amount: number
           tax_rate: number
+          tipo_cambio: number | null
           total: number
           updated_at: string
+          uso_cfdi: string | null
         }
         Insert: {
           booking_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cfdi_status?: string | null
+          cfdi_uuid?: string | null
+          cfdi_xml?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
           due_date?: string | null
+          folio?: string | null
+          forma_pago?: string | null
           id?: string
           invoice_number: string
           issued_at?: string
           line_items?: Json
+          metodo_pago?: string | null
+          moneda?: string | null
           notes?: string | null
           paid_at?: string | null
+          receptor_domicilio_fiscal_cp?: string | null
+          receptor_razon_social?: string | null
+          receptor_regimen_fiscal?: string | null
+          receptor_rfc?: string | null
+          serie?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
+          tipo_cambio?: number | null
           total?: number
           updated_at?: string
+          uso_cfdi?: string | null
         }
         Update: {
           booking_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cfdi_status?: string | null
+          cfdi_uuid?: string | null
+          cfdi_xml?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
           due_date?: string | null
+          folio?: string | null
+          forma_pago?: string | null
           id?: string
           invoice_number?: string
           issued_at?: string
           line_items?: Json
+          metodo_pago?: string | null
+          moneda?: string | null
           notes?: string | null
           paid_at?: string | null
+          receptor_domicilio_fiscal_cp?: string | null
+          receptor_razon_social?: string | null
+          receptor_regimen_fiscal?: string | null
+          receptor_rfc?: string | null
+          serie?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
+          tipo_cambio?: number | null
           total?: number
           updated_at?: string
+          uso_cfdi?: string | null
         }
         Relationships: [
           {
