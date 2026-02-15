@@ -92,7 +92,7 @@ export default function QuoteDetail() {
               <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Mark Sent</Button>
             </>
           )}
-          {(quote.status === "draft" || quote.status === "sent") && (
+          {(quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
             <>
               <Button size="sm" variant="default" onClick={convertToBooking}><BookOpen className="h-4 w-4 mr-1" />Convert to Booking</Button>
               <Button size="sm" variant="outline" onClick={convertToInvoice}><Receipt className="h-4 w-4 mr-1" />Convert to Invoice</Button>
