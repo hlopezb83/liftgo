@@ -109,6 +109,10 @@ export default function AuthPage() {
               <Button variant="link" onClick={() => setMode("sign-in")}>Back to Sign In</Button>
             )}
           </div>
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Are you a customer?{" "}
+            <a href="/portal/login" className="underline hover:text-foreground">Sign in to the Customer Portal</a>
+          </p>
         </CardContent>
       </Card>
     </div>
