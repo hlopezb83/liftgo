@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { usePagination } from "@/hooks/usePagination";
 import { PageHeader } from "@/components/PageHeader";
@@ -33,6 +34,7 @@ export default function DamageTrackingPage() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader title="Damage Tracking" subtitle="Track damage from inspections through repair to invoicing" />
 
@@ -90,5 +92,6 @@ export default function DamageTrackingPage() {
         </CardContent>
       </Card>
     </div>
+    </PageTransition>
   );
 }

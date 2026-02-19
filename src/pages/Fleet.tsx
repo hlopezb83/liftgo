@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useForklifts } from "@/hooks/useForkliftData";
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/TablePagination";
@@ -35,6 +36,7 @@ export default function Fleet() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Fleet Inventory"
@@ -86,7 +88,7 @@ export default function Fleet() {
                 {paginatedItems.map((f) => (
                   <TableRow
                     key={f.id}
-                    className="cursor-pointer hover:bg-accent/50"
+                    className="cursor-pointer hover:bg-accent/50 transition-colors duration-150 border-l-2 border-transparent hover:border-primary"
                     onClick={() => navigate(`/fleet/${f.id}`)}
                   >
                     <TableCell className="font-mono font-medium">{f.name}</TableCell>
@@ -106,5 +108,6 @@ export default function Fleet() {
         </CardContent>
       </Card>
     </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { useBookings, useForklifts } from "@/hooks/useForkliftData";
+import { PageTransition } from "@/components/PageTransition";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -54,6 +55,7 @@ export default function CalendarPage() {
   }
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader title="Availability Calendar" subtitle="View bookings across your fleet" />
 
@@ -169,5 +171,6 @@ export default function CalendarPage() {
         </CardContent>
       </Card>
     </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { PageTransition } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
@@ -67,6 +68,7 @@ export default function UserManagementPage() {
   const updateRole = useUpdateRole();
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader title="User Management" subtitle="View and manage user roles" />
 
@@ -117,5 +119,6 @@ export default function UserManagementPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useForklifts, useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useForkliftData";
 import { usePagination } from "@/hooks/usePagination";
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,6 +92,7 @@ export default function MaintenancePage() {
   const totalCost = logs?.reduce((sum, l) => sum + (l.cost || 0), 0) || 0;
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Maintenance"
@@ -202,5 +204,6 @@ export default function MaintenancePage() {
         />
       )}
     </div>
+    </PageTransition>
   );
 }

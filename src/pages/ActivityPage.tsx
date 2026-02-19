@@ -1,4 +1,5 @@
 import { useActivityFeed } from "@/hooks/useActivityFeed";
+import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +24,7 @@ export default function ActivityPage() {
   const navigate = useNavigate();
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader title="Activity Feed" subtitle="Recent events across the system" />
       <Select value={filter} onValueChange={setFilter}>
@@ -63,5 +65,6 @@ export default function ActivityPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

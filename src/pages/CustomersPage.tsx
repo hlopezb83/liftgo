@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useForkliftData";
 import type { Customer } from "@/hooks/useCustomers";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
@@ -80,6 +81,7 @@ export default function CustomersPage() {
   };
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Customers"
@@ -216,5 +218,6 @@ export default function CustomersPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useForklifts, useBookings } from "@/hooks/useForkliftData";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
 import type { BookingWithForklift } from "@/hooks/useBookings";
@@ -110,6 +111,7 @@ export default function DeliveriesPage() {
   };
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Deliveries & Pickups"
@@ -259,5 +261,6 @@ export default function DeliveriesPage() {
         />
       )}
     </div>
+    </PageTransition>
   );
 }
