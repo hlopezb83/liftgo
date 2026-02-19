@@ -1,43 +1,43 @@
 
 
-# Add a Dedicated Customer Login Page
+# Standardize Date Pickers Across the App
 
-## Overview
-Create a separate login page specifically for customers at `/portal/login`, with a distinct look that makes it clear they're accessing the Customer Portal. The main staff login page will also get a link pointing customers to their dedicated login.
+## Problem
 
-## What Changes
+Date selection is inconsistent across modules. Some use the shared calendar popover component (`DatePickerField`), while others use a raw HTML `<Input type="date">` which looks different and behaves differently depending on the browser.
 
-### 1. New Customer Login Page (`src/pages/portal/PortalLogin.tsx`)
-- A standalone login page at `/portal/login` branded as "Customer Portal"
-- Only shows sign-in and forgot password flows (no sign-up -- customers are invited by admins)
-- After login, the existing `AuthGuard` automatically routes customer-role users to the portal
+### Current State
 
-### 2. Update Main Auth Page (`src/pages/AuthPage.tsx`)
-- Add a small link at the bottom: "Are you a customer? Sign in to the Customer Portal" that links to `/portal/login`
+| Module | Current Approach |
+|--------|-----------------|
+| Bookings | `DateRangePickerField` (calendar popover) |
+| Quotes | `DatePickerField` + `DateRangePickerField` |
+| Deliveries | `DatePickerField` (calendar popover) |
+| Maintenance | `DatePickerField` (calendar popover) |
+| Booking Actions (Extend/Return) | `DatePickerField` (calendar popover) |
+| **Contract Form** | **Raw `<Input type="date">`** -- inconsistent |
+| **Record Payment Dialog** | **Raw `<Input type="date">`** -- inconsistent |
 
-### 3. Update Routing (`src/App.tsx`)
-- Add the `/portal/login` route outside the `AuthGuard` so it's accessible without being logged in
+## Solution
 
-## Technical Details
+Replace the two remaining raw `<Input type="date">` usages with the existing `DatePickerField` component. No new component needs to be created -- `DatePickerField` and `DateRangePickerField` already exist and are well-designed. They just need to be used everywhere.
 
-### PortalLogin.tsx
-- Reuses the existing `useAuth` hook for `signIn` and `resetPassword`
-- Two modes: "sign-in" and "forgot"
-- On successful login, navigates to `/portal` (AuthGuard handles the rest)
-- Styled with a different accent/header to distinguish from staff login
+## Changes
 
-### Routing Change
-- The `/portal/login` route is placed before `AuthGuard` in `App.tsx` so unauthenticated users can access it
-- If an already-authenticated customer navigates to `/portal/login`, they get redirected to `/portal`
+### 1. Contract Form (`src/pages/ContractForm.tsx`)
 
-### Files to Create
-| File | Purpose |
-|------|---------|
-| `src/pages/portal/PortalLogin.tsx` | Customer-facing login page |
+The start and end date fields currently use `<Input type="date">` with string values (`form.start_date`, `form.end_date`). These will be replaced with `DatePickerField`, which works with `Date` objects. The form state and submit handler will be updated to convert between `Date` objects and date strings as needed.
+
+### 2. Record Payment Dialog (`src/components/RecordPaymentDialog.tsx`)
+
+The payment date field currently uses `<Input type="date">` with a string value. This will be replaced with `DatePickerField`, with the same string-to-Date conversion applied.
 
 ### Files to Modify
+
 | File | Change |
 |------|--------|
-| `src/App.tsx` | Add `/portal/login` route before AuthGuard |
-| `src/pages/AuthPage.tsx` | Add "Customer Portal" link |
+| `src/pages/ContractForm.tsx` | Replace 2 native date inputs with `DatePickerField`; adjust form state for Date objects |
+| `src/components/RecordPaymentDialog.tsx` | Replace 1 native date input with `DatePickerField`; adjust state for Date object |
+
+No new files or components are needed.
 
