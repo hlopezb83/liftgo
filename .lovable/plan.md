@@ -1,46 +1,81 @@
 
+# Calendar Module Improvements
 
-# Add "Invite User" to User Management
-
-## Problem
-
-The User Management page currently only lists existing users and allows role changes. There is no way to add (invite) new staff users. An existing `invite-customer` edge function exists but is limited to customer portal invites.
-
-## Solution
-
-Add an "Invite User" dialog to the User Management page that lets admins create new staff accounts by entering a name, email, and role. A new backend function will handle user creation securely using the service role key (similar to the existing `invite-customer` function).
+## Overview
+The calendar page currently has several usability gaps: the Gantt chart lacks a color legend and day-of-week context, booking bars don't show customer names inline, there's no status filtering, the "All Bookings" list shows raw date strings instead of formatted dates, and there's no way to filter by status or quickly navigate to create a new booking. This plan addresses all of these.
 
 ## Changes
 
-### 1. New backend function: `invite-user`
+### 1. Add a "New Booking" Button to the Page Header
+Currently there's no obvious way to create a booking from the calendar page itself. Add a CTA button in the `PageHeader` action slot linking to `/bookings/new`.
 
-Create `supabase/functions/invite-user/index.ts` that:
+**File:** `src/pages/CalendarPage.tsx`
 
-- Verifies the caller is an admin (same pattern as `invite-customer`)
-- Accepts `email`, `full_name`, and `role` (admin / dispatcher / mechanic)
-- Creates the auth user with a temporary password and email auto-confirmed
-- Inserts a profile and user_role record
-- Returns the new user ID
+---
 
-### 2. Update `src/pages/UserManagementPage.tsx`
+### 2. Day-of-Week Headers on the Gantt Chart
+The current day row only shows the day number (1, 2, 3...). Add a secondary row or modify the existing one to also show the abbreviated weekday (Mon, Tue...) and highlight weekends with a subtle background tint so users can quickly orient themselves.
 
-- Add an "Invite User" button in the `PageHeader` action slot
-- Add a `Dialog` containing a simple form with three fields:
-  - Full Name (text input)
-  - Email (text input)
-  - Role (select: admin, dispatcher, mechanic)
-- On submit, call the `invite-user` edge function
-- On success, invalidate the users query and close the dialog
-- Show toast feedback for success/error
+**File:** `src/pages/CalendarPage.tsx`
 
-### 3. Fix console warning
+---
 
-The `Badge` component inside `SelectItem` triggers a React ref warning. Wrap the badge text in a plain `span` with badge-like styling instead, or remove the `Badge` wrapper inside `SelectItem` since Radix passes a ref that `Badge` (a function component) cannot accept.
+### 3. Today Indicator on the Gantt Chart
+Highlight the current day's column with a subtle vertical accent (e.g., a different background or a top border) so users can immediately see where "today" falls in the timeline.
 
-## Files
+**File:** `src/pages/CalendarPage.tsx`
+
+---
+
+### 4. Color Legend
+The colored booking bars use different colors per forklift row, but there's no legend explaining what each color means. Add a small legend strip below the Gantt chart header showing the color-to-customer mapping for visible bookings in the current month.
+
+**File:** `src/pages/CalendarPage.tsx`
+
+---
+
+### 5. Tooltip on Booking Bars
+Currently hovering over a bar only shows an HTML `title` attribute (plain tooltip). Replace this with a proper styled tooltip using the existing `Tooltip` component showing customer name, dates, and duration.
+
+**File:** `src/pages/CalendarPage.tsx`
+
+---
+
+### 6. Status Filter Tabs on the Bookings List
+The "All Bookings" section at the bottom shows every booking regardless of status. Add filter tabs (All / Confirmed / Completed / Cancelled) so users can quickly narrow down the list.
+
+**File:** `src/pages/CalendarPage.tsx`
+
+---
+
+### 7. Formatted Dates in Bookings List
+The bookings list shows raw ISO strings like `2025-01-15`. Format these to a human-friendly format like `Jan 15, 2025` and show the booking duration in days.
+
+**File:** `src/pages/CalendarPage.tsx`
+
+---
+
+### 8. Show Cancelled Bookings in Gantt (Dimmed)
+Currently only `confirmed` bookings appear on the Gantt. Show `cancelled` and `completed` bookings as well but with reduced opacity so users have full context of the timeline.
+
+**File:** `src/pages/CalendarPage.tsx`
+
+---
+
+## Technical Details
+
+All changes are confined to `src/pages/CalendarPage.tsx`. No database or backend changes needed.
+
+Key implementation notes:
+- Import `Tooltip`, `TooltipTrigger`, `TooltipContent` from `@/components/ui/tooltip` for rich hover cards on booking bars
+- Import `Tabs`, `TabsList`, `TabsTrigger` from `@/components/ui/tabs` for the status filter
+- Import `isToday`, `getDay` from `date-fns` for weekend detection and today highlighting
+- Import `Link` from `react-router-dom` and `Plus` from `lucide-react` for the new booking button
+- Color assignment will change from per-forklift-index to per-booking-id (hash-based) so the legend can map colors to customer names
+- Booking bars for non-confirmed statuses will render at `opacity-30` with a dashed border pattern
+
+## Summary of Files
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Create | `supabase/functions/invite-user/index.ts` | Backend function to create staff users securely |
-| Modify | `src/pages/UserManagementPage.tsx` | Add invite dialog, fix Badge ref warning |
-
+| Modify | `src/pages/CalendarPage.tsx` | All 8 improvements above |
