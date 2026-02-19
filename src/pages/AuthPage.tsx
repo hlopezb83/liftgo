@@ -51,8 +51,8 @@ export default function AuthPage() {
   };
 
   const titles: Record<Mode, { title: string; desc: string }> = {
-    "sign-in": { title: "Sign In", desc: "Sign in to ForkliftERP" },
-    "sign-up": { title: "Create Account", desc: "Create your ForkliftERP account" },
+    "sign-in": { title: "Sign In", desc: "Sign in to Lift Go" },
+    "sign-up": { title: "Create Account", desc: "Create your Lift Go account" },
     forgot: { title: "Reset Password", desc: "Enter your email to receive a reset link" },
     reset: { title: "New Password", desc: "Enter your new password" },
   };
@@ -62,7 +62,7 @@ export default function AuthPage() {
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center pt-8 pb-2">
           <div className="flex justify-center mb-5">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">FL</div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
           </div>
           <CardTitle>{titles[mode].title}</CardTitle>
           <CardDescription>{titles[mode].desc}</CardDescription>

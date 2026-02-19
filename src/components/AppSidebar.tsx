@@ -72,12 +72,12 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-            FL
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">
+            LG
           </div>
           <div>
-            <h2 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight">ForkliftERP</h2>
-            <p className="text-xs text-sidebar-foreground/60">Fleet Management</p>
+            <h2 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight">Lift Go</h2>
+            <p className="text-xs text-sidebar-foreground/60">Montacargas</p>
           </div>
         </div>
       </SidebarHeader>

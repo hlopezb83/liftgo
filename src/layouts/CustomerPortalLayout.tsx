@@ -33,10 +33,10 @@ export default function CustomerPortalLayout() {
             <img src={company.logo_url} alt="Logo" className="h-8 w-8 rounded object-contain" />
           ) : (
             <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-              {company?.razon_social?.charAt(0) || "P"}
+              {company?.razon_social?.charAt(0) || "LG"}
             </div>
           )}
-          <span className="font-semibold text-foreground">Customer Portal</span>
+          <span className="font-semibold text-foreground">Lift Go - Portal</span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground hidden sm:inline">
