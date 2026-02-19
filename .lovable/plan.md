@@ -1,70 +1,46 @@
 
 
-# Rebrand App to Match LiftGo Identity
+# Add "Invite User" to User Management
 
-## Overview
+## Problem
 
-Transform the ForkliftERP app to reflect the LiftGo brand identity from liftgo.com.mx, updating colors, branding text, and the document title throughout the application.
+The User Management page currently only lists existing users and allows role changes. There is no way to add (invite) new staff users. An existing `invite-customer` edge function exists but is limited to customer portal invites.
 
-## Brand Identity (from liftgo.com.mx)
+## Solution
 
-| Element | Current App | LiftGo Brand |
-|---------|-------------|---------------|
-| Primary color | Orange (#F97316) | Dark Navy (#1B2A4A) |
-| Accent/CTA color | Orange | Gold/Bronze (#B8964E) |
-| Brand name | "ForkliftERP" | "Lift Go" |
-| Logo initials | "FL" | "LG" |
-| Tagline | "Fleet Management" | "Montacargas" |
-| Page title | "Lovable App" | "Lift Go ERP" |
+Add an "Invite User" dialog to the User Management page that lets admins create new staff accounts by entering a name, email, and role. A new backend function will handle user creation securely using the service role key (similar to the existing `invite-customer` function).
 
 ## Changes
 
-### 1. Color Theme (`src/index.css`)
+### 1. New backend function: `invite-user`
 
-Update CSS custom properties in both light and dark modes:
+Create `supabase/functions/invite-user/index.ts` that:
 
-- **Primary**: Change from orange `25 95% 53%` to dark navy `220 45% 20%`
-- **Ring/focus**: Match new primary
-- **Sidebar primary**: Update to gold accent `38 40% 50%`
-- **Sidebar background**: Keep dark navy, refine values to match LiftGo's navy
-- Add a new `--accent-gold` variable for CTA-style highlights
+- Verifies the caller is an admin (same pattern as `invite-customer`)
+- Accepts `email`, `full_name`, and `role` (admin / dispatcher / mechanic)
+- Creates the auth user with a temporary password and email auto-confirmed
+- Inserts a profile and user_role record
+- Returns the new user ID
 
-### 2. Branding Text and Logo
+### 2. Update `src/pages/UserManagementPage.tsx`
 
-**`src/components/AppSidebar.tsx`**:
-- Change logo initials from "FL" to "LG"
-- Change title from "ForkliftERP" to "Lift Go"
-- Change subtitle from "Fleet Management" to "Montacargas"
-- Update logo background to use gold accent color
+- Add an "Invite User" button in the `PageHeader` action slot
+- Add a `Dialog` containing a simple form with three fields:
+  - Full Name (text input)
+  - Email (text input)
+  - Role (select: admin, dispatcher, mechanic)
+- On submit, call the `invite-user` edge function
+- On success, invalidate the users query and close the dialog
+- Show toast feedback for success/error
 
-**`src/pages/AuthPage.tsx`**:
-- Change logo initials from "FL" to "LG"
-- Update logo styling to match navy/gold brand
+### 3. Fix console warning
 
-**`src/components/AuthGuard.tsx`**:
-- Update spinner color to match new primary
+The `Badge` component inside `SelectItem` triggers a React ref warning. Wrap the badge text in a plain `span` with badge-like styling instead, or remove the `Badge` wrapper inside `SelectItem` since Radix passes a ref that `Badge` (a function component) cannot accept.
 
-### 3. Document Title (`index.html`)
+## Files
 
-- Change `<title>` from "Lovable App" to "Lift Go ERP"
-- Update `og:title` meta tag to "Lift Go ERP"
-- Update `og:description` to "Lift Go - Montacargas ERP"
-
-### 4. Customer Portal Header (`src/layouts/CustomerPortalLayout.tsx`)
-
-- Update fallback logo initials from "P" to "LG"
-- Update portal label to "Lift Go - Portal"
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/index.css` | Update color variables for navy/gold palette |
-| `index.html` | Update page title and meta tags |
-| `src/components/AppSidebar.tsx` | Logo initials, brand name, tagline |
-| `src/pages/AuthPage.tsx` | Logo initials and styling |
-| `src/components/AuthGuard.tsx` | Spinner color alignment |
-| `src/layouts/CustomerPortalLayout.tsx` | Portal fallback logo and label |
-
-No new files needed. No database or backend changes required.
+| Action | File | Purpose |
+|--------|------|---------|
+| Create | `supabase/functions/invite-user/index.ts` | Backend function to create staff users securely |
+| Modify | `src/pages/UserManagementPage.tsx` | Add invite dialog, fix Badge ref warning |
 
