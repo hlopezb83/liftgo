@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useNavigate } from "react-router-dom";
 import { useContracts } from "@/hooks/useContracts";
 import { usePagination } from "@/hooks/usePagination";
@@ -36,6 +37,7 @@ export default function ContractsPage() {
   if (isLoading) return <div className="p-6"><TableSkeleton rows={5} /></div>;
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Contracts"
@@ -91,5 +93,6 @@ export default function ContractsPage() {
         </CardContent>
       </Card>
     </div>
+    </PageTransition>
   );
 }

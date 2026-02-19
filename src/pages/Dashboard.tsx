@@ -1,4 +1,5 @@
 import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/hooks/useForkliftData";
+import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -168,6 +169,7 @@ export default function Dashboard() {
   }
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Dashboard"
@@ -191,5 +193,6 @@ export default function Dashboard() {
       <RecentActivity />
 
     </div>
+    </PageTransition>
   );
 }

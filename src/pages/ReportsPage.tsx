@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/hooks/useForkliftData";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +29,7 @@ export default function ReportsPage() {
   const { data: maintenanceLogs } = useMaintenanceLogs();
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader title="Reports & Analytics" subtitle="Generate filtered reports with export" />
 
@@ -57,5 +59,6 @@ export default function ReportsPage() {
         <MaintenanceCostReport maintenanceLogs={maintenanceLogs || []} forklifts={forklifts || []} startDate={startDate} endDate={endDate} />
       )}
     </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useBookings, useForklifts } from "@/hooks/useForkliftData";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,6 +100,7 @@ export default function ReturnInspectionPage() {
   };
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Returns & Check-in"
@@ -229,5 +231,6 @@ export default function ReturnInspectionPage() {
         />
       )}
     </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useAuditLogs } from "@/hooks/useAuditLogs";
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/TablePagination";
@@ -83,6 +84,7 @@ export default function AuditTrailPage() {
   if (isLoading) return <div className="p-6"><TableSkeleton rows={8} /></div>;
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader title="Audit Trail" subtitle="Track all changes across the system" />
 
@@ -213,5 +215,6 @@ export default function AuditTrailPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </PageTransition>
   );
 }

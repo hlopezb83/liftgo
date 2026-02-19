@@ -1,4 +1,5 @@
 import { useQuotes } from "@/hooks/useQuotes";
+import { PageTransition } from "@/components/PageTransition";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +33,7 @@ export default function QuotesPage() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Quotations"
@@ -83,5 +85,6 @@ export default function QuotesPage() {
         </CardContent>
       </Card>
     </div>
+    </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageTransition } from "@/components/PageTransition";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useForkliftData";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -38,6 +39,7 @@ export default function InvoicesPage() {
   if (isLoading) return <div className="p-6"><TableSkeleton rows={5} /></div>;
 
   return (
+    <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
         title="Invoices"
@@ -81,7 +83,7 @@ export default function InvoicesPage() {
             <TableBody>
               {paginatedItems.length > 0 ? (
                 paginatedItems.map((inv) => (
-                  <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${inv.id}`)}>
+                  <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50 transition-colors duration-150 border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/invoices/${inv.id}`)}>
                     <TableCell className="font-medium">{inv.invoice_number}</TableCell>
                     <TableCell>{inv.customer_name || "—"}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(Number(inv.total))}</TableCell>
@@ -100,5 +102,6 @@ export default function InvoicesPage() {
         </CardContent>
       </Card>
     </div>
+    </PageTransition>
   );
 }

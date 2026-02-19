@@ -16,9 +16,9 @@ export function StatCards({ cards }: StatCardsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {cards.map((card) => (
-        <Card key={card.label} className="hover:shadow-md transition-shadow">
+        <Card key={card.label} className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
           <CardContent className="p-5 flex items-center gap-4">
-            <div className={`p-2.5 rounded-xl bg-muted ${card.color}`}>
+            <div className={`p-2.5 rounded-xl bg-gradient-to-br from-muted to-muted/60 ${card.color}`}>
               <card.icon className="h-5 w-5" />
             </div>
             <div>
