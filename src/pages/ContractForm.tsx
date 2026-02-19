@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { DatePickerField } from "@/components/DatePickerField";
+import { format, parseISO } from "date-fns";
 
 export default function ContractForm() {
   const { id } = useParams();
@@ -128,14 +130,18 @@ export default function ContractForm() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Start Date</Label>
-              <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-            </div>
-            <div>
-              <Label>End Date</Label>
-              <Input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
-            </div>
+            <DatePickerField
+              label="Start Date"
+              date={form.start_date ? parseISO(form.start_date) : undefined}
+              onSelect={(d) => setForm({ ...form, start_date: d ? format(d, "yyyy-MM-dd") : "" })}
+              placeholder="Pick start date"
+            />
+            <DatePickerField
+              label="End Date"
+              date={form.end_date ? parseISO(form.end_date) : undefined}
+              onSelect={(d) => setForm({ ...form, end_date: d ? format(d, "yyyy-MM-dd") : "" })}
+              placeholder="Pick end date"
+            />
           </div>
         </CardContent>
       </Card>

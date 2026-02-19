@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePayment } from "@/hooks/usePayments";
 import { toast } from "sonner";
+import { DatePickerField } from "@/components/DatePickerField";
+import { format } from "date-fns";
 
 const METHODS = [
   { value: "transfer", label: "Transferencia" },
@@ -24,7 +26,7 @@ interface Props {
 
 export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance }: Props) {
   const [amount, setAmount] = useState(balance.toFixed(2));
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState<Date>(new Date());
   const [method, setMethod] = useState("transfer");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
@@ -34,7 +36,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance }: 
     const amt = Number(amount);
     if (!amt || amt <= 0) { toast.error("Monto inválido"); return; }
     createPayment.mutate(
-      { invoice_id: invoiceId, amount: amt, payment_date: date, payment_method: method, reference_number: reference || null, notes: notes || null },
+      { invoice_id: invoiceId, amount: amt, payment_date: format(date, "yyyy-MM-dd"), payment_method: method, reference_number: reference || null, notes: notes || null },
       {
         onSuccess: () => {
           toast.success("Pago registrado");
@@ -57,10 +59,11 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance }: 
             <Label>Monto</Label>
             <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
-          <div>
-            <Label>Fecha</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
+          <DatePickerField
+            label="Fecha"
+            date={date}
+            onSelect={(d) => { if (d) setDate(d); }}
+          />
           <div>
             <Label>Método de Pago</Label>
             <Select value={method} onValueChange={setMethod}>
