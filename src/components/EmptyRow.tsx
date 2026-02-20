@@ -5,7 +5,7 @@ import { Inbox } from "lucide-react";
 export const EmptyRow = React.forwardRef<
   HTMLTableRowElement,
   { colSpan: number; message?: string }
->(({ colSpan, message = "No results found" }, ref) => (
+>(({ colSpan, message = "Sin resultados" }, ref) => (
   <TableRow ref={ref}>
     <TableCell colSpan={colSpan} className="text-center py-14">
       <div className="flex flex-col items-center gap-2">

@@ -10,7 +10,7 @@ export function FormActions({ submitLabel, isPending, onCancel }: FormActionsPro
   return (
     <div className="flex gap-3 pt-2">
       <Button type="submit" disabled={isPending}>{submitLabel}</Button>
-      <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+      <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
     </div>
   );
 }

@@ -9,7 +9,7 @@ interface NotesCardProps {
   rows?: number;
 }
 
-export function NotesCard({ value, onChange, placeholder = "Additional notes...", title = "Notes", rows = 3 }: NotesCardProps) {
+export function NotesCard({ value, onChange, placeholder = "Notas adicionales...", title = "Notas", rows = 3 }: NotesCardProps) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">{title}</CardTitle></CardHeader>

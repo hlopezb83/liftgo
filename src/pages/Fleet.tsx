@@ -25,12 +25,8 @@ export default function Fleet() {
   const navigate = useNavigate();
 
   const filtered = forklifts?.filter((f) => {
-    const matchesSearch =
-      f.name.toLowerCase().includes(search.toLowerCase()) ||
-      f.model.toLowerCase().includes(search.toLowerCase()) ||
-      (f.manufacturer || "").toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || f.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase());
+    return matchesSearch && (statusFilter === "all" || f.status === statusFilter);
   });
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
@@ -39,68 +35,52 @@ export default function Fleet() {
     <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Fleet Inventory"
-        subtitle={`${forklifts?.length || 0} forklifts in fleet`}
+        title="Inventario de Flota"
+        subtitle={`${forklifts?.length || 0} montacargas en la flota`}
         action={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportToCsv("fleet.csv", (filtered || []).map(f => ({ Name: f.name, Model: f.model, Manufacturer: f.manufacturer || "", Capacity: f.capacity_kg || "", Fuel: f.fuel_type || "", Status: f.status, "Daily Rate": f.daily_rate || 0 })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
-            <Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Add Forklift</Button>
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", (filtered || []).map(f => ({ Nombre: f.name, Modelo: f.model, Fabricante: f.manufacturer || "", Capacidad: f.capacity_kg || "", Combustible: f.fuel_type || "", Estado: f.status, "Tarifa Diaria": f.daily_rate || 0 })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+            <Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
           </div>
         }
       />
-
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by name, model..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por nombre, modelo..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Todos los estados" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {FORKLIFT_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>
-            ))}
+            <SelectItem value="all">Todos los estados</SelectItem>
+            {FORKLIFT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
-
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
-            <TableSkeleton />
-          ) : (
+          {isLoading ? <TableSkeleton /> : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead>Manufacturer</TableHead>
-                  <TableHead>Capacity</TableHead>
-                  <TableHead>Fuel</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Daily Rate</TableHead>
+                  <TableHead>ID</TableHead><TableHead>Modelo</TableHead><TableHead>Fabricante</TableHead>
+                  <TableHead>Capacidad</TableHead><TableHead>Combustible</TableHead><TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Tarifa Diaria</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedItems.map((f) => (
-                  <TableRow
-                    key={f.id}
-                    className="cursor-pointer hover:bg-accent/50 transition-colors duration-150 border-l-2 border-transparent hover:border-primary"
-                    onClick={() => navigate(`/fleet/${f.id}`)}
-                  >
+                  <TableRow key={f.id} className="cursor-pointer hover:bg-accent/50 transition-colors duration-150 border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/fleet/${f.id}`)}>
                     <TableCell className="font-mono font-medium">{f.name}</TableCell>
                     <TableCell>{f.model}</TableCell>
                     <TableCell>{f.manufacturer || "—"}</TableCell>
                     <TableCell>{f.capacity_kg ? `${f.capacity_kg} kg` : "—"}</TableCell>
                     <TableCell>{f.fuel_type}</TableCell>
                     <TableCell><StatusBadge status={f.status} /></TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/day</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/día</TableCell>
                   </TableRow>
                 ))}
-                {paginatedItems.length === 0 && <EmptyRow colSpan={7} message="No forklifts found" />}
+                {paginatedItems.length === 0 && <EmptyRow colSpan={7} message="No se encontraron montacargas" />}
               </TableBody>
             </Table>
           )}

@@ -4,25 +4,14 @@ import { useUpdateStatus } from "@/hooks/useForklifts";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-interface MarkAvailableDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  forkliftId: string;
-  forkliftName: string;
-}
+interface MarkAvailableDialogProps { open: boolean; onOpenChange: (open: boolean) => void; forkliftId: string; forkliftName: string; }
 
 export function MarkAvailableDialog({ open, onOpenChange, forkliftId, forkliftName }: MarkAvailableDialogProps) {
   const updateStatus = useUpdateStatus();
-
   const handleConfirm = () => {
     updateStatus.mutate(
-      { forkliftId, fromStatus: "maintenance", toStatus: "available", note: "Maintenance completed" },
-      {
-        onSuccess: () => {
-          toast.success(`${forkliftName} marked as available`);
-          onOpenChange(false);
-        },
-      }
+      { forkliftId, fromStatus: "maintenance", toStatus: "available", note: "Mantenimiento completado" },
+      { onSuccess: () => { toast.success(`${forkliftName} marcado como disponible`); onOpenChange(false); } }
     );
   };
 
@@ -30,19 +19,12 @@ export function MarkAvailableDialog({ open, onOpenChange, forkliftId, forkliftNa
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-status-available" />
-            Mark Available?
-          </DialogTitle>
-          <DialogDescription>
-            {forkliftName} is currently in maintenance. Mark it as available again?
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-status-available" />¿Marcar como Disponible?</DialogTitle>
+          <DialogDescription>{forkliftName} está actualmente en mantenimiento. ¿Marcarlo como disponible?</DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col gap-2 sm:flex-row">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Not Yet</Button>
-          <Button onClick={handleConfirm} disabled={updateStatus.isPending}>
-            {updateStatus.isPending ? "Updating..." : "Mark Available"}
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Todavía No</Button>
+          <Button onClick={handleConfirm} disabled={updateStatus.isPending}>{updateStatus.isPending ? "Actualizando..." : "Marcar Disponible"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
