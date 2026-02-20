@@ -16,7 +16,7 @@ interface DateRangePickerFieldProps {
   required?: boolean;
 }
 
-export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Pick dates", required }: DateRangePickerFieldProps) {
+export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required }: DateRangePickerFieldProps) {
   const [open, setOpen] = useState(false);
   const initialRangeRef = useRef<{ from?: Date; to?: Date }>({});
 

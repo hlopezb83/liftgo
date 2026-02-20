@@ -19,7 +19,7 @@ export default function PortalInvoiceDetail() {
   const invoicePayments = payments?.filter((p) => p.invoice_id === id) || [];
 
   if (!invoice) {
-    return <p className="text-muted-foreground">Invoice not found</p>;
+    return <p className="text-muted-foreground">Factura no encontrada</p>;
   }
 
   const lineItems = Array.isArray(invoice.line_items) ? invoice.line_items : [];
@@ -36,12 +36,11 @@ export default function PortalInvoiceDetail() {
           <h1 className="text-2xl font-bold">{invoice.invoice_number}</h1>
           <div className="flex items-center gap-2 mt-1">
             <StatusBadge status={invoice.status} />
-            <span className="text-sm text-muted-foreground">Issued: {invoice.issued_at}</span>
+            <span className="text-sm text-muted-foreground">Emitida: {invoice.issued_at}</span>
           </div>
         </div>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-4">
@@ -51,13 +50,13 @@ export default function PortalInvoiceDetail() {
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Paid</p>
+            <p className="text-xs text-muted-foreground">Pagado</p>
             <p className="text-xl font-bold font-mono text-status-available">{formatCurrency(totalPaid)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Balance</p>
+            <p className="text-xs text-muted-foreground">Saldo</p>
             <p className={`text-xl font-bold font-mono ${balance > 0 ? "text-destructive" : ""}`}>
               {formatCurrency(balance)}
             </p>
@@ -65,20 +64,19 @@ export default function PortalInvoiceDetail() {
         </Card>
       </div>
 
-      {/* Line Items */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Line Items</CardTitle>
+          <CardTitle className="text-base">Partidas</CardTitle>
         </CardHeader>
         <CardContent>
           {lineItems.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead className="text-right">Cant.</TableHead>
+                  <TableHead className="text-right">Precio Unit.</TableHead>
+                  <TableHead className="text-right">Importe</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -93,7 +91,7 @@ export default function PortalInvoiceDetail() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No line items</p>
+            <p className="text-sm text-muted-foreground text-center py-4">Sin partidas</p>
           )}
           <div className="mt-4 border-t pt-3 space-y-1 text-sm text-right">
             <div className="flex justify-end gap-8">
@@ -101,7 +99,7 @@ export default function PortalInvoiceDetail() {
               <span className="font-mono">{formatCurrency(Number(invoice.subtotal))}</span>
             </div>
             <div className="flex justify-end gap-8">
-              <span className="text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
+              <span className="text-muted-foreground">IVA ({invoice.tax_rate}%)</span>
               <span className="font-mono">{formatCurrency(Number(invoice.tax_amount))}</span>
             </div>
             <div className="flex justify-end gap-8 font-bold">
@@ -112,20 +110,19 @@ export default function PortalInvoiceDetail() {
         </CardContent>
       </Card>
 
-      {/* Payments */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Payment History</CardTitle>
+          <CardTitle className="text-base">Historial de Pagos</CardTitle>
         </CardHeader>
         <CardContent>
           {invoicePayments.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Método</TableHead>
+                  <TableHead>Referencia</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -140,7 +137,7 @@ export default function PortalInvoiceDetail() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No payments recorded</p>
+            <p className="text-sm text-muted-foreground text-center py-4">Sin pagos registrados</p>
           )}
         </CardContent>
       </Card>
