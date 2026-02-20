@@ -159,7 +159,7 @@ export default function ForkliftDetail() {
             </SelectTrigger>
             <SelectContent>
               {FORKLIFT_STATUSES.filter((s) => s !== forklift.status).map((s) => (
-                <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>
+                <SelectItem key={s} value={s}>{{ available: "Disponible", rented: "Rentado", maintenance: "Mantenimiento", retired: "Retirado" }[s]}</SelectItem>
               ))}
             </SelectContent>
           </Select>

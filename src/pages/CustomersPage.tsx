@@ -63,7 +63,7 @@ export default function CustomersPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name) { toast.error("Name is required"); return; }
+    if (!form.name) { toast.error("El nombre es requerido"); return; }
     const payload = {
       name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
       address: form.address || null, notes: form.notes || null,
@@ -74,9 +74,9 @@ export default function CustomersPage() {
     };
 
     if (editId) {
-      updateCustomer.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Customer updated"); setDialogOpen(false); } });
+      updateCustomer.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Cliente actualizado"); setDialogOpen(false); } });
     } else {
-      createCustomer.mutate(payload, { onSuccess: () => { toast.success("Customer added"); setDialogOpen(false); reset(); } });
+      createCustomer.mutate(payload, { onSuccess: () => { toast.success("Cliente agregado"); setDialogOpen(false); reset(); } });
     }
   };
 
@@ -148,7 +148,7 @@ export default function CustomersPage() {
                   <Label>Nombre / Empresa *</Label>
                   <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="ABC Construction" />
                 </div>
-                <div className="space-y-1.5"><Label>Tax / VAT ID</Label><Input value={form.tax_id} onChange={(e) => set("tax_id", e.target.value)} placeholder="DE123456789" /></div>
+                <div className="space-y-1.5"><Label>ID Fiscal</Label><Input value={form.tax_id} onChange={(e) => set("tax_id", e.target.value)} placeholder="DE123456789" /></div>
               </div>
             </div>
 
@@ -197,7 +197,7 @@ export default function CustomersPage() {
                 <div className="space-y-1.5"><Label>Correo</Label><Input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="contacto@empresa.com" /></div>
                 <div className="space-y-1.5"><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+52 55 1234 5678" /></div>
               </div>
-              <div className="space-y-1.5"><Label>Website</Label><Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://example.com" /></div>
+              <div className="space-y-1.5"><Label>Sitio Web</Label><Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://example.com" /></div>
             </div>
 
             <div className="space-y-3">
