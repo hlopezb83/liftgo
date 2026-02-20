@@ -17,6 +17,7 @@ import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/TablePagination";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
+const STATUS_LABELS: Record<string, string> = { all: "Todos", draft: "Borrador", sent: "Enviado", accepted: "Aceptado", declined: "Rechazado", expired: "Expirado" };
 
 export default function QuotesPage() {
   const { data: quotes, isLoading } = useQuotes();
@@ -36,16 +37,16 @@ export default function QuotesPage() {
     <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Quotations"
-        subtitle="Create and manage customer quotes"
-        action={<Button onClick={() => navigate("/quotes/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" />New Quote</Button>}
+        title="Cotizaciones"
+        subtitle="Crea y administra cotizaciones para clientes"
+        action={<Button onClick={() => navigate("/quotes/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" />Nueva Cotización</Button>}
       />
       <div className="flex gap-3">
-        <Input placeholder="Search quotes..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
+        <Input placeholder="Buscar cotizaciones..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
           <SelectContent>
-            {STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+            {STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -56,12 +57,12 @@ export default function QuotesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Quote #</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Dates</TableHead>
+                    <TableHead>Cotización #</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Fechas</TableHead>
                     <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Valid Until</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Válida Hasta</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -75,7 +76,7 @@ export default function QuotesPage() {
                       <TableCell>{q.valid_until || "—"}</TableCell>
                     </TableRow>
                   )) : (
-                    <EmptyRow colSpan={6} message="No quotes yet" />
+                    <EmptyRow colSpan={6} message="No hay cotizaciones aún" />
                   )}
                 </TableBody>
               </Table>

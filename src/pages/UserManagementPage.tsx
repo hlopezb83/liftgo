@@ -16,6 +16,7 @@ import { UserPlus } from "lucide-react";
 import type { AppRole } from "@/hooks/useUserRole";
 
 const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "dispatcher", "mechanic"];
+const ROLE_LABELS: Record<string, string> = { admin: "Administrador", dispatcher: "Despachador", mechanic: "Mecánico" };
 
 function useUsersWithRoles() {
   return useQuery({
@@ -55,10 +56,10 @@ function useUpdateRole() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Role updated" });
+      toast({ title: "Rol actualizado" });
     },
     onError: (err: Error) => {
-      toast({ title: "Failed to update role", description: err.message, variant: "destructive" });
+      toast({ title: "Error al actualizar rol", description: err.message, variant: "destructive" });
     },
   });
 }
@@ -76,10 +77,10 @@ function useInviteUser() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "User invited successfully" });
+      toast({ title: "Usuario invitado exitosamente" });
     },
     onError: (err: Error) => {
-      toast({ title: "Failed to invite user", description: err.message, variant: "destructive" });
+      toast({ title: "Error al invitar usuario", description: err.message, variant: "destructive" });
     },
   });
 }
@@ -113,32 +114,32 @@ export default function UserManagementPage() {
     <PageTransition>
       <div className="p-6 space-y-6">
         <PageHeader
-          title="User Management"
-          subtitle="View and manage user roles"
+          title="Gestión de Usuarios"
+          subtitle="Ver y administrar roles de usuarios"
           action={
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Invite User
+                  Invitar Usuario
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Invite New User</DialogTitle>
-                  <DialogDescription>Create a new staff account. They will be able to log in immediately.</DialogDescription>
+                  <DialogTitle>Invitar Nuevo Usuario</DialogTitle>
+                  <DialogDescription>Crea una nueva cuenta de personal. Podrá iniciar sesión de inmediato.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-2">
                   <div className="space-y-2">
-                    <Label htmlFor="inv-name">Full Name</Label>
-                    <Input id="inv-name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" />
+                    <Label htmlFor="inv-name">Nombre Completo</Label>
+                    <Input id="inv-name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Juan Pérez" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="inv-email">Email</Label>
-                    <Input id="inv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" />
+                    <Label htmlFor="inv-email">Correo Electrónico</Label>
+                    <Input id="inv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="juan@empresa.com" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="inv-role">Role</Label>
+                    <Label htmlFor="inv-role">Rol</Label>
                     <Select value={role} onValueChange={setRole}>
                       <SelectTrigger id="inv-role">
                         <SelectValue />
@@ -146,7 +147,7 @@ export default function UserManagementPage() {
                       <SelectContent>
                         {STAFF_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>
-                            <span className="capitalize">{r}</span>
+                            <span className="capitalize">{ROLE_LABELS[r] || r}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -154,9 +155,9 @@ export default function UserManagementPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                  <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
                   <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
-                    {inviteUser.isPending ? "Inviting…" : "Invite"}
+                    {inviteUser.isPending ? "Invitando…" : "Invitar"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -171,9 +172,9 @@ export default function UserManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Fecha de Registro</TableHead>
+                  <TableHead>Rol</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -201,7 +202,7 @@ export default function UserManagementPage() {
                                 r === "dispatcher" ? "border-transparent bg-secondary text-secondary-foreground" :
                                 "text-foreground"
                               }`}>
-                                {r}
+                                {ROLE_LABELS[r] || r}
                               </span>
                             </SelectItem>
                           ))}

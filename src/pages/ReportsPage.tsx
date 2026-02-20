@@ -12,9 +12,9 @@ import { MaintenanceCostReport } from "@/components/reports/MaintenanceCostRepor
 import { subMonths } from "date-fns";
 
 const REPORT_TYPES = [
-  { value: "utilization", label: "Fleet Utilization" },
-  { value: "revenue", label: "Revenue" },
-  { value: "maintenance", label: "Maintenance Costs" },
+  { value: "utilization", label: "Utilización de Flota" },
+  { value: "revenue", label: "Ingresos" },
+  { value: "maintenance", label: "Costos de Mantenimiento" },
 ];
 
 export default function ReportsPage() {
@@ -31,7 +31,7 @@ export default function ReportsPage() {
   return (
     <PageTransition>
     <div className="p-6 space-y-6">
-      <PageHeader title="Reports & Analytics" subtitle="Generate filtered reports with export" />
+      <PageHeader title="Reportes y Análisis" subtitle="Genera reportes filtrados con exportación" />
 
       <Card>
         <CardContent className="pt-6">
@@ -44,7 +44,7 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <DateRangePickerField label="Date Range" dateRange={dateRange} onSelect={(r) => r && setDateRange(r)} />
+            <DateRangePickerField label="Rango de Fechas" dateRange={dateRange} onSelect={(r) => r && setDateRange(r)} />
           </div>
         </CardContent>
       </Card>

@@ -36,19 +36,19 @@ export default function DamageTrackingPage() {
   return (
     <PageTransition>
     <div className="p-6 space-y-6">
-      <PageHeader title="Damage Tracking" subtitle="Track damage from inspections through repair to invoicing" />
+      <PageHeader title="Seguimiento de Daños" subtitle="Rastrea daños desde inspecciones hasta reparación y facturación" />
 
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by description, forklift..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por descripción, montacargas..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All statuses" />
+            <SelectValue placeholder="Todos los estados" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="all">Todos los estados</SelectItem>
             {DAMAGE_STATUSES.map((s) => (
               <SelectItem key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</SelectItem>
             ))}
@@ -62,13 +62,13 @@ export default function DamageTrackingPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Forklift</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Est. Cost</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Montacargas</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead>Costo Est.</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -83,7 +83,7 @@ export default function DamageTrackingPage() {
                     <TableCell><DamageActions record={r} /></TableCell>
                   </TableRow>
                 )) : (
-                  <EmptyRow colSpan={7} message="No damage records found" />
+                  <EmptyRow colSpan={7} message="No se encontraron registros de daños" />
                 )}
               </TableBody>
             </Table>

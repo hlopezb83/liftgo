@@ -32,7 +32,7 @@ export default function ForkliftDetail() {
   }
 
   if (!forklift) {
-    return <div className="p-6 text-muted-foreground">Forklift not found</div>;
+    return <div className="p-6 text-muted-foreground">Montacargas no encontrado</div>;
   }
 
   const handleStatusChange = () => {
@@ -41,7 +41,7 @@ export default function ForkliftDetail() {
       { forkliftId: forklift.id, fromStatus: forklift.status, toStatus: newStatus, note: statusNote || undefined },
       {
         onSuccess: () => {
-          toast.success("Status updated");
+          toast.success("Estado actualizado");
           setNewStatus("");
           setStatusNote("");
         },
@@ -52,21 +52,21 @@ export default function ForkliftDetail() {
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {
       onSuccess: () => {
-        toast.success("Forklift deleted");
+        toast.success("Montacargas eliminado");
         navigate("/fleet");
       },
-      onError: () => toast.error("Delete failed"),
+      onError: () => toast.error("Error al eliminar"),
     });
   };
 
   const specs = [
-    { label: "Model", value: forklift.model },
-    { label: "Manufacturer", value: forklift.manufacturer },
-    { label: "Year", value: forklift.year },
-    { label: "Capacity", value: forklift.capacity_kg ? `${forklift.capacity_kg} kg` : null },
-    { label: "Mast Height", value: forklift.mast_height_m ? `${forklift.mast_height_m} m` : null },
-    { label: "Fuel Type", value: forklift.fuel_type },
-    { label: "Serial No.", value: forklift.serial_number },
+    { label: "Modelo", value: forklift.model },
+    { label: "Fabricante", value: forklift.manufacturer },
+    { label: "Año", value: forklift.year },
+    { label: "Capacidad", value: forklift.capacity_kg ? `${forklift.capacity_kg} kg` : null },
+    { label: "Altura del Mástil", value: forklift.mast_height_m ? `${forklift.mast_height_m} m` : null },
+    { label: "Tipo de Combustible", value: forklift.fuel_type },
+    { label: "No. de Serie", value: forklift.serial_number },
   ];
 
   return (
@@ -83,25 +83,25 @@ export default function ForkliftDetail() {
           <p className="text-sm text-muted-foreground">{forklift.model} — {forklift.manufacturer}</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate(`/fleet/${id}/edit`)}>
-          <Edit className="h-4 w-4 mr-1" /> Edit
+          <Edit className="h-4 w-4 mr-1" /> Editar
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="sm">
-              <Trash2 className="h-4 w-4 mr-1" /> Delete
+              <Trash2 className="h-4 w-4 mr-1" /> Eliminar
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete {forklift.name}?</AlertDialogTitle>
+              <AlertDialogTitle>¿Eliminar {forklift.name}?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete this forklift and all its related bookings, maintenance logs, and status history. This action cannot be undone.
+                Esto eliminará permanentemente este montacargas y todos sus registros relacionados de reservas, mantenimiento e historial de estado. Esta acción no se puede deshacer.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Delete
+                Eliminar
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -109,10 +109,9 @@ export default function ForkliftDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Specs */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4" /> Specifications</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4" /> Especificaciones</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
@@ -126,24 +125,22 @@ export default function ForkliftDetail() {
           </CardContent>
         </Card>
 
-        {/* Pricing */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4" /> Rental Rates</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4" /> Tarifas de Renta</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Daily</span><span className="font-semibold">{formatCurrency(forklift.daily_rate || 0)}</span></div>
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Weekly</span><span className="font-semibold">{formatCurrency(forklift.weekly_rate || 0)}</span></div>
-            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Monthly</span><span className="font-semibold">{formatCurrency(forklift.monthly_rate || 0)}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Diaria</span><span className="font-semibold">{formatCurrency(forklift.daily_rate || 0)}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Semanal</span><span className="font-semibold">{formatCurrency(forklift.weekly_rate || 0)}</span></div>
+            <div className="flex justify-between"><span className="text-sm text-muted-foreground">Mensual</span><span className="font-semibold">{formatCurrency(forklift.monthly_rate || 0)}</span></div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Notes */}
       {forklift.notes && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><StickyNote className="h-4 w-4" /> Notes</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><StickyNote className="h-4 w-4" /> Notas</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm whitespace-pre-wrap">{forklift.notes}</p>
@@ -151,15 +148,14 @@ export default function ForkliftDetail() {
         </Card>
       )}
 
-      {/* Status change */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Change Status</CardTitle>
+          <CardTitle className="text-base">Cambiar Estado</CardTitle>
         </CardHeader>
         <CardContent className="flex gap-3 items-end flex-wrap">
           <Select value={newStatus} onValueChange={setNewStatus}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select new status" />
+              <SelectValue placeholder="Seleccionar nuevo estado" />
             </SelectTrigger>
             <SelectContent>
               {FORKLIFT_STATUSES.filter((s) => s !== forklift.status).map((s) => (
@@ -168,21 +164,20 @@ export default function ForkliftDetail() {
             </SelectContent>
           </Select>
           <Input
-            placeholder="Reason for change (optional)"
+            placeholder="Razón del cambio (opcional)"
             value={statusNote}
             onChange={(e) => setStatusNote(e.target.value)}
             className="w-[280px]"
           />
           <Button onClick={handleStatusChange} disabled={!newStatus || updateStatus.isPending} size="sm">
-            Update Status
+            Actualizar Estado
           </Button>
         </CardContent>
       </Card>
 
-      {/* Bookings */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Bookings</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Reservas</CardTitle>
         </CardHeader>
         <CardContent>
           {bookings && bookings.length > 0 ? (
@@ -190,7 +185,7 @@ export default function ForkliftDetail() {
               {bookings.map((b) => (
                 <div key={b.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
                   <div>
-                    <span className="font-medium">{b.customer_name || "Unknown"}</span>
+                    <span className="font-medium">{b.customer_name || "Desconocido"}</span>
                     <span className="text-muted-foreground ml-2">
                       {format(new Date(b.start_date), "MMM d")} – {format(new Date(b.end_date), "MMM d, yyyy")}
                     </span>
@@ -200,15 +195,14 @@ export default function ForkliftDetail() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No bookings yet</p>
+            <p className="text-sm text-muted-foreground">Sin reservas aún</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Maintenance */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" /> Maintenance History</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" /> Historial de Mantenimiento</CardTitle>
         </CardHeader>
         <CardContent>
           {maintenanceLogs && maintenanceLogs.length > 0 ? (
@@ -217,7 +211,7 @@ export default function ForkliftDetail() {
                 <div key={m.id} className="flex items-center justify-between text-sm border-b border-border pb-2 last:border-0 last:pb-0">
                   <div>
                     <span className="font-medium">{m.service_type}</span>
-                    {m.performed_by && <span className="text-muted-foreground ml-2">by {m.performed_by}</span>}
+                    {m.performed_by && <span className="text-muted-foreground ml-2">por {m.performed_by}</span>}
                     {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
                   </div>
                   <div className="text-right shrink-0">
@@ -228,18 +222,16 @@ export default function ForkliftDetail() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No maintenance records</p>
+            <p className="text-sm text-muted-foreground">Sin registros de mantenimiento</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Document attachments */}
       {id && <DocumentAttachments entityType="forklift" entityId={id} />}
 
-      {/* Status history */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><History className="h-4 w-4" /> Status History</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><History className="h-4 w-4" /> Historial de Estado</CardTitle>
         </CardHeader>
         <CardContent>
           {logs && logs.length > 0 ? (
@@ -258,7 +250,7 @@ export default function ForkliftDetail() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No history yet</p>
+            <p className="text-sm text-muted-foreground">Sin historial aún</p>
           )}
         </CardContent>
       </Card>

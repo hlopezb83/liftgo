@@ -17,6 +17,13 @@ const ENTITY_ROUTES: Record<string, string> = {
 };
 
 const ENTITY_TYPES = ["all", "bookings", "invoices", "return_inspections", "maintenance_logs"];
+const ENTITY_LABELS: Record<string, string> = {
+  all: "Todos",
+  bookings: "Reservas",
+  invoices: "Facturas",
+  return_inspections: "Inspecciones de devolución",
+  maintenance_logs: "Mantenimiento",
+};
 
 export default function ActivityPage() {
   const [filter, setFilter] = useState("all");
@@ -26,11 +33,11 @@ export default function ActivityPage() {
   return (
     <PageTransition>
     <div className="p-6 space-y-6">
-      <PageHeader title="Activity Feed" subtitle="Recent events across the system" />
+      <PageHeader title="Actividad Reciente" subtitle="Eventos recientes del sistema" />
       <Select value={filter} onValueChange={setFilter}>
         <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
         <SelectContent>
-          {ENTITY_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{t.replace(/_/g, " ")}</SelectItem>)}
+          {ENTITY_TYPES.map((t) => <SelectItem key={t} value={t}>{ENTITY_LABELS[t] || t}</SelectItem>)}
         </SelectContent>
       </Select>
 
@@ -60,7 +67,7 @@ export default function ActivityPage() {
             </Card>
           ))}
           {activities?.length === 0 && (
-            <p className="text-center text-muted-foreground py-10">No activity yet</p>
+            <p className="text-center text-muted-foreground py-10">Sin actividad aún</p>
           )}
         </div>
       )}

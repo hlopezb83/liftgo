@@ -11,21 +11,21 @@ export default function PortalContracts() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-bold">My Contracts</h1>
+      <h1 className="text-2xl font-bold">Mis Contratos</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Contracts</CardTitle>
+          <CardTitle className="text-base">Todos los Contratos</CardTitle>
         </CardHeader>
         <CardContent>
           {contracts && contracts.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Contract #</TableHead>
-                  <TableHead>Equipment</TableHead>
-                  <TableHead>Start</TableHead>
-                  <TableHead>End</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Contrato #</TableHead>
+                  <TableHead>Equipo</TableHead>
+                  <TableHead>Inicio</TableHead>
+                  <TableHead>Fin</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -41,7 +41,7 @@ export default function PortalContracts() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">No contracts found</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No se encontraron contratos</p>
           )}
         </CardContent>
       </Card>

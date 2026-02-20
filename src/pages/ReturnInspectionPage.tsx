@@ -56,7 +56,7 @@ export default function ReturnInspectionPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.bookingId) { toast.error("Select a booking to return"); return; }
+    if (!form.bookingId) { toast.error("Selecciona una reserva para devolver"); return; }
     const booking = bookings?.find((b) => b.id === form.bookingId);
     if (!booking) return;
 
@@ -75,7 +75,7 @@ export default function ReturnInspectionPage() {
       },
       {
         onSuccess: () => {
-          toast.success("Return inspection recorded — forklift marked available");
+          toast.success("Inspección de devolución registrada — montacargas marcado como disponible");
           setDialogOpen(false);
 
           const fl = forkliftMap.get(booking.forklift_id);
@@ -103,11 +103,11 @@ export default function ReturnInspectionPage() {
     <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Returns & Check-in"
-        subtitle="Inspect returned equipment and update fleet status"
+        title="Devoluciones y Revisión"
+        subtitle="Inspecciona equipos devueltos y actualiza el estado de la flota"
         action={
           <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
-            <PlusCircle className="h-4 w-4 mr-1" /> New Return
+            <PlusCircle className="h-4 w-4 mr-1" /> Nueva Devolución
           </Button>
         }
       />
@@ -118,11 +118,11 @@ export default function ReturnInspectionPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Forklift</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Condition</TableHead>
-                  <TableHead>Damage Cost</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Montacargas</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Condición</TableHead>
+                  <TableHead>Costo por Daños</TableHead>
                   <TableHead>Inspector</TableHead>
                 </TableRow>
               </TableHeader>
@@ -140,7 +140,7 @@ export default function ReturnInspectionPage() {
                   </TableRow>
                   );
                 }) : (
-                  <EmptyRow colSpan={6} message="No return inspections yet" />
+                  <EmptyRow colSpan={6} message="No hay inspecciones de devolución" />
                 )}
               </TableBody>
             </Table>
@@ -152,18 +152,18 @@ export default function ReturnInspectionPage() {
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-4 w-4" /> Return Inspection
+              <ClipboardCheck className="h-4 w-4" /> Inspección de Devolución
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Booking to Return *</Label>
+              <Label>Reserva a Devolver *</Label>
               <Select value={form.bookingId} onValueChange={(v) => set("bookingId", v)}>
-                <SelectTrigger><SelectValue placeholder="Select active booking" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Seleccionar reserva activa" /></SelectTrigger>
                 <SelectContent>
                   {activeBookings?.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
-                      {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Unknown"} ({b.start_date} → {b.end_date})
+                      {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Desconocido"} ({b.start_date} → {b.end_date})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -171,7 +171,7 @@ export default function ReturnInspectionPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Condition *</Label>
+              <Label>Condición *</Label>
               <Select value={form.condition} onValueChange={(v) => set("condition", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -183,26 +183,26 @@ export default function ReturnInspectionPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Damage Notes</Label>
-              <Textarea value={form.damageNotes} onChange={(e) => set("damageNotes", e.target.value)} placeholder="Describe any damage..." rows={3} />
+              <Label>Notas de Daños</Label>
+              <Textarea value={form.damageNotes} onChange={(e) => set("damageNotes", e.target.value)} placeholder="Describe cualquier daño..." rows={3} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Damage Cost (€)</Label>
+                <Label>Costo por Daños ($)</Label>
                 <Input type="number" step="0.01" value={form.damageCost} onChange={(e) => set("damageCost", e.target.value)} placeholder="0" />
               </div>
               <div className="space-y-1.5">
-                <Label>Hours Used</Label>
+                <Label>Horas de Uso</Label>
                 <Input type="number" step="0.1" value={form.hoursUsed} onChange={(e) => set("hoursUsed", e.target.value)} placeholder="0" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Fuel Level</Label>
+                <Label>Nivel de Combustible</Label>
                 <Select value={form.fuelLevel} onValueChange={(v) => set("fuelLevel", v)}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                   <SelectContent>
                     {FUEL_LEVELS.map((l) => (
                       <SelectItem key={l} value={l}>{l}</SelectItem>
@@ -211,12 +211,12 @@ export default function ReturnInspectionPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Inspected By</Label>
-                <Input value={form.inspectedBy} onChange={(e) => set("inspectedBy", e.target.value)} placeholder="Inspector name" />
+                <Label>Inspeccionado Por</Label>
+                <Input value={form.inspectedBy} onChange={(e) => set("inspectedBy", e.target.value)} placeholder="Nombre del inspector" />
               </div>
             </div>
 
-            <FormActions submitLabel="Complete Return" isPending={createInspection.isPending} onCancel={() => setDialogOpen(false)} />
+            <FormActions submitLabel="Completar Devolución" isPending={createInspection.isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
       </Dialog>

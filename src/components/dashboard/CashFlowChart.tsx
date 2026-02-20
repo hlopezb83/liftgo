@@ -14,7 +14,7 @@ interface CashFlowChartProps {
 export function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Cash Flow</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-base">Flujo de Efectivo</CardTitle></CardHeader>
       <CardContent>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height={280}>
@@ -23,16 +23,16 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `€${v}`} />
               <Tooltip formatter={(value: number) => `€${value.toFixed(2)}`} contentStyle={{ borderRadius: "0.5rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
-              <Bar dataKey="invoiced" name="Invoiced" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="paid" name="Paid" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="invoiced" name="Facturado" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="paid" name="Pagado" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted-foreground text-sm text-center py-10">No invoice data yet</p>
+          <p className="text-muted-foreground text-sm text-center py-10">Sin datos de facturación aún</p>
         )}
         <div className="flex justify-center gap-6 mt-2">
-          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full" style={{ background: "hsl(217, 91%, 60%)" }} />Invoiced</div>
-          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full" style={{ background: "hsl(142, 71%, 45%)" }} />Paid</div>
+          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full" style={{ background: "hsl(217, 91%, 60%)" }} />Facturado</div>
+          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full" style={{ background: "hsl(142, 71%, 45%)" }} />Pagado</div>
         </div>
       </CardContent>
     </Card>

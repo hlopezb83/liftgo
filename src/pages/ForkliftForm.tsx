@@ -94,18 +94,17 @@ export default function ForkliftForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.model) {
-      toast.error("Name and model are required");
+      toast.error("Nombre y modelo son requeridos");
       return;
     }
 
-    // Client-side duplicate check
     const others = allForklifts?.filter((f) => f.id !== id) ?? [];
     if (others.some((f) => f.name === form.name)) {
-      toast.error("A forklift with this name already exists");
+      toast.error("Ya existe un montacargas con este nombre");
       return;
     }
     if (form.serial_number && others.some((f) => f.serial_number === form.serial_number)) {
-      toast.error("A forklift with this serial number already exists");
+      toast.error("Ya existe un montacargas con este número de serie");
       return;
     }
 
@@ -127,9 +126,9 @@ export default function ForkliftForm() {
 
     const onError = (err: Error) => {
       if (err.message?.includes("forklifts_name_unique")) {
-        toast.error("A forklift with this name already exists");
+        toast.error("Ya existe un montacargas con este nombre");
       } else if (err.message?.includes("forklifts_serial_number_unique")) {
-        toast.error("A forklift with this serial number already exists");
+        toast.error("Ya existe un montacargas con este número de serie");
       } else {
         toast.error(err.message);
       }
@@ -137,12 +136,12 @@ export default function ForkliftForm() {
 
     if (isEdit) {
       update.mutate({ id, ...payload }, {
-        onSuccess: () => { toast.success("Forklift updated"); navigate(`/fleet/${id}`); },
+        onSuccess: () => { toast.success("Montacargas actualizado"); navigate(`/fleet/${id}`); },
         onError,
       });
     } else {
       create.mutate(payload, {
-        onSuccess: () => { toast.success("Forklift added"); navigate("/fleet"); },
+        onSuccess: () => { toast.success("Montacargas agregado"); navigate("/fleet"); },
         onError,
       });
     }
@@ -150,22 +149,22 @@ export default function ForkliftForm() {
 
   return (
     <div className="p-6 max-w-3xl">
-      <FormPageHeader title={isEdit ? "Edit Forklift" : "Add Forklift"} />
+      <FormPageHeader title={isEdit ? "Editar Montacargas" : "Agregar Montacargas"} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">Equipment Details</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Detalles del Equipo</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>Name / ID *</Label>
-              <Input placeholder="FL-007" value={form.name} onChange={(e) => set("name", e.target.value)} />
+              <Label>Nombre / ID *</Label>
+              <Input placeholder="MC-007" value={form.name} onChange={(e) => set("name", e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Manufacturer</Label>
+              <Label>Fabricante</Label>
               {hasModels ? (
                 <Select value={form.manufacturer} onValueChange={handleManufacturerChange}>
-                  <SelectTrigger><SelectValue placeholder="Select manufacturer" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar fabricante" /></SelectTrigger>
                   <SelectContent>
                     {manufacturers.map((m) => (
                       <SelectItem key={m} value={m}>{m}</SelectItem>
@@ -178,10 +177,10 @@ export default function ForkliftForm() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Model *</Label>
+              <Label>Modelo *</Label>
               {hasModels ? (
                 <Select value={form.model} onValueChange={handleModelChange} disabled={!form.manufacturer}>
-                  <SelectTrigger><SelectValue placeholder={form.manufacturer ? "Select model" : "Pick manufacturer first"} /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={form.manufacturer ? "Seleccionar modelo" : "Primero selecciona fabricante"} /></SelectTrigger>
                   <SelectContent>
                     {filteredModels.map((m) => (
                       <SelectItem key={m.id} value={m.model}>{m.model}</SelectItem>
@@ -192,32 +191,32 @@ export default function ForkliftForm() {
                 <Input placeholder="H50" value={form.model} onChange={(e) => set("model", e.target.value)} />
               )}
               {!hasModels && (
-                <p className="text-xs text-muted-foreground">Tip: Configure models in Equipment Config to use dropdowns here.</p>
+                <p className="text-xs text-muted-foreground">Tip: Configura modelos en Configuración para usar dropdowns aquí.</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label>Year</Label>
+              <Label>Año</Label>
               <Input type="number" placeholder="2023" value={form.year} onChange={(e) => set("year", e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Capacity (kg)</Label>
+              <Label>Capacidad (kg)</Label>
               <Input type="number" placeholder="2500" value={form.capacity_kg} onChange={(e) => set("capacity_kg", e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Mast Height (m)</Label>
+              <Label>Altura del Mástil (m)</Label>
               <Input type="number" placeholder="4.5" value={form.mast_height_m} onChange={(e) => set("mast_height_m", e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Serial Number</Label>
+              <Label>Número de Serie</Label>
               <Input placeholder="HY-2023-007" value={form.serial_number} onChange={(e) => set("serial_number", e.target.value)} />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Fuel Type</Label>
+              <Label>Tipo de Combustible</Label>
               <Select value={form.fuel_type} onValueChange={(v) => set("fuel_type", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -230,7 +229,7 @@ export default function ForkliftForm() {
 
             {!isEdit && (
               <div className="space-y-1.5">
-                <Label>Initial Status</Label>
+                <Label>Estado Inicial</Label>
                 <Select value={form.status} onValueChange={(v) => set("status", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -245,26 +244,26 @@ export default function ForkliftForm() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">Rental Pricing</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Tarifas de Renta</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label>Daily Rate ($)</Label>
+              <Label>Tarifa Diaria ($)</Label>
               <Input type="number" placeholder="150" value={form.daily_rate} onChange={(e) => set("daily_rate", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Weekly Rate ($)</Label>
+              <Label>Tarifa Semanal ($)</Label>
               <Input type="number" placeholder="750" value={form.weekly_rate} onChange={(e) => set("weekly_rate", e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Monthly Rate ($)</Label>
+              <Label>Tarifa Mensual ($)</Label>
               <Input type="number" placeholder="2500" value={form.monthly_rate} onChange={(e) => set("monthly_rate", e.target.value)} />
             </div>
           </CardContent>
         </Card>
 
-        <NotesCard value={form.notes} onChange={(v) => set("notes", v)} placeholder="Internal notes about this forklift..." />
+        <NotesCard value={form.notes} onChange={(v) => set("notes", v)} placeholder="Notas internas sobre este montacargas..." />
 
-        <FormActions submitLabel={isEdit ? "Save Changes" : "Add Forklift"} isPending={create.isPending || update.isPending} onCancel={() => navigate(-1)} />
+        <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Agregar Montacargas"} isPending={create.isPending || update.isPending} onCancel={() => navigate(-1)} />
       </form>
     </div>
   );

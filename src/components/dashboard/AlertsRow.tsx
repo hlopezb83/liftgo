@@ -46,11 +46,11 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
       { id: inv.id, status: "paid", paid_at: new Date().toISOString().split("T")[0] },
       {
         onSuccess: (data) => {
-          toast.success(`${inv.invoice_number} marked as paid`);
+          toast.success(`${inv.invoice_number} marcada como pagada`);
           if (data.booking_id) {
             updateBooking.mutate(
               { id: data.booking_id, status: "completed" },
-              { onSuccess: () => toast.success("Linked booking completed") }
+              { onSuccess: () => toast.success("Reserva vinculada completada") }
             );
           }
         },
@@ -64,7 +64,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
         <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-4 w-4" /> Overdue Invoices ({overdueInvoices.length})
+              <AlertTriangle className="h-4 w-4" /> Facturas Vencidas ({overdueInvoices.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -81,14 +81,14 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
                 <div className="flex items-center gap-2">
                   <div className="text-right">
                     <span className="font-mono font-semibold text-destructive">{formatCurrency(Number(inv.total))}</span>
-                    <p className="text-xs text-muted-foreground">Due: {inv.due_date}</p>
+                    <p className="text-xs text-muted-foreground">Vence: {inv.due_date}</p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 shrink-0"
                     onClick={(e) => handleMarkPaid(inv, e)}
-                    title="Mark Paid"
+                    title="Marcar Pagada"
                   >
                     <CheckCircle className="h-4 w-4 text-status-available" />
                   </Button>
@@ -100,7 +100,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
                 {agingBuckets.map((b) => (
                   <div key={b.range} className="text-xs bg-background rounded px-2 py-1">
                     <span className="text-muted-foreground">{b.range}d:</span>{" "}
-                    <span className="font-mono font-medium">€{b.total.toFixed(0)}</span>
+                    <span className="font-mono font-medium">${b.total.toFixed(0)}</span>
                   </div>
                 ))}
               </div>
@@ -113,7 +113,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
         <Card className="border-status-maintenance/30 bg-status-maintenance/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2 text-status-maintenance">
-              <Wrench className="h-4 w-4" /> Service Due ({maintenanceAlerts.length})
+              <Wrench className="h-4 w-4" /> Servicio Pendiente ({maintenanceAlerts.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -125,13 +125,13 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
               >
                 <span className="font-medium">{a.forkliftName}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Due: {a.nextDate}</span>
+                  <span className="text-xs text-muted-foreground">Vence: {a.nextDate}</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 shrink-0"
                     onClick={(e) => { e.stopPropagation(); navigate("/maintenance"); }}
-                    title="Log Service"
+                    title="Registrar Servicio"
                   >
                     <ClipboardList className="h-4 w-4 text-status-maintenance" />
                   </Button>

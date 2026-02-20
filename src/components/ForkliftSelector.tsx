@@ -13,10 +13,10 @@ interface ForkliftSelectorProps {
 export function ForkliftSelector({ value, onValueChange, availableForklifts, datesSelected, showStatus }: ForkliftSelectorProps) {
   return (
     <div className="space-y-1.5">
-      <Label>Forklift *</Label>
+      <Label>Montacargas *</Label>
       <Select value={value} onValueChange={onValueChange} disabled={!datesSelected}>
         <SelectTrigger>
-          <SelectValue placeholder={datesSelected ? "Select a forklift" : "Select dates first"} />
+          <SelectValue placeholder={datesSelected ? "Seleccionar montacargas" : "Primero selecciona fechas"} />
         </SelectTrigger>
         <SelectContent>
           {availableForklifts.map((f) => (
@@ -27,7 +27,7 @@ export function ForkliftSelector({ value, onValueChange, availableForklifts, dat
         </SelectContent>
       </Select>
       {datesSelected && availableForklifts.length === 0 && (
-        <p className="text-xs text-muted-foreground">No forklifts available for the selected dates.</p>
+        <p className="text-xs text-muted-foreground">No hay montacargas disponibles para las fechas seleccionadas.</p>
       )}
     </div>
   );

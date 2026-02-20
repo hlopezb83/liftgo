@@ -64,7 +64,7 @@ export default function MaintenancePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.forkliftId || !form.serviceType) { toast.error("Forklift and service type are required"); return; }
+    if (!form.forkliftId || !form.serviceType) { toast.error("Montacargas y tipo de servicio son requeridos"); return; }
 
     const selectedForklift = forkliftMap.get(form.forkliftId);
 
@@ -77,7 +77,7 @@ export default function MaintenancePage() {
       },
       {
         onSuccess: () => {
-          toast.success("Maintenance log added");
+          toast.success("Registro de mantenimiento agregado");
           setDialogOpen(false);
 
           if (selectedForklift && selectedForklift.status === "maintenance") {
@@ -95,12 +95,12 @@ export default function MaintenancePage() {
     <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Maintenance"
-        subtitle={`${logs?.length || 0} service records — ${formatCurrency(totalCost)} total cost`}
+        title="Mantenimiento"
+        subtitle={`${logs?.length || 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
         action={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportToCsv("maintenance.csv", (logs || []).map(l => ({ Date: l.performed_at, Forklift: forkliftMap.get(l.forklift_id)?.name || "", Service: l.service_type, "Performed By": l.performed_by || "", Cost: l.cost || 0, "Next Service": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
-            <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Log Service</Button>
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({ Fecha: l.performed_at, Montacargas: forkliftMap.get(l.forklift_id)?.name || "", Servicio: l.service_type, "Realizado Por": l.performed_by || "", Costo: l.cost || 0, "Próximo Servicio": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+            <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio</Button>
           </div>
         }
       />
@@ -108,14 +108,14 @@ export default function MaintenancePage() {
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by service, technician..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por servicio, técnico..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={forkliftFilter} onValueChange={setForkliftFilter}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="All forklifts" />
+            <SelectValue placeholder="Todos los montacargas" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All forklifts</SelectItem>
+            <SelectItem value="all">Todos los montacargas</SelectItem>
             {forklifts?.map((f) => (
               <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
             ))}
@@ -129,8 +129,8 @@ export default function MaintenancePage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead><TableHead>Forklift</TableHead><TableHead>Service Type</TableHead>
-                  <TableHead>Performed By</TableHead><TableHead className="text-right">Cost</TableHead><TableHead>Next Service</TableHead>
+                  <TableHead>Fecha</TableHead><TableHead>Montacargas</TableHead><TableHead>Tipo de Servicio</TableHead>
+                  <TableHead>Realizado Por</TableHead><TableHead className="text-right">Costo</TableHead><TableHead>Próximo Servicio</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -144,7 +144,7 @@ export default function MaintenancePage() {
                     <TableCell className="text-sm text-muted-foreground">{log.next_service_date || "—"}</TableCell>
                   </TableRow>
                 ))}
-                {paginatedItems.length === 0 && <EmptyRow colSpan={6} message="No maintenance records found" />}
+                {paginatedItems.length === 0 && <EmptyRow colSpan={6} message="No se encontraron registros de mantenimiento" />}
               </TableBody>
             </Table>
           )}
@@ -154,32 +154,32 @@ export default function MaintenancePage() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" /> Log Maintenance</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" /> Registrar Mantenimiento</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Forklift *</Label>
+              <Label>Montacargas *</Label>
               <Select value={form.forkliftId} onValueChange={(v) => set("forkliftId", v)}>
-                <SelectTrigger><SelectValue placeholder="Select forklift" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Seleccionar montacargas" /></SelectTrigger>
                 <SelectContent>{forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Service Type *</Label>
+              <Label>Tipo de Servicio *</Label>
               <Select value={form.serviceType} onValueChange={(v) => set("serviceType", v)}>
-                <SelectTrigger><SelectValue placeholder="Select service type" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Seleccionar tipo de servicio" /></SelectTrigger>
                 <SelectContent>{SERVICE_TYPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Description</Label>
-              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Details about the service..." rows={3} />
+              <Label>Descripción</Label>
+              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Detalles del servicio..." rows={3} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Cost (€)</Label><Input type="number" value={form.cost} onChange={(e) => set("cost", e.target.value)} placeholder="0" /></div>
+              <div className="space-y-1.5"><Label>Costo ($)</Label><Input type="number" value={form.cost} onChange={(e) => set("cost", e.target.value)} placeholder="0" /></div>
               <div className="space-y-1.5">
-                <Label>Performed By</Label>
+                <Label>Realizado Por</Label>
                 <Select value={form.performedBy} onValueChange={(v) => set("performedBy", v)}>
-                  <SelectTrigger><SelectValue placeholder="Select mechanic" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar mecánico" /></SelectTrigger>
                   <SelectContent>
                     {activeMechanics?.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}{m.specialization ? ` (${m.specialization})` : ""}</SelectItem>)}
                   </SelectContent>
@@ -187,10 +187,10 @@ export default function MaintenancePage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <DatePickerField label="Service Date" date={form.performedAt} onSelect={(d) => d && set("performedAt", d)} />
-              <DatePickerField label="Next Service Date" date={form.nextServiceDate} onSelect={(d) => set("nextServiceDate", d)} placeholder="Optional" />
+              <DatePickerField label="Fecha de Servicio" date={form.performedAt} onSelect={(d) => d && set("performedAt", d)} />
+              <DatePickerField label="Próximo Servicio" date={form.nextServiceDate} onSelect={(d) => set("nextServiceDate", d)} placeholder="Opcional" />
             </div>
-            <FormActions submitLabel="Add Log" isPending={createLog.isPending} onCancel={() => setDialogOpen(false)} />
+            <FormActions submitLabel="Agregar Registro" isPending={createLog.isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
       </Dialog>
