@@ -7,10 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { path: "/portal", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/portal/rentals", label: "Rentals", icon: CalendarDays },
-  { path: "/portal/invoices", label: "Invoices", icon: Receipt },
-  { path: "/portal/contracts", label: "Contracts", icon: FileText },
+  { path: "/portal", label: "Panel", icon: LayoutDashboard },
+  { path: "/portal/rentals", label: "Rentas", icon: CalendarDays },
+  { path: "/portal/invoices", label: "Facturas", icon: Receipt },
+  { path: "/portal/contracts", label: "Contratos", icon: FileText },
 ];
 
 export default function CustomerPortalLayout() {
@@ -26,7 +26,6 @@ export default function CustomerPortalLayout() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="h-14 border-b bg-card flex items-center justify-between px-6">
         <div className="flex items-center gap-3">
           {company?.logo_url ? (
@@ -43,12 +42,11 @@ export default function CustomerPortalLayout() {
             {user?.email}
           </span>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-1" /> Sign Out
+            <LogOut className="h-4 w-4 mr-1" /> Cerrar Sesión
           </Button>
         </div>
       </header>
 
-      {/* Tabs */}
       <nav className="border-b bg-card px-6">
         <div className="flex gap-1">
           {tabs.map((tab) => {
@@ -75,7 +73,6 @@ export default function CustomerPortalLayout() {
         </div>
       </nav>
 
-      {/* Content */}
       <main className="flex-1 overflow-auto p-6">
         <Outlet />
       </main>

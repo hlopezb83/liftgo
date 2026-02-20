@@ -16,18 +16,18 @@ import { Search, ArrowUpCircle, PlusCircle, Trash2, Clock } from "lucide-react";
 import type { AuditLog } from "@/hooks/useAuditLogs";
 
 const TABLES = [
-  { value: "all", label: "All Tables" },
-  { value: "bookings", label: "Bookings" },
-  { value: "invoices", label: "Invoices" },
-  { value: "forklifts", label: "Forklifts" },
-  { value: "customers", label: "Customers" },
-  { value: "contracts", label: "Contracts" },
-  { value: "payments", label: "Payments" },
-  { value: "deliveries", label: "Deliveries" },
-  { value: "maintenance_logs", label: "Maintenance" },
-  { value: "damage_records", label: "Damage Records" },
-  { value: "quotes", label: "Quotes" },
-  { value: "return_inspections", label: "Return Inspections" },
+  { value: "all", label: "Todas las Tablas" },
+  { value: "bookings", label: "Reservas" },
+  { value: "invoices", label: "Facturas" },
+  { value: "forklifts", label: "Montacargas" },
+  { value: "customers", label: "Clientes" },
+  { value: "contracts", label: "Contratos" },
+  { value: "payments", label: "Pagos" },
+  { value: "deliveries", label: "Entregas" },
+  { value: "maintenance_logs", label: "Mantenimiento" },
+  { value: "damage_records", label: "Registros de Daños" },
+  { value: "quotes", label: "Cotizaciones" },
+  { value: "return_inspections", label: "Inspecciones de Devolución" },
 ];
 
 const actionIcon = (action: string) => {
@@ -86,7 +86,7 @@ export default function AuditTrailPage() {
   return (
     <PageTransition>
     <div className="p-6 space-y-6">
-      <PageHeader title="Audit Trail" subtitle="Track all changes across the system" />
+      <PageHeader title="Bitácora de Cambios" subtitle="Rastrea todos los cambios en el sistema" />
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Select value={tableFilter} onValueChange={setTableFilter}>
@@ -97,7 +97,7 @@ export default function AuditTrailPage() {
         </Select>
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search audit logs…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Buscar en bitácora…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
@@ -107,12 +107,12 @@ export default function AuditTrailPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10" />
-                <TableHead>Action</TableHead>
-                <TableHead>Table</TableHead>
-                <TableHead>Record</TableHead>
-                <TableHead>Changed Fields</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>When</TableHead>
+                <TableHead>Acción</TableHead>
+                <TableHead>Tabla</TableHead>
+                <TableHead>Registro</TableHead>
+                <TableHead>Campos Modificados</TableHead>
+                <TableHead>Usuario</TableHead>
+                <TableHead>Cuándo</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -132,12 +132,12 @@ export default function AuditTrailPage() {
                     <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                       {log.changed_fields?.join(", ") || "—"}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{log.user_email || "System"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{log.user_email || "Sistema"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{formatTimestamp(log.created_at)}</TableCell>
                   </TableRow>
                 ))
               ) : (
-                <EmptyRow colSpan={7} message="No audit logs found" />
+                <EmptyRow colSpan={7} message="No se encontraron registros" />
               )}
             </TableBody>
           </Table>
@@ -157,23 +157,23 @@ export default function AuditTrailPage() {
           {selectedLog && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground block">Record ID</span><span className="font-mono text-xs">{selectedLog.record_id}</span></div>
-                <div><span className="text-muted-foreground block">User</span>{selectedLog.user_email || "System"}</div>
-                <div><span className="text-muted-foreground block">Timestamp</span>{formatTimestamp(selectedLog.created_at)}</div>
+                <div><span className="text-muted-foreground block">ID del Registro</span><span className="font-mono text-xs">{selectedLog.record_id}</span></div>
+                <div><span className="text-muted-foreground block">Usuario</span>{selectedLog.user_email || "Sistema"}</div>
+                <div><span className="text-muted-foreground block">Fecha y Hora</span>{formatTimestamp(selectedLog.created_at)}</div>
                 {selectedLog.changed_fields && (
-                  <div><span className="text-muted-foreground block">Changed Fields</span>{selectedLog.changed_fields.join(", ")}</div>
+                  <div><span className="text-muted-foreground block">Campos Modificados</span>{selectedLog.changed_fields.join(", ")}</div>
                 )}
               </div>
 
               {selectedLog.action === "UPDATE" && selectedLog.changed_fields && selectedLog.old_data && selectedLog.new_data && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Field Changes</h4>
+                  <h4 className="text-sm font-semibold mb-2">Cambios en Campos</h4>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Field</TableHead>
-                        <TableHead>Old Value</TableHead>
-                        <TableHead>New Value</TableHead>
+                        <TableHead>Campo</TableHead>
+                        <TableHead>Valor Anterior</TableHead>
+                        <TableHead>Valor Nuevo</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -195,7 +195,7 @@ export default function AuditTrailPage() {
 
               {selectedLog.action === "INSERT" && selectedLog.new_data && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Created Data</h4>
+                  <h4 className="text-sm font-semibold mb-2">Datos Creados</h4>
                   <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-60">
                     {JSON.stringify(selectedLog.new_data, null, 2)}
                   </pre>
@@ -204,7 +204,7 @@ export default function AuditTrailPage() {
 
               {selectedLog.action === "DELETE" && selectedLog.old_data && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Deleted Data</h4>
+                  <h4 className="text-sm font-semibold mb-2">Datos Eliminados</h4>
                   <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-60">
                     {JSON.stringify(selectedLog.old_data, null, 2)}
                   </pre>

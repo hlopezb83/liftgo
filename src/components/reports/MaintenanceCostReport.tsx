@@ -23,7 +23,7 @@ export function MaintenanceCostReport({ maintenanceLogs, forklifts, startDate, e
     const filtered = maintenanceLogs.filter((m) => isWithinInterval(parseISO(m.performed_at), { start: startDate, end: endDate }));
     const byForklift: Record<string, { name: string; totalCost: number; count: number }> = {};
     filtered.forEach((m) => {
-      const name = forkliftMap.get(m.forklift_id) || "Unknown";
+      const name = forkliftMap.get(m.forklift_id) || "Desconocido";
       if (!byForklift[m.forklift_id]) byForklift[m.forklift_id] = { name, totalCost: 0, count: 0 };
       byForklift[m.forklift_id].totalCost += Number(m.cost || 0);
       byForklift[m.forklift_id].count++;
@@ -35,9 +35,9 @@ export function MaintenanceCostReport({ maintenanceLogs, forklifts, startDate, e
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Maintenance Costs by Unit</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("maintenance-costs.csv", data)}>
-            <Download className="h-4 w-4 mr-1" />Export CSV
+          <CardTitle className="text-base">Costos de Mantenimiento por Unidad</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("costos-mantenimiento.csv", data)}>
+            <Download className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>
@@ -47,7 +47,7 @@ export function MaintenanceCostReport({ maintenanceLogs, forklifts, startDate, e
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis />
                 <Tooltip formatter={(val: number) => formatCurrency(val)} />
-                <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Cost" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -58,9 +58,9 @@ export function MaintenanceCostReport({ maintenanceLogs, forklifts, startDate, e
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Forklift</TableHead>
-                <TableHead className="text-right">Jobs</TableHead>
-                <TableHead className="text-right">Total Cost</TableHead>
+                <TableHead>Montacargas</TableHead>
+                <TableHead className="text-right">Trabajos</TableHead>
+                <TableHead className="text-right">Costo Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

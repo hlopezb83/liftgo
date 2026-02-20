@@ -11,20 +11,20 @@ export default function PortalRentals() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-bold">My Rentals</h1>
+      <h1 className="text-2xl font-bold">Mis Rentas</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Booking History</CardTitle>
+          <CardTitle className="text-base">Historial de Reservas</CardTitle>
         </CardHeader>
         <CardContent>
           {bookings && bookings.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Equipment</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>End Date</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Equipo</TableHead>
+                  <TableHead>Fecha Inicio</TableHead>
+                  <TableHead>Fecha Fin</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -41,7 +41,7 @@ export default function PortalRentals() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">No rentals found</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No se encontraron rentas</p>
           )}
         </CardContent>
       </Card>

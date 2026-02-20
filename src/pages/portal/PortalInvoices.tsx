@@ -14,21 +14,21 @@ export default function PortalInvoices() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-bold">My Invoices</h1>
+      <h1 className="text-2xl font-bold">Mis Facturas</h1>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Invoices</CardTitle>
+          <CardTitle className="text-base">Todas las Facturas</CardTitle>
         </CardHeader>
         <CardContent>
           {invoices && invoices.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Due Date</TableHead>
+                  <TableHead>Factura #</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Fecha de Vencimiento</TableHead>
                   <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -48,7 +48,7 @@ export default function PortalInvoices() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">No invoices found</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No se encontraron facturas</p>
           )}
         </CardContent>
       </Card>

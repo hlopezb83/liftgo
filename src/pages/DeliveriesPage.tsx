@@ -46,7 +46,6 @@ export default function DeliveriesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
 
-  // Feature 4: Post-completion pickup prompt
   const [pickupPrompt, setPickupPrompt] = useState<{
     delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
     bookingEndDate: string;
@@ -57,7 +56,7 @@ export default function DeliveriesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.forkliftId || !form.scheduledDate) { toast.error("Forklift and date are required"); return; }
+    if (!form.forkliftId || !form.scheduledDate) { toast.error("Montacargas y fecha son requeridos"); return; }
     createDelivery.mutate(
       {
         forklift_id: form.forkliftId,
@@ -72,7 +71,7 @@ export default function DeliveriesPage() {
       },
       {
         onSuccess: () => {
-          toast.success("Delivery scheduled");
+          toast.success("Transporte programado");
           setDialogOpen(false);
           reset();
         },
@@ -86,8 +85,7 @@ export default function DeliveriesPage() {
       { id, status: "completed", completed_at: new Date().toISOString() },
       {
         onSuccess: () => {
-          toast.success("Marked complete");
-          // Feature 4: Prompt pickup scheduling for completed deliveries
+          toast.success("Marcado como completado");
           if (delivery && delivery.type === "delivery" && delivery.booking_id) {
             const booking = bookings?.find((b) => b.id === delivery.booking_id);
             const fl = forkliftMap.get(delivery.forklift_id);
@@ -114,11 +112,11 @@ export default function DeliveriesPage() {
     <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Deliveries & Pickups"
-        subtitle="Schedule and track equipment transport"
+        title="Entregas y Recolecciones"
+        subtitle="Programa y rastrea el transporte de equipos"
         action={
           <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
-            <PlusCircle className="h-4 w-4 mr-1" /> Schedule
+            <PlusCircle className="h-4 w-4 mr-1" /> Programar
           </Button>
         }
       />
@@ -129,12 +127,12 @@ export default function DeliveriesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Forklift</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Driver</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Montacargas</TableHead>
+                  <TableHead>Dirección</TableHead>
+                  <TableHead>Operador</TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
@@ -142,21 +140,21 @@ export default function DeliveriesPage() {
                 {deliveries && deliveries.length > 0 ? deliveries.map((d) => (
                   <TableRow key={d.id}>
                     <TableCell className="font-mono text-sm">{d.scheduled_date}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
-                    <TableCell className="capitalize">{d.type}</TableCell>
+                    <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
                     <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
                     <TableCell>{d.driver_name || "—"}</TableCell>
                     <TableCell><StatusBadge status={d.status} /></TableCell>
                     <TableCell>
                       {d.status !== "completed" && (
-                        <Button variant="ghost" size="icon" onClick={() => markComplete(d.id)} title="Mark complete">
+                        <Button variant="ghost" size="icon" onClick={() => markComplete(d.id)} title="Marcar completado">
                           <CheckCircle className="h-4 w-4 text-status-available" />
                         </Button>
                       )}
                     </TableCell>
                   </TableRow>
                 )) : (
-                  <EmptyRow colSpan={7} message="No deliveries scheduled" />
+                  <EmptyRow colSpan={7} message="No hay entregas programadas" />
                 )}
               </TableBody>
             </Table>
@@ -167,24 +165,24 @@ export default function DeliveriesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><TruckIcon className="h-4 w-4" /> Schedule Transport</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><TruckIcon className="h-4 w-4" /> Programar Transporte</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Type *</Label>
+                <Label>Tipo *</Label>
                 <Select value={form.type} onValueChange={(v) => set("type", v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="delivery">Delivery</SelectItem>
-                    <SelectItem value="pickup">Pickup</SelectItem>
+                    <SelectItem value="delivery">Entrega</SelectItem>
+                    <SelectItem value="pickup">Recolección</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Forklift *</Label>
+                <Label>Montacargas *</Label>
                 <Select value={form.forkliftId} onValueChange={(v) => set("forkliftId", v)}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                   <SelectContent>
                     {forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}
                   </SelectContent>
@@ -193,33 +191,33 @@ export default function DeliveriesPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Linked Booking</Label>
+              <Label>Reserva Vinculada</Label>
               <Select value={form.bookingId} onValueChange={(v) => set("bookingId", v)}>
-                <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
                 <SelectContent>
                   {bookings?.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.customer_name || "Unknown"} ({b.start_date} → {b.end_date})</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>{b.customer_name || "Desconocido"} ({b.start_date} → {b.end_date})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <DatePickerField label="Date *" date={form.scheduledDate} onSelect={(d) => d && set("scheduledDate", d)} />
+              <DatePickerField label="Fecha *" date={form.scheduledDate} onSelect={(d) => d && set("scheduledDate", d)} />
               <div className="space-y-1.5">
-                <Label>Time</Label>
+                <Label>Hora</Label>
                 <Input type="time" value={form.scheduledTime} onChange={(e) => set("scheduledTime", e.target.value)} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Delivery Address</Label>
-              <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="123 Construction Site Rd" />
+              <Label>Dirección de Entrega</Label>
+              <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Av. Reforma 123, CDMX" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Driver</Label>
+                <Label>Operador</Label>
                 <Select
                   value={form.driverName}
                   onValueChange={(v) => {
@@ -228,29 +226,28 @@ export default function DeliveriesPage() {
                     if (driver?.phone) set("driverPhone", driver.phone);
                   }}
                 >
-                  <SelectTrigger><SelectValue placeholder="Select driver" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar operador" /></SelectTrigger>
                   <SelectContent>
                     {activeDrivers?.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Driver Phone</Label>
-                <Input value={form.driverPhone} onChange={(e) => set("driverPhone", e.target.value)} placeholder="+1 555 0123" />
+                <Label>Teléfono del Operador</Label>
+                <Input value={form.driverPhone} onChange={(e) => set("driverPhone", e.target.value)} placeholder="+52 55 1234 5678" />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Notes</Label>
-              <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Special instructions..." rows={2} />
+              <Label>Notas</Label>
+              <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Instrucciones especiales..." rows={2} />
             </div>
 
-            <FormActions submitLabel="Schedule" isPending={createDelivery.isPending} onCancel={() => setDialogOpen(false)} />
+            <FormActions submitLabel="Programar" isPending={createDelivery.isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Feature 4: Post-completion pickup prompt */}
       {pickupPrompt && (
         <PostDeliveryPickupDialog
           open={!!pickupPrompt}

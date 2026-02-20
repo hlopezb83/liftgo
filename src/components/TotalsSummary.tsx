@@ -18,7 +18,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total }: TotalsSum
             <span className="font-mono w-28 text-right">{formatCurrency(subtotal)}</span>
           </div>
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-muted-foreground">VAT ({taxRate}%)</span>
+            <span className="text-muted-foreground">IVA ({taxRate}%)</span>
             <span className="font-mono w-28 text-right">{formatCurrency(taxAmount)}</span>
           </div>
           <div className="flex items-center gap-4 text-base font-bold border-t pt-2">

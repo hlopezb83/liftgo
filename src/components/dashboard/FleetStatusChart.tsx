@@ -14,7 +14,7 @@ interface FleetStatusChartProps {
 export function FleetStatusChart({ data }: FleetStatusChartProps) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Fleet Status</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-base">Estado de la Flota</CardTitle></CardHeader>
       <CardContent>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height={240}>
@@ -26,7 +26,7 @@ export function FleetStatusChart({ data }: FleetStatusChartProps) {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted-foreground text-sm text-center py-10">No data yet</p>
+          <p className="text-muted-foreground text-sm text-center py-10">Sin datos aún</p>
         )}
         <div className="flex justify-center gap-4 mt-2">
           {data.map((d) => (

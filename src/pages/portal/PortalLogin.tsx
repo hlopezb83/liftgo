@@ -28,7 +28,7 @@ export default function PortalLogin() {
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
       if (error) toast.error(error.message);
-      else toast.success("Check your email for a password reset link");
+      else toast.success("Revisa tu correo para el enlace de restablecimiento");
     } else {
       const { error } = await signIn(email, password);
       if (error) toast.error(error.message);
@@ -43,39 +43,39 @@ export default function PortalLogin() {
           <div className="flex justify-center mb-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-lg">CP</div>
           </div>
-          <CardTitle>{mode === "forgot" ? "Reset Password" : "Customer Portal"}</CardTitle>
+          <CardTitle>{mode === "forgot" ? "Restablecer Contraseña" : "Portal de Clientes"}</CardTitle>
           <CardDescription>
             {mode === "forgot"
-              ? "Enter your email to receive a reset link"
-              : "Sign in to access your rentals, invoices & contracts"}
+              ? "Ingresa tu correo para recibir un enlace de restablecimiento"
+              : "Inicia sesión para acceder a tus rentas, facturas y contratos"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" required />
+              <Label>Correo Electrónico</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
             </div>
             {mode === "sign-in" && (
               <div className="space-y-1.5">
-                <Label>Password</Label>
+                <Label>Contraseña</Label>
                 <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Loading..." : mode === "forgot" ? "Send Reset Link" : "Sign In"}
+              {loading ? "Cargando..." : mode === "forgot" ? "Enviar Enlace" : "Iniciar Sesión"}
             </Button>
           </form>
           <div className="mt-4 text-center space-y-1">
             {mode === "sign-in" ? (
-              <Button variant="link" size="sm" onClick={() => setMode("forgot")}>Forgot password?</Button>
+              <Button variant="link" size="sm" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
             ) : (
-              <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>Back to Sign In</Button>
+              <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
             )}
           </div>
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Staff member?{" "}
-            <a href="/" className="underline hover:text-foreground">Sign in here</a>
+            ¿Eres empleado?{" "}
+            <a href="/" className="underline hover:text-foreground">Inicia sesión aquí</a>
           </p>
         </CardContent>
       </Card>

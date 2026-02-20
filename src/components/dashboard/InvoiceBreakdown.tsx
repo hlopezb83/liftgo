@@ -22,8 +22,8 @@ export function InvoiceBreakdown({ data, outstandingRevenue }: InvoiceBreakdownP
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Invoice Breakdown</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => navigate("/invoices")}>View All</Button>
+          <CardTitle className="text-base">Desglose de Facturas</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => navigate("/invoices")}>Ver Todas</Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -35,19 +35,19 @@ export function InvoiceBreakdown({ data, outstandingRevenue }: InvoiceBreakdownP
                   <div className="w-2.5 h-2.5 rounded-full" style={{ background: group.color }} />
                   <div>
                     <p className="font-medium text-sm capitalize">{group.status}</p>
-                    <p className="text-xs text-muted-foreground">{group.count} invoice{group.count !== 1 ? "s" : ""}</p>
+                    <p className="text-xs text-muted-foreground">{group.count} factura{group.count !== 1 ? "s" : ""}</p>
                   </div>
                 </div>
                 <p className="font-mono font-semibold text-sm">{formatCurrency(group.total)}</p>
               </div>
             ))}
             <div className="flex items-center justify-between pt-2 border-t">
-              <p className="text-sm font-medium">Total Outstanding</p>
+              <p className="text-sm font-medium">Total Pendiente</p>
               <p className="font-mono font-bold">{formatCurrency(outstandingRevenue)}</p>
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm text-center py-10">No invoices yet</p>
+          <p className="text-muted-foreground text-sm text-center py-10">Sin facturas aún</p>
         )}
       </CardContent>
     </Card>

@@ -181,7 +181,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
   return (
     <Button variant="outline" size="sm" onClick={handleDownload} disabled={loading}>
       <FileDown className="h-4 w-4 mr-1" />
-      {loading ? "Generating..." : "Download PDF"}
+      {loading ? "Generando..." : "Descargar PDF"}
     </Button>
   );
 }

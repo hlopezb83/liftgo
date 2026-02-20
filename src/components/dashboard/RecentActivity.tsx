@@ -10,7 +10,7 @@ export function RecentActivity() {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Activity className="h-4 w-4" /> Recent Activity
+          <Activity className="h-4 w-4" /> Actividad Reciente
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -29,7 +29,7 @@ export function RecentActivity() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground text-center py-6">No activity yet</p>
+          <p className="text-sm text-muted-foreground text-center py-6">Sin actividad aún</p>
         )}
       </CardContent>
     </Card>

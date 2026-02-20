@@ -22,7 +22,7 @@ export function UtilizationCharts({ utilizationData, revenuePerUnit }: Utilizati
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Fleet Utilization (%)</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Utilización de Flota (%)</CardTitle>
         </CardHeader>
         <CardContent>
           {utilizationData.length > 0 ? (
@@ -36,14 +36,14 @@ export function UtilizationCharts({ utilizationData, revenuePerUnit }: Utilizati
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-muted-foreground text-sm text-center py-10">No data yet</p>
+            <p className="text-muted-foreground text-sm text-center py-10">Sin datos aún</p>
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4" /> Revenue per Unit</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4" /> Ingresos por Unidad</CardTitle>
         </CardHeader>
         <CardContent>
           {revenuePerUnit.length > 0 ? (
@@ -57,7 +57,7 @@ export function UtilizationCharts({ utilizationData, revenuePerUnit }: Utilizati
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-muted-foreground text-sm text-center py-10">No paid invoices linked to bookings</p>
+            <p className="text-muted-foreground text-sm text-center py-10">Sin facturas pagadas vinculadas a reservas</p>
           )}
         </CardContent>
       </Card>

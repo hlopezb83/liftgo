@@ -34,9 +34,9 @@ export function RevenueReport({ invoices, startDate, endDate }: Props) {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Revenue</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("revenue-report.csv", data)}>
-            <Download className="h-4 w-4 mr-1" />Export CSV
+          <CardTitle className="text-base">Ingresos</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-ingresos.csv", data)}>
+            <Download className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>
@@ -46,8 +46,8 @@ export function RevenueReport({ invoices, startDate, endDate }: Props) {
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis />
                 <Tooltip formatter={(val: number) => formatCurrency(val)} />
-                <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Invoiced" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Paid" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Pagado" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -58,10 +58,10 @@ export function RevenueReport({ invoices, startDate, endDate }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Month</TableHead>
-                <TableHead className="text-right">Invoices</TableHead>
-                <TableHead className="text-right">Invoiced</TableHead>
-                <TableHead className="text-right">Paid</TableHead>
+                <TableHead>Mes</TableHead>
+                <TableHead className="text-right">Facturas</TableHead>
+                <TableHead className="text-right">Facturado</TableHead>
+                <TableHead className="text-right">Pagado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

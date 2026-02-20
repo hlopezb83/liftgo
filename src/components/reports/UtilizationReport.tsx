@@ -32,9 +32,9 @@ export function UtilizationReport({ forklifts, bookings, startDate, endDate }: P
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Fleet Utilization</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("utilization-report.csv", data)}>
-            <Download className="h-4 w-4 mr-1" />Export CSV
+          <CardTitle className="text-base">Utilización de Flota</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-utilizacion.csv", data)}>
+            <Download className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>
@@ -55,10 +55,10 @@ export function UtilizationReport({ forklifts, bookings, startDate, endDate }: P
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Forklift</TableHead>
-                <TableHead className="text-right">Booked Days</TableHead>
-                <TableHead className="text-right">Total Days</TableHead>
-                <TableHead className="text-right">Utilization</TableHead>
+                <TableHead>Montacargas</TableHead>
+                <TableHead className="text-right">Días Reservados</TableHead>
+                <TableHead className="text-right">Días Totales</TableHead>
+                <TableHead className="text-right">Utilización</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

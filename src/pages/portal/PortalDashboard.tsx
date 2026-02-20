@@ -29,14 +29,13 @@ export default function PortalDashboard() {
   return (
     <div className="space-y-6 max-w-5xl">
       <h1 className="text-2xl font-bold">
-        Welcome{customer?.name ? `, ${customer.name}` : ""}
+        Bienvenido{customer?.name ? `, ${customer.name}` : ""}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Active Rentals */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Rentals</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Rentas Activas</CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -44,10 +43,9 @@ export default function PortalDashboard() {
           </CardContent>
         </Card>
 
-        {/* Outstanding Balance */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Outstanding Balance</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Saldo Pendiente</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -57,10 +55,9 @@ export default function PortalDashboard() {
           </CardContent>
         </Card>
 
-        {/* Total Invoices */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Invoices</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Facturas</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -69,11 +66,10 @@ export default function PortalDashboard() {
         </Card>
       </div>
 
-      {/* Active Bookings */}
       {activeBookings.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Current Rentals</CardTitle>
+            <CardTitle className="text-base">Rentas Actuales</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {activeBookings.map((b) => (
@@ -89,11 +85,10 @@ export default function PortalDashboard() {
         </Card>
       )}
 
-      {/* Recent Invoices */}
       {recentInvoices.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Recent Invoices</CardTitle>
+            <CardTitle className="text-base">Facturas Recientes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {recentInvoices.map((inv) => (
