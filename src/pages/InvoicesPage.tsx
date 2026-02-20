@@ -56,7 +56,7 @@ export default function InvoicesPage() {
         <Tabs value={status} onValueChange={setStatus}>
           <TabsList>
             {STATUSES.map((s) => (
-              <TabsTrigger key={s} value={s} className="capitalize">{s}</TabsTrigger>
+              <TabsTrigger key={s} value={s}>{{ all: "Todas", draft: "Borrador", sent: "Enviada", partial: "Parcial", paid: "Pagada", overdue: "Vencida" }[s]}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>

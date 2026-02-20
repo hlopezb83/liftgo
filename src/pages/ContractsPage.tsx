@@ -48,7 +48,7 @@ export default function ContractsPage() {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Tabs value={status} onValueChange={setStatus}>
           <TabsList>
-            {STATUSES.map((s) => <TabsTrigger key={s} value={s} className="capitalize">{s}</TabsTrigger>)}
+            {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{{ all: "Todos", draft: "Borrador", sent: "Enviado", signed: "Firmado", cancelled: "Cancelado" }[s]}</TabsTrigger>)}
           </TabsList>
         </Tabs>
         <div className="relative w-full sm:w-64">

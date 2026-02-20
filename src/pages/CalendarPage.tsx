@@ -220,7 +220,7 @@ export default function CalendarPage() {
                             <TooltipContent side="top" className="text-xs space-y-1">
                               <p className="font-semibold">{booking.customer_name}</p>
                               <p>{format(parseISO(booking.start_date), "MMM d")} → {format(parseISO(booking.end_date), "MMM d, yyyy")}</p>
-                              <p className="text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""} · <span className="capitalize">{booking.status}</span></p>
+                              <p className="text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""} · {{ confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada", pending: "Pendiente" }[booking.status] || booking.status}</p>
                             </TooltipContent>
                           </Tooltip>
                         ) : (
