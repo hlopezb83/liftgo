@@ -14,7 +14,7 @@ interface DatePickerFieldProps {
   required?: boolean;
 }
 
-export function DatePickerField({ label, date, onSelect, placeholder = "Pick a date", required }: DatePickerFieldProps) {
+export function DatePickerField({ label, date, onSelect, placeholder = "Seleccionar fecha", required }: DatePickerFieldProps) {
   return (
     <div className="space-y-1.5">
       <Label>{label}{required && " *"}</Label>

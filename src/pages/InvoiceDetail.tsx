@@ -40,11 +40,11 @@ export default function InvoiceDetail() {
       { id, status, ...(paidAt ? { paid_at: paidAt } : {}) },
       {
         onSuccess: (data) => {
-          toast.success(`Invoice marked as ${status}`);
+          toast.success(`Factura marcada como ${status}`);
           if (status === "paid" && data.booking_id) {
             updateBooking.mutate(
               { id: data.booking_id, status: "completed" },
-              { onSuccess: () => toast.success("Linked booking marked as completed") }
+              { onSuccess: () => toast.success("Reserva vinculada marcada como completada") }
             );
           }
         },
@@ -104,7 +104,7 @@ export default function InvoiceDetail() {
   };
 
   if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
-  if (!invoice) return <div className="p-6 text-muted-foreground">Invoice not found</div>;
+  if (!invoice) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
 
   const inv = invoice as any;
   const lineItems = (invoice.line_items as unknown as LineItem[]) || [];
@@ -127,13 +127,13 @@ export default function InvoiceDetail() {
         <div className="flex gap-2 flex-wrap">
           {invoice.status === "draft" && (
             <>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/invoices/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Edit</Button>
-              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Mark Sent</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/invoices/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
+              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
             </>
           )}
           {(invoice.status === "sent" || invoice.status === "overdue") && (
             <Button size="sm" onClick={() => setStatus("paid", new Date().toISOString().split("T")[0])}>
-              <CheckCircle className="h-4 w-4 mr-1" />Mark Paid
+              <CheckCircle className="h-4 w-4 mr-1" />Marcar Pagada
             </Button>
           )}
           {cfdiStatus === "pending" && invoice.status !== "draft" && (
@@ -157,11 +157,10 @@ export default function InvoiceDetail() {
             </Button>
           )}
           {id && <InvoicePDFButton invoiceId={id} />}
-          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" />Print</Button>
+          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" />Imprimir</Button>
         </div>
       </div>
 
-      {/* CFDI UUID display */}
       {inv.cfdi_uuid && (
         <Card>
           <CardContent className="py-3">
@@ -173,23 +172,22 @@ export default function InvoiceDetail() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">Customer</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-sm">
             <p className="font-medium">{invoice.customer_name || "—"}</p>
             {inv.receptor_rfc && <p><span className="text-muted-foreground">RFC:</span> {inv.receptor_rfc}</p>}
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-base">Dates</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-sm">
-            <p><span className="text-muted-foreground">Issued:</span> {invoice.issued_at}</p>
-            <p><span className="text-muted-foreground">Due:</span> {invoice.due_date || "—"}</p>
-            {invoice.paid_at && <p><span className="text-muted-foreground">Paid:</span> {invoice.paid_at}</p>}
+            <p><span className="text-muted-foreground">Emitida:</span> {invoice.issued_at}</p>
+            <p><span className="text-muted-foreground">Vencimiento:</span> {invoice.due_date || "—"}</p>
+            {invoice.paid_at && <p><span className="text-muted-foreground">Pagada:</span> {invoice.paid_at}</p>}
           </CardContent>
         </Card>
       </div>
 
-      {/* CFDI Fiscal Details */}
       {(inv.serie || inv.forma_pago || inv.metodo_pago) && (
         <Card>
           <CardHeader><CardTitle className="text-base">Datos Fiscales</CardTitle></CardHeader>
@@ -211,9 +209,9 @@ export default function InvoiceDetail() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead className="w-24 text-right">Qty</TableHead>
-                <TableHead className="w-32 text-right">Unit Price</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead className="w-24 text-right">Cant.</TableHead>
+                <TableHead className="w-32 text-right">Precio Unit.</TableHead>
                 <TableHead className="w-32 text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
@@ -240,12 +238,11 @@ export default function InvoiceDetail() {
 
       {invoice.notes && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
           <CardContent><p className="text-sm text-muted-foreground">{invoice.notes}</p></CardContent>
         </Card>
       )}
 
-      {/* Balance Due */}
       {totalPaid > 0 && (
         <Card>
           <CardContent className="py-4">
@@ -263,7 +260,6 @@ export default function InvoiceDetail() {
         </Card>
       )}
 
-      {/* Payments History */}
       {payments && payments.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="text-base">Historial de Pagos</CardTitle></CardHeader>
@@ -292,7 +288,6 @@ export default function InvoiceDetail() {
         </Card>
       )}
 
-      {/* Record Payment Dialog */}
       {id && (
         <RecordPaymentDialog
           open={paymentDialogOpen}
@@ -302,7 +297,6 @@ export default function InvoiceDetail() {
         />
       )}
 
-      {/* Cancel CFDI Dialog */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

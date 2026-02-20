@@ -25,14 +25,13 @@ export default function QuoteDetail() {
   const { data: customers } = useCustomers();
   const { data: forklifts } = useForklifts();
 
-  // Feature 3: Post-booking delivery dialog
   const [deliveryDialog, setDeliveryDialog] = useState<{
     bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null;
   } | null>(null);
 
   const setStatus = (status: string) => {
     if (!id) return;
-    updateQuote.mutate({ id, status }, { onSuccess: () => toast.success(`Quote marked as ${status}`) });
+    updateQuote.mutate({ id, status }, { onSuccess: () => toast.success(`Cotización marcada como ${status}`) });
   };
 
   const convertToBooking = () => {
@@ -49,14 +48,14 @@ export default function QuoteDetail() {
       {
         onSuccess: (bookingId: string) => {
           updateQuote.mutate({ id: quote.id, status: "accepted" });
-          toast.success("Booking created from quote");
+          toast.success("Reserva creada desde cotización");
 
           const fl = forklifts?.find((f) => f.id === quote.forklift_id);
           const cust = customers?.find((c) => c.id === quote.customer_id);
           setDeliveryDialog({
             bookingId,
             forkliftId: quote.forklift_id!,
-            forkliftName: fl?.name || "Forklift",
+            forkliftName: fl?.name || "Montacargas",
             startDate: quote.start_date,
             customerAddress: cust?.address || null,
           });
@@ -71,7 +70,7 @@ export default function QuoteDetail() {
   };
 
   if (isLoading) return <div className="p-6"><Skeleton className="h-64" /></div>;
-  if (!quote) return <div className="p-6 text-muted-foreground">Quote not found</div>;
+  if (!quote) return <div className="p-6 text-muted-foreground">Cotización no encontrada</div>;
 
   const lineItems = (quote.line_items as unknown as LineItem[]) || [];
 
@@ -88,20 +87,20 @@ export default function QuoteDetail() {
         <div className="flex gap-2 flex-wrap">
           {quote.status === "draft" && (
             <>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Edit</Button>
-              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Mark Sent</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
+              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
             </>
           )}
           {(quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
             <>
-              <Button size="sm" variant="default" onClick={convertToBooking}><BookOpen className="h-4 w-4 mr-1" />Convert to Booking</Button>
-              <Button size="sm" variant="outline" onClick={convertToInvoice}><Receipt className="h-4 w-4 mr-1" />Convert to Invoice</Button>
+              <Button size="sm" variant="default" onClick={convertToBooking}><BookOpen className="h-4 w-4 mr-1" />Convertir a Reserva</Button>
+              <Button size="sm" variant="outline" onClick={convertToInvoice}><Receipt className="h-4 w-4 mr-1" />Convertir a Factura</Button>
             </>
           )}
           {quote.status === "sent" && (
             <>
-              <Button size="sm" variant="default" onClick={() => setStatus("accepted")}><CheckCircle className="h-4 w-4 mr-1" />Accept</Button>
-              <Button size="sm" variant="destructive" onClick={() => setStatus("declined")}><XCircle className="h-4 w-4 mr-1" />Decline</Button>
+              <Button size="sm" variant="default" onClick={() => setStatus("accepted")}><CheckCircle className="h-4 w-4 mr-1" />Aceptar</Button>
+              <Button size="sm" variant="destructive" onClick={() => setStatus("declined")}><XCircle className="h-4 w-4 mr-1" />Rechazar</Button>
             </>
           )}
         </div>
@@ -109,14 +108,14 @@ export default function QuoteDetail() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">Customer</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
           <CardContent><p className="font-medium">{quote.customer_name || "—"}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-base">Dates</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-sm">
-            <p><span className="text-muted-foreground">Period:</span> {quote.start_date} → {quote.end_date}</p>
-            <p><span className="text-muted-foreground">Valid Until:</span> {quote.valid_until || "—"}</p>
+            <p><span className="text-muted-foreground">Periodo:</span> {quote.start_date} → {quote.end_date}</p>
+            <p><span className="text-muted-foreground">Válida Hasta:</span> {quote.valid_until || "—"}</p>
           </CardContent>
         </Card>
       </div>
@@ -126,9 +125,9 @@ export default function QuoteDetail() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Description</TableHead>
-                <TableHead className="w-24 text-right">Qty</TableHead>
-                <TableHead className="w-32 text-right">Unit Price</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead className="w-24 text-right">Cant.</TableHead>
+                <TableHead className="w-32 text-right">Precio Unit.</TableHead>
                 <TableHead className="w-32 text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
@@ -155,12 +154,11 @@ export default function QuoteDetail() {
 
       {quote.notes && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Notes</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
           <CardContent><p className="text-sm text-muted-foreground">{quote.notes}</p></CardContent>
         </Card>
       )}
 
-      {/* Feature 3: Post-booking delivery dialog */}
       {deliveryDialog && (
         <PostBookingDeliveryDialog
           open={!!deliveryDialog}

@@ -18,7 +18,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Plus, Pencil, Trash2, Truck, Wrench, Settings } from "lucide-react";
 import { toast } from "sonner";
 
-/* ── Equipment Models Tab ── */
+/* ── Modelos de Equipo ── */
 function EquipmentModelsTab() {
   const { data: models, isLoading } = useEquipmentModels();
   const create = useCreateEquipmentModel();
@@ -38,29 +38,29 @@ function EquipmentModelsTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.manufacturer || !form.model) { toast.error("Manufacturer and model are required"); return; }
+    if (!form.manufacturer || !form.model) { toast.error("Fabricante y modelo son requeridos"); return; }
     const payload = { manufacturer: form.manufacturer, model: form.model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Updated"); setOpen(false); } });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); } });
     } else {
-      create.mutate(payload, { onSuccess: () => { toast.success("Added"); setOpen(false); } });
+      create.mutate(payload, { onSuccess: () => { toast.success("Agregado"); setOpen(false); } });
     }
   };
 
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Add Model</Button>
+        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Modelo</Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Manufacturer</TableHead><TableHead>Model</TableHead><TableHead>Capacity (kg)</TableHead><TableHead>Mast Height (m)</TableHead><TableHead>Fuel Type</TableHead><TableHead className="w-24" />
+            <TableHead>Fabricante</TableHead><TableHead>Modelo</TableHead><TableHead>Capacidad (kg)</TableHead><TableHead>Altura Mástil (m)</TableHead><TableHead>Combustible</TableHead><TableHead className="w-24" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading && <TableRow><TableCell colSpan={6}><TableSkeleton /></TableCell></TableRow>}
-          {!isLoading && (!models || models.length === 0) && <EmptyRow colSpan={6} message="No equipment models configured yet" />}
+          {!isLoading && (!models || models.length === 0) && <EmptyRow colSpan={6} message="No hay modelos de equipo configurados" />}
           {models?.map((m) => (
             <TableRow key={m.id}>
               <TableCell className="font-medium">{m.manufacturer}</TableCell>
@@ -74,8 +74,8 @@ function EquipmentModelsTab() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                     <AlertDialogContent>
-                      <AlertDialogHeader><AlertDialogTitle>Delete {m.manufacturer} {m.model}?</AlertDialogTitle><AlertDialogDescription>This won't affect existing forklifts.</AlertDialogDescription></AlertDialogHeader>
-                      <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Deleted") })}>Delete</AlertDialogAction></AlertDialogFooter>
+                      <AlertDialogHeader><AlertDialogTitle>¿Eliminar {m.manufacturer} {m.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
@@ -86,16 +86,16 @@ function EquipmentModelsTab() {
       </Table>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editId ? "Edit" : "Add"} Equipment Model</DialogTitle><DialogDescription>Define a manufacturer/model combination with default specs.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Modelo de Equipo</DialogTitle><DialogDescription>Define una combinación de fabricante/modelo con especificaciones predeterminadas.</DialogDescription></DialogHeader>
           <div className="grid gap-4 py-2">
-            <div className="space-y-1.5"><Label>Manufacturer *</Label><Input placeholder="e.g. Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>Model *</Label><Input placeholder="e.g. H50" value={form.model} onChange={(e) => set("model", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Fabricante *</Label><Input placeholder="ej. Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Modelo *</Label><Input placeholder="ej. H50" value={form.model} onChange={(e) => set("model", e.target.value)} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Default Capacity (kg)</Label><Input type="number" placeholder="2500" value={form.default_capacity_kg} onChange={(e) => set("default_capacity_kg", e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Default Mast Height (m)</Label><Input type="number" placeholder="4.5" value={form.default_mast_height_m} onChange={(e) => set("default_mast_height_m", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Capacidad (kg)</Label><Input type="number" placeholder="2500" value={form.default_capacity_kg} onChange={(e) => set("default_capacity_kg", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Altura Mástil (m)</Label><Input type="number" placeholder="4.5" value={form.default_mast_height_m} onChange={(e) => set("default_mast_height_m", e.target.value)} /></div>
             </div>
             <div className="space-y-1.5">
-              <Label>Default Fuel Type</Label>
+              <Label>Combustible</Label>
               <Select value={form.default_fuel_type} onValueChange={(v) => set("default_fuel_type", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{["Diesel", "Electric", "LPG", "Gasoline"].map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
@@ -103,8 +103,8 @@ function EquipmentModelsTab() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Save" : "Add"}</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -112,7 +112,7 @@ function EquipmentModelsTab() {
   );
 }
 
-/* ── Drivers Tab ── */
+/* ── Operadores ── */
 function DriversTab() {
   const { data: drivers, isLoading } = useDrivers();
   const create = useCreateDriver();
@@ -132,33 +132,33 @@ function DriversTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.name) { toast.error("Name is required"); return; }
+    if (!form.name) { toast.error("El nombre es requerido"); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, license_number: form.license_number || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
-      if (err.message?.includes("drivers_name_unique")) toast.error("A driver with this name already exists");
-      else toast.error("Failed to save driver");
+      if (err.message?.includes("drivers_name_unique")) toast.error("Ya existe un operador con este nombre");
+      else toast.error("Error al guardar operador");
     };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Updated"); setOpen(false); }, onError });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); }, onError });
     } else {
-      create.mutate(payload, { onSuccess: () => { toast.success("Added"); setOpen(false); }, onError });
+      create.mutate(payload, { onSuccess: () => { toast.success("Agregado"); setOpen(false); }, onError });
     }
   };
 
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Add Driver</Button>
+        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Operador</Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Email</TableHead><TableHead>License</TableHead><TableHead>Status</TableHead><TableHead className="w-24" />
+            <TableHead>Nombre</TableHead><TableHead>Teléfono</TableHead><TableHead>Correo</TableHead><TableHead>Licencia</TableHead><TableHead>Estado</TableHead><TableHead className="w-24" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading && <TableRow><TableCell colSpan={6}><TableSkeleton /></TableCell></TableRow>}
-          {!isLoading && (!drivers || drivers.length === 0) && <EmptyRow colSpan={6} message="No drivers added yet" />}
+          {!isLoading && (!drivers || drivers.length === 0) && <EmptyRow colSpan={6} message="No hay operadores registrados" />}
           {drivers?.map((d) => (
             <TableRow key={d.id}>
               <TableCell className="font-medium">{d.name}</TableCell>
@@ -172,8 +172,8 @@ function DriversTab() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                     <AlertDialogContent>
-                      <AlertDialogHeader><AlertDialogTitle>Delete {d.name}?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                      <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(d.id, { onSuccess: () => toast.success("Deleted") })}>Delete</AlertDialogAction></AlertDialogFooter>
+                      <AlertDialogHeader><AlertDialogTitle>¿Eliminar {d.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(d.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
@@ -184,23 +184,23 @@ function DriversTab() {
       </Table>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editId ? "Edit" : "Add"} Driver</DialogTitle><DialogDescription>Manage driver details for delivery scheduling.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Operador</DialogTitle><DialogDescription>Administrar datos del operador para programación de entregas.</DialogDescription></DialogHeader>
           <div className="grid gap-4 py-2">
-            <div className="space-y-1.5"><Label>Name *</Label><Input placeholder="Full name" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Phone</Label><Input placeholder="+1 555 0123" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Email</Label><Input type="email" placeholder="driver@email.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Teléfono</Label><Input placeholder="+52 55 1234 5678" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Correo</Label><Input type="email" placeholder="operador@correo.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
             </div>
-            <div className="space-y-1.5"><Label>License Number</Label><Input placeholder="DL-12345" value={form.license_number} onChange={(e) => set("license_number", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Número de Licencia</Label><Input placeholder="LIC-12345" value={form.license_number} onChange={(e) => set("license_number", e.target.value)} /></div>
             <div className="flex items-center gap-2">
               <Switch checked={form.is_active} onCheckedChange={(v) => set("is_active", v)} />
-              <Label>Active</Label>
+              <Label>Activo</Label>
             </div>
-            <div className="space-y-1.5"><Label>Notes</Label><Input placeholder="Optional notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Notas</Label><Input placeholder="Notas opcionales" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Save" : "Add"}</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -208,7 +208,7 @@ function DriversTab() {
   );
 }
 
-/* ── Mechanics Tab ── */
+/* ── Mecánicos ── */
 function MechanicsTab() {
   const { data: mechanics, isLoading } = useMechanics();
   const create = useCreateMechanic();
@@ -228,33 +228,33 @@ function MechanicsTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.name) { toast.error("Name is required"); return; }
+    if (!form.name) { toast.error("El nombre es requerido"); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, specialization: form.specialization || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
-      if (err.message?.includes("mechanics_name_unique")) toast.error("A mechanic with this name already exists");
-      else toast.error("Failed to save mechanic");
+      if (err.message?.includes("mechanics_name_unique")) toast.error("Ya existe un mecánico con este nombre");
+      else toast.error("Error al guardar mecánico");
     };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Updated"); setOpen(false); }, onError });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); }, onError });
     } else {
-      create.mutate(payload, { onSuccess: () => { toast.success("Added"); setOpen(false); }, onError });
+      create.mutate(payload, { onSuccess: () => { toast.success("Agregado"); setOpen(false); }, onError });
     }
   };
 
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Add Mechanic</Button>
+        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Mecánico</Button>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead><TableHead>Phone</TableHead><TableHead>Email</TableHead><TableHead>Specialization</TableHead><TableHead>Status</TableHead><TableHead className="w-24" />
+            <TableHead>Nombre</TableHead><TableHead>Teléfono</TableHead><TableHead>Correo</TableHead><TableHead>Especialización</TableHead><TableHead>Estado</TableHead><TableHead className="w-24" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading && <TableRow><TableCell colSpan={6}><TableSkeleton /></TableCell></TableRow>}
-          {!isLoading && (!mechanics || mechanics.length === 0) && <EmptyRow colSpan={6} message="No mechanics added yet" />}
+          {!isLoading && (!mechanics || mechanics.length === 0) && <EmptyRow colSpan={6} message="No hay mecánicos registrados" />}
           {mechanics?.map((m) => (
             <TableRow key={m.id}>
               <TableCell className="font-medium">{m.name}</TableCell>
@@ -268,8 +268,8 @@ function MechanicsTab() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
                     <AlertDialogContent>
-                      <AlertDialogHeader><AlertDialogTitle>Delete {m.name}?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                      <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Deleted") })}>Delete</AlertDialogAction></AlertDialogFooter>
+                      <AlertDialogHeader><AlertDialogTitle>¿Eliminar {m.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
@@ -280,23 +280,23 @@ function MechanicsTab() {
       </Table>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{editId ? "Edit" : "Add"} Mechanic</DialogTitle><DialogDescription>Manage mechanic details for maintenance assignments.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Mecánico</DialogTitle><DialogDescription>Administrar datos del mecánico para asignación de mantenimientos.</DialogDescription></DialogHeader>
           <div className="grid gap-4 py-2">
-            <div className="space-y-1.5"><Label>Name *</Label><Input placeholder="Full name" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Phone</Label><Input placeholder="+1 555 0123" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Email</Label><Input type="email" placeholder="mechanic@email.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Teléfono</Label><Input placeholder="+52 55 1234 5678" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Correo</Label><Input type="email" placeholder="mecanico@correo.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
             </div>
-            <div className="space-y-1.5"><Label>Specialization</Label><Input placeholder="e.g. Hydraulic, Electrical" value={form.specialization} onChange={(e) => set("specialization", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Especialización</Label><Input placeholder="ej. Hidráulica, Eléctrica" value={form.specialization} onChange={(e) => set("specialization", e.target.value)} /></div>
             <div className="flex items-center gap-2">
               <Switch checked={form.is_active} onCheckedChange={(v) => set("is_active", v)} />
-              <Label>Active</Label>
+              <Label>Activo</Label>
             </div>
-            <div className="space-y-1.5"><Label>Notes</Label><Input placeholder="Optional notes" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Notas</Label><Input placeholder="Notas opcionales" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Save" : "Add"}</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -304,16 +304,16 @@ function MechanicsTab() {
   );
 }
 
-/* ── Main Page ── */
+/* ── Página Principal ── */
 export default function OperationsSetupPage() {
   return (
     <div className="p-6 max-w-5xl">
-      <PageHeader title="Operations Setup" subtitle="Manage equipment models, drivers, and mechanics" />
+      <PageHeader title="Configuración de Operaciones" subtitle="Administrar modelos de equipo, operadores y mecánicos" />
       <Tabs defaultValue="equipment" className="mt-6">
         <TabsList>
-          <TabsTrigger value="equipment" className="gap-2"><Settings className="h-4 w-4" />Equipment Models</TabsTrigger>
-          <TabsTrigger value="drivers" className="gap-2"><Truck className="h-4 w-4" />Drivers</TabsTrigger>
-          <TabsTrigger value="mechanics" className="gap-2"><Wrench className="h-4 w-4" />Mechanics</TabsTrigger>
+          <TabsTrigger value="equipment" className="gap-2"><Settings className="h-4 w-4" />Modelos de Equipo</TabsTrigger>
+          <TabsTrigger value="drivers" className="gap-2"><Truck className="h-4 w-4" />Operadores</TabsTrigger>
+          <TabsTrigger value="mechanics" className="gap-2"><Wrench className="h-4 w-4" />Mecánicos</TabsTrigger>
         </TabsList>
         <TabsContent value="equipment"><EquipmentModelsTab /></TabsContent>
         <TabsContent value="drivers"><DriversTab /></TabsContent>

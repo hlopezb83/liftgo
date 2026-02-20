@@ -86,7 +86,6 @@ export default function InvoiceForm() {
     if (!booking) return;
     setCustomerName(booking.customer_name || "");
     setCustomerId(booking.customer_id || null);
-    // Auto-populate receiver CFDI fields from customer
     if (booking.customer_id && customers) {
       const cust = customers.find((c) => c.id === booking.customer_id) as any;
       if (cust) {
@@ -130,7 +129,7 @@ export default function InvoiceForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (lineItems.length === 0) { toast.error("Add at least one line item"); return; }
+    if (lineItems.length === 0) { toast.error("Agrega al menos una partida"); return; }
 
     const payload = {
       booking_id: bookingId || null,
@@ -158,11 +157,11 @@ export default function InvoiceForm() {
 
     if (isEdit) {
       updateInvoice.mutate({ id, ...payload } as any, {
-        onSuccess: () => { toast.success("Invoice updated"); navigate(`/invoices/${id}`); },
+        onSuccess: () => { toast.success("Factura actualizada"); navigate(`/invoices/${id}`); },
       });
     } else {
       createInvoice.mutate(payload as any, {
-        onSuccess: (data) => { toast.success(`Invoice ${data.invoice_number} created`); navigate(`/invoices/${data.id}`); },
+        onSuccess: (data) => { toast.success(`Factura ${data.invoice_number} creada`); navigate(`/invoices/${data.id}`); },
       });
     }
   };
@@ -171,21 +170,21 @@ export default function InvoiceForm() {
 
   return (
     <div className="p-6 max-w-4xl">
-      <FormPageHeader title={isEdit ? "Edit Invoice" : "New Invoice"} />
+      <FormPageHeader title={isEdit ? "Editar Factura" : "Nueva Factura"} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">Invoice Details</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Detalles de Factura</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             {!isEdit && (
               <div className="space-y-1.5">
-                <Label>Generate from Booking</Label>
+                <Label>Generar desde Reserva</Label>
                 <Select value={bookingId} onValueChange={handleBookingSelect}>
-                  <SelectTrigger><SelectValue placeholder="Select a booking (optional)" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar reserva (opcional)" /></SelectTrigger>
                   <SelectContent>
                     {bookings?.filter((b) => b.status === "confirmed").map((b) => (
                       <SelectItem key={b.id} value={b.id}>
-                        {(b as any).forklifts?.name} — {b.customer_name || "No customer"} ({b.start_date} → {b.end_date})
+                        {(b as any).forklifts?.name} — {b.customer_name || "Sin cliente"} ({b.start_date} → {b.end_date})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -194,10 +193,10 @@ export default function InvoiceForm() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Customer Name</Label>
-                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Customer name" />
+                <Label>Nombre del Cliente</Label>
+                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Nombre del cliente" />
               </div>
-              <DatePickerField label="Due Date" date={dueDate} onSelect={setDueDate} placeholder="Select due date" />
+              <DatePickerField label="Fecha de Vencimiento" date={dueDate} onSelect={setDueDate} placeholder="Seleccionar fecha" />
             </div>
           </CardContent>
         </Card>
@@ -288,19 +287,19 @@ export default function InvoiceForm() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Line Items</CardTitle>
-              <Button type="button" variant="outline" size="sm" onClick={addItem}><Plus className="h-3 w-3 mr-1" />Add Row</Button>
+              <CardTitle className="text-base">Partidas</CardTitle>
+              <Button type="button" variant="outline" size="sm" onClick={addItem}><Plus className="h-3 w-3 mr-1" />Agregar Fila</Button>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Description</TableHead>
+                  <TableHead>Descripción</TableHead>
                   <TableHead className="w-28">ClaveProdServ</TableHead>
                   <TableHead className="w-20">ClaveUnidad</TableHead>
-                  <TableHead className="w-20">Qty</TableHead>
-                  <TableHead className="w-28">Unit Price</TableHead>
+                  <TableHead className="w-20">Cant.</TableHead>
+                  <TableHead className="w-28">Precio Unit.</TableHead>
                   <TableHead className="w-28 text-right">Total</TableHead>
                   <TableHead className="w-12" />
                 </TableRow>
@@ -313,7 +312,7 @@ export default function InvoiceForm() {
                     </TableCell>
                     <TableCell>
                       <Select value={item.clave_prod_serv || ""} onValueChange={(v) => updateItem(idx, "clave_prod_serv", v)}>
-                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Code" /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Código" /></SelectTrigger>
                         <SelectContent>
                           {CLAVE_PROD_SERV.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
                         </SelectContent>
@@ -321,7 +320,7 @@ export default function InvoiceForm() {
                     </TableCell>
                     <TableCell>
                       <Select value={item.clave_unidad || ""} onValueChange={(v) => updateItem(idx, "clave_unidad", v)}>
-                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Unit" /></SelectTrigger>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Unidad" /></SelectTrigger>
                         <SelectContent>
                           {CLAVE_UNIDAD.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
                         </SelectContent>
@@ -342,7 +341,7 @@ export default function InvoiceForm() {
                   </TableRow>
                 ))}
                 {lineItems.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">No line items yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Sin partidas aún</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -369,9 +368,9 @@ export default function InvoiceForm() {
           </CardContent>
         </Card>
 
-        <NotesCard value={notes} onChange={setNotes} placeholder="Additional notes…" />
+        <NotesCard value={notes} onChange={setNotes} placeholder="Notas adicionales…" />
 
-        <FormActions submitLabel={isEdit ? "Update Invoice" : "Create Invoice"} isPending={isPending} onCancel={() => navigate(-1)} />
+        <FormActions submitLabel={isEdit ? "Actualizar Factura" : "Crear Factura"} isPending={isPending} onCancel={() => navigate(-1)} />
       </form>
     </div>
   );

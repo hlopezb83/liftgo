@@ -69,7 +69,7 @@ export default function QuoteForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forkliftId || !startDate || !endDate) { toast.error("Fill required fields"); return; }
+    if (!forkliftId || !startDate || !endDate) { toast.error("Llena los campos requeridos"); return; }
 
     const payload = {
       quote_number: existingQuote?.quote_number || nextNumber || "QUO-0001",
@@ -86,20 +86,20 @@ export default function QuoteForm() {
     };
 
     if (id) {
-      updateQuote.mutate({ id, ...payload }, { onSuccess: () => { toast.success("Quote updated"); navigate(`/quotes/${id}`); } });
+      updateQuote.mutate({ id, ...payload }, { onSuccess: () => { toast.success("Cotización actualizada"); navigate(`/quotes/${id}`); } });
     } else {
-      createQuote.mutate(payload, { onSuccess: () => { toast.success("Quote created"); navigate("/quotes"); } });
+      createQuote.mutate(payload, { onSuccess: () => { toast.success("Cotización creada"); navigate("/quotes"); } });
     }
   };
 
   return (
     <div className="p-6 max-w-3xl">
-      <FormPageHeader title={id ? "Edit Quote" : "New Quote"} />
+      <FormPageHeader title={id ? "Editar Cotización" : "Nueva Cotización"} />
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">Quote Details</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Detalles de Cotización</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <DateRangePickerField label="Rental Period *" dateRange={dateRange} onSelect={setDateRange} required />
+            <DateRangePickerField label="Periodo de Renta *" dateRange={dateRange} onSelect={setDateRange} required />
 
             <ForkliftSelector
               value={forkliftId}
@@ -110,10 +110,10 @@ export default function QuoteForm() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>VAT Rate (%)</Label>
+                <Label>IVA (%)</Label>
                 <Input type="number" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
               </div>
-              <DatePickerField label="Valid Until" date={validUntil} onSelect={setValidUntil} />
+              <DatePickerField label="Válida Hasta" date={validUntil} onSelect={setValidUntil} placeholder="Seleccionar fecha" />
             </div>
           </CardContent>
         </Card>
@@ -130,7 +130,7 @@ export default function QuoteForm() {
 
         <NotesCard value={notes} onChange={setNotes} />
 
-        <FormActions submitLabel={id ? "Update Quote" : "Create Quote"} isPending={createQuote.isPending || updateQuote.isPending} onCancel={() => navigate(-1)} />
+        <FormActions submitLabel={id ? "Actualizar Cotización" : "Crear Cotización"} isPending={createQuote.isPending || updateQuote.isPending} onCancel={() => navigate(-1)} />
       </form>
     </div>
   );
