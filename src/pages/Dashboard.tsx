@@ -2,7 +2,6 @@ import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/ho
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import { StatCards } from "@/components/dashboard/StatCards";
 import { AlertsRow } from "@/components/dashboard/AlertsRow";
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
@@ -46,9 +45,9 @@ export default function Dashboard() {
   }), [forklifts]);
 
   const pieData = useMemo(() => [
-    { name: "Available", value: counts.available, color: STATUS_COLORS.available },
-    { name: "Rented", value: counts.rented, color: STATUS_COLORS.rented },
-    { name: "Maintenance", value: counts.maintenance, color: STATUS_COLORS.maintenance },
+    { name: "Disponibles", value: counts.available, color: STATUS_COLORS.available },
+    { name: "Rentados", value: counts.rented, color: STATUS_COLORS.rented },
+    { name: "Mantenimiento", value: counts.maintenance, color: STATUS_COLORS.maintenance },
   ].filter((d) => d.value > 0), [counts]);
 
   const outstandingRevenue = useMemo(() =>
@@ -95,13 +94,9 @@ export default function Dashboard() {
     const now = new Date();
     return forklifts.slice(0, 10).map((fl) => {
       const flBookings = bookings.filter((b) => b.forklift_id === fl.id);
-      const totalDaysBooked = flBookings.reduce((sum, b) => {
-        const days = differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1;
-        return sum + Math.max(days, 0);
-      }, 0);
+      const totalDaysBooked = flBookings.reduce((sum, b) => sum + Math.max(differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1, 0), 0);
       const daysSinceCreated = Math.max(differenceInDays(now, parseISO(fl.created_at)), 1);
-      const utilization = Math.min(Math.round((totalDaysBooked / daysSinceCreated) * 100), 100);
-      return { name: fl.name, utilization };
+      return { name: fl.name, utilization: Math.min(Math.round((totalDaysBooked / daysSinceCreated) * 100), 100) };
     });
   }, [forklifts, bookings]);
 
@@ -109,9 +104,7 @@ export default function Dashboard() {
     if (!forklifts || !invoices || !bookings) return [];
     return forklifts.slice(0, 10).map((fl) => {
       const flBookingIds = new Set(bookings.filter((b) => b.forklift_id === fl.id).map((b) => b.id));
-      const revenue = invoices
-        .filter((i) => i.booking_id && flBookingIds.has(i.booking_id) && i.status === "paid")
-        .reduce((sum, i) => sum + Number(i.total), 0);
+      const revenue = invoices.filter((i) => i.booking_id && flBookingIds.has(i.booking_id) && i.status === "paid").reduce((sum, i) => sum + Number(i.total), 0);
       return { name: fl.name, revenue };
     }).filter((r) => r.revenue > 0);
   }, [forklifts, invoices, bookings]);
@@ -124,11 +117,7 @@ export default function Dashboard() {
       groups[inv.status].count++;
       groups[inv.status].total += Number(inv.total);
     });
-    return Object.entries(groups).map(([status, data]) => ({
-      status,
-      ...data,
-      color: INVOICE_STATUS_COLORS[status] || "hsl(220, 10%, 55%)",
-    }));
+    return Object.entries(groups).map(([status, data]) => ({ status, ...data, color: INVOICE_STATUS_COLORS[status] || "hsl(220, 10%, 55%)" }));
   }, [invoices]);
 
   const cashFlowData = useMemo(() => {
@@ -150,17 +139,17 @@ export default function Dashboard() {
   }, [invoices]);
 
   const statCards = useMemo(() => [
-    { label: "Total Fleet", value: counts.total, icon: Truck, color: "text-primary" },
-    { label: "Available", value: counts.available, icon: CheckCircle, color: "text-status-available" },
-    { label: "Rented", value: counts.rented, icon: Clock, color: "text-status-rented" },
-    { label: "In Maintenance", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
-    { label: "Outstanding", value: formatCurrency(outstandingRevenue), icon: Receipt, color: "text-primary" },
+    { label: "Flota Total", value: counts.total, icon: Truck, color: "text-primary" },
+    { label: "Disponibles", value: counts.available, icon: CheckCircle, color: "text-status-available" },
+    { label: "Rentados", value: counts.rented, icon: Clock, color: "text-status-rented" },
+    { label: "En Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
+    { label: "Pendiente", value: formatCurrency(outstandingRevenue), icon: Receipt, color: "text-primary" },
   ], [counts, outstandingRevenue]);
 
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">Panel</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
@@ -171,27 +160,16 @@ export default function Dashboard() {
   return (
     <PageTransition>
     <div className="p-6 space-y-6">
-      <PageHeader
-        title="Dashboard"
-        subtitle="Fleet overview at a glance"
-        action={<Button onClick={() => navigate("/fleet/new")} size="sm">Add Forklift</Button>}
-      />
-
+      <PageHeader title="Panel" subtitle="Vista general de la flota" action={<Button onClick={() => navigate("/fleet/new")} size="sm">Agregar Montacargas</Button>} />
       <StatCards cards={statCards} />
-
       <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} />
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />
       </div>
-
       <UtilizationCharts utilizationData={utilizationData} revenuePerUnit={revenuePerUnit} />
-
       <CashFlowChart data={cashFlowData} />
-
       <RecentActivity />
-
     </div>
     </PageTransition>
   );

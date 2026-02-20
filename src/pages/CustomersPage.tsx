@@ -84,19 +84,19 @@ export default function CustomersPage() {
     <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Customers"
-        subtitle={`${customers?.length || 0} customers`}
+        title="Clientes"
+        subtitle={`${customers?.length || 0} clientes`}
         action={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportToCsv("customers.csv", (filtered || []).map(c => ({ Name: c.name, Email: c.email || "", Phone: c.phone || "", Contact: c.contact_person || "", Address: c.address || "" })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
-            <Button onClick={openCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Add Customer</Button>
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("clientes.csv", (filtered || []).map(c => ({ Nombre: c.name, Correo: c.email || "", Teléfono: c.phone || "", Contacto: c.contact_person || "", Dirección: c.address || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+            <Button onClick={openCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Cliente</Button>
           </div>
         }
       />
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search customers..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        <Input placeholder="Buscar clientes..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
       </div>
 
       <Card>
@@ -105,14 +105,14 @@ export default function CustomersPage() {
             <>
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>RFC</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Contact Person</TableHead>
-                    <TableHead className="w-16"></TableHead>
-                  </TableRow>
+                   <TableRow>
+                     <TableHead>Nombre</TableHead>
+                     <TableHead>RFC</TableHead>
+                     <TableHead>Correo</TableHead>
+                     <TableHead>Teléfono</TableHead>
+                     <TableHead>Persona de Contacto</TableHead>
+                     <TableHead className="w-16"></TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedItems.map((c) => (
@@ -128,7 +128,7 @@ export default function CustomersPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {paginatedItems.length === 0 && <EmptyRow colSpan={6} message="No customers found" />}
+                  {paginatedItems.length === 0 && <EmptyRow colSpan={6} message="No se encontraron clientes" />}
                 </TableBody>
               </Table>
               <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
@@ -139,13 +139,13 @@ export default function CustomersPage() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editId ? "Edit Customer" : "Add Customer"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editId ? "Editar Cliente" : "Agregar Cliente"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Identity</p>
+              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Identidad</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label>Name / Company *</Label>
+                  <Label>Nombre / Empresa *</Label>
                   <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="ABC Construction" />
                 </div>
                 <div className="space-y-1.5"><Label>Tax / VAT ID</Label><Input value={form.tax_id} onChange={(e) => set("tax_id", e.target.value)} placeholder="DE123456789" /></div>
@@ -191,29 +191,29 @@ export default function CustomersPage() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Contact</p>
-              <div className="space-y-1.5"><Label>Contact Person</Label><Input value={form.contact_person} onChange={(e) => set("contact_person", e.target.value)} placeholder="Jane Smith" /></div>
+              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Contacto</p>
+              <div className="space-y-1.5"><Label>Persona de Contacto</Label><Input value={form.contact_person} onChange={(e) => set("contact_person", e.target.value)} placeholder="María García" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5"><Label>Email</Label><Input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="john@example.com" /></div>
-                <div className="space-y-1.5"><Label>Phone</Label><Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+52 55 1234 5678" /></div>
+                <div className="space-y-1.5"><Label>Correo</Label><Input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="contacto@empresa.com" /></div>
+                <div className="space-y-1.5"><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+52 55 1234 5678" /></div>
               </div>
               <div className="space-y-1.5"><Label>Website</Label><Input value={form.website} onChange={(e) => set("website", e.target.value)} placeholder="https://example.com" /></div>
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Addresses</p>
+              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Direcciones</p>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5"><Label>Address</Label><Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="123 Main St" /></div>
-                <div className="space-y-1.5"><Label>Billing Address</Label><Input value={form.billing_address} onChange={(e) => set("billing_address", e.target.value)} placeholder="456 Invoice Rd" /></div>
+                <div className="space-y-1.5"><Label>Dirección</Label><Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Av. Reforma 123" /></div>
+                <div className="space-y-1.5"><Label>Dirección de Facturación</Label><Input value={form.billing_address} onChange={(e) => set("billing_address", e.target.value)} placeholder="Calle Facturación 456" /></div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Internal</p>
-              <div className="space-y-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Any additional notes..." rows={3} /></div>
+              <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Interno</p>
+              <div className="space-y-1.5"><Label>Notas</Label><Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Notas adicionales..." rows={3} /></div>
             </div>
 
-            <FormActions submitLabel={editId ? "Save Changes" : "Add Customer"} isPending={createCustomer.isPending || updateCustomer.isPending} onCancel={() => setDialogOpen(false)} />
+            <FormActions submitLabel={editId ? "Guardar Cambios" : "Agregar Cliente"} isPending={createCustomer.isPending || updateCustomer.isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
       </Dialog>

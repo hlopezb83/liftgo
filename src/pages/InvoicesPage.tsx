@@ -42,12 +42,12 @@ export default function InvoicesPage() {
     <PageTransition>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Invoices"
-        subtitle="Manage billing and track payments"
+        title="Facturas"
+        subtitle="Administrar facturación y pagos"
         action={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportToCsv("invoices.csv", (filtered || []).map(inv => ({ "Invoice #": inv.invoice_number, Customer: inv.customer_name || "", Total: inv.total, Status: inv.status, Issued: inv.issued_at, Due: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
-            <Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />New Invoice</Button>
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (filtered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+            <Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />Nueva Factura</Button>
           </div>
         }
       />
@@ -62,7 +62,7 @@ export default function InvoicesPage() {
         </Tabs>
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search invoices…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Buscar facturas…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
@@ -71,12 +71,12 @@ export default function InvoicesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Customer</TableHead>
+                <TableHead>Factura #</TableHead>
+                <TableHead>Cliente</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Issued</TableHead>
-                <TableHead>Due</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Emitida</TableHead>
+                <TableHead>Vencimiento</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -94,7 +94,7 @@ export default function InvoicesPage() {
                   </TableRow>
                 ))
               ) : (
-                <EmptyRow colSpan={7} message="No invoices found" />
+                <EmptyRow colSpan={7} message="No se encontraron facturas" />
               )}
             </TableBody>
           </Table>

@@ -93,11 +93,11 @@ export default function CalendarPage() {
     <TooltipProvider>
     <div className="p-6 space-y-6">
       <PageHeader
-        title="Availability Calendar"
-        subtitle="View bookings across your fleet"
+        title="Calendario de Disponibilidad"
+        subtitle="Ver reservas de toda la flota"
         action={
           <Button asChild>
-            <Link to="/bookings/new"><Plus className="h-4 w-4" /> New Booking</Link>
+            <Link to="/bookings/new"><Plus className="h-4 w-4" /> Nueva Reserva</Link>
           </Button>
         }
       />
@@ -107,13 +107,13 @@ export default function CalendarPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="h-4 w-4 text-status-maintenance" />
-              <span className="font-medium text-sm">Bookings ending soon ({endingSoon.length})</span>
+              <span className="font-medium text-sm">Reservas por vencer ({endingSoon.length})</span>
             </div>
             <div className="space-y-1">
               {endingSoon.map((b) => (
                 <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
                   <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
-                  <span className="text-xs text-muted-foreground">Ends: {format(parseISO(b.end_date), "MMM d, yyyy")}</span>
+                  <span className="text-xs text-muted-foreground">Termina: {format(parseISO(b.end_date), "MMM d, yyyy")}</span>
                 </div>
               ))}
             </div>
@@ -128,7 +128,7 @@ export default function CalendarPage() {
             <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(new Date())}>Today</Button>
+            <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(new Date())}>Hoy</Button>
             <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -156,7 +156,7 @@ export default function CalendarPage() {
             </div>
             {/* Day number header row */}
             <div className="flex border-b pb-2 mb-2">
-              <div className="w-36 shrink-0 text-xs font-medium text-muted-foreground">Forklift</div>
+              <div className="w-36 shrink-0 text-xs font-medium text-muted-foreground">Montacargas</div>
               <div className="flex-1 flex">
                 {days.map((day) => {
                   const wd = getDay(day);
@@ -220,7 +220,7 @@ export default function CalendarPage() {
                             <TooltipContent side="top" className="text-xs space-y-1">
                               <p className="font-semibold">{booking.customer_name}</p>
                               <p>{format(parseISO(booking.start_date), "MMM d")} → {format(parseISO(booking.end_date), "MMM d, yyyy")}</p>
-                              <p className="text-muted-foreground">{duration} day{duration !== 1 ? "s" : ""} · <span className="capitalize">{booking.status}</span></p>
+                              <p className="text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""} · <span className="capitalize">{booking.status}</span></p>
                             </TooltipContent>
                           </Tooltip>
                         ) : (
@@ -250,13 +250,13 @@ export default function CalendarPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Bookings</CardTitle>
+          <CardTitle className="text-base">Reservas</CardTitle>
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
             <TabsList className="h-8">
-              <TabsTrigger value="all" className="text-xs px-2.5 h-6">All</TabsTrigger>
-              <TabsTrigger value="confirmed" className="text-xs px-2.5 h-6">Confirmed</TabsTrigger>
-              <TabsTrigger value="completed" className="text-xs px-2.5 h-6">Completed</TabsTrigger>
-              <TabsTrigger value="cancelled" className="text-xs px-2.5 h-6">Cancelled</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs px-2.5 h-6">Todas</TabsTrigger>
+              <TabsTrigger value="confirmed" className="text-xs px-2.5 h-6">Confirmadas</TabsTrigger>
+              <TabsTrigger value="completed" className="text-xs px-2.5 h-6">Completadas</TabsTrigger>
+              <TabsTrigger value="cancelled" className="text-xs px-2.5 h-6">Canceladas</TabsTrigger>
             </TabsList>
           </Tabs>
         </CardHeader>
@@ -277,7 +277,7 @@ export default function CalendarPage() {
                         <p className="text-sm font-medium">
                           {format(parseISO(b.start_date), "MMM d, yyyy")} → {format(parseISO(b.end_date), "MMM d, yyyy")}
                         </p>
-                        <p className="text-xs text-muted-foreground">{duration} day{duration !== 1 ? "s" : ""}</p>
+                        <p className="text-xs text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""}</p>
                         <StatusBadge status={b.status} />
                       </div>
                       <BookingActions booking={b} />
@@ -287,7 +287,7 @@ export default function CalendarPage() {
               })}
             </div>
           ) : (
-            <p className="text-muted-foreground text-sm text-center py-6">No bookings found</p>
+            <p className="text-muted-foreground text-sm text-center py-6">No se encontraron reservas</p>
           )}
         </CardContent>
       </Card>

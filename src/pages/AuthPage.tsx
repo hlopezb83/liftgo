@@ -17,7 +17,6 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Detect recovery token in URL (password reset link clicked)
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
@@ -34,15 +33,15 @@ export default function AuthPage() {
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
       if (error) toast.error(error.message);
-      else toast.success("Check your email for a password reset link");
+      else toast.success("Revisa tu correo para restablecer tu contraseña");
     } else if (mode === "reset") {
       const { error } = await updatePassword(password);
       if (error) toast.error(error.message);
-      else { toast.success("Password updated successfully"); setMode("sign-in"); }
+      else { toast.success("Contraseña actualizada"); setMode("sign-in"); }
     } else if (mode === "sign-up") {
       const { error } = await signUp(email, password, fullName);
       if (error) toast.error(error.message);
-      else toast.success("Check your email to confirm your account");
+      else toast.success("Revisa tu correo para confirmar tu cuenta");
     } else {
       const { error } = await signIn(email, password);
       if (error) toast.error(error.message);
@@ -51,10 +50,10 @@ export default function AuthPage() {
   };
 
   const titles: Record<Mode, { title: string; desc: string }> = {
-    "sign-in": { title: "Sign In", desc: "Sign in to Lift Go" },
-    "sign-up": { title: "Create Account", desc: "Create your Lift Go account" },
-    forgot: { title: "Reset Password", desc: "Enter your email to receive a reset link" },
-    reset: { title: "New Password", desc: "Enter your new password" },
+    "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
+    "sign-up": { title: "Crear Cuenta", desc: "Crea tu cuenta en Lift Go" },
+    forgot: { title: "Restablecer Contraseña", desc: "Ingresa tu correo para recibir un enlace" },
+    reset: { title: "Nueva Contraseña", desc: "Ingresa tu nueva contraseña" },
   };
 
   return (
@@ -71,47 +70,47 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "sign-up" && (
               <div className="space-y-1.5">
-                <Label>Full Name</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" />
+                <Label>Nombre Completo</Label>
+                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Juan Pérez" />
               </div>
             )}
             {mode !== "reset" && (
               <div className="space-y-1.5">
-                <Label>Email</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" required />
+                <Label>Correo Electrónico</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
               </div>
             )}
             {(mode === "sign-in" || mode === "sign-up" || mode === "reset") && (
               <div className="space-y-1.5">
-                <Label>{mode === "reset" ? "New Password" : "Password"}</Label>
+                <Label>{mode === "reset" ? "Nueva Contraseña" : "Contraseña"}</Label>
                 <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Loading..." : mode === "forgot" ? "Send Reset Link" : mode === "reset" ? "Update Password" : mode === "sign-up" ? "Sign Up" : "Sign In"}
+              {loading ? "Cargando..." : mode === "forgot" ? "Enviar Enlace" : mode === "reset" ? "Actualizar Contraseña" : mode === "sign-up" ? "Registrarse" : "Iniciar Sesión"}
             </Button>
           </form>
           <div className="mt-4 text-center space-y-1">
             {mode === "sign-in" && (
               <>
-                <Button variant="link" size="sm" onClick={() => setMode("forgot")}>Forgot password?</Button>
+                <Button variant="link" size="sm" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
                 <br />
-                <Button variant="link" onClick={() => setMode("sign-up")}>Need an account? Sign Up</Button>
+                <Button variant="link" onClick={() => setMode("sign-up")}>¿No tienes cuenta? Regístrate</Button>
               </>
             )}
             {mode === "sign-up" && (
-              <Button variant="link" onClick={() => setMode("sign-in")}>Already have an account? Sign In</Button>
+              <Button variant="link" onClick={() => setMode("sign-in")}>¿Ya tienes cuenta? Inicia Sesión</Button>
             )}
             {mode === "forgot" && (
-              <Button variant="link" onClick={() => setMode("sign-in")}>Back to Sign In</Button>
+              <Button variant="link" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
             )}
             {mode === "reset" && (
-              <Button variant="link" onClick={() => setMode("sign-in")}>Back to Sign In</Button>
+              <Button variant="link" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
             )}
           </div>
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Are you a customer?{" "}
-            <a href="/portal/login" className="underline hover:text-foreground">Sign in to the Customer Portal</a>
+            ¿Eres cliente?{" "}
+            <a href="/portal/login" className="underline hover:text-foreground">Ingresa al Portal de Clientes</a>
           </p>
         </CardContent>
       </Card>
