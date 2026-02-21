@@ -1,84 +1,25 @@
 
+# Mejorar el Scrollbar del Sidebar
 
-# Correcciones de Textos en Ingles Restantes
+## Problema
 
-## Resumen
+El sidebar usa `overflow-auto` nativo del navegador (linea 334 de `sidebar.tsx`), lo cual muestra un scrollbar grueso y poco estetico que no combina con el diseno oscuro del sidebar.
 
-La revision encontro varios textos en ingles que no fueron traducidos. Son pocos pero visibles para el usuario final.
+## Solucion
 
-## Hallazgos y Correcciones
+Agregar estilos CSS personalizados para scrollbars en toda la app, con estilos especificos para el sidebar oscuro.
 
-### 1. Paginacion: "Previous" y "Next"
-**Archivo:** `src/components/ui/pagination.tsx`
-- Linea 52: `"Previous"` debe ser `"Anterior"`
-- Linea 59: `"Next"` debe ser `"Siguiente"`
-- Linea 50: aria-label `"Go to previous page"` a `"Ir a la pagina anterior"`
-- Linea 58: aria-label `"Go to next page"` a `"Ir a la pagina siguiente"`
-- Linea 68: sr-only `"More pages"` a `"Mas paginas"`
+### Cambios
 
-Esto afecta TODAS las tablas con paginacion en toda la app.
+| Archivo | Cambio |
+|---------|--------|
+| `src/index.css` | Agregar estilos globales de scrollbar usando pseudo-elementos `::-webkit-scrollbar`, `::-webkit-scrollbar-track` y `::-webkit-scrollbar-thumb`. Scrollbar delgado (6px), con thumb redondeado y semitransparente que se oscurece al hacer hover. Estilos especiales para el sidebar (thumb claro sobre fondo oscuro). Tambien agregar `scrollbar-width: thin` y `scrollbar-color` para Firefox. |
 
-### 2. CustomersPage: Toasts y label en ingles
-**Archivo:** `src/pages/CustomersPage.tsx`
-- Linea 66: `"Name is required"` debe ser `"El nombre es requerido"`
-- Linea 77: `"Customer updated"` debe ser `"Cliente actualizado"`
-- Linea 79: `"Customer added"` debe ser `"Cliente agregado"`
-- Linea 151: Label `"Tax / VAT ID"` debe ser `"ID Fiscal"`
-- Linea 200: Label `"Website"` debe ser `"Sitio Web"`
+### Detalles Tecnicos
 
-### 3. InvoicesPage: Tabs de estado en ingles
-**Archivo:** `src/pages/InvoicesPage.tsx`
-- Linea 59: Los tabs muestran los valores crudos en ingles (`draft`, `sent`, `partial`, `paid`, `overdue`, `all`). Necesitan un mapa de etiquetas similar al de QuotesPage.
+Se agregaran las siguientes reglas CSS en `src/index.css` dentro de `@layer base`:
 
-### 4. ContractsPage: Tabs de estado en ingles
-**Archivo:** `src/pages/ContractsPage.tsx`
-- Linea 51: Los tabs muestran los valores crudos (`draft`, `sent`, `signed`, `cancelled`, `all`). Necesitan un mapa de etiquetas.
-
-### 5. Fleet, ForkliftForm, ForkliftDetail: Estados en ingles
-**Archivos:** `src/pages/Fleet.tsx`, `src/pages/ForkliftForm.tsx`, `src/pages/ForkliftDetail.tsx`
-- Los dropdowns de estado de montacargas usan `s.charAt(0).toUpperCase() + s.slice(1)` que simplemente capitaliza el valor en ingles (e.g., "Available", "Maintenance"). Necesitan un mapa de etiquetas en espanol.
-
-### 6. CalendarPage: Estado en tooltip sin traducir
-**Archivo:** `src/pages/CalendarPage.tsx`
-- Linea 223: El tooltip del booking muestra `booking.status` en ingles con `capitalize`. Necesita traducirse usando el mismo mapa de StatusBadge.
-
-## Detalles Tecnicos
-
-**Mapa de estados de montacargas** (reutilizable):
-```text
-available -> Disponible
-rented -> Rentado
-maintenance -> Mantenimiento
-retired -> Retirado
-```
-
-**Mapa de estados de facturas:**
-```text
-all -> Todas
-draft -> Borrador
-sent -> Enviada
-partial -> Parcial
-paid -> Pagada
-overdue -> Vencida
-```
-
-**Mapa de estados de contratos:**
-```text
-all -> Todos
-draft -> Borrador
-sent -> Enviado
-signed -> Firmado
-cancelled -> Cancelado
-```
-
-| Accion | Archivo | Cambio |
-|--------|---------|--------|
-| Modificar | `src/components/ui/pagination.tsx` | "Previous"/"Next" a "Anterior"/"Siguiente" |
-| Modificar | `src/pages/CustomersPage.tsx` | 5 textos en ingles |
-| Modificar | `src/pages/InvoicesPage.tsx` | Tabs con mapa de etiquetas |
-| Modificar | `src/pages/ContractsPage.tsx` | Tabs con mapa de etiquetas |
-| Modificar | `src/pages/Fleet.tsx` | Dropdown con mapa de etiquetas |
-| Modificar | `src/pages/ForkliftForm.tsx` | Dropdown con mapa de etiquetas |
-| Modificar | `src/pages/ForkliftDetail.tsx` | Dropdown con mapa de etiquetas |
-| Modificar | `src/pages/CalendarPage.tsx` | Tooltip status traducido |
-
+- Scrollbar global: 6px de ancho, track transparente, thumb gris semitransparente con bordes redondeados
+- Scrollbar en el sidebar (`[data-sidebar="content"]`): thumb claro (blanco semitransparente) para contrastar con el fondo oscuro
+- Soporte para Firefox con `scrollbar-width: thin`
+- Transicion suave en hover del thumb
