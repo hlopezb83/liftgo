@@ -64,7 +64,7 @@ export default function Fleet() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead><TableHead>Modelo</TableHead><TableHead>Fabricante</TableHead>
-                  <TableHead>Capacidad</TableHead><TableHead>Combustible</TableHead><TableHead>Estado</TableHead>
+                  <TableHead>Capacidad</TableHead><TableHead>Altura</TableHead><TableHead>Combustible</TableHead><TableHead>Estado</TableHead>
                   <TableHead className="text-right">Tarifa Diaria</TableHead>
                 </TableRow>
               </TableHeader>
@@ -75,12 +75,13 @@ export default function Fleet() {
                     <TableCell>{f.model}</TableCell>
                     <TableCell>{f.manufacturer || "—"}</TableCell>
                     <TableCell>{f.capacity_kg ? `${f.capacity_kg} kg` : "—"}</TableCell>
+                    <TableCell>{f.mast_height_m ? `${f.mast_height_m} m` : "—"}</TableCell>
                     <TableCell>{f.fuel_type}</TableCell>
                     <TableCell><StatusBadge status={f.status} /></TableCell>
                     <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/día</TableCell>
                   </TableRow>
                 ))}
-                {paginatedItems.length === 0 && <EmptyRow colSpan={7} message="No se encontraron montacargas" />}
+                {paginatedItems.length === 0 && <EmptyRow colSpan={8} message="No se encontraron montacargas" />}
               </TableBody>
             </Table>
           )}
