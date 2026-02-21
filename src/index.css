@@ -122,4 +122,41 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
+
+  /* Global scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsla(220, 10%, 50%, 0.3) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsla(220, 10%, 50%, 0.3);
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsla(220, 10%, 50%, 0.5);
+  }
+
+  /* Sidebar scrollbar (light thumb on dark bg) */
+  [data-sidebar="content"] {
+    scrollbar-color: hsla(0, 0%, 100%, 0.15) transparent;
+  }
+
+  [data-sidebar="content"]::-webkit-scrollbar-thumb {
+    background: hsla(0, 0%, 100%, 0.15);
+  }
+
+  [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+    background: hsla(0, 0%, 100%, 0.3);
+  }
 }
