@@ -4,6 +4,7 @@ import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import type { AppRole } from "@/hooks/useUserRole";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
@@ -66,14 +67,19 @@ function ThemeToggle() {
 export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
+  const { data: company } = useCompanySettings();
 
   return (
     <Sidebar>
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">LG</div>
+          {company?.logo_url ? (
+            <img src={company.logo_url} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">LG</div>
+          )}
           <div>
-            <h2 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight">Lift Go</h2>
+            <h2 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight">{company?.razon_social || "Lift Go"}</h2>
             <p className="text-xs text-sidebar-foreground/60">Montacargas</p>
           </div>
         </div>
