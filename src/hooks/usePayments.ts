@@ -23,7 +23,7 @@ export function usePayments(invoiceId: string | undefined) {
         .eq("invoice_id", invoiceId!)
         .order("payment_date", { ascending: false });
       if (error) throw error;
-      return data as unknown as Payment[];
+      return data as Payment[];
     },
   });
 }
@@ -40,7 +40,7 @@ export function useCreatePayment() {
     mutationFn: async (payment: Omit<Payment, "id" | "created_at">) => {
       const { data, error } = await supabase
         .from("payments")
-        .insert(payment as any)
+        .insert(payment)
         .select()
         .single();
       if (error) throw error;
@@ -50,7 +50,7 @@ export function useCreatePayment() {
         .from("payments")
         .select("amount")
         .eq("invoice_id", payment.invoice_id);
-      const totalPaid = (allPayments as any[] || []).reduce((s: number, p: any) => s + Number(p.amount), 0);
+      const totalPaid = (allPayments || []).reduce((s: number, p) => s + Number(p.amount), 0);
 
       const { data: invoice } = await supabase
         .from("invoices")

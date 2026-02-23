@@ -156,11 +156,11 @@ export default function InvoiceForm() {
     };
 
     if (isEdit) {
-      updateInvoice.mutate({ id, ...payload } as any, {
+      updateInvoice.mutate({ id, ...payload }, {
         onSuccess: () => { toast.success("Factura actualizada"); navigate(`/invoices/${id}`); },
       });
     } else {
-      createInvoice.mutate(payload as any, {
+      createInvoice.mutate(payload, {
         onSuccess: (data) => { toast.success(`Factura ${data.invoice_number} creada`); navigate(`/invoices/${data.id}`); },
       });
     }

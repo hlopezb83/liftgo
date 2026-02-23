@@ -63,8 +63,8 @@ export default function InvoiceDetail() {
       if (data?.error) throw new Error(data.error);
       toast.success(`CFDI timbrado${data.stub ? " (modo prueba)" : ""} — UUID: ${data.cfdi_uuid}`);
       refetch();
-    } catch (err: any) {
-      toast.error(err.message || "Error al timbrar");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al timbrar");
     } finally {
       setStampLoading(false);
     }
@@ -83,8 +83,8 @@ export default function InvoiceDetail() {
       if (data?.warning) toast.warning(data.warning);
       setCancelDialogOpen(false);
       refetch();
-    } catch (err: any) {
-      toast.error(err.message || "Error al cancelar");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al cancelar");
     } finally {
       setCancelLoading(false);
     }
@@ -92,9 +92,8 @@ export default function InvoiceDetail() {
 
   const handleDownloadXml = () => {
     if (!invoice) return;
-    const inv = invoice as any;
-    if (!inv.cfdi_xml) return;
-    const blob = new Blob([inv.cfdi_xml], { type: "application/xml" });
+    if (!invoice.cfdi_xml) return;
+    const blob = new Blob([invoice.cfdi_xml], { type: "application/xml" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -106,9 +105,8 @@ export default function InvoiceDetail() {
   if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
   if (!invoice) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
 
-  const inv = invoice as any;
   const lineItems = (invoice.line_items as unknown as LineItem[]) || [];
-  const cfdiStatus = inv.cfdi_status || "pending";
+  const cfdiStatus = invoice.cfdi_status || "pending";
   const balance = Number(invoice.total) - totalPaid;
 
   return (
@@ -161,11 +159,11 @@ export default function InvoiceDetail() {
         </div>
       </div>
 
-      {inv.cfdi_uuid && (
+      {invoice.cfdi_uuid && (
         <Card>
           <CardContent className="py-3">
             <p className="text-xs text-muted-foreground">UUID CFDI</p>
-            <p className="font-mono text-sm">{inv.cfdi_uuid}</p>
+            <p className="font-mono text-sm">{invoice.cfdi_uuid}</p>
           </CardContent>
         </Card>
       )}
@@ -175,7 +173,7 @@ export default function InvoiceDetail() {
           <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-sm">
             <p className="font-medium">{invoice.customer_name || "—"}</p>
-            {inv.receptor_rfc && <p><span className="text-muted-foreground">RFC:</span> {inv.receptor_rfc}</p>}
+            {invoice.receptor_rfc && <p><span className="text-muted-foreground">RFC:</span> {invoice.receptor_rfc}</p>}
           </CardContent>
         </Card>
         <Card>
@@ -188,17 +186,17 @@ export default function InvoiceDetail() {
         </Card>
       </div>
 
-      {(inv.serie || inv.forma_pago || inv.metodo_pago) && (
+      {(invoice.serie || invoice.forma_pago || invoice.metodo_pago) && (
         <Card>
           <CardHeader><CardTitle className="text-base">Datos Fiscales</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              {inv.serie && <div><span className="text-muted-foreground block">Serie</span>{inv.serie}</div>}
-              {inv.folio && <div><span className="text-muted-foreground block">Folio</span>{inv.folio}</div>}
-              {inv.forma_pago && <div><span className="text-muted-foreground block">Forma de Pago</span>{inv.forma_pago}</div>}
-              {inv.metodo_pago && <div><span className="text-muted-foreground block">Método de Pago</span>{inv.metodo_pago}</div>}
-              {inv.moneda && <div><span className="text-muted-foreground block">Moneda</span>{inv.moneda}</div>}
-              {inv.uso_cfdi && <div><span className="text-muted-foreground block">Uso CFDI</span>{inv.uso_cfdi}</div>}
+              {invoice.serie && <div><span className="text-muted-foreground block">Serie</span>{invoice.serie}</div>}
+              {invoice.folio && <div><span className="text-muted-foreground block">Folio</span>{invoice.folio}</div>}
+              {invoice.forma_pago && <div><span className="text-muted-foreground block">Forma de Pago</span>{invoice.forma_pago}</div>}
+              {invoice.metodo_pago && <div><span className="text-muted-foreground block">Método de Pago</span>{invoice.metodo_pago}</div>}
+              {invoice.moneda && <div><span className="text-muted-foreground block">Moneda</span>{invoice.moneda}</div>}
+              {invoice.uso_cfdi && <div><span className="text-muted-foreground block">Uso CFDI</span>{invoice.uso_cfdi}</div>}
             </div>
           </CardContent>
         </Card>

@@ -30,7 +30,6 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
         .limit(1)
         .maybeSingle();
 
-      const inv = invoice as any;
       const doc = new jsPDF();
       const pw = doc.internal.pageSize.getWidth();
       const mg = 20;
@@ -45,7 +44,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       if (company) {
         doc.text(`RFC: ${company.rfc} | Régimen: ${company.regimen_fiscal} | C.P.: ${company.lugar_expedicion}`, mg, y + 7);
       } else {
-        doc.text("Fleet Management", mg, y + 7);
+        doc.text("Gestión de Flota", mg, y + 7);
       }
 
       doc.setFontSize(24);
@@ -53,16 +52,16 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.text("FACTURA", pw - mg, y, { align: "right" });
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      const invoiceLabel = inv.serie && inv.folio
-        ? `${inv.serie}-${inv.folio}`
+      const invoiceLabel = invoice.serie && invoice.folio
+        ? `${invoice.serie}-${invoice.folio}`
         : invoice.invoice_number;
       doc.text(invoiceLabel, pw - mg, y + 8, { align: "right" });
 
-      if (inv.cfdi_status === "stamped" && inv.cfdi_uuid) {
+      if (invoice.cfdi_status === "stamped" && invoice.cfdi_uuid) {
         doc.setFontSize(7);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(102, 102, 102);
-        doc.text(`UUID: ${inv.cfdi_uuid}`, pw - mg, y + 14, { align: "right" });
+        doc.text(`UUID: ${invoice.cfdi_uuid}`, pw - mg, y + 14, { align: "right" });
         y += 5;
       }
 
@@ -75,10 +74,10 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.text("Receptor:", mg, y);
       doc.setFont("helvetica", "normal");
       doc.text(invoice.customer_name || "—", mg, y + 6);
-      if (inv.receptor_rfc) {
+      if (invoice.receptor_rfc) {
         doc.setFontSize(9);
-        doc.text(`RFC: ${inv.receptor_rfc}`, mg, y + 12);
-        if (inv.receptor_regimen_fiscal) doc.text(`Régimen: ${inv.receptor_regimen_fiscal}`, mg, y + 17);
+        doc.text(`RFC: ${invoice.receptor_rfc}`, mg, y + 12);
+        if (invoice.receptor_regimen_fiscal) doc.text(`Régimen: ${invoice.receptor_regimen_fiscal}`, mg, y + 17);
         y += 10;
       }
 
@@ -86,8 +85,8 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.text(`Emitida: ${invoice.issued_at}`, pw - mg, y - 4, { align: "right" });
       doc.text(`Vence: ${invoice.due_date || "—"}`, pw - mg, y + 2, { align: "right" });
       doc.text(`Estado: ${invoice.status.toUpperCase()}`, pw - mg, y + 8, { align: "right" });
-      if (inv.forma_pago) doc.text(`Forma Pago: ${inv.forma_pago}`, pw - mg, y + 14, { align: "right" });
-      if (inv.metodo_pago) doc.text(`Método Pago: ${inv.metodo_pago}`, pw - mg, y + 20, { align: "right" });
+      if (invoice.forma_pago) doc.text(`Forma Pago: ${invoice.forma_pago}`, pw - mg, y + 14, { align: "right" });
+      if (invoice.metodo_pago) doc.text(`Método Pago: ${invoice.metodo_pago}`, pw - mg, y + 20, { align: "right" });
 
       y += 30;
 
@@ -96,9 +95,9 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.rect(mg, y - 5, pw - mg * 2, 10, "F");
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
-      doc.text("Description", mg + 2, y);
-      doc.text("Qty", 120, y, { align: "right" });
-      doc.text("Unit Price", 150, y, { align: "right" });
+      doc.text("Descripción", mg + 2, y);
+      doc.text("Cant.", 120, y, { align: "right" });
+      doc.text("Precio Unit.", 150, y, { align: "right" });
       doc.text("Total", pw - mg, y, { align: "right" });
 
       y += 4;
@@ -143,10 +142,10 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.text("Total:", pw - mg - 50, y, { align: "right" });
-      doc.text(`$${Number(invoice.total).toFixed(2)} ${inv.moneda || "MXN"}`, pw - mg, y, { align: "right" });
+      doc.text(`$${Number(invoice.total).toFixed(2)} ${invoice.moneda || "MXN"}`, pw - mg, y, { align: "right" });
 
       // QR placeholder area for CFDI
-      if (inv.cfdi_uuid) {
+      if (invoice.cfdi_uuid) {
         y += 15;
         doc.setDrawColor(200, 200, 200);
         doc.setLineWidth(0.3);
@@ -159,7 +158,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
 
       // Notes
       if (invoice.notes) {
-        y += (inv.cfdi_uuid ? 35 : 15);
+        y += (invoice.cfdi_uuid ? 35 : 15);
         doc.setFontSize(10);
         doc.setTextColor(51, 51, 51);
         doc.setFillColor(248, 249, 250);
@@ -171,8 +170,8 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       }
 
       doc.save(`${invoice.invoice_number}.pdf`);
-    } catch (err: any) {
-      toast.error(err.message || "Error al descargar PDF");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al descargar PDF");
     } finally {
       setLoading(false);
     }

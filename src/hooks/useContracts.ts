@@ -34,7 +34,7 @@ export function useContracts() {
         .select("*, customers(name), forklifts(name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as any[]).map((c) => ({
+      return (data as Record<string, any>[]).map((c) => ({
         ...c,
         customer_name: c.customers?.name || null,
         forklift_name: c.forklifts?.name || null,
@@ -54,8 +54,8 @@ export function useContract(id: string | undefined) {
         .eq("id", id!)
         .single();
       if (error) throw error;
-      const c = data as any;
-      return { ...c, customer_name: c.customers?.name || null, forklift_name: c.forklifts?.name || null } as Contract;
+      const c = data as Record<string, unknown>;
+      return { ...c, customer_name: (c.customers as any)?.name || null, forklift_name: (c.forklifts as any)?.name || null } as Contract;
     },
   });
 }
@@ -68,7 +68,7 @@ export function useCreateContract() {
       if (numErr) throw numErr;
       const { data, error } = await supabase
         .from("contracts")
-        .insert({ ...contract, contract_number: num as string } as any)
+        .insert({ ...contract, contract_number: num as string })
         .select()
         .single();
       if (error) throw error;
@@ -84,7 +84,7 @@ export function useUpdateContract() {
     mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
       const { data, error } = await supabase
         .from("contracts")
-        .update(updates as any)
+        .update(updates)
         .eq("id", id)
         .select()
         .single();
