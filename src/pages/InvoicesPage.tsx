@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, Eye, Download, ChevronRight } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
+import { STATUS_LABELS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
@@ -58,7 +59,7 @@ export default function InvoicesPage() {
         <Tabs value={status} onValueChange={setStatus}>
           <TabsList className="flex-wrap">
             {STATUSES.map((s) => (
-              <TabsTrigger key={s} value={s}>{{ all: "Todas", draft: "Borrador", sent: "Enviada", partial: "Parcial", paid: "Pagada", overdue: "Vencida" }[s]}</TabsTrigger>
+              <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>

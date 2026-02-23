@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { FORKLIFT_STATUSES } from "@/lib/constants";
+import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 
 export default function ForkliftDetail() {
   const { id } = useParams();
@@ -159,7 +159,7 @@ export default function ForkliftDetail() {
             </SelectTrigger>
             <SelectContent>
               {FORKLIFT_STATUSES.filter((s) => s !== forklift.status).map((s) => (
-                <SelectItem key={s} value={s}>{{ available: "Disponible", rented: "Rentado", maintenance: "Mantenimiento", retired: "Retirado" }[s]}</SelectItem>
+                <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
               ))}
             </SelectContent>
           </Select>

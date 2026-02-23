@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { STATUS_LABELS } from "@/lib/constants";
 import { PageTransition } from "@/components/PageTransition";
 import { useNavigate } from "react-router-dom";
 import { useContracts } from "@/hooks/useContracts";
@@ -50,7 +51,7 @@ export default function ContractsPage() {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Tabs value={status} onValueChange={setStatus}>
           <TabsList className="flex-wrap">
-            {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{{ all: "Todos", draft: "Borrador", sent: "Enviado", signed: "Firmado", cancelled: "Cancelado" }[s]}</TabsTrigger>)}
+            {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>)}
           </TabsList>
         </Tabs>
         <div className="relative w-full sm:w-64">

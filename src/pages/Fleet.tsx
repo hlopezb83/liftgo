@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { Search, PlusCircle, Download, ChevronRight } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
-import { FORKLIFT_STATUSES } from "@/lib/constants";
+import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Fleet() {
@@ -55,7 +55,7 @@ export default function Fleet() {
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Todos los estados" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los estados</SelectItem>
-            {FORKLIFT_STATUSES.map((s) => <SelectItem key={s} value={s}>{{ available: "Disponible", rented: "Rentado", maintenance: "Mantenimiento", retired: "Retirado" }[s]}</SelectItem>)}
+            {FORKLIFT_STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
