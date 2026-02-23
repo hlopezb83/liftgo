@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
-export type AppRole = "admin" | "dispatcher" | "mechanic" | "customer";
+export type AppRole = "admin" | "dispatcher" | "mechanic" | "customer" | "administrativo";
 
 export function useUserRole() {
   const { user } = useAuth();
@@ -17,7 +17,7 @@ export function useUserRole() {
         .eq("user_id", user!.id);
       if (error || !data || data.length === 0) return "dispatcher" as AppRole;
       // Priority: admin > customer > mechanic > dispatcher
-      const priority: AppRole[] = ["admin", "customer", "mechanic", "dispatcher"];
+      const priority: AppRole[] = ["admin", "customer", "administrativo", "mechanic", "dispatcher"];
       const roles = data.map((r) => r.role as AppRole);
       return priority.find((p) => roles.includes(p)) ?? "dispatcher";
     },

@@ -64,10 +64,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const validRoles = ["admin", "dispatcher", "mechanic"];
+    const validRoles = ["admin", "administrativo", "dispatcher", "mechanic"];
     if (!validRoles.includes(role)) {
       return new Response(
-        JSON.stringify({ error: "Invalid role. Must be admin, dispatcher or mechanic" }),
+        JSON.stringify({ error: "Invalid role. Must be admin, administrativo, dispatcher or mechanic" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -1151,7 +1151,12 @@ export type Database = {
       next_quote_number: { Args: never; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "dispatcher" | "mechanic" | "customer"
+      app_role:
+        | "admin"
+        | "dispatcher"
+        | "mechanic"
+        | "customer"
+        | "administrativo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1279,7 +1284,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "dispatcher", "mechanic", "customer"],
+      app_role: [
+        "admin",
+        "dispatcher",
+        "mechanic",
+        "customer",
+        "administrativo",
+      ],
     },
   },
 } as const
