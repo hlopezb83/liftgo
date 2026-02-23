@@ -1,60 +1,30 @@
 
-# Mostrar Credenciales Temporales Despues de Crear Usuario
+# Unificar Gas LP y Gasolina en una sola opcion de combustible
 
-## Objetivo
-Despues de crear un usuario exitosamente, mostrar un dialogo con las credenciales (correo y contrasena) para que el admin las copie y comparta con el nuevo usuario.
+## Contexto
+Los motores que usan Gas LP tambien aceptan Gasolina, por lo que tener dos opciones separadas no tiene sentido. Se unificaran en una sola opcion.
 
 ## Cambios
 
-### 1. Modificar `invite-user` Edge Function
-Actualmente la funcion NO retorna la contrasena en la respuesta. Modificar para que devuelva el `email` y `password` usados, para que el frontend los muestre.
+### 1. Modificar constantes en `src/lib/constants.ts`
+- Eliminar "Gasoline" de `FUEL_TYPES`, quedando: `["Diesel", "Electric", "LPG"]`
+- Cambiar la etiqueta de "LPG" de "Gas LP" a **"Gas LP / Gasolina"** en `FUEL_TYPE_LABELS`
+- Eliminar la entrada "Gasoline" de `FUEL_TYPE_LABELS`
 
-**Archivo:** `supabase/functions/invite-user/index.ts`
-- Agregar `email` y `password` al JSON de respuesta exitosa
+### 2. Migrar datos existentes en la base de datos
+- Actualizar cualquier registro en `forklifts` donde `fuel_type = 'Gasoline'` a `'LPG'`
+- Actualizar cualquier registro en `equipment_models` donde `default_fuel_type = 'Gasoline'` a `'LPG'`
 
-### 2. Dialogo de Credenciales en `UserManagementPage.tsx`
-Despues de crear el usuario con exito:
-- Abrir un nuevo dialogo con titulo "Usuario Creado"
-- Mostrar el correo y la contrasena temporal en campos de solo lectura
-- Incluir botones "Copiar" junto a cada campo
-- Mensaje de advertencia: "Comparte estas credenciales con el usuario. La contrasena no se podra consultar despues."
-- Boton "Cerrar" para descartar
+Nota: Actualmente no hay datos en ninguna de las dos tablas, pero la migracion se incluye por seguridad para cubrir datos futuros o que se agreguen antes de aplicar el cambio.
 
-**Archivo:** `src/pages/UserManagementPage.tsx`
-- Agregar estado para almacenar las credenciales recien creadas (`createdCredentials`)
-- Crear un `Dialog` que se abre cuando `createdCredentials` tiene valor
-- Usar `navigator.clipboard.writeText()` para la funcionalidad de copiar
-- Limpiar el estado al cerrar
+### Resultado final
+Las opciones de combustible quedaran:
+- Diesel (Diesel)
+- Electric (Electrico)
+- LPG (Gas LP / Gasolina)
 
-## Detalles Tecnicos
+### Archivos a modificar
+- `src/lib/constants.ts` -- eliminar "Gasoline", renombrar label de LPG
+- Migracion SQL -- actualizar registros existentes con "Gasoline" a "LPG"
 
-### Respuesta modificada del Edge Function
-```text
-// Antes
-{ success: true, user_id: userId }
-
-// Despues  
-{ success: true, user_id: userId, email, password: finalPassword }
-```
-
-### Estado nuevo en UserManagementPage
-```text
-const [createdCredentials, setCreatedCredentials] = useState<{
-  email: string;
-  password: string;
-} | null>(null);
-```
-
-### Flujo
-1. Admin llena formulario y hace clic en "Crear Usuario"
-2. Edge function crea el usuario y retorna email + contrasena
-3. Se cierra el dialogo de creacion
-4. Se abre el dialogo de credenciales con los datos
-5. Admin copia las credenciales y las comparte
-6. Admin cierra el dialogo
-
-**Archivos a modificar:**
-- `supabase/functions/invite-user/index.ts` -- retornar credenciales
-- `src/pages/UserManagementPage.tsx` -- dialogo de credenciales
-
-**Riesgo:** Bajo. La contrasena solo se muestra una vez en memoria del frontend y no se persiste.
+No se requieren cambios en otros archivos ya que `ForkliftForm`, `EquipmentModelsTab` y demas componentes consumen las constantes de `constants.ts` dinamicamente.
