@@ -79,7 +79,7 @@ export default function CompanySettingsPage() {
                 <Label>Régimen Fiscal *</Label>
                 <Select value={form.regimen_fiscal} onValueChange={(v) => set("regimen_fiscal", v)}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar régimen" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto z-50">
                     {REGIMEN_FISCAL.map((r) => (
                       <SelectItem key={r.code} value={r.code}>{r.label}</SelectItem>
                     ))}
