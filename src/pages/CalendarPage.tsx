@@ -1,59 +1,48 @@
 import { useBookings } from "@/hooks/useBookings";
 import { useForklifts } from "@/hooks/useForklifts";
 import { PageTransition } from "@/components/PageTransition";
-import type { BookingWithForklift } from "@/hooks/useBookings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format, eachDayOfInterval, isWithinInterval, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, isToday, getDay } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, AlertTriangle, Repeat, Plus } from "lucide-react";
 import { BookingActions } from "@/components/BookingActions";
 import { Link } from "react-router-dom";
-
-const BOOKING_COLORS = [
-  "hsl(217, 91%, 60%)",
-  "hsl(25, 95%, 53%)",
-  "hsl(280, 65%, 60%)",
-  "hsl(142, 71%, 45%)",
-  "hsl(38, 92%, 50%)",
-  "hsl(340, 75%, 55%)",
-  "hsl(190, 80%, 45%)",
-  "hsl(60, 70%, 45%)",
-];
-
-function hashColor(id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = ((h << 5) - h + id.charCodeAt(i)) | 0;
-  return BOOKING_COLORS[Math.abs(h) % BOOKING_COLORS.length];
-}
+import { CalendarStatCards } from "@/components/calendar/CalendarStatCards";
+import { GanttChart } from "@/components/calendar/GanttChart";
+import { EquipmentListView } from "@/components/calendar/EquipmentListView";
 
 export default function CalendarPage() {
   const { data: bookings, isLoading: bLoading } = useBookings();
   const { data: forklifts, isLoading: fLoading } = useForklifts();
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [statusFilter, setStatusFilter] = useState("all");
-
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
+  const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
 
   const forkliftMap = useMemo(() => new Map(forklifts?.map((f) => [f.id, f])), [forklifts]);
 
-  const bookingsByForklift = useMemo(() => {
-    const map = new Map<string, BookingWithForklift[]>();
-    bookings?.forEach((b) => {
-      const list = map.get(b.forklift_id);
-      if (list) list.push(b);
-      else map.set(b.forklift_id, [b]);
-    });
-    return map;
-  }, [bookings]);
+  // Compute range based on ganttRange
+  const rangeStart = ganttRange === "month" ? startOfMonth(currentDate) : startOfWeek(currentDate, { weekStartsOn: 1 });
+  const rangeEnd = ganttRange === "month" ? endOfMonth(currentDate) : endOfWeek(currentDate, { weekStartsOn: 1 });
+
+  const navigateBack = () => {
+    setCurrentDate(ganttRange === "month" ? subMonths(currentDate, 1) : subWeeks(currentDate, 1));
+  };
+  const navigateForward = () => {
+    setCurrentDate(ganttRange === "month" ? addMonths(currentDate, 1) : addWeeks(currentDate, 1));
+  };
+  const navigateToday = () => setCurrentDate(new Date());
+
+  const rangeLabel = ganttRange === "month"
+    ? format(currentDate, "MMMM yyyy", { locale: es })
+    : `${format(rangeStart, "d MMM", { locale: es })} – ${format(rangeEnd, "d MMM yyyy", { locale: es })}`;
 
   const endingSoon = useMemo(() => {
     if (!bookings) return [];
@@ -64,22 +53,6 @@ export default function CalendarPage() {
     });
   }, [bookings]);
 
-  // Color legend: map customer names to colors from visible bookings
-  const customerColorMap = useMemo(() => {
-    const map = new Map<string, string>();
-    bookings?.forEach((b) => {
-      if (!b.customer_name || map.has(b.customer_name)) return;
-      // Check if booking overlaps current month
-      const bStart = parseISO(b.start_date);
-      const bEnd = parseISO(b.end_date);
-      if (bEnd >= monthStart && bStart <= monthEnd) {
-        map.set(b.customer_name, hashColor(b.id));
-      }
-    });
-    return map;
-  }, [bookings, monthStart, monthEnd]);
-
-  // Filtered bookings for the list
   const filteredBookings = useMemo(() => {
     if (!bookings) return [];
     if (statusFilter === "all") return bookings;
@@ -123,132 +96,54 @@ export default function CalendarPage() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base">{format(currentMonth, "MMMM yyyy", { locale: es })}</CardTitle>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(new Date())}>Hoy</Button>
-            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <div className="min-w-[800px]">
-            {/* Day-of-week header row */}
-            <div className="flex border-b pb-1 mb-0">
-              <div className="w-36 shrink-0" />
-              <div className="flex-1 flex">
-                {days.map((day) => {
-                  const wd = getDay(day);
-                  const isWeekend = wd === 0 || wd === 6;
-                  return (
-                    <div
-                      key={`wd-${day.toISOString()}`}
-                      className={`flex-1 text-center text-[9px] font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"}`}
-                    >
-                      {format(day, "EEE", { locale: es })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {/* Day number header row */}
-            <div className="flex border-b pb-2 mb-2">
-              <div className="w-36 shrink-0 text-xs font-medium text-muted-foreground">Montacargas</div>
-              <div className="flex-1 flex">
-                {days.map((day) => {
-                  const wd = getDay(day);
-                  const isWeekend = wd === 0 || wd === 6;
-                  const today = isToday(day);
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className={`flex-1 text-center text-[10px] ${today ? "font-bold text-primary" : isWeekend ? "text-destructive/60" : "text-muted-foreground"}`}
-                    >
-                      {today ? (
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px]">
-                          {format(day, "d")}
-                        </span>
-                      ) : (
-                        format(day, "d")
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+      <CalendarStatCards forklifts={forklifts} bookings={bookings} />
 
-            {/* Forklift rows */}
-            {forklifts?.map((fl) => (
-              <div key={fl.id} className="flex items-center border-b py-1.5 hover:bg-muted/30">
-                <div className="w-36 shrink-0 flex items-center gap-2 pr-2">
-                  <span className="text-xs font-mono font-medium truncate">{fl.name}</span>
-                  <StatusBadge status={fl.status} />
-                </div>
-                <div className="flex-1 flex">
-                  {days.map((day) => {
-                    const wd = getDay(day);
-                    const isWeekend = wd === 0 || wd === 6;
-                    const today = isToday(day);
-                    const booking = bookingsByForklift.get(fl.id)?.find(
-                      (b) =>
-                        (b.status === "confirmed" || b.status === "completed" || b.status === "cancelled") &&
-                        isWithinInterval(day, {
-                          start: parseISO(b.start_date),
-                          end: parseISO(b.end_date),
-                        })
-                    );
-                    const isConfirmed = booking?.status === "confirmed";
-                    const bgColor = booking ? hashColor(booking.id) : undefined;
-                    const duration = booking ? differenceInDays(parseISO(booking.end_date), parseISO(booking.start_date)) + 1 : 0;
+      {/* View mode selector */}
+      <div className="flex items-center gap-3">
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "gantt" | "list")}>
+          <TabsList className="h-8">
+            <TabsTrigger value="gantt" className="text-xs px-3 h-6">Gantt</TabsTrigger>
+            <TabsTrigger value="list" className="text-xs px-3 h-6">Lista</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        {viewMode === "gantt" && (
+          <Tabs value={ganttRange} onValueChange={(v) => setGanttRange(v as "month" | "week")}>
+            <TabsList className="h-8">
+              <TabsTrigger value="week" className="text-xs px-3 h-6">Semana</TabsTrigger>
+              <TabsTrigger value="month" className="text-xs px-3 h-6">Mes</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+      </div>
 
-                    return (
-                      <div
-                        key={day.toISOString()}
-                        className={`flex-1 flex justify-center ${isWeekend ? "bg-muted/20" : ""} ${today ? "bg-primary/5" : ""}`}
-                      >
-                        {booking ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div
-                                className={`w-full h-5 rounded-sm mx-px ${!isConfirmed ? "opacity-30 border border-dashed border-foreground/30" : ""}`}
-                                style={{ background: bgColor }}
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="text-xs space-y-1">
-                              <p className="font-semibold">{booking.customer_name}</p>
-                              <p>{format(parseISO(booking.start_date), "d MMM", { locale: es })} → {format(parseISO(booking.end_date), "d MMM yyyy", { locale: es })}</p>
-                              <p className="text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""} · {{ confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada", pending: "Pendiente" }[booking.status] || booking.status}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          <div className="w-full h-5 bg-muted/30 rounded-sm mx-px" />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Color legend */}
-          {customerColorMap.size > 0 && (
-            <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t">
-              {Array.from(customerColorMap.entries()).map(([name, color]) => (
-                <div key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <div className="w-3 h-3 rounded-sm" style={{ background: color }} />
-                  <span>{name}</span>
-                </div>
-              ))}
+      {viewMode === "gantt" ? (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-base capitalize">{rangeLabel}</CardTitle>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" onClick={navigateBack}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={navigateToday}>Hoy</Button>
+              <Button variant="ghost" size="icon" onClick={navigateForward}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <GanttChart forklifts={forklifts} bookings={bookings} rangeStart={rangeStart} rangeEnd={rangeEnd} />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Equipos y reservas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EquipmentListView forklifts={forklifts} bookings={bookings} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
