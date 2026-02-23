@@ -21,7 +21,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
         .eq("id", invoiceId)
         .single();
 
-      if (error || !invoice) throw new Error("Invoice not found");
+      if (error || !invoice) throw new Error("Factura no encontrada");
 
       // Fetch company settings for issuer info
       const { data: company } = await supabase
@@ -172,7 +172,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
 
       doc.save(`${invoice.invoice_number}.pdf`);
     } catch (err: any) {
-      toast.error(err.message || "Failed to download PDF");
+      toast.error(err.message || "Error al descargar PDF");
     } finally {
       setLoading(false);
     }

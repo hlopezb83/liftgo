@@ -42,7 +42,7 @@ export function useCreateInvoice() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to create invoice", description: err.message, variant: "destructive" })
+        toast({ title: "Error al crear factura", description: err.message, variant: "destructive" })
       );
     },
   });
@@ -62,7 +62,7 @@ export function useUpdateInvoice() {
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to update invoice", description: err.message, variant: "destructive" })
+        toast({ title: "Error al actualizar factura", description: err.message, variant: "destructive" })
       );
     },
   });

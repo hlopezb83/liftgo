@@ -40,7 +40,7 @@ export function useCreateReturnInspection() {
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to complete return inspection", description: err.message, variant: "destructive" })
+        toast({ title: "Error al completar inspección de retorno", description: err.message, variant: "destructive" })
       );
     },
   });
