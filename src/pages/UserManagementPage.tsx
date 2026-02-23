@@ -16,8 +16,8 @@ import { UserPlus, Trash2, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useUserRole";
 
-const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "dispatcher", "mechanic"];
-const ROLE_LABELS: Record<string, string> = { admin: "Administrador", dispatcher: "Despachador", mechanic: "Mecánico" };
+const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "administrativo", "dispatcher", "mechanic"];
+const ROLE_LABELS: Record<string, string> = { admin: "Administrador", administrativo: "Administrativo", dispatcher: "Despachador", mechanic: "Mecánico" };
 
 interface UserRow {
   user_id: string;
