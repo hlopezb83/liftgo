@@ -70,7 +70,7 @@ export default function InvoicesPage() {
       filters={
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="flex-wrap">
+            <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
               {STATUSES.map((s) => (
                 <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>
               ))}

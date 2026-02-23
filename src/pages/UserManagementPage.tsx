@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { UserPlus, Trash2, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useUserRole";
@@ -155,6 +157,7 @@ export default function UserManagementPage() {
   // Edit name state
   const [editTarget, setEditTarget] = useState<UserRow | null>(null);
   const [editName, setEditName] = useState("");
+  const isMobile = useIsMobile();
 
   const handleInvite = async () => {
     if (!fullName.trim() || !email.trim() || password.length < 6) return;
@@ -254,6 +257,41 @@ export default function UserManagementPage() {
 
         {isLoading ? (
           <TableSkeleton />
+        ) : isMobile ? (
+          <div className="space-y-3">
+            {users?.map((u) => (
+              <Card key={u.user_id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-sm">{u.full_name ?? "—"}</span>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => { setEditTarget(u); setEditName(u.full_name ?? ""); }}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      {u.user_id !== currentUser?.id && (
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(u)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{new Date(u.created_at).toLocaleDateString()}</p>
+                  <Select defaultValue={u.role} onValueChange={(val) => updateRole.mutate({ userId: u.user_id, role: val as AppRole })}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STAFF_ROLES.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          <span className="capitalize">{ROLE_LABELS[r] || r}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         ) : (
           <div className="rounded-md border">
             <Table>

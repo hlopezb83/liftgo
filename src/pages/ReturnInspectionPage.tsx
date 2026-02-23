@@ -17,6 +17,8 @@ import { PostInspectionInvoiceDialog } from "@/components/PostInspectionInvoiceD
 import { useFormState } from "@/hooks/useFormState";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
+import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -51,6 +53,32 @@ export default function ReturnInspectionPage() {
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(inspections);
+  const isMobile = useIsMobile();
+
+  const mobileContent = isMobile ? (
+    <div className="space-y-3">
+      {paginatedItems.length > 0 ? paginatedItems.map((ins) => {
+        const insWithJoins = ins as typeof ins & { forklifts?: { name: string }; bookings?: { customer_name: string | null } };
+        return (
+          <Card key={ins.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
+                <StatusBadge status={ins.condition} />
+              </div>
+              <p className="text-sm text-muted-foreground">{insWithJoins.bookings?.customer_name || "—"}</p>
+              <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                <span className="font-mono">{format(new Date(ins.inspected_at), "d MMM yyyy", { locale: es })}</span>
+                {ins.damage_cost ? <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span> : null}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      }) : (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No hay inspecciones de devolución</CardContent></Card>
+      )}
+    </div>
+  ) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +148,7 @@ export default function ReturnInspectionPage() {
             </TableRow>
           );
         }}
+        customContent={mobileContent}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
