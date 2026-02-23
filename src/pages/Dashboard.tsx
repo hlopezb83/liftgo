@@ -1,4 +1,3 @@
-import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/hooks/useForkliftData";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,10 +10,9 @@ import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Truck, CheckCircle, Clock, Wrench, Receipt } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { format, parseISO, startOfMonth, differenceInDays, isPast } from "date-fns";
 import { useMemo } from "react";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { differenceInDays, parseISO } from "date-fns";
 
 const STATUS_COLORS = {
   available: "hsl(142, 71%, 45%)",
@@ -31,18 +29,9 @@ const INVOICE_STATUS_COLORS: Record<string, string> = {
 };
 
 export default function Dashboard() {
-  const { data: forklifts, isLoading } = useForklifts();
-  const { data: bookings } = useBookings();
-  const { data: invoices } = useInvoices();
-  const { data: maintenanceLogs } = useMaintenanceLogs();
-  const navigate = useNavigate();
+  const { data: stats, isLoading } = useDashboardStats();
 
-  const counts = useMemo(() => ({
-    total: forklifts?.length || 0,
-    available: forklifts?.filter((f) => f.status === "available").length || 0,
-    rented: forklifts?.filter((f) => f.status === "rented").length || 0,
-    maintenance: forklifts?.filter((f) => f.status === "maintenance").length || 0,
-  }), [forklifts]);
+  const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0 };
 
   const pieData = useMemo(() => [
     { name: "Disponibles", value: counts.available, color: STATUS_COLORS.available },
@@ -50,21 +39,14 @@ export default function Dashboard() {
     { name: "Mantenimiento", value: counts.maintenance, color: STATUS_COLORS.maintenance },
   ].filter((d) => d.value > 0), [counts]);
 
-  const outstandingRevenue = useMemo(() =>
-    invoices?.filter((i) => i.status !== "paid").reduce((sum, i) => sum + Number(i.total), 0) || 0
-  , [invoices]);
+  const outstandingRevenue = stats?.invoice_stats?.outstanding_revenue ?? 0;
 
-  const overdueInvoices = useMemo(() => {
-    if (!invoices) return [];
-    return invoices.filter(
-      (i) => (i.status === "sent" || i.status === "overdue") && i.due_date && isPast(parseISO(i.due_date))
-    ).map((i) => ({ ...i, booking_id: i.booking_id }));
-  }, [invoices]);
+  const overdueInvoices = stats?.overdue_invoices ?? [];
 
   const agingBuckets = useMemo(() => {
     const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
     overdueInvoices.forEach((inv) => {
-      const days = differenceInDays(new Date(), parseISO(inv.due_date!));
+      const days = differenceInDays(new Date(), parseISO(inv.due_date));
       if (days <= 30) buckets["0-30"] += Number(inv.total);
       else if (days <= 60) buckets["31-60"] += Number(inv.total);
       else if (days <= 90) buckets["61-90"] += Number(inv.total);
@@ -73,70 +55,38 @@ export default function Dashboard() {
     return Object.entries(buckets).map(([range, total]) => ({ range, total })).filter((b) => b.total > 0);
   }, [overdueInvoices]);
 
-  const maintenanceAlerts = useMemo(() => {
-    if (!maintenanceLogs || !forklifts) return [];
-    const alerts: { forkliftName: string; nextDate: string; forkliftId: string }[] = [];
-    const seen = new Set<string>();
-    maintenanceLogs.forEach((log) => {
-      if (log.next_service_date && !seen.has(log.forklift_id)) {
-        seen.add(log.forklift_id);
-        if (isPast(parseISO(log.next_service_date)) || differenceInDays(parseISO(log.next_service_date), new Date()) <= 7) {
-          const fl = forklifts.find((f) => f.id === log.forklift_id);
-          if (fl) alerts.push({ forkliftName: fl.name, nextDate: log.next_service_date, forkliftId: fl.id });
-        }
-      }
-    });
-    return alerts;
-  }, [maintenanceLogs, forklifts]);
+  const maintenanceAlerts = useMemo(() =>
+    (stats?.maintenance_alerts ?? []).map((a) => ({
+      forkliftName: a.forklift_name,
+      nextDate: a.next_date,
+      forkliftId: a.forklift_id,
+    }))
+  , [stats?.maintenance_alerts]);
 
-  const utilizationData = useMemo(() => {
-    if (!forklifts || !bookings) return [];
-    const now = new Date();
-    return forklifts.slice(0, 10).map((fl) => {
-      const flBookings = bookings.filter((b) => b.forklift_id === fl.id);
-      const totalDaysBooked = flBookings.reduce((sum, b) => sum + Math.max(differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1, 0), 0);
-      const daysSinceCreated = Math.max(differenceInDays(now, parseISO(fl.created_at)), 1);
-      return { name: fl.name, utilization: Math.min(Math.round((totalDaysBooked / daysSinceCreated) * 100), 100) };
-    });
-  }, [forklifts, bookings]);
+  const utilizationData = useMemo(() =>
+    (stats?.utilization ?? []).map((u) => ({ name: u.name, utilization: u.utilization }))
+  , [stats?.utilization]);
 
-  const revenuePerUnit = useMemo(() => {
-    if (!forklifts || !invoices || !bookings) return [];
-    return forklifts.slice(0, 10).map((fl) => {
-      const flBookingIds = new Set(bookings.filter((b) => b.forklift_id === fl.id).map((b) => b.id));
-      const revenue = invoices.filter((i) => i.booking_id && flBookingIds.has(i.booking_id) && i.status === "paid").reduce((sum, i) => sum + Number(i.total), 0);
-      return { name: fl.name, revenue };
-    }).filter((r) => r.revenue > 0);
-  }, [forklifts, invoices, bookings]);
+  const revenuePerUnit = useMemo(() =>
+    (stats?.utilization ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue }))
+  , [stats?.utilization]);
 
-  const invoiceBreakdown = useMemo(() => {
-    if (!invoices) return [];
-    const groups: Record<string, { count: number; total: number }> = {};
-    invoices.forEach((inv) => {
-      if (!groups[inv.status]) groups[inv.status] = { count: 0, total: 0 };
-      groups[inv.status].count++;
-      groups[inv.status].total += Number(inv.total);
-    });
-    return Object.entries(groups).map(([status, data]) => ({ status, ...data, color: INVOICE_STATUS_COLORS[status] || "hsl(220, 10%, 55%)" }));
-  }, [invoices]);
+  const invoiceBreakdown = useMemo(() =>
+    (stats?.invoice_stats?.breakdown ?? []).map((b) => ({
+      status: b.status,
+      count: b.count,
+      total: b.total,
+      color: INVOICE_STATUS_COLORS[b.status] || "hsl(220, 10%, 55%)",
+    }))
+  , [stats?.invoice_stats?.breakdown]);
 
-  const cashFlowData = useMemo(() => {
-    if (!invoices || invoices.length === 0) return [];
-    const months: Record<string, { month: string; invoiced: number; paid: number }> = {};
-    invoices.forEach((inv) => {
-      const monthKey = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
-      const monthLabel = format(startOfMonth(parseISO(inv.issued_at)), "MMM yyyy");
-      if (!months[monthKey]) months[monthKey] = { month: monthLabel, invoiced: 0, paid: 0 };
-      months[monthKey].invoiced += Number(inv.total);
-    });
-    invoices.filter((inv) => inv.paid_at).forEach((inv) => {
-      const monthKey = format(startOfMonth(parseISO(inv.paid_at!)), "yyyy-MM");
-      const monthLabel = format(startOfMonth(parseISO(inv.paid_at!)), "MMM yyyy");
-      if (!months[monthKey]) months[monthKey] = { month: monthLabel, invoiced: 0, paid: 0 };
-      months[monthKey].paid += Number(inv.total);
-    });
-    return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).slice(-6).map(([, data]) => data);
-  }, [invoices]);
+  const cashFlowData = useMemo(() =>
+    (stats?.cash_flow ?? []).map((cf) => ({
+      month: cf.month,
+      invoiced: cf.invoiced,
+      paid: cf.paid,
+    }))
+  , [stats?.cash_flow]);
 
   const statCards = useMemo(() => [
     { label: "Flota Total", value: counts.total, icon: Truck, color: "text-primary" },
