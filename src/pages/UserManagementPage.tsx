@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserPlus, Trash2, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { CredentialsDialog } from "@/components/CredentialsDialog";
 import type { AppRole } from "@/hooks/useUserRole";
 
 const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "administrativo", "dispatcher", "mechanic"];
@@ -163,11 +164,12 @@ export default function UserManagementPage() {
   // Edit name state
   const [editTarget, setEditTarget] = useState<UserRow | null>(null);
   const [editName, setEditName] = useState("");
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
   const isMobile = useIsMobile();
 
   const handleInvite = async () => {
     if (!fullName.trim() || !email.trim() || password.length < 6) return;
-    await inviteUser.mutateAsync({
+    const result = await inviteUser.mutateAsync({
       email: email.trim(),
       full_name: fullName.trim(),
       role,
@@ -178,6 +180,7 @@ export default function UserManagementPage() {
     setEmail("");
     setPassword("");
     setRole("dispatcher");
+    setCreatedCredentials({ email: result.email, password: result.password });
   };
 
   const handleDelete = async () => {
@@ -408,6 +411,8 @@ export default function UserManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CredentialsDialog credentials={createdCredentials} onClose={() => setCreatedCredentials(null)} />
     </PageTransition>
   );
 }
