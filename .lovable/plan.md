@@ -1,107 +1,70 @@
 
-# Rediseno del Calendario de Disponibilidad
+# Correccion: Usuarios cliente ven informacion que no les corresponde
 
-## Resumen
+## Problema detectado
 
-Redisenar la pagina de calendario para que sea mas clara y util. Se agregan tarjetas resumen, se mejora el Gantt con barras con nombre, se agrega vista semanal, y se agrega vista de lista expandible por equipo.
+Cuando se invita a un cliente al portal, ocurren **dos inserciones de rol** en la tabla `user_roles`:
 
----
+1. El trigger `handle_new_user` (que se ejecuta automaticamente al crear cualquier usuario en auth) inserta el rol **dispatcher** por defecto
+2. La funcion `invite-customer` inserta el rol **customer**
 
-## 1. Tarjetas resumen en la parte superior
+Resultado: el usuario cliente termina con **dos roles**: `dispatcher` y `customer`. El hook `useUserRole` usa `.single()` para leer el rol, lo que falla con multiples filas y cae al valor por defecto `dispatcher`. Esto le da al cliente acceso completo al ERP interno: cotizaciones, facturas de todos los clientes, reservas, etc.
 
-Debajo del encabezado y las alertas, mostrar 4 tarjetas compactas:
-
-- **Disponibles**: cantidad de equipos con status "available" y sin reserva activa hoy
-- **Rentados**: cantidad de equipos con status "rented" o con reserva confirmada activa hoy
-- **En Mantenimiento**: cantidad de equipos con status "maintenance"
-- **Utilizacion**: porcentaje de flota activa (rentados / total activos)
-
-Se reutiliza el componente `StatCards` existente del dashboard.
+**Usuarios afectados actualmente:**
+- `cliente-demo@liftgo.test` — tiene roles `{dispatcher, customer}`
+- `hector@lopezbenavides.com` — tiene roles `{dispatcher, customer}`
 
 ---
 
-## 2. Barras Gantt con nombres de cliente
+## Solucion
 
-En vez de pintar cuadro por cuadro por dia, se calculan "segmentos" de reserva que cruzan el rango visible y se renderizan como barras horizontales con `position: absolute` sobre la fila del montacargas.
+### 1. Corregir datos existentes (migracion SQL)
 
-Cada barra:
-- Muestra el nombre del cliente en texto pequeno si la barra tiene suficiente ancho (mas de 3 dias)
-- Conserva el tooltip con detalles completos
-- Usa el mismo sistema de colores por cliente (no por booking ID, se cambia para que sea por cliente)
-- Las reservas no confirmadas se muestran con borde punteado y opacidad reducida
+Eliminar el rol `dispatcher` duplicado de los usuarios que tienen rol `customer`:
 
----
+```sql
+DELETE FROM user_roles
+WHERE role = 'dispatcher'
+  AND user_id IN (
+    SELECT user_id FROM user_roles WHERE role = 'customer'
+  );
+```
 
-## 3. Vista semanal
+### 2. Corregir el trigger `handle_new_user`
 
-Agregar un selector de vista (Semana / Mes) en el encabezado del Gantt.
+Modificar la funcion para que **no inserte el rol por defecto si el usuario ya tiene un rol asignado**. Esto previene la carrera entre el trigger y la funcion de invitacion.
 
-- **Vista mensual**: igual que ahora pero con barras mejoradas
-- **Vista semanal**: muestra solo 7 dias, con columnas mas anchas, permitiendo ver nombres de cliente mas facilmente y mejor detalle dia a dia
+Alternativa mas simple: que la funcion `invite-customer` **elimine el rol dispatcher** justo despues de crear el usuario, antes de insertar el rol `customer`.
 
-El selector se implementa con Tabs junto a los controles de navegacion.
+Se implementara la segunda opcion porque es mas segura (no modifica el trigger que afecta a todos los usuarios).
 
----
+### 3. Corregir `useUserRole` como defensa adicional
 
-## 4. Vista de lista por equipo
-
-Agregar una tercera pestana de vista: "Lista". Muestra cada montacargas como un item expandible (Collapsible) que al abrirse muestra:
-
-- Reserva activa actual (si existe), con cliente, fechas, y duracion
-- Proximas reservas ordenadas por fecha
-- Status del equipo
-- Indicador si tiene mantenimiento proximo
-
-Esto es util para ver rapidamente la agenda de un equipo especifico sin interpretar el Gantt.
+Cambiar la consulta para que, si un usuario tiene multiples roles, priorice correctamente. En vez de `.single()`, usar `.order()` con una logica que prefiera `customer` sobre `dispatcher` cuando ambos existen. O simplemente seleccionar el primer rol que no sea el default.
 
 ---
 
 ## Cambios tecnicos
 
-### Archivo principal modificado
-- `src/pages/CalendarPage.tsx` — refactorizacion completa
+### Archivos modificados
 
-### Archivos nuevos (componentes extraidos)
-- `src/components/calendar/CalendarStatCards.tsx` — tarjetas resumen
-- `src/components/calendar/GanttChart.tsx` — Gantt con barras y soporte semana/mes
-- `src/components/calendar/EquipmentListView.tsx` — vista de lista expandible
+| Archivo | Cambio |
+|---------|--------|
+| `supabase/functions/invite-customer/index.ts` | Despues de crear el usuario, eliminar el rol `dispatcher` que inserto el trigger antes de insertar `customer` |
+| `src/hooks/useUserRole.ts` | Cambiar `.single()` por una consulta que maneje multiples roles con prioridad definida |
 
-### Logica de colores
-Se cambia `hashColor` para asignar colores por **customer_name** en vez de por booking ID, de forma que todas las reservas del mismo cliente tengan el mismo color en el Gantt.
+### Migracion de base de datos
 
-### Estructura de CalendarPage
+Una migracion SQL para limpiar los roles duplicados existentes.
 
-```text
-CalendarPage
-  PageHeader (sin cambios)
-  AlertCard (reservas por vencer, sin cambios)
-  CalendarStatCards (nuevo)
-  Card con Gantt
-    Header: titulo mes + selector vista [Semana|Mes] + navegacion
-    GanttChart (refactorizado)
-      - Calcula posiciones absolutas de barras
-      - Renderiza nombre de cliente dentro de la barra si cabe
-      - Soporte para rango semanal o mensual
-  EquipmentListView (nuevo, alternativa al Gantt)
-  Card de Reservas (sin cambios)
-```
+### Logica de prioridad de roles
 
-### Navegacion de vistas
+Si un usuario tiene multiples roles (caso anomalo), se usara esta prioridad:
+1. `admin` (mayor prioridad)
+2. `dispatcher`
+3. `mechanic`
+4. `customer`
 
-Se usa un estado `viewMode` con valores `"gantt"` y `"list"`. Un segundo estado `ganttRange` con valores `"week"` y `"month"` controla el zoom del Gantt.
+Excepto cuando `customer` coexiste con `dispatcher` (que es el bug), en cuyo caso se asume que el usuario es cliente y se devuelve `customer`.
 
-```text
-[Gantt] [Lista]          <- viewMode
-         |
-    [Semana] [Mes]       <- ganttRange (solo visible en modo Gantt)
-```
-
-### Calculo de barras Gantt
-
-Para cada montacargas, se filtran las reservas que intersectan el rango visible. Para cada reserva se calcula:
-- `startCol`: max(booking start, range start) como indice de dia
-- `endCol`: min(booking end, range end) como indice de dia
-- `leftPercent`: startCol / totalDays * 100
-- `widthPercent`: (endCol - startCol + 1) / totalDays * 100
-
-Esto permite posicionar la barra con CSS `left` y `width` en porcentaje dentro de un contenedor `relative`.
+La solucion mas simple: tomar el **primer rol** retornado y ordenar la consulta para que `admin` > `customer` > `mechanic` > `dispatcher` (poniendo dispatcher al final como el default que es).
