@@ -310,10 +310,10 @@ export default function UserManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Fecha de Registro</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead className="w-[80px]">Acciones</TableHead>
+                  <TableHead className="w-[40%]">Nombre</TableHead>
+                  <TableHead className="w-[20%]">Fecha de Registro</TableHead>
+                  <TableHead className="w-[25%]">Rol</TableHead>
+                  <TableHead className="w-[15%]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -330,7 +330,7 @@ export default function UserManagementPage() {
                           updateRole.mutate({ userId: u.user_id, role: val as AppRole })
                         }
                       >
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-[180px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
