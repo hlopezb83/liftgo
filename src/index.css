@@ -52,6 +52,7 @@
     --status-rented: 217 91% 60%;
     --status-maintenance: 38 92% 50%;
     --status-retired: 220 10% 55%;
+    --status-sold: 200 15% 45%;
 
     --chart-1: 220 45% 20%;
     --chart-2: 142 71% 45%;
@@ -104,6 +105,7 @@
     --status-rented: 217 91% 60%;
     --status-maintenance: 38 92% 50%;
     --status-retired: 220 10% 55%;
+    --status-sold: 200 15% 45%;
 
     --chart-1: 220 45% 25%;
     --chart-2: 142 71% 45%;

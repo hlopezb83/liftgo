@@ -1,4 +1,4 @@
-export const FORKLIFT_STATUSES = ["available", "rented", "maintenance", "retired"] as const;
+export const FORKLIFT_STATUSES = ["available", "rented", "maintenance", "retired", "sold"] as const;
 export const FUEL_TYPES = ["Diesel", "Electric", "LPG", "Gasoline"] as const;
 export const SERVICE_TYPES = [
   "Inspección de Rutina", "Cambio de Aceite", "Servicio de Batería", "Reemplazo de Llantas",
@@ -48,6 +48,7 @@ export const STATUS_LABELS: Record<string, string> = {
   needs_repair: "Necesita Reparación",
   active: "Activo",
   inactive: "Inactivo",
+  sold: "Vendido",
   signed: "Firmado",
   cancelled: "Cancelado",
   partial: "Parcial",
