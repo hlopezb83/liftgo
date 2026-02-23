@@ -1,21 +1,17 @@
 import { useState } from "react";
-import { PageTransition } from "@/components/PageTransition";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useBookings } from "@/hooks/useBookings";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
-import type { BookingWithForklift } from "@/hooks/useBookings";
-import { Card, CardContent } from "@/components/ui/card";
+import { usePagination } from "@/hooks/usePagination";
+import { ListPageLayout } from "@/components/ListPageLayout";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/PageHeader";
-import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyRow } from "@/components/EmptyRow";
-import { StatusBadge } from "@/components/StatusBadge";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { PostDeliveryPickupDialog } from "@/components/PostDeliveryPickupDialog";
@@ -55,28 +51,18 @@ export default function DeliveriesPage() {
 
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
+  const { page, setPage, totalPages, paginatedItems } = usePagination(deliveries);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.forkliftId || !form.scheduledDate) { toast.error("Montacargas y fecha son requeridos"); return; }
     createDelivery.mutate(
       {
-        forklift_id: form.forkliftId,
-        booking_id: form.bookingId || null,
-        type: form.type,
-        scheduled_date: format(form.scheduledDate, "yyyy-MM-dd"),
-        scheduled_time: form.scheduledTime || null,
-        address: form.address || null,
-        driver_name: form.driverName || null,
-        driver_phone: form.driverPhone || null,
-        notes: form.notes || null,
+        forklift_id: form.forkliftId, booking_id: form.bookingId || null, type: form.type,
+        scheduled_date: format(form.scheduledDate, "yyyy-MM-dd"), scheduled_time: form.scheduledTime || null,
+        address: form.address || null, driver_name: form.driverName || null, driver_phone: form.driverPhone || null, notes: form.notes || null,
       },
-      {
-        onSuccess: () => {
-          toast.success("Transporte programado");
-          setDialogOpen(false);
-          reset();
-        },
-      }
+      { onSuccess: () => { toast.success("Transporte programado"); setDialogOpen(false); reset(); } }
     );
   };
 
@@ -92,15 +78,8 @@ export default function DeliveriesPage() {
             const fl = forkliftMap.get(delivery.forklift_id);
             if (booking && fl) {
               setPickupPrompt({
-                delivery: {
-                  forklift_id: delivery.forklift_id,
-                  booking_id: delivery.booking_id,
-                  address: delivery.address,
-                  driver_name: delivery.driver_name,
-                  driver_phone: delivery.driver_phone,
-                },
-                bookingEndDate: booking.end_date,
-                forkliftName: fl.name,
+                delivery: { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, address: delivery.address, driver_name: delivery.driver_name, driver_phone: delivery.driver_phone },
+                bookingEndDate: booking.end_date, forkliftName: fl.name,
               });
             }
           }
@@ -110,58 +89,50 @@ export default function DeliveriesPage() {
   };
 
   return (
-    <PageTransition>
-    <div className="p-6 space-y-6">
-      <PageHeader
+    <>
+      <ListPageLayout
         title="Entregas y Recolecciones"
         subtitle="Programa y rastrea el transporte de equipos"
-        action={
+        actions={
           <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
             <PlusCircle className="h-4 w-4 mr-1" /> Programar
           </Button>
         }
+        isLoading={isLoading}
+        items={paginatedItems}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        emptyMessage="No hay entregas programadas"
+        tableHeader={
+          <TableRow>
+            <TableHead>Fecha</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Montacargas</TableHead>
+            <TableHead>Dirección</TableHead>
+            <TableHead>Operador</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead className="w-12" />
+          </TableRow>
+        }
+        renderRow={(d) => (
+          <TableRow key={d.id}>
+            <TableCell className="font-mono text-sm">{d.scheduled_date}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
+            <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
+            <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
+            <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
+            <TableCell>{d.driver_name || "—"}</TableCell>
+            <TableCell><StatusBadge status={d.status} /></TableCell>
+            <TableCell>
+              {d.status !== "completed" && (
+                <Button variant="ghost" size="icon" onClick={() => markComplete(d.id)} title="Marcar completado">
+                  <CheckCircle className="h-4 w-4 text-status-available" />
+                </Button>
+              )}
+            </TableCell>
+          </TableRow>
+        )}
       />
-
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? <TableSkeleton /> : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Montacargas</TableHead>
-                  <TableHead>Dirección</TableHead>
-                  <TableHead>Operador</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="w-12" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {deliveries && deliveries.length > 0 ? deliveries.map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell className="font-mono text-sm">{d.scheduled_date}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
-                    <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
-                    <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
-                    <TableCell>{d.driver_name || "—"}</TableCell>
-                    <TableCell><StatusBadge status={d.status} /></TableCell>
-                    <TableCell>
-                      {d.status !== "completed" && (
-                        <Button variant="ghost" size="icon" onClick={() => markComplete(d.id)} title="Marcar completado">
-                          <CheckCircle className="h-4 w-4 text-status-available" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )) : (
-                  <EmptyRow colSpan={7} message="No hay entregas programadas" />
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -258,7 +229,6 @@ export default function DeliveriesPage() {
           forkliftName={pickupPrompt.forkliftName}
         />
       )}
-    </div>
-    </PageTransition>
+    </>
   );
 }
