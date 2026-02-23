@@ -53,77 +53,46 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, full_name, role, password } = await req.json();
-    if (!email || !full_name || !role) {
+    const { user_id } = await req.json();
+    if (!user_id) {
       return new Response(
-        JSON.stringify({ error: "email, full_name and role are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "user_id is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const validRoles = ["admin", "dispatcher", "mechanic"];
-    if (!validRoles.includes(role)) {
+    // Prevent self-deletion
+    if (user_id === caller.id) {
       return new Response(
-        JSON.stringify({ error: "Invalid role. Must be admin, dispatcher or mechanic" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Cannot delete your own account" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create auth user with provided or temporary password
-    const finalPassword = password || (crypto.randomUUID() + "Aa1!");
-    const { data: newUser, error: createErr } =
-      await adminClient.auth.admin.createUser({
-        email,
-        password: finalPassword,
-        email_confirm: true,
-        user_metadata: { full_name },
-      });
+    // Delete user_roles
+    await adminClient.from("user_roles").delete().eq("user_id", user_id);
 
-    if (createErr) {
-      return new Response(JSON.stringify({ error: createErr.message }), {
+    // Delete profile
+    await adminClient.from("profiles").delete().eq("user_id", user_id);
+
+    // Delete auth user
+    const { error: deleteErr } = await adminClient.auth.admin.deleteUser(user_id);
+    if (deleteErr) {
+      return new Response(JSON.stringify({ error: deleteErr.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = newUser.user.id;
-
-    // The handle_new_user trigger already creates profile + default role,
-    // but we need to update the role if it's not the default "dispatcher"
-    if (role !== "dispatcher") {
-      await adminClient
-        .from("user_roles")
-        .update({ role })
-        .eq("user_id", userId);
-    }
-
-    // Update profile name in case trigger used email as fallback
-    await adminClient
-      .from("profiles")
-      .update({ full_name })
-      .eq("user_id", userId);
-
     return new Response(
-      JSON.stringify({ success: true, user_id: userId }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("invite-user error:", err);
+    console.error("delete-user error:", err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -6,17 +6,25 @@ import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Trash2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useUserRole";
 
 const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "dispatcher", "mechanic"];
 const ROLE_LABELS: Record<string, string> = { admin: "Administrador", dispatcher: "Despachador", mechanic: "Mecánico" };
+
+interface UserRow {
+  user_id: string;
+  full_name: string | null;
+  created_at: string;
+  role: AppRole;
+}
 
 function useUsersWithRoles() {
   return useQuery({
@@ -67,7 +75,7 @@ function useUpdateRole() {
 function useInviteUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: { email: string; full_name: string; role: string }) => {
+    mutationFn: async (payload: { email: string; full_name: string; role: string; password?: string }) => {
       const { data, error } = await supabase.functions.invoke("invite-user", {
         body: payload,
       });
@@ -77,37 +85,71 @@ function useInviteUser() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Usuario invitado exitosamente" });
+      toast({ title: "Usuario creado exitosamente" });
     },
     onError: (err: Error) => {
-      toast({ title: "Error al invitar usuario", description: err.message, variant: "destructive" });
+      toast({ title: "Error al crear usuario", description: err.message, variant: "destructive" });
     },
   });
 }
 
-const roleBadgeVariant = (role: AppRole) => {
-  if (role === "admin") return "default";
-  if (role === "dispatcher") return "secondary";
-  return "outline";
-};
+function useDeleteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast({ title: "Usuario eliminado" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error al eliminar usuario", description: err.message, variant: "destructive" });
+    },
+  });
+}
 
 export default function UserManagementPage() {
+  const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
   const updateRole = useUpdateRole();
   const inviteUser = useInviteUser();
+  const deleteUser = useDeleteUser();
 
+  // Invite dialog state
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<string>("dispatcher");
 
+  // Delete dialog state
+  const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
+
   const handleInvite = async () => {
-    if (!fullName.trim() || !email.trim()) return;
-    await inviteUser.mutateAsync({ email: email.trim(), full_name: fullName.trim(), role });
+    if (!fullName.trim() || !email.trim() || password.length < 6) return;
+    await inviteUser.mutateAsync({
+      email: email.trim(),
+      full_name: fullName.trim(),
+      role,
+      password,
+    });
     setOpen(false);
     setFullName("");
     setEmail("");
+    setPassword("");
     setRole("dispatcher");
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    await deleteUser.mutateAsync(deleteTarget.user_id);
+    setDeleteTarget(null);
   };
 
   return (
@@ -121,12 +163,12 @@ export default function UserManagementPage() {
               <DialogTrigger asChild>
                 <Button>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Invitar Usuario
+                  Crear Usuario
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Invitar Nuevo Usuario</DialogTitle>
+                  <DialogTitle>Crear Nuevo Usuario</DialogTitle>
                   <DialogDescription>Crea una nueva cuenta de personal. Podrá iniciar sesión de inmediato.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-2">
@@ -137,6 +179,19 @@ export default function UserManagementPage() {
                   <div className="space-y-2">
                     <Label htmlFor="inv-email">Correo Electrónico</Label>
                     <Input id="inv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="juan@empresa.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="inv-password">Contraseña</Label>
+                    <Input
+                      id="inv-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                    {password.length > 0 && password.length < 6 && (
+                      <p className="text-sm text-destructive">La contraseña debe tener al menos 6 caracteres</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="inv-role">Rol</Label>
@@ -156,8 +211,8 @@ export default function UserManagementPage() {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                  <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
-                    {inviteUser.isPending ? "Invitando…" : "Invitar"}
+                  <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim() || password.length < 6}>
+                    {inviteUser.isPending ? "Creando…" : "Crear Usuario"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -175,6 +230,7 @@ export default function UserManagementPage() {
                   <TableHead>Nombre</TableHead>
                   <TableHead>Fecha de Registro</TableHead>
                   <TableHead>Rol</TableHead>
+                  <TableHead className="w-[80px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -209,6 +265,18 @@ export default function UserManagementPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
+                    <TableCell>
+                      {u.user_id !== currentUser?.id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteTarget(u)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -216,6 +284,28 @@ export default function UserManagementPage() {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará permanentemente a <strong>{deleteTarget?.full_name ?? "este usuario"}</strong> y su cuenta de acceso. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
+              disabled={deleteUser.isPending}
+            >
+              {deleteUser.isPending ? "Eliminando…" : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageTransition>
   );
 }
