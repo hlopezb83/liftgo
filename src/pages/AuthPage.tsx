@@ -8,14 +8,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
 
-type Mode = "sign-in" | "sign-up" | "forgot" | "reset";
+type Mode = "sign-in" | "forgot" | "reset";
 
 export default function AuthPage() {
-  const { signIn, signUp, resetPassword, updatePassword } = useAuth();
+  const { signIn, resetPassword, updatePassword } = useAuth();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,10 +38,6 @@ export default function AuthPage() {
       const { error } = await updatePassword(password);
       if (error) toast.error(error.message);
       else { toast.success("Contraseña actualizada"); setMode("sign-in"); }
-    } else if (mode === "sign-up") {
-      const { error } = await signUp(email, password, fullName);
-      if (error) toast.error(error.message);
-      else toast.success("Revisa tu correo para confirmar tu cuenta");
     } else {
       const { error } = await signIn(email, password);
       if (error) toast.error(error.message);
@@ -52,7 +47,6 @@ export default function AuthPage() {
 
   const titles: Record<Mode, { title: string; desc: string }> = {
     "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
-    "sign-up": { title: "Crear Cuenta", desc: "Crea tu cuenta en Lift Go" },
     forgot: { title: "Restablecer Contraseña", desc: "Ingresa tu correo para recibir un enlace" },
     reset: { title: "Nueva Contraseña", desc: "Ingresa tu nueva contraseña" },
   };
@@ -69,38 +63,25 @@ export default function AuthPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "sign-up" && (
-              <div className="space-y-1.5">
-                <Label>Nombre Completo</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Juan Pérez" />
-              </div>
-            )}
             {mode !== "reset" && (
               <div className="space-y-1.5">
                 <Label>Correo Electrónico</Label>
                 <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
               </div>
             )}
-            {(mode === "sign-in" || mode === "sign-up" || mode === "reset") && (
+            {(mode === "sign-in" || mode === "reset") && (
               <div className="space-y-1.5">
                 <Label>{mode === "reset" ? "Nueva Contraseña" : "Contraseña"}</Label>
                 <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Cargando..." : mode === "forgot" ? "Enviar Enlace" : mode === "reset" ? "Actualizar Contraseña" : mode === "sign-up" ? "Registrarse" : "Iniciar Sesión"}
+              {loading ? "Cargando..." : mode === "forgot" ? "Enviar Enlace" : mode === "reset" ? "Actualizar Contraseña" : "Iniciar Sesión"}
             </Button>
           </form>
           <div className="mt-4 text-center space-y-1">
             {mode === "sign-in" && (
-              <>
-                <Button variant="link" size="sm" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
-                <br />
-                <Button variant="link" onClick={() => setMode("sign-up")}>¿No tienes cuenta? Regístrate</Button>
-              </>
-            )}
-            {mode === "sign-up" && (
-              <Button variant="link" onClick={() => setMode("sign-in")}>¿Ya tienes cuenta? Inicia Sesión</Button>
+              <Button variant="link" size="sm" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
             )}
             {mode === "forgot" && (
               <Button variant="link" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
