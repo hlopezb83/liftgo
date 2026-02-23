@@ -1,19 +1,50 @@
 
 
-# Eliminar opcion de registro publico
+# Traducir palabras en inglés visibles en la Bitácora de Cambios
 
 ## Problema
-La pagina de login muestra un enlace "No tienes cuenta? Registrate" que permite a cualquier persona crear una cuenta. Esto no es correcto porque solo el administrador puede dar de alta nuevos usuarios (via invitacion).
 
-## Cambios
+En la página de Bitácora de Cambios (/audit), el usuario ve varias palabras en inglés:
 
-**Archivo: `src/pages/AuthPage.tsx`**
+- **Columna "Acción"**: muestra "INSERT", "UPDATE", "DELETE" directamente
+- **Columna "Tabla"**: muestra nombres de tablas en inglés como "bookings", "invoices", "damage records", etc.
+- **Título del diálogo de detalle**: muestra "INSERT -- bookings", "UPDATE -- invoices", etc.
+- **Campos modificados**: los nombres de columnas de la base de datos aparecen en inglés (ej. "start_date", "customer_name")
 
-1. Eliminar el estado `fullName` y el modo `"sign-up"` del tipo `Mode`
-2. Eliminar el bloque del formulario que muestra el campo "Nombre Completo" cuando `mode === "sign-up"`
-3. Eliminar el boton "Registrarse" y el enlace "No tienes cuenta? Registrate"
-4. Eliminar la entrada `"sign-up"` del objeto `titles`
-5. Eliminar la referencia a `signUp` del hook `useAuth`
+El resto de la aplicación ya está correctamente en español mexicano.
 
-El formulario quedara solo con tres modos: `sign-in`, `forgot` y `reset`.
+## Solución
 
+Agregar mapas de traducción en `AuditTrailPage.tsx` para convertir estos valores internos a etiquetas en español.
+
+### Cambios en `src/pages/AuditTrailPage.tsx`
+
+1. **Mapa de acciones** -- traducir las acciones de la base de datos:
+   - "INSERT" → "Creación"
+   - "UPDATE" → "Actualización"  
+   - "DELETE" → "Eliminación"
+
+2. **Mapa de tablas** -- reutilizar las etiquetas que ya existen en el arreglo `TABLES` para traducir los nombres visibles:
+   - "bookings" → "Reservas"
+   - "invoices" → "Facturas"
+   - "forklifts" → "Montacargas"
+   - "customers" → "Clientes"
+   - etc.
+
+3. **Mapa de campos comunes** -- traducir los nombres de columna más frecuentes:
+   - "status" → "Estado"
+   - "start_date" → "Fecha Inicio"
+   - "end_date" → "Fecha Fin"
+   - "customer_name" → "Nombre del Cliente"
+   - "total" → "Total"
+   - "description" → "Descripción"
+   - etc.
+
+4. Aplicar estas traducciones en:
+   - El Badge de acción en la tabla
+   - La columna de tabla
+   - El título del diálogo de detalle
+   - La lista de campos modificados
+   - Los encabezados de la tabla de cambios en el detalle
+
+Solo se modifica **un archivo**: `src/pages/AuditTrailPage.tsx`.
