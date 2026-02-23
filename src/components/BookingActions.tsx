@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DatePickerField } from "@/components/DatePickerField";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { useForklifts } from "@/hooks/useForkliftData";
+import { useForklifts } from "@/hooks/useForklifts";
 import { useUpdateBooking, type BookingWithForklift } from "@/hooks/useBookings";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";

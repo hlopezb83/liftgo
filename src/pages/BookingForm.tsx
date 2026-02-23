@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useCustomers, useCreateBooking, useAvailableForklifts } from "@/hooks/useForkliftData";
+import { useCustomers } from "@/hooks/useCustomers";
+import { useCreateBooking } from "@/hooks/useBookings";
+import { useAvailableForklifts } from "@/hooks/useAvailableForklifts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { CustomerSelector } from "@/components/CustomerSelector";

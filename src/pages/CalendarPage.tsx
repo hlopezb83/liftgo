@@ -1,4 +1,5 @@
-import { useBookings, useForklifts } from "@/hooks/useForkliftData";
+import { useBookings } from "@/hooks/useBookings";
+import { useForklifts } from "@/hooks/useForklifts";
 import { PageTransition } from "@/components/PageTransition";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

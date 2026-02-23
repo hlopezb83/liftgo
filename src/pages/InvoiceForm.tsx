@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useBookings, useForklifts, useCreateInvoice, useUpdateInvoice, useInvoice, useCustomers } from "@/hooks/useForkliftData";
+import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
+import { useForklifts } from "@/hooks/useForklifts";
+import { useCreateInvoice, useUpdateInvoice, useInvoice } from "@/hooks/useInvoices";
+import { useCustomers } from "@/hooks/useCustomers";
 import { generateLineItems, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { FORMA_PAGO, METODO_PAGO, USO_CFDI, MONEDA, CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/satCatalogs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -184,7 +187,7 @@ export default function InvoiceForm() {
                   <SelectContent>
                     {bookings?.filter((b) => b.status === "confirmed").map((b) => (
                       <SelectItem key={b.id} value={b.id}>
-                        {(b as any).forklifts?.name} — {b.customer_name || "Sin cliente"} ({b.start_date} → {b.end_date})
+                        {(b as BookingWithForklift).forklifts?.name} — {b.customer_name || "Sin cliente"} ({b.start_date} → {b.end_date})
                       </SelectItem>
                     ))}
                   </SelectContent>

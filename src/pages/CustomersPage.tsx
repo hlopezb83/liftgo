@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useForkliftData";
+import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import type { Customer } from "@/hooks/useCustomers";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
 import { Card, CardContent } from "@/components/ui/card";

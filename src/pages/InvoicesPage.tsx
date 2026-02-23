@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { useNavigate } from "react-router-dom";
-import { useInvoices } from "@/hooks/useForkliftData";
+import { useInvoices } from "@/hooks/useInvoices";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/TablePagination";

@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useForklift, useStatusLogs, useBookings, useUpdateStatus, useDeleteForklift, useMaintenanceLogs } from "@/hooks/useForkliftData";
+import { useForklift, useUpdateStatus, useDeleteForklift, useStatusLogs } from "@/hooks/useForklifts";
+import { useBookings } from "@/hooks/useBookings";
+import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

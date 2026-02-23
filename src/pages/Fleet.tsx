@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { useForklifts } from "@/hooks/useForkliftData";
+import { useForklifts } from "@/hooks/useForklifts";
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/TablePagination";
 import { formatCurrency } from "@/lib/formatCurrency";

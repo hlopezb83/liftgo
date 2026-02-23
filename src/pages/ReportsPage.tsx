@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { useForklifts, useBookings, useInvoices, useMaintenanceLogs } from "@/hooks/useForkliftData";
+import { useForklifts } from "@/hooks/useForklifts";
+import { useBookings } from "@/hooks/useBookings";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
