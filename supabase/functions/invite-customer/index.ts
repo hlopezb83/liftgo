@@ -111,6 +111,13 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
+    // Remove the default dispatcher role inserted by the handle_new_user trigger
+    await adminClient
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .eq("role", "dispatcher");
+
     // Assign customer role
     await adminClient
       .from("user_roles")
