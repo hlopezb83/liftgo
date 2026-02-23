@@ -73,7 +73,7 @@ export default function QuoteForm() {
     if (!forkliftId || !startDate || !endDate) { toast.error("Llena los campos requeridos"); return; }
 
     const payload = {
-      quote_number: existingQuote?.quote_number || nextNumber || "QUO-0001",
+      quote_number: existingQuote?.quote_number || nextNumber || "COT-0001",
       customer_id: customerId || null,
       customer_name: customerName || null,
       forklift_id: forkliftId,
