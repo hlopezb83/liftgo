@@ -9,7 +9,7 @@ import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { Truck, CheckCircle, Clock, Wrench, Receipt } from "lucide-react";
+import { Truck, CheckCircle, Clock, Wrench, Receipt, ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { differenceInDays, parseISO } from "date-fns";
@@ -19,6 +19,7 @@ const STATUS_COLORS = {
   rented: "hsl(217, 91%, 60%)",
   maintenance: "hsl(38, 92%, 50%)",
   retired: "hsl(220, 10%, 55%)",
+  sold: "hsl(200, 15%, 45%)",
 };
 
 const INVOICE_STATUS_COLORS: Record<string, string> = {
@@ -31,12 +32,14 @@ const INVOICE_STATUS_COLORS: Record<string, string> = {
 export default function Dashboard() {
   const { data: stats, isLoading } = useDashboardStats();
 
-  const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0 };
+  const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 };
+  const activeFleet = counts.total - counts.retired - counts.sold;
 
   const pieData = useMemo(() => [
     { name: "Disponibles", value: counts.available, color: STATUS_COLORS.available },
     { name: "Rentados", value: counts.rented, color: STATUS_COLORS.rented },
     { name: "Mantenimiento", value: counts.maintenance, color: STATUS_COLORS.maintenance },
+    { name: "Vendidos", value: counts.sold, color: STATUS_COLORS.sold },
   ].filter((d) => d.value > 0), [counts]);
 
   const outstandingRevenue = stats?.invoice_stats?.outstanding_revenue ?? 0;
@@ -89,19 +92,20 @@ export default function Dashboard() {
   , [stats?.cash_flow]);
 
   const statCards = useMemo(() => [
-    { label: "Flota Total", value: counts.total, icon: Truck, color: "text-primary" },
+    { label: "Flota Activa", value: activeFleet, icon: Truck, color: "text-primary" },
     { label: "Disponibles", value: counts.available, icon: CheckCircle, color: "text-status-available" },
     { label: "Rentados", value: counts.rented, icon: Clock, color: "text-status-rented" },
     { label: "En Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
+    { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
     { label: "Pendiente", value: formatCurrency(outstandingRevenue), icon: Receipt, color: "text-primary" },
-  ], [counts, outstandingRevenue]);
+  ], [counts, activeFleet, outstandingRevenue]);
 
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
         <h1 className="text-2xl font-bold">Panel</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
       </div>
     );

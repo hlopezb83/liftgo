@@ -8,6 +8,7 @@ export interface DashboardStats {
     rented: number;
     maintenance: number;
     retired: number;
+    sold: number;
   };
   invoice_stats: {
     outstanding_revenue: number;
