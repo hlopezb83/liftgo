@@ -1,69 +1,76 @@
 
-# Crear y eliminar usuarios desde Gestion de Usuarios
 
-## Situacion actual
+# Nuevo rol "Administrativo"
 
-- **Crear**: El formulario "Invitar Usuario" ya existe y funciona via edge function (`invite-user`). Sin embargo, genera una contrasena temporal aleatoria que no se comunica al administrador ni al usuario. El admin necesita poder establecer una contrasena directamente.
-- **Eliminar**: No existe funcionalidad para eliminar usuarios. Se necesita una edge function con `service_role` para borrar la cuenta de autenticacion y los datos asociados.
+Se creara un nuevo rol llamado **"administrativo"** con permisos para gestionar clientes, cotizaciones, reservas, contratos, entregas, devoluciones, facturas, reportes y bitacora. Las funciones exclusivas de superusuario (gestion de usuarios, configuracion de empresa, configuracion de operaciones) seguiran siendo solo para el rol **"admin"**.
 
-## Cambios
+## Permisos del rol Administrativo
 
-### 1. Edge Function: `delete-user` (nuevo)
+| Funcion | Admin | Administrativo | Despachador | Mecanico |
+|---------|-------|----------------|-------------|----------|
+| Dashboard | Si | Si | Si | Si |
+| Calendario | Si | Si | Si | Si |
+| Clientes (CRUD) | Si | Si | Si (CRUD) | Solo lectura |
+| Cotizaciones | Si | Si | Si | Solo lectura |
+| Reservas | Si | Si | Si | Solo lectura |
+| Contratos | Si | Si | Si | Solo lectura |
+| Entregas | Si | Si | Si | Solo lectura |
+| Devoluciones | Si | Si | Si | Solo lectura |
+| Facturas | Si | Si | Si | Solo lectura |
+| Equipos (CRUD) | Si | Si | Solo lectura | Solo lectura |
+| Mantenimiento | Si | Si (lectura) | Si (lectura) | Si (CRUD) |
+| Danos | Si | Si | Si | Solo lectura |
+| Reportes | Si | Si | Si | No |
+| Bitacora | Si | Si | Si | No |
+| Actividad | Si | Si | Si | Si |
+| Config. Operaciones | Si | No | No | No |
+| Datos Fiscales | Si | No | No | No |
+| Gestion Usuarios | Si | No | No | No |
 
-Crear una nueva edge function que:
-- Verifique que el llamador es admin (mismo patron que `invite-user`)
-- Impida que un admin se borre a si mismo
-- Elimine el perfil de `profiles` y el rol de `user_roles`
-- Elimine la cuenta de autenticacion via `adminClient.auth.admin.deleteUser()`
+## Cambios necesarios
 
-### 2. Edge Function: `invite-user` (modificar)
+### 1. Base de datos (migracion SQL)
 
-- Aceptar un campo opcional `password` en el body
-- Si se proporciona, usar esa contrasena en lugar de la temporal aleatoria
-- Si no se proporciona, mantener el comportamiento actual (contrasena temporal)
+- Agregar `'administrativo'` al enum `app_role`
+- Agregar politicas RLS para el nuevo rol en todas las tablas relevantes, replicando los permisos del dispatcher con acceso completo (CRUD) en: bookings, contracts, customers, damage_records, deliveries, documents, invoices, payments, quotes, return_inspections
+- Agregar politica de lectura en: forklifts, maintenance_logs, status_logs, activity_feed, audit_logs
+- Agregar politica CRUD en: forklifts (para dar de alta/editar equipos)
 
-### 3. Frontend: `UserManagementPage.tsx`
+### 2. Frontend - Tipo y resolucion de rol
 
-**Formulario de crear usuario:**
-- Agregar campo "Contrasena" al dialog existente de invitar usuario
-- El admin escribe la contrasena que le dara al nuevo usuario
-- Validar que tenga al menos 6 caracteres
+**`src/hooks/useUserRole.ts`**:
+- Agregar `"administrativo"` al tipo `AppRole`
+- Actualizar la prioridad: `admin > customer > administrativo > mechanic > dispatcher`
 
-**Boton de eliminar:**
-- Agregar columna "Acciones" a la tabla
-- Mostrar boton de eliminar (icono Trash2) en cada fila
-- No mostrar el boton en la fila del usuario actualmente logueado (no puede borrarse a si mismo)
-- Al hacer clic, mostrar un `AlertDialog` de confirmacion con el nombre del usuario
-- Al confirmar, llamar a la edge function `delete-user`
+### 3. Frontend - Rutas y navegacion
 
-### 4. Flujo de eliminacion
+**`src/App.tsx`**:
+- Agregar `"administrativo"` a las rutas que actualmente permiten `["admin", "dispatcher"]`: cotizaciones, reservas, contratos, entregas, devoluciones, facturas, reportes, bitacora
+- Agregar `"administrativo"` a las rutas de flota (crear/editar): `fleet/new`, `fleet/:id/edit`
 
-```text
-Admin hace clic en Eliminar
-       |
-       v
-AlertDialog: "Eliminar a [nombre]?"
-       |
-       v (Confirmar)
-Edge Function delete-user
-       |
-       +-- Verifica admin
-       +-- Borra user_roles
-       +-- Borra profiles  
-       +-- Borra auth.users
-       |
-       v
-Refresca lista de usuarios
-```
+**`src/components/AppSidebar.tsx`**:
+- Agregar `"administrativo"` a los items de navegacion que tienen `roles: ["admin", "dispatcher"]`
 
-## Detalles tecnicos
-
-**`supabase/functions/delete-user/index.ts`**: Nueva edge function. Usa el mismo patron de autenticacion que `invite-user` (verificar caller via anon key, verificar rol admin via service role, ejecutar accion administrativa).
-
-**`supabase/functions/invite-user/index.ts`**: Agregar `password` como campo opcional del body. Si se incluye, usarlo como contrasena del nuevo usuario.
+### 4. Frontend - Gestion de usuarios
 
 **`src/pages/UserManagementPage.tsx`**:
-- Nuevo hook `useDeleteUser` con mutation que invoca `delete-user`
-- Campo `password` en el estado del dialog de creacion
-- Columna "Acciones" con boton de eliminar y AlertDialog de confirmacion
-- Usar `useAuth` para obtener el `user.id` actual y ocultar el boton de eliminar en su propia fila
+- Agregar `"administrativo"` a `STAFF_ROLES` y `ROLE_LABELS`
+
+### 5. Edge function - invite-user
+
+**`supabase/functions/invite-user/index.ts`**:
+- Agregar `"administrativo"` a la lista `validRoles`
+
+### 6. AuthGuard
+
+No requiere cambios. El rol "administrativo" no es "customer", asi que se redirigira al ERP normal automaticamente.
+
+## Secuencia de implementacion
+
+1. Migracion SQL: agregar valor al enum y crear politicas RLS
+2. Actualizar `useUserRole.ts` con el nuevo tipo y prioridad
+3. Actualizar `App.tsx` con las rutas permitidas
+4. Actualizar `AppSidebar.tsx` con los items de navegacion
+5. Actualizar `UserManagementPage.tsx` con el nuevo rol
+6. Actualizar `invite-user` edge function
+
