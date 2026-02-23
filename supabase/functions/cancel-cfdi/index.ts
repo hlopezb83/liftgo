@@ -1,20 +1,25 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { isUUID, isNonEmptyString } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsRes = handleCors(req);
+  if (corsRes) return corsRes;
+  const corsHeaders = getCorsHeaders(req);
 
   try {
-    const { invoice_id, cancellation_reason } = await req.json();
-    if (!invoice_id || !cancellation_reason) {
+    const body = await req.json();
+    const { invoice_id, cancellation_reason } = body;
+
+    if (!isUUID(invoice_id)) {
       return new Response(
-        JSON.stringify({ error: "invoice_id and cancellation_reason are required" }),
+        JSON.stringify({ error: "invoice_id must be a valid UUID" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (!isNonEmptyString(cancellation_reason, 1000)) {
+      return new Response(
+        JSON.stringify({ error: "cancellation_reason is required (max 1000 chars)" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -44,7 +49,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // STUB MODE: In production, call the PAC cancellation API here
     const { error: updateErr } = await supabase
       .from("invoices")
       .update({
@@ -56,7 +60,7 @@ Deno.serve(async (req) => {
       .eq("id", invoice_id);
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: updateErr.message }), {
+      return new Response(JSON.stringify({ error: "Failed to cancel invoice" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -72,10 +76,10 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+  } catch (_err) {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });
