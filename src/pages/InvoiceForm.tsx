@@ -66,17 +66,17 @@ export default function InvoiceForm() {
       setTaxRate(Number(existing.tax_rate) || 0);
       setDueDate(existing.due_date ? new Date(existing.due_date) : undefined);
       setNotes(existing.notes || "");
-      setSerie((existing as any).serie || "");
-      setFolio((existing as any).folio || "");
-      setFormaPago((existing as any).forma_pago || "03");
-      setMetodoPago((existing as any).metodo_pago || "PUE");
-      setUsoCfdi((existing as any).uso_cfdi || "G03");
-      setMoneda((existing as any).moneda || "MXN");
-      setTipoCambio(Number((existing as any).tipo_cambio) || 1);
-      setReceptorRfc((existing as any).receptor_rfc || "");
-      setReceptorRazonSocial((existing as any).receptor_razon_social || "");
-      setReceptorRegimenFiscal((existing as any).receptor_regimen_fiscal || "");
-      setReceptorDomicilioFiscalCp((existing as any).receptor_domicilio_fiscal_cp || "");
+      setSerie(existing.serie || "");
+      setFolio(existing.folio || "");
+      setFormaPago(existing.forma_pago || "03");
+      setMetodoPago(existing.metodo_pago || "PUE");
+      setUsoCfdi(existing.uso_cfdi || "G03");
+      setMoneda(existing.moneda || "MXN");
+      setTipoCambio(Number(existing.tipo_cambio) || 1);
+      setReceptorRfc(existing.receptor_rfc || "");
+      setReceptorRazonSocial(existing.receptor_razon_social || "");
+      setReceptorRegimenFiscal(existing.receptor_regimen_fiscal || "");
+      setReceptorDomicilioFiscalCp(existing.receptor_domicilio_fiscal_cp || "");
     }
   }, [existing]);
 
@@ -87,7 +87,7 @@ export default function InvoiceForm() {
     setCustomerName(booking.customer_name || "");
     setCustomerId(booking.customer_id || null);
     if (booking.customer_id && customers) {
-      const cust = customers.find((c) => c.id === booking.customer_id) as any;
+      const cust = customers.find((c) => c.id === booking.customer_id);
       if (cust) {
         setReceptorRfc(cust.rfc || "");
         setReceptorRazonSocial(cust.name || "");
