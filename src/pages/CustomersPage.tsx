@@ -22,7 +22,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const emptyCustomer = {
   name: "", email: "", phone: "", address: "", notes: "",
-  tax_id: "", website: "", contact_person: "", billing_address: "",
+  website: "", contact_person: "", billing_address: "",
   rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
 };
 
@@ -72,7 +72,7 @@ export default function CustomersPage() {
     setEditId(c.id);
     setForm({
       name: c.name, email: c.email || "", phone: c.phone || "",
-      address: c.address || "", notes: c.notes || "", tax_id: c.tax_id || "",
+      address: c.address || "", notes: c.notes || "",
       website: c.website || "", contact_person: c.contact_person || "",
       billing_address: c.billing_address || "",
       rfc: c.rfc || "", regimen_fiscal: c.regimen_fiscal || "",
@@ -87,7 +87,7 @@ export default function CustomersPage() {
     const payload = {
       name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
       address: form.address || null, notes: form.notes || null,
-      tax_id: form.tax_id || null, website: form.website || null,
+      website: form.website || null,
       contact_person: form.contact_person || null, billing_address: form.billing_address || null,
       rfc: form.rfc || null, regimen_fiscal: form.regimen_fiscal || null,
       uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
@@ -155,12 +155,9 @@ export default function CustomersPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Identidad</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Nombre / Empresa *</Label>
-                  <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="ABC Construction" />
-                </div>
-                <div className="space-y-1.5"><Label>ID Fiscal</Label><Input value={form.tax_id} onChange={(e) => set("tax_id", e.target.value)} placeholder="DE123456789" /></div>
+              <div className="space-y-1.5">
+                <Label>Nombre / Empresa *</Label>
+                <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Montacargas del Norte S.A." />
               </div>
             </div>
 
