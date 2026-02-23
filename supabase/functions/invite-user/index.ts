@@ -1,15 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsRes = handleCors(req);
+  if (corsRes) return corsRes;
+  const corsHeaders = getCorsHeaders(req);
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -24,7 +20,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify caller identity
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -38,7 +33,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check admin role
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: roleData } = await adminClient
       .from("user_roles")
@@ -53,29 +47,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, full_name, role, password } = await req.json();
-    if (!email || !full_name || !role) {
+    const body = await req.json();
+    const { email, full_name, role, password } = body;
+
+    if (!isEmail(email)) {
       return new Response(
-        JSON.stringify({ error: "email, full_name and role are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "A valid email is required (max 255 chars)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const validRoles = ["admin", "administrativo", "dispatcher", "mechanic"];
-    if (!validRoles.includes(role)) {
+    if (!isNonEmptyString(full_name, 200)) {
+      return new Response(
+        JSON.stringify({ error: "full_name is required (max 200 chars)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (!isValidRole(role)) {
       return new Response(
         JSON.stringify({ error: "Invalid role. Must be admin, administrativo, dispatcher or mechanic" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (password !== undefined && (typeof password !== "string" || password.length < 8)) {
+      return new Response(
+        JSON.stringify({ error: "Password must be at least 8 characters" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create auth user with provided or temporary password
     const finalPassword = password || (crypto.randomUUID() + "Aa1!");
     const { data: newUser, error: createErr } =
       await adminClient.auth.admin.createUser({
@@ -94,8 +93,6 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    // The handle_new_user trigger already creates profile + default role,
-    // but we need to update the role if it's not the default "dispatcher"
     if (role !== "dispatcher") {
       await adminClient
         .from("user_roles")
@@ -103,7 +100,6 @@ Deno.serve(async (req) => {
         .eq("user_id", userId);
     }
 
-    // Update profile name in case trigger used email as fallback
     await adminClient
       .from("profiles")
       .update({ full_name })
@@ -116,14 +112,11 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (err) {
-    console.error("invite-user error:", err);
+  } catch (_err) {
+    console.error("invite-user error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });

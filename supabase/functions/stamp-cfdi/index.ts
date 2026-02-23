@@ -1,19 +1,18 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsRes = handleCors(req);
+  if (corsRes) return corsRes;
+  const corsHeaders = getCorsHeaders(req);
 
   try {
-    const { invoice_id } = await req.json();
-    if (!invoice_id) {
-      return new Response(JSON.stringify({ error: "invoice_id is required" }), {
+    const body = await req.json();
+    const { invoice_id } = body;
+
+    if (!isUUID(invoice_id)) {
+      return new Response(JSON.stringify({ error: "invoice_id must be a valid UUID" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -24,7 +23,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Fetch invoice
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
       .select("*")
@@ -38,7 +36,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch company settings
     const { data: company } = await supabase
       .from("company_settings")
       .select("*")
@@ -52,8 +49,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // STUB MODE: Generate a mock CFDI UUID
-    // When ready for production, replace this with actual PAC API call
     const mockUuid = crypto.randomUUID();
     const mockXml = `<?xml version="1.0" encoding="utf-8"?>
 <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0"
@@ -73,7 +68,6 @@ Deno.serve(async (req) => {
   <tfd:TimbreFiscalDigital UUID="${mockUuid}" />
 </cfdi:Comprobante>`;
 
-    // Update the invoice with CFDI data
     const { error: updateErr } = await supabase
       .from("invoices")
       .update({
@@ -84,7 +78,7 @@ Deno.serve(async (req) => {
       .eq("id", invoice_id);
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: updateErr.message }), {
+      return new Response(JSON.stringify({ error: "Failed to stamp invoice" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -94,10 +88,10 @@ Deno.serve(async (req) => {
       JSON.stringify({ success: true, cfdi_uuid: mockUuid, stub: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+  } catch (_err) {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });
