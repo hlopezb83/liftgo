@@ -19,7 +19,13 @@ import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useUserRole";
 
 const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "administrativo", "dispatcher", "mechanic"];
-const ROLE_LABELS: Record<string, string> = { admin: "Administrador", administrativo: "Administrativo", dispatcher: "Despachador", mechanic: "Mecánico" };
+const ROLE_LABELS: Record<string, string> = { admin: "Admin", administrativo: "Administrativo", dispatcher: "Despachador", mechanic: "Mecánico" };
+const ROLE_COLORS: Record<string, string> = {
+  admin: "bg-red-600 text-white",
+  administrativo: "bg-blue-600 text-white",
+  dispatcher: "bg-amber-500 text-white",
+  mechanic: "bg-emerald-600 text-white",
+};
 
 interface UserRow {
   user_id: string;
@@ -237,7 +243,9 @@ export default function UserManagementPage() {
                       <SelectContent>
                         {STAFF_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>
-                            <span className="capitalize">{ROLE_LABELS[r] || r}</span>
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[r] ?? ""}`}>
+                              {ROLE_LABELS[r] || r}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -283,7 +291,9 @@ export default function UserManagementPage() {
                     <SelectContent>
                       {STAFF_ROLES.map((r) => (
                         <SelectItem key={r} value={r}>
-                          <span className="capitalize">{ROLE_LABELS[r] || r}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[r] ?? ""}`}>
+                            {ROLE_LABELS[r] || r}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -323,11 +333,7 @@ export default function UserManagementPage() {
                         <SelectContent>
                           {STAFF_ROLES.map((r) => (
                             <SelectItem key={r} value={r}>
-                              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
-                                r === "admin" ? "border-transparent bg-primary text-primary-foreground" :
-                                r === "dispatcher" ? "border-transparent bg-secondary text-secondary-foreground" :
-                                "text-foreground"
-                              }`}>
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[r] ?? ""}`}>
                                 {ROLE_LABELS[r] || r}
                               </span>
                             </SelectItem>
