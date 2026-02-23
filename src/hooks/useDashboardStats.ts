@@ -39,6 +39,10 @@ export interface DashboardStats {
     utilization: number;
     revenue: number;
   }>;
+  weekly_utilization: Array<{
+    week_label: string;
+    utilization: number;
+  }>;
 }
 
 export function useDashboardStats() {
