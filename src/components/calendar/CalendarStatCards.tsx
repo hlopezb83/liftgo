@@ -37,7 +37,7 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
       (f) => f.status === "rented" || activeBookingForkliftIds.has(f.id)
     ).length;
     const maintenance = forklifts.filter((f) => f.status === "maintenance").length;
-    const totalActive = forklifts.filter((f) => f.status !== "retired").length;
+    const totalActive = forklifts.filter((f) => f.status !== "retired" && f.status !== "sold").length;
     const utilization = totalActive > 0 ? Math.round((rented / totalActive) * 100) : 0;
 
     return { available, rented, maintenance, utilization: `${utilization}%` };

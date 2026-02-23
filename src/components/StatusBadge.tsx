@@ -26,6 +26,7 @@ const statusStyles: Record<string, string> = {
   needs_repair: "bg-destructive text-destructive-foreground border-transparent",
   active: "bg-status-available text-white border-transparent",
   inactive: "bg-status-retired text-white border-transparent",
+  sold: "bg-status-sold text-white border-transparent",
   signed: "bg-status-available text-white border-transparent",
   cancelled: "bg-destructive text-destructive-foreground border-transparent",
   partial: "bg-status-maintenance text-white border-transparent",
