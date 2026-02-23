@@ -95,7 +95,7 @@ const routes: RouteConfig[] = [
   { path: "/audit", component: AuditTrailPage, roles: ["admin", "dispatcher", "administrativo"] },
   { path: "/reports", component: ReportsPage, roles: ["admin", "dispatcher", "administrativo"] },
   { path: "/damage", component: DamageTrackingPage },
-  { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin"] },
+  { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin", "administrativo"] },
   { path: "/settings/company", component: CompanySettingsPage, roles: ["admin"] },
   { path: "/users", component: UserManagementPage, roles: ["admin"] },
 ];

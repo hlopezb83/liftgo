@@ -48,7 +48,7 @@ const navGroups: NavGroup[] = [
       { title: "Actividad", url: "/activity", icon: Activity },
       { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher", "administrativo"] },
       { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher", "administrativo"] },
-      { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin"] },
+      { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin", "administrativo"] },
       { title: "Datos Fiscales", url: "/settings/company", icon: Building2, roles: ["admin"] },
       { title: "Usuarios", url: "/users", icon: ShieldCheck, roles: ["admin"] },
     ],
