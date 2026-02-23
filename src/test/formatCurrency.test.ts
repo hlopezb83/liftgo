@@ -7,17 +7,17 @@ describe("formatCurrency", () => {
     expect(result).toContain("1");
     expect(result).toContain("234");
     expect(result).toContain("50");
-    expect(result).toContain("€");
+    expect(result).toContain("$");
   });
 
   it("formats zero", () => {
-    expect(formatCurrency(0)).toBe("€0.00");
+    expect(formatCurrency(0)).toBe("$0.00");
   });
 
   it("formats negative numbers", () => {
     const result = formatCurrency(-50);
     expect(result).toContain("50");
-    expect(result).toContain("€");
+    expect(result).toContain("$");
   });
 
   it("rounds to two decimal places", () => {
