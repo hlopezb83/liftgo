@@ -1,48 +1,69 @@
 
-# Corregir Dashboard y estandarizar paginas de lista
+# Crear y eliminar usuarios desde Gestion de Usuarios
 
-## 1. Dashboard: agregar estado "sold" (Vendido)
+## Situacion actual
 
-El panel actual no contempla montacargas vendidos. El campo `total` de la funcion `get_dashboard_stats` los incluye, pero no hay un conteo separado ni aparece en el grafico de pie.
+- **Crear**: El formulario "Invitar Usuario" ya existe y funciona via edge function (`invite-user`). Sin embargo, genera una contrasena temporal aleatoria que no se comunica al administrador ni al usuario. El admin necesita poder establecer una contrasena directamente.
+- **Eliminar**: No existe funcionalidad para eliminar usuarios. Se necesita una edge function con `service_role` para borrar la cuenta de autenticacion y los datos asociados.
 
-### Cambios:
+## Cambios
 
-**Base de datos** - Actualizar la funcion `get_dashboard_stats` para:
-- Agregar `'sold', COUNT(*) FILTER (WHERE status = 'sold')` al bloque `fleet_counts`
-- Excluir equipos vendidos y retirados del calculo de utilizacion (actualmente los incluye todos)
+### 1. Edge Function: `delete-user` (nuevo)
 
-**`src/hooks/useDashboardStats.ts`**:
-- Agregar `sold: number` a la interfaz `fleet_counts`
+Crear una nueva edge function que:
+- Verifique que el llamador es admin (mismo patron que `invite-user`)
+- Impida que un admin se borre a si mismo
+- Elimine el perfil de `profiles` y el rol de `user_roles`
+- Elimine la cuenta de autenticacion via `adminClient.auth.admin.deleteUser()`
 
-**`src/pages/Dashboard.tsx`**:
-- Agregar `sold` al mapa de `STATUS_COLORS` con el color `hsl(200, 15%, 45%)` (mismo que `--status-sold`)
-- Incluir "Vendidos" en el `pieData` del grafico de pie
-- Agregar una stat card "Vendidos" con icono apropiado
-- Ajustar "Flota Total" para mostrar solo la flota activa (excluyendo vendidos y retirados), o agregar una nota visual que distinga activos de total
+### 2. Edge Function: `invite-user` (modificar)
 
-## 2. Fleet: migrar a ListPageLayout
+- Aceptar un campo opcional `password` en el body
+- Si se proporciona, usar esa contrasena en lugar de la temporal aleatoria
+- Si no se proporciona, mantener el comportamiento actual (contrasena temporal)
 
-La pagina `Fleet.tsx` construye manualmente la estructura de header, filtros, tabla y paginacion. Se puede simplificar usando `ListPageLayout`, pero tiene una particularidad: la vista mobile usa cards en lugar de tabla.
+### 3. Frontend: `UserManagementPage.tsx`
 
-### Cambios en `src/pages/Fleet.tsx`:
-- Reemplazar la estructura manual por `ListPageLayout`
-- Usar la prop `customContent` para la vista mobile (cards)
-- Mover los filtros (search + select de estado) a la prop `filters`
-- Mantener la misma funcionalidad y apariencia visual
+**Formulario de crear usuario:**
+- Agregar campo "Contrasena" al dialog existente de invitar usuario
+- El admin escribe la contrasena que le dara al nuevo usuario
+- Validar que tenga al menos 6 caracteres
 
-## 3. CustomersPage: migrar a ListPageLayout
+**Boton de eliminar:**
+- Agregar columna "Acciones" a la tabla
+- Mostrar boton de eliminar (icono Trash2) en cada fila
+- No mostrar el boton en la fila del usuario actualmente logueado (no puede borrarse a si mismo)
+- Al hacer clic, mostrar un `AlertDialog` de confirmacion con el nombre del usuario
+- Al confirmar, llamar a la edge function `delete-user`
 
-Mismo patron que Fleet pero mas sencillo (no tiene vista mobile diferenciada).
+### 4. Flujo de eliminacion
 
-### Cambios en `src/pages/CustomersPage.tsx`:
-- Reemplazar la estructura manual de `PageTransition > div > PageHeader > Card > Table` por `ListPageLayout`
-- Mover el search input a la prop `filters`
-- Mantener el Dialog de crear/editar cliente fuera del layout (se agrega despues del `ListPageLayout`)
+```text
+Admin hace clic en Eliminar
+       |
+       v
+AlertDialog: "Eliminar a [nombre]?"
+       |
+       v (Confirmar)
+Edge Function delete-user
+       |
+       +-- Verifica admin
+       +-- Borra user_roles
+       +-- Borra profiles  
+       +-- Borra auth.users
+       |
+       v
+Refresca lista de usuarios
+```
 
-## Secuencia de implementacion
+## Detalles tecnicos
 
-1. Migracion SQL para actualizar `get_dashboard_stats`
-2. Actualizar tipo en `useDashboardStats.ts`
-3. Actualizar `Dashboard.tsx` con color y datos de "sold"
-4. Refactorizar `Fleet.tsx` con `ListPageLayout`
-5. Refactorizar `CustomersPage.tsx` con `ListPageLayout`
+**`supabase/functions/delete-user/index.ts`**: Nueva edge function. Usa el mismo patron de autenticacion que `invite-user` (verificar caller via anon key, verificar rol admin via service role, ejecutar accion administrativa).
+
+**`supabase/functions/invite-user/index.ts`**: Agregar `password` como campo opcional del body. Si se incluye, usarlo como contrasena del nuevo usuario.
+
+**`src/pages/UserManagementPage.tsx`**:
+- Nuevo hook `useDeleteUser` con mutation que invoca `delete-user`
+- Campo `password` en el estado del dialog de creacion
+- Columna "Acciones" con boton de eliminar y AlertDialog de confirmacion
+- Usar `useAuth` para obtener el `user.id` actual y ocultar el boton de eliminar en su propia fila
