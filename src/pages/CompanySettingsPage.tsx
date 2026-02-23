@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCompanySettings, useUpsertCompanySettings } from "@/hooks/useCompanySettings";
 import { REGIMEN_FISCAL } from "@/lib/satCatalogs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFormState } from "@/hooks/useFormState";
 import { toast } from "sonner";
-import { Building2, Save } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Building2, Save, Upload, Trash2, ImageIcon } from "lucide-react";
 
 const empty = { rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "", logo_url: "" };
 
@@ -18,6 +19,8 @@ export default function CompanySettingsPage() {
   const { data: settings, isLoading } = useCompanySettings();
   const upsert = useUpsertCompanySettings();
   const { form, set, setForm } = useFormState(empty);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -30,6 +33,41 @@ export default function CompanySettingsPage() {
       });
     }
   }, [settings]);
+
+  const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("El archivo no debe superar 2MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten archivos de imagen");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const filePath = `company/logo_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("documents").upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);
+      set("logo_url", urlData.publicUrl);
+      toast.success("Logo subido correctamente");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al subir logo");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    set("logo_url", "");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,9 +129,46 @@ export default function CompanySettingsPage() {
                 <Input value={form.lugar_expedicion} onChange={(e) => set("lugar_expedicion", e.target.value)} placeholder="06600" maxLength={5} />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>URL del Logo (opcional)</Label>
-              <Input value={form.logo_url} onChange={(e) => set("logo_url", e.target.value)} placeholder="https://..." />
+
+            {/* Logo upload section */}
+            <div className="space-y-2">
+              <Label>Logo de la Empresa (opcional)</Label>
+              <div className="flex items-center gap-4">
+                {form.logo_url ? (
+                  <div className="relative h-16 w-16 rounded-md border border-border overflow-hidden bg-muted flex items-center justify-center">
+                    <img src={form.logo_url} alt="Logo" className="h-full w-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 rounded-md border border-dashed border-border bg-muted flex items-center justify-center">
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1.5">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    className="hidden"
+                    onChange={handleUploadLogo}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-1" />
+                    {uploading ? "Subiendo..." : "Subir Logo"}
+                  </Button>
+                  {form.logo_url && (
+                    <Button type="button" variant="ghost" size="sm" onClick={handleRemoveLogo} className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">JPG, PNG, WebP o SVG. Máximo 2MB.</p>
             </div>
 
             <div className="pt-2">

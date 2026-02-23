@@ -4,6 +4,7 @@ import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
+import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
 
 interface InvoicePDFButtonProps {
   invoiceId: string;
@@ -23,28 +24,39 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
 
       if (error || !invoice) throw new Error("Factura no encontrada");
 
-      // Fetch company settings for issuer info
       const { data: company } = await supabase
         .from("company_settings")
         .select("*")
         .limit(1)
         .maybeSingle();
 
+      // Load logo if available
+      let logoBase64: string | null = null;
+      if (company?.logo_url) {
+        logoBase64 = await loadImageAsBase64(company.logo_url);
+      }
+
       const doc = new jsPDF();
       const pw = doc.internal.pageSize.getWidth();
       const mg = 20;
       let y = 20;
 
-      // Header
+      // Logo + Header
+      const textStartX = logoBase64 ? mg + 25 : mg;
+
+      if (logoBase64) {
+        doc.addImage(logoBase64, "PNG", mg, y - 5, 20, 20);
+      }
+
       doc.setFontSize(22);
       doc.setTextColor(232, 89, 12);
-      doc.text(company?.razon_social || "ForkliftERP", mg, y);
+      doc.text(company?.razon_social || "ForkliftERP", textStartX, y);
       doc.setFontSize(9);
       doc.setTextColor(102, 102, 102);
       if (company) {
-        doc.text(`RFC: ${company.rfc} | Régimen: ${company.regimen_fiscal} | C.P.: ${company.lugar_expedicion}`, mg, y + 7);
+        doc.text(`RFC: ${company.rfc} | Régimen: ${company.regimen_fiscal} | C.P.: ${company.lugar_expedicion}`, textStartX, y + 7);
       } else {
-        doc.text("Gestión de Flota", mg, y + 7);
+        doc.text("Gestión de Flota", textStartX, y + 7);
       }
 
       doc.setFontSize(24);

@@ -4,6 +4,7 @@ import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
+import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
 
 interface Contract {
   contract_number: string;
@@ -29,18 +30,29 @@ export function ContractPDFButton({ contract }: { contract: Contract }) {
     try {
       const { data: company } = await supabase.from("company_settings").select("*").limit(1).maybeSingle();
 
+      let logoBase64: string | null = null;
+      if (company?.logo_url) {
+        logoBase64 = await loadImageAsBase64(company.logo_url);
+      }
+
       const doc = new jsPDF();
       const pw = doc.internal.pageSize.getWidth();
       const mg = 20;
       let y = 20;
 
-      // Header
+      // Logo + Header
+      const textStartX = logoBase64 ? mg + 25 : mg;
+
+      if (logoBase64) {
+        doc.addImage(logoBase64, "PNG", mg, y - 5, 20, 20);
+      }
+
       doc.setFontSize(20);
       doc.setTextColor(232, 89, 12);
-      doc.text(company?.razon_social || "ForkliftERP", mg, y);
+      doc.text(company?.razon_social || "ForkliftERP", textStartX, y);
       doc.setFontSize(9);
       doc.setTextColor(102, 102, 102);
-      if (company) doc.text(`RFC: ${company.rfc} | C.P.: ${company.lugar_expedicion}`, mg, y + 7);
+      if (company) doc.text(`RFC: ${company.rfc} | C.P.: ${company.lugar_expedicion}`, textStartX, y + 7);
 
       doc.setFontSize(22);
       doc.setTextColor(51, 51, 51);
