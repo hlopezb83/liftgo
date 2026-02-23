@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { UserPlus, Trash2 } from "lucide-react";
+import { UserPlus, Trash2, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { AppRole } from "@/hooks/useUserRole";
 
@@ -72,6 +72,26 @@ function useUpdateRole() {
   });
 }
 
+function useUpdateName() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, fullName }: { userId: string; fullName: string }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName })
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast({ title: "Nombre actualizado" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error al actualizar nombre", description: err.message, variant: "destructive" });
+    },
+  });
+}
+
 function useInviteUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -118,6 +138,7 @@ export default function UserManagementPage() {
   const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
   const updateRole = useUpdateRole();
+  const updateName = useUpdateName();
   const inviteUser = useInviteUser();
   const deleteUser = useDeleteUser();
 
@@ -130,6 +151,10 @@ export default function UserManagementPage() {
 
   // Delete dialog state
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
+
+  // Edit name state
+  const [editTarget, setEditTarget] = useState<UserRow | null>(null);
+  const [editName, setEditName] = useState("");
 
   const handleInvite = async () => {
     if (!fullName.trim() || !email.trim() || password.length < 6) return;
@@ -150,6 +175,13 @@ export default function UserManagementPage() {
     if (!deleteTarget) return;
     await deleteUser.mutateAsync(deleteTarget.user_id);
     setDeleteTarget(null);
+  };
+
+  const handleEditName = async () => {
+    if (!editTarget || !editName.trim()) return;
+    await updateName.mutateAsync({ userId: editTarget.user_id, fullName: editName.trim() });
+    setEditTarget(null);
+    setEditName("");
   };
 
   return (
@@ -265,7 +297,14 @@ export default function UserManagementPage() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setEditTarget(u); setEditName(u.full_name ?? ""); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       {u.user_id !== currentUser?.id && (
                         <Button
                           variant="ghost"
@@ -306,6 +345,25 @@ export default function UserManagementPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit name dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(v) => { if (!v) { setEditTarget(null); setEditName(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Nombre</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="edit-name">Nombre Completo</Label>
+            <Input id="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditTarget(null); setEditName(""); }}>Cancelar</Button>
+            <Button onClick={handleEditName} disabled={updateName.isPending || !editName.trim()}>
+              {updateName.isPending ? "Guardando…" : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageTransition>
   );
 }
