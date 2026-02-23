@@ -1,20 +1,40 @@
 
-# Eliminar el campo "ID Fiscal" del formulario de clientes
 
-## Problema
-El formulario de agregar/editar cliente tiene un campo "ID Fiscal" (`tax_id`) que es redundante, ya que en Mexico se utiliza el RFC, el cual ya tiene su propio campo en la seccion de Datos Fiscales (CFDI).
+# Cambiar grafica de Utilizacion de Flota a vista semanal
 
-## Cambios
+## Cambio solicitado
+Actualmente la grafica muestra utilizacion por unidad individual (barras horizontales por montacargas). El cambio es mostrar la **utilizacion total de la flota por semana** con:
+- **Eje X (abajo)**: Numero de semana (Sem 1, Sem 2, etc.)
+- **Eje Y (izquierda)**: Porcentaje de utilizacion de toda la flota (0-100%)
+- **Barras verticales**: Una barra por semana
 
-### Archivo: `src/pages/CustomersPage.tsx`
+## Como se calcula
+Para cada semana de las ultimas 12 semanas:
+- Se cuenta cuantos montacargas activos existen (no vendidos ni retirados)
+- Se cuenta cuantos dias-montacargas estuvieron reservados esa semana (cruzando bookings con los 7 dias de la semana)
+- Utilizacion = (dias reservados / dias disponibles totales) x 100
 
-1. **Eliminar `tax_id` del estado inicial** (linea 25): quitar `tax_id: ""` del objeto `emptyCustomer`.
+## Cambios tecnicos
 
-2. **Eliminar `tax_id` al abrir edicion** (linea 75): quitar `tax_id: c.tax_id || ""` del `setForm`.
+### 1. Base de datos: Actualizar funcion `get_dashboard_stats`
+Agregar un nuevo campo `weekly_utilization` al JSON que retorna la funcion. Este campo contiene un arreglo de las ultimas 12 semanas con:
+- `week_label`: "Sem 5", "Sem 6", etc.
+- `utilization`: porcentaje de 0 a 100
 
-3. **Eliminar `tax_id` del payload de envio** (linea 90): quitar `tax_id: form.tax_id || null` del objeto `payload`.
+La consulta SQL calcula por cada semana: cuantos dias de la semana cada montacargas activo tenia una reserva activa, dividido entre el total de dias-montacargas disponibles.
 
-4. **Eliminar el campo del formulario** (lineas 158-164): reemplazar el grid de 2 columnas (Nombre + ID Fiscal) por solo el campo "Nombre / Empresa" a ancho completo, y actualizar el placeholder a algo mas relevante para Mexico (ej. "Montacargas del Norte S.A.").
+### 2. Hook: `useDashboardStats.ts`
+Agregar el tipo `weekly_utilization` al interface `DashboardStats`.
 
-## Resultado
-El formulario mostrara solo el campo RFC en la seccion de Datos Fiscales, eliminando la redundancia del campo ID Fiscal.
+### 3. Dashboard: `Dashboard.tsx`
+Crear el `useMemo` para mapear `stats.weekly_utilization` y pasarlo como prop al componente de graficas.
+
+### 4. Componente: `UtilizationCharts.tsx`
+- Cambiar la grafica de utilizacion de `layout="vertical"` (barras horizontales por unidad) a barras verticales por semana
+- Eje X: numero de semana
+- Eje Y: porcentaje (0-100%)
+- Tooltip mostrando el % al pasar el cursor
+
+### 5. Grafica de per-unit se mantiene
+La grafica de "Ingresos por Unidad" no se modifica.
+
