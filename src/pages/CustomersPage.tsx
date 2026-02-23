@@ -55,8 +55,8 @@ export default function CustomersPage() {
       address: c.address || "", notes: c.notes || "", tax_id: c.tax_id || "",
       website: c.website || "", contact_person: c.contact_person || "",
       billing_address: c.billing_address || "",
-      rfc: (c as any).rfc || "", regimen_fiscal: (c as any).regimen_fiscal || "",
-      uso_cfdi: (c as any).uso_cfdi || "", domicilio_fiscal_cp: (c as any).domicilio_fiscal_cp || "",
+      rfc: c.rfc || "", regimen_fiscal: c.regimen_fiscal || "",
+      uso_cfdi: c.uso_cfdi || "", domicilio_fiscal_cp: c.domicilio_fiscal_cp || "",
     });
     setDialogOpen(true);
   };
@@ -118,7 +118,7 @@ export default function CustomersPage() {
                   {paginatedItems.map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.name}</TableCell>
-                      <TableCell className="font-mono text-xs">{(c as any).rfc || "—"}</TableCell>
+                      <TableCell className="font-mono text-xs">{c.rfc || "—"}</TableCell>
                       <TableCell>{c.email || "—"}</TableCell>
                       <TableCell>{c.phone || "—"}</TableCell>
                       <TableCell>{c.contact_person || "—"}</TableCell>

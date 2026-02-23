@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, ComponentType } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +11,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { AppRole } from "@/hooks/useUserRole";
 
 // Lazy-loaded pages
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
@@ -58,6 +59,47 @@ const NoAccess = () => (
   </div>
 );
 
+// Route configuration
+interface RouteConfig {
+  path: string;
+  component: ComponentType;
+  roles?: AppRole[];
+}
+
+const routes: RouteConfig[] = [
+  { path: "/", component: Dashboard },
+  { path: "/fleet", component: Fleet },
+  { path: "/fleet/new", component: ForkliftForm, roles: ["admin"] },
+  { path: "/fleet/:id", component: ForkliftDetail },
+  { path: "/fleet/:id/edit", component: ForkliftForm, roles: ["admin"] },
+  { path: "/calendar", component: CalendarPage },
+  { path: "/bookings/new", component: BookingForm, roles: ["admin", "dispatcher"] },
+  { path: "/customers", component: CustomersPage },
+  { path: "/customers/:id", component: CustomerDetailPage },
+  { path: "/maintenance", component: MaintenancePage },
+  { path: "/invoices", component: InvoicesPage, roles: ["admin", "dispatcher"] },
+  { path: "/invoices/new", component: InvoiceForm, roles: ["admin", "dispatcher"] },
+  { path: "/invoices/:id", component: InvoiceDetail, roles: ["admin", "dispatcher"] },
+  { path: "/invoices/:id/edit", component: InvoiceForm, roles: ["admin", "dispatcher"] },
+  { path: "/returns", component: ReturnInspectionPage, roles: ["admin", "dispatcher"] },
+  { path: "/deliveries", component: DeliveriesPage, roles: ["admin", "dispatcher"] },
+  { path: "/quotes", component: QuotesPage, roles: ["admin", "dispatcher"] },
+  { path: "/quotes/new", component: QuoteForm, roles: ["admin", "dispatcher"] },
+  { path: "/quotes/:id", component: QuoteDetail, roles: ["admin", "dispatcher"] },
+  { path: "/quotes/:id/edit", component: QuoteForm, roles: ["admin", "dispatcher"] },
+  { path: "/contracts", component: ContractsPage, roles: ["admin", "dispatcher"] },
+  { path: "/contracts/new", component: ContractForm, roles: ["admin", "dispatcher"] },
+  { path: "/contracts/:id", component: ContractDetail, roles: ["admin", "dispatcher"] },
+  { path: "/contracts/:id/edit", component: ContractForm, roles: ["admin", "dispatcher"] },
+  { path: "/activity", component: ActivityPage },
+  { path: "/audit", component: AuditTrailPage, roles: ["admin", "dispatcher"] },
+  { path: "/reports", component: ReportsPage, roles: ["admin", "dispatcher"] },
+  { path: "/damage", component: DamageTrackingPage },
+  { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin"] },
+  { path: "/settings/company", component: CompanySettingsPage, roles: ["admin"] },
+  { path: "/users", component: UserManagementPage, roles: ["admin"] },
+];
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="forklift-theme">
   <QueryClientProvider client={queryClient}>
@@ -79,37 +121,21 @@ const App = () => (
                     <ErrorBoundary>
                     <Suspense fallback={<PageFallback />}>
                     <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/fleet" element={<Fleet />} />
-                      <Route path="/fleet/new" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><ForkliftForm /></RoleGuard>} />
-                      <Route path="/fleet/:id" element={<ForkliftDetail />} />
-                      <Route path="/fleet/:id/edit" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><ForkliftForm /></RoleGuard>} />
-                      <Route path="/calendar" element={<CalendarPage />} />
-                      <Route path="/bookings/new" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><BookingForm /></RoleGuard>} />
-                      <Route path="/customers" element={<CustomersPage />} />
-                      <Route path="/customers/:id" element={<CustomerDetailPage />} />
-                      <Route path="/maintenance" element={<MaintenancePage />} />
-                      <Route path="/invoices" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><InvoicesPage /></RoleGuard>} />
-                      <Route path="/invoices/new" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><InvoiceForm /></RoleGuard>} />
-                      <Route path="/invoices/:id" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><InvoiceDetail /></RoleGuard>} />
-                      <Route path="/invoices/:id/edit" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><InvoiceForm /></RoleGuard>} />
-                      <Route path="/returns" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ReturnInspectionPage /></RoleGuard>} />
-                      <Route path="/deliveries" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><DeliveriesPage /></RoleGuard>} />
-                      <Route path="/quotes" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><QuotesPage /></RoleGuard>} />
-                      <Route path="/quotes/new" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><QuoteForm /></RoleGuard>} />
-                      <Route path="/quotes/:id" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><QuoteDetail /></RoleGuard>} />
-                      <Route path="/quotes/:id/edit" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><QuoteForm /></RoleGuard>} />
-                      <Route path="/contracts" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ContractsPage /></RoleGuard>} />
-                      <Route path="/contracts/new" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ContractForm /></RoleGuard>} />
-                      <Route path="/contracts/:id" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ContractDetail /></RoleGuard>} />
-                      <Route path="/contracts/:id/edit" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ContractForm /></RoleGuard>} />
-                      <Route path="/activity" element={<ActivityPage />} />
-                      <Route path="/audit" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><AuditTrailPage /></RoleGuard>} />
-                      <Route path="/reports" element={<RoleGuard allowed={["admin", "dispatcher"]} fallback={<NoAccess />}><ReportsPage /></RoleGuard>} />
-                      <Route path="/damage" element={<DamageTrackingPage />} />
-                      <Route path="/settings/operations" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><OperationsSetupPage /></RoleGuard>} />
-                      <Route path="/settings/company" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><CompanySettingsPage /></RoleGuard>} />
-                      <Route path="/users" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><UserManagementPage /></RoleGuard>} />
+                      {routes.map(({ path, component: Component, roles }) => (
+                        <Route
+                          key={path}
+                          path={path}
+                          element={
+                            roles ? (
+                              <RoleGuard allowed={roles} fallback={<NoAccess />}>
+                                <Component />
+                              </RoleGuard>
+                            ) : (
+                              <Component />
+                            )
+                          }
+                        />
+                      ))}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                     </Suspense>
