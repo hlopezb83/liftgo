@@ -95,7 +95,7 @@ export default function Dashboard() {
     { label: "Flota Activa", value: activeFleet, icon: Truck, color: "text-primary" },
     { label: "Disponibles", value: counts.available, icon: CheckCircle, color: "text-status-available" },
     { label: "Rentados", value: counts.rented, icon: Clock, color: "text-status-rented" },
-    { label: "En Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
+    { label: "Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
     { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
     { label: "Pendiente", value: formatCurrency(outstandingRevenue), icon: Receipt, color: "text-primary" },
   ], [counts, activeFleet, outstandingRevenue]);
