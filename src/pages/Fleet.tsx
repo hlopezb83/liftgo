@@ -14,15 +14,17 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { Search, PlusCircle, Download } from "lucide-react";
+import { Search, PlusCircle, Download, ChevronRight } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES } from "@/lib/constants";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const filtered = forklifts?.filter((f) => {
     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase());
@@ -57,9 +59,40 @@ export default function Fleet() {
           </SelectContent>
         </Select>
       </div>
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? <TableSkeleton /> : (
+
+      {isLoading ? <TableSkeleton /> : isMobile ? (
+        /* Mobile card view */
+        <div className="space-y-3">
+          {paginatedItems.length > 0 ? paginatedItems.map((f) => (
+            <Card key={f.id} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/fleet/${f.id}`)}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono font-semibold text-sm">{f.name}</span>
+                  <StatusBadge status={f.status} />
+                </div>
+                <p className="text-sm text-muted-foreground">{f.model} {f.manufacturer ? `· ${f.manufacturer}` : ""}</p>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    {f.capacity_kg && <span>{f.capacity_kg} kg</span>}
+                    {f.mast_height_m && <span>{f.mast_height_m} m</span>}
+                    {f.fuel_type && <span>{f.fuel_type}</span>}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-medium">{formatCurrency(f.daily_rate || 0)}/día</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )) : (
+            <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron montacargas</CardContent></Card>
+          )}
+          <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        </div>
+      ) : (
+        /* Desktop table view */
+        <Card>
+          <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -84,10 +117,10 @@ export default function Fleet() {
                 {paginatedItems.length === 0 && <EmptyRow colSpan={8} message="No se encontraron montacargas" />}
               </TableBody>
             </Table>
-          )}
-          <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </CardContent>
-      </Card>
+            <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </CardContent>
+        </Card>
+      )}
     </div>
     </PageTransition>
   );
