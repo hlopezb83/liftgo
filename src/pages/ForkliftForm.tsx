@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { NotesCard } from "@/components/NotesCard";
@@ -13,6 +15,7 @@ import { FORKLIFT_STATUSES, FUEL_TYPES, STATUS_LABELS, FUEL_TYPE_LABELS } from "
 import { useFormState } from "@/hooks/useFormState";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 
 const emptyForm = {
   name: "",
@@ -147,6 +150,25 @@ export default function ForkliftForm() {
     }
   };
 
+  if (!isEdit && !hasModels) {
+    return (
+      <div className="p-6 max-w-3xl">
+        <FormPageHeader title="Agregar Montacargas" />
+        <Alert className="mt-6">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>Configura modelos de equipo primero</AlertTitle>
+          <AlertDescription className="mt-2">
+            Para agregar un montacargas, primero debes registrar al menos un modelo de equipo en Configuración de Operaciones.
+          </AlertDescription>
+        </Alert>
+        <div className="flex gap-3 mt-4">
+          <Button onClick={() => navigate("/settings/operations")}>Ir a Configuración</Button>
+          <Button variant="outline" onClick={() => navigate(-1)}>Volver</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-3xl">
       <FormPageHeader title={isEdit ? "Editar Montacargas" : "Agregar Montacargas"} />
@@ -162,37 +184,26 @@ export default function ForkliftForm() {
 
             <div className="space-y-1.5">
               <Label>Fabricante</Label>
-              {hasModels ? (
-                <Select value={form.manufacturer} onValueChange={handleManufacturerChange}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar fabricante" /></SelectTrigger>
-                  <SelectContent>
-                    {manufacturers.map((m) => (
-                      <SelectItem key={m} value={m}>{m}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input placeholder="Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} />
-              )}
+              <Select value={form.manufacturer} onValueChange={handleManufacturerChange}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar fabricante" /></SelectTrigger>
+                <SelectContent>
+                  {manufacturers.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1.5">
               <Label>Modelo *</Label>
-              {hasModels ? (
-                <Select value={form.model} onValueChange={handleModelChange} disabled={!form.manufacturer}>
-                  <SelectTrigger><SelectValue placeholder={form.manufacturer ? "Seleccionar modelo" : "Primero selecciona fabricante"} /></SelectTrigger>
-                  <SelectContent>
-                    {filteredModels.map((m) => (
-                      <SelectItem key={m.id} value={m.model}>{m.model}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input placeholder="H50" value={form.model} onChange={(e) => set("model", e.target.value)} />
-              )}
-              {!hasModels && (
-                <p className="text-xs text-muted-foreground">Tip: Configura modelos en Configuración para usar dropdowns aquí.</p>
-              )}
+              <Select value={form.model} onValueChange={handleModelChange} disabled={!form.manufacturer}>
+                <SelectTrigger><SelectValue placeholder={form.manufacturer ? "Seleccionar modelo" : "Primero selecciona fabricante"} /></SelectTrigger>
+                <SelectContent>
+                  {filteredModels.map((m) => (
+                    <SelectItem key={m.id} value={m.model}>{m.model}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1.5">
