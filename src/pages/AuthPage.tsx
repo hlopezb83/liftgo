@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ExternalLink } from "lucide-react";
 
 type Mode = "sign-in" | "sign-up" | "forgot" | "reset";
 
@@ -108,10 +109,13 @@ export default function AuthPage() {
               <Button variant="link" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
             )}
           </div>
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            ¿Eres cliente?{" "}
-            <a href="/portal/login" className="underline hover:text-foreground">Ingresa al Portal de Clientes</a>
-          </p>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
+          </div>
+          <Button variant="outline" className="w-full" onClick={() => window.location.href = "/portal/login"}>
+            <ExternalLink className="mr-2 h-4 w-4" /> Portal de Clientes
+          </Button>
         </CardContent>
       </Card>
     </div>

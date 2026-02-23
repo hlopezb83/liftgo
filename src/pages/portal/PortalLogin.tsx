@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Building2 } from "lucide-react";
 
 type Mode = "sign-in" | "forgot";
 
@@ -73,10 +74,13 @@ export default function PortalLogin() {
               <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
             )}
           </div>
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            ¿Eres empleado?{" "}
-            <a href="/" className="underline hover:text-foreground">Inicia sesión aquí</a>
-          </p>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
+          </div>
+          <Button variant="outline" className="w-full" onClick={() => window.location.href = "/"}>
+            <Building2 className="mr-2 h-4 w-4" /> Acceso Empleados
+          </Button>
         </CardContent>
       </Card>
     </div>
