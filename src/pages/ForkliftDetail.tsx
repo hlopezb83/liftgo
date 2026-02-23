@@ -157,7 +157,7 @@ export default function ForkliftDetail() {
         </CardHeader>
         <CardContent className="flex gap-3 items-end flex-wrap">
           <Select value={newStatus} onValueChange={setNewStatus}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="flex-1 max-w-xs">
               <SelectValue placeholder="Seleccionar nuevo estado" />
             </SelectTrigger>
             <SelectContent>
@@ -170,7 +170,7 @@ export default function ForkliftDetail() {
             placeholder="Razón del cambio (opcional)"
             value={statusNote}
             onChange={(e) => setStatusNote(e.target.value)}
-            className="w-[280px]"
+            className="flex-1 max-w-xs"
           />
           <Button onClick={handleStatusChange} disabled={!newStatus || updateStatus.isPending} size="sm">
             Actualizar Estado

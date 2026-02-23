@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal } from "lucide-react";
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -123,39 +124,55 @@ export default function InvoiceDetail() {
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
+          {/* Primary actions stay as standalone buttons */}
           {invoice.status === "draft" && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/invoices/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
-              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
-            </>
+            <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
           )}
           {(invoice.status === "sent" || invoice.status === "overdue") && (
             <Button size="sm" onClick={() => setStatus("paid", new Date().toISOString().split("T")[0])}>
               <CheckCircle className="h-4 w-4 mr-1" />Marcar Pagada
             </Button>
           )}
-          {cfdiStatus === "pending" && invoice.status !== "draft" && (
-            <Button size="sm" variant="default" onClick={handleStamp} disabled={stampLoading}>
-              <Stamp className="h-4 w-4 mr-1" />{stampLoading ? "Timbrando..." : "Timbrar CFDI"}
-            </Button>
-          )}
-          {cfdiStatus === "stamped" && (
-            <>
-              <Button variant="outline" size="sm" onClick={handleDownloadXml}>
-                <Download className="h-4 w-4 mr-1" />XML
-              </Button>
-              <Button variant="destructive" size="sm" onClick={() => setCancelDialogOpen(true)}>
-                <XCircle className="h-4 w-4 mr-1" />Cancelar CFDI
-              </Button>
-            </>
-          )}
           {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "partial") && (
             <Button variant="outline" size="sm" onClick={() => setPaymentDialogOpen(true)}>
               <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
             </Button>
           )}
+
+          {/* Secondary actions collapsed into dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <MoreHorizontal className="h-4 w-4 mr-1" /> Acciones
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {invoice.status === "draft" && (
+                <DropdownMenuItem onClick={() => navigate(`/invoices/${id}/edit`)}>
+                  <Edit className="h-4 w-4 mr-2" /> Editar
+                </DropdownMenuItem>
+              )}
+              {cfdiStatus === "pending" && invoice.status !== "draft" && (
+                <DropdownMenuItem onClick={handleStamp} disabled={stampLoading}>
+                  <Stamp className="h-4 w-4 mr-2" /> {stampLoading ? "Timbrando..." : "Timbrar CFDI"}
+                </DropdownMenuItem>
+              )}
+              {cfdiStatus === "stamped" && (
+                <>
+                  <DropdownMenuItem onClick={handleDownloadXml}>
+                    <Download className="h-4 w-4 mr-2" /> Descargar XML
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setCancelDialogOpen(true)} className="text-destructive focus:text-destructive">
+                    <XCircle className="h-4 w-4 mr-2" /> Cancelar CFDI
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" /> Imprimir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {id && <InvoicePDFButton invoiceId={id} />}
-          <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4 mr-1" />Imprimir</Button>
         </div>
       </div>
 

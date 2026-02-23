@@ -155,7 +155,7 @@ export default function MaintenancePage() {
           </TableRow>
         }
         renderRow={(log) => (
-          <TableRow key={log.id}>
+          <TableRow key={log.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
             <TableCell className="font-mono text-sm">{log.performed_at}</TableCell>
             <TableCell className="font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</TableCell>
             <TableCell>{log.service_type}</TableCell>

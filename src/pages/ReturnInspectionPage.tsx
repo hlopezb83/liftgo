@@ -138,7 +138,7 @@ export default function ReturnInspectionPage() {
         renderRow={(ins) => {
           const insWithJoins = ins as typeof ins & { forklifts?: { name: string; model: string }; bookings?: { customer_name: string | null } };
           return (
-            <TableRow key={ins.id}>
+            <TableRow key={ins.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
               <TableCell className="font-mono text-sm">{format(new Date(ins.inspected_at), "d MMM yyyy", { locale: es })}</TableCell>
               <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
               <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>
