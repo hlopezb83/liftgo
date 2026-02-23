@@ -58,8 +58,8 @@ export function BookingActions({ booking }: BookingActionsProps) {
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
       toast.success("Reserva cancelada");
-    } catch (err: any) {
-      toast.error("Error al cancelar: " + err.message);
+    } catch (err: unknown) {
+      toast.error("Error al cancelar: " + (err instanceof Error ? err.message : "Error desconocido"));
     }
   };
 

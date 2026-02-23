@@ -120,8 +120,8 @@ export function ContractPDFButton({ contract }: { contract: Contract }) {
       }
 
       doc.save(`${contract.contract_number}.pdf`);
-    } catch (err: any) {
-      toast.error(err.message || "Error al generar PDF");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al generar PDF");
     } finally {
       setLoading(false);
     }

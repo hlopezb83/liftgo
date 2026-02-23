@@ -37,7 +37,7 @@ export default function CustomerDetailPage() {
   const totalPaid = invoices?.filter((i) => i.status === "paid").reduce((sum, i) => sum + Number(i.total), 0) || 0;
   const outstanding = totalInvoiced - totalPaid;
 
-  const hasPortalAccess = !!(customer as any)?.user_id;
+  const hasPortalAccess = !!customer?.user_id;
 
   const handleInvite = async () => {
     if (!inviteEmail || !id) return;
@@ -53,8 +53,8 @@ export default function CustomerDetailPage() {
       setInviteOpen(false);
       setInviteEmail("");
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      toast({ title: "Error", description: err instanceof Error ? err.message : "Error desconocido", variant: "destructive" });
     } finally {
       setInviting(false);
     }

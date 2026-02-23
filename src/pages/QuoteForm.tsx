@@ -78,7 +78,7 @@ export default function QuoteForm() {
       forklift_id: forkliftId,
       start_date: format(startDate, "yyyy-MM-dd"),
       end_date: format(endDate, "yyyy-MM-dd"),
-      line_items: lineItems as any,
+      line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
       subtotal, tax_rate: Number(taxRate), tax_amount: taxAmount, total,
       status: existingQuote?.status || "draft",
       valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
