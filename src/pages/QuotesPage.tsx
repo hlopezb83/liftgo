@@ -16,8 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePagination } from "@/hooks/usePagination";
 import { TablePagination } from "@/components/TablePagination";
 
+import { STATUS_LABELS } from "@/lib/constants";
+
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
-const STATUS_LABELS: Record<string, string> = { all: "Todos", draft: "Borrador", sent: "Enviado", accepted: "Aceptado", declined: "Rechazado", expired: "Expirado" };
 
 export default function QuotesPage() {
   const { data: quotes, isLoading } = useQuotes();
