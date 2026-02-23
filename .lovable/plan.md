@@ -1,89 +1,104 @@
 
-# Mejoras de Responsividad Mobile
+# Desktop Optimization and Structural Improvements
 
-## Problemas Detectados
+Since the app is used 99% on desktop, this plan focuses on making the desktop experience faster, more polished, and easier to use.
 
-Despues de revisar la app en viewports de 390px (mobile), 768px (tablet) y desktop, se encontraron los siguientes problemas:
+## 1. Dashboard StatCards -- Better Desktop Layout
 
-### 1. PageHeader se desborda en mobile
-El componente `PageHeader` usa `flex items-center justify-between` sin wrapping. En mobile, los botones de accion (como "Agregar Montacargas", "Exportar CSV + Agregar Cliente") se recortan o salen de pantalla.
+The Dashboard currently renders 6 stat cards in a `lg:grid-cols-5` grid, which forces the 6th card ("Pendiente") to wrap alone to a second row. Change to `lg:grid-cols-6` so all cards fit in a single row on desktop.
 
-### 2. Tablas sin vista mobile en 6 paginas
-Solo 3 paginas (Fleet, Invoices, Contracts) tienen vistas de cards para mobile. Las siguientes 6 muestran tablas con scroll horizontal en mobile:
-- **QuotesPage** - tabla con 6 columnas
-- **DeliveriesPage** - tabla con 7 columnas
-- **CustomersPage** - tabla con 5+ columnas
-- **MaintenancePage** - tabla con columnas
-- **ReturnInspectionPage** - tabla con columnas
-- **UserManagementPage** - tabla con 4 columnas
+**File:** `src/components/dashboard/StatCards.tsx`
 
-### 3. Tabs de status se desbordan
-En InvoicesPage (6 tabs) y ContractsPage (5 tabs), los tabs hacen wrap a 2 lineas en mobile, se ve desordenado.
+## 2. Keyboard Shortcut for Global Search
 
-### 4. Filtros no se apilan en mobile
-La fila de busqueda + select (ej. QuotesPage) se muestra lado a lado y queda apretada en pantallas pequenas.
+Add a global keyboard shortcut (Ctrl+K / Cmd+K) that focuses the search input on any list page. This is a standard desktop productivity pattern. Implement by adding a `useEffect` listener inside `SearchBar` that watches for the shortcut and focuses its input via a ref. Show a subtle "Ctrl+K" hint badge inside the search field.
 
-## Plan de Implementacion
+**File:** `src/components/SearchBar.tsx`
 
-### Paso 1: Arreglar PageHeader para mobile
-Hacer que el header haga wrap en mobile: cambiar de `flex items-center justify-between` a `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`. Esto apilara titulo arriba y botones abajo en mobile.
+## 3. Table Row Hover Polish
 
-### Paso 2: Convertir tabs de status a ScrollArea horizontal
-Envolver los `Tabs` de status en InvoicesPage y ContractsPage en un contenedor con scroll horizontal en mobile para que no hagan wrap.
+Currently some table rows have hover styles (`hover:bg-muted/50`) and some also have `border-l-2 border-transparent hover:border-primary`. Standardize all `ListPageLayout` table rows with a consistent, refined hover: a subtle left-border accent + background shift. This is already partially done in Fleet; replicate to Invoices, Contracts, Quotes, Deliveries, Maintenance, Damage, Returns, and Audit.
 
-### Paso 3: Apilar filtros en mobile
-En QuotesPage y paginas similares, cambiar la fila de filtros de `flex gap-3` a `flex flex-col sm:flex-row gap-3` para que busqueda y select se apilen verticalmente en mobile.
+**Files:** `src/pages/ContractsPage.tsx`, `src/pages/QuotesPage.tsx`, `src/pages/DeliveriesPage.tsx`, `src/pages/MaintenancePage.tsx`, `src/pages/DamageTrackingPage.tsx`, `src/pages/ReturnInspectionPage.tsx`, `src/pages/AuditTrailPage.tsx`
 
-### Paso 4: Agregar vista mobile de cards a QuotesPage
-Usar el patron existente de `useIsMobile` + `customContent` en `ListPageLayout`. Crear cards con: numero de cotizacion, cliente, total y status badge.
+## 4. InvoiceDetail -- Collapse Actions into Dropdown on Desktop
 
-### Paso 5: Agregar vista mobile de cards a CustomersPage
-Cards con: nombre, RFC, telefono. Click navega al detalle.
+The InvoiceDetail header can show up to 7 action buttons that wrap awkwardly. Group secondary actions (Edit, Stamp CFDI, Download XML, Cancel CFDI, Print) into a `DropdownMenu` labeled "Acciones", keeping only the primary action (Mark Sent/Paid, Record Payment) as standalone buttons. This declutters the header significantly.
 
-### Paso 6: Agregar vista mobile de cards a DeliveriesPage
-Cards con: fecha, tipo (entrega/recoleccion), montacargas, status, boton de completar.
+**File:** `src/pages/InvoiceDetail.tsx`
 
-### Paso 7: Agregar vista mobile de cards a MaintenancePage
-Cards con: fecha, montacargas, tipo, costo, status.
+## 5. ForkliftDetail -- Remove Fixed Widths
 
-### Paso 8: Agregar vista mobile de cards a ReturnInspectionPage
-Cards con: fecha, montacargas, cliente, condicion.
+The "Change Status" section uses `w-[200px]` and `w-[280px]` which can look odd on wide screens. Replace with `flex-1 max-w-xs` so they scale proportionally within the card.
 
-### Paso 9: Agregar vista mobile de cards a UserManagementPage
-Cards con: nombre, rol (select inline), botones de editar/eliminar.
+**File:** `src/pages/ForkliftDetail.tsx`
 
-## Detalles Tecnicos
+## 6. Remove App.css Boilerplate
 
-Patron de card mobile utilizado (ya probado en Fleet/Invoices/Contracts):
+`src/App.css` contains leftover Vite starter boilerplate (#root max-width, logo spin animation, etc.) that conflicts with the full-width sidebar layout. All styling is handled via `index.css` and Tailwind -- this file should be emptied or deleted.
 
+**File:** `src/App.css`
+
+## 7. ListPageLayout -- Show Item Count in Subtitle
+
+Add an optional `totalCount` prop to `ListPageLayout` that appends "(X resultados)" to the subtitle. This gives users instant context on how many records exist vs. what's filtered. Apply to Fleet, Invoices, Contracts, Quotes, Deliveries, and other list pages.
+
+**File:** `src/components/ListPageLayout.tsx` (add prop), plus each list page to pass the count.
+
+## 8. DamageTrackingPage -- Add Consistent Table Row Hover + Filter Stacking
+
+This page's filter row doesn't use the `flex-col sm:flex-row` pattern. Standardize it and add the hover border style to its table rows.
+
+**File:** `src/pages/DamageTrackingPage.tsx`
+
+---
+
+## Technical Details
+
+### SearchBar Keyboard Shortcut Pattern
 ```text
-const isMobile = useIsMobile();
-
-const mobileContent = isMobile ? (
-  <div className="space-y-3 px-1">
-    {paginatedItems.map((item) => (
-      <Card key={item.id} className="cursor-pointer" onClick={() => navigate(...)}>
-        <CardContent className="p-4">
-          {/* Contenido resumido del item */}
-        </CardContent>
-      </Card>
-    ))}
-  </div>
-) : null;
-
-// Se pasa como prop:
-<ListPageLayout customContent={mobileContent} ... />
+const inputRef = useRef<HTMLInputElement>(null);
+useEffect(() => {
+  const handler = (e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      inputRef.current?.focus();
+    }
+  };
+  document.addEventListener("keydown", handler);
+  return () => document.removeEventListener("keydown", handler);
+}, []);
 ```
 
-**Archivos a modificar:**
-- `src/components/PageHeader.tsx` - wrap responsive
-- `src/pages/InvoicesPage.tsx` - tabs scroll
-- `src/pages/ContractsPage.tsx` - tabs scroll
-- `src/pages/QuotesPage.tsx` - filtros + cards mobile
-- `src/pages/CustomersPage.tsx` - cards mobile
-- `src/pages/DeliveriesPage.tsx` - cards mobile
-- `src/pages/MaintenancePage.tsx` - cards mobile
-- `src/pages/ReturnInspectionPage.tsx` - cards mobile
-- `src/pages/UserManagementPage.tsx` - cards mobile
+### InvoiceDetail Actions Dropdown Pattern
+```text
+<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button variant="outline" size="sm">
+      <MoreHorizontal className="h-4 w-4 mr-1" /> Acciones
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end">
+    <DropdownMenuItem onClick={...}>
+      <Edit className="h-4 w-4 mr-2" /> Editar
+    </DropdownMenuItem>
+    ...
+  </DropdownMenuContent>
+</DropdownMenu>
+```
 
-**Riesgo:** Bajo. Se usa el mismo patron ya probado en 3 paginas. El cambio en `PageHeader` es minimo y afecta todas las paginas positivamente.
+### Files to Modify
+- `src/components/dashboard/StatCards.tsx` -- grid-cols-6
+- `src/components/SearchBar.tsx` -- Ctrl+K shortcut + hint badge
+- `src/components/ListPageLayout.tsx` -- totalCount prop
+- `src/pages/InvoiceDetail.tsx` -- actions dropdown
+- `src/pages/ForkliftDetail.tsx` -- remove fixed widths
+- `src/pages/ContractsPage.tsx` -- hover style
+- `src/pages/QuotesPage.tsx` -- hover style
+- `src/pages/DeliveriesPage.tsx` -- hover style
+- `src/pages/MaintenancePage.tsx` -- hover style
+- `src/pages/DamageTrackingPage.tsx` -- hover style + filter fix
+- `src/pages/ReturnInspectionPage.tsx` -- hover style
+- `src/App.css` -- remove boilerplate
+
+**Risk:** Low. All changes are UI-only with no backend impact. The dropdown pattern for InvoiceDetail is the most significant UX change but uses standard Radix components already in the project.
