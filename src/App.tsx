@@ -1,49 +1,60 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import PortalLogin from "./pages/portal/PortalLogin";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AuthGuard } from "@/components/AuthGuard";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import Dashboard from "./pages/Dashboard";
-import Fleet from "./pages/Fleet";
-import ForkliftDetail from "./pages/ForkliftDetail";
-import ForkliftForm from "./pages/ForkliftForm";
-import CalendarPage from "./pages/CalendarPage";
-import BookingForm from "./pages/BookingForm";
-import CustomersPage from "./pages/CustomersPage";
-import CustomerDetailPage from "./pages/CustomerDetailPage";
-import MaintenancePage from "./pages/MaintenancePage";
-import InvoicesPage from "./pages/InvoicesPage";
-import InvoiceForm from "./pages/InvoiceForm";
-import InvoiceDetail from "./pages/InvoiceDetail";
-import OperationsSetupPage from "./pages/OperationsSetupPage";
-import ReturnInspectionPage from "./pages/ReturnInspectionPage";
-import DeliveriesPage from "./pages/DeliveriesPage";
-import QuotesPage from "./pages/QuotesPage";
-import ContractsPage from "./pages/ContractsPage";
-import ContractDetail from "./pages/ContractDetail";
-import ContractForm from "./pages/ContractForm";
-import QuoteForm from "./pages/QuoteForm";
-import QuoteDetail from "./pages/QuoteDetail";
-import ActivityPage from "./pages/ActivityPage";
-import AuditTrailPage from "./pages/AuditTrailPage";
-import ReportsPage from "./pages/ReportsPage";
-import DamageTrackingPage from "./pages/DamageTrackingPage";
-import UserManagementPage from "./pages/UserManagementPage";
-import CompanySettingsPage from "./pages/CompanySettingsPage";
-import NotFound from "./pages/NotFound";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy-loaded pages
+const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Fleet = lazy(() => import("./pages/Fleet"));
+const ForkliftDetail = lazy(() => import("./pages/ForkliftDetail"));
+const ForkliftForm = lazy(() => import("./pages/ForkliftForm"));
+const CalendarPage = lazy(() => import("./pages/CalendarPage"));
+const BookingForm = lazy(() => import("./pages/BookingForm"));
+const CustomersPage = lazy(() => import("./pages/CustomersPage"));
+const CustomerDetailPage = lazy(() => import("./pages/CustomerDetailPage"));
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
+const InvoicesPage = lazy(() => import("./pages/InvoicesPage"));
+const InvoiceForm = lazy(() => import("./pages/InvoiceForm"));
+const InvoiceDetail = lazy(() => import("./pages/InvoiceDetail"));
+const OperationsSetupPage = lazy(() => import("./pages/OperationsSetupPage"));
+const ReturnInspectionPage = lazy(() => import("./pages/ReturnInspectionPage"));
+const DeliveriesPage = lazy(() => import("./pages/DeliveriesPage"));
+const QuotesPage = lazy(() => import("./pages/QuotesPage"));
+const ContractsPage = lazy(() => import("./pages/ContractsPage"));
+const ContractDetail = lazy(() => import("./pages/ContractDetail"));
+const ContractForm = lazy(() => import("./pages/ContractForm"));
+const QuoteForm = lazy(() => import("./pages/QuoteForm"));
+const QuoteDetail = lazy(() => import("./pages/QuoteDetail"));
+const ActivityPage = lazy(() => import("./pages/ActivityPage"));
+const AuditTrailPage = lazy(() => import("./pages/AuditTrailPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const DamageTrackingPage = lazy(() => import("./pages/DamageTrackingPage"));
+const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
+const CompanySettingsPage = lazy(() => import("./pages/CompanySettingsPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
+const PageFallback = () => (
+  <div className="p-6 space-y-4">
+    <Skeleton className="h-8 w-48" />
+    <Skeleton className="h-64 w-full rounded-xl" />
+  </div>
+);
+
 const NoAccess = () => (
   <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
-    You do not have permission to access this page.
+    No tienes permiso para acceder a esta página.
   </div>
 );
 
@@ -55,7 +66,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/portal/login" element={<PortalLogin />} />
+          <Route path="/portal/login" element={<Suspense fallback={<PageFallback />}><PortalLogin /></Suspense>} />
           <Route path="*" element={
             <AuthGuard>
               <SidebarProvider>
@@ -66,6 +77,7 @@ const App = () => (
                       <SidebarTrigger />
                     </header>
                     <ErrorBoundary>
+                    <Suspense fallback={<PageFallback />}>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/fleet" element={<Fleet />} />
@@ -100,6 +112,7 @@ const App = () => (
                       <Route path="/users" element={<RoleGuard allowed={["admin"]} fallback={<NoAccess />}><UserManagementPage /></RoleGuard>} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    </Suspense>
                     </ErrorBoundary>
                   </main>
                 </div>

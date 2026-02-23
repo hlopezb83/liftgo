@@ -1138,6 +1138,7 @@ export type Database = {
       }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       get_customer_id_for_user: { Args: { p_user_id: string }; Returns: string }
+      get_dashboard_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
