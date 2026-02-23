@@ -1,40 +1,25 @@
 
+# Texto adaptativo en tarjetas del Panel
 
-# Cambiar grafica de Utilizacion de Flota a vista semanal
+## Problema
+Las 6 tarjetas de estadisticas en el Panel usan un tamano de fuente fijo (`text-2xl`) para los valores. Cuando el valor es texto largo (como montos en formato moneda "$123,456.00"), el texto puede desbordar el area visible de la tarjeta, especialmente en la cuadricula de 6 columnas en escritorio.
 
-## Cambio solicitado
-Actualmente la grafica muestra utilizacion por unidad individual (barras horizontales por montacargas). El cambio es mostrar la **utilizacion total de la flota por semana** con:
-- **Eje X (abajo)**: Numero de semana (Sem 1, Sem 2, etc.)
-- **Eje Y (izquierda)**: Porcentaje de utilizacion de toda la flota (0-100%)
-- **Barras verticales**: Una barra por semana
+## Solucion recomendada
+Combinar dos tecnicas para un resultado estetico y funcional:
 
-## Como se calcula
-Para cada semana de las ultimas 12 semanas:
-- Se cuenta cuantos montacargas activos existen (no vendidos ni retirados)
-- Se cuenta cuantos dias-montacargas estuvieron reservados esa semana (cruzando bookings con los 7 dias de la semana)
-- Utilizacion = (dias reservados / dias disponibles totales) x 100
+1. **Tamano de fuente condicional**: Si el valor es un string (moneda), usar `text-lg`; si es un numero corto, mantener `text-2xl`. Esto mantiene la jerarquia visual sin desbordes.
 
-## Cambios tecnicos
+2. **Prevencion de desborde con CSS**: Agregar `min-w-0` y `truncate` como respaldo para que ningun valor rompa el layout en casos extremos.
 
-### 1. Base de datos: Actualizar funcion `get_dashboard_stats`
-Agregar un nuevo campo `weekly_utilization` al JSON que retorna la funcion. Este campo contiene un arreglo de las ultimas 12 semanas con:
-- `week_label`: "Sem 5", "Sem 6", etc.
-- `utilization`: porcentaje de 0 a 100
+## Cambios
 
-La consulta SQL calcula por cada semana: cuantos dias de la semana cada montacargas activo tenia una reserva activa, dividido entre el total de dias-montacargas disponibles.
+### Archivo: `src/components/dashboard/StatCards.tsx`
 
-### 2. Hook: `useDashboardStats.ts`
-Agregar el tipo `weekly_utilization` al interface `DashboardStats`.
+- Agregar `min-w-0` al contenedor de texto para permitir que el contenido se encoja correctamente dentro del flexbox
+- Cambiar la clase del valor de `text-2xl` fijo a una clase condicional:
+  - Si `card.value` es string (moneda/texto largo): usar `text-lg`
+  - Si es numero: mantener `text-2xl`
+- Agregar `truncate` al parrafo del valor como respaldo visual
+- Agregar `overflow-hidden` al CardContent para evitar desbordes
 
-### 3. Dashboard: `Dashboard.tsx`
-Crear el `useMemo` para mapear `stats.weekly_utilization` y pasarlo como prop al componente de graficas.
-
-### 4. Componente: `UtilizationCharts.tsx`
-- Cambiar la grafica de utilizacion de `layout="vertical"` (barras horizontales por unidad) a barras verticales por semana
-- Eje X: numero de semana
-- Eje Y: porcentaje (0-100%)
-- Tooltip mostrando el % al pasar el cursor
-
-### 5. Grafica de per-unit se mantiene
-La grafica de "Ingresos por Unidad" no se modifica.
-
+El resultado: numeros simples (5, 12, 0) se ven grandes y prominentes; montos como "$123,456.00" se ven en un tamano ligeramente menor que cabe perfectamente en la tarjeta sin perder legibilidad.
