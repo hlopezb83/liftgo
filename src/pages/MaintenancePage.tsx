@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { useForklifts, useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useForkliftData";
+import { useForklifts } from "@/hooks/useForklifts";
+import { useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { usePagination } from "@/hooks/usePagination";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

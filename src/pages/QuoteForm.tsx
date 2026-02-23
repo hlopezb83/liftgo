@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useCustomers, useAvailableForklifts } from "@/hooks/useForkliftData";
+import { useCustomers } from "@/hooks/useCustomers";
+import { useAvailableForklifts } from "@/hooks/useAvailableForklifts";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
 import { generateLineItems, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

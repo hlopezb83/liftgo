@@ -107,7 +107,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       y += 6;
 
       // Rows
-      const lineItems = (invoice.line_items as any[]) || [];
+      const lineItems = (invoice.line_items as unknown as { description: string; quantity: number; unit_price: number; total: number }[]) || [];
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       for (const item of lineItems) {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useInvoice, useUpdateInvoice } from "@/hooks/useForkliftData";
+import { useInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
 import { formatCurrency } from "@/lib/formatCurrency";

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { useForklifts, useBookings } from "@/hooks/useForkliftData";
+import { useForklifts } from "@/hooks/useForklifts";
+import { useBookings } from "@/hooks/useBookings";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import { Card, CardContent } from "@/components/ui/card";

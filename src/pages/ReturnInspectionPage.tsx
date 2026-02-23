@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { useBookings, useForklifts } from "@/hooks/useForkliftData";
+import { useBookings } from "@/hooks/useBookings";
+import { useForklifts } from "@/hooks/useForklifts";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
