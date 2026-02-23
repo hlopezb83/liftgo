@@ -11,26 +11,47 @@ import {
 import { Button } from "@/components/ui/button";
 
 type NavItem = { title: string; url: string; icon: React.ElementType; roles?: AppRole[] };
+type NavGroup = { label: string; items: NavItem[] };
 
-const navItems: NavItem[] = [
-  { title: "Panel", url: "/", icon: LayoutDashboard },
-  { title: "Flota", url: "/fleet", icon: Truck },
-  { title: "Calendario", url: "/calendar", icon: CalendarDays },
-  { title: "Reservas", url: "/bookings/new", icon: BookOpen, roles: ["admin", "dispatcher"] },
-  { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher"] },
-  { title: "Contratos", url: "/contracts", icon: ScrollText, roles: ["admin", "dispatcher"] },
-  { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, roles: ["admin", "dispatcher"] },
-  { title: "Entregas", url: "/deliveries", icon: TruckIcon, roles: ["admin", "dispatcher"] },
-  { title: "Clientes", url: "/customers", icon: Users },
-  { title: "Facturas", url: "/invoices", icon: Receipt, roles: ["admin", "dispatcher"] },
-  { title: "Mantenimiento", url: "/maintenance", icon: Wrench },
-  { title: "Seguimiento de Daños", url: "/damage", icon: AlertTriangle },
-  { title: "Actividad", url: "/activity", icon: Activity },
-  { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher"] },
-  { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher"] },
-  { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin"] },
-  { title: "Datos Fiscales", url: "/settings/company", icon: Building2, roles: ["admin"] },
-  { title: "Gestión de Usuarios", url: "/users", icon: ShieldCheck, roles: ["admin"] },
+const navGroups: NavGroup[] = [
+  {
+    label: "General",
+    items: [
+      { title: "Panel", url: "/", icon: LayoutDashboard },
+      { title: "Calendario", url: "/calendar", icon: CalendarDays },
+    ],
+  },
+  {
+    label: "Operaciones",
+    items: [
+      { title: "Clientes", url: "/customers", icon: Users },
+      { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher"] },
+      { title: "Reservas", url: "/bookings/new", icon: BookOpen, roles: ["admin", "dispatcher"] },
+      { title: "Contratos", url: "/contracts", icon: ScrollText, roles: ["admin", "dispatcher"] },
+      { title: "Entregas", url: "/deliveries", icon: TruckIcon, roles: ["admin", "dispatcher"] },
+      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, roles: ["admin", "dispatcher"] },
+      { title: "Facturas", url: "/invoices", icon: Receipt, roles: ["admin", "dispatcher"] },
+    ],
+  },
+  {
+    label: "Flota",
+    items: [
+      { title: "Equipos", url: "/fleet", icon: Truck },
+      { title: "Mantenimiento", url: "/maintenance", icon: Wrench },
+      { title: "Daños", url: "/damage", icon: AlertTriangle },
+    ],
+  },
+  {
+    label: "Administración",
+    items: [
+      { title: "Actividad", url: "/activity", icon: Activity },
+      { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher"] },
+      { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher"] },
+      { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin"] },
+      { title: "Datos Fiscales", url: "/settings/company", icon: Building2, roles: ["admin"] },
+      { title: "Usuarios", url: "/users", icon: ShieldCheck, roles: ["admin"] },
+    ],
+  },
 ];
 
 function ThemeToggle() {
@@ -45,7 +66,6 @@ function ThemeToggle() {
 export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
-  const visibleItems = navItems.filter((item) => !item.roles || (role && item.roles.includes(role)));
 
   return (
     <Sidebar>
@@ -59,23 +79,29 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navegación</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end={item.url === "/"} className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navGroups.map((group) => {
+          const visibleItems = group.items.filter((item) => !item.roles || (role && item.roles.includes(role)));
+          if (visibleItems.length === 0) return null;
+          return (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {visibleItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} end={item.url === "/"} className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
         <div className="flex items-center justify-between">
