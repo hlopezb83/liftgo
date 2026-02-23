@@ -1,36 +1,19 @@
 
-# Hacer mas visible el enlace al Portal de Clientes
 
-## Problema actual
+# Eliminar opcion de registro publico
 
-En la pagina de login (`AuthPage.tsx`), el enlace al portal de clientes es una linea pequena de texto al final del formulario:
+## Problema
+La pagina de login muestra un enlace "No tienes cuenta? Registrate" que permite a cualquier persona crear una cuenta. Esto no es correcto porque solo el administrador puede dar de alta nuevos usuarios (via invitacion).
 
-```
-"¿Eres cliente? Ingresa al Portal de Clientes"
-```
-
-Es facil de pasar por alto porque usa texto `text-xs text-muted-foreground` (gris, muy pequeno).
-
-## Solucion propuesta
-
-Reemplazar el texto pequeno por un **boton secundario visible** con icono, separado visualmente del formulario principal mediante un divisor. El resultado sera:
-
-```
-─────── o ───────
-[icono] Portal de Clientes
-```
-
-### Cambios concretos
+## Cambios
 
 **Archivo: `src/pages/AuthPage.tsx`**
 
-Reemplazar el parrafo pequeno del final por:
+1. Eliminar el estado `fullName` y el modo `"sign-up"` del tipo `Mode`
+2. Eliminar el bloque del formulario que muestra el campo "Nombre Completo" cuando `mode === "sign-up"`
+3. Eliminar el boton "Registrarse" y el enlace "No tienes cuenta? Registrate"
+4. Eliminar la entrada `"sign-up"` del objeto `titles`
+5. Eliminar la referencia a `signUp` del hook `useAuth`
 
-1. Un **separador visual** con texto "o" (patron comun en paginas de login)
-2. Un **boton outline de ancho completo** con el icono `ExternalLink` que navegue a `/portal/login`
+El formulario quedara solo con tres modos: `sign-in`, `forgot` y `reset`.
 
-Esto lo hace inmediatamente reconocible como una accion alternativa, sin competir con el boton principal de inicio de sesion.
-
-**Archivo: `src/pages/portal/PortalLogin.tsx`**
-
-Aplicar el mismo tratamiento al enlace inverso ("¿Eres empleado?") para mantener consistencia entre ambas paginas de login.
