@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       const total = Math.round((monthlyRate + taxAmount) * 100) / 100;
 
       const { error: invErr } = await supabase.from("invoices").insert({
-        invoice_number: invNum || `INV-AUTO-${Date.now()}`,
+        invoice_number: invNum || `FAC-AUTO-${Date.now()}`,
         booking_id: booking.id,
         customer_id: booking.customer_id,
         customer_name: booking.customer_name,

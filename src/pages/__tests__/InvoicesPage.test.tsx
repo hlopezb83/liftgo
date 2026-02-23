@@ -8,7 +8,7 @@ import * as hooks from "@/hooks/useInvoices";
 const mockInvoices = [
   {
     id: "inv-1",
-    invoice_number: "INV-0001",
+    invoice_number: "FAC-0001",
     customer_name: "Matrimar",
     total: 1700,
     status: "sent",
@@ -17,7 +17,7 @@ const mockInvoices = [
   },
   {
     id: "inv-2",
-    invoice_number: "INV-0002",
+    invoice_number: "FAC-0002",
     customer_name: "Matrimar",
     total: 2000,
     status: "paid",
@@ -49,8 +49,8 @@ describe("InvoicesPage smoke tests", () => {
 
   it("renders all invoices with correct statuses", () => {
     const container = renderPage();
-    expect(container.textContent).toContain("INV-0001");
-    expect(container.textContent).toContain("INV-0002");
+    expect(container.textContent).toContain("FAC-0001");
+    expect(container.textContent).toContain("FAC-0002");
     expect(container.textContent).toContain("Sent");
     expect(container.textContent).toContain("Paid");
   });
@@ -58,7 +58,7 @@ describe("InvoicesPage smoke tests", () => {
   it("paid status persists and is displayed correctly", () => {
     const container = renderPage();
     const rows = container.querySelectorAll("tbody tr") as NodeListOf<HTMLElement>;
-    const paidRow = Array.from(rows).find((r: HTMLElement) => r.textContent?.includes("INV-0002"));
+    const paidRow = Array.from(rows).find((r: HTMLElement) => r.textContent?.includes("FAC-0002"));
     expect(paidRow).toBeTruthy();
     expect((paidRow as HTMLElement).textContent).toContain("Paid");
     expect((paidRow as HTMLElement).textContent).toContain("€2000.00");
