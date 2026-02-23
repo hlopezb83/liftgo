@@ -1,36 +1,48 @@
 
-# Agregar estado "Vendido" a montacargas
+# Corregir Dashboard y estandarizar paginas de lista
 
-## Resumen
+## 1. Dashboard: agregar estado "sold" (Vendido)
 
-Agregar el estado "sold" (Vendido) a los montacargas para registrar cuando un equipo ha sido vendido. Los equipos vendidos se comportaran de manera similar a los retirados: no estaran disponibles para reservas ni se contaran en las metricas de utilizacion.
+El panel actual no contempla montacargas vendidos. El campo `total` de la funcion `get_dashboard_stats` los incluye, pero no hay un conteo separado ni aparece en el grafico de pie.
 
-## Cambios
+### Cambios:
 
-### 1. Constantes (`src/lib/constants.ts`)
-- Agregar `"sold"` al array `FORKLIFT_STATUSES`
-- Agregar `sold: "Vendido"` al objeto `STATUS_LABELS`
+**Base de datos** - Actualizar la funcion `get_dashboard_stats` para:
+- Agregar `'sold', COUNT(*) FILTER (WHERE status = 'sold')` al bloque `fleet_counts`
+- Excluir equipos vendidos y retirados del calculo de utilizacion (actualmente los incluye todos)
 
-### 2. StatusBadge (`src/components/StatusBadge.tsx`)
-- Agregar estilo visual para el estado `sold`. Se usara un color distintivo (similar a `retired` pero diferenciado, por ejemplo un tono azul gris).
+**`src/hooks/useDashboardStats.ts`**:
+- Agregar `sold: number` a la interfaz `fleet_counts`
 
-### 3. Calendario - Estadisticas (`src/components/calendar/CalendarStatCards.tsx`)
-- Actualizar el calculo de `totalActive` para excluir tambien los montacargas con estado `"sold"`, ya que un equipo vendido no forma parte de la flota activa.
+**`src/pages/Dashboard.tsx`**:
+- Agregar `sold` al mapa de `STATUS_COLORS` con el color `hsl(200, 15%, 45%)` (mismo que `--status-sold`)
+- Incluir "Vendidos" en el `pieData` del grafico de pie
+- Agregar una stat card "Vendidos" con icono apropiado
+- Ajustar "Flota Total" para mostrar solo la flota activa (excluyendo vendidos y retirados), o agregar una nota visual que distinga activos de total
 
-### 4. Disponibilidad para reservas (`src/hooks/useAvailableForklifts.ts`)
-- Los montacargas con estado `"sold"` ya se excluyen automaticamente porque el filtro actual solo permite `status === "available"`. No requiere cambios.
+## 2. Fleet: migrar a ListPageLayout
 
-### 5. Colores de Tailwind (`tailwind.config.ts`)
-- Agregar un color `status.sold` para dar al badge un color propio (por ejemplo un gris azulado).
+La pagina `Fleet.tsx` construye manualmente la estructura de header, filtros, tabla y paginacion. Se puede simplificar usando `ListPageLayout`, pero tiene una particularidad: la vista mobile usa cards en lugar de tabla.
 
-### 6. CSS variables (`src/index.css`)
-- Agregar la variable CSS `--status-sold` con el valor del color elegido.
+### Cambios en `src/pages/Fleet.tsx`:
+- Reemplazar la estructura manual por `ListPageLayout`
+- Usar la prop `customContent` para la vista mobile (cards)
+- Mover los filtros (search + select de estado) a la prop `filters`
+- Mantener la misma funcionalidad y apariencia visual
 
-### 7. Sin cambios en base de datos
-- La columna `status` en la tabla `forklifts` es de tipo `text` sin restriccion de check, por lo que acepta cualquier valor. No se necesita migracion.
+## 3. CustomersPage: migrar a ListPageLayout
 
-## Resultado
+Mismo patron que Fleet pero mas sencillo (no tiene vista mobile diferenciada).
 
-- Aparecera "Vendido" como opcion en los filtros de la lista de flota, en el formulario de creacion/edicion, y en el selector de cambio de estado del detalle del montacargas.
-- El badge mostrara un color unico para equipos vendidos.
-- Los equipos vendidos no se contaran como parte de la flota activa ni estaran disponibles para reservas.
+### Cambios en `src/pages/CustomersPage.tsx`:
+- Reemplazar la estructura manual de `PageTransition > div > PageHeader > Card > Table` por `ListPageLayout`
+- Mover el search input a la prop `filters`
+- Mantener el Dialog de crear/editar cliente fuera del layout (se agrega despues del `ListPageLayout`)
+
+## Secuencia de implementacion
+
+1. Migracion SQL para actualizar `get_dashboard_stats`
+2. Actualizar tipo en `useDashboardStats.ts`
+3. Actualizar `Dashboard.tsx` con color y datos de "sold"
+4. Refactorizar `Fleet.tsx` con `ListPageLayout`
+5. Refactorizar `CustomersPage.tsx` con `ListPageLayout`
