@@ -148,7 +148,7 @@ export default function AuditTrailPage() {
           </TableRow>
         }
         renderRow={(log) => (
-          <TableRow key={log.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedLog(log)}>
+          <TableRow key={log.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => setSelectedLog(log)}>
             <TableCell>{actionIcon(log.action)}</TableCell>
             <TableCell><Badge variant={actionBadgeVariant(log.action)}>{translateAction(log.action)}</Badge></TableCell>
             <TableCell className="text-sm">{translateTable(log.table_name)}</TableCell>

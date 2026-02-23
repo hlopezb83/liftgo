@@ -10,6 +10,8 @@ import { Table, TableBody, TableHeader } from "@/components/ui/table";
 interface ListPageLayoutProps<T> {
   title: string;
   subtitle?: string;
+  /** Total number of items (before pagination) to display in subtitle */
+  totalCount?: number;
   actions?: ReactNode;
   filters?: ReactNode;
   isLoading: boolean;
@@ -27,6 +29,7 @@ interface ListPageLayoutProps<T> {
 export function ListPageLayout<T extends { id?: string }>({
   title,
   subtitle,
+  totalCount,
   actions,
   filters,
   isLoading,
@@ -42,7 +45,7 @@ export function ListPageLayout<T extends { id?: string }>({
   return (
     <PageTransition>
       <div className="p-6 space-y-6">
-        <PageHeader title={title} subtitle={subtitle} action={actions} />
+        <PageHeader title={title} subtitle={totalCount !== undefined ? `${subtitle || ""}${subtitle ? " — " : ""}${totalCount} resultado${totalCount !== 1 ? "s" : ""}` : subtitle} action={actions} />
         {filters}
         {customContent || (
           <Card>

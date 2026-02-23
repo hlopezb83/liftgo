@@ -85,7 +85,7 @@ export default function ContractsPage() {
         </TableRow>
       }
       renderRow={(c) => (
-        <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/contracts/${c.id}`)}>
+        <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/contracts/${c.id}`)}>
           <TableCell className="font-medium">{c.contract_number}</TableCell>
           <TableCell>{c.customer_name || "—"}</TableCell>
           <TableCell>{c.forklift_name || "—"}</TableCell>

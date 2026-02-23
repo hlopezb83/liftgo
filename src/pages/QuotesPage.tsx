@@ -86,7 +86,7 @@ export default function QuotesPage() {
         </TableRow>
       }
       renderRow={(q) => (
-        <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/quotes/${q.id}`)}>
+        <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/quotes/${q.id}`)}>
           <TableCell className="font-mono font-medium">{q.quote_number}</TableCell>
           <TableCell>{q.customer_name || "—"}</TableCell>
           <TableCell className="text-sm">{q.start_date} → {q.end_date}</TableCell>

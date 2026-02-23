@@ -38,10 +38,10 @@ export default function DamageTrackingPage() {
       title="Seguimiento de Daños"
       subtitle="Rastrea daños desde inspecciones hasta reparación y facturación"
       filters={
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar por descripción, montacargas..." />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Todos los estados" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Todos los estados" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los estados</SelectItem>
               {DAMAGE_STATUSES.map((s) => (
@@ -69,7 +69,7 @@ export default function DamageTrackingPage() {
         </TableRow>
       }
       renderRow={(r) => (
-        <TableRow key={r.id}>
+        <TableRow key={r.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
           <TableCell className="font-mono text-sm">{format(new Date(r.created_at), "d MMM yyyy", { locale: es })}</TableCell>
           <TableCell className="font-medium">{r.forklifts?.name || "—"}</TableCell>
           <TableCell>{r.customers?.name || "—"}</TableCell>
