@@ -1,38 +1,31 @@
 
-# Cambiar prefijos de folios a espanol
+# Bloquear alta de montacargas sin modelos configurados
 
-## Resumen
+## Problema
 
-Actualmente los folios de documentos usan prefijos en ingles. Se propone cambiarlos a espanol:
+Actualmente, cuando no hay modelos de equipo configurados en el catalogo, el formulario de "Agregar Montacargas" permite escribir fabricante y modelo como texto libre. Esto puede causar datos inconsistentes y sin estandarizar.
 
-| Documento | Prefijo actual | Nuevo prefijo |
-|-----------|---------------|---------------|
-| Facturas | INV- | FAC- |
-| Cotizaciones | QUO- | COT- |
-| Contratos | CTR- | CTR- (sin cambio, ya es valido) |
+## Solucion
 
-## Cambios necesarios
+Cuando no existan modelos de equipo registrados y el usuario intente crear un montacargas nuevo (no aplica para edicion), mostrar un mensaje de alerta informativo en lugar del formulario, indicando que primero debe configurar al menos un modelo en el modulo de Configuracion de Operaciones.
 
-### 1. Migracion de base de datos (3 funciones SQL)
+### Cambios en `src/pages/ForkliftForm.tsx`
 
-Actualizar las funciones RPC que generan los numeros:
+1. **Agregar importacion** del componente `Alert` y el icono `AlertTriangle` de lucide-react.
 
-- **`next_invoice_number()`** -- cambiar prefijo de `'INV-'` a `'FAC-'`
-- **`next_quote_number()`** -- cambiar prefijo de `'QUO-'` a `'COT-'`
-- `next_contract_number()` no requiere cambio
+2. **Mostrar alerta bloqueante** cuando `!isEdit && !hasModels`:
+   - Se reemplaza el formulario completo con un mensaje claro:
+     - Titulo: "Configura modelos de equipo primero"
+     - Descripcion: "Para agregar un montacargas, primero debes registrar al menos un modelo de equipo en Configuracion de Operaciones."
+   - Un boton que lleve directamente a `/settings/operations` para facilitar la navegacion.
+   - Un boton secundario de "Volver" para regresar a la flotilla.
 
-Las funciones usaran `regexp_replace` para extraer la parte numerica, por lo que seguiran funcionando correctamente con registros existentes que tengan el prefijo anterior.
+3. **En modo edicion** (`isEdit`), el formulario sigue funcionando normalmente ya que el equipo ya existe con datos previos, incluso si los modelos del catalogo fueron borrados despues.
 
-### 2. Codigo frontend (2 archivos)
+4. **Eliminar los inputs de texto libre** (los fallbacks de `Input` para fabricante y modelo cuando `!hasModels`), ya que con esta restriccion nunca se llegaria a ese estado en modo creacion.
 
-- **`src/pages/QuoteForm.tsx`** -- cambiar el fallback `"QUO-0001"` a `"COT-0001"`
-- **`supabase/functions/generate-recurring-invoices/index.ts`** -- cambiar el fallback `` `INV-AUTO-${Date.now()}` `` a `` `FAC-AUTO-${Date.now()}` ``
+### Comportamiento resultante
 
-### 3. Tests (2 archivos)
-
-- **`src/test/invoiceFlow.test.ts`** -- actualizar `"FAC-0042"` (ya esta correcto)
-- **`src/pages/__tests__/InvoicesPage.test.tsx`** -- cambiar `"INV-0001"` / `"INV-0002"` a `"FAC-0001"` / `"FAC-0002"` y las aserciones correspondientes
-
-### Nota
-
-Los registros existentes con prefijos antiguos seguiran siendo validos y visibles. Solo los nuevos registros usaran los nuevos prefijos.
+- **Crear montacargas sin modelos configurados**: Se muestra alerta con enlace a configuracion. No se puede llenar el formulario.
+- **Crear montacargas con modelos configurados**: Formulario normal con dropdowns de fabricante y modelo.
+- **Editar montacargas existente**: Siempre muestra el formulario completo sin importar si hay modelos o no.
