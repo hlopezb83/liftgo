@@ -1,5 +1,5 @@
 export const FORKLIFT_STATUSES = ["available", "rented", "maintenance", "retired", "sold"] as const;
-export const FUEL_TYPES = ["Diesel", "Electric", "LPG", "Gasoline"] as const;
+export const FUEL_TYPES = ["Diesel", "Electric", "LPG"] as const;
 export const SERVICE_TYPES = [
   "Inspección de Rutina", "Cambio de Aceite", "Servicio de Batería", "Reemplazo de Llantas",
   "Reparación Hidráulica", "Servicio de Frenos", "Reparación Eléctrica", "Otro",
@@ -11,8 +11,7 @@ export const DAMAGE_STATUSES = ["reported", "in_repair", "repaired", "invoiced"]
 export const FUEL_TYPE_LABELS: Record<string, string> = {
   Diesel: "Diésel",
   Electric: "Eléctrico",
-  LPG: "Gas LP",
-  Gasoline: "Gasolina",
+  LPG: "Gas LP / Gasolina",
 };
 
 export const FUEL_LEVEL_LABELS: Record<string, string> = {
