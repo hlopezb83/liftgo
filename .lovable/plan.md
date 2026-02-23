@@ -1,30 +1,29 @@
 
-# Unificar Gas LP y Gasolina en una sola opcion de combustible
+# Otorgar acceso al rol Administrativo al modulo de Configuracion de Operaciones
 
-## Contexto
-Los motores que usan Gas LP tambien aceptan Gasolina, por lo que tener dos opciones separadas no tiene sentido. Se unificaran en una sola opcion.
+## Que se va a hacer
+Permitir que los usuarios con rol **Administrativo** puedan acceder al modulo de Configuracion de Operaciones y gestionar (crear, editar, eliminar) modelos de equipo, operadores y mecanicos.
 
 ## Cambios
 
-### 1. Modificar constantes en `src/lib/constants.ts`
-- Eliminar "Gasoline" de `FUEL_TYPES`, quedando: `["Diesel", "Electric", "LPG"]`
-- Cambiar la etiqueta de "LPG" de "Gas LP" a **"Gas LP / Gasolina"** en `FUEL_TYPE_LABELS`
-- Eliminar la entrada "Gasoline" de `FUEL_TYPE_LABELS`
+### 1. Acceso a la ruta
+Agregar el rol `administrativo` a la ruta `/settings/operations` en la configuracion de rutas.
 
-### 2. Migrar datos existentes en la base de datos
-- Actualizar cualquier registro en `forklifts` donde `fuel_type = 'Gasoline'` a `'LPG'`
-- Actualizar cualquier registro en `equipment_models` donde `default_fuel_type = 'Gasoline'` a `'LPG'`
+**Archivo:** `src/App.tsx`
 
-Nota: Actualmente no hay datos en ninguna de las dos tablas, pero la migracion se incluye por seguridad para cubrir datos futuros o que se agreguen antes de aplicar el cambio.
+### 2. Visibilidad en el menu lateral
+Agregar `administrativo` a los roles permitidos del enlace "Configuracion" en el sidebar.
 
-### Resultado final
-Las opciones de combustible quedaran:
-- Diesel (Diesel)
-- Electric (Electrico)
-- LPG (Gas LP / Gasolina)
+**Archivo:** `src/components/AppSidebar.tsx`
 
-### Archivos a modificar
-- `src/lib/constants.ts` -- eliminar "Gasoline", renombrar label de LPG
-- Migracion SQL -- actualizar registros existentes con "Gasoline" a "LPG"
+### 3. Permisos en la base de datos
+Agregar politicas RLS para que el rol `administrativo` pueda leer y escribir en las siguientes tablas:
 
-No se requieren cambios en otros archivos ya que `ForkliftForm`, `EquipmentModelsTab` y demas componentes consumen las constantes de `constants.ts` dinamicamente.
+- **equipment_models** -- Actualmente solo `admin` tiene acceso completo. Se agregara politica ALL para `administrativo`.
+- **drivers** -- Mismo caso. Se agregara politica ALL para `administrativo`.
+- **mechanics** -- Mismo caso. Se agregara politica ALL para `administrativo`.
+
+## Archivos a modificar
+- `src/App.tsx` -- agregar "administrativo" a la ruta
+- `src/components/AppSidebar.tsx` -- agregar "administrativo" al enlace del menu
+- Migracion SQL -- 3 nuevas politicas RLS
