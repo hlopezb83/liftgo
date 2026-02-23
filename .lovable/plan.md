@@ -1,50 +1,38 @@
 
+# Cambiar prefijos de folios a espanol
 
-# Traducir palabras en inglés visibles en la Bitácora de Cambios
+## Resumen
 
-## Problema
+Actualmente los folios de documentos usan prefijos en ingles. Se propone cambiarlos a espanol:
 
-En la página de Bitácora de Cambios (/audit), el usuario ve varias palabras en inglés:
+| Documento | Prefijo actual | Nuevo prefijo |
+|-----------|---------------|---------------|
+| Facturas | INV- | FAC- |
+| Cotizaciones | QUO- | COT- |
+| Contratos | CTR- | CTR- (sin cambio, ya es valido) |
 
-- **Columna "Acción"**: muestra "INSERT", "UPDATE", "DELETE" directamente
-- **Columna "Tabla"**: muestra nombres de tablas en inglés como "bookings", "invoices", "damage records", etc.
-- **Título del diálogo de detalle**: muestra "INSERT -- bookings", "UPDATE -- invoices", etc.
-- **Campos modificados**: los nombres de columnas de la base de datos aparecen en inglés (ej. "start_date", "customer_name")
+## Cambios necesarios
 
-El resto de la aplicación ya está correctamente en español mexicano.
+### 1. Migracion de base de datos (3 funciones SQL)
 
-## Solución
+Actualizar las funciones RPC que generan los numeros:
 
-Agregar mapas de traducción en `AuditTrailPage.tsx` para convertir estos valores internos a etiquetas en español.
+- **`next_invoice_number()`** -- cambiar prefijo de `'INV-'` a `'FAC-'`
+- **`next_quote_number()`** -- cambiar prefijo de `'QUO-'` a `'COT-'`
+- `next_contract_number()` no requiere cambio
 
-### Cambios en `src/pages/AuditTrailPage.tsx`
+Las funciones usaran `regexp_replace` para extraer la parte numerica, por lo que seguiran funcionando correctamente con registros existentes que tengan el prefijo anterior.
 
-1. **Mapa de acciones** -- traducir las acciones de la base de datos:
-   - "INSERT" → "Creación"
-   - "UPDATE" → "Actualización"  
-   - "DELETE" → "Eliminación"
+### 2. Codigo frontend (2 archivos)
 
-2. **Mapa de tablas** -- reutilizar las etiquetas que ya existen en el arreglo `TABLES` para traducir los nombres visibles:
-   - "bookings" → "Reservas"
-   - "invoices" → "Facturas"
-   - "forklifts" → "Montacargas"
-   - "customers" → "Clientes"
-   - etc.
+- **`src/pages/QuoteForm.tsx`** -- cambiar el fallback `"QUO-0001"` a `"COT-0001"`
+- **`supabase/functions/generate-recurring-invoices/index.ts`** -- cambiar el fallback `` `INV-AUTO-${Date.now()}` `` a `` `FAC-AUTO-${Date.now()}` ``
 
-3. **Mapa de campos comunes** -- traducir los nombres de columna más frecuentes:
-   - "status" → "Estado"
-   - "start_date" → "Fecha Inicio"
-   - "end_date" → "Fecha Fin"
-   - "customer_name" → "Nombre del Cliente"
-   - "total" → "Total"
-   - "description" → "Descripción"
-   - etc.
+### 3. Tests (2 archivos)
 
-4. Aplicar estas traducciones en:
-   - El Badge de acción en la tabla
-   - La columna de tabla
-   - El título del diálogo de detalle
-   - La lista de campos modificados
-   - Los encabezados de la tabla de cambios en el detalle
+- **`src/test/invoiceFlow.test.ts`** -- actualizar `"FAC-0042"` (ya esta correcto)
+- **`src/pages/__tests__/InvoicesPage.test.tsx`** -- cambiar `"INV-0001"` / `"INV-0002"` a `"FAC-0001"` / `"FAC-0002"` y las aserciones correspondientes
 
-Solo se modifica **un archivo**: `src/pages/AuditTrailPage.tsx`.
+### Nota
+
+Los registros existentes con prefijos antiguos seguiran siendo validos y visibles. Solo los nuevos registros usaran los nuevos prefijos.
