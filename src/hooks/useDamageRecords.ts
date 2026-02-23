@@ -29,7 +29,7 @@ export function useCreateDamageRecord() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["damage_records"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to create damage record", description: err.message, variant: "destructive" })
+        toast({ title: "Error al crear registro de daño", description: err.message, variant: "destructive" })
       );
     },
   });
@@ -46,7 +46,7 @@ export function useUpdateDamageRecord() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["damage_records"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to update damage record", description: err.message, variant: "destructive" })
+        toast({ title: "Error al actualizar registro de daño", description: err.message, variant: "destructive" })
       );
     },
   });

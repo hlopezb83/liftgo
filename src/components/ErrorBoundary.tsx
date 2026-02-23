@@ -30,9 +30,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4 p-6 text-center">
           <AlertTriangle className="h-12 w-12 text-destructive" />
-          <h2 className="text-xl font-semibold">Something went wrong</h2>
+          <h2 className="text-xl font-semibold">Algo salió mal</h2>
           <p className="text-sm text-muted-foreground max-w-md">
-            {this.state.error?.message || "An unexpected error occurred."}
+            {this.state.error?.message || "Ocurrió un error inesperado."}
           </p>
           <Button
             onClick={() => {
@@ -40,7 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
               window.location.reload();
             }}
           >
-            Reload Page
+            Recargar Página
           </Button>
         </div>
       );

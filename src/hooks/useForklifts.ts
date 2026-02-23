@@ -39,14 +39,14 @@ export function useCreateForklift() {
       await supabase.from("status_logs").insert({
         forklift_id: data.id,
         to_status: forklift.status || "available",
-        note: "Initial registration",
+        note: "Registro inicial",
       });
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["forklifts"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to create forklift", description: err.message, variant: "destructive" })
+        toast({ title: "Error al crear montacargas", description: err.message, variant: "destructive" })
       );
     },
   });
@@ -66,7 +66,7 @@ export function useUpdateForklift() {
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to update forklift", description: err.message, variant: "destructive" })
+        toast({ title: "Error al actualizar montacargas", description: err.message, variant: "destructive" })
       );
     },
   });

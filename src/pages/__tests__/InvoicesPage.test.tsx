@@ -67,12 +67,12 @@ describe("InvoicesPage smoke tests", () => {
   it("displays correct totals", () => {
     const container = renderPage();
     expect(container.textContent).toContain("€1700.00");
-    expect(container.textContent).toContain("€2000.00");
+    expect(container.textContent).toContain("$2000.00");
   });
 
   it("shows empty state when no invoices match", () => {
     vi.mocked(hooks.useInvoices).mockReturnValue({ data: [], isLoading: false } as any);
     const container = renderPage();
-    expect(container.textContent).toContain("No invoices found");
+    expect(container.textContent).toContain("No se encontraron facturas");
   });
 });

@@ -26,7 +26,7 @@ export function useCreateDelivery() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to create delivery", description: err.message, variant: "destructive" })
+        toast({ title: "Error al crear entrega", description: err.message, variant: "destructive" })
       );
     },
   });
@@ -43,7 +43,7 @@ export function useUpdateDelivery() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Failed to update delivery", description: err.message, variant: "destructive" })
+        toast({ title: "Error al actualizar entrega", description: err.message, variant: "destructive" })
       );
     },
   });
