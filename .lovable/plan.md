@@ -1,76 +1,93 @@
 
 
-# Nuevo rol "Administrativo"
+# Refactorizacion y estandarizacion del codigo
 
-Se creara un nuevo rol llamado **"administrativo"** con permisos para gestionar clientes, cotizaciones, reservas, contratos, entregas, devoluciones, facturas, reportes y bitacora. Las funciones exclusivas de superusuario (gestion de usuarios, configuracion de empresa, configuracion de operaciones) seguiran siendo solo para el rol **"admin"**.
+## Hallazgos
 
-## Permisos del rol Administrativo
+Despues de analizar todo el codigo, se identificaron los siguientes patrones inconsistentes y oportunidades de mejora:
 
-| Funcion | Admin | Administrativo | Despachador | Mecanico |
-|---------|-------|----------------|-------------|----------|
-| Dashboard | Si | Si | Si | Si |
-| Calendario | Si | Si | Si | Si |
-| Clientes (CRUD) | Si | Si | Si (CRUD) | Solo lectura |
-| Cotizaciones | Si | Si | Si | Solo lectura |
-| Reservas | Si | Si | Si | Solo lectura |
-| Contratos | Si | Si | Si | Solo lectura |
-| Entregas | Si | Si | Si | Solo lectura |
-| Devoluciones | Si | Si | Si | Solo lectura |
-| Facturas | Si | Si | Si | Solo lectura |
-| Equipos (CRUD) | Si | Si | Solo lectura | Solo lectura |
-| Mantenimiento | Si | Si (lectura) | Si (lectura) | Si (CRUD) |
-| Danos | Si | Si | Si | Solo lectura |
-| Reportes | Si | Si | Si | No |
-| Bitacora | Si | Si | Si | No |
-| Actividad | Si | Si | Si | Si |
-| Config. Operaciones | Si | No | No | No |
-| Datos Fiscales | Si | No | No | No |
-| Gestion Usuarios | Si | No | No | No |
+### 1. Paginas de lista que NO usan `ListPageLayout`
 
-## Cambios necesarios
+Ya migradas: `QuotesPage`, `Fleet`, `CustomersPage`, `DamageTrackingPage`
 
-### 1. Base de datos (migracion SQL)
+Pendientes de migrar:
+- **InvoicesPage** - Construye manualmente PageTransition, PageHeader, Card, Table, TablePagination
+- **ContractsPage** - Mismo patron manual
+- **AuditTrailPage** - Mismo patron manual
+- **MaintenancePage** - Mismo patron manual, sin paginacion visible
+- **DeliveriesPage** - Mismo patron manual, sin paginacion
+- **ReturnInspectionPage** - Mismo patron manual, sin paginacion
 
-- Agregar `'administrativo'` al enum `app_role`
-- Agregar politicas RLS para el nuevo rol en todas las tablas relevantes, replicando los permisos del dispatcher con acceso completo (CRUD) en: bookings, contracts, customers, damage_records, deliveries, documents, invoices, payments, quotes, return_inspections
-- Agregar politica de lectura en: forklifts, maintenance_logs, status_logs, activity_feed, audit_logs
-- Agregar politica CRUD en: forklifts (para dar de alta/editar equipos)
+### 2. Hook `useListFilters` subutilizado
 
-### 2. Frontend - Tipo y resolucion de rol
+El hook ya existe y encapsula busqueda + filtro de estado con `useMemo`. Sin embargo, solo lo usan `QuotesPage` y `DamageTrackingPage`. Las demas paginas reimplementan la misma logica manualmente con `useState` + `.filter()` sin memoizacion.
 
-**`src/hooks/useUserRole.ts`**:
-- Agregar `"administrativo"` al tipo `AppRole`
-- Actualizar la prioridad: `admin > customer > administrativo > mechanic > dispatcher`
+### 3. Componente `SearchBar` subutilizado
 
-### 3. Frontend - Rutas y navegacion
+El componente `SearchBar` existe, pero la mayoria de las paginas recrean manualmente el Input con el icono Search posicionado absolutamente.
 
-**`src/App.tsx`**:
-- Agregar `"administrativo"` a las rutas que actualmente permiten `["admin", "dispatcher"]`: cotizaciones, reservas, contratos, entregas, devoluciones, facturas, reportes, bitacora
-- Agregar `"administrativo"` a las rutas de flota (crear/editar): `fleet/new`, `fleet/:id/edit`
+### 4. Vista mobile duplicada
 
-**`src/components/AppSidebar.tsx`**:
-- Agregar `"administrativo"` a los items de navegacion que tienen `roles: ["admin", "dispatcher"]`
+`InvoicesPage` y `ContractsPage` tienen bloques de cards para mobile identicos en estructura. `ListPageLayout` ya soporta `customContent` para este caso (como lo hace `Fleet`).
 
-### 4. Frontend - Gestion de usuarios
+## Plan de implementacion
 
-**`src/pages/UserManagementPage.tsx`**:
-- Agregar `"administrativo"` a `STAFF_ROLES` y `ROLE_LABELS`
+### Paso 1: Migrar `InvoicesPage` a `ListPageLayout` + `useListFilters`
 
-### 5. Edge function - invite-user
+- Reemplazar el layout manual por `ListPageLayout`
+- Usar `useListFilters` para busqueda y filtro por status (reemplazando los `useState` + `filter` manuales)
+- Mover los Tabs de status a la prop `filters`
+- Usar `customContent` para la vista mobile (cards)
+- Usar `SearchBar` en vez del Input manual
 
-**`supabase/functions/invite-user/index.ts`**:
-- Agregar `"administrativo"` a la lista `validRoles`
+### Paso 2: Migrar `ContractsPage` a `ListPageLayout` + `useListFilters`
 
-### 6. AuthGuard
+- Mismo patron que InvoicesPage
+- Usar `useListFilters` con `searchFields: ["contract_number", "customer_name"]` y `statusField: "status"`
+- Usar `customContent` para la vista mobile
 
-No requiere cambios. El rol "administrativo" no es "customer", asi que se redirigira al ERP normal automaticamente.
+### Paso 3: Migrar `MaintenancePage` a `ListPageLayout` + `useListFilters`
 
-## Secuencia de implementacion
+- Reemplazar layout manual
+- Adaptar `useListFilters` -- esta pagina filtra por `forklift_id` en vez de status, se usara un filtro adicional fuera del hook
+- Mover el Dialog de creacion fuera del layout (como `CustomersPage`)
+- Usar `SearchBar`
 
-1. Migracion SQL: agregar valor al enum y crear politicas RLS
-2. Actualizar `useUserRole.ts` con el nuevo tipo y prioridad
-3. Actualizar `App.tsx` con las rutas permitidas
-4. Actualizar `AppSidebar.tsx` con los items de navegacion
-5. Actualizar `UserManagementPage.tsx` con el nuevo rol
-6. Actualizar `invite-user` edge function
+### Paso 4: Migrar `DeliveriesPage` a `ListPageLayout`
+
+- Reemplazar layout manual
+- Agregar paginacion (actualmente no tiene)
+- Mover el Dialog de creacion fuera del layout
+
+### Paso 5: Migrar `ReturnInspectionPage` a `ListPageLayout`
+
+- Reemplazar layout manual
+- Agregar paginacion
+- Mover el Dialog de creacion fuera del layout
+
+### Paso 6: Migrar `AuditTrailPage` a `ListPageLayout`
+
+- Reemplazar layout manual
+- Mover filtros (tabla + search) a la prop `filters`
+- Mantener el Dialog de detalle fuera del layout
+
+## Detalles tecnicos
+
+Cada migracion sigue el mismo patron establecido:
+
+```text
+ANTES (manual):
+  PageTransition > div > PageHeader > filtros > Card > CardContent > Table > TablePagination
+
+DESPUES (estandarizado):
+  ListPageLayout(title, subtitle, actions, filters, isLoading, items, ...)
+```
+
+**Beneficios:**
+- Elimina ~30-50 lineas de boilerplate por pagina
+- Consistencia visual garantizada (padding, spacing, estructura)
+- Paginacion incluida automaticamente
+- Un solo lugar para cambiar el layout de todas las listas
+
+**Riesgo:** Bajo. `ListPageLayout` ya esta probado en 4 paginas. Las paginas con Dialogs (Maintenance, Deliveries, Returns) simplemente envuelven el `ListPageLayout` en un Fragment y agregan el Dialog despues, como ya lo hace `CustomersPage`.
 
