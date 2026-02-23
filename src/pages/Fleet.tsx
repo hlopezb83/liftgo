@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom";
 import { Search, PlusCircle, Download, ChevronRight } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
-import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
+import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Fleet() {
@@ -75,7 +75,7 @@ export default function Fleet() {
                   <div className="flex gap-4 text-xs text-muted-foreground">
                     {f.capacity_kg && <span>{f.capacity_kg} kg</span>}
                     {f.mast_height_m && <span>{f.mast_height_m} m</span>}
-                    {f.fuel_type && <span>{f.fuel_type}</span>}
+                    {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-medium">{formatCurrency(f.daily_rate || 0)}/día</span>
@@ -109,7 +109,7 @@ export default function Fleet() {
                     <TableCell>{f.manufacturer || "—"}</TableCell>
                     <TableCell>{f.capacity_kg ? `${f.capacity_kg} kg` : "—"}</TableCell>
                     <TableCell>{f.mast_height_m ? `${f.mast_height_m} m` : "—"}</TableCell>
-                    <TableCell>{f.fuel_type}</TableCell>
+                    <TableCell>{f.fuel_type ? (FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type) : "—"}</TableCell>
                     <TableCell><StatusBadge status={f.status} /></TableCell>
                     <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/día</TableCell>
                   </TableRow>

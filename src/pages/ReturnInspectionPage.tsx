@@ -18,10 +18,11 @@ import { FormActions } from "@/components/FormActions";
 import { PostInspectionInvoiceDialog } from "@/components/PostInspectionInvoiceDialog";
 import { useFormState } from "@/hooks/useFormState";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { INSPECTION_CONDITIONS, FUEL_LEVELS } from "@/lib/constants";
+import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const initialForm = {
   bookingId: "" as string,
@@ -131,7 +132,7 @@ export default function ReturnInspectionPage() {
                   const insWithJoins = ins as typeof ins & { forklifts?: { name: string; model: string }; bookings?: { customer_name: string | null } };
                   return (
                   <TableRow key={ins.id}>
-                    <TableCell className="font-mono text-sm">{format(new Date(ins.inspected_at), "MMM d, yyyy")}</TableCell>
+                    <TableCell className="font-mono text-sm">{format(new Date(ins.inspected_at), "d MMM yyyy", { locale: es })}</TableCell>
                     <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
                     <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>
                     <TableCell><StatusBadge status={ins.condition} /></TableCell>
@@ -176,7 +177,7 @@ export default function ReturnInspectionPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {INSPECTION_CONDITIONS.map((c) => (
-                    <SelectItem key={c} value={c} className="capitalize">{c.replace(/_/g, " ")}</SelectItem>
+                    <SelectItem key={c} value={c} className="capitalize">{STATUS_LABELS[c] || c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -205,7 +206,7 @@ export default function ReturnInspectionPage() {
                   <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                   <SelectContent>
                     {FUEL_LEVELS.map((l) => (
-                      <SelectItem key={l} value={l}>{l}</SelectItem>
+                      <SelectItem key={l} value={l}>{FUEL_LEVEL_LABELS[l] || l}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

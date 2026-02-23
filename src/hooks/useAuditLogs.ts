@@ -20,7 +20,7 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
     queryKey: ["audit_logs", filters],
     queryFn: async () => {
       let query = supabase
-        .from("audit_logs" as any)
+        .from("audit_logs")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(200);

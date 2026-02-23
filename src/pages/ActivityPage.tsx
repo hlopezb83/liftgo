@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -61,7 +62,7 @@ export default function ActivityPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <StatusBadge status={a.event_type} />
-                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(a.created_at), "MMM d, yyyy HH:mm")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(a.created_at), "d MMM yyyy HH:mm", { locale: es })}</p>
                 </div>
               </CardContent>
             </Card>
