@@ -1,29 +1,20 @@
 
-# Otorgar acceso al rol Administrativo al modulo de Configuracion de Operaciones
+# Eliminar el campo "ID Fiscal" del formulario de clientes
 
-## Que se va a hacer
-Permitir que los usuarios con rol **Administrativo** puedan acceder al modulo de Configuracion de Operaciones y gestionar (crear, editar, eliminar) modelos de equipo, operadores y mecanicos.
+## Problema
+El formulario de agregar/editar cliente tiene un campo "ID Fiscal" (`tax_id`) que es redundante, ya que en Mexico se utiliza el RFC, el cual ya tiene su propio campo en la seccion de Datos Fiscales (CFDI).
 
 ## Cambios
 
-### 1. Acceso a la ruta
-Agregar el rol `administrativo` a la ruta `/settings/operations` en la configuracion de rutas.
+### Archivo: `src/pages/CustomersPage.tsx`
 
-**Archivo:** `src/App.tsx`
+1. **Eliminar `tax_id` del estado inicial** (linea 25): quitar `tax_id: ""` del objeto `emptyCustomer`.
 
-### 2. Visibilidad en el menu lateral
-Agregar `administrativo` a los roles permitidos del enlace "Configuracion" en el sidebar.
+2. **Eliminar `tax_id` al abrir edicion** (linea 75): quitar `tax_id: c.tax_id || ""` del `setForm`.
 
-**Archivo:** `src/components/AppSidebar.tsx`
+3. **Eliminar `tax_id` del payload de envio** (linea 90): quitar `tax_id: form.tax_id || null` del objeto `payload`.
 
-### 3. Permisos en la base de datos
-Agregar politicas RLS para que el rol `administrativo` pueda leer y escribir en las siguientes tablas:
+4. **Eliminar el campo del formulario** (lineas 158-164): reemplazar el grid de 2 columnas (Nombre + ID Fiscal) por solo el campo "Nombre / Empresa" a ancho completo, y actualizar el placeholder a algo mas relevante para Mexico (ej. "Montacargas del Norte S.A.").
 
-- **equipment_models** -- Actualmente solo `admin` tiene acceso completo. Se agregara politica ALL para `administrativo`.
-- **drivers** -- Mismo caso. Se agregara politica ALL para `administrativo`.
-- **mechanics** -- Mismo caso. Se agregara politica ALL para `administrativo`.
-
-## Archivos a modificar
-- `src/App.tsx` -- agregar "administrativo" a la ruta
-- `src/components/AppSidebar.tsx` -- agregar "administrativo" al enlace del menu
-- Migracion SQL -- 3 nuevas politicas RLS
+## Resultado
+El formulario mostrara solo el campo RFC en la seccion de Datos Fiscales, eliminando la redundancia del campo ID Fiscal.
