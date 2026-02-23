@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, eachDayOfInterval, isWithinInterval, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, isToday, getDay } from "date-fns";
+import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, AlertTriangle, Repeat, Plus } from "lucide-react";
@@ -113,7 +114,7 @@ export default function CalendarPage() {
               {endingSoon.map((b) => (
                 <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
                   <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
-                  <span className="text-xs text-muted-foreground">Termina: {format(parseISO(b.end_date), "MMM d, yyyy")}</span>
+                  <span className="text-xs text-muted-foreground">Termina: {format(parseISO(b.end_date), "d MMM yyyy", { locale: es })}</span>
                 </div>
               ))}
             </div>
@@ -123,7 +124,7 @@ export default function CalendarPage() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base">{format(currentMonth, "MMMM yyyy")}</CardTitle>
+          <CardTitle className="text-base">{format(currentMonth, "MMMM yyyy", { locale: es })}</CardTitle>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
               <ChevronLeft className="h-4 w-4" />
@@ -148,7 +149,7 @@ export default function CalendarPage() {
                       key={`wd-${day.toISOString()}`}
                       className={`flex-1 text-center text-[9px] font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"}`}
                     >
-                      {format(day, "EEE")}
+                      {format(day, "EEE", { locale: es })}
                     </div>
                   );
                 })}
@@ -219,7 +220,7 @@ export default function CalendarPage() {
                             </TooltipTrigger>
                             <TooltipContent side="top" className="text-xs space-y-1">
                               <p className="font-semibold">{booking.customer_name}</p>
-                              <p>{format(parseISO(booking.start_date), "MMM d")} → {format(parseISO(booking.end_date), "MMM d, yyyy")}</p>
+                              <p>{format(parseISO(booking.start_date), "d MMM", { locale: es })} → {format(parseISO(booking.end_date), "d MMM yyyy", { locale: es })}</p>
                               <p className="text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""} · {{ confirmed: "Confirmada", completed: "Completada", cancelled: "Cancelada", pending: "Pendiente" }[booking.status] || booking.status}</p>
                             </TooltipContent>
                           </Tooltip>
@@ -275,7 +276,7 @@ export default function CalendarPage() {
                       {b.recurring_billing && <Repeat className="h-3.5 w-3.5 text-primary" />}
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {format(parseISO(b.start_date), "MMM d, yyyy")} → {format(parseISO(b.end_date), "MMM d, yyyy")}
+                          {format(parseISO(b.start_date), "d MMM yyyy", { locale: es })} → {format(parseISO(b.end_date), "d MMM yyyy", { locale: es })}
                         </p>
                         <p className="text-xs text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""}</p>
                         <StatusBadge status={b.status} />

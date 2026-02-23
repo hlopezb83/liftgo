@@ -30,7 +30,7 @@ export function useContracts() {
     queryKey: ["contracts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contracts" as any)
+        .from("contracts")
         .select("*, customers(name), forklifts(name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -49,7 +49,7 @@ export function useContract(id: string | undefined) {
     enabled: !!id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contracts" as any)
+        .from("contracts")
         .select("*, customers(name), forklifts(name)")
         .eq("id", id!)
         .single();
@@ -64,11 +64,11 @@ export function useCreateContract() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (contract: Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name">) => {
-      const { data: num, error: numErr } = await supabase.rpc("next_contract_number" as any);
+      const { data: num, error: numErr } = await supabase.rpc("next_contract_number");
       if (numErr) throw numErr;
       const { data, error } = await supabase
-        .from("contracts" as any)
-        .insert({ ...contract, contract_number: num as string })
+        .from("contracts")
+        .insert({ ...contract, contract_number: num as string } as any)
         .select()
         .single();
       if (error) throw error;
@@ -83,8 +83,8 @@ export function useUpdateContract() {
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
       const { data, error } = await supabase
-        .from("contracts" as any)
-        .update(updates)
+        .from("contracts")
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();

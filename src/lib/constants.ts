@@ -8,6 +8,21 @@ export const INSPECTION_CONDITIONS = ["good", "minor_damage", "major_damage", "n
 export const FUEL_LEVELS = ["Full", "3/4", "1/2", "1/4", "Empty"] as const;
 export const DAMAGE_STATUSES = ["reported", "in_repair", "repaired", "invoiced"] as const;
 
+export const FUEL_TYPE_LABELS: Record<string, string> = {
+  Diesel: "Diésel",
+  Electric: "Eléctrico",
+  LPG: "Gas LP",
+  Gasoline: "Gasolina",
+};
+
+export const FUEL_LEVEL_LABELS: Record<string, string> = {
+  Full: "Lleno",
+  "3/4": "3/4",
+  "1/2": "1/2",
+  "1/4": "1/4",
+  Empty: "Vacío",
+};
+
 export const STATUS_LABELS: Record<string, string> = {
   all: "Todos",
   available: "Disponible",

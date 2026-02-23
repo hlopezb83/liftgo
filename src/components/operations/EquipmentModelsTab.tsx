@@ -1,0 +1,107 @@
+import { useState } from "react";
+import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, EquipmentModel } from "@/hooks/useEquipmentModels";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { TableSkeleton } from "@/components/TableSkeleton";
+import { EmptyRow } from "@/components/EmptyRow";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
+
+export function EquipmentModelsTab() {
+  const { data: models, isLoading } = useEquipmentModels();
+  const create = useCreateEquipmentModel();
+  const update = useUpdateEquipmentModel();
+  const del = useDeleteEquipmentModel();
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const emptyForm = { manufacturer: "", model: "", default_capacity_kg: "", default_mast_height_m: "", default_fuel_type: "Diesel" };
+  const [form, setForm] = useState(emptyForm);
+  const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
+
+  const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
+  const openEdit = (m: EquipmentModel) => {
+    setEditId(m.id);
+    setForm({ manufacturer: m.manufacturer, model: m.model, default_capacity_kg: m.default_capacity_kg?.toString() ?? "", default_mast_height_m: m.default_mast_height_m?.toString() ?? "", default_fuel_type: m.default_fuel_type });
+    setOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (!form.manufacturer || !form.model) { toast.error("Fabricante y modelo son requeridos"); return; }
+    const payload = { manufacturer: form.manufacturer, model: form.model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type };
+    if (editId) {
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); } });
+    } else {
+      create.mutate(payload, { onSuccess: () => { toast.success("Agregado"); setOpen(false); } });
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-end mb-4">
+        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Modelo</Button>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Fabricante</TableHead><TableHead>Modelo</TableHead><TableHead>Capacidad (kg)</TableHead><TableHead>Altura Mástil (m)</TableHead><TableHead>Combustible</TableHead><TableHead className="w-24" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading && <TableRow><TableCell colSpan={6}><TableSkeleton /></TableCell></TableRow>}
+          {!isLoading && (!models || models.length === 0) && <EmptyRow colSpan={6} message="No hay modelos de equipo configurados" />}
+          {models?.map((m) => (
+            <TableRow key={m.id}>
+              <TableCell className="font-medium">{m.manufacturer}</TableCell>
+              <TableCell>{m.model}</TableCell>
+              <TableCell>{m.default_capacity_kg ?? "—"}</TableCell>
+              <TableCell>{m.default_mast_height_m ?? "—"}</TableCell>
+              <TableCell>{FUEL_TYPE_LABELS[m.default_fuel_type] || m.default_fuel_type}</TableCell>
+              <TableCell>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader><AlertDialogTitle>¿Eliminar {m.manufacturer} {m.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Modelo de Equipo</DialogTitle><DialogDescription>Define una combinación de fabricante/modelo con especificaciones predeterminadas.</DialogDescription></DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="space-y-1.5"><Label>Fabricante *</Label><Input placeholder="ej. Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Modelo *</Label><Input placeholder="ej. H50" value={form.model} onChange={(e) => set("model", e.target.value)} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5"><Label>Capacidad (kg)</Label><Input type="number" placeholder="2500" value={form.default_capacity_kg} onChange={(e) => set("default_capacity_kg", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Altura Mástil (m)</Label><Input type="number" placeholder="4.5" value={form.default_mast_height_m} onChange={(e) => set("default_mast_height_m", e.target.value)} /></div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Combustible</Label>
+              <Select value={form.default_fuel_type} onValueChange={(v) => set("default_fuel_type", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{FUEL_TYPES.map((f) => <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

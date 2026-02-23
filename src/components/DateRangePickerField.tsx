@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useRef } from "react";
 import type { DateRange } from "react-day-picker";
@@ -42,8 +43,8 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
 
   const formatLabel = () => {
     if (!dateRange?.from) return placeholder;
-    if (!dateRange.to) return format(dateRange.from, "MMM d, yyyy") + " — …";
-    return format(dateRange.from, "MMM d") + " — " + format(dateRange.to, "MMM d, yyyy");
+    if (!dateRange.to) return format(dateRange.from, "d MMM yyyy", { locale: es }) + " — …";
+    return format(dateRange.from, "d MMM", { locale: es }) + " — " + format(dateRange.to, "d MMM yyyy", { locale: es });
   };
 
   return (

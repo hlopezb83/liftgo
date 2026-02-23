@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { NotesCard } from "@/components/NotesCard";
-import { FORKLIFT_STATUSES, FUEL_TYPES, STATUS_LABELS } from "@/lib/constants";
+import { FORKLIFT_STATUSES, FUEL_TYPES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { useFormState } from "@/hooks/useFormState";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
@@ -221,7 +221,7 @@ export default function ForkliftForm() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {FUEL_TYPES.map((f) => (
-                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                    <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

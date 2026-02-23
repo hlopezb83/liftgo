@@ -11,9 +11,10 @@ import { ArrowLeft, Edit, Truck, DollarSign, History, Trash2, CalendarDays, Wren
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
+import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
 
 export default function ForkliftDetail() {
   const { id } = useParams();
@@ -65,7 +66,7 @@ export default function ForkliftDetail() {
     { label: "Año", value: forklift.year },
     { label: "Capacidad", value: forklift.capacity_kg ? `${forklift.capacity_kg} kg` : null },
     { label: "Altura del Mástil", value: forklift.mast_height_m ? `${forklift.mast_height_m} m` : null },
-    { label: "Tipo de Combustible", value: forklift.fuel_type },
+    { label: "Tipo de Combustible", value: forklift.fuel_type ? (FUEL_TYPE_LABELS[forklift.fuel_type] || forklift.fuel_type) : null },
     { label: "No. de Serie", value: forklift.serial_number },
   ];
 
@@ -187,7 +188,7 @@ export default function ForkliftDetail() {
                   <div>
                     <span className="font-medium">{b.customer_name || "Desconocido"}</span>
                     <span className="text-muted-foreground ml-2">
-                      {format(new Date(b.start_date), "MMM d")} – {format(new Date(b.end_date), "MMM d, yyyy")}
+                      {format(new Date(b.start_date), "d MMM", { locale: es })} – {format(new Date(b.end_date), "d MMM yyyy", { locale: es })}
                     </span>
                   </div>
                   <StatusBadge status={b.status} />
@@ -215,7 +216,7 @@ export default function ForkliftDetail() {
                     {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-xs text-muted-foreground">{format(new Date(m.performed_at), "MMM d, yyyy")}</span>
+                    <span className="text-xs text-muted-foreground">{format(new Date(m.performed_at), "d MMM yyyy", { locale: es })}</span>
                     {m.cost ? <p className="text-xs font-medium">{formatCurrency(m.cost)}</p> : null}
                   </div>
                 </div>
@@ -245,7 +246,7 @@ export default function ForkliftDetail() {
                     <span className="font-medium">{log.to_status}</span>
                     {log.note && <span className="text-muted-foreground ml-2">— {log.note}</span>}
                   </div>
-                  <span className="text-xs text-muted-foreground">{format(new Date(log.changed_at), "MMM d, yyyy HH:mm")}</span>
+                  <span className="text-xs text-muted-foreground">{format(new Date(log.changed_at), "d MMM yyyy HH:mm", { locale: es })}</span>
                 </div>
               ))}
             </div>

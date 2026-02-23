@@ -18,7 +18,7 @@ export function usePayments(invoiceId: string | undefined) {
     enabled: !!invoiceId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("payments" as any)
+        .from("payments")
         .select("*")
         .eq("invoice_id", invoiceId!)
         .order("payment_date", { ascending: false });
@@ -39,7 +39,7 @@ export function useCreatePayment() {
   return useMutation({
     mutationFn: async (payment: Omit<Payment, "id" | "created_at">) => {
       const { data, error } = await supabase
-        .from("payments" as any)
+        .from("payments")
         .insert(payment as any)
         .select()
         .single();
@@ -47,7 +47,7 @@ export function useCreatePayment() {
 
       // Check if invoice is fully paid
       const { data: allPayments } = await supabase
-        .from("payments" as any)
+        .from("payments")
         .select("amount")
         .eq("invoice_id", payment.invoice_id);
       const totalPaid = (allPayments as any[] || []).reduce((s: number, p: any) => s + Number(p.amount), 0);
