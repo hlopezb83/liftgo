@@ -1,19 +1,15 @@
 import { useState } from "react";
-import { PageTransition } from "@/components/PageTransition";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import type { Customer } from "@/hooks/useCustomers";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/PageHeader";
-import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyRow } from "@/components/EmptyRow";
+import { ListPageLayout } from "@/components/ListPageLayout";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
 import { Search, PlusCircle, Edit, Eye, Download } from "lucide-react";
@@ -21,7 +17,6 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
-import { TablePagination } from "@/components/TablePagination";
 
 const emptyCustomer = {
   name: "", email: "", phone: "", address: "", notes: "",
@@ -81,61 +76,52 @@ export default function CustomersPage() {
   };
 
   return (
-    <PageTransition>
-    <div className="p-6 space-y-6">
-      <PageHeader
+    <>
+      <ListPageLayout
         title="Clientes"
         subtitle={`${customers?.length || 0} clientes`}
-        action={
+        actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => exportToCsv("clientes.csv", (filtered || []).map(c => ({ Nombre: c.name, Correo: c.email || "", Teléfono: c.phone || "", Contacto: c.contact_person || "", Dirección: c.address || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
             <Button onClick={openCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Cliente</Button>
           </div>
         }
+        filters={
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Buscar clientes..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          </div>
+        }
+        isLoading={isLoading}
+        items={paginatedItems}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        emptyMessage="No se encontraron clientes"
+        tableHeader={
+          <TableRow>
+            <TableHead>Nombre</TableHead>
+            <TableHead>RFC</TableHead>
+            <TableHead>Correo</TableHead>
+            <TableHead>Teléfono</TableHead>
+            <TableHead>Persona de Contacto</TableHead>
+            <TableHead className="w-16"></TableHead>
+          </TableRow>
+        }
+        renderRow={(c) => (
+          <TableRow key={c.id}>
+            <TableCell className="font-medium">{c.name}</TableCell>
+            <TableCell className="font-mono text-xs">{c.rfc || "—"}</TableCell>
+            <TableCell>{c.email || "—"}</TableCell>
+            <TableCell>{c.phone || "—"}</TableCell>
+            <TableCell>{c.contact_person || "—"}</TableCell>
+            <TableCell className="flex gap-1">
+              <Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${c.id}`)}><Eye className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => openEdit(c as Customer)}><Edit className="h-4 w-4" /></Button>
+            </TableCell>
+          </TableRow>
+        )}
       />
-
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar clientes..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-      </div>
-
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? <TableSkeleton /> : (
-            <>
-              <Table>
-                <TableHeader>
-                   <TableRow>
-                     <TableHead>Nombre</TableHead>
-                     <TableHead>RFC</TableHead>
-                     <TableHead>Correo</TableHead>
-                     <TableHead>Teléfono</TableHead>
-                     <TableHead>Persona de Contacto</TableHead>
-                     <TableHead className="w-16"></TableHead>
-                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedItems.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-medium">{c.name}</TableCell>
-                      <TableCell className="font-mono text-xs">{c.rfc || "—"}</TableCell>
-                      <TableCell>{c.email || "—"}</TableCell>
-                      <TableCell>{c.phone || "—"}</TableCell>
-                      <TableCell>{c.contact_person || "—"}</TableCell>
-                      <TableCell className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${c.id}`)}><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(c)}><Edit className="h-4 w-4" /></Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {paginatedItems.length === 0 && <EmptyRow colSpan={6} message="No se encontraron clientes" />}
-                </TableBody>
-              </Table>
-              <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
-            </>
-          )}
-        </CardContent>
-      </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
@@ -217,7 +203,6 @@ export default function CustomersPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
-    </PageTransition>
+    </>
   );
 }
