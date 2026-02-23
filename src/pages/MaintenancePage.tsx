@@ -19,6 +19,8 @@ import { useFormState } from "@/hooks/useFormState";
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { SERVICE_TYPES } from "@/lib/constants";
+import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, Wrench, Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
@@ -62,6 +64,30 @@ export default function MaintenancePage() {
   );
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const isMobile = useIsMobile();
+
+  const mobileContent = isMobile ? (
+    <div className="space-y-3">
+      {paginatedItems.length > 0 ? paginatedItems.map((log) => (
+        <Card key={log.id}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold">{log.service_type}</span>
+              <span className="text-sm font-mono font-medium">{formatCurrency(log.cost || 0)}</span>
+            </div>
+            <p className="text-sm font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</p>
+            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+              <span className="font-mono">{log.performed_at}</span>
+              {log.performed_by && <span>por {log.performed_by}</span>}
+            </div>
+            {log.next_service_date && <p className="text-xs text-muted-foreground mt-1">Próx: {log.next_service_date}</p>}
+          </CardContent>
+        </Card>
+      )) : (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron registros</CardContent></Card>
+      )}
+    </div>
+  ) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,10 +127,10 @@ export default function MaintenancePage() {
           </div>
         }
         filters={
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <SearchBar value={search} onChange={setSearch} placeholder="Buscar por servicio, técnico..." />
             <Select value={forkliftFilter} onValueChange={setForkliftFilter}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Todos los montacargas" />
               </SelectTrigger>
               <SelectContent>
@@ -138,6 +164,7 @@ export default function MaintenancePage() {
             <TableCell className="text-sm text-muted-foreground">{log.next_service_date || "—"}</TableCell>
           </TableRow>
         )}
+        customContent={mobileContent}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

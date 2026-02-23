@@ -8,15 +8,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
-import { Search, PlusCircle, Edit, Eye, Download } from "lucide-react";
+import { Search, PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const emptyCustomer = {
   name: "", email: "", phone: "", address: "", notes: "",
@@ -41,6 +43,29 @@ export default function CustomersPage() {
   );
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const isMobile = useIsMobile();
+
+  const mobileContent = isMobile ? (
+    <div className="space-y-3">
+      {paginatedItems.length > 0 ? paginatedItems.map((c) => (
+        <Card key={c.id} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/customers/${c.id}`)}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-semibold text-sm">{c.name}</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+            {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
+            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+              {c.phone && <span>{c.phone}</span>}
+              {c.email && <span>{c.email}</span>}
+            </div>
+          </CardContent>
+        </Card>
+      )) : (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron clientes</CardContent></Card>
+      )}
+    </div>
+  ) : undefined;
 
   const openCreate = () => { setEditId(null); reset(); setDialogOpen(true); };
   const openEdit = (c: Customer) => {
@@ -121,6 +146,7 @@ export default function CustomersPage() {
             </TableCell>
           </TableRow>
         )}
+        customContent={mobileContent}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

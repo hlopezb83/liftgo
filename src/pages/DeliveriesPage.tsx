@@ -17,6 +17,8 @@ import { FormActions } from "@/components/FormActions";
 import { PostDeliveryPickupDialog } from "@/components/PostDeliveryPickupDialog";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveDrivers } from "@/hooks/useDrivers";
+import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -52,6 +54,35 @@ export default function DeliveriesPage() {
   const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(deliveries);
+  const isMobile = useIsMobile();
+
+  const mobileContent = isMobile ? (
+    <div className="space-y-3">
+      {paginatedItems.length > 0 ? paginatedItems.map((d) => (
+        <Card key={d.id}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold">{d.type === "delivery" ? "Entrega" : "Recolección"}</span>
+              <StatusBadge status={d.status} />
+            </div>
+            <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</p>
+            <p className="text-xs text-muted-foreground mt-1">{d.scheduled_date}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
+            {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
+            {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
+            {d.status !== "completed" && (
+              <div className="mt-3 pt-3 border-t">
+                <Button variant="outline" size="sm" className="w-full" onClick={() => markComplete(d.id)}>
+                  <CheckCircle className="h-4 w-4 mr-1 text-status-available" /> Completar
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )) : (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No hay entregas programadas</CardContent></Card>
+      )}
+    </div>
+  ) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,6 +163,7 @@ export default function DeliveriesPage() {
             </TableCell>
           </TableRow>
         )}
+        customContent={mobileContent}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
