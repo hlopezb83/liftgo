@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { STATUS_LABELS } from "@/lib/constants";
 
 interface InvoiceGroup {
   status: string;
@@ -34,7 +35,7 @@ export function InvoiceBreakdown({ data, outstandingRevenue }: InvoiceBreakdownP
                 <div className="flex items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ background: group.color }} />
                   <div>
-                    <p className="font-medium text-sm capitalize">{group.status}</p>
+                    <p className="font-medium text-sm">{STATUS_LABELS[group.status] || group.status}</p>
                     <p className="text-xs text-muted-foreground">{group.count} factura{group.count !== 1 ? "s" : ""}</p>
                   </div>
                 </div>
