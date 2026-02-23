@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       .eq("user_id", userId);
 
     return new Response(
-      JSON.stringify({ success: true, user_id: userId }),
+      JSON.stringify({ success: true, user_id: userId, email, password: finalPassword }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
