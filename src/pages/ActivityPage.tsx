@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { translateActivityTitle, translateActivityDescription } from "@/lib/activityTranslations";
 
 const ENTITY_ROUTES: Record<string, string> = {
   bookings: "/calendar",
@@ -57,8 +58,8 @@ export default function ActivityPage() {
             >
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-sm">{a.title}</p>
-                  <p className="text-xs text-muted-foreground">{a.description}</p>
+                   <p className="font-medium text-sm">{translateActivityTitle(a.title, a.event_type, a.entity_type)}</p>
+                   <p className="text-xs text-muted-foreground">{translateActivityDescription(a.description, a.event_type, a.entity_type)}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <StatusBadge status={a.event_type} />
