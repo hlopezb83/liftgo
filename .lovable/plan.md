@@ -1,25 +1,43 @@
 
-# Texto adaptativo en tarjetas del Panel
 
-## Problema
-Las 6 tarjetas de estadisticas en el Panel usan un tamano de fuente fijo (`text-2xl`) para los valores. Cuando el valor es texto largo (como montos en formato moneda "$123,456.00"), el texto puede desbordar el area visible de la tarjeta, especialmente en la cuadricula de 6 columnas en escritorio.
+# Reporte de Rentabilidad por Modelo de Equipo
 
-## Solucion recomendada
-Combinar dos tecnicas para un resultado estetico y funcional:
+## Objetivo
+Agregar un nuevo tipo de reporte que agrupe todos los montacargas por su modelo (manufacturer + model) y calcule la rentabilidad neta de cada modelo. Esto permite comparar que modelos generan mas ganancia y cuales conviene comprar mas.
 
-1. **Tamano de fuente condicional**: Si el valor es un string (moneda), usar `text-lg`; si es un numero corto, mantener `text-2xl`. Esto mantiene la jerarquia visual sin desbordes.
+## Calculo
+Para cada modelo de equipo (agrupando todos los montacargas que comparten manufacturer + model):
 
-2. **Prevencion de desborde con CSS**: Agregar `min-w-0` y `truncate` como respaldo para que ningun valor rompa el layout en casos extremos.
+- **Ingresos**: Suma de facturas pagadas vinculadas a bookings de esos montacargas
+- **Costos de mantenimiento**: Suma de costos de maintenance_logs de esos montacargas
+- **Costos de danos**: Suma de actual_cost de damage_records de esos montacargas
+- **Ganancia neta** = Ingresos - Mantenimiento - Danos
+- **Margen %** = (Ganancia / Ingresos) x 100
+- **Unidades**: Cantidad de montacargas de ese modelo en la flota
 
-## Cambios
+Todo filtrado por el rango de fechas seleccionado.
 
-### Archivo: `src/components/dashboard/StatCards.tsx`
+## Visualizacion
+- Grafica de barras horizontales mostrando ganancia neta por modelo (verde para positivo, rojo para negativo)
+- Tabla detallada con columnas: Modelo, Unidades, Ingresos, Mantenimiento, Danos, Ganancia Neta, Margen %
+- Boton de exportar CSV
+- Ordenado por ganancia neta de mayor a menor
 
-- Agregar `min-w-0` al contenedor de texto para permitir que el contenido se encoja correctamente dentro del flexbox
-- Cambiar la clase del valor de `text-2xl` fijo a una clase condicional:
-  - Si `card.value` es string (moneda/texto largo): usar `text-lg`
-  - Si es numero: mantener `text-2xl`
-- Agregar `truncate` al parrafo del valor como respaldo visual
-- Agregar `overflow-hidden` al CardContent para evitar desbordes
+## Cambios tecnicos
 
-El resultado: numeros simples (5, 12, 0) se ven grandes y prominentes; montos como "$123,456.00" se ven en un tamano ligeramente menor que cabe perfectamente en la tarjeta sin perder legibilidad.
+### 1. Nuevo componente: `src/components/reports/ProfitabilityByModelReport.tsx`
+- Recibe como props: forklifts, invoices, bookings, maintenanceLogs, damageRecords, startDate, endDate
+- Agrupa montacargas por `manufacturer + " " + model`
+- Cruza bookings con invoices pagadas para obtener ingresos por montacargas
+- Suma costos de mantenimiento y danos por montacargas
+- Agrega todo a nivel de modelo
+- Renderiza grafica de barras + tabla con los resultados
+
+### 2. Actualizar `src/pages/ReportsPage.tsx`
+- Agregar nuevo tipo de reporte "profitability" con label "Rentabilidad por Modelo" al arreglo REPORT_TYPES
+- Importar hook `useDamageRecords` para obtener los datos de danos
+- Renderizar el nuevo componente ProfitabilityByModelReport cuando se seleccione este tipo
+
+### 3. No se requieren cambios en base de datos
+Todo el calculo se hace en el frontend con datos ya disponibles (forklifts, bookings, invoices, maintenance_logs, damage_records).
+
