@@ -2,6 +2,7 @@ import { useActivityFeed } from "@/hooks/useActivityFeed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Activity } from "lucide-react";
+import { translateActivityTitle, translateActivityDescription } from "@/lib/activityTranslations";
 
 export function RecentActivity() {
   const { data: activities } = useActivityFeed(5);
@@ -19,8 +20,8 @@ export function RecentActivity() {
             {activities.map((a) => (
               <div key={a.id} className="flex items-center justify-between text-sm">
                 <div>
-                  <p className="font-medium">{a.title}</p>
-                  <p className="text-xs text-muted-foreground">{a.description}</p>
+                  <p className="font-medium">{translateActivityTitle(a.title, a.event_type, a.entity_type)}</p>
+                   <p className="text-xs text-muted-foreground">{translateActivityDescription(a.description, a.event_type, a.entity_type)}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-xs text-muted-foreground">{format(new Date(a.created_at), "MMM d, HH:mm")}</p>

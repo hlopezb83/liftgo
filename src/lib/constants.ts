@@ -55,4 +55,7 @@ export const STATUS_LABELS: Record<string, string> = {
   pending: "Pendiente",
   delivery: "Entrega",
   pickup: "Recolección",
+  INSERT: "Creación",
+  UPDATE: "Actualización",
+  DELETE: "Eliminación",
 };
