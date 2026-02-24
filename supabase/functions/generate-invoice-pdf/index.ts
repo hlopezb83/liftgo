@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
     const { data: roles } = await adminClient.from("user_roles").select("role").eq("user_id", user.id);
     const userRoles = (roles || []).map((r: { role: string }) => r.role);
-    const isStaff = userRoles.some((r: string) => ["admin", "dispatcher", "administrativo", "mechanic"].includes(r));
+    const isStaff = userRoles.some((r: string) => ["admin", "dispatcher", "administrativo", "mechanic", "auditor"].includes(r));
 
     const { data: invoice, error } = await adminClient.from("invoices").select("*").eq("id", invoiceId).single();
     if (error || !invoice) {

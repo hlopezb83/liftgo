@@ -14,6 +14,6 @@ export function isNonEmptyString(v: unknown, maxLen = 500): v is string {
 }
 
 export function isValidRole(v: unknown): v is string {
-  const valid = ["admin", "administrativo", "dispatcher", "mechanic"];
+  const valid = ["admin", "administrativo", "dispatcher", "mechanic", "auditor"];
   return typeof v === "string" && valid.includes(v);
 }
