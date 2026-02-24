@@ -1,0 +1,22 @@
+
+CREATE POLICY "Auditor read forklifts" ON public.forklifts FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read bookings" ON public.bookings FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read invoices" ON public.invoices FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read contracts" ON public.contracts FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read quotes" ON public.quotes FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read customers" ON public.customers FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read deliveries" ON public.deliveries FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read return_inspections" ON public.return_inspections FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read maintenance_logs" ON public.maintenance_logs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read damage_records" ON public.damage_records FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read payments" ON public.payments FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read status_logs" ON public.status_logs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read documents" ON public.documents FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read drivers" ON public.drivers FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read mechanics" ON public.mechanics FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read equipment_models" ON public.equipment_models FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read company_settings" ON public.company_settings FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read activity_feed" ON public.activity_feed FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read audit_logs" ON public.audit_logs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read profiles" ON public.profiles FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));
+CREATE POLICY "Auditor read user_roles" ON public.user_roles FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'auditor'));

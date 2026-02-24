@@ -19,13 +19,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { CredentialsDialog } from "@/components/CredentialsDialog";
 import type { AppRole } from "@/hooks/useUserRole";
 
-const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "administrativo", "dispatcher", "mechanic"];
-const ROLE_LABELS: Record<string, string> = { admin: "Admin", administrativo: "Administrativo", dispatcher: "Despachador", mechanic: "Mecánico" };
+const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "administrativo", "dispatcher", "mechanic", "auditor"];
+const ROLE_LABELS: Record<string, string> = { admin: "Admin", administrativo: "Administrativo", dispatcher: "Despachador", mechanic: "Mecánico", auditor: "Auditor" };
 const ROLE_COLORS: Record<string, string> = {
   admin: "bg-red-600 text-white",
   administrativo: "bg-blue-600 text-white",
   dispatcher: "bg-amber-500 text-white",
   mechanic: "bg-emerald-600 text-white",
+  auditor: "bg-purple-600 text-white",
 };
 
 interface UserRow {
