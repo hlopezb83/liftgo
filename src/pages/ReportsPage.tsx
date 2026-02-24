@@ -4,6 +4,7 @@ import { useForklifts } from "@/hooks/useForklifts";
 import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
+import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,12 +13,14 @@ import { UtilizationReport } from "@/components/reports/UtilizationReport";
 import type { DateRange } from "react-day-picker";
 import { RevenueReport } from "@/components/reports/RevenueReport";
 import { MaintenanceCostReport } from "@/components/reports/MaintenanceCostReport";
+import { ProfitabilityByModelReport } from "@/components/reports/ProfitabilityByModelReport";
 import { subMonths } from "date-fns";
 
 const REPORT_TYPES = [
   { value: "utilization", label: "Utilización de Flota" },
   { value: "revenue", label: "Ingresos" },
   { value: "maintenance", label: "Costos de Mantenimiento" },
+  { value: "profitability", label: "Rentabilidad por Modelo" },
 ];
 
 export default function ReportsPage() {
@@ -30,6 +33,7 @@ export default function ReportsPage() {
   const { data: bookings } = useBookings();
   const { data: invoices } = useInvoices();
   const { data: maintenanceLogs } = useMaintenanceLogs();
+  const { data: damageRecords } = useDamageRecords();
 
   return (
     <PageTransition>
@@ -60,6 +64,17 @@ export default function ReportsPage() {
       )}
       {reportType === "maintenance" && (
         <MaintenanceCostReport maintenanceLogs={maintenanceLogs || []} forklifts={forklifts || []} startDate={startDate} endDate={endDate} />
+      )}
+      {reportType === "profitability" && (
+        <ProfitabilityByModelReport
+          forklifts={forklifts || []}
+          invoices={invoices || []}
+          bookings={bookings || []}
+          maintenanceLogs={maintenanceLogs || []}
+          damageRecords={damageRecords || []}
+          startDate={startDate}
+          endDate={endDate}
+        />
       )}
     </div>
     </PageTransition>
