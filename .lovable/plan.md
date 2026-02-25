@@ -1,40 +1,77 @@
 
-# Fix: Bug critico en DateRangePickerField + Datos de prueba para verificar RecurringBillingBadge
 
-## Problema 1: Date picker crashea al seleccionar fechas
+# Feature: Crear contrato desde reserva + Resumen financiero de renta
 
-El componente `DateRangePickerField.tsx` causa un error DOM: "Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node" al seleccionar la segunda fecha del rango. Este es un bug conocido con la combinacion de `react-day-picker` y Radix `Popover` — el auto-cierre del popover interfiere con el DOM del calendario mientras este aun esta procesando el evento de clic.
+## 1. Crear contrato desde reserva (auto-fill)
 
-### Solucion
-En `src/components/DateRangePickerField.tsx`:
-- Aumentar el delay del auto-cierre de 300ms a 400ms para dar tiempo al calendario de completar la actualizacion del DOM antes de cerrar el popover
-- Envolver el `setOpen(false)` en un `requestAnimationFrame` para asegurar que se ejecute despues de que el DOM se haya estabilizado
+### Que hace
+Agrega un boton "Crear Contrato" en las acciones de cada reserva confirmada. Al hacer clic, navega a `/contracts/new?booking_id=<id>` y el formulario de contrato se pre-llena automaticamente con los datos de la reserva: cliente, equipo, fechas, tarifas y referencia al booking.
 
-## Problema 2: No hay reservas con facturacion recurrente para probar
+### Cambios
 
-Actualmente ninguna reserva tiene `recurring_billing = true`. Una vez arreglado el date picker, se podra crear una nueva reserva con la opcion de facturacion recurrente activada para verificar el badge.
+**`src/components/BookingActions.tsx`**
+- Agregar un boton "Crear Contrato" (icono `FileText`) junto a los botones existentes (Extender, Devolucion, Cancelar)
+- Al hacer clic: `navigate(\`/contracts/new?booking_id=\${booking.id}\`)`
 
-Como solucion alternativa mas rapida, se puede actualizar una reserva existente via migracion para activar `recurring_billing` y `last_billed_date`, permitiendo verificar el badge inmediatamente sin depender de la UI.
+**`src/pages/ContractForm.tsx`**
+- Importar `useSearchParams` de react-router-dom y `useBookings` (o hacer una query directa del booking por ID)
+- Leer `booking_id` de los query params
+- Si `booking_id` esta presente y no es edicion:
+  - Consultar el booking con su forklift asociado
+  - Pre-llenar `customer_id`, `forklift_id`, `start_date`, `end_date`, y las tarifas del equipo
+  - Guardar `booking_id` en el payload para que el contrato quede vinculado a la reserva
+- El campo `booking_id` ya existe en la tabla `contracts` asi que no se necesitan migraciones
 
-### Pasos
-1. Ejecutar una migracion SQL para activar `recurring_billing = true` y `last_billed_date = '2026-02-01'` en una de las reservas existentes de STK INDUSTRIAS
-2. Arreglar el bug del date picker
-3. Verificar el badge en la pagina de Calendario
+### Flujo del usuario
+1. En la pagina de Calendario, busca una reserva confirmada
+2. Hace clic en "Crear Contrato"
+3. Se abre el formulario de contrato con todos los campos pre-llenados
+4. Solo necesita agregar terminos/notas y guardar
 
-## Cambios tecnicos
+---
 
-### Archivo: `src/components/DateRangePickerField.tsx`
-- En el `useEffect` de auto-cierre, cambiar la logica de cierre para usar `requestAnimationFrame` antes del `setTimeout`
-- Esto evita que el popover se cierre mientras el calendario aun esta manipulando el DOM
+## 2. Resumen financiero de renta a largo plazo
 
-### Migracion SQL (datos de prueba)
-```sql
-UPDATE bookings
-SET recurring_billing = true, last_billed_date = '2026-02-01'
-WHERE id = '4d0306e7-1f0e-42af-9002-fea4229e86a3';
+### Que hace
+Muestra un card compacto en la pagina de detalle del contrato (y opcionalmente en CalendarPage) con:
+- **Revenue esperado total**: calculado a partir de las tarifas y la duracion del contrato
+- **Facturado hasta ahora**: suma de facturas vinculadas al booking
+- **Balance restante**: diferencia entre esperado y facturado
+
+### Cambios
+
+**`src/components/RentalFinancialSummary.tsx`** (nuevo)
+- Componente que recibe: `bookingId`, `startDate`, `endDate`, `dailyRate`, `weeklyRate`, `monthlyRate`
+- Usa `calculateRentalCost` de `invoiceUtils.ts` para calcular el revenue esperado
+- Consulta facturas vinculadas al booking (`invoices` where `booking_id = X`) para sumar lo facturado
+- Muestra 3 metricas en un card compacto:
+  - Revenue esperado (con desglose de periodos)
+  - Facturado (con conteo de facturas)
+  - Balance restante (con indicador de color: verde si esta al dia, amarillo si hay diferencia)
+
+**`src/pages/ContractDetail.tsx`**
+- Si el contrato tiene `booking_id`, renderizar `RentalFinancialSummary` debajo de los detalles del contrato
+
+**`src/pages/CalendarPage.tsx`**
+- En cada fila de reserva confirmada, agregar un mini indicador del revenue esperado total (opcional, texto compacto)
+
+### Logica de calculo
+```text
+dias = differenceInDays(endDate, startDate) + 1
+items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, dias)
+expectedRevenue = sum(items.total)
+invoicedAmount = SUM(invoices.total WHERE booking_id = X)
+remaining = expectedRevenue - invoicedAmount
 ```
 
-## Resultado esperado
-- El date picker permite seleccionar rangos de fechas sin crashear
-- La reserva de STK INDUSTRIAS muestra el badge "Recurrente" en el Calendario
-- Al hacer hover sobre el badge, se ven las fechas: "Ult. factura: 1 feb 2026" y "Prox. factura: 3 mar 2026"
+---
+
+## Secuencia de implementacion
+
+1. Modificar `ContractForm.tsx` para leer query params y pre-llenar desde booking
+2. Agregar boton "Crear Contrato" en `BookingActions.tsx`
+3. Crear componente `RentalFinancialSummary.tsx`
+4. Integrarlo en `ContractDetail.tsx`
+
+## Sin migraciones necesarias
+Todos los campos requeridos (`booking_id` en contracts, tarifas en forklifts, `booking_id` en invoices) ya existen en la base de datos.
