@@ -1,43 +1,40 @@
 
-# Feature 2: Indicador Visual de Facturacion Recurrente
+# Fix: Bug critico en DateRangePickerField + Datos de prueba para verificar RecurringBillingBadge
 
-## Que hace
-Agrega un indicador visual enriquecido en cada reserva con facturacion recurrente, mostrando:
-- Un badge "Recurrente" claramente visible
-- La ultima fecha facturada (o "Sin facturar" si aun no se ha generado ninguna)
-- La proxima fecha esperada de facturacion (last_billed_date + 30 dias)
+## Problema 1: Date picker crashea al seleccionar fechas
 
-## Donde se muestra
-1. **Pagina de Calendario** - En la lista de reservas (seccion inferior), reemplazar el icono `Repeat` solitario por un bloque informativo con las fechas de facturacion
-2. **Vista de Lista de Equipos** - En el `BookingRow` del `EquipmentListView`, agregar indicador para reservas recurrentes
+El componente `DateRangePickerField.tsx` causa un error DOM: "Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node" al seleccionar la segunda fecha del rango. Este es un bug conocido con la combinacion de `react-day-picker` y Radix `Popover` — el auto-cierre del popover interfiere con el DOM del calendario mientras este aun esta procesando el evento de clic.
+
+### Solucion
+En `src/components/DateRangePickerField.tsx`:
+- Aumentar el delay del auto-cierre de 300ms a 400ms para dar tiempo al calendario de completar la actualizacion del DOM antes de cerrar el popover
+- Envolver el `setOpen(false)` en un `requestAnimationFrame` para asegurar que se ejecute despues de que el DOM se haya estabilizado
+
+## Problema 2: No hay reservas con facturacion recurrente para probar
+
+Actualmente ninguna reserva tiene `recurring_billing = true`. Una vez arreglado el date picker, se podra crear una nueva reserva con la opcion de facturacion recurrente activada para verificar el badge.
+
+Como solucion alternativa mas rapida, se puede actualizar una reserva existente via migracion para activar `recurring_billing` y `last_billed_date`, permitiendo verificar el badge inmediatamente sin depender de la UI.
+
+### Pasos
+1. Ejecutar una migracion SQL para activar `recurring_billing = true` y `last_billed_date = '2026-02-01'` en una de las reservas existentes de STK INDUSTRIAS
+2. Arreglar el bug del date picker
+3. Verificar el badge en la pagina de Calendario
 
 ## Cambios tecnicos
 
-### Archivo: `src/components/RecurringBillingBadge.tsx` (nuevo)
-Crear un componente reutilizable que recibe una reserva y muestra:
-- Badge con icono `Repeat` y texto "Recurrente"
-- Linea de texto con "Ult. factura: [fecha]" o "Sin facturar aun"
-- Linea de texto con "Prox. factura: [fecha calculada]" (last_billed_date + 30 dias, o start_date + 30 si nunca se ha facturado)
-- Solo se renderiza si `booking.recurring_billing` es `true`
-- Usa `Tooltip` para mostrar detalles sin ocupar mucho espacio en la fila
+### Archivo: `src/components/DateRangePickerField.tsx`
+- En el `useEffect` de auto-cierre, cambiar la logica de cierre para usar `requestAnimationFrame` antes del `setTimeout`
+- Esto evita que el popover se cierre mientras el calendario aun esta manipulando el DOM
 
-### Archivo: `src/pages/CalendarPage.tsx`
-- Reemplazar el icono `Repeat` standalone (linea 172) por el nuevo componente `RecurringBillingBadge`
-- Pasar la reserva completa al componente
-
-### Archivo: `src/components/calendar/EquipmentListView.tsx`
-- En el componente `BookingRow`, agregar `RecurringBillingBadge` para mostrar el indicador junto al nombre del cliente
-
-## Logica de calculo de fechas
-```
-Si recurring_billing = true:
-  Si last_billed_date existe:
-    proximaFactura = last_billed_date + 30 dias
-  Sino:
-    proximaFactura = start_date + 30 dias
+### Migracion SQL (datos de prueba)
+```sql
+UPDATE bookings
+SET recurring_billing = true, last_billed_date = '2026-02-01'
+WHERE id = '4d0306e7-1f0e-42af-9002-fea4229e86a3';
 ```
 
-## Diseno visual
-- Badge compacto con fondo `primary/10` y texto `primary`
-- Tooltip al hacer hover que muestra las dos fechas en detalle
-- Se integra de forma natural en las filas existentes sin romper el layout
+## Resultado esperado
+- El date picker permite seleccionar rangos de fechas sin crashear
+- La reserva de STK INDUSTRIAS muestra el badge "Recurrente" en el Calendario
+- Al hacer hover sobre el badge, se ven las fechas: "Ult. factura: 1 feb 2026" y "Prox. factura: 3 mar 2026"
