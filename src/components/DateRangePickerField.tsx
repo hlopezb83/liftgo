@@ -6,7 +6,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
@@ -19,29 +19,10 @@ interface DateRangePickerFieldProps {
 
 export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required }: DateRangePickerFieldProps) {
   const [open, setOpen] = useState(false);
-  const initialRangeRef = useRef<{ from?: Date; to?: Date }>({});
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      initialRangeRef.current = { from: dateRange?.from, to: dateRange?.to };
-    }
-    setOpen(nextOpen);
+  const handleSelect = (range?: DateRange) => {
+    onSelect(range);
   };
-
-  // Auto-close only when a NEW complete range is selected
-  useEffect(() => {
-    if (open && dateRange?.from && dateRange?.to) {
-      const changed =
-        dateRange.from.getTime() !== initialRangeRef.current.from?.getTime() ||
-        dateRange.to.getTime() !== initialRangeRef.current.to?.getTime();
-      if (changed) {
-        const rafId = requestAnimationFrame(() => {
-          setTimeout(() => setOpen(false), 400);
-        });
-        return () => cancelAnimationFrame(rafId);
-      }
-    }
-  }, [open, dateRange?.from, dateRange?.to]);
 
   const formatLabel = () => {
     if (!dateRange?.from) return placeholder;
@@ -52,7 +33,7 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
   return (
     <div className="space-y-1.5">
       <Label>{label}{required && " *"}</Label>
-      <Popover open={open} onOpenChange={handleOpenChange}>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dateRange?.from && "text-muted-foreground")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -63,7 +44,7 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
           <Calendar
             mode="range"
             selected={dateRange}
-            onSelect={onSelect}
+            onSelect={handleSelect}
             numberOfMonths={2}
             initialFocus
             className="p-3 pointer-events-auto"
