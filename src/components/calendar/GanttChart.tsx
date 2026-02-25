@@ -109,7 +109,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
       <div className="min-w-[800px]">
         {/* Day-of-week header */}
         <div className="flex border-b pb-1 mb-0">
-          <div className="w-36 shrink-0" />
+          <div className="w-48 shrink-0" />
           <div className="flex-1 flex">
             {days.map((day) => {
               const wd = getDay(day);
@@ -127,7 +127,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
         </div>
         {/* Day number header */}
         <div className="flex border-b pb-2 mb-2">
-          <div className="w-36 shrink-0 text-xs font-medium text-muted-foreground">Montacargas</div>
+          <div className="w-48 shrink-0 text-xs font-medium text-muted-foreground">Montacargas</div>
           <div className="flex-1 flex">
             {days.map((day) => {
               const wd = getDay(day);
@@ -156,8 +156,8 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
           const segments = getSegments(fl.id);
           return (
             <div key={fl.id} className="flex items-center border-b py-1.5 hover:bg-muted/30">
-              <div className="w-36 shrink-0 flex items-center gap-2 pr-2">
-                <span className="text-xs font-mono font-medium truncate">{fl.name}</span>
+              <div className="w-48 shrink-0 flex items-center gap-2 pr-2">
+                <span className="text-xs font-mono font-medium">{fl.name}</span>
                 <StatusBadge status={fl.status} />
               </div>
               <div className="flex-1 relative" style={{ height: "24px" }}>
