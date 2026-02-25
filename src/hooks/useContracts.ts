@@ -18,6 +18,14 @@ interface Contract {
   signed_at: string | null;
   signed_by: string | null;
   notes: string | null;
+  usage_location: string | null;
+  max_hours_per_month: number | null;
+  extra_hour_rate: number | null;
+  payment_frequency: string | null;
+  late_interest_rate: number | null;
+  contract_city: string | null;
+  witness_1: string | null;
+  witness_2: string | null;
   created_at: string;
   updated_at: string;
   // joined

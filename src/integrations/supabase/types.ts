@@ -176,66 +176,114 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_templates: {
+        Row: {
+          body_text: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+        }
+        Insert: {
+          body_text: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+        }
+        Update: {
+          body_text?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           booking_id: string | null
+          contract_city: string | null
           contract_number: string
           created_at: string
           customer_id: string | null
           daily_rate: number | null
           deposit_amount: number | null
           end_date: string | null
+          extra_hour_rate: number | null
           forklift_id: string | null
           id: string
+          late_interest_rate: number | null
+          max_hours_per_month: number | null
           monthly_rate: number | null
           notes: string | null
+          payment_frequency: string | null
           signed_at: string | null
           signed_by: string | null
           start_date: string | null
           status: string
           terms_text: string | null
           updated_at: string
+          usage_location: string | null
           weekly_rate: number | null
+          witness_1: string | null
+          witness_2: string | null
         }
         Insert: {
           booking_id?: string | null
+          contract_city?: string | null
           contract_number: string
           created_at?: string
           customer_id?: string | null
           daily_rate?: number | null
           deposit_amount?: number | null
           end_date?: string | null
+          extra_hour_rate?: number | null
           forklift_id?: string | null
           id?: string
+          late_interest_rate?: number | null
+          max_hours_per_month?: number | null
           monthly_rate?: number | null
           notes?: string | null
+          payment_frequency?: string | null
           signed_at?: string | null
           signed_by?: string | null
           start_date?: string | null
           status?: string
           terms_text?: string | null
           updated_at?: string
+          usage_location?: string | null
           weekly_rate?: number | null
+          witness_1?: string | null
+          witness_2?: string | null
         }
         Update: {
           booking_id?: string | null
+          contract_city?: string | null
           contract_number?: string
           created_at?: string
           customer_id?: string | null
           daily_rate?: number | null
           deposit_amount?: number | null
           end_date?: string | null
+          extra_hour_rate?: number | null
           forklift_id?: string | null
           id?: string
+          late_interest_rate?: number | null
+          max_hours_per_month?: number | null
           monthly_rate?: number | null
           notes?: string | null
+          payment_frequency?: string | null
           signed_at?: string | null
           signed_by?: string | null
           start_date?: string | null
           status?: string
           terms_text?: string | null
           updated_at?: string
+          usage_location?: string | null
           weekly_rate?: number | null
+          witness_1?: string | null
+          witness_2?: string | null
         }
         Relationships: [
           {
