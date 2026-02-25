@@ -27,7 +27,7 @@ const navGroups: NavGroup[] = [
     items: [
       { title: "Clientes", url: "/customers", icon: Users },
       { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-      { title: "Reservas", url: "/bookings/new", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo"] },
+      { title: "Reservas", url: "/bookings", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Contratos", url: "/contracts", icon: ScrollText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Entregas", url: "/deliveries", icon: TruckIcon, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
