@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Send, CheckCircle, XCircle, Edit } from "lucide-react";
 import { ContractPDFButton } from "@/components/ContractPDFButton";
+import { RentalFinancialSummary } from "@/components/RentalFinancialSummary";
 import { toast } from "sonner";
 
 export default function ContractDetail() {
@@ -87,6 +88,17 @@ export default function ContractDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {contract.booking_id && contract.start_date && contract.end_date && (
+        <RentalFinancialSummary
+          bookingId={contract.booking_id}
+          startDate={contract.start_date}
+          endDate={contract.end_date}
+          dailyRate={contract.daily_rate}
+          weeklyRate={contract.weekly_rate}
+          monthlyRate={contract.monthly_rate}
+        />
+      )}
 
       {contract.terms_text && (
         <Card>
