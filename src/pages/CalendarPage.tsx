@@ -13,6 +13,7 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, AlertTriangle, Repeat, Plus } from "lucide-react";
 import { BookingActions } from "@/components/BookingActions";
+import { RecurringBillingBadge } from "@/components/RecurringBillingBadge";
 import { Link } from "react-router-dom";
 import { CalendarStatCards } from "@/components/calendar/CalendarStatCards";
 import { GanttChart } from "@/components/calendar/GanttChart";
@@ -169,7 +170,7 @@ export default function CalendarPage() {
                       <p className="text-xs text-muted-foreground">{b.customer_name} ({b.customer_contact})</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {b.recurring_billing && <Repeat className="h-3.5 w-3.5 text-primary" />}
+                      <RecurringBillingBadge booking={b} />
                       <div className="text-right">
                         <p className="text-sm font-medium">
                           {format(parseISO(b.start_date), "d MMM yyyy", { locale: es })} → {format(parseISO(b.end_date), "d MMM yyyy", { locale: es })}

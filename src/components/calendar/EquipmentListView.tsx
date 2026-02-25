@@ -6,6 +6,7 @@ import { format, parseISO, differenceInDays, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
+import { RecurringBillingBadge } from "@/components/RecurringBillingBadge";
 
 type Forklift = Tables<"forklifts">;
 
@@ -85,6 +86,7 @@ function BookingRow({ booking, label }: { booking: BookingWithForklift; label: s
           {label}
         </span>
         <span className="font-medium">{booking.customer_name || "Sin cliente"}</span>
+        <RecurringBillingBadge booking={booking} />
       </div>
       <div className="text-xs text-muted-foreground">
         {format(parseISO(booking.start_date), "d MMM", { locale: es })} → {format(parseISO(booking.end_date), "d MMM yyyy", { locale: es })}
