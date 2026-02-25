@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useContract, useCreateContract, useUpdateContract } from "@/hooks/useContracts";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useForklifts } from "@/hooks/useForklifts";
+import { useBookings } from "@/hooks/useBookings";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,9 +19,12 @@ export default function ContractForm() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const bookingId = searchParams.get("booking_id");
   const { data: existing } = useContract(isEdit ? id : undefined);
   const { data: customers } = useCustomers();
   const { data: forklifts } = useForklifts();
+  const { data: bookings } = useBookings();
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
 
@@ -56,8 +60,28 @@ export default function ContractForm() {
     }
   }, [existing, isEdit]);
 
+  // Pre-fill from booking query param
   useEffect(() => {
-    if (!isEdit && form.forklift_id && forklifts) {
+    if (!isEdit && bookingId && bookings && forklifts) {
+      const booking = bookings.find((b) => b.id === bookingId);
+      if (booking) {
+        const fl = forklifts.find((f) => f.id === booking.forklift_id);
+        setForm((prev) => ({
+          ...prev,
+          customer_id: booking.customer_id || prev.customer_id,
+          forklift_id: booking.forklift_id,
+          start_date: booking.start_date || prev.start_date,
+          end_date: booking.end_date || prev.end_date,
+          daily_rate: String(fl?.daily_rate || 0),
+          weekly_rate: String(fl?.weekly_rate || 0),
+          monthly_rate: String(fl?.monthly_rate || 0),
+        }));
+      }
+    }
+  }, [bookingId, bookings, forklifts, isEdit]);
+
+  useEffect(() => {
+    if (!isEdit && !bookingId && form.forklift_id && forklifts) {
       const fl = forklifts.find((f) => f.id === form.forklift_id);
       if (fl) {
         setForm((prev) => ({
@@ -68,7 +92,7 @@ export default function ContractForm() {
         }));
       }
     }
-  }, [form.forklift_id, forklifts, isEdit]);
+  }, [form.forklift_id, forklifts, isEdit, bookingId]);
 
   const handleSubmit = () => {
     if (!form.customer_id || !form.forklift_id) {
@@ -87,7 +111,7 @@ export default function ContractForm() {
       terms_text: form.terms_text || null,
       signed_by: form.signed_by || null,
       notes: form.notes || null,
-      booking_id: null,
+      booking_id: bookingId || null,
       status: "draft",
       signed_at: null,
     };

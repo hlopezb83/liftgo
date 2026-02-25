@@ -9,9 +9,10 @@ import { useUpdateBooking, type BookingWithForklift } from "@/hooks/useBookings"
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
-import { CalendarPlus, Undo2, XCircle } from "lucide-react";
+import { CalendarPlus, Undo2, XCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 
@@ -23,6 +24,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
   const { data: forklifts } = useForklifts();
   const updateBooking = useUpdateBooking();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   if (booking.status !== "confirmed") return null;
 
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
@@ -65,6 +67,9 @@ export function BookingActions({ booking }: BookingActionsProps) {
 
   return (
     <div className="flex gap-1">
+      <Button variant="ghost" size="sm" onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
+        <FileText className="h-3.5 w-3.5 mr-1" />Crear Contrato
+      </Button>
       <Button variant="ghost" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
         <CalendarPlus className="h-3.5 w-3.5 mr-1" />Extender
       </Button>
