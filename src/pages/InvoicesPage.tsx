@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useInvoices";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -10,10 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { Plus, Eye, Download, ChevronRight } from "lucide-react";
+import { Plus, Eye, Download, ChevronRight, RefreshCw } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleGuard } from "@/components/RoleGuard";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
@@ -21,6 +26,26 @@ export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateRecurring = async () => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-recurring-invoices");
+      if (error) throw error;
+      const count = data?.invoicesCreated ?? 0;
+      toast({
+        title: count > 0 ? `${count} factura(s) generada(s)` : "Sin facturas pendientes",
+        description: count > 0 ? "Se crearon borradores de facturas recurrentes." : "No hay reservas con facturación recurrente pendiente.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    } catch (err: any) {
+      toast({ title: "Error al generar facturas", description: err.message || "Intenta de nuevo.", variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(invoices, {
     searchFields: ["invoice_number", "customer_name"],
@@ -63,6 +88,12 @@ export default function InvoicesPage() {
       subtitle="Administrar facturación y pagos"
       actions={
         <div className="flex gap-2">
+          <RoleGuard allowed={["admin", "administrativo"]}>
+            <Button variant="outline" size="sm" onClick={handleGenerateRecurring} disabled={isGenerating}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
+              Generar Recurrentes
+            </Button>
+          </RoleGuard>
           <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (filtered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
           <Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />Nueva Factura</Button>
         </div>
