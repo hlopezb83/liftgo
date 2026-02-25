@@ -35,8 +35,10 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
         dateRange.from.getTime() !== initialRangeRef.current.from?.getTime() ||
         dateRange.to.getTime() !== initialRangeRef.current.to?.getTime();
       if (changed) {
-        const t = setTimeout(() => setOpen(false), 300);
-        return () => clearTimeout(t);
+        const rafId = requestAnimationFrame(() => {
+          setTimeout(() => setOpen(false), 400);
+        });
+        return () => cancelAnimationFrame(rafId);
       }
     }
   }, [open, dateRange?.from, dateRange?.to]);
