@@ -1,35 +1,26 @@
 
+# Fix: CORS para entorno de preview
 
-# Feature 1: Boton para Generar Facturas Recurrentes
+## Problema detectado
+El boton "Generar Recurrentes" funciona correctamente a nivel backend -- la edge function responde con `{"success": true, "invoicesCreated": 0}` (no hay reservas recurrentes pendientes, lo cual es correcto).
 
-## Que hace
-Agrega un boton "Generar Facturas Recurrentes" en la pagina de Facturas que ejecuta manualmente la funcion backend que revisa todas las reservas con facturacion recurrente y genera borradores de facturas para las que tienen 30+ dias sin facturar.
+Sin embargo, en el entorno de preview del navegador, la llamada falla con `net::ERR_FAILED` porque el archivo `cors.ts` solo permite origenes `*.lovable.app`, pero el preview usa dominios `*.lovableproject.com`.
 
-## Como funciona
-- El boton aparece en la barra de acciones de la pagina de Facturas, junto a "Exportar CSV" y "Nueva Factura"
-- Solo visible para roles `admin` y `administrativo` (usando `RoleGuard`)
-- Al hacer clic, llama a la edge function `generate-recurring-invoices` existente
-- Muestra un toast con el resultado: cuantas facturas se generaron, o si no habia ninguna pendiente
-- Muestra un spinner mientras se ejecuta
+## Solucion
 
-## Cambios tecnicos
+### Archivo: `supabase/functions/_shared/cors.ts`
+Agregar una segunda regex para permitir origenes `*.lovableproject.com` en la funcion `isAllowedOrigin`:
 
-### Archivo: `src/pages/InvoicesPage.tsx`
-- Importar `RoleGuard`, `supabase`, `useState`, `toast`, y el icono `RefreshCw` de lucide
-- Agregar estado `isGenerating` para controlar el spinner del boton
-- Agregar funcion `handleGenerateRecurring` que:
-  - Llama a `supabase.functions.invoke("generate-recurring-invoices")`
-  - Muestra toast de exito con `invoicesCreated` o mensaje de "no hay facturas pendientes"
-  - En error, muestra toast de error
-  - Refresca la lista de facturas al terminar
-- Envolver el boton en `RoleGuard allowed={["admin", "administrativo"]}` para que auditores y otros roles no lo vean
-- El boton usa `variant="outline"` y el icono `RefreshCw` con animacion de spin durante la carga
+```typescript
+if (/^https:\/\/[a-z0-9-]+\.lovableproject\.com$/.test(origin)) return true;
+```
 
-### Sin cambios en backend
-La edge function `generate-recurring-invoices` ya existe y funciona correctamente. Solo se agrega el boton frontend para invocarla.
+Esto permite que tanto el preview (`*.lovableproject.com`) como produccion (`*.lovable.app`) funcionen correctamente.
 
-## Resultado
-- Admin/Administrativo ve el boton "Generar Recurrentes" en la pagina de Facturas
-- Al hacer clic, se generan automaticamente los borradores pendientes
-- Se muestra feedback claro del resultado
+## Resultado esperado
+- El boton "Generar Recurrentes" funcionara en preview y en produccion
+- Mostrara el toast "Sin facturas pendientes" cuando no haya reservas recurrentes por facturar
+- Cuando existan reservas con facturacion recurrente habilitada y 30+ dias sin facturar, generara los borradores automaticamente
 
+## Verificacion
+La edge function ya fue probada directamente y responde correctamente. Solo falta corregir el CORS para que el navegador pueda completar la solicitud.
