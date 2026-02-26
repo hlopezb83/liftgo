@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.3.0",
+    date: "2026-02-26",
+    type: "minor",
+    title: "Manual de Usuario con IA",
+    description: "Nueva sección de Ayuda con un manual de usuario completo generado por inteligencia artificial, con documentación detallada de cada módulo y workflows paso a paso.",
+    changes: [
+      "Nueva página /help con manual de usuario generado por IA",
+      "18 secciones cubriendo todos los módulos de la app",
+      "Workflows completos: flujo de renta, facturación recurrente, daños y mantenimiento",
+      "Barra de búsqueda para filtrar contenido del manual",
+      "Botón de regenerar manual disponible para administradores",
+      "Accesible desde el sidebar para todos los roles",
+    ],
+  },
+  {
     version: "3.2.0",
     date: "2026-02-26",
     type: "minor",

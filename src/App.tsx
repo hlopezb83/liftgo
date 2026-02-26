@@ -44,6 +44,7 @@ const DamageTrackingPage = lazy(() => import("./pages/DamageTrackingPage"));
 const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
 const CompanySettingsPage = lazy(() => import("./pages/CompanySettingsPage"));
 const ChangelogPage = lazy(() => import("./pages/ChangelogPage"));
+const HelpPage = lazy(() => import("./pages/HelpPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -102,6 +103,7 @@ const routes: RouteConfig[] = [
   { path: "/settings/company", component: CompanySettingsPage, roles: ["admin", "auditor"] },
   { path: "/users", component: UserManagementPage, roles: ["admin", "auditor"] },
   { path: "/changelog", component: ChangelogPage },
+  { path: "/help", component: HelpPage },
 ];
 
 const App = () => (
