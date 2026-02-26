@@ -323,6 +323,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           regimen_fiscal: string | null
+          representante_legal: string | null
           rfc: string | null
           tax_id: string | null
           updated_at: string
@@ -343,6 +344,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           regimen_fiscal?: string | null
+          representante_legal?: string | null
           rfc?: string | null
           tax_id?: string | null
           updated_at?: string
@@ -363,6 +365,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           regimen_fiscal?: string | null
+          representante_legal?: string | null
           rfc?: string | null
           tax_id?: string | null
           updated_at?: string

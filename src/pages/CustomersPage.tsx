@@ -24,6 +24,7 @@ const emptyCustomer = {
   name: "", email: "", phone: "", address: "", notes: "",
   website: "", contact_person: "", billing_address: "",
   rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
+  representante_legal: "",
 };
 
 export default function CustomersPage() {
@@ -77,6 +78,7 @@ export default function CustomersPage() {
       billing_address: c.billing_address || "",
       rfc: c.rfc || "", regimen_fiscal: c.regimen_fiscal || "",
       uso_cfdi: c.uso_cfdi || "", domicilio_fiscal_cp: c.domicilio_fiscal_cp || "",
+      representante_legal: c.representante_legal || "",
     });
     setDialogOpen(true);
   };
@@ -91,6 +93,7 @@ export default function CustomersPage() {
       contact_person: form.contact_person || null, billing_address: form.billing_address || null,
       rfc: form.rfc || null, regimen_fiscal: form.regimen_fiscal || null,
       uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
+      representante_legal: form.representante_legal || null,
     };
 
     if (editId) {
@@ -201,7 +204,10 @@ export default function CustomersPage() {
 
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Contacto</p>
-              <div className="space-y-1.5"><Label>Persona de Contacto</Label><Input value={form.contact_person} onChange={(e) => set("contact_person", e.target.value)} placeholder="María García" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5"><Label>Persona de Contacto</Label><Input value={form.contact_person} onChange={(e) => set("contact_person", e.target.value)} placeholder="María García" /></div>
+                <div className="space-y-1.5"><Label>Representante Legal (opcional)</Label><Input value={form.representante_legal} onChange={(e) => set("representante_legal", e.target.value)} placeholder="Lic. Juan Pérez" /></div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5"><Label>Correo</Label><Input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="contacto@empresa.com" /></div>
                 <div className="space-y-1.5"><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+52 55 1234 5678" /></div>

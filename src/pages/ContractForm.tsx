@@ -155,6 +155,7 @@ export default function ContractForm() {
       MONTO_RENTA: form.monthly_rate || form.weekly_rate || form.daily_rate || "[Monto]",
       FRECUENCIA_PAGO: form.payment_frequency || "Mensual",
       INTERES_MORATORIO: form.late_interest_rate || "5",
+      REPRESENTANTE_LEGAL: customer.representante_legal || "",
     });
 
     setForm((prev) => ({ ...prev, terms_text: text }));
