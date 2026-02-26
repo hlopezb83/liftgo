@@ -179,24 +179,45 @@ export type Database = {
       contract_templates: {
         Row: {
           body_text: string
+          checklist_sections: Json | null
+          clauses: Json | null
           created_at: string
+          declarations_landlord: Json | null
+          declarations_tenant: Json | null
           id: string
+          intro_text: string | null
           is_default: boolean
           name: string
+          pagare_text: string | null
+          updated_at: string | null
         }
         Insert: {
           body_text: string
+          checklist_sections?: Json | null
+          clauses?: Json | null
           created_at?: string
+          declarations_landlord?: Json | null
+          declarations_tenant?: Json | null
           id?: string
+          intro_text?: string | null
           is_default?: boolean
           name: string
+          pagare_text?: string | null
+          updated_at?: string | null
         }
         Update: {
           body_text?: string
+          checklist_sections?: Json | null
+          clauses?: Json | null
           created_at?: string
+          declarations_landlord?: Json | null
+          declarations_tenant?: Json | null
           id?: string
+          intro_text?: string | null
           is_default?: boolean
           name?: string
+          pagare_text?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

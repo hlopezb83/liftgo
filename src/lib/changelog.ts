@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.2.0",
+    date: "2026-02-26",
+    type: "minor",
+    title: "Editor de Plantilla de Contrato",
+    description: "Los administradores ahora pueden editar el contenido de contratos, checklist y pagaré desde Configuración de Operaciones, sin modificar código.",
+    changes: [
+      "Nueva pestaña 'Plantilla de Contrato' en Configuración de Operaciones",
+      "Editor de párrafo introductorio, declaraciones, cláusulas, checklist y pagaré",
+      "Sistema de placeholders dinámicos ({arrendador}, {tarifa_mensual}, etc.)",
+      "Generación de PDF lee la plantilla de la base de datos con fallback al contenido original",
+      "Guía visual de placeholders disponibles en la interfaz de edición",
+    ],
+  },
+  {
     version: "3.1.0",
     date: "2026-02-26",
     type: "minor",
