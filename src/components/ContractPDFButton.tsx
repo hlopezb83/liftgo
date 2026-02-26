@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
 
 interface ContractData {
   contract_number: string;
@@ -35,6 +36,84 @@ interface ContractData {
 
 type PDFMode = "full" | "contract" | "checklist" | "pagare";
 
+interface TemplateData {
+  intro_text: string | null;
+  declarations_landlord: string[];
+  declarations_tenant: string[];
+  clauses: ContractClause[];
+  checklist_sections: ChecklistSection[];
+  pagare_text: string | null;
+}
+
+// --- Placeholder replacement ---
+function replacePlaceholders(text: string, vars: Record<string, string>): string {
+  return text.replace(/\{(\w+)\}/g, (match, key) => vars[key] ?? match);
+}
+
+function buildPlaceholderVars(contract: ContractData, company: any, customer: any, forklift: any): Record<string, string> {
+  return {
+    arrendador: company?.razon_social || "[Arrendador]",
+    arrendatario: customer?.name || contract.customer_name || "[Arrendatario]",
+    domicilio_cliente: customer?.address || "[Domicilio del cliente]",
+    rfc_cliente: customer?.rfc || "[RFC]",
+    representante_legal: customer?.representante_legal || "[Representante Legal]",
+    ubicacion: contract.usage_location || "[Dirección]",
+    horas_max: String(contract.max_hours_per_month || "—"),
+    tarifa_extra: Number(contract.extra_hour_rate || 0).toFixed(2),
+    fecha_inicio: contract.start_date || "[Fecha]",
+    fecha_fin: contract.end_date || "[Fecha]",
+    tarifa_diaria: Number(contract.daily_rate || 0).toFixed(2),
+    tarifa_semanal: Number(contract.weekly_rate || 0).toFixed(2),
+    tarifa_mensual: Number(contract.monthly_rate || 0).toFixed(2),
+    deposito: Number(contract.deposit_amount || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 }),
+    interes_moratorio: String(contract.late_interest_rate || 5),
+    frecuencia_pago: contract.payment_frequency || "Mensual",
+    marca: forklift?.manufacturer || "—",
+    modelo: forklift?.model || "—",
+    serie: forklift?.serial_number || "—",
+    capacidad: forklift?.capacity_kg ? forklift.capacity_kg + " kg" : "—",
+    combustible: forklift?.fuel_type || "—",
+    ciudad: contract.contract_city || "San Pedro Garza García, N.L.",
+  };
+}
+
+// --- Default hardcoded content (fallback) ---
+const DEFAULT_INTRO = 'Contrato de arrendamiento que celebran por una parte {arrendador}, en lo sucesivo "EL ARRENDADOR", y por la otra parte {arrendatario}, en lo sucesivo "EL ARRENDATARIO", de conformidad con las siguientes declaraciones y cláusulas:';
+
+const DEFAULT_DECL_LANDLORD = [
+  "Ser una Persona Moral legalmente constituida bajo las leyes de los Estados Unidos Mexicanos.",
+  "Tener la capacidad jurídica y económica para celebrar este contrato.",
+  "Ser el legítimo propietario del equipo descrito en este contrato.",
+];
+
+const DEFAULT_DECL_TENANT = [
+  "Ser una Persona Moral legalmente constituida, con facultades suficientes para obligarse en los términos de este contrato.",
+  "Tener su domicilio legal en: {domicilio_cliente}.",
+  "Requerir el equipo única y exclusivamente para maniobras y carga de materiales lícitos dentro de sus instalaciones.",
+];
+
+const DEFAULT_CLAUSES: ContractClause[] = [
+  { title: "PRIMERA. Objeto del Contrato:", body: "EL ARRENDADOR otorga en arrendamiento a EL ARRENDATARIO el siguiente equipo:\n• Marca: {marca}\n• Modelo: {modelo}\n• Número de Serie: {serie}\n• Capacidad de Carga: {capacidad}\n• Tipo de Combustible: {combustible}" },
+  { title: "SEGUNDA. Lugar y Condiciones de Uso:", body: "• El Equipo será utilizado exclusivamente en: {ubicacion}.\n• Uso máximo: {horas_max} horas/mes. Cargo por hora extra: ${tarifa_extra}.\n• El Equipo no podrá ser trasladado sin consentimiento escrito de EL ARRENDADOR.\n• EL ARRENDATARIO se obliga a que el equipo sea operado por personal capacitado y certificado." },
+  { title: "TERCERA. Vigencia:", body: "El plazo del arrendamiento iniciará el {fecha_inicio} y terminará el {fecha_fin}. Al término, EL ARRENDATARIO deberá devolver El Equipo en las mismas condiciones en que lo recibió, salvo desgaste normal." },
+  { title: "CUARTA. Precio y Forma de Pago:", body: "• Tarifa diaria: ${tarifa_diaria} | Semanal: ${tarifa_semanal} | Mensual: ${tarifa_mensual} más IVA.\n• Pago: {frecuencia_pago}.\n• Interés moratorio: {interes_moratorio}% mensual sobre saldos insolutos." },
+  { title: "QUINTA. Mantenimiento y Reparaciones:", body: "• Mantenimiento Preventivo: A cargo de EL ARRENDADOR.\n• Revisión Diaria (Checklist): A cargo de EL ARRENDATARIO.\n• Mantenimiento Correctivo: Si la falla es por desgaste normal, a cargo de EL ARRENDADOR. Si es por negligencia o mal uso, a cargo de EL ARRENDATARIO al 100%." },
+  { title: "SEXTA. Responsabilidad Civil y Riesgos:", body: "• A partir de la entrega material, EL ARRENDATARIO asume el riesgo de pérdida, robo, destrucción o daños.\n• EL ARRENDATARIO exime a EL ARRENDADOR de cualquier responsabilidad civil, penal o laboral derivada de accidentes." },
+  { title: "SÉPTIMA. Rescisión:", body: "Son causas de rescisión inmediata sin responsabilidad para EL ARRENDADOR:\n• Falta de pago de una o más rentas.\n• Uso indebido o negligente del equipo.\n• Subarrendamiento no autorizado.\n• Incumplimiento de cualquier cláusula." },
+  { title: "OCTAVA. Jurisdicción y Competencia:", body: "Las partes se someten a las leyes aplicables y a los tribunales competentes de Monterrey, Nuevo León, renunciando a cualquier otro fuero." },
+];
+
+const DEFAULT_CHECKLIST: ChecklistSection[] = [
+  { title: "II. Niveles y Fluidos", items: ["Aceite del motor", "Aceite hidráulico", "Líquido refrigerante", "Líquido de frenos", "Fugas visibles"] },
+  { title: "III. Sistema Mecánico e Hidráulico", items: ["Estado de horquillas", "Funcionamiento del mástil", "Inclinación del mástil", "Desplazador lateral", "Cadenas y poleas"] },
+  { title: "IV. Seguridad y Operación", items: ["Cinturón de seguridad", "Claxon", "Alarma de reversa", "Luces delanteras", "Luces traseras", "Torreta estroboscópica", "Espejos retrovisores", "Extintor", "Freno de mano"] },
+  { title: "V. Llantas y Tracción", items: ["Llantas delanteras", "Llantas traseras", "Birlos y tuercas"] },
+  { title: "VI. Estética", items: ["Asiento del operador", "Tapas y cubiertas", "Pintura y golpes"] },
+];
+
+const DEFAULT_PAGARE = 'Por este PAGARÉ me(nos) obligo(amos) a pagar incondicionalmente a la orden de {arrendador}, en la ciudad de {ciudad}, la cantidad de ${deposito} (Pesos Mexicanos).\n\nSi este pagaré no es cubierto a su vencimiento, causará intereses moratorios a razón del {interes_moratorio}% mensual desde la fecha de su vencimiento y hasta su total liquidación.\n\nTodos los suscriptores y avalistas renuncian al fuero de su domicilio y se someten a la jurisdicción de los tribunales competentes en Monterrey, Nuevo León.';
+
+// --- Fetch helpers ---
 async function fetchRelatedData(contract: ContractData) {
   const [companyRes, customerRes, forkliftRes] = await Promise.all([
     supabase.from("company_settings").select("*").limit(1).maybeSingle(),
@@ -52,6 +131,36 @@ async function fetchRelatedData(contract: ContractData) {
   };
 }
 
+async function fetchTemplate(): Promise<TemplateData> {
+  const { data } = await supabase
+    .from("contract_templates")
+    .select("intro_text, declarations_landlord, declarations_tenant, clauses, checklist_sections, pagare_text")
+    .eq("is_default", true)
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) {
+    return {
+      intro_text: DEFAULT_INTRO,
+      declarations_landlord: DEFAULT_DECL_LANDLORD,
+      declarations_tenant: DEFAULT_DECL_TENANT,
+      clauses: DEFAULT_CLAUSES,
+      checklist_sections: DEFAULT_CHECKLIST,
+      pagare_text: DEFAULT_PAGARE,
+    };
+  }
+
+  return {
+    intro_text: (data.intro_text as string) || DEFAULT_INTRO,
+    declarations_landlord: ((data.declarations_landlord as unknown as string[])?.length ? data.declarations_landlord as unknown as string[] : DEFAULT_DECL_LANDLORD),
+    declarations_tenant: ((data.declarations_tenant as unknown as string[])?.length ? data.declarations_tenant as unknown as string[] : DEFAULT_DECL_TENANT),
+    clauses: ((data.clauses as unknown as ContractClause[])?.length ? data.clauses as unknown as ContractClause[] : DEFAULT_CLAUSES),
+    checklist_sections: ((data.checklist_sections as unknown as ChecklistSection[])?.length ? data.checklist_sections as unknown as ChecklistSection[] : DEFAULT_CHECKLIST),
+    pagare_text: (data.pagare_text as string) || DEFAULT_PAGARE,
+  };
+}
+
+// --- PDF helpers ---
 function addWrappedText(doc: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number {
   const lines = doc.splitTextToSize(text, maxWidth);
   for (const line of lines) {
@@ -73,15 +182,14 @@ function checkPage(doc: jsPDF, y: number, needed: number = 15): number {
   return y;
 }
 
-function generateContractPages(doc: jsPDF, contract: ContractData, company: any, customer: any, forklift: any, logoBase64: string | null) {
+// --- Page generators ---
+function generateContractPages(doc: jsPDF, contract: ContractData, company: any, customer: any, forklift: any, logoBase64: string | null, tpl: TemplateData, vars: Record<string, string>) {
   const pw = doc.internal.pageSize.getWidth();
   const mg = 20;
   let y = 20;
 
   // Header with logo
-  if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", mg, y - 5, 18, 18);
-  }
+  if (logoBase64) doc.addImage(logoBase64, "PNG", mg, y - 5, 18, 18);
   const textX = logoBase64 ? mg + 22 : mg;
   doc.setFontSize(10);
   doc.setTextColor(51, 51, 51);
@@ -91,11 +199,9 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   doc.setFontSize(8);
   doc.setTextColor(102, 102, 102);
   if (company?.rfc) doc.text(`RFC: ${company.rfc} | C.P.: ${company.lugar_expedicion || ""}`, textX, y + 5);
-
   doc.setFontSize(10);
   doc.setTextColor(102, 102, 102);
   doc.text(contract.contract_number, pw - mg, y, { align: "right" });
-
   y += 20;
 
   // Title
@@ -109,9 +215,8 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   doc.setFont("helvetica", "normal");
   doc.setTextColor(51, 51, 51);
 
-  // Intro paragraph
-  const intro = `Contrato de arrendamiento que celebran por una parte ${company?.razon_social || "[Arrendador]"}, en lo sucesivo "EL ARRENDADOR", y por la otra parte ${customer?.name || contract.customer_name || "[Arrendatario]"}, en lo sucesivo "EL ARRENDATARIO", de conformidad con las siguientes declaraciones y cláusulas:`;
-  y = addWrappedText(doc, intro, mg, y, pw - mg * 2, 4.5);
+  // Intro
+  y = addWrappedText(doc, replacePlaceholders(tpl.intro_text || DEFAULT_INTRO, vars), mg, y, pw - mg * 2, 4.5);
   y += 5;
 
   // I. DECLARACIONES
@@ -126,15 +231,9 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   doc.text("Declara EL ARRENDADOR:", mg, y);
   y += 5;
   doc.setFont("helvetica", "normal");
-  const declAr = [
-    "Ser una Persona Moral legalmente constituida bajo las leyes de los Estados Unidos Mexicanos.",
-    "Tener la capacidad jurídica y económica para celebrar este contrato.",
-    "Ser el legítimo propietario del equipo descrito en este contrato.",
-  ];
-  for (const d of declAr) {
+  for (const d of tpl.declarations_landlord) {
     y = checkPage(doc, y);
-    doc.text(`• ${d}`, mg + 3, y);
-    y += 4.5;
+    y = addWrappedText(doc, `• ${replacePlaceholders(d, vars)}`, mg + 3, y, pw - mg * 2 - 6, 4.5);
   }
   y += 3;
 
@@ -143,15 +242,13 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   doc.text("Declara EL ARRENDATARIO:", mg, y);
   y += 5;
   doc.setFont("helvetica", "normal");
-  const declAt = [
-    "Ser una Persona Moral legalmente constituida, con facultades suficientes para obligarse en los términos de este contrato.",
-    `Tener su domicilio legal en: ${customer?.address || "[Domicilio del cliente]"}.`,
-    ...(customer?.representante_legal ? [`Representada legalmente por: ${customer.representante_legal}.`] : []),
-    "Requerir el equipo única y exclusivamente para maniobras y carga de materiales lícitos dentro de sus instalaciones.",
-  ];
-  for (const d of declAt) {
+  const tenantDecls = [...tpl.declarations_tenant];
+  if (customer?.representante_legal && !tenantDecls.some(d => d.includes("{representante_legal}"))) {
+    tenantDecls.push(`Representada legalmente por: {representante_legal}.`);
+  }
+  for (const d of tenantDecls) {
     y = checkPage(doc, y);
-    y = addWrappedText(doc, `• ${d}`, mg + 3, y, pw - mg * 2 - 6, 4.5);
+    y = addWrappedText(doc, `• ${replacePlaceholders(d, vars)}`, mg + 3, y, pw - mg * 2 - 6, 4.5);
   }
   y += 5;
 
@@ -162,56 +259,21 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   doc.text("II. CLÁUSULAS", mg, y);
   y += 7;
 
-  const clauses: { title: string; body: string }[] = [
-    {
-      title: "PRIMERA. Objeto del Contrato:",
-      body: `EL ARRENDADOR otorga en arrendamiento a EL ARRENDATARIO el siguiente equipo:\n• Marca: ${forklift?.manufacturer || "—"}\n• Modelo: ${forklift?.model || "—"}\n• Número de Serie: ${forklift?.serial_number || "—"}\n• Capacidad de Carga: ${forklift?.capacity_kg ? forklift.capacity_kg + " kg" : "—"}\n• Tipo de Combustible: ${forklift?.fuel_type || "—"}`,
-    },
-    {
-      title: "SEGUNDA. Lugar y Condiciones de Uso:",
-      body: `• El Equipo será utilizado exclusivamente en: ${contract.usage_location || "[Dirección]"}.\n• Uso máximo: ${contract.max_hours_per_month || "—"} horas/mes. Cargo por hora extra: $${Number(contract.extra_hour_rate || 0).toFixed(2)}.\n• El Equipo no podrá ser trasladado sin consentimiento escrito de EL ARRENDADOR.\n• EL ARRENDATARIO se obliga a que el equipo sea operado por personal capacitado y certificado.`,
-    },
-    {
-      title: "TERCERA. Vigencia:",
-      body: `El plazo del arrendamiento iniciará el ${contract.start_date || "[Fecha]"} y terminará el ${contract.end_date || "[Fecha]"}. Al término, EL ARRENDATARIO deberá devolver El Equipo en las mismas condiciones en que lo recibió, salvo desgaste normal.`,
-    },
-    {
-      title: "CUARTA. Precio y Forma de Pago:",
-      body: `• Tarifa diaria: $${Number(contract.daily_rate || 0).toFixed(2)} | Semanal: $${Number(contract.weekly_rate || 0).toFixed(2)} | Mensual: $${Number(contract.monthly_rate || 0).toFixed(2)} más IVA.\n• Pago: ${contract.payment_frequency || "Mensual"}.\n• Interés moratorio: ${contract.late_interest_rate || 5}% mensual sobre saldos insolutos.`,
-    },
-    {
-      title: "QUINTA. Mantenimiento y Reparaciones:",
-      body: "• Mantenimiento Preventivo: A cargo de EL ARRENDADOR.\n• Revisión Diaria (Checklist): A cargo de EL ARRENDATARIO.\n• Mantenimiento Correctivo: Si la falla es por desgaste normal, a cargo de EL ARRENDADOR. Si es por negligencia o mal uso, a cargo de EL ARRENDATARIO al 100%.",
-    },
-    {
-      title: "SEXTA. Responsabilidad Civil y Riesgos:",
-      body: "• A partir de la entrega material, EL ARRENDATARIO asume el riesgo de pérdida, robo, destrucción o daños.\n• EL ARRENDATARIO exime a EL ARRENDADOR de cualquier responsabilidad civil, penal o laboral derivada de accidentes.",
-    },
-    {
-      title: "SÉPTIMA. Rescisión:",
-      body: "Son causas de rescisión inmediata sin responsabilidad para EL ARRENDADOR:\n• Falta de pago de una o más rentas.\n• Uso indebido o negligente del equipo.\n• Subarrendamiento no autorizado.\n• Incumplimiento de cualquier cláusula.",
-    },
-    {
-      title: "OCTAVA. Jurisdicción y Competencia:",
-      body: "Las partes se someten a las leyes aplicables y a los tribunales competentes de Monterrey, Nuevo León, renunciando a cualquier otro fuero.",
-    },
-  ];
-
   doc.setFontSize(9);
-  for (const clause of clauses) {
+  for (const clause of tpl.clauses) {
     y = checkPage(doc, y, 20);
     doc.setFont("helvetica", "bold");
-    doc.text(clause.title, mg, y);
+    doc.text(replacePlaceholders(clause.title, vars), mg, y);
     y += 5;
     doc.setFont("helvetica", "normal");
-    y = addWrappedText(doc, clause.body, mg, y, pw - mg * 2, 4.5);
+    y = addWrappedText(doc, replacePlaceholders(clause.body, vars), mg, y, pw - mg * 2, 4.5);
     y += 4;
   }
 
   // Signature block
   y = checkPage(doc, y, 45);
   y += 5;
-  const city = contract.contract_city || "San Pedro Garza García, N.L.";
+  const city = vars.ciudad;
   const now = new Date();
   doc.setFontSize(9);
   y = addWrappedText(doc, `Leído el presente contrato, lo firman en ${city}, el día ${now.getDate()} de ${now.toLocaleDateString("es-MX", { month: "long" })} de ${now.getFullYear()}.`, mg, y, pw - mg * 2, 4.5);
@@ -250,7 +312,7 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   doc.text(contract.witness_2 || "", col2, y);
 }
 
-function generateChecklistPage(doc: jsPDF, contract: ContractData, company: any, customer: any, forklift: any) {
+function generateChecklistPage(doc: jsPDF, contract: ContractData, _company: any, _customer: any, forklift: any, tpl: TemplateData) {
   doc.addPage();
   const pw = doc.internal.pageSize.getWidth();
   const mg = 20;
@@ -295,16 +357,8 @@ function generateChecklistPage(doc: jsPDF, contract: ContractData, company: any,
   }
   y += 3;
 
-  // Checklist sections
-  const sections: { title: string; items: string[] }[] = [
-    { title: "II. Niveles y Fluidos", items: ["Aceite del motor", "Aceite hidráulico", "Líquido refrigerante", "Líquido de frenos", "Fugas visibles"] },
-    { title: "III. Sistema Mecánico e Hidráulico", items: ["Estado de horquillas", "Funcionamiento del mástil", "Inclinación del mástil", "Desplazador lateral", "Cadenas y poleas"] },
-    { title: "IV. Seguridad y Operación", items: ["Cinturón de seguridad", "Claxon", "Alarma de reversa", "Luces delanteras", "Luces traseras", "Torreta estroboscópica", "Espejos retrovisores", "Extintor", "Freno de mano"] },
-    { title: "V. Llantas y Tracción", items: ["Llantas delanteras", "Llantas traseras", "Birlos y tuercas"] },
-    { title: "VI. Estética", items: ["Asiento del operador", "Tapas y cubiertas", "Pintura y golpes"] },
-  ];
-
-  for (const section of sections) {
+  // Checklist sections from template
+  for (const section of tpl.checklist_sections) {
     y = checkPage(doc, y, 15);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
@@ -317,7 +371,6 @@ function generateChecklistPage(doc: jsPDF, contract: ContractData, company: any,
       y = checkPage(doc, y);
       doc.rect(mg + 2, y - 3, 3, 3);
       doc.text(item, mg + 8, y);
-      // Status columns
       doc.setFontSize(7);
       doc.text("B", pw - mg - 30, y);
       doc.rect(pw - mg - 27, y - 3, 3, 3);
@@ -346,7 +399,7 @@ function generateChecklistPage(doc: jsPDF, contract: ContractData, company: any,
   doc.text("Recibido por (Cliente)", col2, y);
 }
 
-function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, customer: any) {
+function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, customer: any, tpl: TemplateData, vars: Record<string, string>) {
   doc.addPage();
   const pw = doc.internal.pageSize.getWidth();
   const mg = 20;
@@ -375,10 +428,10 @@ function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, cu
   doc.setFont("helvetica", "bold");
   doc.text("Bueno por:", pw / 2, y);
   doc.setFont("helvetica", "normal");
-  doc.text(`$${Number(contract.deposit_amount || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`, pw / 2 + 25, y);
+  doc.text(`$${vars.deposito}`, pw / 2 + 25, y);
   y += 6;
 
-  const city = contract.contract_city || "San Pedro Garza García, N.L.";
+  const city = vars.ciudad;
   doc.setFont("helvetica", "bold");
   doc.text("Lugar:", mg, y);
   doc.setFont("helvetica", "normal");
@@ -391,7 +444,7 @@ function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, cu
   doc.text(`${now.getDate()} de ${now.toLocaleDateString("es-MX", { month: "long" })} de ${now.getFullYear()}`, mg + 25, y);
   y += 12;
 
-  // Body text
+  // Body text from template
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.text("TEXTO DEL PAGARÉ", mg, y);
@@ -399,13 +452,7 @@ function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, cu
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  const depositStr = Number(contract.deposit_amount || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 });
-  const pagareText = `Por este PAGARÉ me(nos) obligo(amos) a pagar incondicionalmente a la orden de ${company?.razon_social || "[Arrendador]"}, en la ciudad de ${city}, la cantidad de $${depositStr} (Pesos Mexicanos).
-
-Si este pagaré no es cubierto a su vencimiento, causará intereses moratorios a razón del ${contract.late_interest_rate || 5}% mensual desde la fecha de su vencimiento y hasta su total liquidación.
-
-Todos los suscriptores y avalistas renuncian al fuero de su domicilio y se someten a la jurisdicción de los tribunales competentes en Monterrey, Nuevo León.`;
-
+  const pagareText = replacePlaceholders(tpl.pagare_text || DEFAULT_PAGARE, vars);
   y = addWrappedText(doc, pagareText, mg, y, pw - mg * 2, 4.5);
   y += 15;
 
@@ -445,13 +492,19 @@ Todos los suscriptores y avalistas renuncian al fuero de su domicilio y se somet
   doc.text("Firma del Aval", mg, y);
 }
 
+// --- Main component ---
 export function ContractPDFButton({ contract }: { contract: ContractData }) {
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async (mode: PDFMode) => {
     setLoading(true);
     try {
-      const { company, customer, forklift } = await fetchRelatedData(contract);
+      const [{ company, customer, forklift }, tpl] = await Promise.all([
+        fetchRelatedData(contract),
+        fetchTemplate(),
+      ]);
+
+      const vars = buildPlaceholderVars(contract, company, customer, forklift);
 
       let logoBase64: string | null = null;
       if (company?.logo_url) {
@@ -461,23 +514,22 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
       const doc = new jsPDF();
 
       if (mode === "full" || mode === "contract") {
-        generateContractPages(doc, contract, company, customer, forklift, logoBase64);
+        generateContractPages(doc, contract, company, customer, forklift, logoBase64, tpl, vars);
       }
       if (mode === "full" || mode === "checklist") {
         if (mode === "checklist") {
-          // remove blank first page
-          generateChecklistPage(doc, contract, company, customer, forklift);
+          generateChecklistPage(doc, contract, company, customer, forklift, tpl);
           doc.deletePage(1);
         } else {
-          generateChecklistPage(doc, contract, company, customer, forklift);
+          generateChecklistPage(doc, contract, company, customer, forklift, tpl);
         }
       }
       if (mode === "full" || mode === "pagare") {
         if (mode === "pagare") {
-          generatePagarePage(doc, contract, company, customer);
+          generatePagarePage(doc, contract, company, customer, tpl, vars);
           doc.deletePage(1);
         } else {
-          generatePagarePage(doc, contract, company, customer);
+          generatePagarePage(doc, contract, company, customer, tpl, vars);
         }
       }
 
