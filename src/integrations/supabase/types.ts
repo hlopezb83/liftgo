@@ -1159,6 +1159,30 @@ export type Database = {
           },
         ]
       }
+      user_manual: {
+        Row: {
+          content: Json
+          generated_at: string | null
+          id: string
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          content?: Json
+          generated_at?: string | null
+          id?: string
+          updated_at?: string | null
+          version?: string
+        }
+        Update: {
+          content?: Json
+          generated_at?: string | null
+          id?: string
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
