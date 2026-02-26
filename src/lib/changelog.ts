@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.1.0",
+    date: "2026-02-26",
+    type: "minor",
+    title: "Página de Changelog",
+    description: "Nueva página dentro de la app que muestra el historial completo de cambios organizados por versión semántica.",
+    changes: [
+      "Historial de cambios con versionado semántico (MAJOR.MINOR.PATCH)",
+      "Línea de tiempo visual con badges de color por tipo de cambio",
+      "Filtros por tipo: Mayor, Menor y Parche",
+      "Accesible desde el sidebar para todos los roles",
+    ],
+  },
+  {
     version: "3.0.1",
     date: "2026-02-26",
     type: "patch",
