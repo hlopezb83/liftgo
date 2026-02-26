@@ -94,6 +94,9 @@ export default function CustomerDetailPage() {
             {customer.contact_person && (
               <div><p className="text-xs text-muted-foreground">Persona de Contacto</p><p className="font-medium">{customer.contact_person}</p></div>
             )}
+            {customer.representante_legal && (
+              <div><p className="text-xs text-muted-foreground">Representante Legal</p><p className="font-medium">{customer.representante_legal}</p></div>
+            )}
             {customer.email && (
               <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.email}</span></div>
             )}

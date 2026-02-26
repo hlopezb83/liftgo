@@ -146,6 +146,7 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   const declAt = [
     "Ser una Persona Moral legalmente constituida, con facultades suficientes para obligarse en los términos de este contrato.",
     `Tener su domicilio legal en: ${customer?.address || "[Domicilio del cliente]"}.`,
+    ...(customer?.representante_legal ? [`Representada legalmente por: ${customer.representante_legal}.`] : []),
     "Requerir el equipo única y exclusivamente para maniobras y carga de materiales lícitos dentro de sus instalaciones.",
   ];
   for (const d of declAt) {
@@ -231,6 +232,11 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   y += 4;
   doc.text(company?.razon_social || "", col1, y);
   doc.text(customer?.name || contract.customer_name || "", col2, y);
+  if (customer?.representante_legal) {
+    y += 4;
+    doc.text("", col1, y);
+    doc.text(`Rep. Legal: ${customer.representante_legal}`, col2, y);
+  }
 
   y += 15;
   y = checkPage(doc, y, 25);
@@ -412,7 +418,7 @@ Todos los suscriptores y avalistas renuncian al fuero de su domicilio y se somet
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text(`Nombre / Razón Social: ${customer?.name || "______________________"}`, mg, y); y += 5;
-  doc.text(`Representante Legal: ${customer?.contact_person || "______________________"}`, mg, y); y += 5;
+  doc.text(`Representante Legal: ${customer?.representante_legal || customer?.contact_person || "______________________"}`, mg, y); y += 5;
   doc.text(`Domicilio: ${customer?.address || "______________________"}`, mg, y); y += 5;
   doc.text(`RFC: ${customer?.rfc || "______________________"}`, mg, y); y += 12;
 
