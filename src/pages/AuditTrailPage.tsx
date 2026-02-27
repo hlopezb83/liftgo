@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuditLogs, useDeleteAuditLog } from "@/hooks/useAuditLogs";
+import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "@/hooks/useAuditLogs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { usePagination } from "@/hooks/usePagination";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
 import { Table, TableBody, TableHeader } from "@/components/ui/table";
-import { ArrowUpCircle, PlusCircle, Trash2, Clock } from "lucide-react";
+import { ArrowUpCircle, PlusCircle, Trash2, Clock, AlertTriangle, Undo2 } from "lucide-react";
 import type { AuditLog } from "@/hooks/useAuditLogs";
 
 const TABLES = [
@@ -104,6 +104,8 @@ export default function AuditTrailPage() {
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
   const { mutate: deleteAuditLog, isPending: isDeleting } = useDeleteAuditLog();
+  const { mutate: revertAuditLog, isPending: isReverting } = useRevertAuditLog();
+  const isPendingAction = isDeleting || isReverting;
 
   const { data: logs, isLoading } = useAuditLogs(
     tableFilter !== "all" ? { table_name: tableFilter } : undefined
@@ -250,30 +252,72 @@ export default function AuditTrailPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!logToDelete} onOpenChange={(open) => !open && setLogToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar registro de bitácora?</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Estás seguro de que deseas eliminar este registro de la bitácora? Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (logToDelete) {
-                  deleteAuditLog(logToDelete.id, { onSettled: () => setLogToDelete(null) });
-                }
-              }}
-            >
-              {isDeleting ? "Eliminando…" : "Eliminar"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={!!logToDelete} onOpenChange={(open) => !open && !isPendingAction && setLogToDelete(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              Eliminar registro de bitácora
+            </DialogTitle>
+          </DialogHeader>
+          {logToDelete && (
+            <div className="space-y-4">
+              <div className="text-sm space-y-1">
+                <p><span className="text-muted-foreground">Tabla:</span> {translateTable(logToDelete.table_name)}</p>
+                <p><span className="text-muted-foreground">Acción:</span> {translateAction(logToDelete.action)}</p>
+                <p><span className="text-muted-foreground">Fecha:</span> {formatTimestamp(logToDelete.created_at)}</p>
+                <p><span className="text-muted-foreground">Registro:</span> {getRecordLabel(logToDelete)}</p>
+              </div>
+
+              <div className="border rounded-lg p-3 space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  disabled={isPendingAction}
+                  onClick={() => {
+                    deleteAuditLog(logToDelete.id, { onSettled: () => setLogToDelete(null) });
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isDeleting ? "Eliminando…" : "Solo borrar de bitácora"}
+                </Button>
+
+                <div className="relative">
+                  <Button
+                    variant="destructive"
+                    className="w-full justify-start"
+                    disabled={isPendingAction || (logToDelete.action === 'DELETE' && !logToDelete.old_data) || (logToDelete.action === 'UPDATE' && !logToDelete.old_data)}
+                    onClick={() => {
+                      revertAuditLog(
+                        { id: logToDelete.id, tableName: logToDelete.table_name },
+                        { onSettled: () => setLogToDelete(null) }
+                      );
+                    }}
+                  >
+                    <Undo2 className="h-4 w-4 mr-2" />
+                    {isReverting ? "Revirtiendo…" : "Revertir acción original"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
+                    <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-amber-500" />
+                    {logToDelete.action === 'INSERT' && "Esto eliminará el registro creado de la tabla original."}
+                    {logToDelete.action === 'UPDATE' && "Esto restaurará los valores anteriores en la base de datos."}
+                    {logToDelete.action === 'DELETE' && (logToDelete.old_data
+                      ? "Esto re-creará el registro eliminado en la base de datos."
+                      : "No se puede revertir: no hay datos anteriores disponibles."
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="ghost" disabled={isPendingAction} onClick={() => setLogToDelete(null)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
