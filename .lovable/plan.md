@@ -1,65 +1,63 @@
 
 
-# Reporte: Utilizacion de Flota por Modelo
+# Borrar registros de la Bitacora de Cambios
 
 ## Resumen
 
-Nuevo tipo de reporte **"Utilizacion por Modelo"** en la pagina de Reportes (`/reports`), que agrupa todos los equipos por modelo (Manufacturer + Model) y calcula metricas de utilizacion agregadas. Esto permite identificar que modelos tienen alta demanda y cuales tienen capacidad ociosa, facilitando decisiones de compra.
+Agregar un boton de "Eliminar" en cada registro de la bitacora (audit_logs), restringido solo al rol **Admin**. Al hacer clic, se muestra un dialogo de confirmacion antes de borrar el registro.
 
 ---
 
-## Que mostrara el reporte
+## Cambios
 
-### Grafica de barras horizontales
-- Eje Y: Modelo (ej: "Toyota 8FGU25", "Hyster H50FT")
-- Eje X: % de utilizacion promedio
-- Color: verde para alta utilizacion (>75%), amarillo para media (40-75%), rojo para baja (<40%)
+### 1. Politica RLS para DELETE en audit_logs
 
-### Tabla de detalle
+Actualmente la tabla `audit_logs` tiene una politica "Admins full access" con comando ALL, lo que ya cubre DELETE para admins. **No se necesitan cambios en la base de datos.**
 
-| Modelo | Unidades | Disponibles | Rentados | Dias Reservados | Dias Totales | Utilizacion % |
-|--------|----------|-------------|----------|-----------------|--------------|---------------|
-| Toyota 8FGU25 | 4 | 1 | 3 | 320 | 480 | 67% |
-| Hyster H50FT | 2 | 2 | 0 | 40 | 240 | 17% |
+### 2. Modificar hook `useAuditLogs.ts`
 
-- **Unidades**: total de equipos de ese modelo (excluyendo vendidos/retirados)
-- **Disponibles / Rentados**: estado actual de las unidades
-- **Dias Reservados**: suma de dias con reserva activa en el rango de fechas
-- **Dias Totales**: unidades x dias del rango
-- **Utilizacion %**: (Dias Reservados / Dias Totales) x 100
-- Exportacion a CSV incluida
+- Agregar una mutacion `deleteAuditLog` que ejecute `supabase.from("audit_logs").delete().eq("id", id)`
+- Invalidar la query `["audit_logs"]` despues de borrar exitosamente
+- Mostrar toast de confirmacion o error
 
----
+### 3. Modificar `AuditTrailPage.tsx`
 
-## Cambios tecnicos
+- Importar `useUserRole` para verificar si el usuario es admin
+- Importar `AlertDialog` para el dialogo de confirmacion
+- Agregar una columna extra en la tabla (solo visible para admin) con un icono de basura
+- Al hacer clic en el icono, abrir un `AlertDialog` preguntando "Estas seguro de que deseas eliminar este registro de la bitacora? Esta accion no se puede deshacer."
+- Al confirmar, ejecutar la mutacion de borrado
+- Evitar que el clic en el boton de eliminar abra el dialogo de detalle (stopPropagation)
 
-### 1. Crear `src/components/reports/UtilizationByModelReport.tsx`
+### 4. Changelog
 
-Nuevo componente que:
-- Recibe `forklifts`, `bookings`, `startDate`, `endDate` (mismo patron que `UtilizationReport`)
-- Agrupa forklifts por clave `manufacturer + model` (o `name` si no tiene manufacturer/model)
-- Para cada modelo, calcula: total de unidades activas, cuantas estan disponibles/rentadas hoy, dias reservados en el rango, y % de utilizacion
-- Renderiza grafica de barras horizontales con colores segun nivel de utilizacion
-- Renderiza tabla con las columnas descritas
-- Boton de exportar CSV
-
-### 2. Modificar `src/pages/ReportsPage.tsx`
-
-- Agregar `{ value: "utilization-model", label: "Utilizacion por Modelo" }` al array `REPORT_TYPES`
-- Agregar el bloque condicional para renderizar `UtilizationByModelReport` cuando `reportType === "utilization-model"`
-- Pasa los mismos props que el reporte de utilizacion existente (`forklifts`, `bookings`, `startDate`, `endDate`)
-
-### 3. Modificar `src/lib/changelog.ts`
-
-- Agregar entrada v3.4.0 con la nueva funcionalidad
+- Agregar entrada v3.5.0 (o patch segun preferencia) describiendo la nueva funcionalidad
 
 ---
 
-## Archivos a crear/modificar
+## Detalle tecnico
 
-1. **Crear** `src/components/reports/UtilizationByModelReport.tsx`
-2. **Modificar** `src/pages/ReportsPage.tsx` - agregar opcion y renderizado
-3. **Modificar** `src/lib/changelog.ts`
+### Mutacion en useAuditLogs.ts
 
-No se requieren cambios en la base de datos. Toda la logica se calcula en el frontend con los datos existentes de `forklifts` y `bookings`.
+```text
+useMutation:
+  - mutationFn: (id) => supabase.from("audit_logs").delete().eq("id", id)
+  - onSuccess: invalidateQueries(["audit_logs"]) + toast exito
+  - onError: toast error
+```
+
+### UI en AuditTrailPage.tsx
+
+- Nueva columna "Acciones" al final de la tabla (solo si `role === "admin"`)
+- Boton con icono Trash2 en rojo, con `onClick={(e) => { e.stopPropagation(); setLogToDelete(log); }}`
+- AlertDialog controlado por estado `logToDelete`
+- Al confirmar: `deleteAuditLog(logToDelete.id)` y cerrar dialogo
+
+---
+
+## Archivos a modificar
+
+1. `src/hooks/useAuditLogs.ts` - Agregar mutacion de borrado
+2. `src/pages/AuditTrailPage.tsx` - Agregar columna y dialogo de confirmacion (solo admin)
+3. `src/lib/changelog.ts` - Nueva entrada
 
