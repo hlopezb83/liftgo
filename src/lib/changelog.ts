@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.4.0",
+    date: "2026-02-27",
+    type: "minor",
+    title: "Reporte de Utilización por Modelo",
+    description: "Nuevo reporte que agrupa la utilización de la flota por modelo de equipo, facilitando decisiones de compra al identificar qué modelos tienen alta demanda.",
+    changes: [
+      "Nuevo reporte 'Utilización por Modelo' en la página de Reportes",
+      "Gráfica de barras horizontales con colores por nivel de utilización (verde/amarillo/rojo)",
+      "Tabla detallada con unidades, disponibles, rentados, días reservados y % de utilización",
+      "Exportación a CSV del reporte",
+      "Equipos vendidos o retirados se excluyen automáticamente del cálculo",
+    ],
+  },
+  {
     version: "3.3.1",
     date: "2026-02-27",
     type: "patch",

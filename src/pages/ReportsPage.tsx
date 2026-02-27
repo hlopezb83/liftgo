@@ -14,10 +14,12 @@ import type { DateRange } from "react-day-picker";
 import { RevenueReport } from "@/components/reports/RevenueReport";
 import { MaintenanceCostReport } from "@/components/reports/MaintenanceCostReport";
 import { ProfitabilityByModelReport } from "@/components/reports/ProfitabilityByModelReport";
+import { UtilizationByModelReport } from "@/components/reports/UtilizationByModelReport";
 import { subMonths } from "date-fns";
 
 const REPORT_TYPES = [
   { value: "utilization", label: "Utilización de Flota" },
+  { value: "utilization-model", label: "Utilización por Modelo" },
   { value: "revenue", label: "Ingresos" },
   { value: "maintenance", label: "Costos de Mantenimiento" },
   { value: "profitability", label: "Rentabilidad por Modelo" },
@@ -58,6 +60,9 @@ export default function ReportsPage() {
 
       {reportType === "utilization" && (
         <UtilizationReport forklifts={forklifts || []} bookings={bookings || []} startDate={startDate} endDate={endDate} />
+      )}
+      {reportType === "utilization-model" && (
+        <UtilizationByModelReport forklifts={forklifts || []} bookings={bookings || []} startDate={startDate} endDate={endDate} />
       )}
       {reportType === "revenue" && (
         <RevenueReport invoices={invoices || []} startDate={startDate} endDate={endDate} />
