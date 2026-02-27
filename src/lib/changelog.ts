@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.3.1",
+    date: "2026-02-27",
+    type: "patch",
+    title: "Generación de manual restringida a Admin",
+    description: "Solo el rol Admin puede generar nuevos manuales. Cada regeneración incrementa automáticamente la versión y se conservan las versiones anteriores.",
+    changes: [
+      "Solo el rol Admin puede generar y regenerar el manual de usuario",
+      "Versión incremental automática (1.0 → 2.0 → 3.0) en cada generación",
+      "Se conservan versiones anteriores del manual con selector de versión",
+      "Política RLS actualizada para restringir escritura solo a admin",
+    ],
+  },
+  {
     version: "3.3.0",
     date: "2026-02-26",
     type: "minor",

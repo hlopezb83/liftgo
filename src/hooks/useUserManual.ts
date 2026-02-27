@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export interface ManualSection {
   title: string;
@@ -19,16 +20,36 @@ export interface UserManual {
 export function useUserManual() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
-  const query = useQuery({
-    queryKey: ["user-manual"],
+  // Fetch all versions for the selector
+  const versionsQuery = useQuery({
+    queryKey: ["user-manual-versions"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("user_manual")
-        .select("*")
-        .order("generated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .select("id, version, generated_at")
+        .order("generated_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as { id: string; version: string; generated_at: string }[];
+    },
+  });
+
+  // Fetch the selected (or latest) manual
+  const query = useQuery({
+    queryKey: ["user-manual", selectedVersion],
+    queryFn: async () => {
+      let q = (supabase as any)
+        .from("user_manual")
+        .select("*");
+
+      if (selectedVersion) {
+        q = q.eq("id", selectedVersion);
+      } else {
+        q = q.order("generated_at", { ascending: false }).limit(1);
+      }
+
+      const { data, error } = await q.maybeSingle();
       if (error) throw error;
       if (!data) return null;
       return data as unknown as UserManual;
@@ -60,7 +81,9 @@ export function useUserManual() {
       return response.json();
     },
     onSuccess: () => {
+      setSelectedVersion(null);
       queryClient.invalidateQueries({ queryKey: ["user-manual"] });
+      queryClient.invalidateQueries({ queryKey: ["user-manual-versions"] });
       toast({ title: "Manual generado", description: "El manual de usuario se generó exitosamente." });
     },
     onError: (error: Error) => {
@@ -73,5 +96,8 @@ export function useUserManual() {
     isLoading: query.isLoading,
     generate: generateMutation.mutate,
     isGenerating: generateMutation.isPending,
+    versions: versionsQuery.data ?? [],
+    selectedVersion,
+    setSelectedVersion,
   };
 }

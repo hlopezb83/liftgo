@@ -99,7 +99,7 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (!roleData || !["admin", "administrativo"].includes(roleData.role)) {
+    if (!roleData || roleData.role !== "admin") {
       return new Response(JSON.stringify({ error: "Sin permisos" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -210,13 +210,24 @@ serve(async (req) => {
       });
     }
 
-    // Upsert: delete existing and insert new
-    await supabase.from("user_manual").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    // Calculate next version
+    const { data: latestManual } = await supabase
+      .from("user_manual")
+      .select("version")
+      .order("generated_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    let nextVersion = "1.0";
+    if (latestManual?.version) {
+      const major = parseInt(latestManual.version.split(".")[0], 10);
+      nextVersion = `${(isNaN(major) ? 0 : major) + 1}.0`;
+    }
 
     const { data: manual, error: insertError } = await supabase
       .from("user_manual")
       .insert({
-        version: "1.0",
+        version: nextVersion,
         content: sections,
         generated_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
