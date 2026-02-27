@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.5.0",
+    date: "2026-02-27",
+    type: "minor",
+    title: "Eliminar registros de la Bitácora de Cambios",
+    description: "Los administradores ahora pueden eliminar registros individuales de la bitácora de cambios (audit trail) con un diálogo de confirmación.",
+    changes: [
+      "Nuevo botón de eliminar en cada registro de la bitácora (solo visible para Admin)",
+      "Diálogo de confirmación antes de borrar para evitar eliminaciones accidentales",
+      "Notificación de éxito o error al eliminar un registro",
+    ],
+  },
+  {
     version: "3.4.0",
     date: "2026-02-27",
     type: "minor",

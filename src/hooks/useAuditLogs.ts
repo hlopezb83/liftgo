@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface AuditLog {
   id: string;
@@ -48,6 +49,23 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
       }
 
       return logs;
+    },
+  });
+}
+
+export function useDeleteAuditLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("audit_logs").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["audit_logs"] });
+      toast.success("Registro eliminado correctamente");
+    },
+    onError: () => {
+      toast.error("Error al eliminar el registro");
     },
   });
 }

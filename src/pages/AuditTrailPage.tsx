@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { useAuditLogs } from "@/hooks/useAuditLogs";
+import { useAuditLogs, useDeleteAuditLog } from "@/hooks/useAuditLogs";
+import { useUserRole } from "@/hooks/useUserRole";
 import { usePagination } from "@/hooks/usePagination";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { SearchBar } from "@/components/SearchBar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableHeader } from "@/components/ui/table";
 import { ArrowUpCircle, PlusCircle, Trash2, Clock } from "lucide-react";
 import type { AuditLog } from "@/hooks/useAuditLogs";
@@ -97,6 +100,11 @@ export default function AuditTrailPage() {
   const [search, setSearch] = useState("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
+  const [logToDelete, setLogToDelete] = useState<AuditLog | null>(null);
+  const { data: role } = useUserRole();
+  const isAdmin = role === "admin";
+  const { mutate: deleteAuditLog, isPending: isDeleting } = useDeleteAuditLog();
+
   const { data: logs, isLoading } = useAuditLogs(
     tableFilter !== "all" ? { table_name: tableFilter } : undefined
   );
@@ -145,6 +153,7 @@ export default function AuditTrailPage() {
             <TableHead>Campos Modificados</TableHead>
             <TableHead>Usuario</TableHead>
             <TableHead>Cuándo</TableHead>
+            {isAdmin && <TableHead className="w-10" />}
           </TableRow>
         }
         renderRow={(log) => (
@@ -156,6 +165,18 @@ export default function AuditTrailPage() {
             <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{log.changed_fields?.map(translateField).join(", ") || "—"}</TableCell>
             <TableCell className="text-sm text-muted-foreground">{log.user_email || "Sistema"}</TableCell>
             <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{formatTimestamp(log.created_at)}</TableCell>
+            {isAdmin && (
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); setLogToDelete(log); }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            )}
           </TableRow>
         )}
       />
@@ -228,6 +249,31 @@ export default function AuditTrailPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!logToDelete} onOpenChange={(open) => !open && setLogToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar registro de bitácora?</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que deseas eliminar este registro de la bitácora? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (logToDelete) {
+                  deleteAuditLog(logToDelete.id, { onSettled: () => setLogToDelete(null) });
+                }
+              }}
+            >
+              {isDeleting ? "Eliminando…" : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
