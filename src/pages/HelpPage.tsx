@@ -6,42 +6,35 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserManual } from "@/hooks/useUserManual";
 import { useUserRole } from "@/hooks/useUserRole";
 
 /** Simple Markdown → HTML renderer (no deps) */
 function renderMarkdown(md: string): string {
   let html = md
-    // Headers
     .replace(/^#### (.+)$/gm, '<h4 class="text-sm font-semibold mt-4 mb-1">$1</h4>')
     .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-5 mb-2">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mt-6 mb-2">$1</h2>')
-    // Bold
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    // Italic
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    // Blockquotes (tips)
     .replace(
       /^> (.+)$/gm,
       '<div class="border-l-4 border-primary/40 bg-muted/50 pl-3 py-1 my-2 text-sm rounded-r">$1</div>'
     )
-    // Ordered lists
     .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-5 list-decimal text-sm leading-relaxed">$2</li>')
-    // Unordered lists
     .replace(/^[-•] (.+)$/gm, '<li class="ml-5 list-disc text-sm leading-relaxed">$1</li>')
-    // Paragraphs (double newline)
     .replace(/\n\n/g, '</p><p class="text-sm leading-relaxed mb-2">')
-    // Single newlines within content
     .replace(/\n/g, "<br/>");
 
   return `<div class="prose-manual"><p class="text-sm leading-relaxed mb-2">${html}</p></div>`;
 }
 
 function HelpPage() {
-  const { manual, isLoading, generate, isGenerating } = useUserManual();
+  const { manual, isLoading, generate, isGenerating, versions, selectedVersion, setSelectedVersion } = useUserManual();
   const { data: role } = useUserRole();
   const [search, setSearch] = useState("");
-  const isAdmin = role === "admin" || role === "administrativo";
+  const isAdmin = role === "admin";
 
   const filteredSections = manual?.content?.filter((s) =>
     search === "" ||
@@ -64,16 +57,35 @@ function HelpPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Book className="h-6 w-6" />
-            Manual de Usuario v{manual?.version || "1.0"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {manual
-              ? `Generado el ${new Date(manual.generated_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}`
-              : "Aún no se ha generado el manual"}
-          </p>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <Book className="h-6 w-6" />
+              Manual de Usuario v{manual?.version || "1.0"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {manual
+                ? `Generado el ${new Date(manual.generated_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}`
+                : "Aún no se ha generado el manual"}
+            </p>
+          </div>
+          {versions.length > 1 && (
+            <Select
+              value={selectedVersion ?? "latest"}
+              onValueChange={(val) => setSelectedVersion(val === "latest" ? null : val)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Versión" />
+              </SelectTrigger>
+              <SelectContent>
+                {versions.map((v, i) => (
+                  <SelectItem key={v.id} value={i === 0 ? "latest" : v.id}>
+                    v{v.version} {i === 0 ? "(actual)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         {isAdmin && (
           <Button onClick={() => generate()} disabled={isGenerating} size="sm">
