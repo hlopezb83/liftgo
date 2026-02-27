@@ -69,3 +69,22 @@ export function useDeleteAuditLog() {
     },
   });
 }
+
+export function useRevertAuditLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, tableName }: { id: string; tableName: string }) => {
+      const { error } = await supabase.rpc("revert_audit_log", { p_audit_log_id: id } as any);
+      if (error) throw error;
+      return tableName;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["audit_logs"] });
+      queryClient.invalidateQueries({ queryKey: [variables.tableName] });
+      toast.success("Acción revertida y registro eliminado correctamente");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Error al revertir la acción");
+    },
+  });
+}

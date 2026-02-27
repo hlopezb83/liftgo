@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.5.1",
+    date: "2026-02-27",
+    type: "patch",
+    title: "Revertir acciones desde la Bitácora",
+    description: "Al eliminar un registro de la bitácora, ahora puedes elegir entre solo borrar el registro o revertir la acción original en la base de datos.",
+    changes: [
+      "Nuevo diálogo con dos opciones: borrar solo de bitácora o revertir la acción",
+      "Reversión atómica: INSERT se elimina, UPDATE restaura valores anteriores, DELETE re-inserta",
+      "Validación de seguridad: solo admins con whitelist de tablas permitidas",
+      "Información contextual sobre qué pasará al revertir cada tipo de acción",
+    ],
+  },
+  {
     version: "3.5.0",
     date: "2026-02-27",
     type: "minor",

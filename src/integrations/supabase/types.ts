@@ -1245,6 +1245,7 @@ export type Database = {
       next_contract_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
+      revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
     }
     Enums: {
       app_role:
