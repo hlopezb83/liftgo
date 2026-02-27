@@ -1,49 +1,65 @@
-# Restringir generacion de manual a Admin e incrementar version
 
-## Cambios
 
-### 1. Edge Function - Solo admin puede generar
+# Reporte: Utilizacion de Flota por Modelo
 
-En `supabase/functions/generate-manual/index.ts`:
+## Resumen
 
-- Cambiar la validacion de roles de `["admin", "administrativo"]` a solo `["admin"]` (linea 102)
-- Antes de insertar el nuevo manual, consultar la version del manual existente mas reciente y calcular la siguiente version incrementando el minor (1.0 -> 2.0 -> 3.0, etc.)
-- Reemplazar la version hardcodeada `"1.0"` por la version calculada
-- A los usuarios que ven el manual, darles la opcion de ver diferentes versiones. La actual o la anterior.
-
-### 2. Frontend - Solo admin ve el boton
-
-En `src/pages/HelpPage.tsx`:
-
-- Cambiar la condicion `isAdmin` de `role === "admin" || role === "administrativo"` a solo `role === "admin"` (linea 56)
-- Esto oculta los botones "Generar Manual" y "Regenerar" para el rol administrativo
-
-### 3. RLS - Restringir escritura a admin
-
-Migracion SQL para actualizar la politica "Admins can manage manual" en `user_manual`:
-
-- Cambiar de `role IN ('admin', 'administrativo')` a `role = 'admin'` para las operaciones de escritura (INSERT/UPDATE/DELETE)
-
-### 4. Changelog
-
-- Agregar entrada v3.3.1 con la descripcion del cambio
+Nuevo tipo de reporte **"Utilizacion por Modelo"** en la pagina de Reportes (`/reports`), que agrupa todos los equipos por modelo (Manufacturer + Model) y calcula metricas de utilizacion agregadas. Esto permite identificar que modelos tienen alta demanda y cuales tienen capacidad ociosa, facilitando decisiones de compra.
 
 ---
 
-## Detalle tecnico de la version incremental
+## Que mostrara el reporte
 
-En la edge function, antes de borrar e insertar:
+### Grafica de barras horizontales
+- Eje Y: Modelo (ej: "Toyota 8FGU25", "Hyster H50FT")
+- Eje X: % de utilizacion promedio
+- Color: verde para alta utilizacion (>75%), amarillo para media (40-75%), rojo para baja (<40%)
 
-```text
-1. SELECT version FROM user_manual ORDER BY generated_at DESC LIMIT 1
-2. Si existe, parsear el major (ej: "2.0" -> 2), sumar 1 -> "3.0"
-3. Si no existe, usar "1.0"
-4. Insertar con la nueva version calculada
-```
+### Tabla de detalle
 
-## Archivos a modificar
+| Modelo | Unidades | Disponibles | Rentados | Dias Reservados | Dias Totales | Utilizacion % |
+|--------|----------|-------------|----------|-----------------|--------------|---------------|
+| Toyota 8FGU25 | 4 | 1 | 3 | 320 | 480 | 67% |
+| Hyster H50FT | 2 | 2 | 0 | 40 | 240 | 17% |
 
-1. `supabase/functions/generate-manual/index.ts` - Restringir a admin, calcular version incremental
-2. `src/pages/HelpPage.tsx` - Mostrar boton solo para admin
-3. Migracion SQL - Actualizar politica RLS de user_manual
-4. `src/lib/changelog.ts` - Agregar entrada v3.3.1
+- **Unidades**: total de equipos de ese modelo (excluyendo vendidos/retirados)
+- **Disponibles / Rentados**: estado actual de las unidades
+- **Dias Reservados**: suma de dias con reserva activa en el rango de fechas
+- **Dias Totales**: unidades x dias del rango
+- **Utilizacion %**: (Dias Reservados / Dias Totales) x 100
+- Exportacion a CSV incluida
+
+---
+
+## Cambios tecnicos
+
+### 1. Crear `src/components/reports/UtilizationByModelReport.tsx`
+
+Nuevo componente que:
+- Recibe `forklifts`, `bookings`, `startDate`, `endDate` (mismo patron que `UtilizationReport`)
+- Agrupa forklifts por clave `manufacturer + model` (o `name` si no tiene manufacturer/model)
+- Para cada modelo, calcula: total de unidades activas, cuantas estan disponibles/rentadas hoy, dias reservados en el rango, y % de utilizacion
+- Renderiza grafica de barras horizontales con colores segun nivel de utilizacion
+- Renderiza tabla con las columnas descritas
+- Boton de exportar CSV
+
+### 2. Modificar `src/pages/ReportsPage.tsx`
+
+- Agregar `{ value: "utilization-model", label: "Utilizacion por Modelo" }` al array `REPORT_TYPES`
+- Agregar el bloque condicional para renderizar `UtilizationByModelReport` cuando `reportType === "utilization-model"`
+- Pasa los mismos props que el reporte de utilizacion existente (`forklifts`, `bookings`, `startDate`, `endDate`)
+
+### 3. Modificar `src/lib/changelog.ts`
+
+- Agregar entrada v3.4.0 con la nueva funcionalidad
+
+---
+
+## Archivos a crear/modificar
+
+1. **Crear** `src/components/reports/UtilizationByModelReport.tsx`
+2. **Modificar** `src/pages/ReportsPage.tsx` - agregar opcion y renderizado
+3. **Modificar** `src/lib/changelog.ts`
+
+No se requieren cambios en la base de datos. Toda la logica se calcula en el frontend con los datos existentes de `forklifts` y `bookings`.
+
