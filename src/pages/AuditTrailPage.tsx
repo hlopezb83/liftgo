@@ -7,10 +7,8 @@ import { SearchBar } from "@/components/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableRow, TableCell, TableHead } from "@/components/ui/table";
+import { Table, TableBody, TableHeader, TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
-import { Table, TableBody, TableHeader } from "@/components/ui/table";
 import { ArrowUpCircle, PlusCircle, Trash2, Clock, AlertTriangle, Undo2 } from "lucide-react";
 import type { AuditLog } from "@/hooks/useAuditLogs";
 
