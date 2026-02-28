@@ -52,7 +52,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center pt-8 pb-2">
           <div className="flex justify-center mb-5">
@@ -99,6 +99,6 @@ export default function AuthPage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }
