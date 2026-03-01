@@ -4,11 +4,11 @@ import { usePagination } from "@/hooks/usePagination";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TablePagination } from "@/components/TablePagination";
 import { useNavigate } from "react-router-dom";
 import { PlusCircle, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
@@ -51,9 +51,12 @@ export default function Fleet() {
   );
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((f) => (
-        <Card key={f.id} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/fleet/${f.id}`)}>
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(f) => f.id}
+      emptyMessage="No se encontraron montacargas"
+      renderCard={(f) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/fleet/${f.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="font-mono font-semibold text-sm">{f.name}</span>
@@ -73,11 +76,8 @@ export default function Fleet() {
             </div>
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron montacargas</CardContent></Card>
       )}
-      <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
-    </div>
+    />
   ) : undefined;
 
   return (

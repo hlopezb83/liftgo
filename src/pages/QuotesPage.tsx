@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useListFilters } from "@/hooks/useListFilters";
 import { usePagination } from "@/hooks/usePagination";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -29,9 +30,12 @@ export default function QuotesPage() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((q) => (
-        <Card key={q.id} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(q) => q.id}
+      emptyMessage="No hay cotizaciones aún"
+      renderCard={(q) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
@@ -47,10 +51,8 @@ export default function QuotesPage() {
             </div>
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No hay cotizaciones aún</CardContent></Card>
       )}
-    </div>
+    />
   ) : undefined;
 
   return (
