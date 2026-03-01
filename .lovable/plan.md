@@ -1,79 +1,28 @@
 
+## Agregar mobile cards en las paginas restantes
 
-## Aplicar MobileCardList en 7 paginas
+Tres paginas necesitan ajustes para tener vista mobile con tarjetas:
 
-Reemplazar los bloques `mobileContent` manuales (condicional `isMobile ? (...) : undefined`) por el componente generico `MobileCardList` que ya existe. Cada pagina se simplifica eliminando ~15-20 lineas de scaffolding duplicado.
+### 1. DamageTrackingPage.tsx
+- Agregar `useIsMobile`, `MobileCardList`, y `Card/CardContent` imports
+- Crear bloque `mobileContent` con `MobileCardList` que muestre: fecha, montacargas, cliente, descripcion truncada, costo estimado, estado (StatusBadge), y acciones (DamageActions)
+- Pasar `customContent={mobileContent}` a `ListPageLayout`
 
-### Cambios por archivo
+### 2. AuditTrailPage.tsx
+- Agregar `useIsMobile`, `MobileCardList`, y `Card/CardContent` imports
+- Crear bloque `mobileContent` con `MobileCardList` mostrando: icono de accion + badge, tabla traducida, registro (getRecordLabel), campos modificados, usuario, timestamp
+- Incluir boton de eliminar para admin en cada tarjeta
+- Pasar `customContent={mobileContent}` a `ListPageLayout`
 
-**1. Fleet.tsx** (lineas 53-81)
-- Reemplazar el bloque `mobileContent` por `MobileCardList` con `keyExtractor={(f) => f.id}` 
-- Mover solo el contenido interno de cada Card a `renderCard`
-- Mover el `TablePagination` fuera (ya lo maneja `ListPageLayout`)
-- Eliminar import de `Card, CardContent` si ya no se usa directamente (se sigue usando en renderCard)
+### 3. UserManagementPage.tsx
+- Reemplazar el bloque manual `isMobile ? (div > map > Card)` (lineas 273-308) con `MobileCardList`
+- Usar `keyExtractor={(u) => u.user_id}` y `emptyMessage="No hay usuarios"`
+- El contenido de cada tarjeta permanece igual (nombre, fecha, selector de rol, botones editar/eliminar)
 
-**2. BookingsPage.tsx** (lineas 41-66)
-- Reemplazar bloque `mobileContent` por `MobileCardList`
-- `keyExtractor={(b) => b.id}`
-- `emptyMessage="No se encontraron reservas"`
+### Archivos modificados
+- `src/pages/DamageTrackingPage.tsx` -- agregar mobileContent nuevo
+- `src/pages/AuditTrailPage.tsx` -- agregar mobileContent nuevo
+- `src/pages/UserManagementPage.tsx` -- reemplazar bloque manual con MobileCardList
 
-**3. InvoicesPage.tsx** (lineas 57-83)
-- Reemplazar bloque `mobileContent` por `MobileCardList`
-- `keyExtractor={(inv) => inv.id}`
-- `emptyMessage="No se encontraron facturas"`
-
-**4. CustomersPage.tsx** (lineas 50-70)
-- Reemplazar bloque `mobileContent` por `MobileCardList`
-- `keyExtractor={(c) => c.id}`
-- `emptyMessage="No se encontraron clientes"`
-
-**5. MaintenancePage.tsx** (lineas 67-88)
-- Reemplazar bloque `mobileContent` por `MobileCardList`
-- `keyExtractor={(log) => log.id}`
-- `emptyMessage="No se encontraron registros"`
-
-**6. DeliveriesPage.tsx** (lineas 57-83)
-- Reemplazar bloque `mobileContent` por `MobileCardList`
-- `keyExtractor={(d) => d.id}`
-- `emptyMessage="No hay entregas programadas"`
-
-**7. ReturnInspectionPage.tsx** (lineas 57-80)
-- Reemplazar bloque `mobileContent` por `MobileCardList`
-- `keyExtractor={(ins) => ins.id}`
-- `emptyMessage="No hay inspecciones de devolucion"`
-
-### Patron de cambio (ejemplo con Fleet)
-
-Antes:
-```text
-const mobileContent = isMobile ? (
-  <div className="space-y-3">
-    {paginatedItems.length > 0 ? paginatedItems.map((f) => (
-      <Card key={f.id}>...</Card>
-    )) : (
-      <Card>...empty...</Card>
-    )}
-  </div>
-) : undefined;
-```
-
-Despues:
-```text
-const mobileContent = isMobile ? (
-  <MobileCardList
-    items={paginatedItems}
-    keyExtractor={(f) => f.id}
-    emptyMessage="No se encontraron montacargas"
-    renderCard={(f) => (
-      <Card onClick={...}>...</Card>
-    )}
-  />
-) : undefined;
-```
-
-### Impacto
-- Se eliminan ~15 lineas de logica duplicada por pagina (condicional length, wrapper div, empty state)
-- El componente `MobileCardList` ya maneja el empty state y el spacing
-- No hay cambios visuales ni funcionales -- solo consolidacion estructural
-- Se agrega `import { MobileCardList }` en cada archivo
-
+### Nota
+`ActivityPage.tsx` ya usa tarjetas en ambas vistas (mobile y desktop), no requiere cambios.
