@@ -12,8 +12,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
+import { useSort } from "@/hooks/useSort";
 import { PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -45,7 +47,18 @@ export default function CustomersPage() {
     (c.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    defaultKey: "name",
+    accessors: {
+      name: (c) => c.name,
+      rfc: (c) => c.rfc || "",
+      email: (c) => c.email || "",
+      phone: (c) => c.phone || "",
+      contact_person: (c) => c.contact_person || "",
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
@@ -128,11 +141,11 @@ export default function CustomersPage() {
         emptyMessage="No se encontraron clientes"
         tableHeader={
           <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead>RFC</TableHead>
-            <TableHead>Correo</TableHead>
-            <TableHead>Teléfono</TableHead>
-            <TableHead>Persona de Contacto</TableHead>
+            <SortableTableHead sortKey="name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Nombre</SortableTableHead>
+            <SortableTableHead sortKey="rfc" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>RFC</SortableTableHead>
+            <SortableTableHead sortKey="email" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Correo</SortableTableHead>
+            <SortableTableHead sortKey="phone" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Teléfono</SortableTableHead>
+            <SortableTableHead sortKey="contact_person" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Persona de Contacto</SortableTableHead>
             <TableHead className="w-16"></TableHead>
           </TableRow>
         }

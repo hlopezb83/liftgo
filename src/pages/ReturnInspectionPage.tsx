@@ -3,8 +3,10 @@ import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
 import { usePagination } from "@/hooks/usePagination";
+import { useSort } from "@/hooks/useSort";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,7 +54,18 @@ export default function ReturnInspectionPage() {
 
   const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(inspections);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(inspections, {
+    accessors: {
+      inspected_at: (i) => i.inspected_at,
+      forklift_name: (i) => (i as any).forklifts?.name || "",
+      customer_name: (i) => (i as any).bookings?.customer_name || "",
+      condition: (i) => i.condition,
+      damage_cost: (i) => i.damage_cost || 0,
+      inspected_by: (i) => i.inspected_by || "",
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
@@ -128,12 +141,12 @@ export default function ReturnInspectionPage() {
         emptyMessage="No hay inspecciones de devolución"
         tableHeader={
           <TableRow>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Montacargas</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Condición</TableHead>
-            <TableHead>Costo por Daños</TableHead>
-            <TableHead>Inspector</TableHead>
+            <SortableTableHead sortKey="inspected_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
+            <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
+            <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
+            <SortableTableHead sortKey="condition" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Condición</SortableTableHead>
+            <SortableTableHead sortKey="damage_cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Costo por Daños</SortableTableHead>
+            <SortableTableHead sortKey="inspected_by" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inspector</SortableTableHead>
           </TableRow>
         }
         renderRow={(ins) => {

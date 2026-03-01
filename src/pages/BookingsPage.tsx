@@ -5,8 +5,10 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { useBookings } from "@/hooks/useBookings";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
+import { useSort } from "@/hooks/useSort";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookingActions } from "@/components/BookingActions";
@@ -30,7 +32,17 @@ export default function BookingsPage() {
     statusField: "status",
   });
 
-  const { page, setPage, totalPages, totalItems, paginatedItems } = usePagination(filtered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    accessors: {
+      forklift_name: (b) => b.forklifts?.name || "",
+      customer_name: (b) => b.customer_name || "",
+      start_date: (b) => b.start_date,
+      end_date: (b) => b.end_date,
+      status: (b) => b.status,
+    },
+  });
+
+  const { page, setPage, totalPages, totalItems, paginatedItems } = usePagination(sortedItems);
 
   const getDuration = (start: string, end: string) => {
     const days = differenceInDays(parseISO(end), parseISO(start));
@@ -91,12 +103,12 @@ export default function BookingsPage() {
       emptyMessage="No se encontraron reservas"
       tableHeader={
         <TableRow>
-          <TableHead>Equipo</TableHead>
-          <TableHead>Cliente</TableHead>
-          <TableHead>Inicio</TableHead>
-          <TableHead>Fin</TableHead>
+          <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Equipo</SortableTableHead>
+          <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
+          <SortableTableHead sortKey="start_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inicio</SortableTableHead>
+          <SortableTableHead sortKey="end_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fin</SortableTableHead>
           <TableHead>Duración</TableHead>
-          <TableHead>Estado</TableHead>
+          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
           <TableHead>Acciones</TableHead>
         </TableRow>
       }
