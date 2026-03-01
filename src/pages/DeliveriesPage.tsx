@@ -3,8 +3,10 @@ import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useBookings } from "@/hooks/useBookings";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
 import { usePagination } from "@/hooks/usePagination";
+import { useSort } from "@/hooks/useSort";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +54,18 @@ export default function DeliveriesPage() {
     forkliftName: string;
   } | null>(null);
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(deliveries);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(deliveries, {
+    accessors: {
+      scheduled_date: (d) => d.scheduled_date,
+      type: (d) => d.type,
+      forklift_name: (d) => forkliftMap.get(d.forklift_id)?.name || "",
+      address: (d) => d.address || "",
+      driver_name: (d) => d.driver_name || "",
+      status: (d) => d.status,
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
@@ -137,12 +150,12 @@ export default function DeliveriesPage() {
         emptyMessage="No hay entregas programadas"
         tableHeader={
           <TableRow>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Montacargas</TableHead>
-            <TableHead>Dirección</TableHead>
-            <TableHead>Operador</TableHead>
-            <TableHead>Estado</TableHead>
+            <SortableTableHead sortKey="scheduled_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
+            <SortableTableHead sortKey="type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Tipo</SortableTableHead>
+            <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
+            <SortableTableHead sortKey="address" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Dirección</SortableTableHead>
+            <SortableTableHead sortKey="driver_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Operador</SortableTableHead>
+            <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
             <TableHead className="w-12" />
           </TableRow>
         }

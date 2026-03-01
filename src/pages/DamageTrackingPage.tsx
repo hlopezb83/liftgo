@@ -1,9 +1,11 @@
 import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { useListFilters } from "@/hooks/useListFilters";
 import { usePagination } from "@/hooks/usePagination";
+import { useSort } from "@/hooks/useSort";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -34,7 +36,17 @@ export default function DamageTrackingPage() {
     );
   });
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(extraFiltered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(extraFiltered, {
+    accessors: {
+      created_at: (r) => r.created_at,
+      forklift_name: (r) => r.forklifts?.name || "",
+      customer_name: (r) => r.customers?.name || "",
+      estimated_cost: (r) => r.estimated_cost || 0,
+      status: (r) => r.status,
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
@@ -89,12 +101,12 @@ export default function DamageTrackingPage() {
       customContent={mobileContent}
       tableHeader={
         <TableRow>
-          <TableHead>Fecha</TableHead>
-          <TableHead>Montacargas</TableHead>
-          <TableHead>Cliente</TableHead>
+          <SortableTableHead sortKey="created_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
+          <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
+          <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
           <TableHead>Descripción</TableHead>
-          <TableHead>Costo Est.</TableHead>
-          <TableHead>Estado</TableHead>
+          <SortableTableHead sortKey="estimated_cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Costo Est.</SortableTableHead>
+          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
           <TableHead>Acciones</TableHead>
         </TableRow>
       }

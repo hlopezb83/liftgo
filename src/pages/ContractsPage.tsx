@@ -3,8 +3,10 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { useContracts } from "@/hooks/useContracts";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
+import { useSort } from "@/hooks/useSort";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +28,18 @@ export default function ContractsPage() {
     statusField: "status",
   });
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    accessors: {
+      contract_number: (c) => c.contract_number,
+      customer_name: (c) => c.customer_name || "",
+      forklift_name: (c) => c.forklift_name || "",
+      start_date: (c) => c.start_date || "",
+      end_date: (c) => c.end_date || "",
+      status: (c) => c.status,
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const mobileContent = isMobile ? (
     <MobileCardList
@@ -77,12 +90,12 @@ export default function ContractsPage() {
       emptyMessage="No se encontraron contratos"
       tableHeader={
         <TableRow>
-          <TableHead>Contrato #</TableHead>
-          <TableHead>Cliente</TableHead>
-          <TableHead>Equipo</TableHead>
-          <TableHead>Inicio</TableHead>
-          <TableHead>Fin</TableHead>
-          <TableHead>Estado</TableHead>
+          <SortableTableHead sortKey="contract_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Contrato #</SortableTableHead>
+          <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
+          <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Equipo</SortableTableHead>
+          <SortableTableHead sortKey="start_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inicio</SortableTableHead>
+          <SortableTableHead sortKey="end_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fin</SortableTableHead>
+          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
           <TableHead className="w-12" />
         </TableRow>
       }

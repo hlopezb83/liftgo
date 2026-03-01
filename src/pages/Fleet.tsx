@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useForklifts } from "@/hooks/useForklifts";
 import { usePagination } from "@/hooks/usePagination";
+import { useSort } from "@/hooks/useSort";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TableCell, TableHead, TableRow } from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { PlusCircle, Download, ChevronRight } from "lucide-react";
@@ -28,7 +30,21 @@ export default function Fleet() {
     return matchesSearch && (statusFilter === "all" || f.status === statusFilter);
   });
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    defaultKey: "name",
+    accessors: {
+      name: (f) => f.name,
+      model: (f) => f.model,
+      manufacturer: (f) => f.manufacturer || "",
+      capacity_kg: (f) => f.capacity_kg || 0,
+      mast_height_m: (f) => f.mast_height_m || 0,
+      fuel_type: (f) => f.fuel_type || "",
+      status: (f) => f.status,
+      daily_rate: (f) => f.daily_rate || 0,
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const filters = (
     <div className="flex gap-3">
@@ -95,9 +111,14 @@ export default function Fleet() {
       customContent={mobileContent}
       tableHeader={
         <TableRow>
-          <TableHead>ID</TableHead><TableHead>Modelo</TableHead><TableHead>Fabricante</TableHead>
-          <TableHead>Capacidad</TableHead><TableHead>Altura</TableHead><TableHead>Combustible</TableHead><TableHead>Estado</TableHead>
-          <TableHead className="text-right">Tarifa Diaria</TableHead>
+          <SortableTableHead sortKey="name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>ID</SortableTableHead>
+          <SortableTableHead sortKey="model" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Modelo</SortableTableHead>
+          <SortableTableHead sortKey="manufacturer" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fabricante</SortableTableHead>
+          <SortableTableHead sortKey="capacity_kg" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Capacidad</SortableTableHead>
+          <SortableTableHead sortKey="mast_height_m" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Altura</SortableTableHead>
+          <SortableTableHead sortKey="fuel_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Combustible</SortableTableHead>
+          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
+          <SortableTableHead sortKey="daily_rate" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort} className="text-right">Tarifa Diaria</SortableTableHead>
         </TableRow>
       }
       renderRow={(f) => (

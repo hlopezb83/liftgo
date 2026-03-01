@@ -2,8 +2,10 @@ import { useQuotes } from "@/hooks/useQuotes";
 import { useNavigate } from "react-router-dom";
 import { useListFilters } from "@/hooks/useListFilters";
 import { usePagination } from "@/hooks/usePagination";
+import { useSort } from "@/hooks/useSort";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -27,7 +29,17 @@ export default function QuotesPage() {
     statusField: "status",
   });
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    accessors: {
+      quote_number: (q) => q.quote_number,
+      customer_name: (q) => q.customer_name || "",
+      total: (q) => q.total,
+      status: (q) => q.status,
+      valid_until: (q) => q.valid_until || "",
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const mobileContent = isMobile ? (
     <MobileCardList
@@ -79,12 +91,12 @@ export default function QuotesPage() {
       emptyMessage="No hay cotizaciones aún"
       tableHeader={
         <TableRow>
-          <TableHead>Cotización #</TableHead>
-          <TableHead>Cliente</TableHead>
+          <SortableTableHead sortKey="quote_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cotización #</SortableTableHead>
+          <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
           <TableHead>Fechas</TableHead>
-          <TableHead>Total</TableHead>
-          <TableHead>Estado</TableHead>
-          <TableHead>Válida Hasta</TableHead>
+          <SortableTableHead sortKey="total" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Total</SortableTableHead>
+          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
+          <SortableTableHead sortKey="valid_until" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Válida Hasta</SortableTableHead>
         </TableRow>
       }
       renderRow={(q) => (

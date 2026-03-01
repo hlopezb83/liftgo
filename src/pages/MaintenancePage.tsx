@@ -3,8 +3,10 @@ import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
+import { useSort } from "@/hooks/useSort";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +64,18 @@ export default function MaintenancePage() {
     forkliftFilter === "all" || log.forklift_id === forkliftFilter
   );
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    accessors: {
+      performed_at: (l) => l.performed_at,
+      forklift_name: (l) => forkliftMap.get(l.forklift_id)?.name || "",
+      service_type: (l) => l.service_type,
+      performed_by: (l) => l.performed_by || "",
+      cost: (l) => l.cost || 0,
+      next_service_date: (l) => l.next_service_date || "",
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
@@ -150,8 +163,12 @@ export default function MaintenancePage() {
         emptyMessage="No se encontraron registros de mantenimiento"
         tableHeader={
           <TableRow>
-            <TableHead>Fecha</TableHead><TableHead>Montacargas</TableHead><TableHead>Tipo de Servicio</TableHead>
-            <TableHead>Realizado Por</TableHead><TableHead className="text-right">Costo</TableHead><TableHead>Próximo Servicio</TableHead>
+            <SortableTableHead sortKey="performed_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
+            <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
+            <SortableTableHead sortKey="service_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Tipo de Servicio</SortableTableHead>
+            <SortableTableHead sortKey="performed_by" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Realizado Por</SortableTableHead>
+            <SortableTableHead sortKey="cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort} className="text-right">Costo</SortableTableHead>
+            <SortableTableHead sortKey="next_service_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Próximo Servicio</SortableTableHead>
           </TableRow>
         }
         renderRow={(log) => (

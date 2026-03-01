@@ -4,10 +4,12 @@ import { useInvoices } from "@/hooks/useInvoices";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
+import { useSort } from "@/hooks/useSort";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,7 +55,18 @@ export default function InvoicesPage() {
     statusField: "status",
   });
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    accessors: {
+      invoice_number: (i) => i.invoice_number,
+      customer_name: (i) => i.customer_name || "",
+      total: (i) => Number(i.total),
+      status: (i) => i.status,
+      issued_at: (i) => i.issued_at,
+      due_date: (i) => i.due_date || "",
+    },
+  });
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const mobileContent = isMobile ? (
     <MobileCardList
@@ -120,12 +133,12 @@ export default function InvoicesPage() {
       emptyMessage="No se encontraron facturas"
       tableHeader={
         <TableRow>
-          <TableHead>Factura #</TableHead>
-          <TableHead>Cliente</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-          <TableHead>Estado</TableHead>
-          <TableHead>Emitida</TableHead>
-          <TableHead>Vencimiento</TableHead>
+          <SortableTableHead sortKey="invoice_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Factura #</SortableTableHead>
+          <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
+          <SortableTableHead sortKey="total" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort} className="text-right">Total</SortableTableHead>
+          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
+          <SortableTableHead sortKey="issued_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Emitida</SortableTableHead>
+          <SortableTableHead sortKey="due_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Vencimiento</SortableTableHead>
           <TableHead className="w-12" />
         </TableRow>
       }
