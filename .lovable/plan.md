@@ -1,25 +1,35 @@
 
 
-## Mostrar empresa solo cuando sea diferente al nombre
+## Agregar campo "Fecha de Factura" al formulario de nueva factura
 
-### Cambio
-En los dropdowns de cliente, mostrar `nombre — empresa` solo cuando el valor de `company` sea diferente al de `name`. Cuando sean iguales, mostrar solo el nombre.
+### Cambio en base de datos
+Agregar columna `issue_date` (tipo `date`, nullable, default `CURRENT_DATE`) a la tabla `invoices`. Esta columna almacena la fecha de emision de la factura, separada de `created_at` (timestamp automatico) y `due_date` (fecha de vencimiento).
 
-### Archivos a modificar
+### Cambio en el formulario (`src/pages/InvoiceForm.tsx`)
 
-**1. `src/pages/InvoiceForm.tsx` (~linea 198)**
-Cambiar:
+1. Agregar estado `issueDate` inicializado con la fecha de hoy (`new Date()`)
+2. En el bloque `useEffect` de edicion, cargar `existing.issue_date` si existe
+3. En el grid de fechas, cambiar de 2 columnas a 2 columnas con ambos campos:
+   - **Fecha de Factura** (nuevo) - con `DatePickerField`
+   - **Fecha de Vencimiento** (existente) - ya esta implementado
+4. Incluir `issue_date` en el payload de creacion/actualizacion
+
+### Layout resultante
+
+```text
+[ Cliente (dropdown)        ] [ Fecha de Factura          ]
+                              [ Fecha de Vencimiento      ]
 ```
-{c.name}{c.company ? ` — ${c.company}` : ""}
-```
-Por:
-```
-{c.name}{c.company && c.company !== c.name ? ` — ${c.company}` : ""}
+
+O en una sola fila de 3 columnas si caben:
+
+```text
+[ Cliente ] [ Fecha de Factura ] [ Fecha de Vencimiento ]
 ```
 
-**2. `src/components/CustomerSelector.tsx` (~linea 30)**
-Mismo cambio en el `SelectItem` del dropdown de cliente existente.
+Se usara un grid de 3 columnas (`sm:grid-cols-3`) para aprovechar el espacio.
 
-### Alcance
-- Solo se cambia la logica de renderizado del texto en 2 archivos
-- No hay cambios en base de datos ni en logica de negocio
+### Archivos afectados
+- **Migracion SQL**: nueva columna `issue_date` en tabla `invoices`
+- **`src/pages/InvoiceForm.tsx`**: nuevo estado, nuevo campo de fecha, inclusion en payload
+
