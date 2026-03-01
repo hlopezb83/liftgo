@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -55,9 +56,12 @@ export default function InvoicesPage() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((inv) => (
-        <Card key={inv.id} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/invoices/${inv.id}`)}>
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(inv) => inv.id}
+      emptyMessage="No se encontraron facturas"
+      renderCard={(inv) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/invoices/${inv.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono font-semibold text-sm">{inv.invoice_number}</span>
@@ -76,10 +80,8 @@ export default function InvoicesPage() {
             </div>
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron facturas</CardContent></Card>
       )}
-    </div>
+    />
   ) : undefined;
 
   return (

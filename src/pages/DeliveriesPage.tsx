@@ -4,6 +4,7 @@ import { useBookings } from "@/hooks/useBookings";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
 import { usePagination } from "@/hooks/usePagination";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,9 +56,12 @@ export default function DeliveriesPage() {
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((d) => (
-        <Card key={d.id}>
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(d) => d.id}
+      emptyMessage="No hay entregas programadas"
+      renderCard={(d) => (
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-semibold">{d.type === "delivery" ? "Entrega" : "Recolección"}</span>
@@ -76,10 +80,8 @@ export default function DeliveriesPage() {
             )}
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No hay entregas programadas</CardContent></Card>
       )}
-    </div>
+    />
   ) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {

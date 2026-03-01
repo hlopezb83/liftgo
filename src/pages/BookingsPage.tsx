@@ -6,6 +6,7 @@ import { useBookings } from "@/hooks/useBookings";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { BookingActions } from "@/components/BookingActions";
@@ -39,9 +40,12 @@ export default function BookingsPage() {
   const formatDate = (d: string) => format(parseISO(d), "d MMM yyyy", { locale: es });
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((b) => (
-        <Card key={b.id} className="cursor-pointer active:scale-[0.98] transition-transform">
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(b) => b.id}
+      emptyMessage="No se encontraron reservas"
+      renderCard={(b) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-semibold text-sm">{b.forklifts?.name || "—"}</span>
@@ -59,10 +63,8 @@ export default function BookingsPage() {
             </div>
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron reservas</CardContent></Card>
       )}
-    </div>
+    />
   ) : undefined;
 
   return (

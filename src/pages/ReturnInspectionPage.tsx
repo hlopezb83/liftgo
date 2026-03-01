@@ -4,6 +4,7 @@ import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
 import { usePagination } from "@/hooks/usePagination";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,11 +56,14 @@ export default function ReturnInspectionPage() {
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((ins) => {
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(ins) => ins.id}
+      emptyMessage="No hay inspecciones de devolución"
+      renderCard={(ins) => {
         const insWithJoins = ins as typeof ins & { forklifts?: { name: string }; bookings?: { customer_name: string | null } };
         return (
-          <Card key={ins.id}>
+          <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
@@ -73,10 +77,8 @@ export default function ReturnInspectionPage() {
             </CardContent>
           </Card>
         );
-      }) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No hay inspecciones de devolución</CardContent></Card>
-      )}
-    </div>
+      }}
+    />
   ) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {

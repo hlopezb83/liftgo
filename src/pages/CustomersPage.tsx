@@ -11,6 +11,7 @@ import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
 import { PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
@@ -48,9 +49,12 @@ export default function CustomersPage() {
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((c) => (
-        <Card key={c.id} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/customers/${c.id}`)}>
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(c) => c.id}
+      emptyMessage="No se encontraron clientes"
+      renderCard={(c) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/customers/${c.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-semibold text-sm">{c.name}</span>
@@ -63,10 +67,8 @@ export default function CustomersPage() {
             </div>
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron clientes</CardContent></Card>
       )}
-    </div>
+    />
   ) : undefined;
 
   const openCreate = () => { setEditId(null); reset(); setDialogOpen(true); };

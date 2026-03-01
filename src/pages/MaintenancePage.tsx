@@ -4,6 +4,7 @@ import { useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useMaintena
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,9 +66,12 @@ export default function MaintenancePage() {
   const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((log) => (
-        <Card key={log.id}>
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(log) => log.id}
+      emptyMessage="No se encontraron registros"
+      renderCard={(log) => (
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-semibold">{log.service_type}</span>
@@ -81,10 +85,8 @@ export default function MaintenancePage() {
             {log.next_service_date && <p className="text-xs text-muted-foreground mt-1">Próx: {log.next_service_date}</p>}
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron registros</CardContent></Card>
       )}
-    </div>
+    />
   ) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
