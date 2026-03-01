@@ -4,6 +4,7 @@ import { useContracts } from "@/hooks/useContracts";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -28,9 +29,12 @@ export default function ContractsPage() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
 
   const mobileContent = isMobile ? (
-    <div className="space-y-3">
-      {paginatedItems.length > 0 ? paginatedItems.map((c) => (
-        <Card key={c.id} className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/contracts/${c.id}`)}>
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(c) => c.id}
+      emptyMessage="No se encontraron contratos"
+      renderCard={(c) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/contracts/${c.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono font-semibold text-sm">{c.contract_number}</span>
@@ -46,10 +50,8 @@ export default function ContractsPage() {
             </div>
           </CardContent>
         </Card>
-      )) : (
-        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">No se encontraron contratos</CardContent></Card>
       )}
-    </div>
+    />
   ) : undefined;
 
   return (
