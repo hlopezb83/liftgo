@@ -31,7 +31,7 @@ export function CustomerSelector({ customers, customerId, customerName, onCustom
               <SelectTrigger><SelectValue placeholder="Seleccionar cliente (opcional)" /></SelectTrigger>
               <SelectContent>
                 {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` — ${c.company}` : ""}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>{c.name}{c.company && c.company !== c.name ? ` — ${c.company}` : ""}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
