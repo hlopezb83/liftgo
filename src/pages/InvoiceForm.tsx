@@ -74,6 +74,22 @@ export default function InvoiceForm() {
     }
   }, [existing]);
 
+  const applyCustomerCfdi = (cust: NonNullable<typeof customers>[number]) => {
+    setReceptorRfc(cust.rfc || "");
+    setReceptorRazonSocial(cust.name || "");
+    setReceptorRegimenFiscal(cust.regimen_fiscal || "");
+    setReceptorDomicilioFiscalCp(cust.domicilio_fiscal_cp || "");
+    if (cust.uso_cfdi) setUsoCfdi(cust.uso_cfdi);
+  };
+
+  const handleCustomerSelect = (cId: string) => {
+    setCustomerId(cId);
+    const cust = customers?.find((c) => c.id === cId);
+    if (!cust) return;
+    setCustomerName(cust.name);
+    applyCustomerCfdi(cust);
+  };
+
   const handleBookingSelect = (bId: string) => {
     setBookingId(bId);
     const booking = bookings?.find((b) => b.id === bId);
@@ -82,13 +98,7 @@ export default function InvoiceForm() {
     setCustomerId(booking.customer_id || null);
     if (booking.customer_id && customers) {
       const cust = customers.find((c) => c.id === booking.customer_id);
-      if (cust) {
-        setReceptorRfc(cust.rfc || "");
-        setReceptorRazonSocial(cust.name || "");
-        setReceptorRegimenFiscal(cust.regimen_fiscal || "");
-        setReceptorDomicilioFiscalCp(cust.domicilio_fiscal_cp || "");
-        if (cust.uso_cfdi) setUsoCfdi(cust.uso_cfdi);
-      }
+      if (cust) applyCustomerCfdi(cust);
     }
     const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
     if (forklift) {
@@ -182,8 +192,15 @@ export default function InvoiceForm() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Nombre del Cliente</Label>
-                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Nombre del cliente" />
+                <Label>Cliente</Label>
+                <Select value={customerId || ""} onValueChange={handleCustomerSelect}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger>
+                  <SelectContent>
+                    {customers?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}{c.company ? ` — ${c.company}` : ""}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <DatePickerField label="Fecha de Vencimiento" date={dueDate} onSelect={setDueDate} placeholder="Seleccionar fecha" />
             </div>
