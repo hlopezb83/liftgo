@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
+import { MobileCardList } from "@/components/MobileCardList";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserPlus, Trash2, Pencil } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -270,9 +271,12 @@ export default function UserManagementPage() {
         {isLoading ? (
           <TableSkeleton />
         ) : isMobile ? (
-          <div className="space-y-3">
-            {users?.map((u) => (
-              <Card key={u.user_id}>
+          <MobileCardList
+            items={users ?? []}
+            keyExtractor={(u) => u.user_id}
+            emptyMessage="No hay usuarios"
+            renderCard={(u) => (
+              <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-sm">{u.full_name ?? "—"}</span>
@@ -304,8 +308,8 @@ export default function UserManagementPage() {
                   </Select>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            )}
+          />
         ) : (
           <div className="rounded-md border">
             <Table>
