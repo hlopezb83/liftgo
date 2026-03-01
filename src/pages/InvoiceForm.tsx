@@ -36,6 +36,7 @@ export default function InvoiceForm() {
   const [lineItems, setLineItems] = useState<CfdiLineItem[]>([]);
   const [taxRate, setTaxRate] = useState(16);
   const [dueDate, setDueDate] = useState<Date>();
+  const [issueDate, setIssueDate] = useState<Date>(new Date());
   const [notes, setNotes] = useState("");
 
   // CFDI fields
@@ -59,6 +60,7 @@ export default function InvoiceForm() {
       setLineItems((existing.line_items as unknown as CfdiLineItem[]) || []);
       setTaxRate(Number(existing.tax_rate) || 0);
       setDueDate(existing.due_date ? new Date(existing.due_date) : undefined);
+      setIssueDate(existing.issued_at ? new Date(existing.issued_at) : new Date());
       setNotes(existing.notes || "");
       setSerie(existing.serie || "");
       setFolio(existing.folio || "");
@@ -146,7 +148,9 @@ export default function InvoiceForm() {
       booking_id: bookingId || null, customer_id: customerId, customer_name: customerName || null,
       line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
       subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
-      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null, notes: notes || null,
+      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
+      issued_at: format(issueDate, "yyyy-MM-dd"),
+      notes: notes || null,
       serie: serie || null, folio: folio || null, forma_pago: formaPago || null,
       metodo_pago: metodoPago || null, uso_cfdi: usoCfdi || null, moneda: moneda || null,
       tipo_cambio: tipoCambio, receptor_rfc: receptorRfc || null,
@@ -190,7 +194,7 @@ export default function InvoiceForm() {
                 </Select>
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Cliente</Label>
                 <Select value={customerId || ""} onValueChange={handleCustomerSelect}>
@@ -202,6 +206,7 @@ export default function InvoiceForm() {
                   </SelectContent>
                 </Select>
               </div>
+              <DatePickerField label="Fecha de Factura" date={issueDate} onSelect={(d) => setIssueDate(d || new Date())} placeholder="Seleccionar fecha" />
               <DatePickerField label="Fecha de Vencimiento" date={dueDate} onSelect={setDueDate} placeholder="Seleccionar fecha" />
             </div>
           </CardContent>
