@@ -3,19 +3,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
-import { formatCurrency } from "@/lib/formatCurrency";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
-import { CANCELLATION_REASONS } from "@/lib/satCatalogs";
+import { InvoiceFiscalDataCard } from "@/components/invoice-detail/InvoiceFiscalDataCard";
+import { InvoicePaymentSummary } from "@/components/invoice-detail/InvoicePaymentSummary";
+import { CancelCfdiDialog } from "@/components/invoice-detail/CancelCfdiDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal } from "lucide-react";
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
@@ -31,8 +29,6 @@ export default function InvoiceDetail() {
   const updateBooking = useUpdateBooking();
   const [stampLoading, setStampLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("02");
-  const [cancelLoading, setCancelLoading] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { data: payments } = usePayments(id);
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
@@ -59,9 +55,7 @@ export default function InvoiceDetail() {
     if (!id) return;
     setStampLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("stamp-cfdi", {
-        body: { invoice_id: id },
-      });
+      const { data, error } = await supabase.functions.invoke("stamp-cfdi", { body: { invoice_id: id } });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast.success(`CFDI timbrado${data.stub ? " (modo prueba)" : ""} — UUID: ${data.cfdi_uuid}`);
@@ -73,29 +67,8 @@ export default function InvoiceDetail() {
     }
   };
 
-  const handleCancel = async () => {
-    if (!id) return;
-    setCancelLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("cancel-cfdi", {
-        body: { invoice_id: id, cancellation_reason: cancelReason },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("CFDI cancelado");
-      if (data?.warning) toast.warning(data.warning);
-      setCancelDialogOpen(false);
-      refetch();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al cancelar");
-    } finally {
-      setCancelLoading(false);
-    }
-  };
-
   const handleDownloadXml = () => {
-    if (!invoice) return;
-    if (!invoice.cfdi_xml) return;
+    if (!invoice?.cfdi_xml) return;
     const blob = new Blob([invoice.cfdi_xml], { type: "application/xml" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -117,12 +90,7 @@ export default function InvoiceDetail() {
       <DetailPageHeader
         title={invoice.invoice_number}
         backTo="/invoices"
-        badges={
-          <>
-            <StatusBadge status={invoice.status} />
-            <StatusBadge status={cfdiStatus} />
-          </>
-        }
+        badges={<><StatusBadge status={invoice.status} /><StatusBadge status={cfdiStatus} /></>}
         actions={
           <>
             {invoice.status === "draft" && (
@@ -140,15 +108,11 @@ export default function InvoiceDetail() {
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <MoreHorizontal className="h-4 w-4 mr-1" /> Acciones
-                </Button>
+                <Button variant="outline" size="sm"><MoreHorizontal className="h-4 w-4 mr-1" /> Acciones</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {invoice.status === "draft" && (
-                  <DropdownMenuItem onClick={() => navigate(`/invoices/${id}/edit`)}>
-                    <Edit className="h-4 w-4 mr-2" /> Editar
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/invoices/${id}/edit`)}><Edit className="h-4 w-4 mr-2" /> Editar</DropdownMenuItem>
                 )}
                 {cfdiStatus === "pending" && invoice.status !== "draft" && (
                   <DropdownMenuItem onClick={handleStamp} disabled={stampLoading}>
@@ -157,17 +121,13 @@ export default function InvoiceDetail() {
                 )}
                 {cfdiStatus === "stamped" && (
                   <>
-                    <DropdownMenuItem onClick={handleDownloadXml}>
-                      <Download className="h-4 w-4 mr-2" /> Descargar XML
-                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadXml}><Download className="h-4 w-4 mr-2" /> Descargar XML</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setCancelDialogOpen(true)} className="text-destructive focus:text-destructive">
                       <XCircle className="h-4 w-4 mr-2" /> Cancelar CFDI
                     </DropdownMenuItem>
                   </>
                 )}
-                <DropdownMenuItem onClick={() => window.print()}>
-                  <Printer className="h-4 w-4 mr-2" /> Imprimir
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" /> Imprimir</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             {id && <InvoicePDFButton invoiceId={id} />}
@@ -202,30 +162,9 @@ export default function InvoiceDetail() {
         </Card>
       </div>
 
-      {(invoice.serie || invoice.forma_pago || invoice.metodo_pago) && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Datos Fiscales</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              {invoice.serie && <div><span className="text-muted-foreground block">Serie</span>{invoice.serie}</div>}
-              {invoice.folio && <div><span className="text-muted-foreground block">Folio</span>{invoice.folio}</div>}
-              {invoice.forma_pago && <div><span className="text-muted-foreground block">Forma de Pago</span>{invoice.forma_pago}</div>}
-              {invoice.metodo_pago && <div><span className="text-muted-foreground block">Método de Pago</span>{invoice.metodo_pago}</div>}
-              {invoice.moneda && <div><span className="text-muted-foreground block">Moneda</span>{invoice.moneda}</div>}
-              {invoice.uso_cfdi && <div><span className="text-muted-foreground block">Uso CFDI</span>{invoice.uso_cfdi}</div>}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
+      <InvoiceFiscalDataCard invoice={invoice} />
       <ReadOnlyLineItemsTable lineItems={lineItems} />
-
-      <TotalsSummary
-        subtotal={Number(invoice.subtotal)}
-        taxRate={Number(invoice.tax_rate)}
-        taxAmount={Number(invoice.tax_amount)}
-        total={Number(invoice.total)}
-      />
+      <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={Number(invoice.total)} />
 
       {invoice.notes && (
         <Card>
@@ -234,91 +173,10 @@ export default function InvoiceDetail() {
         </Card>
       )}
 
-      {totalPaid > 0 && (
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Pagado</p>
-                <p className="text-lg font-mono font-bold text-green-600">{formatCurrency(totalPaid)}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
-                <p className={`text-lg font-mono font-bold ${balance <= 0 ? "text-green-600" : "text-destructive"}`}>{formatCurrency(balance)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
 
-      {payments && payments.length > 0 && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Historial de Pagos</CardTitle></CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Referencia</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="text-sm">{p.payment_date}</TableCell>
-                    <TableCell className="text-sm capitalize">{p.payment_method || "—"}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{p.reference_number || "—"}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-
-      {id && (
-        <RecordPaymentDialog
-          open={paymentDialogOpen}
-          onOpenChange={setPaymentDialogOpen}
-          invoiceId={id}
-          balance={balance}
-        />
-      )}
-
-      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Cancelar CFDI</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Selecciona el motivo de cancelación según el SAT.
-            </p>
-            {Number(invoice.total) > 1000 && (
-              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                ⚠️ Facturas mayores a $1,000 MXN requieren aprobación del receptor ante el SAT.
-              </div>
-            )}
-            <Select value={cancelReason} onValueChange={setCancelReason}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {CANCELLATION_REASONS.map((r) => (
-                  <SelectItem key={r.code} value={r.code}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>Cerrar</Button>
-            <Button variant="destructive" onClick={handleCancel} disabled={cancelLoading}>
-              {cancelLoading ? "Cancelando..." : "Confirmar Cancelación"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {id && <RecordPaymentDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} invoiceId={id} balance={balance} />}
+      {id && <CancelCfdiDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen} invoiceId={id} invoiceTotal={Number(invoice.total)} onSuccess={refetch} />}
     </div>
   );
 }
