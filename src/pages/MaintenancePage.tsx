@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -37,7 +37,7 @@ const initialForm = {
 };
 
 export default function MaintenancePage() {
-  const { data: forklifts } = useForklifts();
+  const { forkliftMap, forklifts } = useForkliftMap();
   const { data: logs, isLoading } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
   const createLog = useCreateMaintenanceLog();
@@ -45,8 +45,6 @@ export default function MaintenancePage() {
   const { form, set, reset } = useFormState(initialForm);
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
-
-  const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
   // Enrich logs with forklift name for search
   const enrichedLogs = logs?.map((log) => ({

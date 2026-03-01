@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useBookings } from "@/hooks/useBookings";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
 import { usePagination } from "@/hooks/usePagination";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -42,7 +42,7 @@ interface InvoicePromptData {
 
 export default function ReturnInspectionPage() {
   const { data: bookings } = useBookings();
-  const { data: forklifts } = useForklifts();
+  const { forkliftMap } = useForkliftMap();
   const { data: inspections, isLoading } = useReturnInspections();
   const createInspection = useCreateReturnInspection();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,7 +50,6 @@ export default function ReturnInspectionPage() {
   const [invoicePrompt, setInvoicePrompt] = useState<InvoicePromptData | null>(null);
 
   const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
-  const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(inspections);
   const isMobile = useIsMobile();

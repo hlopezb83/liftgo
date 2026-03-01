@@ -3,15 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
 import { useCustomers } from "@/hooks/useCustomers";
-import { formatCurrency } from "@/lib/formatCurrency";
 import { TotalsSummary } from "@/components/TotalsSummary";
+import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
+import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
-import { ArrowLeft, Edit, Send, CheckCircle, XCircle, BookOpen, Receipt } from "lucide-react";
+import { Edit, Send, CheckCircle, XCircle, BookOpen, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useForklifts } from "@/hooks/useForklifts";
@@ -76,35 +76,33 @@ export default function QuoteDetail() {
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/quotes")}><ArrowLeft className="h-4 w-4" /></Button>
-          <div>
-            <h1 className="text-2xl font-bold">{quote.quote_number}</h1>
-            <StatusBadge status={quote.status} />
-          </div>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {quote.status === "draft" && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
-              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
-            </>
-          )}
-          {(quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
-            <>
-              <Button size="sm" variant="default" onClick={convertToBooking}><BookOpen className="h-4 w-4 mr-1" />Convertir a Reserva</Button>
-              <Button size="sm" variant="outline" onClick={convertToInvoice}><Receipt className="h-4 w-4 mr-1" />Convertir a Factura</Button>
-            </>
-          )}
-          {quote.status === "sent" && (
-            <>
-              <Button size="sm" variant="default" onClick={() => setStatus("accepted")}><CheckCircle className="h-4 w-4 mr-1" />Aceptar</Button>
-              <Button size="sm" variant="destructive" onClick={() => setStatus("declined")}><XCircle className="h-4 w-4 mr-1" />Rechazar</Button>
-            </>
-          )}
-        </div>
-      </div>
+      <DetailPageHeader
+        title={quote.quote_number}
+        backTo="/quotes"
+        badges={<StatusBadge status={quote.status} />}
+        actions={
+          <>
+            {quote.status === "draft" && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
+                <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
+              </>
+            )}
+            {(quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
+              <>
+                <Button size="sm" variant="default" onClick={convertToBooking}><BookOpen className="h-4 w-4 mr-1" />Convertir a Reserva</Button>
+                <Button size="sm" variant="outline" onClick={convertToInvoice}><Receipt className="h-4 w-4 mr-1" />Convertir a Factura</Button>
+              </>
+            )}
+            {quote.status === "sent" && (
+              <>
+                <Button size="sm" variant="default" onClick={() => setStatus("accepted")}><CheckCircle className="h-4 w-4 mr-1" />Aceptar</Button>
+                <Button size="sm" variant="destructive" onClick={() => setStatus("declined")}><XCircle className="h-4 w-4 mr-1" />Rechazar</Button>
+              </>
+            )}
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>
@@ -120,30 +118,7 @@ export default function QuoteDetail() {
         </Card>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Descripción</TableHead>
-                <TableHead className="w-24 text-right">Cant.</TableHead>
-                <TableHead className="w-32 text-right">Precio Unit.</TableHead>
-                <TableHead className="w-32 text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lineItems.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{item.description}</TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(Number(item.unit_price))}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(Number(item.total))}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <ReadOnlyLineItemsTable lineItems={lineItems} />
 
       <TotalsSummary
         subtotal={quote.subtotal}

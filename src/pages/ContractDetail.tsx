@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useContract, useUpdateContract } from "@/hooks/useContracts";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Send, CheckCircle, XCircle, Edit } from "lucide-react";
+import { Send, CheckCircle, XCircle, Edit } from "lucide-react";
 import { ContractPDFButton } from "@/components/ContractPDFButton";
 import { RentalFinancialSummary } from "@/components/RentalFinancialSummary";
 import { toast } from "sonner";
@@ -29,34 +30,32 @@ export default function ContractDetail() {
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/contracts")}><ArrowLeft className="h-4 w-4" /></Button>
-          <div>
-            <h1 className="text-2xl font-bold">{contract.contract_number}</h1>
-            <StatusBadge status={contract.status} />
-          </div>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {contract.status === "draft" && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/contracts/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
-              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviado</Button>
-            </>
-          )}
-          {contract.status === "sent" && (
-            <Button size="sm" onClick={() => setStatus("signed", { signed_at: new Date().toISOString() })}>
-              <CheckCircle className="h-4 w-4 mr-1" />Marcar Firmado
-            </Button>
-          )}
-          {(contract.status === "draft" || contract.status === "sent") && (
-            <Button variant="destructive" size="sm" onClick={() => setStatus("cancelled")}>
-              <XCircle className="h-4 w-4 mr-1" />Cancelar
-            </Button>
-          )}
-          {id && <ContractPDFButton contract={contract} />}
-        </div>
-      </div>
+      <DetailPageHeader
+        title={contract.contract_number}
+        backTo="/contracts"
+        badges={<StatusBadge status={contract.status} />}
+        actions={
+          <>
+            {contract.status === "draft" && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => navigate(`/contracts/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
+                <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviado</Button>
+              </>
+            )}
+            {contract.status === "sent" && (
+              <Button size="sm" onClick={() => setStatus("signed", { signed_at: new Date().toISOString() })}>
+                <CheckCircle className="h-4 w-4 mr-1" />Marcar Firmado
+              </Button>
+            )}
+            {(contract.status === "draft" || contract.status === "sent") && (
+              <Button variant="destructive" size="sm" onClick={() => setStatus("cancelled")}>
+                <XCircle className="h-4 w-4 mr-1" />Cancelar
+              </Button>
+            )}
+            {id && <ContractPDFButton contract={contract} />}
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>

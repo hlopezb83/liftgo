@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useBookings } from "@/hooks/useBookings";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
 import { usePagination } from "@/hooks/usePagination";
@@ -36,7 +36,7 @@ const initialForm = {
 };
 
 export default function DeliveriesPage() {
-  const { data: forklifts } = useForklifts();
+  const { forkliftMap, forklifts } = useForkliftMap();
   const { data: bookings } = useBookings();
   const { data: activeDrivers } = useActiveDrivers();
   const { data: deliveries, isLoading } = useDeliveries();
@@ -50,8 +50,6 @@ export default function DeliveriesPage() {
     bookingEndDate: string;
     forkliftName: string;
   } | null>(null);
-
-  const forkliftMap = new Map(forklifts?.map((f) => [f.id, f]));
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(deliveries);
   const isMobile = useIsMobile();
