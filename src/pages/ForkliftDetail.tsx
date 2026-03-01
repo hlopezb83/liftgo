@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useForklift, useUpdateStatus, useDeleteForklift, useStatusLogs } from "@/hooks/useForklifts";
 import { useBookings } from "@/hooks/useBookings";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
+import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Edit, Truck, DollarSign, History, Trash2, CalendarDays, Wrench, StickyNote } from "lucide-react";
+import { Edit, Truck, DollarSign, History, Trash2, CalendarDays, Wrench, StickyNote } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -30,34 +31,20 @@ export default function ForkliftDetail() {
   const [newStatus, setNewStatus] = useState("");
   const [statusNote, setStatusNote] = useState("");
 
-  if (isLoading) {
-    return <div className="p-6"><Skeleton className="h-96" /></div>;
-  }
-
-  if (!forklift) {
-    return <div className="p-6 text-muted-foreground">Montacargas no encontrado</div>;
-  }
+  if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
+  if (!forklift) return <div className="p-6 text-muted-foreground">Montacargas no encontrado</div>;
 
   const handleStatusChange = () => {
     if (!newStatus || newStatus === forklift.status) return;
     updateStatus.mutate(
       { forkliftId: forklift.id, fromStatus: forklift.status, toStatus: newStatus, note: statusNote || undefined },
-      {
-        onSuccess: () => {
-          toast.success("Estado actualizado");
-          setNewStatus("");
-          setStatusNote("");
-        },
-      }
+      { onSuccess: () => { toast.success("Estado actualizado"); setNewStatus(""); setStatusNote(""); } }
     );
   };
 
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {
-      onSuccess: () => {
-        toast.success("Montacargas eliminado");
-        navigate("/fleet");
-      },
+      onSuccess: () => { toast.success("Montacargas eliminado"); navigate("/fleet"); },
       onError: () => toast.error("Error al eliminar"),
     });
   };
@@ -74,42 +61,36 @@ export default function ForkliftDetail() {
 
   return (
     <div className="p-6 space-y-6 max-w-5xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/fleet")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{forklift.name}</h1>
-            <StatusBadge status={forklift.status} />
-          </div>
-          <p className="text-sm text-muted-foreground">{forklift.model} — {forklift.manufacturer}</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => navigate(`/fleet/${id}/edit`)}>
-          <Edit className="h-4 w-4 mr-1" /> Editar
-        </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm">
-              <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+      <DetailPageHeader
+        title={forklift.name}
+        subtitle={`${forklift.model} — ${forklift.manufacturer}`}
+        backTo="/fleet"
+        badges={<StatusBadge status={forklift.status} />}
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => navigate(`/fleet/${id}/edit`)}>
+              <Edit className="h-4 w-4 mr-1" /> Editar
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Eliminar {forklift.name}?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esto eliminará permanentemente este montacargas y todos sus registros relacionados de reservas, mantenimiento e historial de estado. Esta acción no se puede deshacer.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm"><Trash2 className="h-4 w-4 mr-1" /> Eliminar</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Eliminar {forklift.name}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esto eliminará permanentemente este montacargas y todos sus registros relacionados de reservas, mantenimiento e historial de estado. Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
@@ -142,46 +123,29 @@ export default function ForkliftDetail() {
 
       {forklift.notes && (
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2"><StickyNote className="h-4 w-4" /> Notas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{forklift.notes}</p>
-          </CardContent>
+          <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><StickyNote className="h-4 w-4" /> Notas</CardTitle></CardHeader>
+          <CardContent><p className="text-sm whitespace-pre-wrap">{forklift.notes}</p></CardContent>
         </Card>
       )}
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Cambiar Estado</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base">Cambiar Estado</CardTitle></CardHeader>
         <CardContent className="flex gap-3 items-end flex-wrap">
           <Select value={newStatus} onValueChange={setNewStatus}>
-            <SelectTrigger className="flex-1 max-w-xs">
-              <SelectValue placeholder="Seleccionar nuevo estado" />
-            </SelectTrigger>
+            <SelectTrigger className="flex-1 max-w-xs"><SelectValue placeholder="Seleccionar nuevo estado" /></SelectTrigger>
             <SelectContent>
               {FORKLIFT_STATUSES.filter((s) => s !== forklift.status).map((s) => (
                 <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Input
-            placeholder="Razón del cambio (opcional)"
-            value={statusNote}
-            onChange={(e) => setStatusNote(e.target.value)}
-            className="flex-1 max-w-xs"
-          />
-          <Button onClick={handleStatusChange} disabled={!newStatus || updateStatus.isPending} size="sm">
-            Actualizar Estado
-          </Button>
+          <Input placeholder="Razón del cambio (opcional)" value={statusNote} onChange={(e) => setStatusNote(e.target.value)} className="flex-1 max-w-xs" />
+          <Button onClick={handleStatusChange} disabled={!newStatus || updateStatus.isPending} size="sm">Actualizar Estado</Button>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Reservas</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Reservas</CardTitle></CardHeader>
         <CardContent>
           {bookings && bookings.length > 0 ? (
             <div className="space-y-2">
@@ -204,9 +168,7 @@ export default function ForkliftDetail() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" /> Historial de Mantenimiento</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" /> Historial de Mantenimiento</CardTitle></CardHeader>
         <CardContent>
           {maintenanceLogs && maintenanceLogs.length > 0 ? (
             <div className="space-y-2">
@@ -233,9 +195,7 @@ export default function ForkliftDetail() {
       {id && <DocumentAttachments entityType="forklift" entityId={id} />}
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2"><History className="h-4 w-4" /> Historial de Estado</CardTitle>
-        </CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><History className="h-4 w-4" /> Historial de Estado</CardTitle></CardHeader>
         <CardContent>
           {logs && logs.length > 0 ? (
             <div className="space-y-3">

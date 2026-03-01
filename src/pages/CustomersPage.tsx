@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
-import { Search, PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
+import { PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
+import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -115,10 +116,7 @@ export default function CustomersPage() {
           </div>
         }
         filters={
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar clientes..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-          </div>
+          <SearchBar value={search} onChange={setSearch} placeholder="Buscar clientes..." />
         }
         isLoading={isLoading}
         items={paginatedItems}

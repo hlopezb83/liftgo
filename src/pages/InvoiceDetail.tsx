@@ -5,6 +5,8 @@ import { useUpdateBooking } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { TotalsSummary } from "@/components/TotalsSummary";
+import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
+import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
 import { CANCELLATION_REASONS } from "@/lib/satCatalogs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal } from "lucide-react";
+import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal } from "lucide-react";
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -112,69 +114,66 @@ export default function InvoiceDetail() {
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/invoices")}><ArrowLeft className="h-4 w-4" /></Button>
-          <div>
-            <h1 className="text-2xl font-bold">{invoice.invoice_number}</h1>
-            <div className="flex items-center gap-2">
-              <StatusBadge status={invoice.status} />
-              <StatusBadge status={cfdiStatus} />
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {/* Primary actions stay as standalone buttons */}
-          {invoice.status === "draft" && (
-            <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
-          )}
-          {(invoice.status === "sent" || invoice.status === "overdue") && (
-            <Button size="sm" onClick={() => setStatus("paid", new Date().toISOString().split("T")[0])}>
-              <CheckCircle className="h-4 w-4 mr-1" />Marcar Pagada
-            </Button>
-          )}
-          {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "partial") && (
-            <Button variant="outline" size="sm" onClick={() => setPaymentDialogOpen(true)}>
-              <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
-            </Button>
-          )}
-
-          {/* Secondary actions collapsed into dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <MoreHorizontal className="h-4 w-4 mr-1" /> Acciones
+      <DetailPageHeader
+        title={invoice.invoice_number}
+        backTo="/invoices"
+        badges={
+          <>
+            <StatusBadge status={invoice.status} />
+            <StatusBadge status={cfdiStatus} />
+          </>
+        }
+        actions={
+          <>
+            {invoice.status === "draft" && (
+              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
+            )}
+            {(invoice.status === "sent" || invoice.status === "overdue") && (
+              <Button size="sm" onClick={() => setStatus("paid", new Date().toISOString().split("T")[0])}>
+                <CheckCircle className="h-4 w-4 mr-1" />Marcar Pagada
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {invoice.status === "draft" && (
-                <DropdownMenuItem onClick={() => navigate(`/invoices/${id}/edit`)}>
-                  <Edit className="h-4 w-4 mr-2" /> Editar
-                </DropdownMenuItem>
-              )}
-              {cfdiStatus === "pending" && invoice.status !== "draft" && (
-                <DropdownMenuItem onClick={handleStamp} disabled={stampLoading}>
-                  <Stamp className="h-4 w-4 mr-2" /> {stampLoading ? "Timbrando..." : "Timbrar CFDI"}
-                </DropdownMenuItem>
-              )}
-              {cfdiStatus === "stamped" && (
-                <>
-                  <DropdownMenuItem onClick={handleDownloadXml}>
-                    <Download className="h-4 w-4 mr-2" /> Descargar XML
+            )}
+            {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "partial") && (
+              <Button variant="outline" size="sm" onClick={() => setPaymentDialogOpen(true)}>
+                <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreHorizontal className="h-4 w-4 mr-1" /> Acciones
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {invoice.status === "draft" && (
+                  <DropdownMenuItem onClick={() => navigate(`/invoices/${id}/edit`)}>
+                    <Edit className="h-4 w-4 mr-2" /> Editar
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setCancelDialogOpen(true)} className="text-destructive focus:text-destructive">
-                    <XCircle className="h-4 w-4 mr-2" /> Cancelar CFDI
+                )}
+                {cfdiStatus === "pending" && invoice.status !== "draft" && (
+                  <DropdownMenuItem onClick={handleStamp} disabled={stampLoading}>
+                    <Stamp className="h-4 w-4 mr-2" /> {stampLoading ? "Timbrando..." : "Timbrar CFDI"}
                   </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuItem onClick={() => window.print()}>
-                <Printer className="h-4 w-4 mr-2" /> Imprimir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {id && <InvoicePDFButton invoiceId={id} />}
-        </div>
-      </div>
+                )}
+                {cfdiStatus === "stamped" && (
+                  <>
+                    <DropdownMenuItem onClick={handleDownloadXml}>
+                      <Download className="h-4 w-4 mr-2" /> Descargar XML
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setCancelDialogOpen(true)} className="text-destructive focus:text-destructive">
+                      <XCircle className="h-4 w-4 mr-2" /> Cancelar CFDI
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuItem onClick={() => window.print()}>
+                  <Printer className="h-4 w-4 mr-2" /> Imprimir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {id && <InvoicePDFButton invoiceId={id} />}
+          </>
+        }
+      />
 
       {invoice.cfdi_uuid && (
         <Card>
@@ -219,30 +218,7 @@ export default function InvoiceDetail() {
         </Card>
       )}
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Descripción</TableHead>
-                <TableHead className="w-24 text-right">Cant.</TableHead>
-                <TableHead className="w-32 text-right">Precio Unit.</TableHead>
-                <TableHead className="w-32 text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lineItems.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{item.description}</TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(Number(item.unit_price))}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(Number(item.total))}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <ReadOnlyLineItemsTable lineItems={lineItems} />
 
       <TotalsSummary
         subtotal={Number(invoice.subtotal)}

@@ -2,11 +2,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
+import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Mail, Phone, Globe, MapPin, Receipt, CalendarDays, UserPlus } from "lucide-react";
+import { Mail, Phone, Globe, MapPin, Receipt, CalendarDays, UserPlus } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -45,7 +46,6 @@ export default function CustomerDetailPage() {
     if (!inviteEmail || !id) return;
     setInviting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
       const res = await supabase.functions.invoke("invite-customer", {
         body: { customer_id: id, email: inviteEmail },
       });
@@ -67,25 +67,23 @@ export default function CustomerDetailPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-5xl">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/customers")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{customer.name}</h1>
-            {customer.company && <p className="text-sm text-muted-foreground">{customer.company}</p>}
-          </div>
-        </div>
-        {role === "admin" && !hasPortalAccess && (
-          <Button variant="outline" onClick={() => { setInviteEmail(customer.email || ""); setInviteOpen(true); }}>
-            <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
-          </Button>
-        )}
-        {hasPortalAccess && (
-          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Acceso al portal activo</span>
-        )}
-      </div>
+      <DetailPageHeader
+        title={customer.name}
+        subtitle={customer.company || undefined}
+        backTo="/customers"
+        actions={
+          <>
+            {role === "admin" && !hasPortalAccess && (
+              <Button variant="outline" onClick={() => { setInviteEmail(customer.email || ""); setInviteOpen(true); }}>
+                <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
+              </Button>
+            )}
+            {hasPortalAccess && (
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Acceso al portal activo</span>
+            )}
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
@@ -205,13 +203,7 @@ export default function CustomerDetailPage() {
           <div className="space-y-3">
             <div>
               <Label htmlFor="invite-email">Correo Electrónico</Label>
-              <Input
-                id="invite-email"
-                type="email"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="cliente@ejemplo.com"
-              />
+              <Input id="invite-email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="cliente@ejemplo.com" />
             </div>
           </div>
           <DialogFooter>

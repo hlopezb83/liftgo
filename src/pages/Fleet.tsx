@@ -5,13 +5,13 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TablePagination } from "@/components/TablePagination";
 import { useNavigate } from "react-router-dom";
-import { Search, PlusCircle, Download, ChevronRight } from "lucide-react";
+import { PlusCircle, Download, ChevronRight } from "lucide-react";
+import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,10 +32,7 @@ export default function Fleet() {
 
   const filters = (
     <div className="flex gap-3">
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por nombre, modelo..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-      </div>
+      <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre, modelo..." />
       <Select value={statusFilter} onValueChange={setStatusFilter}>
         <SelectTrigger className="w-[160px]"><SelectValue placeholder="Todos los estados" /></SelectTrigger>
         <SelectContent>
