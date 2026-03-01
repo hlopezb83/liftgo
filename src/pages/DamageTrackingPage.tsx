@@ -1,11 +1,14 @@
 import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { useListFilters } from "@/hooks/useListFilters";
 import { usePagination } from "@/hooks/usePagination";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { DamageActions } from "@/components/DamageActions";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
@@ -32,6 +35,32 @@ export default function DamageTrackingPage() {
   });
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(extraFiltered);
+  const isMobile = useIsMobile();
+
+  const mobileContent = isMobile ? (
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(r) => r.id}
+      emptyMessage="No se encontraron registros de daños"
+      renderCard={(r) => (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-sm">{format(new Date(r.created_at), "d MMM yyyy", { locale: es })}</span>
+              <StatusBadge status={r.status} />
+            </div>
+            <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
+            <p className="text-sm text-muted-foreground">{r.customers?.name || "—"}</p>
+            <p className="text-sm text-muted-foreground truncate">{r.description}</p>
+            <div className="flex items-center justify-between pt-1">
+              <span className="font-mono text-sm">{formatCurrency(r.estimated_cost)}</span>
+              <DamageActions record={r} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    />
+  ) : undefined;
 
   return (
     <ListPageLayout
@@ -57,6 +86,7 @@ export default function DamageTrackingPage() {
       totalPages={totalPages}
       onPageChange={setPage}
       emptyMessage="No se encontraron registros de daños"
+      customContent={mobileContent}
       tableHeader={
         <TableRow>
           <TableHead>Fecha</TableHead>

@@ -2,10 +2,13 @@ import { useState } from "react";
 import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "@/hooks/useAuditLogs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { usePagination } from "@/hooks/usePagination";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableHeader, TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -121,6 +124,41 @@ export default function AuditTrailPage() {
   });
 
   const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const isMobile = useIsMobile();
+
+  const mobileContent = isMobile ? (
+    <MobileCardList
+      items={paginatedItems}
+      keyExtractor={(log) => log.id}
+      emptyMessage="No se encontraron registros"
+      renderCard={(log) => (
+        <Card className="cursor-pointer" onClick={() => setSelectedLog(log)}>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {actionIcon(log.action)}
+                <Badge variant={actionBadgeVariant(log.action)}>{translateAction(log.action)}</Badge>
+              </div>
+              {isAdmin && (
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setLogToDelete(log); }}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <p className="text-sm"><span className="text-muted-foreground">Tabla:</span> {translateTable(log.table_name)}</p>
+            <p className="text-sm font-medium truncate">{getRecordLabel(log)}</p>
+            {log.changed_fields && (
+              <p className="text-xs text-muted-foreground truncate">{log.changed_fields.map(translateField).join(", ")}</p>
+            )}
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+              <span>{log.user_email || "Sistema"}</span>
+              <span>{formatTimestamp(log.created_at)}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    />
+  ) : undefined;
 
   return (
     <>
@@ -144,6 +182,7 @@ export default function AuditTrailPage() {
         totalPages={totalPages}
         onPageChange={setPage}
         emptyMessage="No se encontraron registros"
+        customContent={mobileContent}
         tableHeader={
           <TableRow>
             <TableHead className="w-10" />
