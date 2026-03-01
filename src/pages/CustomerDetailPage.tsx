@@ -1,15 +1,15 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Mail, Phone, Globe, MapPin, Receipt, CalendarDays, UserPlus } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBadge } from "@/components/StatusBadge";
+import { UserPlus, CalendarDays, Receipt } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
+import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
+import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
@@ -46,9 +48,7 @@ export default function CustomerDetailPage() {
     if (!inviteEmail || !id) return;
     setInviting(true);
     try {
-      const res = await supabase.functions.invoke("invite-customer", {
-        body: { customer_id: id, email: inviteEmail },
-      });
+      const res = await supabase.functions.invoke("invite-customer", { body: { customer_id: id, email: inviteEmail } });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
       toast({ title: "Invitación enviada", description: `Acceso al portal creado para ${inviteEmail}` });
@@ -86,56 +86,12 @@ export default function CustomerDetailPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader><CardTitle className="text-base">Información de Contacto</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4 text-sm">
-            {customer.contact_person && (
-              <div><p className="text-xs text-muted-foreground">Persona de Contacto</p><p className="font-medium">{customer.contact_person}</p></div>
-            )}
-            {customer.representante_legal && (
-              <div><p className="text-xs text-muted-foreground">Representante Legal</p><p className="font-medium">{customer.representante_legal}</p></div>
-            )}
-            {customer.email && (
-              <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.email}</span></div>
-            )}
-            {customer.phone && (
-              <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.phone}</span></div>
-            )}
-            {customer.website && (
-              <div className="flex items-center gap-2"><Globe className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.website}</span></div>
-            )}
-            {customer.address && (
-              <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.address}</span></div>
-            )}
-            {customer.tax_id && (
-              <div><p className="text-xs text-muted-foreground">RFC</p><p className="font-medium">{customer.tax_id}</p></div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="text-base">Resumen Financiero</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total Facturado</span>
-              <span className="font-mono font-semibold">{formatCurrency(totalInvoiced)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total Pagado</span>
-              <span className="font-mono font-semibold text-status-available">{formatCurrency(totalPaid)}</span>
-            </div>
-            <div className="flex justify-between text-sm border-t pt-2">
-              <span className="font-medium">Saldo Pendiente</span>
-              <span className={`font-mono font-bold ${outstanding > 0 ? "text-destructive" : ""}`}>{formatCurrency(outstanding)}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <CustomerContactCard customer={customer} />
+        <CustomerFinancialSummary totalInvoiced={totalInvoiced} totalPaid={totalPaid} outstanding={outstanding} />
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Historial de Reservas</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Historial de Reservas</CardTitle></CardHeader>
         <CardContent>
           {bookings && bookings.length > 0 ? (
             <div className="space-y-2">
@@ -156,18 +112,12 @@ export default function CustomerDetailPage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4" /> Facturas</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4" /> Facturas</CardTitle></CardHeader>
         <CardContent>
           {invoices && invoices.length > 0 ? (
             <div className="space-y-2">
               {invoices.map((inv) => (
-                <div
-                  key={inv.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm cursor-pointer hover:bg-muted/60"
-                  onClick={() => navigate(`/invoices/${inv.id}`)}
-                >
+                <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/invoices/${inv.id}`)}>
                   <div>
                     <p className="font-medium">{inv.invoice_number}</p>
                     <p className="text-xs text-muted-foreground">{inv.issued_at}{inv.due_date ? ` — Vence: ${inv.due_date}` : ""}</p>
@@ -196,9 +146,7 @@ export default function CustomerDetailPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Invitar al Portal de Clientes</DialogTitle>
-            <DialogDescription>
-              Crear una cuenta de portal para {customer.name}. Recibirán un correo para establecer su contraseña.
-            </DialogDescription>
+            <DialogDescription>Crear una cuenta de portal para {customer.name}.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
