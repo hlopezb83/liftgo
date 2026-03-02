@@ -44,7 +44,7 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
 
         const profileMap = new Map((profiles || []).map((p) => [p.user_id, p.full_name]));
         logs.forEach((l) => {
-          if (l.user_id) l.user_email = profileMap.get(l.user_id) || "Unknown";
+          if (l.user_id) l.user_email = profileMap.get(l.user_id) || "Desconocido";
         });
       }
 
