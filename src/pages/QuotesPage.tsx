@@ -16,6 +16,7 @@ import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { STATUS_LABELS } from "@/lib/constants";
 import { PlusCircle, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 
@@ -50,7 +51,12 @@ export default function QuotesPage() {
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
+                <Badge variant={(q as any).quote_type === "sale" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                  {STATUS_LABELS[(q as any).quote_type || "rental"] || "Renta"}
+                </Badge>
+              </div>
               <StatusBadge status={q.status} />
             </div>
             <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
@@ -92,6 +98,7 @@ export default function QuotesPage() {
       tableHeader={
         <TableRow>
           <SortableTableHead sortKey="quote_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cotización #</SortableTableHead>
+          <TableHead>Tipo</TableHead>
           <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
           <TableHead>Fechas</TableHead>
           <SortableTableHead sortKey="total" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Total</SortableTableHead>
@@ -102,6 +109,11 @@ export default function QuotesPage() {
       renderRow={(q) => (
         <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/quotes/${q.id}`)}>
           <TableCell className="font-mono font-medium">{q.quote_number}</TableCell>
+          <TableCell>
+            <Badge variant={(q as any).quote_type === "sale" ? "default" : "secondary"} className="text-xs">
+              {STATUS_LABELS[(q as any).quote_type || "rental"] || "Renta"}
+            </Badge>
+          </TableCell>
           <TableCell>{q.customer_name || "—"}</TableCell>
           <TableCell className="text-sm">{q.start_date} → {q.end_date}</TableCell>
           <TableCell className="font-mono">{formatCurrency(q.total)}</TableCell>
