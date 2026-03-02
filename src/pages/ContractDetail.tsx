@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Send, CheckCircle, XCircle, Edit } from "lucide-react";
 import { format } from "date-fns";
+import { formatDateDisplay } from "@/lib/utils";
 import { ContractPDFButton } from "@/components/ContractPDFButton";
 import { RentalFinancialSummary } from "@/components/RentalFinancialSummary";
 import { toast } from "sonner";
@@ -77,8 +78,8 @@ export default function ContractDetail() {
         <CardHeader><CardTitle className="text-base">Detalles del Contrato</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-            <div><span className="text-muted-foreground block">Inicio</span>{contract.start_date || "—"}</div>
-            <div><span className="text-muted-foreground block">Fin</span>{contract.end_date || "—"}</div>
+            <div><span className="text-muted-foreground block">Inicio</span>{formatDateDisplay(contract.start_date)}</div>
+            <div><span className="text-muted-foreground block">Fin</span>{formatDateDisplay(contract.end_date)}</div>
             <div><span className="text-muted-foreground block">Depósito</span>{formatCurrency(Number(contract.deposit_amount || 0))}</div>
             <div><span className="text-muted-foreground block">Tarifa Diaria</span>{formatCurrency(Number(contract.daily_rate || 0))}</div>
             <div><span className="text-muted-foreground block">Tarifa Semanal</span>{formatCurrency(Number(contract.weekly_rate || 0))}</div>
