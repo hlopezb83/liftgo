@@ -997,13 +997,14 @@ export type Database = {
           created_at: string
           customer_id: string | null
           customer_name: string | null
-          end_date: string
+          end_date: string | null
           forklift_id: string | null
           id: string
           line_items: Json
           notes: string | null
           quote_number: string
-          start_date: string
+          quote_type: string
+          start_date: string | null
           status: string
           subtotal: number
           tax_amount: number
@@ -1016,13 +1017,14 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
-          end_date: string
+          end_date?: string | null
           forklift_id?: string | null
           id?: string
           line_items?: Json
           notes?: string | null
           quote_number: string
-          start_date: string
+          quote_type?: string
+          start_date?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number
@@ -1035,13 +1037,14 @@ export type Database = {
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
-          end_date?: string
+          end_date?: string | null
           forklift_id?: string | null
           id?: string
           line_items?: Json
           notes?: string | null
           quote_number?: string
-          start_date?: string
+          quote_type?: string
+          start_date?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number

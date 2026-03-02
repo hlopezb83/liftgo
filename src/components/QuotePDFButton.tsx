@@ -60,7 +60,8 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
 
       doc.setFontSize(24);
       doc.setTextColor(51, 51, 51);
-      doc.text("COTIZACIÓN", pw - mg, y, { align: "right" });
+      const isSale = (quote as any).quote_type === "sale";
+      doc.text(isSale ? "COTIZACIÓN DE VENTA" : "COTIZACIÓN", pw - mg, y, { align: "right" });
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text(quote.quote_number, pw - mg, y + 8, { align: "right" });
@@ -76,8 +77,12 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       doc.text(quote.customer_name || "—", mg, y + 6);
 
       doc.setFontSize(10);
-      doc.text(`Periodo: ${quote.start_date} → ${quote.end_date}`, pw - mg, y, { align: "right" });
-      doc.text(`Válida Hasta: ${quote.valid_until || "—"}`, pw - mg, y + 6, { align: "right" });
+      if (!isSale && quote.start_date && quote.end_date) {
+        doc.text(`Periodo: ${quote.start_date} → ${quote.end_date}`, pw - mg, y, { align: "right" });
+        doc.text(`Válida Hasta: ${quote.valid_until || "—"}`, pw - mg, y + 6, { align: "right" });
+      } else {
+        doc.text(`Válida Hasta: ${quote.valid_until || "—"}`, pw - mg, y, { align: "right" });
+      }
 
       y += 20;
 

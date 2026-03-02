@@ -48,6 +48,8 @@ export const STATUS_LABELS: Record<string, string> = {
   active: "Activo",
   inactive: "Inactivo",
   sold: "Vendido",
+  rental: "Renta",
+  sale: "Venta",
   signed: "Firmado",
   cancelled: "Cancelado",
   partial: "Parcial",
