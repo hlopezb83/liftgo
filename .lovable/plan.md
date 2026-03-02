@@ -1,36 +1,25 @@
 
-## Agregar "Servicio de Logistica" opcional a cotizaciones
 
-### Resumen
+## Reordenar las tarjetas del formulario de cotización
 
-Agregar un checkbox o toggle en el formulario de cotizaciones (tanto renta como venta) que permita incluir un "Servicio de Logistica" con un monto editable. Cuando se activa, se agrega automaticamente una linea adicional a los `line_items` con la descripcion "Servicio de Logistica" y el monto indicado.
+### Problema
+Actualmente el orden de las tarjetas en el formulario no sigue un flujo lógico de trabajo. El usuario primero debería definir qué tipo de cotización es, luego para quién, después los detalles del equipo, costos adicionales, y finalmente notas.
 
-### Cambios
+### Nuevo orden
 
-**1. `src/pages/QuoteForm.tsx`**
+1. **Tipo de Cotización** (Renta / Venta)
+2. **Cliente** (selector obligatorio)
+3. **Detalles de Cotización** (periodo de renta, montacargas, IVA, válida hasta)
+4. **Equipos a Cotizar** (solo visible en modo Venta)
+5. **Incluir Servicio de Logística** (checkbox + monto)
+6. **Resumen de Costos** (subtotal, IVA, total)
+7. **Notas**
+8. **Botones de acción** (Crear/Actualizar + Cancelar)
 
-- Agregar dos estados nuevos:
-  - `includeLogistics: boolean` (default `false`)
-  - `logisticsCost: number` (default `0`)
-- Agregar una card/seccion con un Checkbox "Incluir Servicio de Logistica" y un input numerico para el monto cuando esta activado
-- En el calculo de `lineItems` (useMemo), si `includeLogistics` es true y `logisticsCost > 0`, agregar al final del array un LineItem:
-  ```text
-  { description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost }
-  ```
-- Al cargar una cotizacion existente (useEffect), detectar si existe un line_item con descripcion que contenga "Logística" y restaurar los estados correspondientes
-- Aplica tanto para tipo "rental" como "sale"
+### Cambio técnico
 
-### Flujo de usuario
-
-1. El usuario crea o edita una cotizacion (renta o venta)
-2. Ve un checkbox "Incluir Servicio de Logistica"
-3. Al activarlo, aparece un campo para ingresar el monto del servicio
-4. El resumen de costos muestra la linea adicional "Servicio de Logistica"
-5. Al guardar, se incluye como un line_item mas en el JSON
-
-### Detalle tecnico
-
-- 1 archivo modificado (`QuoteForm.tsx`)
-- Sin componentes nuevos (se agrega inline en el form)
-- Sin migraciones de base de datos (se almacena como un line_item mas en el campo jsonb existente)
-- Compatible con PDF y vista de detalle existentes ya que leen de `line_items`
+- 1 archivo modificado: `src/pages/QuoteForm.tsx`
+- Solo se reordena el JSX dentro del `<form>`, moviendo los bloques existentes sin modificar lógica ni estilos
+- El bloque de `CustomerSelector` sube a la posición 2 (después del tipo)
+- El bloque de `SaleLineItems` se mueve después de "Detalles de Cotización"
+- Todo lo demás mantiene su estructura actual
