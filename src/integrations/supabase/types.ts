@@ -90,6 +90,7 @@ export type Database = {
           forklift_id: string
           id: string
           last_billed_date: string | null
+          quote_id: string | null
           recurring_billing: boolean
           return_status: string | null
           start_date: string
@@ -105,6 +106,7 @@ export type Database = {
           forklift_id: string
           id?: string
           last_billed_date?: string | null
+          quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
           start_date: string
@@ -120,6 +122,7 @@ export type Database = {
           forklift_id?: string
           id?: string
           last_billed_date?: string | null
+          quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
           start_date?: string
@@ -139,6 +142,13 @@ export type Database = {
             columns: ["forklift_id"]
             isOneToOne: false
             referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
         ]
