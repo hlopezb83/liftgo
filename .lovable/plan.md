@@ -1,44 +1,41 @@
 
 
-## Traducir textos en ingles restantes en el modulo de facturacion
+## Auditoría de textos en inglés — Resultado
 
-### Hallazgos
+Revisé exhaustivamente todos los módulos (contratos, cotizaciones, entregas, equipos, reservas, mantenimiento, daños, PDF, edge functions, hooks, constantes). El sistema esta **casi completamente en español**. Solo encontre **2 textos menores** en inglés que deben corregirse:
 
-Se revisaron todos los archivos del modulo de facturacion (paginas, componentes, PDF, edge function). Solo quedan 2 archivos con texto en ingles:
+### Cambios necesarios
 
-### Cambios
+**1. `src/hooks/useAuditLogs.ts` — linea 47**
 
-**1. `supabase/functions/generate-recurring-invoices/index.ts` (linea 79)**
+El fallback cuando no se encuentra el nombre de un usuario muestra "Unknown" en vez de "Desconocido".
 
-Actual:
-```
-description: `${forklift?.name || "Forklift"} — Monthly rental (${startStr} to ${endStr})`
-```
+| Actual | Nuevo |
+|--------|-------|
+| `"Unknown"` | `"Desconocido"` |
 
-Nuevo:
-```
-description: `${forklift?.name || "Montacargas"} — Renta mensual (${startStr} al ${endStr})`
-```
+**2. `src/test/bookingFlow.test.ts` — linea 59/63**
 
-Cambios: "Forklift" -> "Montacargas", "Monthly rental" -> "Renta mensual", "to" -> "al"
+El mensaje de error en el test dice `"Forklift not available"`. Esto es un test unitario y no es visible para el usuario, por lo que **no es necesario** traducirlo, pero se puede cambiar por consistencia.
 
-**2. `src/components/InvoicePDFButton.tsx` (linea 53)**
+| Actual | Nuevo (opcional) |
+|--------|------------------|
+| `"Forklift not available"` | Sin cambio (es un test, no UI) |
 
-Actual:
-```
-doc.text(company?.razon_social || "ForkliftERP", textStartX, y);
-```
+### Modulos ya verificados (sin problemas)
 
-Nuevo:
-```
-doc.text(company?.razon_social || "LiftGo", textStartX, y);
-```
+- Contratos (`ContractForm`, `ContractDetail`, `ContractPDFButton`) — todo en español
+- Cotizaciones (`QuoteForm`, `QuoteDetail`, `QuotesPage`) — todo en español
+- Entregas (`DeliveriesPage`) — todo en español
+- Facturas (`InvoiceForm`, `InvoiceDetail`, `InvoicePDFButton`) — ya corregido
+- Edge functions (`generate-recurring-invoices`, `generate-invoice-pdf`, `cancel-cfdi`) — ya corregido
+- Constantes y traducciones (`constants.ts`, `activityTranslations.ts`) — todo en español
+- Dashboard, reportes, calendario, mantenimiento, daños — todo en español
 
-El fallback "ForkliftERP" se reemplaza por "LiftGo" (nombre del proyecto segun la URL publicada).
+### Resumen
 
-### Alcance
-- 2 archivos modificados
-- No hay cambios en base de datos
-- La edge function se redesplegara automaticamente
-- Las facturas recurrentes generadas a futuro tendran la descripcion en espanol
+Solo se requiere **un cambio funcional**: traducir `"Unknown"` a `"Desconocido"` en `useAuditLogs.ts`. El resto del sistema esta completamente localizado en español.
+
+### Archivo afectado
+- `src/hooks/useAuditLogs.ts` (1 linea)
 
