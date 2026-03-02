@@ -20,7 +20,7 @@ import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign,
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { cn, formatDateDisplay } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
@@ -183,9 +183,9 @@ export default function InvoiceDetail() {
         <Card>
           <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-sm">
-            <p><span className="text-muted-foreground">Emitida:</span> {invoice.issued_at}</p>
-            <p><span className="text-muted-foreground">Vencimiento:</span> {invoice.due_date || "—"}</p>
-            {invoice.paid_at && <p><span className="text-muted-foreground">Pagada:</span> {invoice.paid_at}</p>}
+            <p><span className="text-muted-foreground">Emitida:</span> {formatDateDisplay(invoice.issued_at)}</p>
+            <p><span className="text-muted-foreground">Vencimiento:</span> {formatDateDisplay(invoice.due_date)}</p>
+            {invoice.paid_at && <p><span className="text-muted-foreground">Pagada:</span> {formatDateDisplay(invoice.paid_at)}</p>}
           </CardContent>
         </Card>
       </div>

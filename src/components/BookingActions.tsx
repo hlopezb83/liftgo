@@ -13,6 +13,7 @@ import { CalendarPlus, Undo2, XCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { formatDateDisplay } from "@/lib/utils";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 
@@ -87,7 +88,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Cancelar esta reserva?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se cancelará la reserva de {booking.customer_name || "este cliente"} ({booking.start_date} → {booking.end_date}). Esta acción no se puede deshacer.
+              Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateDisplay(booking.start_date)} → {formatDateDisplay(booking.end_date)}). Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -102,7 +103,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
       <Dialog open={extendOpen} onOpenChange={setExtendOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Extender Reserva</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">Fecha de fin actual: {booking.end_date}</p>
+          <p className="text-sm text-muted-foreground">Fecha de fin actual: {formatDateDisplay(booking.end_date)}</p>
           <DatePickerField label="Nueva Fecha de Fin" date={newEndDate} onSelect={setNewEndDate} />
           {extendPreview && (
             <div className="p-3 rounded-lg bg-muted text-sm">
@@ -119,7 +120,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
       <Dialog open={returnOpen} onOpenChange={setReturnOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Devolución Anticipada</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">Fecha de fin actual: {booking.end_date}</p>
+          <p className="text-sm text-muted-foreground">Fecha de fin actual: {formatDateDisplay(booking.end_date)}</p>
           <DatePickerField label="Fecha de Devolución" date={earlyReturnDate} onSelect={setEarlyReturnDate} />
           {returnPreview && (
             <div className="p-3 rounded-lg bg-muted text-sm">

@@ -18,6 +18,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { FormActions } from "@/components/FormActions";
 import { PostInspectionInvoiceDialog } from "@/components/PostInspectionInvoiceDialog";
 import { useFormState } from "@/hooks/useFormState";
+import { formatDateDisplay } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
@@ -180,7 +181,7 @@ export default function ReturnInspectionPage() {
                 <SelectContent>
                   {activeBookings?.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
-                      {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Desconocido"} ({b.start_date} → {b.end_date})
+                      {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Desconocido"} ({formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)})
                     </SelectItem>
                   ))}
                 </SelectContent>
