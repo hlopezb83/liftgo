@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useAvailableForklifts } from "@/hooks/useAvailableForklifts";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
 import { generateLineItems, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { ForkliftSelector } from "@/components/ForkliftSelector";
+import { EquipmentModelSelector } from "@/components/EquipmentModelSelector";
 import { CostSummaryCard } from "@/components/CostSummaryCard";
 import { NotesCard } from "@/components/NotesCard";
 import { useState, useEffect, useMemo } from "react";
@@ -32,6 +33,7 @@ export default function QuoteForm() {
 
   const [quoteType, setQuoteType] = useState<"rental" | "sale">("rental");
   const [forkliftId, setForkliftId] = useState("");
+  const [equipmentModelId, setEquipmentModelId] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -44,6 +46,7 @@ export default function QuoteForm() {
     if (existingQuote) {
       setQuoteType((existingQuote as any).quote_type === "sale" ? "sale" : "rental");
       setForkliftId(existingQuote.forklift_id || "");
+      setEquipmentModelId((existingQuote as any).equipment_model_id || "");
       setCustomerId(existingQuote.customer_id || "");
       setCustomerName(existingQuote.customer_name || "");
       if (existingQuote.start_date && existingQuote.end_date) {
@@ -52,7 +55,6 @@ export default function QuoteForm() {
       setTaxRate(String(existingQuote.tax_rate));
       setNotes(existingQuote.notes || "");
       setValidUntil(existingQuote.valid_until ? new Date(existingQuote.valid_until) : undefined);
-      // For sale quotes, extract price from line items
       if ((existingQuote as any).quote_type === "sale") {
         const items = (existingQuote.line_items as unknown as LineItem[]) || [];
         if (items.length > 0) setSalePrice(String(items[0].unit_price));
@@ -64,8 +66,8 @@ export default function QuoteForm() {
 
   // Rental mode: use date-filtered available forklifts
   const { availableForklifts, forklifts: allForkliftsFromHook, datesSelected } = useAvailableForklifts(dateRange);
-  // Sale mode: use all forklifts with status available
-  const { data: allForklifts } = useForklifts();
+  // Sale mode: use equipment models
+  const { data: equipmentModels } = useEquipmentModels();
 
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
@@ -76,19 +78,15 @@ export default function QuoteForm() {
     }
   }, [availableForklifts, forkliftId, datesSelected, quoteType]);
 
-  const saleForklifts = useMemo(() => {
-    if (!allForklifts) return [];
-    return allForklifts.filter((f) => f.status === "available");
-  }, [allForklifts]);
-
-  const forklift = (quoteType === "rental" ? allForkliftsFromHook : allForklifts)?.find((f) => f.id === forkliftId);
+  const forklift = allForkliftsFromHook?.find((f) => f.id === forkliftId);
+  const selectedModel = equipmentModels?.find((m) => m.id === equipmentModelId);
 
   const lineItems: LineItem[] = useMemo(() => {
     if (quoteType === "sale") {
-      if (!forklift || !salePrice || Number(salePrice) <= 0) return [];
+      if (!selectedModel || !salePrice || Number(salePrice) <= 0) return [];
       const price = Number(salePrice);
       return [{
-        description: `${forklift.name} - Venta de equipo`,
+        description: `${selectedModel.manufacturer} ${selectedModel.model} - Venta de equipo`,
         quantity: 1,
         unit_price: price,
         total: price,
@@ -96,20 +94,22 @@ export default function QuoteForm() {
     }
     if (!forklift || !startDate || !endDate) return [];
     return generateLineItems(forklift, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
-  }, [forklift, startDate, endDate, quoteType, salePrice]);
+  }, [forklift, selectedModel, startDate, endDate, quoteType, salePrice]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
   const handleTypeChange = (type: string) => {
     setQuoteType(type as "rental" | "sale");
     setForkliftId("");
+    setEquipmentModelId("");
     setSalePrice("");
     setDateRange(undefined);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forkliftId) { toast.error("Selecciona un montacargas"); return; }
+    if (quoteType === "rental" && !forkliftId) { toast.error("Selecciona un montacargas"); return; }
+    if (quoteType === "sale" && !equipmentModelId) { toast.error("Selecciona un modelo de equipo"); return; }
     if (quoteType === "rental" && (!startDate || !endDate)) { toast.error("Selecciona el periodo de renta"); return; }
     if (quoteType === "sale" && (!salePrice || Number(salePrice) <= 0)) { toast.error("Ingresa el precio de venta"); return; }
 
@@ -118,7 +118,8 @@ export default function QuoteForm() {
       quote_number: existingQuote?.quote_number || nextNumber || "COT-0001",
       customer_id: customerId || null,
       customer_name: customerName || null,
-      forklift_id: forkliftId,
+      forklift_id: quoteType === "rental" ? forkliftId : null,
+      equipment_model_id: quoteType === "sale" ? equipmentModelId : null,
       start_date: quoteType === "rental" ? format(startDate!, "yyyy-MM-dd") : today,
       end_date: quoteType === "rental" ? format(endDate!, "yyyy-MM-dd") : today,
       line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
@@ -167,11 +168,10 @@ export default function QuoteForm() {
                 datesSelected={datesSelected}
               />
             ) : (
-              <ForkliftSelector
-                value={forkliftId}
-                onValueChange={setForkliftId}
-                availableForklifts={saleForklifts}
-                datesSelected={true}
+              <EquipmentModelSelector
+                value={equipmentModelId}
+                onValueChange={setEquipmentModelId}
+                models={equipmentModels || []}
               />
             )}
 

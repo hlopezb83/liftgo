@@ -15,6 +15,7 @@ import { Edit, Send, CheckCircle, XCircle, BookOpen, Receipt } from "lucide-reac
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useForklifts } from "@/hooks/useForklifts";
+import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { QuotePDFButton } from "@/components/QuotePDFButton";
 import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ export default function QuoteDetail() {
   const createBooking = useCreateBooking();
   const { data: customers } = useCustomers();
   const { data: forklifts } = useForklifts();
+  const { data: equipmentModels } = useEquipmentModels();
 
   const [deliveryDialog, setDeliveryDialog] = useState<{
     bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null;
@@ -121,6 +123,15 @@ export default function QuoteDetail() {
           <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
           <CardContent><p className="font-medium">{quote.customer_name || "—"}</p></CardContent>
         </Card>
+        {isSale && (quote as any).equipment_model_id && (() => {
+          const model = equipmentModels?.find((m) => m.id === (quote as any).equipment_model_id);
+          return model ? (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Modelo de Equipo</CardTitle></CardHeader>
+              <CardContent><p className="font-medium">{model.manufacturer} — {model.model}</p></CardContent>
+            </Card>
+          ) : null;
+        })()}
         {!isSale ? (
           <Card>
             <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>

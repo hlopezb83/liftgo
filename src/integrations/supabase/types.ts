@@ -998,6 +998,7 @@ export type Database = {
           customer_id: string | null
           customer_name: string | null
           end_date: string | null
+          equipment_model_id: string | null
           forklift_id: string | null
           id: string
           line_items: Json
@@ -1018,6 +1019,7 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           end_date?: string | null
+          equipment_model_id?: string | null
           forklift_id?: string | null
           id?: string
           line_items?: Json
@@ -1038,6 +1040,7 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           end_date?: string | null
+          equipment_model_id?: string | null
           forklift_id?: string | null
           id?: string
           line_items?: Json
@@ -1059,6 +1062,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_equipment_model_id_fkey"
+            columns: ["equipment_model_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_models"
             referencedColumns: ["id"]
           },
           {
