@@ -1,49 +1,39 @@
 
-## Crear una reserva por cada montacargas en cotizaciones multi-equipo
+
+## Programar entrega para todos los montacargas al convertir cotizacion
 
 ### Problema
-Cuando una cotizacion de renta tiene multiples montacargas (almacenados en `line_items`), la funcion `convertToBooking` solo crea **una** reserva usando `quote.forklift_id` (el primer equipo). El segundo montacargas se ignora completamente.
-
-En el caso de COT-0002, los line_items contienen:
-- MCAPC025A048/001 (forklift_id almacenado en `quote.forklift_id`)
-- MCAPC035A048/003 (solo existe en `line_items`, sin reserva)
+La conversion a reserva crea correctamente una reserva por cada montacargas, pero el dialogo de entrega solo se muestra para el primero. El segundo equipo queda con reserva confirmada pero sin entrega programada, y el usuario no recibe ningun aviso.
 
 ### Solucion
-Modificar la logica de conversion para iterar sobre todos los montacargas del `line_items`, creando una reserva individual por cada uno y vinculandolas a la cotizacion.
+Convertir el estado `deliveryDialog` en un arreglo y recorrerlo secuencialmente: al completar o saltar la entrega del primer equipo, se muestra automaticamente el dialogo del siguiente, hasta terminar todos.
 
 ### Cambios
 
-**1. `src/pages/QuoteDetail.tsx` - funcion `convertToBooking`**
-- Extraer los IDs de todos los montacargas desde `line_items` (buscando coincidencia por nombre en la lista de forklifts cargados, mismo patron que usa `QuoteForm`)
-- Iterar sobre cada forklift_id encontrado y llamar a `createBooking.mutateAsync` para cada uno
-- Vincular todas las reservas creadas a la cotizacion mediante `quote_id`
-- Actualizar el estado de la cotizacion a "accepted" solo despues de crear todas las reservas
-- Mostrar el dialogo de entrega para la primera reserva creada (o un resumen)
+**1. `src/pages/QuoteDetail.tsx`**
 
-**2. `src/hooks/useBookings.ts` - sin cambios**
-- La funcion RPC `create_booking` ya maneja correctamente un solo montacargas; se reutiliza llamandola N veces.
+- Reemplazar el estado `deliveryDialog` (objeto unico) por `pendingDeliveries` (arreglo) y `currentDeliveryIndex` (numero).
+- En `convertToBooking` (lineas 111-121): construir el arreglo completo con todos los bookings creados (bookingId, forkliftId, forkliftName, startDate, customerAddress) y setear el indice a 0.
+- Crear funcion `handleDeliveryNext()`: incrementa `currentDeliveryIndex`; si ya no quedan mas, limpia el estado y navega a `/calendar`.
+- En el JSX (lineas 247-258): derivar el dialogo actual de `pendingDeliveries[currentDeliveryIndex]`; pasar `handleDeliveryNext` tanto a `onSkip` como al cierre exitoso.
 
-### Detalle tecnico
+**2. `src/components/PostBookingDeliveryDialog.tsx`**
+
+- Agregar props opcionales `currentIndex` y `totalCount` (numeros).
+- Si `totalCount > 1`, mostrar un indicador en el titulo del dialogo: "Entrega 1 de 2" para dar contexto al usuario de cuantas entregas faltan.
+- Sin cambios en la logica de creacion de entrega; al completar exitosamente, llamar `onSkip` (que ahora avanza al siguiente en vez de cerrar todo).
+
+### Flujo resultante
 
 ```text
-Flujo actual:
-  convertToBooking() -> createBooking(quote.forklift_id) -> 1 reserva
-
-Flujo corregido:
-  convertToBooking() -> 
-    extraer forklift IDs de line_items (matching por nombre)
-    para cada forklift_id:
-      createBooking(forklift_id) -> reserva individual
-    vincular todas con quote_id
-    marcar cotizacion como "accepted"
+Usuario: "Convertir a Reserva" (cotizacion con 2 montacargas)
+  -> Se crean 2 reservas
+  -> pendingDeliveries = [{ equipo1 }, { equipo2 }], index = 0
+  -> Dialogo: "Entrega 1 de 2 - MCAPC025A048/001"
+     Usuario programa o salta
+  -> index = 1
+  -> Dialogo: "Entrega 2 de 2 - MCAPC035A048/003"
+     Usuario programa o salta
+  -> Navegar a /calendar
 ```
 
-La extraccion de IDs usa el mismo patron existente en `QuoteForm.tsx` lineas 119-122:
-```typescript
-const matched = allForkliftsFromHook.find((f) => item.description?.includes(f.name));
-```
-
-### Consideraciones
-- Si algun montacargas falla al crear la reserva, se detiene y muestra error (las reservas ya creadas permanecen)
-- El dialogo post-booking de entrega se mostrara para el primer montacargas; las demas entregas se pueden programar desde la pagina de entregas
-- La columna `quote_id` ya soporta multiples reservas apuntando a la misma cotizacion (no tiene constraint UNIQUE)
