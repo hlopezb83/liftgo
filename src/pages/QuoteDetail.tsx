@@ -123,15 +123,6 @@ export default function QuoteDetail() {
           <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
           <CardContent><p className="font-medium">{quote.customer_name || "—"}</p></CardContent>
         </Card>
-        {isSale && (quote as any).equipment_model_id && (() => {
-          const model = equipmentModels?.find((m) => m.id === (quote as any).equipment_model_id);
-          return model ? (
-            <Card>
-              <CardHeader><CardTitle className="text-base">Modelo de Equipo</CardTitle></CardHeader>
-              <CardContent><p className="font-medium">{model.manufacturer} — {model.model}</p></CardContent>
-            </Card>
-          ) : null;
-        })()}
         {!isSale ? (
           <Card>
             <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
