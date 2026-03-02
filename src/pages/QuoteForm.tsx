@@ -18,6 +18,8 @@ import { ForkliftSelector } from "@/components/ForkliftSelector";
 import { SaleLineItems, type SaleLine } from "@/components/SaleLineItems";
 import { CostSummaryCard } from "@/components/CostSummaryCard";
 import { NotesCard } from "@/components/NotesCard";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { useState, useEffect, useMemo } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -43,6 +45,8 @@ export default function QuoteForm() {
   const [taxRate, setTaxRate] = useState("16");
   const [notes, setNotes] = useState("");
   const [validUntil, setValidUntil] = useState<Date>();
+  const [includeLogistics, setIncludeLogistics] = useState(false);
+  const [logisticsCost, setLogisticsCost] = useState(0);
 
   const { data: equipmentModels } = useEquipmentModels();
 
@@ -60,10 +64,18 @@ export default function QuoteForm() {
       setNotes(existingQuote.notes || "");
       setValidUntil(existingQuote.valid_until ? new Date(existingQuote.valid_until) : undefined);
 
+      // Restore logistics from existing line_items
+      const allItems = (existingQuote.line_items as unknown as LineItem[]) || [];
+      const logisticsItem = allItems.find((item) => item.description?.includes("Logística"));
+      if (logisticsItem) {
+        setIncludeLogistics(true);
+        setLogisticsCost(logisticsItem.unit_price || logisticsItem.total || 0);
+      }
+
       if (isSale && equipmentModels) {
-        const items = (existingQuote.line_items as unknown as LineItem[]) || [];
-        if (items.length > 0) {
-          const rebuilt = items.map((item) => {
+        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
+        if (nonLogisticsItems.length > 0) {
+          const rebuilt = nonLogisticsItems.map((item) => {
             const found = equipmentModels.find(
               (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
             );
@@ -95,9 +107,10 @@ export default function QuoteForm() {
   const forklift = allForkliftsFromHook?.find((f) => f.id === forkliftId);
 
   const lineItems: LineItem[] = useMemo(() => {
+    let items: LineItem[] = [];
     if (quoteType === "sale") {
       if (!equipmentModels) return [];
-      return saleLines
+      items = saleLines
         .filter((l) => l.modelId && l.unitPrice > 0 && l.quantity > 0)
         .map((l) => {
           const m = equipmentModels.find((em) => em.id === l.modelId);
@@ -108,10 +121,15 @@ export default function QuoteForm() {
             total: l.quantity * l.unitPrice,
           };
         });
+    } else {
+      if (!forklift || !startDate || !endDate) return [];
+      items = generateLineItems(forklift, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
     }
-    if (!forklift || !startDate || !endDate) return [];
-    return generateLineItems(forklift, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
-  }, [forklift, startDate, endDate, quoteType, saleLines, equipmentModels]);
+    if (includeLogistics && logisticsCost > 0) {
+      items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
+    }
+    return items;
+  }, [forklift, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
@@ -120,6 +138,8 @@ export default function QuoteForm() {
     setForkliftId("");
     setSaleLines([{ ...EMPTY_SALE_LINE }]);
     setDateRange(undefined);
+    setIncludeLogistics(false);
+    setLogisticsCost(0);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -225,6 +245,35 @@ export default function QuoteForm() {
           hideManualName
           helpText="Si tu cliente no aparece en la lista, selecciona 'Público en General' o regístralo primero en el módulo de Clientes."
         />
+
+        <Card>
+          <CardContent className="pt-6 space-y-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="include-logistics"
+                checked={includeLogistics}
+                onCheckedChange={(checked) => {
+                  setIncludeLogistics(!!checked);
+                  if (!checked) setLogisticsCost(0);
+                }}
+              />
+              <Label htmlFor="include-logistics" className="cursor-pointer">Incluir Servicio de Logística</Label>
+            </div>
+            {includeLogistics && (
+              <div className="space-y-1.5 max-w-xs">
+                <Label>Monto del Servicio</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="0.00"
+                  value={logisticsCost || ""}
+                  onChange={(e) => setLogisticsCost(Number(e.target.value) || 0)}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} />
 
