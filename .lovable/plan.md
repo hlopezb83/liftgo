@@ -1,74 +1,63 @@
 
 
-## Usar modelos de equipo en cotizaciones de venta
+## Agregar cantidad y multiples modelos en cotizaciones de venta
 
-### Problema
-Actualmente, al crear una cotizacion de venta, el dropdown muestra las unidades individuales de la flota (MC-001, MC-002, etc.). Para ventas, lo correcto es cotizar por modelo de equipo (ej. "Hyster H50"), no por unidad especifica.
+### Resumen
 
-### Solucion
+Actualmente, en modo "Venta", solo se puede seleccionar un modelo de equipo con cantidad fija de 1. Se cambiara para permitir agregar multiples lineas de venta, cada una con su modelo, cantidad y precio unitario.
 
-Cambiar el selector de montacargas en modo "Venta" para que muestre los modelos de equipo configurados en la tabla `equipment_models`, en lugar de unidades individuales.
+### Enfoque
 
-### Cambios en base de datos
-
-**Migracion: agregar columna `equipment_model_id` a la tabla `quotes`**
-
-```text
-quotes
-  + equipment_model_id (uuid, nullable, FK -> equipment_models.id)
-  forklift_id (ya es nullable, se usara solo para rentas)
-```
-
-La columna `forklift_id` se mantiene para cotizaciones de renta. Para ventas, se usara `equipment_model_id`.
+Reemplazar el selector unico de modelo + precio por una lista dinamica de "lineas de venta" donde cada linea tiene: modelo, cantidad y precio unitario. El usuario puede agregar y eliminar lineas.
 
 ### Cambios en codigo
 
 **1. `src/pages/QuoteForm.tsx`**
 
-- Importar `useEquipmentModels` en lugar de `useForklifts` para modo venta
-- Nuevo estado `equipmentModelId` para almacenar el modelo seleccionado
-- Reemplazar el `ForkliftSelector` en modo venta por un nuevo selector que muestre modelos (formato: "Fabricante - Modelo")
-- La partida de la cotizacion usara la descripcion del modelo: `"Hyster H50 - Venta de equipo"`
-- Al guardar en modo venta: enviar `equipment_model_id` en lugar de `forklift_id` (forklift_id sera null)
-- Al editar una cotizacion de venta existente: cargar el `equipment_model_id`
+- Reemplazar los estados `equipmentModelId` y `salePrice` por un array de lineas de venta:
+  ```text
+  saleLines: Array<{ modelId: string; quantity: number; unitPrice: number }>
+  ```
+- Inicializar con una linea vacia `[{ modelId: "", quantity: 1, unitPrice: 0 }]`
+- Botones "Agregar linea" y "Eliminar" por cada linea
+- Los `lineItems` se generan mapeando cada linea de venta a un LineItem con la descripcion del modelo
+- Al editar una cotizacion existente de venta, reconstruir las `saleLines` desde `line_items`
+- Validacion: al menos una linea con modelo seleccionado, cantidad > 0 y precio > 0
+- El campo `equipment_model_id` en el payload se establece al primer modelo (compatibilidad) o null
 
-**2. Nuevo componente: `src/components/EquipmentModelSelector.tsx`**
+**2. Nuevo componente: `src/components/SaleLineItems.tsx`**
 
-Dropdown que lista los modelos de `equipment_models`:
-- Muestra: "Fabricante - Modelo" (ej. "Hyster - H50")
-- Sin filtro de disponibilidad (los modelos no tienen estado)
-- Siempre habilitado (no depende de fechas)
+Componente que renderiza la lista de lineas de venta:
+- Cada fila: selector de modelo (dropdown), input de cantidad (numerico, min 1), input de precio unitario, total calculado, boton eliminar
+- Boton "Agregar modelo" al final
+- Recibe la lista de modelos disponibles de `equipment_models`
+- Props: `lines`, `onChange`, `models`
 
 **3. `src/pages/QuoteDetail.tsx`**
 
-- Cargar datos del modelo de equipo cuando la cotizacion es de venta
-- Mostrar "Modelo: Hyster H50" en la tarjeta de detalles en lugar de una unidad especifica
+- Sin cambios necesarios: ya muestra `line_items` con `ReadOnlyLineItemsTable` que soporta multiples lineas con cantidad
 
 **4. `src/components/QuotePDFButton.tsx`**
 
-- Para cotizaciones de venta: obtener el nombre del modelo desde `equipment_models` si hay `equipment_model_id`
-- Mostrar el nombre del modelo en el PDF
+- Sin cambios necesarios: ya genera PDF desde `line_items` que ahora tendran multiples entradas con cantidades correctas
 
-**5. `src/hooks/useQuotes.ts`**
+### No requiere cambios en base de datos
 
-- Ajustar validacion en `handleSubmit`: para ventas no requerir `forklift_id`, requerir `equipment_model_id`
+Los datos de multiples modelos se almacenan en el campo `line_items` (jsonb) que ya soporta un array de objetos. El campo `equipment_model_id` se mantiene por compatibilidad pero apuntara al primer modelo seleccionado.
 
 ### Flujo de usuario
 
-1. Nueva Cotizacion > seleccionar "Venta"
-2. El dropdown cambia a "Modelo de Equipo" y muestra: Hyster - H50, Toyota - 8FGU25, etc.
-3. Seleccionar modelo, ingresar precio, cliente
-4. La partida se genera como: "Hyster H50 - Venta de equipo"
-5. Al guardar, se almacena `equipment_model_id` (sin `forklift_id`)
-
-### Lo que NO cambia
-- Cotizaciones de renta siguen usando `forklift_id` con unidades individuales
-- La tabla `equipment_models` no se modifica
-- RLS no requiere cambios (misma tabla quotes)
+1. Nueva Cotizacion > Venta
+2. Aparece una primera linea con: selector de modelo, cantidad (default 1), precio unitario
+3. El usuario puede agregar mas lineas con "Agregar modelo"
+4. Cada linea muestra el total (cantidad x precio)
+5. El resumen de costos se actualiza automaticamente
+6. Al guardar, cada linea se convierte en un item de `line_items`
 
 ### Detalle tecnico
 
-- 1 migracion de base de datos (agregar columna)
-- 1 componente nuevo (`EquipmentModelSelector`)
-- 4 archivos modificados
+- 1 componente nuevo (`SaleLineItems`)
+- 1 archivo modificado (`QuoteForm.tsx`)
+- Sin migraciones de base de datos
 - Sin cambios en edge functions
+
