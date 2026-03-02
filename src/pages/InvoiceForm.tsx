@@ -5,6 +5,7 @@ import { useForklifts } from "@/hooks/useForklifts";
 import { useCreateInvoice, useUpdateInvoice, useInvoice } from "@/hooks/useInvoices";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
+import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ export default function InvoiceForm() {
   const { data: customers } = useCustomers();
   const { data: existing } = useInvoice(id);
   const { data: sourceQuote } = useQuote(fromQuoteId || undefined);
+  const { data: assignments } = useQuoteAssignments(fromQuoteId || undefined);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const updateQuote = useUpdateQuote();
@@ -88,12 +90,25 @@ export default function InvoiceForm() {
     setCustomerName(sourceQuote.customer_name || "");
     setCustomerId(sourceQuote.customer_id);
     const quoteItems = (sourceQuote.line_items as unknown as CfdiLineItem[]) || [];
-    setLineItems(quoteItems.map((item) => ({
-      ...item,
-      clave_prod_serv: item.clave_prod_serv || "78181500",
-      clave_unidad: item.clave_unidad || "DAY",
-      objeto_imp: item.objeto_imp || "02",
-    })));
+    const isSaleWithAssignments = sourceQuote.quote_type === "sale" && assignments && assignments.length > 0;
+    setLineItems(quoteItems.map((item, index) => {
+      const enriched: CfdiLineItem = {
+        ...item,
+        clave_prod_serv: item.clave_prod_serv || "78181500",
+        clave_unidad: item.clave_unidad || "DAY",
+        objeto_imp: item.objeto_imp || "02",
+      };
+      if (isSaleWithAssignments) {
+        const assignment = assignments.find((a) => a.line_index === index);
+        if (assignment) {
+          const fl = forklifts?.find((f) => f.id === assignment.forklift_id);
+          if (fl) {
+            enriched.description = `${fl.manufacturer || ""} ${fl.model} — S/N: ${fl.serial_number || "N/A"} (${fl.name}) - Venta de equipo`;
+          }
+        }
+      }
+      return enriched;
+    }));
     setTaxRate(Number(sourceQuote.tax_rate) || 16);
     setNotes(sourceQuote.notes || "");
     // Auto-fill CFDI from customer
@@ -101,7 +116,7 @@ export default function InvoiceForm() {
       const cust = customers.find((c) => c.id === sourceQuote.customer_id);
       if (cust) applyCustomerCfdi(cust);
     }
-  }, [sourceQuote, customers, isEdit]);
+  }, [sourceQuote, customers, isEdit, assignments, forklifts]);
 
   const applyCustomerCfdi = (cust: NonNullable<typeof customers>[number]) => {
     setReceptorRfc(cust.rfc || "");
