@@ -70,8 +70,16 @@ export function useDeleteQuote() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("quotes").delete().eq("id", id);
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["quotes"] }),
+    onSuccess: (deletedId) => {
+      // Optimistically remove from cache for instant UI update
+      qc.setQueryData<Quote[]>(["quotes"], (old) =>
+        old ? old.filter((q) => q.id !== deletedId) : []
+      );
+      qc.removeQueries({ queryKey: ["quotes", deletedId] });
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+    },
   });
 }
 
