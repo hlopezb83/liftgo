@@ -1,37 +1,58 @@
 
 
-## Corregir filtro de disponibilidad para equipos con status "rented"
+## Agregar dialogo de facturacion recurrente al convertir cotizacion a reserva
 
 ### Problema
-
-El hook `useAvailableForklifts` (linea 39) solo muestra montacargas con `status === "available"`, descartando inmediatamente los que tienen status `"rented"`. Esto es incorrecto porque:
-
-- La funcion `create_booking` marca el equipo como `rented` al crear una reserva, pero no existe logica para regresarlo a `available` cuando la reserva termina.
-- Un equipo `rented` cuya reserva actual ya termino (o termina antes del nuevo periodo solicitado) deberia aparecer como disponible para nuevas cotizaciones/reservas.
-- La verificacion real de disponibilidad ya existe en las lineas 40-48 (solapamiento de intervalos de fechas), pero nunca se ejecuta para equipos `rented` porque el filtro de status los descarta antes.
+Cuando una cotizacion de periodo largo (>= 30 dias) se convierte a reserva desde `QuoteDetail`, las reservas se crean sin `recurring_billing`, ignorando la necesidad de facturacion mensual automatica.
 
 ### Solucion
+Interceptar el clic en "Convertir a Reserva" con un dialogo intermedio que pregunte al usuario si desea habilitar facturacion recurrente, pero solo cuando el periodo de la cotizacion sea >= 30 dias. Si es menor a 30 dias, se procede directamente sin preguntar.
 
-Cambiar el filtro de status en `useAvailableForklifts` para aceptar tanto `"available"` como `"rented"`, y dejar que la logica de solapamiento de fechas determine si el equipo realmente esta libre para el periodo solicitado. Los status `"maintenance"`, `"retired"` y `"sold"` siguen excluidos.
+### Cambios en `src/pages/QuoteDetail.tsx`
 
-### Cambio
+**1. Nuevo estado para el dialogo**
+- Agregar `showRecurringDialog` (boolean) para controlar la visibilidad del dialogo.
+- Agregar `recurringBillingChoice` (boolean) para almacenar la eleccion del usuario.
 
-**`src/hooks/useAvailableForklifts.ts`** (linea 39)
+**2. Modificar el flujo del boton "Convertir a Reserva"**
+- Al hacer clic, verificar si `differenceInDays(end_date, start_date) >= 30`.
+  - Si es >= 30 dias: abrir el dialogo preguntando sobre facturacion recurrente.
+  - Si es < 30 dias: ejecutar `convertToBooking(false)` directamente.
 
-Cambiar:
-```typescript
-if (f.status !== "available" || maintenanceDueIds.has(f.id)) return false;
+**3. Nuevo componente de dialogo (inline)**
+- Usar `Dialog` (ya importado en el proyecto) con:
+  - Titulo: "Facturacion Recurrente"
+  - Descripcion: "Esta cotizacion cubre un periodo de X meses. Desea habilitar la facturacion recurrente mensual para las reservas que se crearan?"
+  - Dos botones: "No, crear sin recurrente" y "Si, habilitar recurrente"
+- Ambos botones cierran el dialogo y llaman a `convertToBooking(recurringBilling)`.
+
+**4. Pasar `recurring_billing` al crear reservas**
+- Modificar la llamada `createBooking.mutateAsync()` para incluir `recurring_billing: recurringBilling` como parametro.
+
+### Flujo resultante
+
+```text
+Usuario clica "Convertir a Reserva"
+        |
+   Periodo >= 30 dias?
+   /           \
+  Si            No
+  |              |
+  Dialogo:      Crear reservas
+  "Habilitar    directamente
+  recurrente?"  (recurring=false)
+  /        \
+ Si         No
+ |          |
+ Crear      Crear
+ reservas   reservas
+ (true)     (false)
 ```
 
-Por:
-```typescript
-if ((f.status !== "available" && f.status !== "rented") || maintenanceDueIds.has(f.id)) return false;
-```
+### Detalle tecnico
 
-Esto permite que equipos `rented` pasen al segundo filtro (solapamiento de fechas). Si sus reservas activas no se solapan con el periodo solicitado, apareceran en el dropdown.
+- Importar `differenceInDays` de `date-fns` (ya disponible en el proyecto).
+- Refactorizar `convertToBooking` para aceptar un parametro `recurringBilling: boolean`.
+- En la llamada a `createBooking.mutateAsync`, agregar `recurring_billing: recurringBilling`.
+- Usar el componente `Dialog` existente (`@/components/ui/dialog`) para el dialogo intermedio, manteniendo consistencia visual con el resto de la aplicacion.
 
-### Impacto
-
-- El dropdown de montacargas en cotizaciones y reservas mostrara correctamente equipos cuya renta actual no se solapa con el periodo seleccionado.
-- No se requieren cambios en la base de datos ni en otros componentes.
-- Los reportes y dashboards que usan `f.status === "rented"` para conteo visual no se ven afectados.
