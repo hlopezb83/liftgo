@@ -99,13 +99,16 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
 
       // Rows
       const lineItems = (quote.line_items as unknown as { description: string; quantity: number; unit_price: number; total: number }[]) || [];
+      const fmtMXN = (n: number) =>
+        `$${n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       for (const item of lineItems) {
         doc.text(String(item.description || ""), mg + 2, y);
         doc.text(String(item.quantity), 120, y, { align: "right" });
-        doc.text(`$${Number(item.unit_price).toFixed(2)}`, 150, y, { align: "right" });
-        doc.text(`$${Number(item.total).toFixed(2)}`, pw - mg, y, { align: "right" });
+        doc.text(fmtMXN(Number(item.unit_price)), 150, y, { align: "right" });
+        doc.text(fmtMXN(Number(item.total)), pw - mg, y, { align: "right" });
         y += 3;
         doc.setDrawColor(238, 238, 238);
         doc.setLineWidth(0.2);
@@ -118,11 +121,11 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text("Subtotal:", pw - mg - 50, y, { align: "right" });
-      doc.text(`$${Number(quote.subtotal).toFixed(2)}`, pw - mg, y, { align: "right" });
+      doc.text(fmtMXN(Number(quote.subtotal)), pw - mg, y, { align: "right" });
 
       y += 7;
       doc.text(`IVA (${quote.tax_rate}%):`, pw - mg - 50, y, { align: "right" });
-      doc.text(`$${Number(quote.tax_amount).toFixed(2)}`, pw - mg, y, { align: "right" });
+      doc.text(fmtMXN(Number(quote.tax_amount)), pw - mg, y, { align: "right" });
 
       y += 4;
       doc.setDrawColor(51, 51, 51);
@@ -133,7 +136,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.text("Total:", pw - mg - 50, y, { align: "right" });
-      doc.text(`$${Number(quote.total).toFixed(2)} MXN`, pw - mg, y, { align: "right" });
+      doc.text(`${fmtMXN(Number(quote.total))} MXN`, pw - mg, y, { align: "right" });
 
       // Notes
       if (quote.notes) {
