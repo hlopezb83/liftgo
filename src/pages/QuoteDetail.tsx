@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { differenceInDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { useQuote, useUpdateQuote, useDeleteQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
@@ -28,6 +29,9 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { AssignForkliftsCard } from "@/components/AssignForkliftsCard";
 import { formatDateDisplay } from "@/lib/utils";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -74,8 +78,22 @@ export default function QuoteDetail() {
   };
 
   const [isConverting, setIsConverting] = useState(false);
+  const [showRecurringDialog, setShowRecurringDialog] = useState(false);
 
-  const convertToBooking = async () => {
+  const durationDays = useMemo(() => {
+    if (!quote?.start_date || !quote?.end_date) return 0;
+    return differenceInDays(new Date(quote.end_date), new Date(quote.start_date));
+  }, [quote?.start_date, quote?.end_date]);
+
+  const handleConvertClick = () => {
+    if (durationDays >= 30) {
+      setShowRecurringDialog(true);
+    } else {
+      convertToBooking(false);
+    }
+  };
+
+  const convertToBooking = async (recurringBilling: boolean) => {
     if (!quote || !forklifts) return;
     const lineItems = (quote.line_items as unknown as LineItem[]) || [];
 
@@ -109,6 +127,7 @@ export default function QuoteDetail() {
           customer_name: quote.customer_name,
           customer_id: quote.customer_id,
           status: "confirmed",
+          recurring_billing: recurringBilling,
         });
         // Link booking to this quote
         await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
@@ -170,7 +189,7 @@ export default function QuoteDetail() {
               </>
             )}
             {!isSale && !alreadyConverted && (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
-              <Button size="sm" variant="default" onClick={convertToBooking} disabled={isConverting}><BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas..." : "Convertir a Reserva"}</Button>
+              <Button size="sm" variant="default" onClick={handleConvertClick} disabled={isConverting}><BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas..." : "Convertir a Reserva"}</Button>
             )}
             {alreadyConverted && (
               <Button size="sm" variant="outline" disabled className="opacity-70"><BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva</Button>
@@ -271,6 +290,26 @@ export default function QuoteDetail() {
           totalCount={pendingDeliveries.length}
         />
       )}
+
+      <Dialog open={showRecurringDialog} onOpenChange={setShowRecurringDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Facturación Recurrente</DialogTitle>
+            <DialogDescription>
+              Esta cotización cubre un periodo de {Math.round(durationDays / 30)} mes(es) ({durationDays} días).
+              ¿Desea habilitar la facturación recurrente mensual para las reservas que se crearán?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowRecurringDialog(false); convertToBooking(false); }}>
+              No, crear sin recurrente
+            </Button>
+            <Button onClick={() => { setShowRecurringDialog(false); convertToBooking(true); }}>
+              Sí, habilitar recurrente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
