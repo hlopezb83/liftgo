@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { APP_CONFIG } from "@/lib/config";
 
 interface TotalsSummaryProps {
   subtotal: number;
@@ -22,15 +23,19 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
           <div className="flex items-center gap-4 text-sm">
             {onTaxRateChange ? (
               <>
-                <span className="text-muted-foreground">IVA (%)</span>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min={0}
-                  value={taxRate}
-                  onChange={(e) => onTaxRateChange(Number(e.target.value))}
-                  className="w-20 h-8 text-right"
-                />
+                <span className="text-muted-foreground">IVA</span>
+                <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v))}>
+                  <SelectTrigger className="w-36 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {APP_CONFIG.TAX_RATE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={String(opt.value)}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </>
             ) : (
               <span className="text-muted-foreground">IVA ({taxRate}%)</span>
