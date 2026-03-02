@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
 import { useForklifts } from "@/hooks/useForklifts";
-import { useCreateInvoice, useUpdateInvoice, useInvoice } from "@/hooks/useInvoices";
+import { useCreateInvoice, useUpdateInvoice, useInvoice, useInvoices } from "@/hooks/useInvoices";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
@@ -35,9 +35,16 @@ export default function InvoiceForm() {
   const { data: existing } = useInvoice(id);
   const { data: sourceQuote } = useQuote(fromQuoteId || undefined);
   const { data: assignments } = useQuoteAssignments(fromQuoteId || undefined);
+  const { data: invoices } = useInvoices();
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const updateQuote = useUpdateQuote();
+
+  // Build set of booking IDs already invoiced (exclude cancelled invoices)
+  const invoicedBookingIds = new Set(
+    invoices?.filter(inv => inv.status !== 'cancelled' && inv.booking_id)
+      .map(inv => inv.booking_id)
+  );
 
   const [bookingId, setBookingId] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -236,7 +243,7 @@ export default function InvoiceForm() {
                 <Select value={bookingId} onValueChange={handleBookingSelect}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar reserva (opcional)" /></SelectTrigger>
                   <SelectContent>
-                    {bookings?.filter((b) => b.status === "confirmed").map((b) => (
+                    {bookings?.filter((b) => b.status === "confirmed" && !invoicedBookingIds.has(b.id)).map((b) => (
                       <SelectItem key={b.id} value={b.id}>
                         {(b as BookingWithForklift).forklifts?.name} — {b.customer_name || "Sin cliente"} ({formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)})
                       </SelectItem>

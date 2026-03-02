@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useQuote } from "@/hooks/useQuotes";
+import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -42,6 +43,9 @@ export default function InvoiceDetail() {
   const { data: payments } = usePayments(id);
   const quoteId = (invoice as any)?.quote_id;
   const { data: sourceQuote } = useQuote(quoteId || undefined);
+  const bookingId = invoice?.booking_id;
+  const { data: allBookings } = useBookings();
+  const sourceBooking = allBookings?.find((b) => b.id === bookingId) as BookingWithForklift | undefined;
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
 
   const setStatus = (status: string, paidAt?: string) => {
@@ -200,6 +204,25 @@ export default function InvoiceDetail() {
                 {sourceQuote.quote_number}
               </Badge>
             </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {sourceBooking && (
+        <Card>
+          <CardContent className="py-3 space-y-1">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Generada desde reserva:</span>
+              <Link to="/bookings">
+                <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                  {sourceBooking.forklifts?.name || "Reserva"}
+                </Badge>
+              </Link>
+            </div>
+            <p className="text-xs text-muted-foreground ml-6">
+              {sourceBooking.forklifts?.name} — {formatDateDisplay(sourceBooking.start_date)} → {formatDateDisplay(sourceBooking.end_date)}
+            </p>
           </CardContent>
         </Card>
       )}
