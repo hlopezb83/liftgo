@@ -14,13 +14,15 @@ import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { ForkliftSelector } from "@/components/ForkliftSelector";
-import { EquipmentModelSelector } from "@/components/EquipmentModelSelector";
+import { SaleLineItems, type SaleLine } from "@/components/SaleLineItems";
 import { CostSummaryCard } from "@/components/CostSummaryCard";
 import { NotesCard } from "@/components/NotesCard";
 import { useState, useEffect, useMemo } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
+
+const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0 };
 
 export default function QuoteForm() {
   const { id } = useParams();
@@ -33,20 +35,21 @@ export default function QuoteForm() {
 
   const [quoteType, setQuoteType] = useState<"rental" | "sale">("rental");
   const [forkliftId, setForkliftId] = useState("");
-  const [equipmentModelId, setEquipmentModelId] = useState("");
+  const [saleLines, setSaleLines] = useState<SaleLine[]>([{ ...EMPTY_SALE_LINE }]);
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [taxRate, setTaxRate] = useState("16");
   const [notes, setNotes] = useState("");
   const [validUntil, setValidUntil] = useState<Date>();
-  const [salePrice, setSalePrice] = useState("");
+
+  const { data: equipmentModels } = useEquipmentModels();
 
   useEffect(() => {
     if (existingQuote) {
-      setQuoteType((existingQuote as any).quote_type === "sale" ? "sale" : "rental");
+      const isSale = (existingQuote as any).quote_type === "sale";
+      setQuoteType(isSale ? "sale" : "rental");
       setForkliftId(existingQuote.forklift_id || "");
-      setEquipmentModelId((existingQuote as any).equipment_model_id || "");
       setCustomerId(existingQuote.customer_id || "");
       setCustomerName(existingQuote.customer_name || "");
       if (existingQuote.start_date && existingQuote.end_date) {
@@ -55,19 +58,29 @@ export default function QuoteForm() {
       setTaxRate(String(existingQuote.tax_rate));
       setNotes(existingQuote.notes || "");
       setValidUntil(existingQuote.valid_until ? new Date(existingQuote.valid_until) : undefined);
-      if ((existingQuote as any).quote_type === "sale") {
+
+      if (isSale && equipmentModels) {
         const items = (existingQuote.line_items as unknown as LineItem[]) || [];
-        if (items.length > 0) setSalePrice(String(items[0].unit_price));
+        if (items.length > 0) {
+          const rebuilt = items.map((item) => {
+            const found = equipmentModels.find(
+              (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
+            );
+            return {
+              modelId: found?.id || "",
+              quantity: item.quantity || 1,
+              unitPrice: item.unit_price || 0,
+            };
+          });
+          setSaleLines(rebuilt);
+        }
       }
     } else if (!validUntil) {
       setValidUntil(addDays(new Date(), 30));
     }
-  }, [existingQuote]);
+  }, [existingQuote, equipmentModels]);
 
-  // Rental mode: use date-filtered available forklifts
   const { availableForklifts, forklifts: allForkliftsFromHook, datesSelected } = useAvailableForklifts(dateRange);
-  // Sale mode: use equipment models
-  const { data: equipmentModels } = useEquipmentModels();
 
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
@@ -79,47 +92,53 @@ export default function QuoteForm() {
   }, [availableForklifts, forkliftId, datesSelected, quoteType]);
 
   const forklift = allForkliftsFromHook?.find((f) => f.id === forkliftId);
-  const selectedModel = equipmentModels?.find((m) => m.id === equipmentModelId);
 
   const lineItems: LineItem[] = useMemo(() => {
     if (quoteType === "sale") {
-      if (!selectedModel || !salePrice || Number(salePrice) <= 0) return [];
-      const price = Number(salePrice);
-      return [{
-        description: `${selectedModel.manufacturer} ${selectedModel.model} - Venta de equipo`,
-        quantity: 1,
-        unit_price: price,
-        total: price,
-      }];
+      if (!equipmentModels) return [];
+      return saleLines
+        .filter((l) => l.modelId && l.unitPrice > 0 && l.quantity > 0)
+        .map((l) => {
+          const m = equipmentModels.find((em) => em.id === l.modelId);
+          return {
+            description: m ? `${m.manufacturer} ${m.model} - Venta de equipo` : "Venta de equipo",
+            quantity: l.quantity,
+            unit_price: l.unitPrice,
+            total: l.quantity * l.unitPrice,
+          };
+        });
     }
     if (!forklift || !startDate || !endDate) return [];
     return generateLineItems(forklift, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
-  }, [forklift, selectedModel, startDate, endDate, quoteType, salePrice]);
+  }, [forklift, startDate, endDate, quoteType, saleLines, equipmentModels]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
   const handleTypeChange = (type: string) => {
     setQuoteType(type as "rental" | "sale");
     setForkliftId("");
-    setEquipmentModelId("");
-    setSalePrice("");
+    setSaleLines([{ ...EMPTY_SALE_LINE }]);
     setDateRange(undefined);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (quoteType === "rental" && !forkliftId) { toast.error("Selecciona un montacargas"); return; }
-    if (quoteType === "sale" && !equipmentModelId) { toast.error("Selecciona un modelo de equipo"); return; }
     if (quoteType === "rental" && (!startDate || !endDate)) { toast.error("Selecciona el periodo de renta"); return; }
-    if (quoteType === "sale" && (!salePrice || Number(salePrice) <= 0)) { toast.error("Ingresa el precio de venta"); return; }
+    if (quoteType === "sale") {
+      const validLines = saleLines.filter((l) => l.modelId && l.unitPrice > 0 && l.quantity > 0);
+      if (validLines.length === 0) { toast.error("Agrega al menos un modelo con cantidad y precio"); return; }
+    }
 
     const today = format(new Date(), "yyyy-MM-dd");
+    const firstModelId = quoteType === "sale" ? (saleLines.find((l) => l.modelId)?.modelId || null) : null;
+
     const payload = {
       quote_number: existingQuote?.quote_number || nextNumber || "COT-0001",
       customer_id: customerId || null,
       customer_name: customerName || null,
       forklift_id: quoteType === "rental" ? forkliftId : null,
-      equipment_model_id: quoteType === "sale" ? equipmentModelId : null,
+      equipment_model_id: firstModelId,
       start_date: quoteType === "rental" ? format(startDate!, "yyyy-MM-dd") : today,
       end_date: quoteType === "rental" ? format(endDate!, "yyyy-MM-dd") : today,
       line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
@@ -160,33 +179,13 @@ export default function QuoteForm() {
               <DateRangePickerField label="Periodo de Renta *" dateRange={dateRange} onSelect={setDateRange} required />
             )}
 
-            {quoteType === "rental" ? (
+            {quoteType === "rental" && (
               <ForkliftSelector
                 value={forkliftId}
                 onValueChange={setForkliftId}
                 availableForklifts={availableForklifts}
                 datesSelected={datesSelected}
               />
-            ) : (
-              <EquipmentModelSelector
-                value={equipmentModelId}
-                onValueChange={setEquipmentModelId}
-                models={equipmentModels || []}
-              />
-            )}
-
-            {quoteType === "sale" && (
-              <div className="space-y-1.5">
-                <Label>Precio de Venta *</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={salePrice}
-                  onChange={(e) => setSalePrice(e.target.value)}
-                />
-              </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -198,6 +197,10 @@ export default function QuoteForm() {
             </div>
           </CardContent>
         </Card>
+
+        {quoteType === "sale" && (
+          <SaleLineItems lines={saleLines} onChange={setSaleLines} models={equipmentModels || []} />
+        )}
 
         <CustomerSelector
           customers={customers}
