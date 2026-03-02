@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 import { useInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
@@ -15,8 +16,11 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, FileText } from "lucide-react";
+import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, FileText, CalendarIcon } from "lucide-react";
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
@@ -33,6 +37,8 @@ export default function InvoiceDetail() {
   const [stampLoading, setStampLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paidDate, setPaidDate] = useState<Date>(new Date());
+  const [paidPopoverOpen, setPaidPopoverOpen] = useState(false);
   const { data: payments } = usePayments(id);
   const quoteId = (invoice as any)?.quote_id;
   const { data: sourceQuote } = useQuote(quoteId || undefined);
@@ -102,9 +108,26 @@ export default function InvoiceDetail() {
               <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
             )}
             {(invoice.status === "sent" || invoice.status === "overdue") && (
-              <Button size="sm" onClick={() => setStatus("paid", new Date().toISOString().split("T")[0])}>
-                <CheckCircle className="h-4 w-4 mr-1" />Marcar Pagada
-              </Button>
+              <Popover open={paidPopoverOpen} onOpenChange={setPaidPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button size="sm">
+                    <CheckCircle className="h-4 w-4 mr-1" />Marcar Pagada
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3 space-y-3" align="start">
+                  <p className="text-sm font-medium">Fecha de pago</p>
+                  <Calendar
+                    mode="single"
+                    selected={paidDate}
+                    onSelect={(d) => { if (d) setPaidDate(d); }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                  <Button size="sm" className="w-full" onClick={() => { setStatus("paid", format(paidDate, "yyyy-MM-dd")); setPaidPopoverOpen(false); }}>
+                    Confirmar
+                  </Button>
+                </PopoverContent>
+              </Popover>
             )}
             {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "partial") && (
               <Button variant="outline" size="sm" onClick={() => setPaymentDialogOpen(true)}>
