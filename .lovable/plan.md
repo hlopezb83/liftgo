@@ -1,39 +1,36 @@
 
+## Agregar "Servicio de Logistica" opcional a cotizaciones
 
-## Hacer seleccion de cliente obligatoria en cotizaciones
+### Resumen
 
-### Problema
-Actualmente el formulario de cotizaciones permite escribir un nombre de cliente manualmente sin seleccionar uno del catalogo. Se necesita que la seleccion de cliente sea obligatoria desde el dropdown, eliminar el campo de texto libre, y mostrar una nota orientativa.
+Agregar un checkbox o toggle en el formulario de cotizaciones (tanto renta como venta) que permita incluir un "Servicio de Logistica" con un monto editable. Cuando se activa, se agrega automaticamente una linea adicional a los `line_items` con la descripcion "Servicio de Logistica" y el monto indicado.
 
 ### Cambios
 
-**1. `src/components/CustomerSelector.tsx`** - Agregar props opcionales
+**1. `src/pages/QuoteForm.tsx`**
 
-- Nueva prop `required?: boolean` - cuando es true, cambia el placeholder a "Seleccionar cliente *" y no muestra "(opcional)"
-- Nueva prop `hideManualName?: boolean` - cuando es true, oculta el campo de texto "Nombre del Cliente"
-- Nueva prop `helpText?: string` - texto de ayuda que se muestra debajo del dropdown (para la recomendacion)
-- El componente sigue funcionando igual para BookingForm (que no pasa estas props)
-
-**2. `src/pages/QuoteForm.tsx`** - Usar las nuevas props
-
-- Pasar `required`, `hideManualName` y `helpText` al CustomerSelector
-- El `helpText` dira: "Si tu cliente no aparece en la lista, selecciona 'Publico en General' o registralo primero en el modulo de Clientes."
-- Agregar validacion en `handleSubmit`: si no hay `customerId`, mostrar error "Selecciona un cliente"
-- Eliminar el estado `customerName` del flujo (se llenara automaticamente al seleccionar cliente)
+- Agregar dos estados nuevos:
+  - `includeLogistics: boolean` (default `false`)
+  - `logisticsCost: number` (default `0`)
+- Agregar una card/seccion con un Checkbox "Incluir Servicio de Logistica" y un input numerico para el monto cuando esta activado
+- En el calculo de `lineItems` (useMemo), si `includeLogistics` es true y `logisticsCost > 0`, agregar al final del array un LineItem:
+  ```text
+  { description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost }
+  ```
+- Al cargar una cotizacion existente (useEffect), detectar si existe un line_item con descripcion que contenga "Logística" y restaurar los estados correspondientes
+- Aplica tanto para tipo "rental" como "sale"
 
 ### Flujo de usuario
 
-1. El usuario ve el dropdown de cliente con placeholder "Seleccionar cliente *"
-2. Debajo del dropdown aparece un texto gris con la recomendacion
-3. Si intenta guardar sin seleccionar cliente, ve el error "Selecciona un cliente"
-4. No hay campo de texto para escribir nombre manualmente
-
-### Lo que NO cambia
-- BookingForm sigue funcionando igual (no pasa las nuevas props)
-- La tabla de base de datos no cambia
-- El campo `customer_name` se sigue guardando (tomado del cliente seleccionado)
+1. El usuario crea o edita una cotizacion (renta o venta)
+2. Ve un checkbox "Incluir Servicio de Logistica"
+3. Al activarlo, aparece un campo para ingresar el monto del servicio
+4. El resumen de costos muestra la linea adicional "Servicio de Logistica"
+5. Al guardar, se incluye como un line_item mas en el JSON
 
 ### Detalle tecnico
-- 2 archivos modificados (CustomerSelector.tsx, QuoteForm.tsx)
-- Sin migraciones de base de datos
 
+- 1 archivo modificado (`QuoteForm.tsx`)
+- Sin componentes nuevos (se agrega inline en el form)
+- Sin migraciones de base de datos (se almacena como un line_item mas en el campo jsonb existente)
+- Compatible con PDF y vista de detalle existentes ya que leen de `line_items`
