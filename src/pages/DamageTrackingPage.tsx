@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+
 
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
@@ -58,7 +58,7 @@ export default function DamageTrackingPage() {
         <Card>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-sm">{format(new Date(r.created_at), "d MMM yyyy", { locale: es })}</span>
+              <span className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</span>
               <StatusBadge status={r.status} />
             </div>
             <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
@@ -112,7 +112,7 @@ export default function DamageTrackingPage() {
       }
       renderRow={(r) => (
         <TableRow key={r.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
-          <TableCell className="font-mono text-sm">{format(new Date(r.created_at), "d MMM yyyy", { locale: es })}</TableCell>
+          <TableCell className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</TableCell>
           <TableCell className="font-medium">{r.forklifts?.name || "—"}</TableCell>
           <TableCell>{r.customers?.name || "—"}</TableCell>
           <TableCell className="max-w-[200px] truncate">{r.description}</TableCell>

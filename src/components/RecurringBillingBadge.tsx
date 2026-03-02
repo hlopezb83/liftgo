@@ -1,6 +1,6 @@
 import { Repeat } from "lucide-react";
 import { format, addDays, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
+
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Booking } from "@/hooks/useBookings";
 
@@ -25,11 +25,11 @@ export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
       <TooltipContent side="top" className="text-xs space-y-1">
         <p>
           <span className="text-muted-foreground">Últ. factura:</span>{" "}
-          {lastBilled ? format(lastBilled, "d MMM yyyy", { locale: es }) : "Sin facturar aún"}
+           {lastBilled ? format(lastBilled, "dd/MM/yyyy") : "Sin facturar aún"}
         </p>
         <p>
           <span className="text-muted-foreground">Próx. factura:</span>{" "}
-          {format(nextBilling, "d MMM yyyy", { locale: es })}
+          {format(nextBilling, "dd/MM/yyyy")}
         </p>
       </TooltipContent>
     </Tooltip>

@@ -200,8 +200,8 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
                       <TooltipContent side="top" className="text-xs space-y-1">
                         <p className="font-semibold">{seg.label}</p>
                         <p>
-                          {format(parseISO(seg.booking.start_date), "d MMM", { locale: es })} →{" "}
-                          {format(parseISO(seg.booking.end_date), "d MMM yyyy", { locale: es })}
+                          {format(parseISO(seg.booking.start_date), "dd/MM")} →{" "}
+                          {format(parseISO(seg.booking.end_date), "dd/MM/yyyy")}
                         </p>
                         <p className="text-muted-foreground">
                           {seg.durationDays} día{seg.durationDays !== 1 ? "s" : ""} ·{" "}

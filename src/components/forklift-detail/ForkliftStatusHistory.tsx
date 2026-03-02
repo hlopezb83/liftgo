@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { History } from "lucide-react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ForkliftStatusHistoryProps {
@@ -24,7 +24,7 @@ export function ForkliftStatusHistory({ logs }: ForkliftStatusHistoryProps) {
                   <span className="font-medium">{log.to_status}</span>
                   {log.note && <span className="text-muted-foreground ml-2">— {log.note}</span>}
                 </div>
-                <span className="text-xs text-muted-foreground">{format(new Date(log.changed_at), "d MMM yyyy HH:mm", { locale: es })}</span>
+                <span className="text-xs text-muted-foreground">{format(new Date(log.changed_at), "dd/MM/yyyy HH:mm")}</span>
               </div>
             ))}
           </div>
