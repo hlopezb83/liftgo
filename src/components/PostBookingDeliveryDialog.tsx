@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,11 @@ import { toast } from "sonner";
 interface PostBookingDeliveryDialogProps {
   open: boolean; onOpenChange: (open: boolean) => void; bookingId: string; forkliftId: string;
   forkliftName: string; startDate: string; customerAddress: string | null; onSkip: () => void;
+  currentIndex?: number; totalCount?: number;
 }
 
-export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkliftId, forkliftName, startDate, customerAddress, onSkip }: PostBookingDeliveryDialogProps) {
-  const navigate = useNavigate();
+export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkliftId, forkliftName, startDate, customerAddress, onSkip, currentIndex = 0, totalCount = 1 }: PostBookingDeliveryDialogProps) {
+  
   const createDelivery = useCreateDelivery();
   const [showForm, setShowForm] = useState(false);
   const [driverName, setDriverName] = useState("");
@@ -27,7 +28,7 @@ export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkl
   const handleSchedule = () => {
     createDelivery.mutate(
       { forklift_id: forkliftId, booking_id: bookingId, scheduled_date: startDate, scheduled_time: scheduledTime || null, address: address || null, driver_name: driverName || null, driver_phone: driverPhone || null, notes: notes || null, type: "delivery" },
-      { onSuccess: () => { toast.success("Reserva creada y entrega programada"); onOpenChange(false); navigate("/calendar"); } }
+      { onSuccess: () => { toast.success("Entrega programada"); onSkip(); } }
     );
   };
 
@@ -35,7 +36,10 @@ export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkl
     <Dialog open={open} onOpenChange={(o) => { if (!o) onSkip(); onOpenChange(o); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" />Reserva Creada</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            {totalCount > 1 ? `Entrega ${currentIndex + 1} de ${totalCount}` : "Reserva Creada"}
+          </DialogTitle>
           <DialogDescription>¿Deseas programar la entrega de {forkliftName}?</DialogDescription>
         </DialogHeader>
         {!showForm ? (
