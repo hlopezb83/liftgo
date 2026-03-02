@@ -1,63 +1,48 @@
 
 
-## Agregar cantidad y multiples modelos en cotizaciones de venta
+## Restringir IVA a 11% y 16% en toda la aplicacion
 
-### Resumen
+### Problema
+Actualmente el campo de IVA es un input numerico libre donde se puede escribir cualquier valor. En Mexico solo existen dos tasas de IVA: 11% (franja fronteriza) y 16% (resto del pais).
 
-Actualmente, en modo "Venta", solo se puede seleccionar un modelo de equipo con cantidad fija de 1. Se cambiara para permitir agregar multiples lineas de venta, cada una con su modelo, cantidad y precio unitario.
+### Solucion
 
-### Enfoque
+Centralizar las opciones de IVA en la configuracion global y reemplazar todos los inputs numericos de IVA por un selector (dropdown) con solo dos opciones: 11% y 16%, con 16% como valor predeterminado.
 
-Reemplazar el selector unico de modelo + precio por una lista dinamica de "lineas de venta" donde cada linea tiene: modelo, cantidad y precio unitario. El usuario puede agregar y eliminar lineas.
+### Cambios
 
-### Cambios en codigo
+**1. `src/lib/config.ts`** - Agregar opciones de IVA
 
-**1. `src/pages/QuoteForm.tsx`**
+Agregar al objeto `APP_CONFIG`:
+```text
+TAX_RATE_OPTIONS: [
+  { value: 16, label: "16% (General)" },
+  { value: 11, label: "11% (Frontera)" },
+]
+```
 
-- Reemplazar los estados `equipmentModelId` y `salePrice` por un array de lineas de venta:
-  ```text
-  saleLines: Array<{ modelId: string; quantity: number; unitPrice: number }>
-  ```
-- Inicializar con una linea vacia `[{ modelId: "", quantity: 1, unitPrice: 0 }]`
-- Botones "Agregar linea" y "Eliminar" por cada linea
-- Los `lineItems` se generan mapeando cada linea de venta a un LineItem con la descripcion del modelo
-- Al editar una cotizacion existente de venta, reconstruir las `saleLines` desde `line_items`
-- Validacion: al menos una linea con modelo seleccionado, cantidad > 0 y precio > 0
-- El campo `equipment_model_id` en el payload se establece al primer modelo (compatibilidad) o null
+**2. `src/components/TotalsSummary.tsx`** - Cambiar input libre por Select
 
-**2. Nuevo componente: `src/components/SaleLineItems.tsx`**
+- Reemplazar el `<Input type="number">` por un `<Select>` con las dos opciones de IVA
+- Cuando `onTaxRateChange` esta presente, mostrar el dropdown
+- Cuando no esta presente (modo lectura), seguir mostrando el texto "IVA (16%)"
 
-Componente que renderiza la lista de lineas de venta:
-- Cada fila: selector de modelo (dropdown), input de cantidad (numerico, min 1), input de precio unitario, total calculado, boton eliminar
-- Boton "Agregar modelo" al final
-- Recibe la lista de modelos disponibles de `equipment_models`
-- Props: `lines`, `onChange`, `models`
+**3. `src/pages/QuoteForm.tsx`** - Cambiar input de IVA por Select
 
-**3. `src/pages/QuoteDetail.tsx`**
+- Reemplazar el `<Input type="number">` del campo "IVA (%)" por un `<Select>` con las dos opciones
+- El estado `taxRate` ya esta inicializado en "16", se mantiene igual
 
-- Sin cambios necesarios: ya muestra `line_items` con `ReadOnlyLineItemsTable` que soporta multiples lineas con cantidad
+**4. `src/pages/InvoiceForm.tsx`** - Sin cambios directos
 
-**4. `src/components/QuotePDFButton.tsx`**
+- Ya usa `TotalsSummary` con `onTaxRateChange`, asi que el cambio en `TotalsSummary` lo cubre automaticamente
 
-- Sin cambios necesarios: ya genera PDF desde `line_items` que ahora tendran multiples entradas con cantidades correctas
+### Archivos afectados
+- `src/lib/config.ts` (agregar opciones)
+- `src/components/TotalsSummary.tsx` (input -> select)
+- `src/pages/QuoteForm.tsx` (input -> select)
 
-### No requiere cambios en base de datos
-
-Los datos de multiples modelos se almacenan en el campo `line_items` (jsonb) que ya soporta un array de objetos. El campo `equipment_model_id` se mantiene por compatibilidad pero apuntara al primer modelo seleccionado.
-
-### Flujo de usuario
-
-1. Nueva Cotizacion > Venta
-2. Aparece una primera linea con: selector de modelo, cantidad (default 1), precio unitario
-3. El usuario puede agregar mas lineas con "Agregar modelo"
-4. Cada linea muestra el total (cantidad x precio)
-5. El resumen de costos se actualiza automaticamente
-6. Al guardar, cada linea se convierte en un item de `line_items`
-
-### Detalle tecnico
-
-- 1 componente nuevo (`SaleLineItems`)
-- 1 archivo modificado (`QuoteForm.tsx`)
-- Sin migraciones de base de datos
-- Sin cambios en edge functions
-
+### Lo que NO cambia
+- La logica de calculo en `invoiceUtils.ts` (recibe el numero y calcula igual)
+- Los valores almacenados en la base de datos (sigue siendo un numero)
+- Los PDFs (muestran el porcentaje que viene de la DB)
+- Las cotizaciones y facturas existentes con 16% se mantienen sin cambios
