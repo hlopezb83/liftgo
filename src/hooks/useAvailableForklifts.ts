@@ -36,7 +36,7 @@ export function useAvailableForklifts(dateRange: DateRange | undefined) {
   const availableForklifts = useMemo(() => {
     if (!forklifts || !datesSelected) return [];
     return forklifts.filter((f) => {
-      if (f.status !== "available" || maintenanceDueIds.has(f.id)) return false;
+      if ((f.status !== "available" && f.status !== "rented") || maintenanceDueIds.has(f.id)) return false;
       const hasOverlap = allBookings?.some(
         (b) =>
           b.forklift_id === f.id &&
