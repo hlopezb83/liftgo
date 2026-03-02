@@ -24,6 +24,7 @@ import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { QuotePDFButton } from "@/components/QuotePDFButton";
 import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
+import { AssignForkliftsCard } from "@/components/AssignForkliftsCard";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -187,6 +188,10 @@ export default function QuoteDetail() {
           <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
           <CardContent><p className="text-sm text-muted-foreground">{quote.notes}</p></CardContent>
         </Card>
+      )}
+
+      {isSale && quote.status === "accepted" && (
+        <AssignForkliftsCard quoteId={quote.id} lineItems={lineItems} />
       )}
 
       {deliveryDialog && (
