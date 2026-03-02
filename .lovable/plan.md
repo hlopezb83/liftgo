@@ -1,48 +1,39 @@
 
 
-## Restringir IVA a 11% y 16% en toda la aplicacion
+## Hacer seleccion de cliente obligatoria en cotizaciones
 
 ### Problema
-Actualmente el campo de IVA es un input numerico libre donde se puede escribir cualquier valor. En Mexico solo existen dos tasas de IVA: 11% (franja fronteriza) y 16% (resto del pais).
-
-### Solucion
-
-Centralizar las opciones de IVA en la configuracion global y reemplazar todos los inputs numericos de IVA por un selector (dropdown) con solo dos opciones: 11% y 16%, con 16% como valor predeterminado.
+Actualmente el formulario de cotizaciones permite escribir un nombre de cliente manualmente sin seleccionar uno del catalogo. Se necesita que la seleccion de cliente sea obligatoria desde el dropdown, eliminar el campo de texto libre, y mostrar una nota orientativa.
 
 ### Cambios
 
-**1. `src/lib/config.ts`** - Agregar opciones de IVA
+**1. `src/components/CustomerSelector.tsx`** - Agregar props opcionales
 
-Agregar al objeto `APP_CONFIG`:
-```text
-TAX_RATE_OPTIONS: [
-  { value: 16, label: "16% (General)" },
-  { value: 11, label: "11% (Frontera)" },
-]
-```
+- Nueva prop `required?: boolean` - cuando es true, cambia el placeholder a "Seleccionar cliente *" y no muestra "(opcional)"
+- Nueva prop `hideManualName?: boolean` - cuando es true, oculta el campo de texto "Nombre del Cliente"
+- Nueva prop `helpText?: string` - texto de ayuda que se muestra debajo del dropdown (para la recomendacion)
+- El componente sigue funcionando igual para BookingForm (que no pasa estas props)
 
-**2. `src/components/TotalsSummary.tsx`** - Cambiar input libre por Select
+**2. `src/pages/QuoteForm.tsx`** - Usar las nuevas props
 
-- Reemplazar el `<Input type="number">` por un `<Select>` con las dos opciones de IVA
-- Cuando `onTaxRateChange` esta presente, mostrar el dropdown
-- Cuando no esta presente (modo lectura), seguir mostrando el texto "IVA (16%)"
+- Pasar `required`, `hideManualName` y `helpText` al CustomerSelector
+- El `helpText` dira: "Si tu cliente no aparece en la lista, selecciona 'Publico en General' o registralo primero en el modulo de Clientes."
+- Agregar validacion en `handleSubmit`: si no hay `customerId`, mostrar error "Selecciona un cliente"
+- Eliminar el estado `customerName` del flujo (se llenara automaticamente al seleccionar cliente)
 
-**3. `src/pages/QuoteForm.tsx`** - Cambiar input de IVA por Select
+### Flujo de usuario
 
-- Reemplazar el `<Input type="number">` del campo "IVA (%)" por un `<Select>` con las dos opciones
-- El estado `taxRate` ya esta inicializado en "16", se mantiene igual
-
-**4. `src/pages/InvoiceForm.tsx`** - Sin cambios directos
-
-- Ya usa `TotalsSummary` con `onTaxRateChange`, asi que el cambio en `TotalsSummary` lo cubre automaticamente
-
-### Archivos afectados
-- `src/lib/config.ts` (agregar opciones)
-- `src/components/TotalsSummary.tsx` (input -> select)
-- `src/pages/QuoteForm.tsx` (input -> select)
+1. El usuario ve el dropdown de cliente con placeholder "Seleccionar cliente *"
+2. Debajo del dropdown aparece un texto gris con la recomendacion
+3. Si intenta guardar sin seleccionar cliente, ve el error "Selecciona un cliente"
+4. No hay campo de texto para escribir nombre manualmente
 
 ### Lo que NO cambia
-- La logica de calculo en `invoiceUtils.ts` (recibe el numero y calcula igual)
-- Los valores almacenados en la base de datos (sigue siendo un numero)
-- Los PDFs (muestran el porcentaje que viene de la DB)
-- Las cotizaciones y facturas existentes con 16% se mantienen sin cambios
+- BookingForm sigue funcionando igual (no pasa las nuevas props)
+- La tabla de base de datos no cambia
+- El campo `customer_name` se sigue guardando (tomado del cliente seleccionado)
+
+### Detalle tecnico
+- 2 archivos modificados (CustomerSelector.tsx, QuoteForm.tsx)
+- Sin migraciones de base de datos
+
