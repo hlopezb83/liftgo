@@ -1,58 +1,45 @@
 
 
-## Agregar dialogo de facturacion recurrente al convertir cotizacion a reserva
+## Corregir formato de fecha en descripcion de facturas recurrentes
 
 ### Problema
-Cuando una cotizacion de periodo largo (>= 30 dias) se convierte a reserva desde `QuoteDetail`, las reservas se crean sin `recurring_billing`, ignorando la necesidad de facturacion mensual automatica.
+La edge function `generate-recurring-invoices` genera descripciones de partidas con fechas en formato ISO (`YYYY-MM-DD`), por ejemplo:
+> Montacargas X -- Renta mensual (2025-06-01 al 2025-07-01)
+
+El formato correcto para Mexico es `DD/MM/YYYY`:
+> Montacargas X -- Renta mensual (01/06/2025 al 01/07/2025)
 
 ### Solucion
-Interceptar el clic en "Convertir a Reserva" con un dialogo intermedio que pregunte al usuario si desea habilitar facturacion recurrente, pero solo cuando el periodo de la cotizacion sea >= 30 dias. Si es menor a 30 dias, se procede directamente sin preguntar.
+Agregar una funcion auxiliar `fmtDate` dentro de la edge function que convierta un objeto `Date` al formato `DD/MM/YYYY`, y usarla en la descripcion de las partidas.
 
-### Cambios en `src/pages/QuoteDetail.tsx`
+### Cambio en `supabase/functions/generate-recurring-invoices/index.ts`
 
-**1. Nuevo estado para el dialogo**
-- Agregar `showRecurringDialog` (boolean) para controlar la visibilidad del dialogo.
-- Agregar `recurringBillingChoice` (boolean) para almacenar la eleccion del usuario.
-
-**2. Modificar el flujo del boton "Convertir a Reserva"**
-- Al hacer clic, verificar si `differenceInDays(end_date, start_date) >= 30`.
-  - Si es >= 30 dias: abrir el dialogo preguntando sobre facturacion recurrente.
-  - Si es < 30 dias: ejecutar `convertToBooking(false)` directamente.
-
-**3. Nuevo componente de dialogo (inline)**
-- Usar `Dialog` (ya importado en el proyecto) con:
-  - Titulo: "Facturacion Recurrente"
-  - Descripcion: "Esta cotizacion cubre un periodo de X meses. Desea habilitar la facturacion recurrente mensual para las reservas que se crearan?"
-  - Dos botones: "No, crear sin recurrente" y "Si, habilitar recurrente"
-- Ambos botones cierran el dialogo y llaman a `convertToBooking(recurringBilling)`.
-
-**4. Pasar `recurring_billing` al crear reservas**
-- Modificar la llamada `createBooking.mutateAsync()` para incluir `recurring_billing: recurringBilling` como parametro.
-
-### Flujo resultante
-
-```text
-Usuario clica "Convertir a Reserva"
-        |
-   Periodo >= 30 dias?
-   /           \
-  Si            No
-  |              |
-  Dialogo:      Crear reservas
-  "Habilitar    directamente
-  recurrente?"  (recurring=false)
-  /        \
- Si         No
- |          |
- Crear      Crear
- reservas   reservas
- (true)     (false)
+**1. Agregar funcion de formato (antes del ciclo `for`)**
+```typescript
+const fmtDate = (d: Date) => {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
 ```
 
-### Detalle tecnico
+**2. Actualizar la descripcion de la partida (linea 79)**
 
-- Importar `differenceInDays` de `date-fns` (ya disponible en el proyecto).
-- Refactorizar `convertToBooking` para aceptar un parametro `recurringBilling: boolean`.
-- En la llamada a `createBooking.mutateAsync`, agregar `recurring_billing: recurringBilling`.
-- Usar el componente `Dialog` existente (`@/components/ui/dialog`) para el dialogo intermedio, manteniendo consistencia visual con el resto de la aplicacion.
+Cambiar:
+```typescript
+description: `${forklift?.name || "Montacargas"} — Renta mensual (${startStr} al ${endStr})`,
+```
+
+Por:
+```typescript
+description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtDate(lastBilled)} al ${fmtDate(billingEndDate)})`,
+```
+
+Las variables `startStr` y `endStr` (formato `YYYY-MM-DD`) se mantienen sin cambios ya que se siguen usando para los campos de base de datos (`due_date`, `last_billed_date`) que requieren formato ISO.
+
+### Impacto
+- Solo cambia el texto visible en la descripcion de las partidas generadas.
+- Los campos de fecha en la base de datos (`due_date`, `last_billed_date`) siguen usando formato ISO como es correcto.
+- Consistente con el formato `DD/MM/YYYY` usado en el resto de la aplicacion.
 
