@@ -1,39 +1,52 @@
 
 
-## Programar entrega para todos los montacargas al convertir cotizacion
+## Filtrar reservas ya facturadas y agregar trazabilidad de reserva en facturas
 
 ### Problema
-La conversion a reserva crea correctamente una reserva por cada montacargas, pero el dialogo de entrega solo se muestra para el primero. El segundo equipo queda con reserva confirmada pero sin entrega programada, y el usuario no recibe ningun aviso.
-
-### Solucion
-Convertir el estado `deliveryDialog` en un arreglo y recorrerlo secuencialmente: al completar o saltar la entrega del primer equipo, se muestra automaticamente el dialogo del siguiente, hasta terminar todos.
+1. El dropdown "Generar desde Reserva" en el formulario de nueva factura muestra todas las reservas confirmadas, incluyendo las que ya tienen una factura asociada. Esto permite crear facturas duplicadas.
+2. En el detalle de una factura, se muestra la trazabilidad hacia la cotizacion origen (quote_id) pero no hacia la reserva origen (booking_id), perdiendo contexto operativo.
 
 ### Cambios
 
-**1. `src/pages/QuoteDetail.tsx`**
+**1. `src/pages/InvoiceForm.tsx` - Filtrar reservas ya facturadas**
 
-- Reemplazar el estado `deliveryDialog` (objeto unico) por `pendingDeliveries` (arreglo) y `currentDeliveryIndex` (numero).
-- En `convertToBooking` (lineas 111-121): construir el arreglo completo con todos los bookings creados (bookingId, forkliftId, forkliftName, startDate, customerAddress) y setear el indice a 0.
-- Crear funcion `handleDeliveryNext()`: incrementa `currentDeliveryIndex`; si ya no quedan mas, limpia el estado y navega a `/calendar`.
-- En el JSX (lineas 247-258): derivar el dialogo actual de `pendingDeliveries[currentDeliveryIndex]`; pasar `handleDeliveryNext` tanto a `onSkip` como al cierre exitoso.
+- Importar `useInvoices` para obtener la lista completa de facturas existentes.
+- Extraer los `booking_id` de todas las facturas que no estan canceladas para formar un conjunto de IDs ya facturados.
+- En el filtro del dropdown (linea 239), agregar condicion: solo mostrar reservas cuyo `id` NO este en el conjunto de booking_ids ya facturados.
+- Excepcion: si estamos editando una factura existente, permitir que su propia reserva siga apareciendo.
 
-**2. `src/components/PostBookingDeliveryDialog.tsx`**
-
-- Agregar props opcionales `currentIndex` y `totalCount` (numeros).
-- Si `totalCount > 1`, mostrar un indicador en el titulo del dialogo: "Entrega 1 de 2" para dar contexto al usuario de cuantas entregas faltan.
-- Sin cambios en la logica de creacion de entrega; al completar exitosamente, llamar `onSkip` (que ahora avanza al siguiente en vez de cerrar todo).
-
-### Flujo resultante
-
+Logica:
 ```text
-Usuario: "Convertir a Reserva" (cotizacion con 2 montacargas)
-  -> Se crean 2 reservas
-  -> pendingDeliveries = [{ equipo1 }, { equipo2 }], index = 0
-  -> Dialogo: "Entrega 1 de 2 - MCAPC025A048/001"
-     Usuario programa o salta
-  -> index = 1
-  -> Dialogo: "Entrega 2 de 2 - MCAPC035A048/003"
-     Usuario programa o salta
-  -> Navegar a /calendar
+const invoicedBookingIds = new Set(
+  invoices?.filter(inv => inv.status !== 'cancelled' && inv.booking_id)
+    .map(inv => inv.booking_id)
+);
+
+// En el dropdown:
+bookings?.filter(b => b.status === "confirmed" && !invoicedBookingIds.has(b.id))
 ```
+
+**2. `src/pages/InvoiceDetail.tsx` - Agregar trazabilidad de reserva**
+
+- Usar el `booking_id` ya disponible en el objeto `invoice` para buscar la reserva vinculada (importar `useBookings` o hacer una query puntual con el hook existente, o simplemente construir el link directo).
+- Agregar una tarjeta de trazabilidad similar a la existente para cotizaciones (la que muestra "Generada desde cotizacion: COT-XXXX"), pero para reservas:
+  - Icono de calendario + texto "Generada desde reserva:" + badge con link al detalle de la reserva (si existiera una pagina de detalle) o a la pagina de reservas.
+  - Mostrar el nombre del montacargas y las fechas de la reserva como contexto adicional.
+- Posicionar esta tarjeta junto a (o debajo de) la tarjeta de cotizacion existente.
+
+### Detalle tecnico
+
+En `InvoiceForm.tsx`:
+- Se agrega `const { data: invoices } = useInvoices();` (ya existe el hook).
+- Se construye un `Set` con los booking_ids ya usados.
+- El `.filter()` en linea 239 pasa de `b.status === "confirmed"` a `b.status === "confirmed" && !invoicedBookingIds.has(b.id)`.
+
+En `InvoiceDetail.tsx`:
+- Se busca la reserva vinculada consultando `bookings` filtrado por `invoice.booking_id`.
+- Se agrega una Card debajo de la card de cotizacion con el patron:
+```text
+[CalendarIcon] Generada desde reserva: [Badge clickable -> /bookings]
+  Montacargas: MCAPC025A048/001 | 20/10/2025 - 20/11/2025
+```
+- Si no hay `booking_id`, la card no se muestra.
 
