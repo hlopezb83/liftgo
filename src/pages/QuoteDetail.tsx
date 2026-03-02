@@ -40,9 +40,19 @@ export default function QuoteDetail() {
   const { data: forklifts } = useForklifts();
   const { data: equipmentModels } = useEquipmentModels();
 
-  const [deliveryDialog, setDeliveryDialog] = useState<{
-    bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null;
-  } | null>(null);
+  type DeliveryInfo = { bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null };
+  const [pendingDeliveries, setPendingDeliveries] = useState<DeliveryInfo[]>([]);
+  const [currentDeliveryIndex, setCurrentDeliveryIndex] = useState(0);
+
+  const handleDeliveryNext = () => {
+    if (currentDeliveryIndex < pendingDeliveries.length - 1) {
+      setCurrentDeliveryIndex((prev) => prev + 1);
+    } else {
+      setPendingDeliveries([]);
+      setCurrentDeliveryIndex(0);
+      navigate("/calendar");
+    }
+  };
 
   // Check if bookings already exist for this quote
   const { data: linkedBookings } = useQuery({
@@ -108,17 +118,20 @@ export default function QuoteDetail() {
       updateQuote.mutate({ id: quote.id, status: "accepted" });
       toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
 
-      // Show delivery dialog for the first booking
-      const firstFId = forkliftIds[0];
-      const fl = forklifts.find((f) => f.id === firstFId);
+      // Build delivery queue for all bookings
       const cust = customers?.find((c) => c.id === quote.customer_id);
-      setDeliveryDialog({
-        bookingId: createdBookingIds[0],
-        forkliftId: firstFId,
-        forkliftName: fl?.name || "Montacargas",
-        startDate: quote.start_date!,
-        customerAddress: cust?.address || null,
+      const deliveries: DeliveryInfo[] = forkliftIds.map((fId, i) => {
+        const fl = forklifts.find((f) => f.id === fId);
+        return {
+          bookingId: createdBookingIds[i],
+          forkliftId: fId,
+          forkliftName: fl?.name || "Montacargas",
+          startDate: quote.start_date!,
+          customerAddress: cust?.address || null,
+        };
       });
+      setCurrentDeliveryIndex(0);
+      setPendingDeliveries(deliveries);
     } catch (err: any) {
       toast.error(`Error al crear reserva: ${err.message}`);
     } finally {
@@ -244,16 +257,18 @@ export default function QuoteDetail() {
         <AssignForkliftsCard quoteId={quote.id} lineItems={lineItems} />
       )}
 
-      {deliveryDialog && (
+      {pendingDeliveries.length > 0 && pendingDeliveries[currentDeliveryIndex] && (
         <PostBookingDeliveryDialog
-          open={!!deliveryDialog}
-          onOpenChange={(open) => { if (!open) setDeliveryDialog(null); }}
-          bookingId={deliveryDialog.bookingId}
-          forkliftId={deliveryDialog.forkliftId}
-          forkliftName={deliveryDialog.forkliftName}
-          startDate={deliveryDialog.startDate}
-          customerAddress={deliveryDialog.customerAddress}
-          onSkip={() => { setDeliveryDialog(null); navigate("/calendar"); }}
+          open
+          onOpenChange={(open) => { if (!open) handleDeliveryNext(); }}
+          bookingId={pendingDeliveries[currentDeliveryIndex].bookingId}
+          forkliftId={pendingDeliveries[currentDeliveryIndex].forkliftId}
+          forkliftName={pendingDeliveries[currentDeliveryIndex].forkliftName}
+          startDate={pendingDeliveries[currentDeliveryIndex].startDate}
+          customerAddress={pendingDeliveries[currentDeliveryIndex].customerAddress}
+          onSkip={handleDeliveryNext}
+          currentIndex={currentDeliveryIndex}
+          totalCount={pendingDeliveries.length}
         />
       )}
     </div>
