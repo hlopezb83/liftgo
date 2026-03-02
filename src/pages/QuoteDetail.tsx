@@ -15,6 +15,7 @@ import { Edit, Send, CheckCircle, XCircle, BookOpen, Receipt } from "lucide-reac
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useForklifts } from "@/hooks/useForklifts";
+import { QuotePDFButton } from "@/components/QuotePDFButton";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -82,6 +83,7 @@ export default function QuoteDetail() {
         badges={<StatusBadge status={quote.status} />}
         actions={
           <>
+            <QuotePDFButton quoteId={quote.id} />
             {quote.status === "draft" && (
               <>
                 <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
