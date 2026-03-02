@@ -1,51 +1,62 @@
 
-## Asignar equipos del inventario a cotizaciones de venta aceptadas
 
-### Contexto
-Actualmente, las cotizaciones de venta solo referencian **modelos de equipo** (ej. "Yale GLP050 - Venta de equipo"), pero no permiten vincular un equipo especifico del inventario (con su ID, numero de serie, nombre). Al aceptar la cotizacion, no hay forma de indicar cual montacargas fisico se vendera.
+## Corregir formato de fechas a DD/MM/YYYY en toda la aplicacion
 
-### Solucion propuesta
+### Problema
+Multiples paginas muestran fechas en formato ISO de base de datos (`yyyy-MM-dd`, ej. "2026-03-02") directamente en la interfaz, en lugar del formato mexicano `dd/MM/yyyy` (ej. "02/03/2026"). Tambien hay un caso de formato en ingles ("MMM d, HH:mm").
 
-Agregar un paso de **"Asignacion de Equipos"** en el detalle de la cotizacion de venta, visible cuando el estado es `accepted`. Esto permite seleccionar montacargas disponibles del inventario que coincidan con el modelo cotizado.
+### Solucion
 
-### Flujo del usuario
-1. Se crea una cotizacion de venta con modelos y cantidades
-2. Se envia al cliente y se marca como "Aceptada"
-3. En el detalle de la cotizacion aceptada, aparece una nueva seccion **"Asignar Equipos"**
-4. Por cada linea de venta, el usuario selecciona los montacargas especificos del inventario (filtrados por modelo/fabricante y con status `available`)
-5. Al confirmar la asignacion, los montacargas seleccionados se marcan como `sold` y se registra la relacion
+Crear una funcion utilitaria `formatDateDisplay` en `src/lib/utils.ts` para centralizar el formateo, y aplicarla en todos los archivos afectados.
 
-### Cambios tecnicos
+### Funcion utilitaria nueva
 
-**1. Nueva tabla `quote_assigned_forklifts` (migracion)**
+En `src/lib/utils.ts`, agregar:
 ```text
-- id: uuid (PK)
-- quote_id: uuid (FK -> quotes)
-- forklift_id: uuid (FK -> forklifts)
-- line_index: integer (cual linea del quote)
-- created_at: timestamptz
+formatDateDisplay(dateStr: string | null) => string
+  - Recibe una fecha ISO string (yyyy-MM-dd o ISO datetime)
+  - Retorna formato dd/MM/yyyy
+  - Retorna "—" si es null/undefined
 ```
-Con RLS siguiendo el patron existente (admin, dispatcher, administrativo full access; auditor/mechanic read).
 
-**2. Nuevo componente `AssignForkliftsCard`**
-- Se muestra en `QuoteDetail.tsx` solo cuando `isSale && quote.status === "accepted"`
-- Parsea las `line_items` para extraer fabricante/modelo de cada linea
-- Para cada linea, muestra un selector con los montacargas disponibles que coincidan (filtrando por `manufacturer` y `model` en la tabla `forklifts`, status `available`)
-- Boton "Confirmar Asignacion" que:
-  - Inserta los registros en `quote_assigned_forklifts`
-  - Actualiza el status de cada montacargas a `sold`
-  - Registra en `status_logs` el cambio de estado
+### Archivos a modificar (10 archivos)
 
-**3. Hook `useAssignForklifts`**
-- Query para obtener asignaciones existentes de un quote
-- Mutation para asignar (insert en tabla + update forklifts a `sold` + insert status_logs)
+**1. `src/lib/utils.ts`**
+- Agregar la funcion `formatDateDisplay`
 
-**4. Actualizacion de `QuoteDetail.tsx`**
-- Importar y renderizar `AssignForkliftsCard` debajo de las notas cuando aplique
-- Si ya hay equipos asignados, mostrarlos como lista de solo lectura con nombre y numero de serie
+**2. `src/pages/QuotesPage.tsx`**
+- Linea 64: `{q.start_date} → {q.end_date}` → usar `formatDateDisplay`
+- Linea 118: mismo patron en tabla desktop
+- Linea 121: `{q.valid_until}` → usar `formatDateDisplay`
 
-### Consideraciones
-- Un montacargas solo puede asignarse a una cotizacion (constraint unique en forklift_id)
-- El filtro de equipos disponibles usa `manufacturer` + `model` de la tabla `forklifts` comparado con la descripcion del line item
-- Si la cantidad cotizada es mayor que los equipos disponibles de ese modelo, se muestra un aviso pero no se bloquea la asignacion parcial
-- La asignacion es reversible: un boton "Desasignar" devuelve el montacargas a status `available`
+**3. `src/pages/QuoteDetail.tsx`**
+- Linea 163: `{quote.start_date} → {quote.end_date}` → formatear
+- Linea 164, 171: `{quote.valid_until}` → formatear
+
+**4. `src/pages/ContractsPage.tsx`**
+- Lineas 60, 107, 108: fechas de inicio/fin de contratos
+
+**5. `src/pages/MaintenancePage.tsx`**
+- Linea 95: `{log.performed_at}` en tarjeta movil
+- Linea 98: `{log.next_service_date}` en tarjeta movil
+- Linea 176: `{log.performed_at}` en tabla desktop
+
+**6. `src/pages/DeliveriesPage.tsx`**
+- Linea 84: `{d.scheduled_date}` en tarjeta movil
+- Linea 164: `{d.scheduled_date}` en tabla desktop
+
+**7. `src/pages/InvoiceForm.tsx`**
+- Linea 224: fechas en selector de reservas `({b.start_date} → {b.end_date})`
+
+**8. `src/components/PostInspectionInvoiceDialog.tsx`**
+- Linea 51: `{booking.start_date} → {booking.end_date}`
+
+**9. `src/components/dashboard/RecentActivity.tsx`**
+- Linea 50: cambiar `"MMM d, HH:mm"` a `"dd/MM HH:mm"`
+
+**10. Paginas del portal de clientes**
+- `src/pages/portal/PortalDashboard.tsx` linea 79
+- `src/pages/portal/PortalRentals.tsx` lineas 36, 37
+
+### Nota
+Los usos de `format(date, "yyyy-MM-dd")` para **enviar datos a la base de datos** NO se modifican — esos son correctos como formato de almacenamiento. Solo se corrigen las fechas visibles al usuario.
