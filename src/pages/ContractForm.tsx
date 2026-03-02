@@ -100,16 +100,16 @@ export default function ContractForm() {
     if (!isEdit && bookingId && bookings && forklifts) {
       const booking = bookings.find((b) => b.id === bookingId);
       if (booking) {
-        const fl = forklifts.find((f) => f.id === booking.forklift_id);
+        const forklift = forklifts.find((f) => f.id === booking.forklift_id);
         setForm((prev) => ({
           ...prev,
           customer_id: booking.customer_id || prev.customer_id,
           forklift_id: booking.forklift_id,
           start_date: booking.start_date || prev.start_date,
           end_date: booking.end_date || prev.end_date,
-          daily_rate: String(fl?.daily_rate || 0),
-          weekly_rate: String(fl?.weekly_rate || 0),
-          monthly_rate: String(fl?.monthly_rate || 0),
+          daily_rate: String(forklift?.daily_rate || 0),
+          weekly_rate: String(forklift?.weekly_rate || 0),
+          monthly_rate: String(forklift?.monthly_rate || 0),
         }));
       }
     }
@@ -117,13 +117,13 @@ export default function ContractForm() {
 
   useEffect(() => {
     if (!isEdit && !bookingId && form.forklift_id && forklifts) {
-      const fl = forklifts.find((f) => f.id === form.forklift_id);
-      if (fl) {
+      const forklift = forklifts.find((f) => f.id === form.forklift_id);
+      if (forklift) {
         setForm((prev) => ({
           ...prev,
-          daily_rate: String(fl.daily_rate || 0),
-          weekly_rate: String(fl.weekly_rate || 0),
-          monthly_rate: String(fl.monthly_rate || 0),
+          daily_rate: String(forklift.daily_rate || 0),
+          weekly_rate: String(forklift.weekly_rate || 0),
+          monthly_rate: String(forklift.monthly_rate || 0),
         }));
       }
     }
@@ -135,18 +135,18 @@ export default function ContractForm() {
     if (!form.customer_id || !form.forklift_id) return;
 
     const customer = customers?.find((c) => c.id === form.customer_id);
-    const fl = forklifts?.find((f) => f.id === form.forklift_id);
-    if (!customer || !fl) return;
+    const forklift = forklifts?.find((f) => f.id === form.forklift_id);
+    if (!customer || !forklift) return;
 
     const text = replacePlaceholders(template.body_text, {
       EMPRESA_ARRENDADOR: company?.razon_social || "[Nombre de tu empresa]",
       NOMBRE_CLIENTE: customer.name,
       DOMICILIO_CLIENTE: customer.address || "[Domicilio del cliente]",
-      MARCA_EQUIPO: fl.manufacturer || "—",
-      MODELO_EQUIPO: fl.model || "—",
-      SERIE_EQUIPO: fl.serial_number || "—",
-      CAPACIDAD_EQUIPO: fl.capacity_kg ? `${fl.capacity_kg} kg` : "—",
-      COMBUSTIBLE_EQUIPO: fl.fuel_type || "—",
+      MARCA_EQUIPO: forklift.manufacturer || "—",
+      MODELO_EQUIPO: forklift.model || "—",
+      SERIE_EQUIPO: forklift.serial_number || "—",
+      CAPACIDAD_EQUIPO: forklift.capacity_kg ? `${forklift.capacity_kg} kg` : "—",
+      COMBUSTIBLE_EQUIPO: forklift.fuel_type || "—",
       UBICACION_USO: form.usage_location || "[Dirección]",
       HORAS_MAX: form.max_hours_per_month || "[Número]",
       TARIFA_HORA_EXTRA: form.extra_hour_rate || "[Monto]",
@@ -203,7 +203,7 @@ export default function ContractForm() {
     }
   };
 
-  const set = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+  const updateField = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
   return (
     <div className="p-6 max-w-3xl space-y-6">
@@ -215,7 +215,7 @@ export default function ContractForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Cliente *</Label>
-              <Select value={form.customer_id} onValueChange={(v) => set("customer_id", v)}>
+              <Select value={form.customer_id} onValueChange={(v) => updateField("customer_id", v)}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger>
                 <SelectContent>
                   {(customers || []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -224,7 +224,7 @@ export default function ContractForm() {
             </div>
             <div>
               <Label>Equipo *</Label>
-              <Select value={form.forklift_id} onValueChange={(v) => set("forklift_id", v)}>
+              <Select value={form.forklift_id} onValueChange={(v) => updateField("forklift_id", v)}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar equipo" /></SelectTrigger>
                 <SelectContent>
                   {(forklifts || []).map((f) => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
@@ -234,13 +234,13 @@ export default function ContractForm() {
             <DatePickerField
               label="Fecha de Inicio"
               date={form.start_date ? parseISO(form.start_date) : undefined}
-              onSelect={(d) => set("start_date", d ? format(d, "yyyy-MM-dd") : "")}
+              onSelect={(d) => updateField("start_date", d ? format(d, "yyyy-MM-dd") : "")}
               placeholder="Seleccionar fecha"
             />
             <DatePickerField
               label="Fecha de Fin"
               date={form.end_date ? parseISO(form.end_date) : undefined}
-              onSelect={(d) => set("end_date", d ? format(d, "yyyy-MM-dd") : "")}
+              onSelect={(d) => updateField("end_date", d ? format(d, "yyyy-MM-dd") : "")}
               placeholder="Seleccionar fecha"
             />
           </div>
@@ -251,10 +251,10 @@ export default function ContractForm() {
         <CardHeader><CardTitle className="text-base">Tarifas y Depósito</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div><Label>Diaria</Label><Input type="number" step="0.01" value={form.daily_rate} onChange={(e) => set("daily_rate", e.target.value)} /></div>
-            <div><Label>Semanal</Label><Input type="number" step="0.01" value={form.weekly_rate} onChange={(e) => set("weekly_rate", e.target.value)} /></div>
-            <div><Label>Mensual</Label><Input type="number" step="0.01" value={form.monthly_rate} onChange={(e) => set("monthly_rate", e.target.value)} /></div>
-            <div><Label>Depósito</Label><Input type="number" step="0.01" value={form.deposit_amount} onChange={(e) => set("deposit_amount", e.target.value)} /></div>
+            <div><Label>Diaria</Label><Input type="number" step="0.01" value={form.daily_rate} onChange={(e) => updateField("daily_rate", e.target.value)} /></div>
+            <div><Label>Semanal</Label><Input type="number" step="0.01" value={form.weekly_rate} onChange={(e) => updateField("weekly_rate", e.target.value)} /></div>
+            <div><Label>Mensual</Label><Input type="number" step="0.01" value={form.monthly_rate} onChange={(e) => updateField("monthly_rate", e.target.value)} /></div>
+            <div><Label>Depósito</Label><Input type="number" step="0.01" value={form.deposit_amount} onChange={(e) => updateField("deposit_amount", e.target.value)} /></div>
           </div>
         </CardContent>
       </Card>
@@ -265,19 +265,19 @@ export default function ContractForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <Label>Ubicación de Uso del Equipo</Label>
-              <Input value={form.usage_location} onChange={(e) => set("usage_location", e.target.value)} placeholder="Dirección donde operará el montacargas" />
+              <Input value={form.usage_location} onChange={(e) => updateField("usage_location", e.target.value)} placeholder="Dirección donde operará el montacargas" />
             </div>
             <div>
               <Label>Horas Máximas por Mes</Label>
-              <Input type="number" value={form.max_hours_per_month} onChange={(e) => set("max_hours_per_month", e.target.value)} placeholder="Ej. 200" />
+              <Input type="number" value={form.max_hours_per_month} onChange={(e) => updateField("max_hours_per_month", e.target.value)} placeholder="Ej. 200" />
             </div>
             <div>
               <Label>Tarifa por Hora Extra ($)</Label>
-              <Input type="number" step="0.01" value={form.extra_hour_rate} onChange={(e) => set("extra_hour_rate", e.target.value)} placeholder="Ej. 150.00" />
+              <Input type="number" step="0.01" value={form.extra_hour_rate} onChange={(e) => updateField("extra_hour_rate", e.target.value)} placeholder="Ej. 150.00" />
             </div>
             <div>
               <Label>Frecuencia de Pago</Label>
-              <Select value={form.payment_frequency} onValueChange={(v) => set("payment_frequency", v)}>
+              <Select value={form.payment_frequency} onValueChange={(v) => updateField("payment_frequency", v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Semanal">Semanal</SelectItem>
@@ -287,11 +287,11 @@ export default function ContractForm() {
             </div>
             <div>
               <Label>Interés Moratorio (%)</Label>
-              <Input type="number" step="0.1" value={form.late_interest_rate} onChange={(e) => set("late_interest_rate", e.target.value)} placeholder="Ej. 5" />
+              <Input type="number" step="0.1" value={form.late_interest_rate} onChange={(e) => updateField("late_interest_rate", e.target.value)} placeholder="Ej. 5" />
             </div>
             <div>
               <Label>Ciudad del Contrato</Label>
-              <Input value={form.contract_city} onChange={(e) => set("contract_city", e.target.value)} />
+              <Input value={form.contract_city} onChange={(e) => updateField("contract_city", e.target.value)} />
             </div>
           </div>
         </CardContent>
@@ -302,25 +302,25 @@ export default function ContractForm() {
         <CardContent className="space-y-4">
           <div>
             <Label>Términos y Condiciones</Label>
-            <Textarea rows={10} value={form.terms_text} onChange={(e) => set("terms_text", e.target.value)} placeholder="Se cargará automáticamente al seleccionar cliente y equipo..." />
+            <Textarea rows={10} value={form.terms_text} onChange={(e) => updateField("terms_text", e.target.value)} placeholder="Se cargará automáticamente al seleccionar cliente y equipo..." />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Firmado por</Label>
-              <Input value={form.signed_by} onChange={(e) => set("signed_by", e.target.value)} placeholder="Nombre del firmante" />
+              <Input value={form.signed_by} onChange={(e) => updateField("signed_by", e.target.value)} placeholder="Nombre del firmante" />
             </div>
             <div>
               <Label>Testigo 1</Label>
-              <Input value={form.witness_1} onChange={(e) => set("witness_1", e.target.value)} placeholder="Nombre del testigo" />
+              <Input value={form.witness_1} onChange={(e) => updateField("witness_1", e.target.value)} placeholder="Nombre del testigo" />
             </div>
             <div>
               <Label>Testigo 2</Label>
-              <Input value={form.witness_2} onChange={(e) => set("witness_2", e.target.value)} placeholder="Nombre del testigo" />
+              <Input value={form.witness_2} onChange={(e) => updateField("witness_2", e.target.value)} placeholder="Nombre del testigo" />
             </div>
           </div>
           <div>
             <Label>Notas</Label>
-            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
+            <Textarea rows={2} value={form.notes} onChange={(e) => updateField("notes", e.target.value)} />
           </div>
         </CardContent>
       </Card>

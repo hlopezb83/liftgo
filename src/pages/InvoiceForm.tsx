@@ -134,17 +134,17 @@ export default function InvoiceForm() {
     if (cust.uso_cfdi) setUsoCfdi(cust.uso_cfdi);
   };
 
-  const handleCustomerSelect = (cId: string) => {
-    setCustomerId(cId);
-    const cust = customers?.find((c) => c.id === cId);
+  const handleCustomerSelect = (selectedCustomerId: string) => {
+    setCustomerId(selectedCustomerId);
+    const cust = customers?.find((c) => c.id === selectedCustomerId);
     if (!cust) return;
     setCustomerName(cust.name);
     applyCustomerCfdi(cust);
   };
 
-  const handleBookingSelect = (bId: string) => {
-    setBookingId(bId);
-    const booking = bookings?.find((b) => b.id === bId);
+  const handleBookingSelect = (selectedBookingId: string) => {
+    setBookingId(selectedBookingId);
+    const booking = bookings?.find((b) => b.id === selectedBookingId);
     if (!booking) return;
     setCustomerName(booking.customer_name || "");
     setCustomerId(booking.customer_id || null);

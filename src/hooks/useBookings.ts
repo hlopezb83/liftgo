@@ -21,7 +21,7 @@ export function useBookings(forkliftId?: string) {
 }
 
 export function useCreateBooking() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (booking: TablesInsert<"bookings">) => {
       const { data, error } = await supabase.rpc("create_booking", {
@@ -37,9 +37,9 @@ export function useCreateBooking() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["bookings"] });
-      qc.invalidateQueries({ queryKey: ["forklifts"] });
-      qc.invalidateQueries({ queryKey: ["status_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
@@ -50,7 +50,7 @@ export function useCreateBooking() {
 }
 
 export function useUpdateBooking() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"bookings"> & { id: string }) => {
       const { data, error } = await supabase.from("bookings").update(updates).eq("id", id).select().single();
@@ -58,7 +58,7 @@ export function useUpdateBooking() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>

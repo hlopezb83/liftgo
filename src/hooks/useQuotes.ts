@@ -31,14 +31,14 @@ export function useQuote(id?: string) {
 }
 
 export function useCreateQuote() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (quote: TablesInsert<"quotes">) => {
       const { data, error } = await supabase.from("quotes").insert(quote).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["quotes"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al crear cotización", description: err.message, variant: "destructive" })
@@ -48,14 +48,14 @@ export function useCreateQuote() {
 }
 
 export function useUpdateQuote() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"quotes"> & { id: string }) => {
       const { data, error } = await supabase.from("quotes").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["quotes"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al actualizar cotización", description: err.message, variant: "destructive" })
@@ -65,7 +65,7 @@ export function useUpdateQuote() {
 }
 
 export function useDeleteQuote() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("quotes").delete().eq("id", id);
@@ -74,11 +74,11 @@ export function useDeleteQuote() {
     },
     onSuccess: (deletedId) => {
       // Optimistically remove from cache for instant UI update
-      qc.setQueryData<Quote[]>(["quotes"], (old) =>
+      queryClient.setQueryData<Quote[]>(["quotes"], (old) =>
         old ? old.filter((q) => q.id !== deletedId) : []
       );
-      qc.removeQueries({ queryKey: ["quotes", deletedId] });
-      qc.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.removeQueries({ queryKey: ["quotes", deletedId] });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
     },
   });
 }
