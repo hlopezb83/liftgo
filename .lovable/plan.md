@@ -1,39 +1,48 @@
 
-## Usar datos del equipo asignado al facturar cotizaciones de venta
+## Permitir multiples equipos en cotizaciones de renta
 
-### Problema
-Al convertir una cotizacion de venta aceptada a factura (`/invoices/new?from_quote=...`), el formulario copia los `line_items` de la cotizacion tal cual, que contienen descripciones genericas como "Yale GLP050 - Venta de equipo". No utiliza los datos del equipo especifico ya asignado (nombre, numero de serie).
+### Problema actual
+El formulario de cotizacion de renta solo permite seleccionar un montacargas (`forkliftId` es un string unico). El usuario necesita cotizar varios equipos en una sola cotizacion.
 
 ### Solucion
 
-Modificar el `useEffect` de pre-llenado en `InvoiceForm.tsx` para que, cuando la cotizacion de origen sea de tipo venta y tenga equipos asignados, reemplace las descripciones de cada linea con los datos reales del montacargas asignado.
+Cambiar el estado de seleccion de un solo `forkliftId` a un arreglo `forkliftIds: string[]`, y generar line items combinados de todos los equipos seleccionados.
 
 ### Cambios tecnicos
 
-**1. `src/pages/InvoiceForm.tsx`**
-- Importar `useQuoteAssignments` desde `useAssignForklifts`
-- Llamar `useQuoteAssignments(fromQuoteId)` para obtener las asignaciones existentes
-- Importar `useForklifts` (ya existe en el archivo)
-- En el `useEffect` que pre-llena desde `sourceQuote`:
-  - Detectar si `sourceQuote.quote_type === "sale"` y hay asignaciones
-  - Por cada linea, buscar si hay un equipo asignado con ese `line_index`
-  - Si lo hay, buscar el forklift en la lista de forklifts y reemplazar la descripcion con datos especificos:
-    - Formato: `"{manufacturer} {model} — S/N: {serial_number} ({name}) - Venta de equipo"`
-  - Mantener precio, cantidad y demas campos CFDI intactos
+**1. `src/pages/QuoteForm.tsx`** (archivo principal)
+- Cambiar `forkliftId: string` a `forkliftIds: string[]`
+- Actualizar `lineItems` memo para iterar sobre todos los forklifts seleccionados, llamando `generateLineItems()` por cada uno y concatenando los resultados
+- Actualizar la validacion: verificar que `forkliftIds.length > 0` en lugar de `!!forkliftId`
+- En el payload, guardar `forklift_id` como el primero del arreglo (por compatibilidad con la columna existente que es un solo UUID) o null
+- Ajustar la carga de cotizacion existente para restaurar los forklifts seleccionados
+- Reemplazar el componente `ForkliftSelector` unico por una seccion que permita agregar/quitar equipos
 
-### Ejemplo del resultado
+**2. `src/components/ForkliftSelector.tsx`** (modificar o crear nuevo componente)
+- Convertir en un componente de seleccion multiple, similar a como funciona `SaleLineItems`:
+  - Lista de equipos seleccionados con boton para remover cada uno
+  - Selector para agregar otro equipo (filtrando los ya seleccionados)
+  - Boton "Agregar equipo"
+- Mantener la logica de deshabilitar si no hay fechas seleccionadas
 
-Antes (descripcion del line item en factura):
-```
-Yale GLP050 - Venta de equipo
-```
+**3. `src/lib/invoiceUtils.ts`** (sin cambios)
+- La funcion `generateLineItems(forklift, start, end)` ya funciona por equipo individual
+- Solo se llamara multiples veces desde el QuoteForm
 
-Despues (con equipo asignado):
-```
-Yale GLP050 — S/N: FG12345 (MTC-007) - Venta de equipo
-```
+### Compatibilidad con datos existentes
+- La tabla `quotes` tiene una columna `forklift_id` (uuid unico). Se mantendra guardando el primer equipo seleccionado ahi por compatibilidad
+- Los `line_items` (jsonb) ya soportan multiples items, asi que multiples equipos se reflejan naturalmente en las partidas
+- Al editar una cotizacion existente de renta, se reconstruiran los `forkliftIds` buscando coincidencias entre las descripciones de los line items y los nombres de los forklifts
+
+### Flujo del usuario
+1. Selecciona tipo "Renta"
+2. Selecciona periodo de renta
+3. Selecciona primer equipo del dropdown
+4. Click "Agregar otro equipo" para seleccionar mas
+5. Puede remover equipos individuales
+6. El resumen de costos muestra las partidas de todos los equipos combinados
 
 ### Consideraciones
-- Si una linea no tiene equipo asignado, se mantiene la descripcion original de la cotizacion
-- Solo aplica cuando `quote_type === "sale"` — las cotizaciones de renta no se ven afectadas
-- Los campos financieros (precio, cantidad, totales) no se modifican
+- Los equipos ya seleccionados se filtran del dropdown para evitar duplicados
+- La disponibilidad se sigue validando con las fechas seleccionadas
+- El formato de descripcion de cada equipo en los line items ya incluye el nombre del montacargas (`"MTC-007 -- Renta mensual"`)
