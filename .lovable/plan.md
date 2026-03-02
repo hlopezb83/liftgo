@@ -1,32 +1,31 @@
 
 
-## Corregir fecha de pago en factura
+## Agregar opcion de borrar cotizaciones (solo Admin)
 
-### Problema
-Cuando se registra un pago con una fecha en el pasado, el sistema ignora esa fecha y marca la factura con la fecha de hoy. Esto ocurre en dos lugares:
+### Cambios
 
-1. **`useCreatePayment`** (linea 64 de `src/hooks/usePayments.ts`): Al detectar que la factura queda saldada, usa `new Date()` en vez de la fecha del pago registrado.
-2. **`InvoiceDetail.tsx`**: El boton "Marcar Pagada" tambien usa `new Date()` en vez de permitir elegir una fecha.
+**1. Hook `useDeleteQuote` en `src/hooks/useQuotes.ts`**
+- Agregar un nuevo mutation hook que ejecute `supabase.from("quotes").delete().eq("id", id)`
+- Invalida la query `["quotes"]` al completar
 
-### Solucion
+**2. Boton "Eliminar" en `src/pages/QuoteDetail.tsx`**
+- Agregar un boton destructivo "Eliminar" visible solo para admins usando `RoleGuard` con `allowed={["admin"]}`
+- Al hacer clic, mostrar un `AlertDialog` de confirmacion ("Esta accion no se puede deshacer")
+- Al confirmar, ejecutar `deleteQuote.mutate(id)` y navegar a `/quotes`
+- Importar `Trash2` de lucide-react, `AlertDialog` de los componentes UI, y `RoleGuard`
 
-**Archivo 1: `src/hooks/usePayments.ts`**
-- Linea 64: Cambiar `new Date().toISOString().split("T")[0]` por `payment.payment_date`, que ya contiene la fecha seleccionada por el usuario.
+### Detalles tecnicos
 
-**Archivo 2: `src/pages/InvoiceDetail.tsx`**
-- En el boton "Marcar Pagada", cambiar la fecha hardcodeada por la fecha actual, lo cual es aceptable para este caso (accion manual directa). Este comportamiento ya es correcto conceptualmente ya que el usuario esta marcando la factura como pagada "ahora".
+**Archivo: `src/hooks/useQuotes.ts`**
+- Agregar funcion `useDeleteQuote()` con mutation que hace DELETE en la tabla quotes por ID
 
-### Cambio principal
+**Archivo: `src/pages/QuoteDetail.tsx`**
+- Estado `deleteDialogOpen` para controlar el AlertDialog
+- Envolver el boton Eliminar en `<RoleGuard allowed={["admin"]}>`
+- El boton aparece en la seccion de acciones del header, independiente del estado de la cotizacion
+- Al confirmar eliminacion: ejecutar delete, mostrar toast de exito, navegar a `/quotes`
 
-Solo 1 linea en `usePayments.ts`:
-
-```text
-// Antes (linea 64):
-paid_at: new Date().toISOString().split("T")[0]
-
-// Despues:
-paid_at: payment.payment_date
-```
-
-Esto garantiza que cuando se registra un pago y la factura queda saldada automaticamente, la fecha `paid_at` refleje la fecha real del pago, no la fecha en que se registro en el sistema.
+### Seguridad
+- La tabla `quotes` ya tiene RLS que solo permite DELETE a admin (via "Admins full access quotes"). No se requieren cambios en base de datos.
+- El boton solo se muestra en el frontend para usuarios con rol admin gracias a `RoleGuard`
 
