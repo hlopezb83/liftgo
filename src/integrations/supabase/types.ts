@@ -1002,6 +1002,45 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_assigned_forklifts: {
+        Row: {
+          created_at: string
+          forklift_id: string
+          id: string
+          line_index: number
+          quote_id: string
+        }
+        Insert: {
+          created_at?: string
+          forklift_id: string
+          id?: string
+          line_index?: number
+          quote_id: string
+        }
+        Update: {
+          created_at?: string
+          forklift_id?: string
+          id?: string
+          line_index?: number
+          quote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_assigned_forklifts_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: true
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_assigned_forklifts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           created_at: string
