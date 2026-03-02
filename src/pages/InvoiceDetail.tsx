@@ -15,11 +15,14 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal } from "lucide-react";
+import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, FileText } from "lucide-react";
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
+import { useQuote } from "@/hooks/useQuotes";
+import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
@@ -31,6 +34,8 @@ export default function InvoiceDetail() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { data: payments } = usePayments(id);
+  const quoteId = (invoice as any)?.quote_id;
+  const { data: sourceQuote } = useQuote(quoteId || undefined);
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
 
   const setStatus = (status: string, paidAt?: string) => {
@@ -161,6 +166,20 @@ export default function InvoiceDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {sourceQuote && (
+        <Card>
+          <CardContent className="py-3 flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Generada desde cotización:</span>
+            <Link to={`/quotes/${sourceQuote.id}`}>
+              <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                {sourceQuote.quote_number}
+              </Badge>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <InvoiceFiscalDataCard invoice={invoice} />
       <ReadOnlyLineItemsTable lineItems={lineItems} />
