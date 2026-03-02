@@ -1,30 +1,44 @@
 
 
-## Traducir descripciones de partidas de renta al español
+## Traducir textos en ingles restantes en el modulo de facturacion
 
-### Problema
-En `src/lib/invoiceUtils.ts`, las descripciones de las partidas de renta se generan en inglés: "Monthly rental", "Weekly rental", "Daily rental".
+### Hallazgos
 
-### Cambio
+Se revisaron todos los archivos del modulo de facturacion (paginas, componentes, PDF, edge function). Solo quedan 2 archivos con texto en ingles:
 
-**Archivo: `src/lib/invoiceUtils.ts`**
+### Cambios
 
-Reemplazar las 4 ocurrencias de descripciones en inglés por sus equivalentes en español:
+**1. `supabase/functions/generate-recurring-invoices/index.ts` (linea 79)**
 
-| Actual (inglés)   | Nuevo (español)    |
-|--------------------|--------------------|
-| `Monthly rental`   | `Renta mensual`    |
-| `Weekly rental`    | `Renta semanal`    |
-| `Daily rental`     | `Renta diaria`     |
+Actual:
+```
+description: `${forklift?.name || "Forklift"} — Monthly rental (${startStr} to ${endStr})`
+```
 
-Las líneas afectadas son:
-- Línea 26: `Monthly rental` -> `Renta mensual`
-- Línea 33: `Weekly rental` -> `Renta semanal`
-- Línea 39: `Daily rental` -> `Renta diaria`
-- Línea 44: `Daily rental` -> `Renta diaria` (fallback)
+Nuevo:
+```
+description: `${forklift?.name || "Montacargas"} — Renta mensual (${startStr} al ${endStr})`
+```
+
+Cambios: "Forklift" -> "Montacargas", "Monthly rental" -> "Renta mensual", "to" -> "al"
+
+**2. `src/components/InvoicePDFButton.tsx` (linea 53)**
+
+Actual:
+```
+doc.text(company?.razon_social || "ForkliftERP", textStartX, y);
+```
+
+Nuevo:
+```
+doc.text(company?.razon_social || "LiftGo", textStartX, y);
+```
+
+El fallback "ForkliftERP" se reemplaza por "LiftGo" (nombre del proyecto segun la URL publicada).
 
 ### Alcance
-- Solo se modifica un archivo: `src/lib/invoiceUtils.ts`
+- 2 archivos modificados
 - No hay cambios en base de datos
-- Las facturas existentes conservan su texto original (ya guardado en la BD); solo las nuevas partidas generadas usaran el texto en español
+- La edge function se redesplegara automaticamente
+- Las facturas recurrentes generadas a futuro tendran la descripcion en espanol
 
