@@ -182,6 +182,7 @@ export default function QuoteForm() {
     <div className="p-6 max-w-3xl">
       <FormPageHeader title={id ? "Editar Cotización" : "Nueva Cotización"} />
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 1. Tipo de Cotización */}
         <Card>
           <CardHeader><CardTitle className="text-base">Tipo de Cotización</CardTitle></CardHeader>
           <CardContent>
@@ -194,6 +195,19 @@ export default function QuoteForm() {
           </CardContent>
         </Card>
 
+        {/* 2. Cliente */}
+        <CustomerSelector
+          customers={customers}
+          customerId={customerId}
+          customerName={customerName}
+          onCustomerIdChange={setCustomerId}
+          onCustomerNameChange={setCustomerName}
+          required
+          hideManualName
+          helpText="Si tu cliente no aparece en la lista, selecciona 'Público en General' o regístralo primero en el módulo de Clientes."
+        />
+
+        {/* 3. Detalles de Cotización */}
         <Card>
           <CardHeader><CardTitle className="text-base">Detalles de Cotización</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -231,21 +245,12 @@ export default function QuoteForm() {
           </CardContent>
         </Card>
 
+        {/* 4. Equipos a Cotizar (solo venta) */}
         {quoteType === "sale" && (
           <SaleLineItems lines={saleLines} onChange={setSaleLines} models={equipmentModels || []} />
         )}
 
-        <CustomerSelector
-          customers={customers}
-          customerId={customerId}
-          customerName={customerName}
-          onCustomerIdChange={setCustomerId}
-          onCustomerNameChange={setCustomerName}
-          required
-          hideManualName
-          helpText="Si tu cliente no aparece en la lista, selecciona 'Público en General' o regístralo primero en el módulo de Clientes."
-        />
-
+        {/* 5. Servicio de Logística */}
         <Card>
           <CardContent className="pt-6 space-y-3">
             <div className="flex items-center gap-2">
@@ -275,10 +280,13 @@ export default function QuoteForm() {
           </CardContent>
         </Card>
 
+        {/* 6. Resumen de Costos */}
         <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} />
 
+        {/* 7. Notas */}
         <NotesCard value={notes} onChange={setNotes} />
 
+        {/* 8. Acciones */}
         <FormActions submitLabel={id ? "Actualizar Cotización" : "Crear Cotización"} isPending={createQuote.isPending || updateQuote.isPending} onCancel={() => navigate(-1)} />
       </form>
     </div>
