@@ -13,42 +13,48 @@ interface CustomerSelectorProps {
   onCustomerNameChange: (name: string) => void;
   customerContact?: string;
   onCustomerContactChange?: (contact: string) => void;
+  required?: boolean;
+  hideManualName?: boolean;
+  helpText?: string;
 }
 
-export function CustomerSelector({ customers, customerId, customerName, onCustomerIdChange, onCustomerNameChange, customerContact, onCustomerContactChange }: CustomerSelectorProps) {
+export function CustomerSelector({ customers, customerId, customerName, onCustomerIdChange, onCustomerNameChange, customerContact, onCustomerContactChange, required, hideManualName, helpText }: CustomerSelectorProps) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         {customers && customers.length > 0 && (
           <div className="space-y-1.5">
-            <Label>Cliente Existente</Label>
+            <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>
             <Select value={customerId} onValueChange={(v) => {
               onCustomerIdChange(v);
               const c = customers.find((c) => c.id === v);
               if (c) { onCustomerNameChange(c.name); if (onCustomerContactChange && c.email) onCustomerContactChange(c.email); }
             }}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar cliente (opcional)" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={required ? "Seleccionar cliente *" : "Seleccionar cliente (opcional)"} /></SelectTrigger>
               <SelectContent>
                 {customers.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}{c.company && c.company !== c.name ? ` — ${c.company}` : ""}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
           </div>
         )}
-        <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
-          <div className="space-y-1.5">
-            <Label>Nombre del Cliente</Label>
-            <Input value={customerName} onChange={(e) => onCustomerNameChange(e.target.value)} placeholder="Nombre del cliente" />
-          </div>
-          {onCustomerContactChange && (
+        {!hideManualName && (
+          <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
             <div className="space-y-1.5">
-              <Label>Contacto</Label>
-              <Input placeholder="Correo o teléfono" value={customerContact || ""} onChange={(e) => onCustomerContactChange(e.target.value)} />
+              <Label>Nombre del Cliente</Label>
+              <Input value={customerName} onChange={(e) => onCustomerNameChange(e.target.value)} placeholder="Nombre del cliente" />
             </div>
-          )}
-        </div>
+            {onCustomerContactChange && (
+              <div className="space-y-1.5">
+                <Label>Contacto</Label>
+                <Input placeholder="Correo o teléfono" value={customerContact || ""} onChange={(e) => onCustomerContactChange(e.target.value)} />
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
