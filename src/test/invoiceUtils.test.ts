@@ -4,7 +4,7 @@ import { calculateRentalCost, computeTotals } from "@/lib/invoiceUtils";
 describe("calculateRentalCost", () => {
   it("uses monthly rate for 30+ days", () => {
     const items = calculateRentalCost(50, 300, 1000, 60);
-    expect(items[0].description).toBe("Monthly rental");
+    expect(items[0].description).toBe("Renta mensual");
     expect(items[0].quantity).toBe(2);
     expect(items[0].total).toBe(2000);
   });
@@ -12,14 +12,14 @@ describe("calculateRentalCost", () => {
   it("uses weekly rate for 7+ remaining days", () => {
     const items = calculateRentalCost(50, 300, 1000, 37);
     expect(items).toHaveLength(2); // 1 month + 1 week
-    expect(items[1].description).toBe("Weekly rental");
+    expect(items[1].description).toBe("Renta semanal");
     expect(items[1].quantity).toBe(1);
   });
 
   it("uses daily rate for remaining days", () => {
     const items = calculateRentalCost(50, 300, 1000, 3);
     expect(items).toHaveLength(1);
-    expect(items[0].description).toBe("Daily rental");
+    expect(items[0].description).toBe("Renta diaria");
     expect(items[0].quantity).toBe(3);
     expect(items[0].total).toBe(150);
   });
