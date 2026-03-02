@@ -3,8 +3,8 @@ import { calculateRentalCost, computeTotals } from "@/lib/invoiceUtils";
 import { parseDateLocal, formatDateDisplay } from "@/lib/utils";
 
 describe("calculateRentalCost", () => {
-  it("counts 2 calendar months from Jan 1 to Mar 1", () => {
-    const items = calculateRentalCost(50, 300, 1000, new Date("2025-01-01"), new Date("2025-03-01"));
+  it("counts 2 calendar months from Jan 1 to Feb 28 (inclusive)", () => {
+    const items = calculateRentalCost(50, 300, 1000, new Date("2025-01-01"), new Date("2025-02-28"));
     expect(items[0].description).toBe("Renta mensual");
     expect(items[0].quantity).toBe(2);
     expect(items[0].total).toBe(2000);
@@ -15,7 +15,7 @@ describe("calculateRentalCost", () => {
     const items = calculateRentalCost(50, 300, 1000, new Date("2025-02-01"), new Date("2025-03-15"));
     expect(items[0].description).toBe("Renta mensual");
     expect(items[0].quantity).toBe(1);
-    // Mar 1 to Mar 15 = 15 days → 2 weeks + 1 day
+    // Mar 1 to Mar 15 = 15 days remainder
     expect(items[1].description).toBe("Renta semanal");
     expect(items[1].quantity).toBe(2);
     expect(items[2].description).toBe("Renta diaria");
@@ -23,9 +23,9 @@ describe("calculateRentalCost", () => {
   });
 
   it("uses weekly rate for 7+ remaining days", () => {
-    // 10 days, no monthly rate
+    // Jan 1 to Jan 10 inclusive = 10 days → 1 week + 3 days
     const items = calculateRentalCost(50, 300, 0, new Date("2025-01-01"), new Date("2025-01-10"));
-    expect(items).toHaveLength(2); // 1 week + 3 days
+    expect(items).toHaveLength(2);
     expect(items[0].description).toBe("Renta semanal");
     expect(items[0].quantity).toBe(1);
     expect(items[1].description).toBe("Renta diaria");
@@ -52,14 +52,14 @@ describe("calculateRentalCost", () => {
   });
 
   it("handles February correctly (28 days = 1 month)", () => {
-    const items = calculateRentalCost(50, 300, 1000, new Date("2025-02-01"), new Date("2025-03-01"));
+    const items = calculateRentalCost(50, 300, 1000, new Date("2025-02-01"), new Date("2025-02-28"));
     expect(items[0].quantity).toBe(1);
     expect(items[0].total).toBe(1000);
     expect(items).toHaveLength(1);
   });
 
   it("handles 31-day month correctly", () => {
-    const items = calculateRentalCost(50, 300, 1000, new Date("2025-01-01"), new Date("2025-02-01"));
+    const items = calculateRentalCost(50, 300, 1000, new Date("2025-01-01"), new Date("2025-01-31"));
     expect(items[0].quantity).toBe(1);
     expect(items[0].total).toBe(1000);
     expect(items).toHaveLength(1);
