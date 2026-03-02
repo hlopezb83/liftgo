@@ -10,4 +10,9 @@ export const APP_CONFIG = {
   PAGE_SIZE: 25,
   /** Locale for number formatting */
   LOCALE: "es-MX",
+  /** Available tax rate options (Mexico IVA) */
+  TAX_RATE_OPTIONS: [
+    { value: 16, label: "16% (General)" },
+    { value: 11, label: "11% (Frontera)" },
+  ],
 } as const;
