@@ -55,6 +55,13 @@ Deno.serve(async (req) => {
 
     if (bErr) throw bErr;
 
+    const fmtDate = (d: Date) => {
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
+
     let invoicesCreated = 0;
 
     for (const booking of bookings || []) {
@@ -76,7 +83,7 @@ Deno.serve(async (req) => {
       const startStr = lastBilled.toISOString().split("T")[0];
 
       const lineItems = [{
-        description: `${forklift?.name || "Montacargas"} — Renta mensual (${startStr} al ${endStr})`,
+        description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtDate(lastBilled)} al ${fmtDate(billingEndDate)})`,
         quantity: 1,
         unit_price: monthlyRate,
         total: monthlyRate,
