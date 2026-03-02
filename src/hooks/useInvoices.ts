@@ -26,7 +26,7 @@ export function useInvoice(id: string | undefined) {
 }
 
 export function useCreateInvoice() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number">) => {
       const { data: numData, error: numError } = await supabase.rpc("next_invoice_number");
@@ -39,7 +39,7 @@ export function useCreateInvoice() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["invoices"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al crear factura", description: err.message, variant: "destructive" })
@@ -49,7 +49,7 @@ export function useCreateInvoice() {
 }
 
 export function useUpdateInvoice() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"invoices"> & { id: string }) => {
       const { data, error } = await supabase.from("invoices").update(updates).eq("id", id).select().single();
@@ -57,8 +57,8 @@ export function useUpdateInvoice() {
       return data;
     },
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ["invoices"] });
-      qc.invalidateQueries({ queryKey: ["invoices", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", data.id] });
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>

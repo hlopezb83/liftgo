@@ -31,7 +31,7 @@ export function useForklift(id: string | undefined) {
 }
 
 export function useCreateForklift() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (forklift: TablesInsert<"forklifts">) => {
       const { data, error } = await supabase.from("forklifts").insert(forklift).select().single();
@@ -43,7 +43,7 @@ export function useCreateForklift() {
       });
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["forklifts"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al crear montacargas", description: err.message, variant: "destructive" })
@@ -53,7 +53,7 @@ export function useCreateForklift() {
 }
 
 export function useUpdateForklift() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"forklifts"> & { id: string }) => {
       const { data, error } = await supabase.from("forklifts").update(updates).eq("id", id).select().single();
@@ -61,8 +61,8 @@ export function useUpdateForklift() {
       return data;
     },
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ["forklifts"] });
-      qc.invalidateQueries({ queryKey: ["forklifts", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts", data.id] });
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
@@ -73,27 +73,27 @@ export function useUpdateForklift() {
 }
 
 export function useDeleteForklift() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.rpc("delete_forklift", { p_forklift_id: id });
       if (error) throw error;
     },
     onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ["forklifts"] });
-      const previous = qc.getQueryData<Forklift[]>(["forklifts"]);
-      qc.setQueryData<Forklift[]>(["forklifts"], (old) => old?.filter((f) => f.id !== id));
+      await queryClient.cancelQueries({ queryKey: ["forklifts"] });
+      const previous = queryClient.getQueryData<Forklift[]>(["forklifts"]);
+      queryClient.setQueryData<Forklift[]>(["forklifts"], (old) => old?.filter((f) => f.id !== id));
       return { previous };
     },
     onError: (_err, _id, context) => {
-      if (context?.previous) qc.setQueryData(["forklifts"], context.previous);
+      if (context?.previous) queryClient.setQueryData(["forklifts"], context.previous);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["forklifts"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
   });
 }
 
 export function useUpdateStatus() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       forkliftId, fromStatus, toStatus, note,
@@ -104,8 +104,8 @@ export function useUpdateStatus() {
       });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["forklifts"] });
-      qc.invalidateQueries({ queryKey: ["status_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
   });
 }

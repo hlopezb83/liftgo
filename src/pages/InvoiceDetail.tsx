@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
@@ -12,6 +12,7 @@ import { InvoiceFiscalDataCard } from "@/components/invoice-detail/InvoiceFiscal
 import { InvoicePaymentSummary } from "@/components/invoice-detail/InvoicePaymentSummary";
 import { CancelCfdiDialog } from "@/components/invoice-detail/CancelCfdiDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotesCard } from "@/components/NotesCard";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -232,10 +233,7 @@ export default function InvoiceDetail() {
       <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={Number(invoice.total)} />
 
       {invoice.notes && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
-          <CardContent><p className="text-sm text-muted-foreground">{invoice.notes}</p></CardContent>
-        </Card>
+        <NotesCard value={invoice.notes} readOnly />
       )}
 
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />

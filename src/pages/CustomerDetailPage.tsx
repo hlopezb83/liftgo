@@ -7,6 +7,7 @@ import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotesCard } from "@/components/NotesCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { UserPlus, CalendarDays, Receipt } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -137,10 +138,7 @@ export default function CustomerDetailPage() {
       </Card>
 
       {customer.notes && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
-          <CardContent><p className="text-sm whitespace-pre-wrap">{customer.notes}</p></CardContent>
-        </Card>
+        <NotesCard value={customer.notes} readOnly />
       )}
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>

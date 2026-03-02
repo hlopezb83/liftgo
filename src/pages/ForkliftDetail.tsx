@@ -6,11 +6,11 @@ import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, StickyNote } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
+import { NotesCard } from "@/components/NotesCard";
 import { ForkliftSpecsCard } from "@/components/forklift-detail/ForkliftSpecsCard";
 import { ForkliftRatesCard } from "@/components/forklift-detail/ForkliftRatesCard";
 import { ForkliftBookingsList } from "@/components/forklift-detail/ForkliftBookingsList";
@@ -76,10 +76,7 @@ export default function ForkliftDetail() {
       </div>
 
       {forklift.notes && (
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><StickyNote className="h-4 w-4" /> Notas</CardTitle></CardHeader>
-          <CardContent><p className="text-sm whitespace-pre-wrap">{forklift.notes}</p></CardContent>
-        </Card>
+        <NotesCard value={forklift.notes} readOnly />
       )}
 
       <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />

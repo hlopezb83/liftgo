@@ -10,6 +10,7 @@ import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotesCard } from "@/components/NotesCard";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -266,10 +267,7 @@ export default function QuoteDetail() {
       />
 
       {quote.notes && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
-          <CardContent><p className="text-sm text-muted-foreground">{quote.notes}</p></CardContent>
-        </Card>
+        <NotesCard value={quote.notes} readOnly />
       )}
 
       {isSale && quote.status === "accepted" && (
