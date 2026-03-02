@@ -1,39 +1,32 @@
 
 
-## Estandarizar formato de fechas a DD/MM/AAAA en toda la aplicacion
+## Corregir fecha de pago en factura
 
 ### Problema
-Las fechas se muestran actualmente en formato `"d MMM yyyy"` (ej. "2 mar 2026") o con `PPP` / `toLocaleDateString()` sin locale. El estandar mexicano es **DD/MM/AAAA** (ej. "02/03/2026").
+Cuando se registra un pago con una fecha en el pasado, el sistema ignora esa fecha y marca la factura con la fecha de hoy. Esto ocurre en dos lugares:
 
-### Alcance
-Solo se modifican fechas de **visualizacion**. Las fechas para almacenamiento en base de datos (`"yyyy-MM-dd"`) no se tocan.
+1. **`useCreatePayment`** (linea 64 de `src/hooks/usePayments.ts`): Al detectar que la factura queda saldada, usa `new Date()` en vez de la fecha del pago registrado.
+2. **`InvoiceDetail.tsx`**: El boton "Marcar Pagada" tambien usa `new Date()` en vez de permitir elegir una fecha.
 
-### Archivos a modificar (18 archivos)
+### Solucion
 
-| Archivo | Formato actual | Formato nuevo |
-|---|---|---|
-| `src/components/DatePickerField.tsx` | `PPP` | `dd/MM/yyyy` con locale es |
-| `src/components/DateRangePickerField.tsx` | `d MMM yyyy` / `d MMM` | `dd/MM/yyyy` / `dd/MM` |
-| `src/components/RecurringBillingBadge.tsx` | `d MMM yyyy` | `dd/MM/yyyy` |
-| `src/components/forklift-detail/ForkliftBookingsList.tsx` | `d MMM` / `d MMM yyyy` | `dd/MM` / `dd/MM/yyyy` |
-| `src/components/forklift-detail/ForkliftStatusHistory.tsx` | `d MMM yyyy HH:mm` | `dd/MM/yyyy HH:mm` |
-| `src/components/forklift-detail/ForkliftMaintenanceList.tsx` | `d MMM yyyy` | `dd/MM/yyyy` |
-| `src/components/calendar/EquipmentListView.tsx` | `d MMM` / `d MMM yyyy` | `dd/MM` / `dd/MM/yyyy` |
-| `src/components/calendar/GanttChart.tsx` | `d MMM` / `d MMM yyyy` | `dd/MM` / `dd/MM/yyyy` |
-| `src/pages/BookingsPage.tsx` | `d MMM yyyy` | `dd/MM/yyyy` |
-| `src/pages/CalendarPage.tsx` | `d MMM` / `d MMM yyyy` | `dd/MM` / `dd/MM/yyyy` |
-| `src/pages/DamageTrackingPage.tsx` | `d MMM yyyy` | `dd/MM/yyyy` |
-| `src/pages/ReturnInspectionPage.tsx` | `d MMM yyyy` | `dd/MM/yyyy` |
-| `src/pages/ActivityPage.tsx` | `d MMM yyyy HH:mm` | `dd/MM/yyyy HH:mm` |
-| `src/pages/ContractDetail.tsx` | `toLocaleDateString()` | `format(... "dd/MM/yyyy")` |
-| `src/pages/UserManagementPage.tsx` | `toLocaleDateString()` | `format(... "dd/MM/yyyy")` |
-| `src/pages/AuditTrailPage.tsx` | `toLocaleDateString()` + `toLocaleTimeString()` | `format(... "dd/MM/yyyy HH:mm")` |
-| `src/pages/HelpPage.tsx` | `toLocaleDateString("es-MX", ...)` | `format(... "dd/MM/yyyy")` |
-| `src/pages/InvoicesPage.tsx` | verificar si tiene fechas con formato incorrecto |
+**Archivo 1: `src/hooks/usePayments.ts`**
+- Linea 64: Cambiar `new Date().toISOString().split("T")[0]` por `payment.payment_date`, que ya contiene la fecha seleccionada por el usuario.
 
-### Notas
-- Los formatos cortos para rangos (`d MMM`) cambian a `dd/MM` para mantener consistencia
-- Los formatos con hora (`HH:mm`) se conservan, solo cambia la parte de fecha
-- El label del calendario (`MMMM yyyy` en CalendarPage) se mantiene tal cual porque es un encabezado de mes, no una fecha puntual
-- Los PDFs (QuotePDFButton, InvoicePDFButton, ContractPDFButton) usan formatos propios para documentos oficiales y se dejan como estan por ahora
+**Archivo 2: `src/pages/InvoiceDetail.tsx`**
+- En el boton "Marcar Pagada", cambiar la fecha hardcodeada por la fecha actual, lo cual es aceptable para este caso (accion manual directa). Este comportamiento ya es correcto conceptualmente ya que el usuario esta marcando la factura como pagada "ahora".
+
+### Cambio principal
+
+Solo 1 linea en `usePayments.ts`:
+
+```text
+// Antes (linea 64):
+paid_at: new Date().toISOString().split("T")[0]
+
+// Despues:
+paid_at: payment.payment_date
+```
+
+Esto garantiza que cuando se registra un pago y la factura queda saldada automaticamente, la fecha `paid_at` refleje la fecha real del pago, no la fecha en que se registro en el sistema.
 
