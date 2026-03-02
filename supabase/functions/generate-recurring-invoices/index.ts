@@ -65,13 +65,22 @@ Deno.serve(async (req) => {
     let invoicesCreated = 0;
 
     for (const booking of bookings || []) {
-      const lastBilled = booking.last_billed_date ? new Date(booking.last_billed_date) : new Date(booking.start_date);
       const now = new Date();
+      let billingStart: Date;
+      let billingEnd: Date;
 
-      // Calcular el mes a facturar: el mes siguiente a lastBilled
-      const billingStart = new Date(lastBilled.getFullYear(), lastBilled.getMonth() + 1, 1);
-      // Último día de ese mes
-      const billingEnd = new Date(billingStart.getFullYear(), billingStart.getMonth() + 1, 0);
+      if (booking.last_billed_date) {
+        // Facturas subsecuentes: mes siguiente al último facturado
+        const lastBilled = new Date(booking.last_billed_date);
+        billingStart = new Date(lastBilled.getFullYear(), lastBilled.getMonth() + 1, 1);
+      } else {
+        // Primera factura: el mes del inicio de la reserva
+        const startDate = new Date(booking.start_date);
+        billingStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      }
+
+      // Último día del mes de facturación
+      billingEnd = new Date(billingStart.getFullYear(), billingStart.getMonth() + 1, 0);
 
       // Solo generar si ya estamos en o después del mes a facturar
       if (now < billingStart) continue;
