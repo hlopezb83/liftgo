@@ -1,45 +1,70 @@
 
-
-## Corregir formato de fecha en descripcion de facturas recurrentes
+## Corregir periodos de facturación recurrente a meses calendario naturales
 
 ### Problema
-La edge function `generate-recurring-invoices` genera descripciones de partidas con fechas en formato ISO (`YYYY-MM-DD`), por ejemplo:
-> Montacargas X -- Renta mensual (2025-06-01 al 2025-07-01)
+La edge function `generate-recurring-invoices` calcula el periodo de facturación sumando 30 días a la última fecha facturada, lo que produce periodos artificiales como:
+- "30/01/2026 al 01/03/2026" (para febrero)
 
-El formato correcto para Mexico es `DD/MM/YYYY`:
-> Montacargas X -- Renta mensual (01/06/2025 al 01/07/2025)
+Lo natural y comprensible sería:
+- "01/02/2026 al 28/02/2026"
 
-### Solucion
-Agregar una funcion auxiliar `fmtDate` dentro de la edge function que convierta un objeto `Date` al formato `DD/MM/YYYY`, y usarla en la descripcion de las partidas.
+### Causa raíz
+```typescript
+// Lógica actual: suma fija de 30 días
+const billingEndDate = new Date(lastBilled);
+billingEndDate.setDate(billingEndDate.getDate() + 30);
+```
+
+### Solución
+Cambiar la lógica para usar **meses calendario completos**:
+
+1. El **inicio del periodo** es el 1er día del mes siguiente a `lastBilled`.
+2. El **fin del periodo** es el último día de ese mismo mes (28, 29, 30 o 31 según corresponda).
+3. La condición de "¿ya pasó suficiente tiempo?" también se ajusta para verificar que el mes siguiente ya haya comenzado (en lugar de contar 30 días fijos).
+4. El `last_billed_date` se actualiza al último día del mes facturado (fin del periodo), para que el siguiente ciclo calcule correctamente el mes siguiente.
+5. El `due_date` de la factura se establece al último día del mes facturado.
 
 ### Cambio en `supabase/functions/generate-recurring-invoices/index.ts`
 
-**1. Agregar funcion de formato (antes del ciclo `for`)**
+**Lógica nueva (reemplaza líneas 67-83 aproximadamente):**
+
 ```typescript
-const fmtDate = (d: Date) => {
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-};
+for (const booking of bookings || []) {
+  const lastBilled = booking.last_billed_date
+    ? new Date(booking.last_billed_date)
+    : new Date(booking.start_date);
+  const now = new Date();
+
+  // Calcular el mes a facturar: el mes siguiente a lastBilled
+  const billingStart = new Date(lastBilled.getFullYear(), lastBilled.getMonth() + 1, 1);
+  // Último día de ese mes
+  const billingEnd = new Date(billingStart.getFullYear(), billingStart.getMonth() + 1, 0);
+
+  // Solo generar si ya estamos en o después del mes a facturar
+  if (now < billingStart) continue;
+
+  // ... (validación de monthlyRate sin cambios)
+
+  const endStr = billingEnd.toISOString().split("T")[0];
+
+  const lineItems = [{
+    description: `... — Renta mensual (${fmtDate(billingStart)} al ${fmtDate(billingEnd)})`,
+    ...
+  }];
+
+  // due_date y last_billed_date usan endStr (último día del mes)
+}
 ```
 
-**2. Actualizar la descripcion de la partida (linea 79)**
+### Ejemplo del resultado
 
-Cambiar:
-```typescript
-description: `${forklift?.name || "Montacargas"} — Renta mensual (${startStr} al ${endStr})`,
-```
-
-Por:
-```typescript
-description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtDate(lastBilled)} al ${fmtDate(billingEndDate)})`,
-```
-
-Las variables `startStr` y `endStr` (formato `YYYY-MM-DD`) se mantienen sin cambios ya que se siguen usando para los campos de base de datos (`due_date`, `last_billed_date`) que requieren formato ISO.
+Para una reserva que inició el 01/01/2026:
+- Primera factura: "01/01/2026 al 31/01/2026" (enero)
+- Segunda factura: "01/02/2026 al 28/02/2026" (febrero)
+- Tercera factura: "01/03/2026 al 31/03/2026" (marzo)
 
 ### Impacto
-- Solo cambia el texto visible en la descripcion de las partidas generadas.
-- Los campos de fecha en la base de datos (`due_date`, `last_billed_date`) siguen usando formato ISO como es correcto.
-- Consistente con el formato `DD/MM/YYYY` usado en el resto de la aplicacion.
-
+- Solo cambia la edge function `generate-recurring-invoices`.
+- Periodos ahora reflejan meses calendario reales.
+- Se respetan meses con 28, 29, 30 o 31 días automáticamente.
+- Los campos de base de datos siguen usando formato ISO.
