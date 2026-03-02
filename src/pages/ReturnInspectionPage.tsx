@@ -25,7 +25,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+
 
 const initialForm = {
   bookingId: "" as string,
@@ -84,7 +84,7 @@ export default function ReturnInspectionPage() {
               </div>
               <p className="text-sm text-muted-foreground">{insWithJoins.bookings?.customer_name || "—"}</p>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                <span className="font-mono">{format(new Date(ins.inspected_at), "d MMM yyyy", { locale: es })}</span>
+                <span className="font-mono">{format(new Date(ins.inspected_at), "dd/MM/yyyy")}</span>
                 {ins.damage_cost ? <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span> : null}
               </div>
             </CardContent>
@@ -153,7 +153,7 @@ export default function ReturnInspectionPage() {
           const insWithJoins = ins as typeof ins & { forklifts?: { name: string; model: string }; bookings?: { customer_name: string | null } };
           return (
             <TableRow key={ins.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
-              <TableCell className="font-mono text-sm">{format(new Date(ins.inspected_at), "d MMM yyyy", { locale: es })}</TableCell>
+              <TableCell className="font-mono text-sm">{format(new Date(ins.inspected_at), "dd/MM/yyyy")}</TableCell>
               <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
               <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>
               <TableCell><StatusBadge status={ins.condition} /></TableCell>

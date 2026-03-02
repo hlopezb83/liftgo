@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MobileCardList } from "@/components/MobileCardList";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserPlus, Trash2, Pencil } from "lucide-react";
+import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { CredentialsDialog } from "@/components/CredentialsDialog";
 import type { AppRole } from "@/hooks/useUserRole";
@@ -291,7 +292,7 @@ export default function UserManagementPage() {
                       )}
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">{new Date(u.created_at).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground mb-2">{format(new Date(u.created_at), "dd/MM/yyyy")}</p>
                   <Select defaultValue={u.role} onValueChange={(val) => updateRole.mutate({ userId: u.user_id, role: val as AppRole })}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
@@ -326,7 +327,7 @@ export default function UserManagementPage() {
                   <TableRow key={u.user_id}>
                     <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {new Date(u.created_at).toLocaleDateString()}
+                      {format(new Date(u.created_at), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell>
                       <Select

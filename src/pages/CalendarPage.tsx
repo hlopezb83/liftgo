@@ -43,7 +43,7 @@ export default function CalendarPage() {
 
   const rangeLabel = ganttRange === "month"
     ? format(currentDate, "MMMM yyyy", { locale: es })
-    : `${format(rangeStart, "d MMM", { locale: es })} – ${format(rangeEnd, "d MMM yyyy", { locale: es })}`;
+    : `${format(rangeStart, "dd/MM")} – ${format(rangeEnd, "dd/MM/yyyy")}`;
 
   const endingSoon = useMemo(() => {
     if (!bookings) return [];
@@ -89,7 +89,7 @@ export default function CalendarPage() {
               {endingSoon.map((b) => (
                 <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
                   <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
-                  <span className="text-xs text-muted-foreground">Termina: {format(parseISO(b.end_date), "d MMM yyyy", { locale: es })}</span>
+                  <span className="text-xs text-muted-foreground">Termina: {format(parseISO(b.end_date), "dd/MM/yyyy")}</span>
                 </div>
               ))}
             </div>
@@ -173,7 +173,7 @@ export default function CalendarPage() {
                       <RecurringBillingBadge booking={b} />
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {format(parseISO(b.start_date), "d MMM yyyy", { locale: es })} → {format(parseISO(b.end_date), "d MMM yyyy", { locale: es })}
+                          {format(parseISO(b.start_date), "dd/MM/yyyy")} → {format(parseISO(b.end_date), "dd/MM/yyyy")}
                         </p>
                         <p className="text-xs text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""}</p>
                         <StatusBadge status={b.status} />

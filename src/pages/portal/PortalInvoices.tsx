@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { useCustomerPortal } from "@/hooks/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 export default function PortalInvoices() {
   const { invoices, isLoading } = useCustomerPortal();
@@ -39,8 +40,8 @@ export default function PortalInvoices() {
                     onClick={() => navigate(`/portal/invoices/${inv.id}`)}
                   >
                     <TableCell className="font-medium">{inv.invoice_number}</TableCell>
-                    <TableCell>{inv.issued_at}</TableCell>
-                    <TableCell>{inv.due_date || "—"}</TableCell>
+                    <TableCell>{inv.issued_at ? format(new Date(inv.issued_at), "dd/MM/yyyy") : "—"}</TableCell>
+                    <TableCell>{inv.due_date ? format(new Date(inv.due_date), "dd/MM/yyyy") : "—"}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(Number(inv.total))}</TableCell>
                     <TableCell><StatusBadge status={inv.status} /></TableCell>
                   </TableRow>

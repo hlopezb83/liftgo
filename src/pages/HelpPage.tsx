@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Book, RefreshCw, Search, FileText, HelpCircle } from "lucide-react";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +66,7 @@ function HelpPage() {
             </h1>
             <p className="text-sm text-muted-foreground">
               {manual
-                ? `Generado el ${new Date(manual.generated_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}`
+                ? `Generado el ${format(new Date(manual.generated_at), "dd/MM/yyyy")}`
                 : "Aún no se ha generado el manual"}
             </p>
           </div>

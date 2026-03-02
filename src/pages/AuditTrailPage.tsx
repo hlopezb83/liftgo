@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableHeader, TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowUpCircle, PlusCircle, Trash2, Clock, AlertTriangle, Undo2 } from "lucide-react";
+import { format } from "date-fns";
 import type { AuditLog } from "@/hooks/useAuditLogs";
 
 const TABLES = [
@@ -86,8 +87,7 @@ const actionBadgeVariant = (action: string) => {
 };
 
 function formatTimestamp(ts: string) {
-  const d = new Date(ts);
-  return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return format(new Date(ts), "dd/MM/yyyy HH:mm");
 }
 
 function getRecordLabel(log: AuditLog): string {
