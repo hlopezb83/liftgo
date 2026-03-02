@@ -135,7 +135,10 @@ export default function QuoteDetail() {
                     <AlertDialogAction
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       onClick={() => deleteQuote.mutate(id!, {
-                        onSuccess: () => { toast.success("Cotización eliminada"); navigate("/quotes"); },
+                        onSuccess: async () => {
+                          toast.success("Cotización eliminada");
+                          navigate("/quotes");
+                        },
                         onError: (err: Error) => toast.error(err.message),
                       })}
                     >Eliminar</AlertDialogAction>
