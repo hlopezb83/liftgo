@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wrench } from "lucide-react";
 import { format } from "date-fns";
+import { parseDateLocal } from "@/lib/utils";
 
 import { formatCurrency } from "@/lib/formatCurrency";
 import type { Tables } from "@/integrations/supabase/types";
@@ -24,7 +25,7 @@ export function ForkliftMaintenanceList({ logs }: ForkliftMaintenanceListProps) 
                   {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-xs text-muted-foreground">{format(new Date(m.performed_at), "dd/MM/yyyy")}</span>
+                  <span className="text-xs text-muted-foreground">{format(parseDateLocal(m.performed_at), "dd/MM/yyyy")}</span>
                   {m.cost ? <p className="text-xs font-medium">{formatCurrency(m.cost)}</p> : null}
                 </div>
               </div>

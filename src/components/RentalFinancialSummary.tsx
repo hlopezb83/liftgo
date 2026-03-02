@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { calculateRentalCost, computeTotals } from "@/lib/invoiceUtils";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { differenceInDays } from "date-fns";
+import { parseDateLocal } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, FileText, TrendingUp } from "lucide-react";
 
@@ -36,8 +37,8 @@ export function RentalFinancialSummary({
     },
   });
 
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseDateLocal(startDate);
+  const end = parseDateLocal(endDate);
   const days = differenceInDays(end, start) + 1;
   const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
   const expectedRevenue = items.reduce((sum, item) => sum + item.total, 0);

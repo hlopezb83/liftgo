@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Send, CheckCircle, XCircle, Edit } from "lucide-react";
 import { format } from "date-fns";
+import { parseDateLocal } from "@/lib/utils";
 import { formatDateDisplay } from "@/lib/utils";
 import { ContractPDFButton } from "@/components/ContractPDFButton";
 import { RentalFinancialSummary } from "@/components/RentalFinancialSummary";
@@ -84,7 +85,7 @@ export default function ContractDetail() {
             <div><span className="text-muted-foreground block">Tarifa Diaria</span>{formatCurrency(Number(contract.daily_rate || 0))}</div>
             <div><span className="text-muted-foreground block">Tarifa Semanal</span>{formatCurrency(Number(contract.weekly_rate || 0))}</div>
             <div><span className="text-muted-foreground block">Tarifa Mensual</span>{formatCurrency(Number(contract.monthly_rate || 0))}</div>
-            {contract.signed_at && <div><span className="text-muted-foreground block">Firmado</span>{format(new Date(contract.signed_at), "dd/MM/yyyy")}</div>}
+            {contract.signed_at && <div><span className="text-muted-foreground block">Firmado</span>{format(parseDateLocal(contract.signed_at), "dd/MM/yyyy")}</div>}
             {contract.signed_by && <div><span className="text-muted-foreground block">Firmado por</span>{contract.signed_by}</div>}
           </div>
         </CardContent>

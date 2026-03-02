@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
+import { parseDateLocal } from "@/lib/utils";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -21,7 +22,7 @@ export function ForkliftBookingsList({ bookings }: ForkliftBookingsListProps) {
                 <div>
                   <span className="font-medium">{b.customer_name || "Desconocido"}</span>
                   <span className="text-muted-foreground ml-2">
-                    {format(new Date(b.start_date), "dd/MM")} – {format(new Date(b.end_date), "dd/MM/yyyy")}
+                    {format(parseDateLocal(b.start_date), "dd/MM")} – {format(parseDateLocal(b.end_date), "dd/MM/yyyy")}
                   </span>
                 </div>
                 <StatusBadge status={b.status} />
