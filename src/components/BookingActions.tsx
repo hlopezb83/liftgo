@@ -9,11 +9,12 @@ import { useUpdateBooking, type BookingWithForklift } from "@/hooks/useBookings"
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
-import { CalendarPlus, Undo2, XCircle, FileText } from "lucide-react";
+import { CalendarPlus, Undo2, XCircle, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { formatDateDisplay } from "@/lib/utils";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 
@@ -26,7 +27,49 @@ export function BookingActions({ booking }: BookingActionsProps) {
   const updateBooking = useUpdateBooking();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  if (booking.status !== "confirmed") return null;
+  const { data: role } = useUserRole();
+  const isAdmin = role === "admin";
+
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase.from("bookings").delete().eq("id", booking.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      toast.success("Reserva eliminada");
+    } catch (err: unknown) {
+      toast.error("Error al eliminar: " + (err instanceof Error ? err.message : "Error desconocido"));
+    }
+  };
+
+  if (booking.status !== "confirmed") {
+    if (!isAdmin) return null;
+    return (
+      <div className="flex gap-1">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+              <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar esta reserva?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Se eliminará permanentemente la reserva de {booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
 
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   const getPreview = (start: string, end: Date | undefined) => {
@@ -77,6 +120,30 @@ export function BookingActions({ booking }: BookingActionsProps) {
       <Button variant="ghost" size="sm" onClick={() => { setEarlyReturnDate(undefined); setReturnOpen(true); }}>
         <Undo2 className="h-3.5 w-3.5 mr-1" />Devolución Anticipada
       </Button>
+
+      {isAdmin && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+              <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar esta reserva?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Se eliminará permanentemente la reserva de {booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
