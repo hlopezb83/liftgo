@@ -1,70 +1,60 @@
 
-## Corregir periodos de facturación recurrente a meses calendario naturales
+
+## Corregir calculo de meses calendario en cotizaciones de renta
 
 ### Problema
-La edge function `generate-recurring-invoices` calcula el periodo de facturación sumando 30 días a la última fecha facturada, lo que produce periodos artificiales como:
-- "30/01/2026 al 01/03/2026" (para febrero)
+En `calculateRentalCost` (archivo `src/lib/invoiceUtils.ts`), el periodo 01/12/2025 al 30/11/2026 calcula 11 meses + 31 dias de renta diaria, cuando deberian ser 12 meses exactos.
 
-Lo natural y comprensible sería:
-- "01/02/2026 al 28/02/2026"
+La causa es que `differenceInCalendarMonths(30/11/2026, 01/12/2025)` devuelve 11, y `addMonths(01/12/2025, 11)` = 01/11/2026, dejando 29+1=30 dias de "sobrante". El algoritmo no reconoce que la renta incluye el dia final (inclusive), por lo que 30/11 es el ultimo dia de noviembre y completa un mes entero.
 
-### Causa raíz
+### Solucion
+Tratar la fecha final como **inclusiva** sumandole 1 dia para el calculo de meses calendario. Asi, el periodo efectivo para contar meses pasa a ser del 01/12/2025 al 01/12/2026, lo que da exactamente 12 meses.
+
+### Cambio en `src/lib/invoiceUtils.ts`
+
+**1. Importar `addDays`** (linea 2):
 ```typescript
-// Lógica actual: suma fija de 30 días
-const billingEndDate = new Date(lastBilled);
-billingEndDate.setDate(billingEndDate.getDate() + 30);
+import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
 ```
 
-### Solución
-Cambiar la lógica para usar **meses calendario completos**:
-
-1. El **inicio del periodo** es el 1er día del mes siguiente a `lastBilled`.
-2. El **fin del periodo** es el último día de ese mismo mes (28, 29, 30 o 31 según corresponda).
-3. La condición de "¿ya pasó suficiente tiempo?" también se ajusta para verificar que el mes siguiente ya haya comenzado (en lugar de contar 30 días fijos).
-4. El `last_billed_date` se actualiza al último día del mes facturado (fin del periodo), para que el siguiente ciclo calcule correctamente el mes siguiente.
-5. El `due_date` de la factura se establece al último día del mes facturado.
-
-### Cambio en `supabase/functions/generate-recurring-invoices/index.ts`
-
-**Lógica nueva (reemplaza líneas 67-83 aproximadamente):**
+**2. Reescribir la logica de calculo (lineas 23-43)**:
 
 ```typescript
-for (const booking of bookings || []) {
-  const lastBilled = booking.last_billed_date
-    ? new Date(booking.last_billed_date)
-    : new Date(booking.start_date);
-  const now = new Date();
+// Treat end date as inclusive: effective end = endDate + 1 day
+const effectiveEnd = addDays(endDate, 1);
 
-  // Calcular el mes a facturar: el mes siguiente a lastBilled
-  const billingStart = new Date(lastBilled.getFullYear(), lastBilled.getMonth() + 1, 1);
-  // Último día de ese mes
-  const billingEnd = new Date(billingStart.getFullYear(), billingStart.getMonth() + 1, 0);
-
-  // Solo generar si ya estamos en o después del mes a facturar
-  if (now < billingStart) continue;
-
-  // ... (validación de monthlyRate sin cambios)
-
-  const endStr = billingEnd.toISOString().split("T")[0];
-
-  const lineItems = [{
-    description: `... — Renta mensual (${fmtDate(billingStart)} al ${fmtDate(billingEnd)})`,
-    ...
-  }];
-
-  // due_date y last_billed_date usan endStr (último día del mes)
+// Calendar months using inclusive end
+let months = 0;
+if (mr > 0) {
+  months = differenceInCalendarMonths(effectiveEnd, startDate);
+  // Verify addMonths(startDate, months) doesn't exceed effectiveEnd
+  if (months > 0 && addMonths(startDate, months) > effectiveEnd) {
+    months -= 1;
+  }
+  if (months > 0) {
+    items.push({ description: "Renta mensual", quantity: months, unit_price: mr, total: months * mr });
+  }
 }
+
+const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
+// Remaining days = difference to effectiveEnd (no +1 needed, already inclusive)
+let remaining = differenceInDays(effectiveEnd, remainderStart);
+// If months consumed the entire range, remaining = 0
+if (remaining < 0) remaining = 0;
 ```
 
-### Ejemplo del resultado
+### Verificacion con ejemplos
 
-Para una reserva que inició el 01/01/2026:
-- Primera factura: "01/01/2026 al 31/01/2026" (enero)
-- Segunda factura: "01/02/2026 al 28/02/2026" (febrero)
-- Tercera factura: "01/03/2026 al 31/03/2026" (marzo)
+| Periodo | Antes | Despues |
+|---------|-------|---------|
+| 01/12/2025 al 30/11/2026 | 11 meses + 31 dias | 12 meses |
+| 01/01/2026 al 31/01/2026 | 0 meses + 31 dias | 1 mes |
+| 01/01/2026 al 28/02/2026 | 1 mes + 31 dias | 2 meses |
+| 01/01/2026 al 15/01/2026 | 0 meses + 15 dias | 0 meses + 15 dias |
+| 15/01/2026 al 14/02/2026 | 0 meses + 31 dias | 1 mes |
+| 15/01/2026 al 20/02/2026 | 1 mes + 6 dias | 1 mes + 6 dias |
 
 ### Impacto
-- Solo cambia la edge function `generate-recurring-invoices`.
-- Periodos ahora reflejan meses calendario reales.
-- Se respetan meses con 28, 29, 30 o 31 días automáticamente.
-- Los campos de base de datos siguen usando formato ISO.
+- Solo se modifica `src/lib/invoiceUtils.ts`.
+- Afecta el calculo en cotizaciones, reservas y cualquier lugar que use `calculateRentalCost` / `generateLineItems`.
+- No hay cambios en la base de datos ni en edge functions.
