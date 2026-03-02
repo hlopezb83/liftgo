@@ -740,6 +740,7 @@ export type Database = {
           moneda: string | null
           notes: string | null
           paid_at: string | null
+          quote_id: string | null
           receptor_domicilio_fiscal_cp: string | null
           receptor_razon_social: string | null
           receptor_regimen_fiscal: string | null
@@ -775,6 +776,7 @@ export type Database = {
           moneda?: string | null
           notes?: string | null
           paid_at?: string | null
+          quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
           receptor_razon_social?: string | null
           receptor_regimen_fiscal?: string | null
@@ -810,6 +812,7 @@ export type Database = {
           moneda?: string | null
           notes?: string | null
           paid_at?: string | null
+          quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
           receptor_razon_social?: string | null
           receptor_regimen_fiscal?: string | null
@@ -837,6 +840,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
         ]

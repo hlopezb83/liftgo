@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useCreateInvoice, useUpdateInvoice, useInvoice } from "@/hooks/useInvoices";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,14 +22,18 @@ import { format } from "date-fns";
 
 export default function InvoiceForm() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const fromQuoteId = searchParams.get("from_quote");
   const isEdit = !!id;
   const navigate = useNavigate();
   const { data: bookings } = useBookings();
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const { data: existing } = useInvoice(id);
+  const { data: sourceQuote } = useQuote(fromQuoteId || undefined);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
+  const updateQuote = useUpdateQuote();
 
   const [bookingId, setBookingId] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -75,6 +80,27 @@ export default function InvoiceForm() {
       setReceptorDomicilioFiscalCp(existing.receptor_domicilio_fiscal_cp || "");
     }
   }, [existing]);
+
+  // Pre-fill from source quote
+  useEffect(() => {
+    if (!sourceQuote || isEdit) return;
+    setCustomerName(sourceQuote.customer_name || "");
+    setCustomerId(sourceQuote.customer_id);
+    const quoteItems = (sourceQuote.line_items as unknown as CfdiLineItem[]) || [];
+    setLineItems(quoteItems.map((item) => ({
+      ...item,
+      clave_prod_serv: item.clave_prod_serv || "78181500",
+      clave_unidad: item.clave_unidad || "DAY",
+      objeto_imp: item.objeto_imp || "02",
+    })));
+    setTaxRate(Number(sourceQuote.tax_rate) || 16);
+    setNotes(sourceQuote.notes || "");
+    // Auto-fill CFDI from customer
+    if (sourceQuote.customer_id && customers) {
+      const cust = customers.find((c) => c.id === sourceQuote.customer_id);
+      if (cust) applyCustomerCfdi(cust);
+    }
+  }, [sourceQuote, customers, isEdit]);
 
   const applyCustomerCfdi = (cust: NonNullable<typeof customers>[number]) => {
     setReceptorRfc(cust.rfc || "");
@@ -146,6 +172,7 @@ export default function InvoiceForm() {
 
     const payload = {
       booking_id: bookingId || null, customer_id: customerId, customer_name: customerName || null,
+      quote_id: fromQuoteId || null,
       line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
       subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
@@ -164,7 +191,14 @@ export default function InvoiceForm() {
       });
     } else {
       createInvoice.mutate(payload, {
-        onSuccess: (data) => { toast.success(`Factura ${data.invoice_number} creada`); navigate(`/invoices/${data.id}`); },
+        onSuccess: (data) => {
+          toast.success(`Factura ${data.invoice_number} creada`);
+          // Mark source quote as invoiced
+          if (fromQuoteId) {
+            updateQuote.mutate({ id: fromQuoteId, status: "accepted" });
+          }
+          navigate(`/invoices/${data.id}`);
+        },
       });
     }
   };
