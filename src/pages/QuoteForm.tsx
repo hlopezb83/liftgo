@@ -14,7 +14,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
-import { ForkliftSelector } from "@/components/ForkliftSelector";
+import { MultiForkliftSelector } from "@/components/ForkliftSelector";
 import { SaleLineItems, type SaleLine } from "@/components/SaleLineItems";
 import { CostSummaryCard } from "@/components/CostSummaryCard";
 import { NotesCard } from "@/components/NotesCard";
@@ -37,7 +37,7 @@ export default function QuoteForm() {
   const updateQuote = useUpdateQuote();
 
   const [quoteType, setQuoteType] = useState<"rental" | "sale">("rental");
-  const [forkliftId, setForkliftId] = useState("");
+  const [forkliftIds, setForkliftIds] = useState<string[]>([]);
   const [saleLines, setSaleLines] = useState<SaleLine[]>([{ ...EMPTY_SALE_LINE }]);
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -54,7 +54,6 @@ export default function QuoteForm() {
     if (existingQuote) {
       const isSale = (existingQuote as any).quote_type === "sale";
       setQuoteType(isSale ? "sale" : "rental");
-      setForkliftId(existingQuote.forklift_id || "");
       setCustomerId(existingQuote.customer_id || "");
       setCustomerName(existingQuote.customer_name || "");
       if (existingQuote.start_date && existingQuote.end_date) {
@@ -88,6 +87,14 @@ export default function QuoteForm() {
           setSaleLines(rebuilt);
         }
       }
+
+      // Restore forklift ids for rental quotes
+      if (!isSale && existingQuote.forklift_id) {
+        // Start with the stored forklift_id; also try to find others from line_items
+        const ids = new Set<string>([existingQuote.forklift_id]);
+        // We'll refine after forklifts load via the other effect
+        setForkliftIds(Array.from(ids));
+      }
     } else if (!validUntil) {
       setValidUntil(addDays(new Date(), 30));
     }
@@ -98,13 +105,37 @@ export default function QuoteForm() {
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
 
+  // Rebuild forkliftIds from line items when editing existing rental quote and forklifts are loaded
   useEffect(() => {
-    if (quoteType === "rental" && forkliftId && datesSelected && !availableForklifts.some((f) => f.id === forkliftId)) {
-      setForkliftId("");
-    }
-  }, [availableForklifts, forkliftId, datesSelected, quoteType]);
+    if (!existingQuote || (existingQuote as any).quote_type === "sale" || !allForkliftsFromHook) return;
+    const allItems = (existingQuote.line_items as unknown as LineItem[]) || [];
+    const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
+    if (nonLogisticsItems.length === 0) return;
 
-  const forklift = allForkliftsFromHook?.find((f) => f.id === forkliftId);
+    const matchedIds = new Set<string>();
+    if (existingQuote.forklift_id) matchedIds.add(existingQuote.forklift_id);
+
+    for (const item of nonLogisticsItems) {
+      const matched = allForkliftsFromHook.find((f) => item.description?.includes(f.name));
+      if (matched) matchedIds.add(matched.id);
+    }
+    if (matchedIds.size > 0) {
+      setForkliftIds(Array.from(matchedIds));
+    }
+  }, [existingQuote, allForkliftsFromHook]);
+
+  // Remove selected forklifts that became unavailable
+  useEffect(() => {
+    if (quoteType === "rental" && datesSelected && forkliftIds.length > 0) {
+      const availableSet = new Set(availableForklifts.map((f) => f.id));
+      // When editing, also keep forklifts that are already in the quote
+      const existingForkliftId = existingQuote?.forklift_id;
+      const filtered = forkliftIds.filter((fid) => availableSet.has(fid) || fid === existingForkliftId);
+      if (filtered.length !== forkliftIds.length) {
+        setForkliftIds(filtered);
+      }
+    }
+  }, [availableForklifts, forkliftIds, datesSelected, quoteType, existingQuote]);
 
   const lineItems: LineItem[] = useMemo(() => {
     let items: LineItem[] = [];
@@ -122,20 +153,25 @@ export default function QuoteForm() {
           };
         });
     } else {
-      if (!forklift || !startDate || !endDate) return [];
-      items = generateLineItems(forklift, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
+      if (forkliftIds.length === 0 || !startDate || !endDate) return [];
+      for (const fid of forkliftIds) {
+        const fl = allForkliftsFromHook?.find((f) => f.id === fid);
+        if (fl) {
+          items.push(...generateLineItems(fl, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd")));
+        }
+      }
     }
     if (includeLogistics && logisticsCost > 0) {
       items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
     }
     return items;
-  }, [forklift, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost]);
+  }, [allForkliftsFromHook, forkliftIds, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
   const handleTypeChange = (type: string) => {
     setQuoteType(type as "rental" | "sale");
-    setForkliftId("");
+    setForkliftIds([]);
     setSaleLines([{ ...EMPTY_SALE_LINE }]);
     setDateRange(undefined);
     setIncludeLogistics(false);
@@ -145,7 +181,7 @@ export default function QuoteForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerId) { toast.error("Selecciona un cliente"); return; }
-    if (quoteType === "rental" && !forkliftId) { toast.error("Selecciona un montacargas"); return; }
+    if (quoteType === "rental" && forkliftIds.length === 0) { toast.error("Selecciona al menos un montacargas"); return; }
     if (quoteType === "rental" && (!startDate || !endDate)) { toast.error("Selecciona el periodo de renta"); return; }
     if (quoteType === "sale") {
       const validLines = saleLines.filter((l) => l.modelId && l.unitPrice > 0 && l.quantity > 0);
@@ -159,7 +195,7 @@ export default function QuoteForm() {
       quote_number: existingQuote?.quote_number || nextNumber || "COT-0001",
       customer_id: customerId || null,
       customer_name: customerName || null,
-      forklift_id: quoteType === "rental" ? forkliftId : null,
+      forklift_id: quoteType === "rental" ? (forkliftIds[0] || null) : null,
       equipment_model_id: firstModelId,
       start_date: quoteType === "rental" ? format(startDate!, "yyyy-MM-dd") : today,
       end_date: quoteType === "rental" ? format(endDate!, "yyyy-MM-dd") : today,
@@ -216,10 +252,11 @@ export default function QuoteForm() {
             )}
 
             {quoteType === "rental" && (
-              <ForkliftSelector
-                value={forkliftId}
-                onValueChange={setForkliftId}
+              <MultiForkliftSelector
+                selectedIds={forkliftIds}
+                onChange={setForkliftIds}
                 availableForklifts={availableForklifts}
+                allForklifts={allForkliftsFromHook}
                 datesSelected={datesSelected}
               />
             )}
