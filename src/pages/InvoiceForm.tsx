@@ -7,6 +7,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
+import { parseDateLocal } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,8 +68,8 @@ export default function InvoiceForm() {
       setBookingId(existing.booking_id || "");
       setLineItems((existing.line_items as unknown as CfdiLineItem[]) || []);
       setTaxRate(Number(existing.tax_rate) || 0);
-      setDueDate(existing.due_date ? new Date(existing.due_date) : undefined);
-      setIssueDate(existing.issued_at ? new Date(existing.issued_at) : new Date());
+      setDueDate(existing.due_date ? parseDateLocal(existing.due_date) : undefined);
+      setIssueDate(existing.issued_at ? parseDateLocal(existing.issued_at) : new Date());
       setNotes(existing.notes || "");
       setSerie(existing.serie || "");
       setFolio(existing.folio || "");

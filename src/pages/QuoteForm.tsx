@@ -24,6 +24,7 @@ import { useState, useEffect, useMemo } from "react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
+import { parseDateLocal } from "@/lib/utils";
 
 const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0 };
 
@@ -57,11 +58,11 @@ export default function QuoteForm() {
       setCustomerId(existingQuote.customer_id || "");
       setCustomerName(existingQuote.customer_name || "");
       if (existingQuote.start_date && existingQuote.end_date) {
-        setDateRange({ from: new Date(existingQuote.start_date), to: new Date(existingQuote.end_date) });
+        setDateRange({ from: parseDateLocal(existingQuote.start_date), to: parseDateLocal(existingQuote.end_date) });
       }
       setTaxRate(String(existingQuote.tax_rate));
       setNotes(existingQuote.notes || "");
-      setValidUntil(existingQuote.valid_until ? new Date(existingQuote.valid_until) : undefined);
+      setValidUntil(existingQuote.valid_until ? parseDateLocal(existingQuote.valid_until) : undefined);
 
       // Restore logistics from existing line_items
       const allItems = (existingQuote.line_items as unknown as LineItem[]) || [];

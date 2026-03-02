@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calculateRentalCost, computeTotals } from "@/lib/invoiceUtils";
+import { parseDateLocal, formatDateDisplay } from "@/lib/utils";
 
 describe("calculateRentalCost", () => {
   it("counts 2 calendar months from Jan 1 to Mar 1", () => {
@@ -88,5 +89,34 @@ describe("computeTotals", () => {
     const result = computeTotals([], 16);
     expect(result.subtotal).toBe(0);
     expect(result.total).toBe(0);
+  });
+});
+
+describe("parseDateLocal", () => {
+  it("parses 2025-10-20 as day 20 (no UTC shift)", () => {
+    const d = parseDateLocal("2025-10-20");
+    expect(d.getFullYear()).toBe(2025);
+    expect(d.getMonth()).toBe(9); // October = 9
+    expect(d.getDate()).toBe(20);
+  });
+
+  it("parses 2025-11-20 as day 20", () => {
+    const d = parseDateLocal("2025-11-20");
+    expect(d.getDate()).toBe(20);
+  });
+
+  it("handles date with timestamp suffix", () => {
+    const d = parseDateLocal("2025-10-20T00:00:00.000Z");
+    expect(d.getDate()).toBe(20);
+  });
+});
+
+describe("formatDateDisplay", () => {
+  it("displays 2025-10-20 as 20/10/2025", () => {
+    expect(formatDateDisplay("2025-10-20")).toBe("20/10/2025");
+  });
+
+  it("returns dash for null", () => {
+    expect(formatDateDisplay(null)).toBe("—");
   });
 });
