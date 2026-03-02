@@ -50,7 +50,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
 
       doc.setFontSize(22);
       doc.setTextColor(232, 89, 12);
-      doc.text(company?.razon_social || "ForkliftERP", textStartX, y);
+      doc.text(company?.razon_social || "LiftGo", textStartX, y);
       doc.setFontSize(9);
       doc.setTextColor(102, 102, 102);
       if (company) {

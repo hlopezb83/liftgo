@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
       const startStr = lastBilled.toISOString().split("T")[0];
 
       const lineItems = [{
-        description: `${forklift?.name || "Forklift"} — Monthly rental (${startStr} to ${endStr})`,
+        description: `${forklift?.name || "Montacargas"} — Renta mensual (${startStr} al ${endStr})`,
         quantity: 1,
         unit_price: monthlyRate,
         total: monthlyRate,
