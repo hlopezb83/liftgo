@@ -1,35 +1,30 @@
 
 
-## Agregar campo "Fecha de Factura" al formulario de nueva factura
+## Traducir descripciones de partidas de renta al español
 
-### Cambio en base de datos
-Agregar columna `issue_date` (tipo `date`, nullable, default `CURRENT_DATE`) a la tabla `invoices`. Esta columna almacena la fecha de emision de la factura, separada de `created_at` (timestamp automatico) y `due_date` (fecha de vencimiento).
+### Problema
+En `src/lib/invoiceUtils.ts`, las descripciones de las partidas de renta se generan en inglés: "Monthly rental", "Weekly rental", "Daily rental".
 
-### Cambio en el formulario (`src/pages/InvoiceForm.tsx`)
+### Cambio
 
-1. Agregar estado `issueDate` inicializado con la fecha de hoy (`new Date()`)
-2. En el bloque `useEffect` de edicion, cargar `existing.issue_date` si existe
-3. En el grid de fechas, cambiar de 2 columnas a 2 columnas con ambos campos:
-   - **Fecha de Factura** (nuevo) - con `DatePickerField`
-   - **Fecha de Vencimiento** (existente) - ya esta implementado
-4. Incluir `issue_date` en el payload de creacion/actualizacion
+**Archivo: `src/lib/invoiceUtils.ts`**
 
-### Layout resultante
+Reemplazar las 4 ocurrencias de descripciones en inglés por sus equivalentes en español:
 
-```text
-[ Cliente (dropdown)        ] [ Fecha de Factura          ]
-                              [ Fecha de Vencimiento      ]
-```
+| Actual (inglés)   | Nuevo (español)    |
+|--------------------|--------------------|
+| `Monthly rental`   | `Renta mensual`    |
+| `Weekly rental`    | `Renta semanal`    |
+| `Daily rental`     | `Renta diaria`     |
 
-O en una sola fila de 3 columnas si caben:
+Las líneas afectadas son:
+- Línea 26: `Monthly rental` -> `Renta mensual`
+- Línea 33: `Weekly rental` -> `Renta semanal`
+- Línea 39: `Daily rental` -> `Renta diaria`
+- Línea 44: `Daily rental` -> `Renta diaria` (fallback)
 
-```text
-[ Cliente ] [ Fecha de Factura ] [ Fecha de Vencimiento ]
-```
-
-Se usara un grid de 3 columnas (`sm:grid-cols-3`) para aprovechar el espacio.
-
-### Archivos afectados
-- **Migracion SQL**: nueva columna `issue_date` en tabla `invoices`
-- **`src/pages/InvoiceForm.tsx`**: nuevo estado, nuevo campo de fecha, inclusion en payload
+### Alcance
+- Solo se modifica un archivo: `src/lib/invoiceUtils.ts`
+- No hay cambios en base de datos
+- Las facturas existentes conservan su texto original (ya guardado en la BD); solo las nuevas partidas generadas usaran el texto en español
 
