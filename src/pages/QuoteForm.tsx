@@ -124,6 +124,7 @@ export default function QuoteForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!customerId) { toast.error("Selecciona un cliente"); return; }
     if (quoteType === "rental" && !forkliftId) { toast.error("Selecciona un montacargas"); return; }
     if (quoteType === "rental" && (!startDate || !endDate)) { toast.error("Selecciona el periodo de renta"); return; }
     if (quoteType === "sale") {
@@ -220,6 +221,9 @@ export default function QuoteForm() {
           customerName={customerName}
           onCustomerIdChange={setCustomerId}
           onCustomerNameChange={setCustomerName}
+          required
+          hideManualName
+          helpText="Si tu cliente no aparece en la lista, selecciona 'Público en General' o regístralo primero en el módulo de Clientes."
         />
 
         <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} />
