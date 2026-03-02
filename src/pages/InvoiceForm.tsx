@@ -8,8 +8,8 @@ import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
 import { parseDateLocal } from "@/lib/utils";
+import { useFormState } from "@/hooks/useFormState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerField } from "@/components/DatePickerField";
@@ -22,6 +22,20 @@ import { EditableLineItemsTable, type CfdiLineItem } from "@/components/invoice-
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
+
+const initialCfdi = {
+  serie: "",
+  folio: "",
+  formaPago: "03",
+  metodoPago: "PUE",
+  usoCfdi: "G03",
+  moneda: "MXN",
+  tipoCambio: 1 as number,
+  receptorRfc: "",
+  receptorRazonSocial: "",
+  receptorRegimenFiscal: "",
+  receptorDomicilioFiscalCp: "",
+};
 
 export default function InvoiceForm() {
   const { id } = useParams();
@@ -40,7 +54,6 @@ export default function InvoiceForm() {
   const updateInvoice = useUpdateInvoice();
   const updateQuote = useUpdateQuote();
 
-  // Build set of booking IDs already invoiced (exclude cancelled invoices)
   const invoicedBookingIds = new Set(
     invoices?.filter(inv => inv.status !== 'cancelled' && inv.booking_id)
       .map(inv => inv.booking_id)
@@ -55,18 +68,7 @@ export default function InvoiceForm() {
   const [issueDate, setIssueDate] = useState<Date>(new Date());
   const [notes, setNotes] = useState("");
 
-  // CFDI fields
-  const [serie, setSerie] = useState("");
-  const [folio, setFolio] = useState("");
-  const [formaPago, setFormaPago] = useState("03");
-  const [metodoPago, setMetodoPago] = useState("PUE");
-  const [usoCfdi, setUsoCfdi] = useState("G03");
-  const [moneda, setMoneda] = useState("MXN");
-  const [tipoCambio, setTipoCambio] = useState(1);
-  const [receptorRfc, setReceptorRfc] = useState("");
-  const [receptorRazonSocial, setReceptorRazonSocial] = useState("");
-  const [receptorRegimenFiscal, setReceptorRegimenFiscal] = useState("");
-  const [receptorDomicilioFiscalCp, setReceptorDomicilioFiscalCp] = useState("");
+  const { form: cfdi, set: setCfdi, setForm: setCfdiForm } = useFormState(initialCfdi);
 
   useEffect(() => {
     if (existing) {
@@ -78,17 +80,19 @@ export default function InvoiceForm() {
       setDueDate(existing.due_date ? parseDateLocal(existing.due_date) : undefined);
       setIssueDate(existing.issued_at ? parseDateLocal(existing.issued_at) : new Date());
       setNotes(existing.notes || "");
-      setSerie(existing.serie || "");
-      setFolio(existing.folio || "");
-      setFormaPago(existing.forma_pago || "03");
-      setMetodoPago(existing.metodo_pago || "PUE");
-      setUsoCfdi(existing.uso_cfdi || "G03");
-      setMoneda(existing.moneda || "MXN");
-      setTipoCambio(Number(existing.tipo_cambio) || 1);
-      setReceptorRfc(existing.receptor_rfc || "");
-      setReceptorRazonSocial(existing.receptor_razon_social || "");
-      setReceptorRegimenFiscal(existing.receptor_regimen_fiscal || "");
-      setReceptorDomicilioFiscalCp(existing.receptor_domicilio_fiscal_cp || "");
+      setCfdiForm({
+        serie: existing.serie || "",
+        folio: existing.folio || "",
+        formaPago: existing.forma_pago || "03",
+        metodoPago: existing.metodo_pago || "PUE",
+        usoCfdi: existing.uso_cfdi || "G03",
+        moneda: existing.moneda || "MXN",
+        tipoCambio: Number(existing.tipo_cambio) || 1,
+        receptorRfc: existing.receptor_rfc || "",
+        receptorRazonSocial: existing.receptor_razon_social || "",
+        receptorRegimenFiscal: existing.receptor_regimen_fiscal || "",
+        receptorDomicilioFiscalCp: existing.receptor_domicilio_fiscal_cp || "",
+      });
     }
   }, [existing]);
 
@@ -109,9 +113,9 @@ export default function InvoiceForm() {
       if (isSaleWithAssignments) {
         const assignment = assignments.find((a) => a.line_index === index);
         if (assignment) {
-          const fl = forklifts?.find((f) => f.id === assignment.forklift_id);
-          if (fl) {
-            enriched.description = `${fl.manufacturer || ""} ${fl.model} — S/N: ${fl.serial_number || "N/A"} (${fl.name}) - Venta de equipo`;
+          const forklift = forklifts?.find((f) => f.id === assignment.forklift_id);
+          if (forklift) {
+            enriched.description = `${forklift.manufacturer || ""} ${forklift.model} — S/N: ${forklift.serial_number || "N/A"} (${forklift.name}) - Venta de equipo`;
           }
         }
       }
@@ -119,7 +123,6 @@ export default function InvoiceForm() {
     }));
     setTaxRate(Number(sourceQuote.tax_rate) || 16);
     setNotes(sourceQuote.notes || "");
-    // Auto-fill CFDI from customer
     if (sourceQuote.customer_id && customers) {
       const cust = customers.find((c) => c.id === sourceQuote.customer_id);
       if (cust) applyCustomerCfdi(cust);
@@ -127,11 +130,11 @@ export default function InvoiceForm() {
   }, [sourceQuote, customers, isEdit, assignments, forklifts]);
 
   const applyCustomerCfdi = (cust: NonNullable<typeof customers>[number]) => {
-    setReceptorRfc(cust.rfc || "");
-    setReceptorRazonSocial(cust.name || "");
-    setReceptorRegimenFiscal(cust.regimen_fiscal || "");
-    setReceptorDomicilioFiscalCp(cust.domicilio_fiscal_cp || "");
-    if (cust.uso_cfdi) setUsoCfdi(cust.uso_cfdi);
+    setCfdi("receptorRfc", cust.rfc || "");
+    setCfdi("receptorRazonSocial", cust.name || "");
+    setCfdi("receptorRegimenFiscal", cust.regimen_fiscal || "");
+    setCfdi("receptorDomicilioFiscalCp", cust.domicilio_fiscal_cp || "");
+    if (cust.uso_cfdi) setCfdi("usoCfdi", cust.uso_cfdi);
   };
 
   const handleCustomerSelect = (selectedCustomerId: string) => {
@@ -181,13 +184,7 @@ export default function InvoiceForm() {
   const { subtotal, taxAmount, total } = computeTotals(lineItems, taxRate);
 
   const handleCfdiUpdate = (field: string, value: string | number) => {
-    const setters: Record<string, (v: any) => void> = {
-      serie: setSerie, folio: setFolio, formaPago: setFormaPago, metodoPago: setMetodoPago,
-      usoCfdi: setUsoCfdi, moneda: setMoneda, tipoCambio: setTipoCambio,
-      receptorRfc: setReceptorRfc, receptorRazonSocial: setReceptorRazonSocial,
-      receptorRegimenFiscal: setReceptorRegimenFiscal, receptorDomicilioFiscalCp: setReceptorDomicilioFiscalCp,
-    };
-    setters[field]?.(value);
+    setCfdi(field as keyof typeof initialCfdi, value as any);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -202,11 +199,11 @@ export default function InvoiceForm() {
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
       issued_at: format(issueDate, "yyyy-MM-dd"),
       notes: notes || null,
-      serie: serie || null, folio: folio || null, forma_pago: formaPago || null,
-      metodo_pago: metodoPago || null, uso_cfdi: usoCfdi || null, moneda: moneda || null,
-      tipo_cambio: tipoCambio, receptor_rfc: receptorRfc || null,
-      receptor_razon_social: receptorRazonSocial || null, receptor_regimen_fiscal: receptorRegimenFiscal || null,
-      receptor_domicilio_fiscal_cp: receptorDomicilioFiscalCp || null,
+      serie: cfdi.serie || null, folio: cfdi.folio || null, forma_pago: cfdi.formaPago || null,
+      metodo_pago: cfdi.metodoPago || null, uso_cfdi: cfdi.usoCfdi || null, moneda: cfdi.moneda || null,
+      tipo_cambio: cfdi.tipoCambio, receptor_rfc: cfdi.receptorRfc || null,
+      receptor_razon_social: cfdi.receptorRazonSocial || null, receptor_regimen_fiscal: cfdi.receptorRegimenFiscal || null,
+      receptor_domicilio_fiscal_cp: cfdi.receptorDomicilioFiscalCp || null,
     };
 
     if (isEdit) {
@@ -217,7 +214,6 @@ export default function InvoiceForm() {
       createInvoice.mutate(payload, {
         onSuccess: (data) => {
           toast.success(`Factura ${data.invoice_number} creada`);
-          // Mark source quote as invoiced
           if (fromQuoteId) {
             updateQuote.mutate({ id: fromQuoteId, status: "accepted" });
           }
@@ -271,10 +267,10 @@ export default function InvoiceForm() {
         </Card>
 
         <CfdiFieldsCard
-          serie={serie} folio={folio} formaPago={formaPago} metodoPago={metodoPago}
-          usoCfdi={usoCfdi} moneda={moneda} tipoCambio={tipoCambio}
-          receptorRfc={receptorRfc} receptorRazonSocial={receptorRazonSocial}
-          receptorRegimenFiscal={receptorRegimenFiscal} receptorDomicilioFiscalCp={receptorDomicilioFiscalCp}
+          serie={cfdi.serie} folio={cfdi.folio} formaPago={cfdi.formaPago} metodoPago={cfdi.metodoPago}
+          usoCfdi={cfdi.usoCfdi} moneda={cfdi.moneda} tipoCambio={cfdi.tipoCambio}
+          receptorRfc={cfdi.receptorRfc} receptorRazonSocial={cfdi.receptorRazonSocial}
+          receptorRegimenFiscal={cfdi.receptorRegimenFiscal} receptorDomicilioFiscalCp={cfdi.receptorDomicilioFiscalCp}
           onUpdate={handleCfdiUpdate}
         />
 
