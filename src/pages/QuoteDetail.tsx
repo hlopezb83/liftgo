@@ -25,6 +25,7 @@ import { QuotePDFButton } from "@/components/QuotePDFButton";
 import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { AssignForkliftsCard } from "@/components/AssignForkliftsCard";
+import { formatDateDisplay } from "@/lib/utils";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -160,15 +161,15 @@ export default function QuoteDetail() {
           <Card>
             <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
             <CardContent className="space-y-1 text-sm">
-              <p><span className="text-muted-foreground">Periodo:</span> {quote.start_date} → {quote.end_date}</p>
-              <p><span className="text-muted-foreground">Válida Hasta:</span> {quote.valid_until || "—"}</p>
+              <p><span className="text-muted-foreground">Periodo:</span> {formatDateDisplay(quote.start_date)} → {formatDateDisplay(quote.end_date)}</p>
+              <p><span className="text-muted-foreground">Válida Hasta:</span> {formatDateDisplay(quote.valid_until)}</p>
             </CardContent>
           </Card>
         ) : (
           <Card>
             <CardHeader><CardTitle className="text-base">Vigencia</CardTitle></CardHeader>
             <CardContent className="space-y-1 text-sm">
-              <p><span className="text-muted-foreground">Válida Hasta:</span> {quote.valid_until || "—"}</p>
+              <p><span className="text-muted-foreground">Válida Hasta:</span> {formatDateDisplay(quote.valid_until)}</p>
             </CardContent>
           </Card>
         )}

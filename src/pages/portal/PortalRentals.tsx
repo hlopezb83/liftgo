@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StatusBadge } from "@/components/StatusBadge";
 import { useCustomerPortal } from "@/hooks/useCustomerPortal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDateDisplay } from "@/lib/utils";
 
 export default function PortalRentals() {
   const { bookings, isLoading } = useCustomerPortal();
@@ -33,8 +34,8 @@ export default function PortalRentals() {
                     <TableCell className="font-medium">
                       {b.forklifts?.name || "—"} — {b.forklifts?.model || ""}
                     </TableCell>
-                    <TableCell>{b.start_date}</TableCell>
-                    <TableCell>{b.end_date}</TableCell>
+                    <TableCell>{formatDateDisplay(b.start_date)}</TableCell>
+                    <TableCell>{formatDateDisplay(b.end_date)}</TableCell>
                     <TableCell><StatusBadge status={b.status} /></TableCell>
                   </TableRow>
                 ))}

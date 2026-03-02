@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Plus, Eye, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatDateDisplay } from "@/lib/utils";
 
 const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
 
@@ -57,7 +58,7 @@ export default function ContractsPage() {
             {c.forklift_name && <p className="text-xs text-muted-foreground mt-1">Equipo: {c.forklift_name}</p>}
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <span className="text-xs text-muted-foreground">
-                {c.start_date || "—"} → {c.end_date || "—"}
+                {formatDateDisplay(c.start_date)} → {formatDateDisplay(c.end_date)}
               </span>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </div>
@@ -104,8 +105,8 @@ export default function ContractsPage() {
           <TableCell className="font-medium">{c.contract_number}</TableCell>
           <TableCell>{c.customer_name || "—"}</TableCell>
           <TableCell>{c.forklift_name || "—"}</TableCell>
-          <TableCell className="text-sm text-muted-foreground">{c.start_date || "—"}</TableCell>
-          <TableCell className="text-sm text-muted-foreground">{c.end_date || "—"}</TableCell>
+          <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(c.start_date)}</TableCell>
+          <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(c.end_date)}</TableCell>
           <TableCell><StatusBadge status={c.status} /></TableCell>
           <TableCell><Eye className="h-4 w-4 text-muted-foreground" /></TableCell>
         </TableRow>

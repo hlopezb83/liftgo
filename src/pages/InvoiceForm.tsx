@@ -19,6 +19,7 @@ import { CfdiFieldsCard } from "@/components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable, type CfdiLineItem } from "@/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatDateDisplay } from "@/lib/utils";
 
 export default function InvoiceForm() {
   const { id } = useParams();
@@ -221,7 +222,7 @@ export default function InvoiceForm() {
                   <SelectContent>
                     {bookings?.filter((b) => b.status === "confirmed").map((b) => (
                       <SelectItem key={b.id} value={b.id}>
-                        {(b as BookingWithForklift).forklifts?.name} — {b.customer_name || "Sin cliente"} ({b.start_date} → {b.end_date})
+                        {(b as BookingWithForklift).forklifts?.name} — {b.customer_name || "Sin cliente"} ({formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)})
                       </SelectItem>
                     ))}
                   </SelectContent>

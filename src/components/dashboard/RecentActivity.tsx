@@ -47,7 +47,7 @@ export function RecentActivity() {
                    <p className="text-xs text-muted-foreground">{translateActivityDescription(a.description, a.event_type, a.entity_type)}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xs text-muted-foreground">{format(new Date(a.created_at), "MMM d, HH:mm")}</p>
+                  <p className="text-xs text-muted-foreground">{format(new Date(a.created_at), "dd/MM HH:mm")}</p>
                 </div>
               </div>
             ))}
