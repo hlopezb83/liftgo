@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
-import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
@@ -12,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TableRow, TableCell, TableHead } from "@/components/ui/table";
+import { TableRow, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DatePickerField } from "@/components/DatePickerField";
@@ -23,7 +22,6 @@ import { useActiveMechanics } from "@/hooks/useMechanics";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { SERVICE_TYPES } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, Wrench, Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
@@ -50,7 +48,6 @@ export default function MaintenancePage() {
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
 
-  // Enrich logs with forklift name for search
   const enrichedLogs = logs?.map((log) => ({
     ...log,
     forklift_name: forkliftMap.get(log.forklift_id)?.name || "",
@@ -60,12 +57,11 @@ export default function MaintenancePage() {
     searchFields: ["service_type", "performed_by", "description", "forklift_name"],
   });
 
-  // Apply forklift dropdown filter on top of search
   const filtered = searchFiltered?.filter((log) =>
     forkliftFilter === "all" || log.forklift_id === forkliftFilter
   );
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
     accessors: {
       performed_at: (l) => l.performed_at,
       forklift_name: (l) => forkliftMap.get(l.forklift_id)?.name || "",
@@ -75,9 +71,6 @@ export default function MaintenancePage() {
       next_service_date: (l) => l.next_service_date || "",
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
-  const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
     <MobileCardList

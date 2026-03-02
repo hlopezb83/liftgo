@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
-import { usePagination } from "@/hooks/usePagination";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
@@ -12,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableRow, TableCell, TableHead } from "@/components/ui/table";
+import { TableRow, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FormActions } from "@/components/FormActions";
@@ -22,12 +21,10 @@ import { formatDateDisplay } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
-
 
 const initialForm = {
   bookingId: "" as string,
@@ -56,7 +53,7 @@ export default function ReturnInspectionPage() {
 
   const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(inspections, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(inspections, {
     accessors: {
       inspected_at: (i) => i.inspected_at,
       forklift_name: (i) => (i as any).forklifts?.name || "",
@@ -66,9 +63,6 @@ export default function ReturnInspectionPage() {
       inspected_by: (i) => i.inspected_by || "",
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
-  const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
     <MobileCardList
@@ -112,11 +106,11 @@ export default function ReturnInspectionPage() {
         onSuccess: () => {
           toast.success("Inspección de devolución registrada — montacargas marcado como disponible");
           setDialogOpen(false);
-          const fl = forkliftMap.get(booking.forklift_id);
-          if (fl) {
+          const forklift = forkliftMap.get(booking.forklift_id);
+          if (forklift) {
             setInvoicePrompt({
               booking: { id: booking.id, customer_name: booking.customer_name, customer_id: booking.customer_id, start_date: booking.start_date, end_date: booking.end_date, forklift_id: booking.forklift_id },
-              forklift: fl, damageCost,
+              forklift, damageCost,
             });
           }
           reset();

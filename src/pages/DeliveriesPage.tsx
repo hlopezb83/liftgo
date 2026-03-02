@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useBookings } from "@/hooks/useBookings";
 import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
-import { usePagination } from "@/hooks/usePagination";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
@@ -21,7 +20,6 @@ import { PostDeliveryPickupDialog } from "@/components/PostDeliveryPickupDialog"
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveDrivers } from "@/hooks/useDrivers";
 import { Card, CardContent } from "@/components/ui/card";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -55,7 +53,7 @@ export default function DeliveriesPage() {
     forkliftName: string;
   } | null>(null);
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(deliveries, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(deliveries, {
     accessors: {
       scheduled_date: (d) => d.scheduled_date,
       type: (d) => d.type,
@@ -65,9 +63,6 @@ export default function DeliveriesPage() {
       status: (d) => d.status,
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
-  const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
     <MobileCardList
@@ -120,11 +115,11 @@ export default function DeliveriesPage() {
           toast.success("Marcado como completado");
           if (delivery && delivery.type === "delivery" && delivery.booking_id) {
             const booking = bookings?.find((b) => b.id === delivery.booking_id);
-            const fl = forkliftMap.get(delivery.forklift_id);
-            if (booking && fl) {
+            const forklift = forkliftMap.get(delivery.forklift_id);
+            if (booking && forklift) {
               setPickupPrompt({
                 delivery: { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, address: delivery.address, driver_name: delivery.driver_name, driver_phone: delivery.driver_phone },
-                bookingEndDate: booking.end_date, forkliftName: fl.name,
+                bookingEndDate: booking.end_date, forkliftName: forklift.name,
               });
             }
           }
