@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { format, parseISO } from "date-fns";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
 
 interface ContractData {
@@ -60,8 +61,8 @@ function buildPlaceholderVars(contract: ContractData, company: any, customer: an
     ubicacion: contract.usage_location || "[Dirección]",
     horas_max: String(contract.max_hours_per_month || "—"),
     tarifa_extra: Number(contract.extra_hour_rate || 0).toFixed(2),
-    fecha_inicio: contract.start_date || "[Fecha]",
-    fecha_fin: contract.end_date || "[Fecha]",
+    fecha_inicio: contract.start_date ? format(parseISO(contract.start_date), "dd/MM/yyyy") : "[Fecha]",
+    fecha_fin: contract.end_date ? format(parseISO(contract.end_date), "dd/MM/yyyy") : "[Fecha]",
     tarifa_diaria: Number(contract.daily_rate || 0).toFixed(2),
     tarifa_semanal: Number(contract.weekly_rate || 0).toFixed(2),
     tarifa_mensual: Number(contract.monthly_rate || 0).toFixed(2),
@@ -276,7 +277,7 @@ function generateContractPages(doc: jsPDF, contract: ContractData, company: any,
   const city = vars.ciudad;
   const now = new Date();
   doc.setFontSize(9);
-  y = addWrappedText(doc, `Leído el presente contrato, lo firman en ${city}, el día ${now.getDate()} de ${now.toLocaleDateString("es-MX", { month: "long" })} de ${now.getFullYear()}.`, mg, y, pw - mg * 2, 4.5);
+  y = addWrappedText(doc, `Leído el presente contrato, lo firman en ${city}, el día ${format(now, "dd/MM/yyyy")}.`, mg, y, pw - mg * 2, 4.5);
   y += 12;
 
   doc.setDrawColor(51, 51, 51);
@@ -441,7 +442,7 @@ function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, cu
   doc.text("Fecha:", mg, y);
   doc.setFont("helvetica", "normal");
   const now = new Date();
-  doc.text(`${now.getDate()} de ${now.toLocaleDateString("es-MX", { month: "long" })} de ${now.getFullYear()}`, mg + 25, y);
+  doc.text(format(now, "dd/MM/yyyy"), mg + 25, y);
   y += 12;
 
   // Body text from template
