@@ -1,5 +1,5 @@
 import type { Forklift } from "@/hooks/useForklifts";
-import { differenceInDays, differenceInCalendarMonths, addMonths } from "date-fns";
+import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
 
 export interface LineItem {
   description: string;
@@ -20,12 +20,15 @@ export function calculateRentalCost(
   const wr = weeklyRate || 0;
   const mr = monthlyRate || 0;
 
-  // Calendar months
+  // Treat end date as inclusive: effective end = endDate + 1 day
+  const effectiveEnd = addDays(endDate, 1);
+
+  // Calendar months using inclusive end
   let months = 0;
   if (mr > 0) {
-    months = differenceInCalendarMonths(endDate, startDate);
-    // Verify addMonths(startDate, months) doesn't exceed endDate
-    if (months > 0 && addMonths(startDate, months) > endDate) {
+    months = differenceInCalendarMonths(effectiveEnd, startDate);
+    // Verify addMonths(startDate, months) doesn't exceed effectiveEnd
+    if (months > 0 && addMonths(startDate, months) > effectiveEnd) {
       months -= 1;
     }
     if (months > 0) {
@@ -34,13 +37,10 @@ export function calculateRentalCost(
   }
 
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
-  let remaining = differenceInDays(endDate, remainderStart);
-  // Add 1 because rental includes both start and end day (only for the remainder)
-  if (remaining >= 0) remaining += 1;
-  // If months consumed the entire range exactly, remaining would be 1 (same day), skip it
-  if (months > 0 && addMonths(startDate, months).getTime() === endDate.getTime()) {
-    remaining = 0;
-  }
+  // Remaining days = difference to effectiveEnd (no +1 needed, already inclusive)
+  let remaining = differenceInDays(effectiveEnd, remainderStart);
+  // If months consumed the entire range, remaining = 0
+  if (remaining < 0) remaining = 0;
 
   // Weekly blocks (7 days)
   if (wr > 0 && remaining >= 7) {
