@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useQuote, useUpdateQuote, useDeleteQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
 import { useCustomers } from "@/hooks/useCustomers";
+import { supabase } from "@/integrations/supabase/client";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
@@ -42,6 +44,17 @@ export default function QuoteDetail() {
     bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null;
   } | null>(null);
 
+  // Check if a booking already exists for this quote
+  const { data: linkedBooking } = useQuery({
+    queryKey: ["booking_for_quote", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id!).maybeSingle();
+      return data;
+    },
+  });
+  const alreadyConverted = !!linkedBooking;
+
   const quoteType = (quote as any)?.quote_type || "rental";
   const isSale = quoteType === "sale";
 
@@ -62,7 +75,9 @@ export default function QuoteDetail() {
         status: "confirmed",
       },
       {
-        onSuccess: (bookingId: string) => {
+        onSuccess: async (bookingId: string) => {
+          // Link booking to this quote
+          await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
           updateQuote.mutate({ id: quote.id, status: "accepted" });
           toast.success("Reserva creada desde cotización");
 
@@ -110,8 +125,11 @@ export default function QuoteDetail() {
                 <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
               </>
             )}
-            {!isSale && (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
+            {!isSale && !alreadyConverted && (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
               <Button size="sm" variant="default" onClick={convertToBooking}><BookOpen className="h-4 w-4 mr-1" />Convertir a Reserva</Button>
+            )}
+            {alreadyConverted && (
+              <Button size="sm" variant="outline" disabled className="opacity-70"><BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva</Button>
             )}
             {(quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
               <Button size="sm" variant="outline" onClick={convertToInvoice}><Receipt className="h-4 w-4 mr-1" />Convertir a Factura</Button>
