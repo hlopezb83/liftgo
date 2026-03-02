@@ -1,73 +1,74 @@
 
 
-## Agregar cotizaciones de venta al modulo de cotizaciones
+## Usar modelos de equipo en cotizaciones de venta
 
-### Resumen
-Actualmente el formulario de cotizaciones solo soporta renta (requiere periodo de fechas y calcula partidas con tarifas de renta). Se agregara un selector de tipo "Renta" o "Venta" que adapte el formulario y la logica segun el caso.
+### Problema
+Actualmente, al crear una cotizacion de venta, el dropdown muestra las unidades individuales de la flota (MC-001, MC-002, etc.). Para ventas, lo correcto es cotizar por modelo de equipo (ej. "Hyster H50"), no por unidad especifica.
+
+### Solucion
+
+Cambiar el selector de montacargas en modo "Venta" para que muestre los modelos de equipo configurados en la tabla `equipment_models`, en lugar de unidades individuales.
 
 ### Cambios en base de datos
 
-**Migracion: agregar columna `quote_type` a la tabla `quotes`**
+**Migracion: agregar columna `equipment_model_id` a la tabla `quotes`**
 
-```sql
-ALTER TABLE public.quotes
-  ADD COLUMN quote_type text NOT NULL DEFAULT 'rental';
-
--- Las fechas start_date y end_date se vuelven opcionales para ventas
-ALTER TABLE public.quotes
-  ALTER COLUMN start_date DROP NOT NULL,
-  ALTER COLUMN end_date DROP NOT NULL;
+```text
+quotes
+  + equipment_model_id (uuid, nullable, FK -> equipment_models.id)
+  forklift_id (ya es nullable, se usara solo para rentas)
 ```
 
-- `quote_type`: valor `'rental'` (default, compatibilidad con datos existentes) o `'sale'`
-- Las fechas dejan de ser obligatorias a nivel DB porque en una venta no aplica periodo de renta
+La columna `forklift_id` se mantiene para cotizaciones de renta. Para ventas, se usara `equipment_model_id`.
 
 ### Cambios en codigo
 
 **1. `src/pages/QuoteForm.tsx`**
 
-- Agregar estado `quoteType` (`'rental' | 'sale'`), con selector visual (tabs o radio group) al inicio del formulario
-- Cuando `quoteType === 'rental'`: formulario actual sin cambios (fecha rango, selector de disponibilidad, calculo automatico de partidas)
-- Cuando `quoteType === 'sale'`:
-  - Ocultar `DateRangePickerField` (periodo de renta)
-  - Mostrar selector de montacargas de toda la flota con estado `available` (sin filtro por fechas)
-  - Mostrar campo "Precio de Venta" (input numerico) en lugar de calculo automatico
-  - Las partidas se generan manualmente: una sola linea con descripcion `"{nombre} - Venta de equipo"`, cantidad 1, precio = precio ingresado
-  - Al guardar: `start_date` y `end_date` se envian como la fecha actual (o null), `quote_type` = `'sale'`
-- Al cambiar de tipo se limpian los campos especificos del otro tipo
+- Importar `useEquipmentModels` en lugar de `useForklifts` para modo venta
+- Nuevo estado `equipmentModelId` para almacenar el modelo seleccionado
+- Reemplazar el `ForkliftSelector` en modo venta por un nuevo selector que muestre modelos (formato: "Fabricante - Modelo")
+- La partida de la cotizacion usara la descripcion del modelo: `"Hyster H50 - Venta de equipo"`
+- Al guardar en modo venta: enviar `equipment_model_id` en lugar de `forklift_id` (forklift_id sera null)
+- Al editar una cotizacion de venta existente: cargar el `equipment_model_id`
 
-**2. `src/pages/QuoteDetail.tsx`**
+**2. Nuevo componente: `src/components/EquipmentModelSelector.tsx`**
 
-- Mostrar etiqueta "Tipo: Renta" o "Tipo: Venta" en la tarjeta de detalles
-- Si es venta: ocultar la tarjeta "Fechas" (o mostrar solo la fecha de cotizacion) y ocultar el boton "Convertir a Reserva" (no aplica para ventas)
-- Mantener el boton "Convertir a Factura" para ambos tipos
+Dropdown que lista los modelos de `equipment_models`:
+- Muestra: "Fabricante - Modelo" (ej. "Hyster - H50")
+- Sin filtro de disponibilidad (los modelos no tienen estado)
+- Siempre habilitado (no depende de fechas)
 
-**3. `src/pages/QuotesPage.tsx`**
+**3. `src/pages/QuoteDetail.tsx`**
 
-- Agregar indicador visual del tipo en la tabla (columna o badge sutil junto al numero)
+- Cargar datos del modelo de equipo cuando la cotizacion es de venta
+- Mostrar "Modelo: Hyster H50" en la tarjeta de detalles en lugar de una unidad especifica
 
 **4. `src/components/QuotePDFButton.tsx`**
 
-- Adaptar el titulo del PDF: "COTIZACION DE VENTA" cuando `quote_type === 'sale'`
-- Si es venta: no mostrar "Periodo" en la seccion de detalles
+- Para cotizaciones de venta: obtener el nombre del modelo desde `equipment_models` si hay `equipment_model_id`
+- Mostrar el nombre del modelo en el PDF
 
-**5. `src/lib/constants.ts`**
+**5. `src/hooks/useQuotes.ts`**
 
-- Agregar labels: `rental: "Renta"`, `sale: "Venta"` al mapa de etiquetas
+- Ajustar validacion en `handleSubmit`: para ventas no requerir `forklift_id`, requerir `equipment_model_id`
 
-### Flujo de usuario para cotizacion de venta
+### Flujo de usuario
 
-1. Ir a Cotizaciones > Nueva Cotizacion
-2. Seleccionar tipo "Venta"
-3. Seleccionar montacargas disponible
-4. Ingresar precio de venta
-5. Seleccionar cliente
-6. Ajustar IVA y vigencia si es necesario
-7. Guardar
+1. Nueva Cotizacion > seleccionar "Venta"
+2. El dropdown cambia a "Modelo de Equipo" y muestra: Hyster - H50, Toyota - 8FGU25, etc.
+3. Seleccionar modelo, ingresar precio, cliente
+4. La partida se genera como: "Hyster H50 - Venta de equipo"
+5. Al guardar, se almacena `equipment_model_id` (sin `forklift_id`)
 
 ### Lo que NO cambia
-- La tabla `quotes` mantiene todos sus campos actuales (compatibilidad total)
-- Las cotizaciones existentes se mantienen como tipo `rental` por default
-- El flujo de renta no se modifica en absoluto
-- RLS policies no requieren cambios (misma tabla)
+- Cotizaciones de renta siguen usando `forklift_id` con unidades individuales
+- La tabla `equipment_models` no se modifica
+- RLS no requiere cambios (misma tabla quotes)
 
+### Detalle tecnico
+
+- 1 migracion de base de datos (agregar columna)
+- 1 componente nuevo (`EquipmentModelSelector`)
+- 4 archivos modificados
+- Sin cambios en edge functions
