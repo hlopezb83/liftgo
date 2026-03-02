@@ -64,6 +64,17 @@ export function useUpdateQuote() {
   });
 }
 
+export function useDeleteQuote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("quotes").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["quotes"] }),
+  });
+}
+
 export function useNextQuoteNumber() {
   return useQuery({
     queryKey: ["next_quote_number"],
