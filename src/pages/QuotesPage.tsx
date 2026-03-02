@@ -17,6 +17,7 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { PlusCircle, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
+import { formatDateDisplay } from "@/lib/utils";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 
@@ -61,7 +62,7 @@ export default function QuotesPage() {
             </div>
             <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <span className="text-xs text-muted-foreground">{q.start_date} → {q.end_date}</span>
+              <span className="text-xs text-muted-foreground">{formatDateDisplay(q.start_date)} → {formatDateDisplay(q.end_date)}</span>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-semibold font-mono">{formatCurrency(q.total)}</span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -115,10 +116,10 @@ export default function QuotesPage() {
             </Badge>
           </TableCell>
           <TableCell>{q.customer_name || "—"}</TableCell>
-          <TableCell className="text-sm">{q.start_date} → {q.end_date}</TableCell>
+          <TableCell className="text-sm">{formatDateDisplay(q.start_date)} → {formatDateDisplay(q.end_date)}</TableCell>
           <TableCell className="font-mono">{formatCurrency(q.total)}</TableCell>
           <TableCell><StatusBadge status={q.status} /></TableCell>
-          <TableCell>{q.valid_until || "—"}</TableCell>
+          <TableCell>{formatDateDisplay(q.valid_until)}</TableCell>
         </TableRow>
       )}
       customContent={mobileContent}

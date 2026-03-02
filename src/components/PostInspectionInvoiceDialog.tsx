@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { Receipt, FileText } from "lucide-react";
 import { toast } from "sonner";
 import type { Forklift } from "@/hooks/useForklifts";
+import { formatDateDisplay } from "@/lib/utils";
 
 interface PostInspectionInvoiceDialogProps {
   open: boolean; onOpenChange: (open: boolean) => void;
@@ -48,7 +49,7 @@ export function PostInspectionInvoiceDialog({ open, onOpenChange, booking, forkl
         <div className="space-y-3">
           <div className="rounded-lg bg-muted p-3 space-y-1 text-sm">
             <p className="font-medium">{forklift.name} — {forklift.model}</p>
-            <p className="text-muted-foreground">{booking.start_date} → {booking.end_date}</p>
+            <p className="text-muted-foreground">{formatDateDisplay(booking.start_date)} → {formatDateDisplay(booking.end_date)}</p>
           </div>
           <div className="space-y-1 text-sm">
             {allItems.map((item, i) => (

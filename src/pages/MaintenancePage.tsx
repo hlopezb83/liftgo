@@ -28,6 +28,7 @@ import { PlusCircle, Wrench, Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatDateDisplay } from "@/lib/utils";
 
 const initialForm = {
   forkliftId: "" as string,
@@ -92,10 +93,10 @@ export default function MaintenancePage() {
             </div>
             <p className="text-sm font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</p>
             <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-              <span className="font-mono">{log.performed_at}</span>
+              <span className="font-mono">{formatDateDisplay(log.performed_at)}</span>
               {log.performed_by && <span>por {log.performed_by}</span>}
             </div>
-            {log.next_service_date && <p className="text-xs text-muted-foreground mt-1">Próx: {log.next_service_date}</p>}
+            {log.next_service_date && <p className="text-xs text-muted-foreground mt-1">Próx: {formatDateDisplay(log.next_service_date)}</p>}
           </CardContent>
         </Card>
       )}
@@ -173,12 +174,12 @@ export default function MaintenancePage() {
         }
         renderRow={(log) => (
           <TableRow key={log.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
-            <TableCell className="font-mono text-sm">{log.performed_at}</TableCell>
+            <TableCell className="font-mono text-sm">{formatDateDisplay(log.performed_at)}</TableCell>
             <TableCell className="font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</TableCell>
             <TableCell>{log.service_type}</TableCell>
             <TableCell>{log.performed_by || "—"}</TableCell>
             <TableCell className="text-right font-medium">{formatCurrency(log.cost || 0)}</TableCell>
-            <TableCell className="text-sm text-muted-foreground">{log.next_service_date || "—"}</TableCell>
+            <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(log.next_service_date)}</TableCell>
           </TableRow>
         )}
         customContent={mobileContent}

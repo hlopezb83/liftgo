@@ -25,6 +25,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatDateDisplay } from "@/lib/utils";
 
 const initialForm = {
   forkliftId: "" as string,
@@ -81,7 +82,7 @@ export default function DeliveriesPage() {
               <StatusBadge status={d.status} />
             </div>
             <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</p>
-            <p className="text-xs text-muted-foreground mt-1">{d.scheduled_date}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
+            <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
             {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
             {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
             {d.status !== "completed" && (
@@ -161,7 +162,7 @@ export default function DeliveriesPage() {
         }
         renderRow={(d) => (
           <TableRow key={d.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
-            <TableCell className="font-mono text-sm">{d.scheduled_date}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
+            <TableCell className="font-mono text-sm">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
             <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
             <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
             <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
@@ -213,7 +214,7 @@ export default function DeliveriesPage() {
                 <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
                 <SelectContent>
                   {bookings?.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.customer_name || "Desconocido"} ({b.start_date} → {b.end_date})</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>{b.customer_name || "Desconocido"} ({formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
