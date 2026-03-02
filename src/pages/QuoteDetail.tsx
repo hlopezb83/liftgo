@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
+import { useQuote, useUpdateQuote, useDeleteQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
 import { useCustomers } from "@/hooks/useCustomers";
 import { TotalsSummary } from "@/components/TotalsSummary";
@@ -11,7 +11,12 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
-import { Edit, Send, CheckCircle, XCircle, BookOpen, Receipt } from "lucide-react";
+import { Edit, Send, CheckCircle, XCircle, BookOpen, Receipt, Trash2 } from "lucide-react";
+import { RoleGuard } from "@/components/RoleGuard";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useForklifts } from "@/hooks/useForklifts";
@@ -25,6 +30,7 @@ export default function QuoteDetail() {
   const navigate = useNavigate();
   const { data: quote, isLoading } = useQuote(id);
   const updateQuote = useUpdateQuote();
+  const deleteQuote = useDeleteQuote();
   const createBooking = useCreateBooking();
   const { data: customers } = useCustomers();
   const { data: forklifts } = useForklifts();
@@ -114,6 +120,29 @@ export default function QuoteDetail() {
                 <Button size="sm" variant="destructive" onClick={() => setStatus("declined")}><XCircle className="h-4 w-4 mr-1" />Rechazar</Button>
               </>
             )}
+            <RoleGuard allowed={["admin"]}>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar cotización?</AlertDialogTitle>
+                    <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará permanentemente la cotización {quote.quote_number}.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => deleteQuote.mutate(id!, {
+                        onSuccess: () => { toast.success("Cotización eliminada"); navigate("/quotes"); },
+                        onError: (err: Error) => toast.error(err.message),
+                      })}
+                    >Eliminar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </RoleGuard>
           </>
         }
       />
