@@ -61,7 +61,7 @@ export function useCreatePayment() {
       if (invoice) {
         const balance = Number(invoice.total) - totalPaid;
         if (balance <= 0 && invoice.status !== "paid") {
-          await supabase.from("invoices").update({ status: "paid", paid_at: new Date().toISOString().split("T")[0] }).eq("id", payment.invoice_id);
+          await supabase.from("invoices").update({ status: "paid", paid_at: payment.payment_date }).eq("id", payment.invoice_id);
         } else if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
           await supabase.from("invoices").update({ status: "partial" }).eq("id", payment.invoice_id);
         }
