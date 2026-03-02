@@ -1,32 +1,49 @@
 
-
-## Corregir desfase de fechas por interpretacion UTC
+## Crear una reserva por cada montacargas en cotizaciones multi-equipo
 
 ### Problema
-Las fechas se guardan correctamente en la base de datos (2025-10-20 y 2025-11-20), pero al mostrarlas o restaurarlas en el formulario, aparecen un dia antes. Esto ocurre porque `new Date("2025-10-20")` interpreta la cadena como medianoche UTC, y al convertirla a hora local de Mexico (UTC-6), retrocede al dia anterior.
+Cuando una cotizacion de renta tiene multiples montacargas (almacenados en `line_items`), la funcion `convertToBooking` solo crea **una** reserva usando `quote.forklift_id` (el primer equipo). El segundo montacargas se ignora completamente.
 
-### Causa raiz
-Dos puntos del codigo usan `new Date(dateStr)` con cadenas "YYYY-MM-DD":
-
-1. **`formatDateDisplay`** en `src/lib/utils.ts` (linea 12): usado para mostrar fechas en QuoteDetail y otras paginas de detalle.
-2. **QuoteForm useEffect** (linea 57): al restaurar fechas de una cotizacion existente para edicion.
+En el caso de COT-0002, los line_items contienen:
+- MCAPC025A048/001 (forklift_id almacenado en `quote.forklift_id`)
+- MCAPC035A048/003 (solo existe en `line_items`, sin reserva)
 
 ### Solucion
-Crear una funcion auxiliar `parseDateLocal` que interprete cadenas "YYYY-MM-DD" como fecha local (no UTC), y usarla en todos los puntos afectados.
+Modificar la logica de conversion para iterar sobre todos los montacargas del `line_items`, creando una reserva individual por cada uno y vinculandolas a la cotizacion.
 
 ### Cambios
 
-**1. `src/lib/utils.ts`**
-- Agregar funcion `parseDateLocal(dateStr)` que divide la cadena y construye `new Date(year, month - 1, day)` en tiempo local.
-- Actualizar `formatDateDisplay` para usar `parseDateLocal` en vez de `new Date(dateStr)`.
+**1. `src/pages/QuoteDetail.tsx` - funcion `convertToBooking`**
+- Extraer los IDs de todos los montacargas desde `line_items` (buscando coincidencia por nombre en la lista de forklifts cargados, mismo patron que usa `QuoteForm`)
+- Iterar sobre cada forklift_id encontrado y llamar a `createBooking.mutateAsync` para cada uno
+- Vincular todas las reservas creadas a la cotizacion mediante `quote_id`
+- Actualizar el estado de la cotizacion a "accepted" solo despues de crear todas las reservas
+- Mostrar el dialogo de entrega para la primera reserva creada (o un resumen)
 
-**2. `src/pages/QuoteForm.tsx`**
-- En el useEffect que restaura `existingQuote`, reemplazar `new Date(existingQuote.start_date)` y `new Date(existingQuote.end_date)` por `parseDateLocal(...)`.
-- Aplicar lo mismo para `valid_until`.
+**2. `src/hooks/useBookings.ts` - sin cambios**
+- La funcion RPC `create_booking` ya maneja correctamente un solo montacargas; se reutiliza llamandola N veces.
 
-**3. Buscar y corregir otros usos de `new Date(dateString)` con fechas "YYYY-MM-DD"**
-- Revisar `BookingForm`, `InvoiceForm`, `ContractForm`, `RentalFinancialSummary` y cualquier otro lugar donde se parseen fechas de la base de datos.
+### Detalle tecnico
 
-**4. `src/test/invoiceUtils.test.ts`**
-- Agregar un test que verifique que `parseDateLocal("2025-10-20")` retorna el dia 20 y no el 19, confirmando que no hay desfase UTC.
+```text
+Flujo actual:
+  convertToBooking() -> createBooking(quote.forklift_id) -> 1 reserva
 
+Flujo corregido:
+  convertToBooking() -> 
+    extraer forklift IDs de line_items (matching por nombre)
+    para cada forklift_id:
+      createBooking(forklift_id) -> reserva individual
+    vincular todas con quote_id
+    marcar cotizacion como "accepted"
+```
+
+La extraccion de IDs usa el mismo patron existente en `QuoteForm.tsx` lineas 119-122:
+```typescript
+const matched = allForkliftsFromHook.find((f) => item.description?.includes(f.name));
+```
+
+### Consideraciones
+- Si algun montacargas falla al crear la reserva, se detiene y muestra error (las reservas ya creadas permanecen)
+- El dialogo post-booking de entrega se mostrara para el primer montacargas; las demas entregas se pueden programar desde la pagina de entregas
+- La columna `quote_id` ya soporta multiples reservas apuntando a la misma cotizacion (no tiene constraint UNIQUE)
