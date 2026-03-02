@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { UserPlus, CalendarDays, Receipt } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { formatDateDisplay } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,7 +100,7 @@ export default function CustomerDetailPage() {
                 <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
                   <div>
                     <p className="font-medium">{b.forklifts?.name || "—"} — {b.forklifts?.model || ""}</p>
-                    <p className="text-xs text-muted-foreground">{b.start_date} → {b.end_date}</p>
+                    <p className="text-xs text-muted-foreground">{formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)}</p>
                   </div>
                   <StatusBadge status={b.status} />
                 </div>
@@ -120,7 +121,7 @@ export default function CustomerDetailPage() {
                 <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/invoices/${inv.id}`)}>
                   <div>
                     <p className="font-medium">{inv.invoice_number}</p>
-                    <p className="text-xs text-muted-foreground">{inv.issued_at}{inv.due_date ? ` — Vence: ${inv.due_date}` : ""}</p>
+                    <p className="text-xs text-muted-foreground">{formatDateDisplay(inv.issued_at)}{inv.due_date ? ` — Vence: ${formatDateDisplay(inv.due_date)}` : ""}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-semibold">{formatCurrency(Number(inv.total))}</span>

@@ -7,6 +7,7 @@ import { useCustomerPortal } from "@/hooks/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDateDisplay } from "@/lib/utils";
 
 export default function PortalInvoiceDetail() {
   const { id } = useParams();
@@ -36,7 +37,7 @@ export default function PortalInvoiceDetail() {
           <h1 className="text-2xl font-bold">{invoice.invoice_number}</h1>
           <div className="flex items-center gap-2 mt-1">
             <StatusBadge status={invoice.status} />
-            <span className="text-sm text-muted-foreground">Emitida: {invoice.issued_at}</span>
+            <span className="text-sm text-muted-foreground">Emitida: {formatDateDisplay(invoice.issued_at)}</span>
           </div>
         </div>
       </div>
@@ -128,7 +129,7 @@ export default function PortalInvoiceDetail() {
               <TableBody>
                 {invoicePayments.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell>{p.payment_date}</TableCell>
+                    <TableCell>{formatDateDisplay(p.payment_date)}</TableCell>
                     <TableCell>{p.payment_method || "—"}</TableCell>
                     <TableCell>{p.reference_number || "—"}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>

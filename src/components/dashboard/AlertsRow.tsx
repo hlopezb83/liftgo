@@ -6,6 +6,7 @@ import { useUpdateInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { toast } from "sonner";
+import { formatDateDisplay } from "@/lib/utils";
 
 interface OverdueInvoice {
   id: string;
@@ -81,7 +82,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
                 <div className="flex items-center gap-2">
                   <div className="text-right">
                     <span className="font-mono font-semibold text-destructive">{formatCurrency(Number(inv.total))}</span>
-                    <p className="text-xs text-muted-foreground">Vence: {inv.due_date}</p>
+                    <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(inv.due_date)}</p>
                   </div>
                   <Button
                     variant="ghost"

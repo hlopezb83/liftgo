@@ -96,7 +96,7 @@ export default function PortalDashboard() {
               <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
                 <div>
                   <p className="font-medium">{inv.invoice_number}</p>
-                  <p className="text-xs text-muted-foreground">{inv.issued_at}</p>
+                  <p className="text-xs text-muted-foreground">{formatDateDisplay(inv.issued_at)}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono font-semibold">{formatCurrency(Number(inv.total))}</span>

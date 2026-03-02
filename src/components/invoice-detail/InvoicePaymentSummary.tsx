@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { formatDateDisplay } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface InvoicePaymentSummaryProps {
@@ -45,7 +46,7 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments }: InvoiceP
               <TableBody>
                 {payments.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="text-sm">{p.payment_date}</TableCell>
+                    <TableCell className="text-sm">{formatDateDisplay(p.payment_date)}</TableCell>
                     <TableCell className="text-sm capitalize">{p.payment_method || "—"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{p.reference_number || "—"}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>
