@@ -67,9 +67,14 @@ Deno.serve(async (req) => {
     for (const booking of bookings || []) {
       const lastBilled = booking.last_billed_date ? new Date(booking.last_billed_date) : new Date(booking.start_date);
       const now = new Date();
-      const daysSinceLastBill = Math.floor((now.getTime() - lastBilled.getTime()) / (1000 * 60 * 60 * 24));
 
-      if (daysSinceLastBill < 30) continue;
+      // Calcular el mes a facturar: el mes siguiente a lastBilled
+      const billingStart = new Date(lastBilled.getFullYear(), lastBilled.getMonth() + 1, 1);
+      // Último día de ese mes
+      const billingEnd = new Date(billingStart.getFullYear(), billingStart.getMonth() + 1, 0);
+
+      // Solo generar si ya estamos en o después del mes a facturar
+      if (now < billingStart) continue;
 
       const forklift = booking.forklifts as { name?: string; model?: string; daily_rate?: number; weekly_rate?: number; monthly_rate?: number } | null;
       const monthlyRate = forklift?.monthly_rate || 0;
@@ -77,13 +82,10 @@ Deno.serve(async (req) => {
 
       const { data: invNum } = await supabase.rpc("next_invoice_number");
 
-      const billingEndDate = new Date(lastBilled);
-      billingEndDate.setDate(billingEndDate.getDate() + 30);
-      const endStr = billingEndDate.toISOString().split("T")[0];
-      const startStr = lastBilled.toISOString().split("T")[0];
+      const endStr = billingEnd.toISOString().split("T")[0];
 
       const lineItems = [{
-        description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtDate(lastBilled)} al ${fmtDate(billingEndDate)})`,
+        description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtDate(billingStart)} al ${fmtDate(billingEnd)})`,
         quantity: 1,
         unit_price: monthlyRate,
         total: monthlyRate,
