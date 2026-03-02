@@ -44,16 +44,16 @@ export default function QuoteDetail() {
     bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null;
   } | null>(null);
 
-  // Check if a booking already exists for this quote
-  const { data: linkedBooking } = useQuery({
-    queryKey: ["booking_for_quote", id],
+  // Check if bookings already exist for this quote
+  const { data: linkedBookings } = useQuery({
+    queryKey: ["bookings_for_quote", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id!).maybeSingle();
-      return data;
+      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id!);
+      return data || [];
     },
   });
-  const alreadyConverted = !!linkedBooking;
+  const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
 
   const quoteType = (quote as any)?.quote_type || "rental";
   const isSale = quoteType === "sale";
@@ -63,36 +63,67 @@ export default function QuoteDetail() {
     updateQuote.mutate({ id, status }, { onSuccess: () => toast.success(`Cotización marcada como ${status}`) });
   };
 
-  const convertToBooking = () => {
-    if (!quote) return;
-    createBooking.mutate(
-      {
-        forklift_id: quote.forklift_id!,
-        start_date: quote.start_date!,
-        end_date: quote.end_date!,
-        customer_name: quote.customer_name,
-        customer_id: quote.customer_id,
-        status: "confirmed",
-      },
-      {
-        onSuccess: async (bookingId: string) => {
-          // Link booking to this quote
-          await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
-          updateQuote.mutate({ id: quote.id, status: "accepted" });
-          toast.success("Reserva creada desde cotización");
+  const [isConverting, setIsConverting] = useState(false);
 
-          const fl = forklifts?.find((f) => f.id === quote.forklift_id);
-          const cust = customers?.find((c) => c.id === quote.customer_id);
-          setDeliveryDialog({
-            bookingId,
-            forkliftId: quote.forklift_id!,
-            forkliftName: fl?.name || "Montacargas",
-            startDate: quote.start_date!,
-            customerAddress: cust?.address || null,
-          });
-        },
+  const convertToBooking = async () => {
+    if (!quote || !forklifts) return;
+    const lineItems = (quote.line_items as unknown as LineItem[]) || [];
+
+    // Extract all forklift IDs from line_items by matching description to forklift name
+    const forkliftIds: string[] = [];
+    for (const item of lineItems) {
+      const matched = forklifts.find((f) => item.description?.includes(f.name));
+      if (matched && !forkliftIds.includes(matched.id)) {
+        forkliftIds.push(matched.id);
       }
-    );
+    }
+
+    // Fallback to quote.forklift_id if no matches found
+    if (forkliftIds.length === 0 && quote.forklift_id) {
+      forkliftIds.push(quote.forklift_id);
+    }
+
+    if (forkliftIds.length === 0) {
+      toast.error("No se encontraron montacargas para crear reservas");
+      return;
+    }
+
+    setIsConverting(true);
+    try {
+      const createdBookingIds: string[] = [];
+      for (const fId of forkliftIds) {
+        const bookingId = await createBooking.mutateAsync({
+          forklift_id: fId,
+          start_date: quote.start_date!,
+          end_date: quote.end_date!,
+          customer_name: quote.customer_name,
+          customer_id: quote.customer_id,
+          status: "confirmed",
+        });
+        // Link booking to this quote
+        await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
+        createdBookingIds.push(bookingId);
+      }
+
+      updateQuote.mutate({ id: quote.id, status: "accepted" });
+      toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
+
+      // Show delivery dialog for the first booking
+      const firstFId = forkliftIds[0];
+      const fl = forklifts.find((f) => f.id === firstFId);
+      const cust = customers?.find((c) => c.id === quote.customer_id);
+      setDeliveryDialog({
+        bookingId: createdBookingIds[0],
+        forkliftId: firstFId,
+        forkliftName: fl?.name || "Montacargas",
+        startDate: quote.start_date!,
+        customerAddress: cust?.address || null,
+      });
+    } catch (err: any) {
+      toast.error(`Error al crear reserva: ${err.message}`);
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   const convertToInvoice = () => {
@@ -126,7 +157,7 @@ export default function QuoteDetail() {
               </>
             )}
             {!isSale && !alreadyConverted && (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
-              <Button size="sm" variant="default" onClick={convertToBooking}><BookOpen className="h-4 w-4 mr-1" />Convertir a Reserva</Button>
+              <Button size="sm" variant="default" onClick={convertToBooking} disabled={isConverting}><BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas..." : "Convertir a Reserva"}</Button>
             )}
             {alreadyConverted && (
               <Button size="sm" variant="outline" disabled className="opacity-70"><BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva</Button>
