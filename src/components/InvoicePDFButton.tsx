@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { format, parseISO } from "date-fns";
 
 interface InvoicePDFButtonProps {
   invoiceId: string;
@@ -94,8 +95,9 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       }
 
       doc.setFontSize(10);
-      doc.text(`Emitida: ${invoice.issued_at}`, pw - mg, y - 4, { align: "right" });
-      doc.text(`Vence: ${invoice.due_date || "—"}`, pw - mg, y + 2, { align: "right" });
+      const fmtDate = (d: string | null) => d ? format(parseISO(d), "dd/MM/yyyy") : "—";
+      doc.text(`Emitida: ${fmtDate(invoice.issued_at)}`, pw - mg, y - 4, { align: "right" });
+      doc.text(`Vence: ${fmtDate(invoice.due_date)}`, pw - mg, y + 2, { align: "right" });
       doc.text(`Estado: ${invoice.status.toUpperCase()}`, pw - mg, y + 8, { align: "right" });
       if (invoice.forma_pago) doc.text(`Forma Pago: ${invoice.forma_pago}`, pw - mg, y + 14, { align: "right" });
       if (invoice.metodo_pago) doc.text(`Método Pago: ${invoice.metodo_pago}`, pw - mg, y + 20, { align: "right" });

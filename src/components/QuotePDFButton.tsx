@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { format, parseISO } from "date-fns";
 
 interface QuotePDFButtonProps {
   quoteId: string;
@@ -77,11 +78,12 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       doc.text(quote.customer_name || "—", mg, y + 6);
 
       doc.setFontSize(10);
+      const fmtDate = (d: string | null) => d ? format(parseISO(d), "dd/MM/yyyy") : "—";
       if (!isSale && quote.start_date && quote.end_date) {
-        doc.text(`Periodo: ${quote.start_date} → ${quote.end_date}`, pw - mg, y, { align: "right" });
-        doc.text(`Válida Hasta: ${quote.valid_until || "—"}`, pw - mg, y + 6, { align: "right" });
+        doc.text(`Periodo: ${fmtDate(quote.start_date)} → ${fmtDate(quote.end_date)}`, pw - mg, y, { align: "right" });
+        doc.text(`Válida Hasta: ${fmtDate(quote.valid_until)}`, pw - mg, y + 6, { align: "right" });
       } else {
-        doc.text(`Válida Hasta: ${quote.valid_until || "—"}`, pw - mg, y, { align: "right" });
+        doc.text(`Válida Hasta: ${fmtDate(quote.valid_until)}`, pw - mg, y, { align: "right" });
       }
 
       y += 20;
