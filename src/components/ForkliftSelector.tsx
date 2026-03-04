@@ -24,7 +24,7 @@ export function ForkliftSelector({ value, onValueChange, availableForklifts, dat
         <SelectContent>
           {availableForklifts.map((f) => (
             <SelectItem key={f.id} value={f.id}>
-              {f.name} — {f.model}{showStatus ? ` (${f.status})` : ""}
+              {f.manufacturer} {f.model} — {f.name}{showStatus ? ` (${f.status})` : ""}
             </SelectItem>
           ))}
         </SelectContent>
@@ -61,7 +61,7 @@ export function MultiForkliftSelector({ selectedIds, onChange, availableForklift
 
   const getForkliftLabel = (id: string) => {
     const f = allForklifts?.find((fl) => fl.id === id);
-    return f ? `${f.name} — ${f.model}` : id;
+    return f ? `${f.manufacturer} ${f.model} — ${f.name}` : id;
   };
 
   return (
@@ -87,7 +87,7 @@ export function MultiForkliftSelector({ selectedIds, onChange, availableForklift
           <SelectContent>
             {remaining.map((f) => (
               <SelectItem key={f.id} value={f.id}>
-                {f.name} — {f.model}
+                {f.manufacturer} {f.model} — {f.name}
               </SelectItem>
             ))}
           </SelectContent>

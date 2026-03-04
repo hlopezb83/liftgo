@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.6.1",
+    date: "2026-03-04",
+    type: "patch",
+    title: "Corrección de selector de montacargas",
+    description: "El selector de montacargas ahora muestra fabricante y modelo en lugar del ID interno.",
+    changes: [
+      "Formato cambiado de '{ID} — {modelo}' a '{fabricante} {modelo} — {ID}' en selectores",
+      "Corrección aplicada en selector simple y multi-selector de cotizaciones",
+    ],
+  },
+  {
     version: "3.6.0",
     date: "2026-03-04",
     type: "minor",
