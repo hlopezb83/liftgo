@@ -9,6 +9,43 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.6.0",
+    date: "2026-03-04",
+    type: "minor",
+    title: "Refactorización de código",
+    description: "Reorganización y limpieza del código para mejorar mantenibilidad, reducir duplicación y facilitar futuras extensiones.",
+    changes: [
+      "Helpers PDF reutilizables en pdfHelpers.ts (header, tabla de partidas, totales, notas)",
+      "Nuevo hook useListPage que combina useSort + usePagination + useIsMobile",
+      "ContractPDFButton dividido en 3 archivos: datos, generador y componente UI",
+      "Consolidación de 11 useState en InvoiceForm a un solo useFormState",
+      "NotesCard con modo readOnly para páginas de detalle",
+      "Renombrado de variables ambiguas (qc→queryClient, fl→forklift, etc.)",
+    ],
+  },
+  {
+    version: "3.5.3",
+    date: "2026-02-28",
+    type: "patch",
+    title: "Corrección de facturación recurrente",
+    description: "La primera factura recurrente ahora cubre correctamente el mes de inicio de la reserva.",
+    changes: [
+      "Primera factura ahora cubre el mes de inicio de la reserva en lugar de saltarlo",
+      "Corrección en la lógica de last_billed_date para facturación automática",
+    ],
+  },
+  {
+    version: "3.5.2",
+    date: "2026-02-28",
+    type: "patch",
+    title: "Corrección de cálculo de meses en rentas",
+    description: "La fecha final ahora se trata como inclusiva para calcular correctamente la duración de periodos de renta.",
+    changes: [
+      "Fecha final tratada como inclusiva: periodos como 01/12 al 30/11 ahora calculan 12 meses exactos",
+      "Ajuste en invoiceUtils para evitar cobros de un mes menos en rentas largas",
+    ],
+  },
+  {
     version: "3.5.1",
     date: "2026-02-27",
     type: "patch",
