@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,12 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance }: 
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const createPayment = useCreatePayment();
+
+  useEffect(() => {
+    if (open) {
+      setAmount(balance.toFixed(2));
+    }
+  }, [open, balance]);
 
   const handleSubmit = () => {
     const amt = Number(amount);
