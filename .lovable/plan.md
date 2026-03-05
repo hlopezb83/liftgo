@@ -1,14 +1,26 @@
 
 
-## Formatear monto en el diálogo de Registrar Pago
+## Sincronizar monto predeterminado con saldo pendiente
+
+### Problema
+El `useState` solo toma el valor de `balance` en el primer render. Si el balance cambia (por pagos previos), el monto no se actualiza al abrir el diálogo.
 
 ### Cambio
 
 **Archivo: `src/components/RecordPaymentDialog.tsx`**
 
-El campo "Monto" muestra el balance como número plano (ej. `1234.50`). Se formateará con el formato de moneda mexicana usando `formatCurrency` como texto de ayuda o placeholder, y se mostrará el símbolo `$` como prefijo del input.
+Agregar un `useEffect` que actualice el monto cada vez que el diálogo se abra o el balance cambie:
 
-- Agregar el símbolo `$` como prefijo visual al input de monto (usando un wrapper con texto antes del input o un placeholder con formato)
-- Mostrar el balance formateado debajo del campo como referencia: "Saldo pendiente: $1,234.50"
-- Importar `formatCurrency` desde `@/lib/formatCurrency`
+```typescript
+import { useState, useEffect } from "react";
+
+// Después de los useState existentes:
+useEffect(() => {
+  if (open) {
+    setAmount(balance.toFixed(2));
+  }
+}, [open, balance]);
+```
+
+Un solo archivo, una adición de ~4 líneas.
 
