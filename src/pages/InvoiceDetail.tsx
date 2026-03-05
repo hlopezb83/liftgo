@@ -25,6 +25,7 @@ import { cn, formatDateDisplay } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useQuote } from "@/hooks/useQuotes";
 import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
 import { Link } from "react-router-dom";
@@ -42,6 +43,7 @@ export default function InvoiceDetail() {
   const [paidDate, setPaidDate] = useState<Date>(new Date());
   const [paidPopoverOpen, setPaidPopoverOpen] = useState(false);
   const { data: payments } = usePayments(id);
+  const { data: userRole } = useUserRole();
   const quoteId = (invoice as any)?.quote_id;
   const { data: sourceQuote } = useQuote(quoteId || undefined);
   const bookingId = invoice?.booking_id;
@@ -144,7 +146,7 @@ export default function InvoiceDetail() {
                 <Button variant="outline" size="sm"><MoreHorizontal className="h-4 w-4 mr-1" /> Acciones</Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {invoice.status === "draft" && (
+                {(invoice.status === "draft" || userRole === "admin") && (
                   <DropdownMenuItem onClick={() => navigate(`/invoices/${id}/edit`)}><Edit className="h-4 w-4 mr-2" /> Editar</DropdownMenuItem>
                 )}
                 {cfdiStatus === "pending" && invoice.status !== "draft" && (

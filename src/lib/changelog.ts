@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.6.2",
+    date: "2026-03-05",
+    type: "patch",
+    title: "Admins pueden editar facturas en cualquier estado",
+    description: "Los usuarios con rol admin ahora pueden editar facturas independientemente de su estado (enviada, vencida, pagada, parcial).",
+    changes: [
+      "Botón 'Editar' visible para admins en todos los estados de factura",
+      "Usuarios no-admin mantienen la restricción de solo editar borradores",
+    ],
+  },
+  {
     version: "3.6.1",
     date: "2026-03-04",
     type: "patch",
