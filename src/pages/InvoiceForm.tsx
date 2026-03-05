@@ -192,8 +192,10 @@ export default function InvoiceForm() {
     if (lineItems.length === 0) { toast.error("Agrega al menos una partida"); return; }
 
     const payload = {
-      booking_id: bookingId || null, customer_id: customerId, customer_name: customerName || null,
-      quote_id: fromQuoteId || null,
+      booking_id: bookingId || (isEdit ? existing?.booking_id : null) || null,
+      customer_id: customerId,
+      customer_name: customerName || null,
+      quote_id: fromQuoteId || (isEdit ? existing?.quote_id : null) || null,
       line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
       subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
