@@ -108,7 +108,7 @@ export default function InvoiceDetail() {
       <DetailPageHeader
         title={invoice.invoice_number}
         backTo="/invoices"
-        badges={<><StatusBadge status={invoice.status} /><StatusBadge status={cfdiStatus} /></>}
+        badges={<><StatusBadge status={invoice.status} /><Badge className={cfdiStatus === "stamped" ? "bg-status-available text-white border-transparent" : cfdiStatus === "cancelled" ? "bg-destructive text-destructive-foreground border-transparent" : "bg-status-maintenance text-white border-transparent"}>{cfdiStatus === "pending" ? "Pendiente CFDI" : cfdiStatus === "stamped" ? "Timbrado" : cfdiStatus === "cancelled" ? "CFDI Cancelado" : cfdiStatus}</Badge></>}
         actions={
           <>
             {invoice.status === "draft" && (
