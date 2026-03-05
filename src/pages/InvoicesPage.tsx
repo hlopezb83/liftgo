@@ -17,7 +17,7 @@ import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Plus, Eye, Download, ChevronRight, RefreshCw } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
-import { format } from "date-fns";
+import { formatDateDisplay } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { RoleGuard } from "@/components/RoleGuard";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,8 +86,8 @@ export default function InvoicesPage() {
             <p className="text-sm text-muted-foreground">{inv.customer_name || "Sin cliente"}</p>
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <div className="text-xs text-muted-foreground">
-                <span>{inv.issued_at ? format(new Date(inv.issued_at), "dd/MM/yyyy") : "—"}</span>
-                {inv.due_date && <span> → {format(new Date(inv.due_date), "dd/MM/yyyy")}</span>}
+                <span>{formatDateDisplay(inv.issued_at)}</span>
+                {inv.due_date && <span> → {formatDateDisplay(inv.due_date)}</span>}
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-semibold font-mono">{formatCurrency(Number(inv.total))}</span>
@@ -151,8 +151,8 @@ export default function InvoicesPage() {
           <TableCell>{inv.customer_name || "—"}</TableCell>
           <TableCell className="text-right font-mono">{formatCurrency(Number(inv.total))}</TableCell>
           <TableCell><StatusBadge status={inv.status} /></TableCell>
-          <TableCell className="text-sm text-muted-foreground">{inv.issued_at ? format(new Date(inv.issued_at), "dd/MM/yyyy") : "—"}</TableCell>
-          <TableCell className="text-sm text-muted-foreground">{inv.due_date ? format(new Date(inv.due_date), "dd/MM/yyyy") : "—"}</TableCell>
+          <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(inv.issued_at)}</TableCell>
+          <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(inv.due_date)}</TableCell>
           <TableCell><Eye className="h-4 w-4 text-muted-foreground" /></TableCell>
         </TableRow>
       )}
