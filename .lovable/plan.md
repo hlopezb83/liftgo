@@ -1,20 +1,14 @@
 
 
-## Ordenar tabla de facturas por # de factura de forma predeterminada
+## Formatear monto en el diálogo de Registrar Pago
 
 ### Cambio
 
-**Archivo: `src/pages/InvoicesPage.tsx`**
+**Archivo: `src/components/RecordPaymentDialog.tsx`**
 
-En el hook `useSort`, agregar valores predeterminados para que la tabla se ordene por `invoice_number` en orden descendente (factura más reciente primero):
+El campo "Monto" muestra el balance como número plano (ej. `1234.50`). Se formateará con el formato de moneda mexicana usando `formatCurrency` como texto de ayuda o placeholder, y se mostrará el símbolo `$` como prefijo del input.
 
-```typescript
-const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
-  defaultKey: "invoice_number",
-  defaultDirection: "desc",
-  accessors: { ... },
-});
-```
-
-Un solo cambio, dos líneas añadidas.
+- Agregar el símbolo `$` como prefijo visual al input de monto (usando un wrapper con texto antes del input o un placeholder con formato)
+- Mostrar el balance formateado debajo del campo como referencia: "Saldo pendiente: $1,234.50"
+- Importar `formatCurrency` desde `@/lib/formatCurrency`
 
