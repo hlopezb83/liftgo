@@ -57,6 +57,8 @@ export default function InvoicesPage() {
   });
 
   const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+    defaultKey: "invoice_number",
+    defaultDirection: "desc",
     accessors: {
       invoice_number: (i) => i.invoice_number,
       customer_name: (i) => i.customer_name || "",
