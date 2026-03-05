@@ -101,7 +101,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: 
                 {agingBuckets.map((b) => (
                   <div key={b.range} className="text-xs bg-background rounded px-2 py-1">
                     <span className="text-muted-foreground">{b.range}d:</span>{" "}
-                    <span className="font-mono font-medium">${b.total.toFixed(0)}</span>
+                    <span className="font-mono font-medium">{formatCurrency(b.total)}</span>
                   </div>
                 ))}
               </div>
