@@ -94,7 +94,13 @@ export default function InvoiceForm() {
         receptorDomicilioFiscalCp: existing.receptor_domicilio_fiscal_cp || "",
       });
     }
-  }, [existing]);
+    // Si los campos del receptor están vacíos pero hay customer_id,
+    // rellenar desde la ficha del cliente
+    if (existing.customer_id && !existing.receptor_rfc && customers) {
+      const cust = customers.find((c) => c.id === existing.customer_id);
+      if (cust) applyCustomerCfdi(cust);
+    }
+  }, [existing, customers]);
 
   // Pre-fill from source quote
   useEffect(() => {
