@@ -29,7 +29,7 @@ export const STATUS_LABELS: Record<string, string> = {
   maintenance: "Mantenimiento",
   retired: "Retirado",
   draft: "Borrador",
-  sent: "Enviado",
+  sent: "Sin Pagar",
   paid: "Pagado",
   overdue: "Vencido",
   confirmed: "Confirmado",
