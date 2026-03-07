@@ -56,6 +56,7 @@ export function CustomerSelector({ customers, customerId, customerName, onCustom
             )}
           </div>
         )}
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </CardContent>
     </Card>
   );
