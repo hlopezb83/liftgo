@@ -75,7 +75,11 @@ export default function MaintenancePage() {
     },
   });
 
-  const mobileContent = isMobile ? (
+  const kanbanContent = viewMode === "board" ? (
+    <MaintenanceKanban logs={filtered?.map(l => ({ ...l, forklift_name: forkliftMap.get(l.forklift_id)?.name || "" })) || []} />
+  ) : undefined;
+
+  const mobileContent = isMobile && viewMode === "list" ? (
     <MobileCardList
       items={paginatedItems}
       keyExtractor={(log) => log.id}
