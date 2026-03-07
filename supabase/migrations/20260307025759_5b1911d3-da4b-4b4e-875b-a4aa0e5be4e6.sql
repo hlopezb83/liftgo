@@ -1,0 +1,1 @@
+ALTER TABLE public.maintenance_logs ADD COLUMN work_status text NOT NULL DEFAULT 'pending';

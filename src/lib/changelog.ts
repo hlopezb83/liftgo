@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.10.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Tablero Kanban para mantenimiento",
+    description: "Vista de tablero drag-and-drop para gestionar el estado de trabajo de los registros de mantenimiento con 4 columnas.",
+    changes: [
+      "Nueva vista Kanban en la página de mantenimiento con columnas: Pendiente, En Progreso, Esperando Refacciones y Completado",
+      "Drag-and-drop entre columnas actualiza el estado de trabajo en la base de datos con actualización optimista",
+      "Toggle para alternar entre vista de lista y vista de tablero",
+      "Nueva columna work_status en maintenance_logs con valor por defecto 'pending'",
+      "Componente MaintenanceKanban reutilizable con @hello-pangea/dnd",
+    ],
+  },
+  {
     version: "3.9.0",
     date: "2026-03-07",
     type: "minor",
