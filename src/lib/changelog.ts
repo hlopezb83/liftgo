@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.14.1",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Prefijo $ en campo de monto de gastos",
+    description: "Se agrega el símbolo de peso mexicano ($) como prefijo visual en el campo de monto del diálogo de gastos operativos.",
+    changes: [
+      "Prefijo '$' visible en el campo de monto del formulario de gastos",
+      "Placeholder actualizado a '0.00' con formato mexicano",
+    ],
+  },
+  {
     version: "3.14.0",
     date: "2026-03-07",
     type: "minor",
