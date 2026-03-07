@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { format, parseISO } from "date-fns";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
@@ -59,13 +60,13 @@ export function buildPlaceholderVars(contract: ContractData, company: any, custo
     representante_legal: customer?.representante_legal || "[Representante Legal]",
     ubicacion: contract.usage_location || "[Dirección]",
     horas_max: String(contract.max_hours_per_month || "—"),
-    tarifa_extra: Number(contract.extra_hour_rate || 0).toFixed(2),
+    tarifa_extra: formatCurrency(Number(contract.extra_hour_rate || 0)),
     fecha_inicio: contract.start_date ? format(parseISO(contract.start_date), "dd/MM/yyyy") : "[Fecha]",
     fecha_fin: contract.end_date ? format(parseISO(contract.end_date), "dd/MM/yyyy") : "[Fecha]",
-    tarifa_diaria: Number(contract.daily_rate || 0).toFixed(2),
-    tarifa_semanal: Number(contract.weekly_rate || 0).toFixed(2),
-    tarifa_mensual: Number(contract.monthly_rate || 0).toFixed(2),
-    deposito: Number(contract.deposit_amount || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 }),
+    tarifa_diaria: formatCurrency(Number(contract.daily_rate || 0)),
+    tarifa_semanal: formatCurrency(Number(contract.weekly_rate || 0)),
+    tarifa_mensual: formatCurrency(Number(contract.monthly_rate || 0)),
+    deposito: formatCurrency(Number(contract.deposit_amount || 0)),
     interes_moratorio: String(contract.late_interest_rate || 5),
     frecuencia_pago: contract.payment_frequency || "Mensual",
     marca: forklift?.manufacturer || "—",

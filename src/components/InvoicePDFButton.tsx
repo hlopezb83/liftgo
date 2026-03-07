@@ -11,7 +11,6 @@ import {
   drawLineItemsTable,
   drawTotals,
   drawNotesBlock,
-  fmtMXN,
   type PdfLineItem,
 } from "@/lib/pdfHelpers";
 
