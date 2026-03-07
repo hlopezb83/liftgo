@@ -1,13 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfMonth, getYear } from "date-fns";
 import { es } from "date-fns/locale";
-import { Download, TrendingUp, TrendingDown, DollarSign, Percent } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, DollarSign, Percent, CalendarDays } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { OperatingExpense, ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperatingExpenses";
@@ -25,6 +26,7 @@ const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "d
 const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];
 
 interface MonthData {
+  monthKey: string; // yyyy-MM for filtering
   month: string;
   revenue: number;
   maintenanceCost: number;
