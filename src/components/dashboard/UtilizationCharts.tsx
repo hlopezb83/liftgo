@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUp, Receipt } from "lucide-react";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 interface WeeklyUtilizationItem {
   week_label: string;
@@ -50,9 +51,9 @@ export function UtilizationCharts({ weeklyUtilization, revenuePerUnit }: Utiliza
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={revenuePerUnit} layout="vertical" barSize={16}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis type="number" tick={{ fontSize: 12 }} tickFormatter={(v) => `€${v}`} />
+                <XAxis type="number" tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
                 <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v: number) => `€${v.toFixed(2)}`} />
+                <Tooltip formatter={(v: number) => formatCurrency(v)} />
                 <Bar dataKey="revenue" fill="hsl(142, 71%, 45%)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
