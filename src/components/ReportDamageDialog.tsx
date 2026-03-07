@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Upload, X, ImageIcon, Loader2 } from "lucide-react";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useCreateDamageRecord } from "@/hooks/useDamageRecords";
+import { useUploadDocument } from "@/hooks/useDocuments";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export function ReportDamageDialog() {
   const [open, setOpen] = useState(false);
@@ -17,40 +20,86 @@ export function ReportDamageDialog() {
   const [customerId, setCustomerId] = useState("");
   const [description, setDescription] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
+  const [previews, setPreviews] = useState<{ file: File; url: string }[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const createDamage = useCreateDamageRecord();
+  const uploadDoc = useUploadDocument();
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const newPreviews = acceptedFiles.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+    setPreviews((prev) => [...prev, ...newPreviews].slice(0, 10));
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".heic"] },
+    maxFiles: 10,
+    multiple: true,
+  });
+
+  const removePreview = (index: number) => {
+    setPreviews((prev) => {
+      URL.revokeObjectURL(prev[index].url);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
 
   const reset = () => {
+    previews.forEach((p) => URL.revokeObjectURL(p.url));
     setForkliftId("");
     setCustomerId("");
     setDescription("");
     setEstimatedCost("");
+    setPreviews([]);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!forkliftId || !description.trim()) {
       toast({ title: "Campos requeridos", description: "Selecciona un montacargas y describe el daño.", variant: "destructive" });
       return;
     }
-    createDamage.mutate(
-      {
+    setSubmitting(true);
+    try {
+      const newRecord = await createDamage.mutateAsync({
         forklift_id: forkliftId,
         customer_id: customerId || null,
         description: description.trim(),
         estimated_cost: estimatedCost ? Number(estimatedCost) : 0,
         status: "reported",
-      },
-      {
-        onSuccess: () => {
-          toast({ title: "Daño reportado", description: "El registro de daño se creó correctamente." });
-          reset();
-          setOpen(false);
-        },
+      });
+
+      if (previews.length > 0) {
+        for (const { file } of previews) {
+          await uploadDoc.mutateAsync({
+            file,
+            entityType: "damage_record",
+            entityId: newRecord.id,
+          });
+        }
       }
-    );
+
+      toast({
+        title: "Daño reportado",
+        description: previews.length > 0
+          ? `Registro creado con ${previews.length} foto(s).`
+          : "El registro de daño se creó correctamente.",
+      });
+      reset();
+      setOpen(false);
+    } catch {
+      // errors handled by mutation hooks
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const isProcessing = submitting || createDamage.isPending;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
@@ -60,7 +109,7 @@ export function ReportDamageDialog() {
           Reportar Daño
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Reportar Daño Manual</DialogTitle>
         </DialogHeader>
@@ -119,11 +168,59 @@ export function ReportDamageDialog() {
               placeholder="0.00"
             />
           </div>
+
+          {/* Zona de fotos */}
+          <div className="space-y-2">
+            <Label>Fotos (opcional)</Label>
+            <div
+              {...getRootProps()}
+              className={cn(
+                "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
+                isDragActive
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+              )}
+            >
+              <input {...getInputProps()} capture="environment" />
+              <div className="flex flex-col items-center gap-1.5">
+                <div className={cn(
+                  "rounded-full p-2 transition-colors",
+                  isDragActive ? "bg-primary/10" : "bg-muted"
+                )}>
+                  {isDragActive ? (
+                    <Upload className="h-5 w-5 text-primary" />
+                  ) : (
+                    <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {isDragActive ? "Suelta las fotos aquí" : "Arrastra fotos o toca para abrir cámara"}
+                </p>
+              </div>
+            </div>
+
+            {previews.length > 0 && (
+              <div className="grid grid-cols-4 gap-1.5">
+                {previews.map((p, i) => (
+                  <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
+                    <img src={p.url} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePreview(i)}
+                      className="absolute top-0.5 right-0.5 rounded-full bg-background/80 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3 text-destructive" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={createDamage.isPending}>
-            {createDamage.isPending ? "Guardando…" : "Reportar"}
+          <Button onClick={handleSubmit} disabled={isProcessing}>
+            {isProcessing ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Guardando…</> : `Reportar${previews.length > 0 ? ` (${previews.length} foto${previews.length > 1 ? "s" : ""})` : ""}`}
           </Button>
         </DialogFooter>
       </DialogContent>

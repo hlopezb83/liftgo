@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.12.1",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Fotos integradas en reporte de daño",
+    description: "Ahora puedes adjuntar fotos directamente al reportar un daño manual, sin necesidad de crear el registro primero.",
+    changes: [
+      "Zona de drag-and-drop para fotos dentro del diálogo 'Reportar Daño'",
+      "Previews locales antes de subir, con opción de eliminar",
+      "Las fotos se suben automáticamente al crear el registro de daño",
+    ],
+  },
+  {
     version: "3.12.0",
     date: "2026-03-07",
     type: "minor",
