@@ -71,7 +71,7 @@ export default function ReturnInspectionPage() {
       keyExtractor={(ins) => ins.id}
       emptyMessage="No hay inspecciones de devolución"
       renderCard={(ins) => {
-        const insWithJoins = ins as typeof ins & { forklifts?: { name: string }; bookings?: { customer_name: string | null } };
+        const insWithJoins = ins as ReturnInspectionWithJoins;
         return (
           <Card>
             <CardContent className="p-4">
@@ -147,7 +147,7 @@ export default function ReturnInspectionPage() {
           </TableRow>
         }
         renderRow={(ins) => {
-          const insWithJoins = ins as typeof ins & { forklifts?: { name: string; model: string }; bookings?: { customer_name: string | null } };
+          const insWithJoins = ins as ReturnInspectionWithJoins;
           return (
             <TableRow key={ins.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
               <TableCell className="font-mono text-sm">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</TableCell>
