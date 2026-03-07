@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.13.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Reporte Estado de Resultados mensual",
+    description: "Nuevo reporte financiero que muestra ingresos (sin IVA), costos de mantenimiento, costos de daños, utilidad bruta y margen por mes.",
+    changes: [
+      "Nuevo reporte 'Estado de Resultados' en la sección de Reportes",
+      "Tabla mensual con ingresos, costos de mantenimiento, costos de daños, utilidad bruta y margen %",
+      "Gráfica de barras comparando ingresos vs costos por mes",
+      "Fila de totales acumulados",
+      "Exportación a CSV",
+    ],
+  },
+  {
     version: "3.12.2",
     date: "2026-03-07",
     type: "patch",
