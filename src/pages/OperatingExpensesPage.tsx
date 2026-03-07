@@ -64,9 +64,9 @@ export default function OperatingExpensesPage() {
   return (
     <PageTransition>
       <div className="p-6 space-y-6">
-        <PageHeader title="Gastos Operativos" subtitle="Registra gastos fijos y variables del negocio">
+        <PageHeader title="Gastos Operativos" subtitle="Registra gastos fijos y variables del negocio" action={
           <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />Nuevo Gasto</Button>
-        </PageHeader>
+        } />
 
         <Card>
           <CardContent className="pt-6">
@@ -83,8 +83,8 @@ export default function OperatingExpensesPage() {
               </div>
             </div>
 
-            {isLoading ? <TableSkeleton columns={5} rows={5} /> : filtered.length === 0 ? (
-              <EmptyState title="Sin gastos" description="Agrega tu primer gasto operativo" />
+            {isLoading ? <TableSkeleton columnCount={5} rows={5} /> : filtered.length === 0 ? (
+              <EmptyState title="Sin gastos" subtitle="Agrega tu primer gasto operativo" />
             ) : (
               <Table>
                 <TableHeader>
