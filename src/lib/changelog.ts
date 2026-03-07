@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Mejoras al Estado de Resultados",
+    description: "Comparativo año vs año, gráfica de utilidad neta, margen bruto y exportación a PDF en el reporte de Estado de Resultados.",
+    changes: [
+      "Modo 'Comparativo' año vs año con variación absoluta y porcentual",
+      "Gráfica de área de Utilidad Neta mensual con línea de referencia en cero",
+      "Fila de Margen Bruto (%) después de Utilidad Bruta",
+      "Botón de exportar a PDF con encabezado de empresa y formato contable",
+    ],
+  },
+  {
     version: "3.16.2",
     date: "2026-03-07",
     type: "patch",
