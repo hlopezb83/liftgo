@@ -85,7 +85,7 @@ export default function DeliveriesPage() {
             {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
             {d.status !== "completed" && (
               <div className="mt-3 pt-3 border-t">
-                <Button variant="outline" size="sm" className="w-full" onClick={() => markComplete(d.id)}>
+                <Button variant="outline" size="sm" className="w-full" onClick={() => setSignatureTarget(d.id)}>
                   <CheckCircle className="h-4 w-4 mr-1 text-status-available" /> Completar
                 </Button>
               </div>
@@ -169,7 +169,7 @@ export default function DeliveriesPage() {
             <TableCell><StatusBadge status={d.status} /></TableCell>
             <TableCell>
               {d.status !== "completed" && (
-                <Button variant="ghost" size="icon" onClick={() => markComplete(d.id)} title="Marcar completado">
+                <Button variant="ghost" size="icon" onClick={() => setSignatureTarget(d.id)} title="Marcar completado">
                   <CheckCircle className="h-4 w-4 text-status-available" />
                 </Button>
               )}
