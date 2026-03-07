@@ -15,6 +15,7 @@ export const forkliftFormSchema = z.object({
   daily_rate: z.string().default(""),
   weekly_rate: z.string().default(""),
   monthly_rate: z.string().default(""),
+  acquisition_cost: z.string().default(""),
   notes: z.string().default(""),
 });
 
