@@ -12,7 +12,7 @@ export function useForklifts() {
     queryFn: async () => {
       const { data, error } = await supabase.from("forklifts").select("*").order("name");
       if (error) throw error;
-      return data as Forklift[];
+      return data;
     },
   });
 }
@@ -25,7 +25,7 @@ export function useForklift(id: string | undefined) {
       if (!id) throw new Error("Forklift ID is required");
       const { data, error } = await supabase.from("forklifts").select("*").eq("id", id).single();
       if (error) throw error;
-      return data as Forklift;
+      return data;
     },
   });
 }
@@ -122,7 +122,7 @@ export function useStatusLogs(forkliftId: string | undefined) {
         .from("status_logs").select("*").eq("forklift_id", forkliftId)
         .order("changed_at", { ascending: false });
       if (error) throw error;
-      return data as StatusLog[];
+      return data;
     },
   });
 }

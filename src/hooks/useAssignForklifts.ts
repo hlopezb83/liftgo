@@ -2,13 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export interface AssignedForklift {
-  id: string;
-  quote_id: string;
-  forklift_id: string;
-  line_index: number;
-  created_at: string;
-}
+import type { Tables } from "@/integrations/supabase/types";
+
+export type AssignedForklift = Tables<"quote_assigned_forklifts">;
 
 export function useQuoteAssignments(quoteId: string | undefined) {
   return useQuery({
@@ -16,12 +12,12 @@ export function useQuoteAssignments(quoteId: string | undefined) {
     enabled: !!quoteId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("quote_assigned_forklifts" as any)
+        .from("quote_assigned_forklifts")
         .select("*")
         .eq("quote_id", quoteId!)
         .order("line_index");
       if (error) throw error;
-      return data as unknown as AssignedForklift[];
+      return data;
     },
   });
 }
@@ -37,8 +33,8 @@ export function useAssignForklift() {
         line_index: a.lineIndex,
       }));
       const { error: insertError } = await supabase
-        .from("quote_assigned_forklifts" as any)
-        .insert(rows as any);
+        .from("quote_assigned_forklifts")
+        .insert(rows);
       if (insertError) throw insertError;
 
       // Update each forklift to 'sold' and log status change
@@ -77,7 +73,7 @@ export function useUnassignForklift() {
   return useMutation({
     mutationFn: async ({ assignmentId, forkliftId }: { assignmentId: string; forkliftId: string }) => {
       const { error } = await supabase
-        .from("quote_assigned_forklifts" as any)
+        .from("quote_assigned_forklifts")
         .delete()
         .eq("id", assignmentId);
       if (error) throw error;

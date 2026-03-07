@@ -1,16 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type EquipmentModel = {
-  id: string;
-  manufacturer: string;
-  model: string;
-  default_capacity_kg: number | null;
-  default_mast_height_m: number | null;
-  default_fuel_type: string;
-  created_at: string;
-  updated_at: string;
-};
+import type { Tables } from "@/integrations/supabase/types";
+
+export type EquipmentModel = Tables<"equipment_models">;
 
 type EquipmentModelInput = {
   manufacturer: string;
@@ -30,7 +23,7 @@ export function useEquipmentModels() {
         .order("manufacturer")
         .order("model");
       if (error) throw error;
-      return data as EquipmentModel[];
+      return data;
     },
   });
 }
