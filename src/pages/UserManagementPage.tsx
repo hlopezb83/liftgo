@@ -21,8 +21,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { CredentialsDialog } from "@/components/CredentialsDialog";
 import type { AppRole } from "@/hooks/useUserRole";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
-  auditor: "bg-purple-600 text-white",
-};
 
 interface UserRow {
   user_id: string;
