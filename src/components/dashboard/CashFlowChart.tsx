@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 interface CashFlowItem {
   month: string;
@@ -21,8 +22,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             <BarChart data={data} barGap={4}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `€${v}`} />
-              <Tooltip formatter={(value: number) => `€${value.toFixed(2)}`} contentStyle={{ borderRadius: "0.5rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
+              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
+              <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={{ borderRadius: "0.5rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
               <Bar dataKey="invoiced" name="Facturado" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
               <Bar dataKey="paid" name="Pagado" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
             </BarChart>
