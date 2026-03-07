@@ -31,6 +31,14 @@ export const SERVICE_TYPES = [
 export const INSPECTION_CONDITIONS = ["good", "minor_damage", "major_damage", "needs_repair"] as const;
 export const FUEL_LEVELS = ["Full", "3/4", "1/2", "1/4", "Empty"] as const;
 export const DAMAGE_STATUSES = ["reported", "in_repair", "repaired", "invoiced"] as const;
+export const MAINTENANCE_WORK_STATUSES = ["pending", "in_progress", "waiting_parts", "completed"] as const;
+
+export const MAINTENANCE_WORK_STATUS_LABELS: Record<string, string> = {
+  pending: "Pendiente",
+  in_progress: "En Progreso",
+  waiting_parts: "Esperando Refacciones",
+  completed: "Completado",
+};
 
 export const FUEL_TYPE_LABELS: Record<string, string> = {
   Diesel: "Diésel",

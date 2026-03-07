@@ -33,3 +33,15 @@ export function useCreateMaintenanceLog() {
     },
   });
 }
+
+export function useUpdateMaintenanceLog() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenanceLog>) => {
+      const { data, error } = await supabase.from("maintenance_logs").update(updates).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["maintenance_logs"] }),
+  });
+}
