@@ -1,37 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { ContractViewModel } from "@/types/rental";
 
-interface Contract {
-  id: string;
-  contract_number: string;
-  booking_id: string | null;
-  customer_id: string | null;
-  forklift_id: string | null;
-  start_date: string | null;
-  end_date: string | null;
-  daily_rate: number | null;
-  weekly_rate: number | null;
-  monthly_rate: number | null;
-  deposit_amount: number | null;
-  terms_text: string | null;
-  status: string;
-  signed_at: string | null;
-  signed_by: string | null;
-  notes: string | null;
-  usage_location: string | null;
-  max_hours_per_month: number | null;
-  extra_hour_rate: number | null;
-  payment_frequency: string | null;
-  late_interest_rate: number | null;
-  contract_city: string | null;
-  witness_1: string | null;
-  witness_2: string | null;
-  created_at: string;
-  updated_at: string;
-  // joined
-  customer_name?: string;
-  forklift_name?: string;
-}
+type Contract = ContractViewModel;
 
 export function useContracts() {
   return useQuery({

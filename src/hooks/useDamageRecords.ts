@@ -1,8 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-
-export type DamageRecord = Tables<"damage_records">;
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+export type { DamageRecord } from "@/types/rental";
 
 export function useDamageRecords() {
   return useQuery({

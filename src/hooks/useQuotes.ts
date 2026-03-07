@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-
-export type Quote = Tables<"quotes">;
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+export type { Quote } from "@/types/rental";
+import type { Quote } from "@/types/rental";
 
 export function useQuotes() {
   return useQuery({
