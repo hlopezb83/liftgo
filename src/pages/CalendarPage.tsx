@@ -167,7 +167,7 @@ export default function CalendarPage() {
                   <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
                     <div>
                       <p className="font-medium text-sm">{forkliftMap.get(b.forklift_id)?.name} — {forkliftMap.get(b.forklift_id)?.model}</p>
-                      <p className="text-xs text-muted-foreground">{b.customer_name} ({b.customer_contact})</p>
+                      <p className="text-xs text-muted-foreground">{b.customer_name}{b.customer_contact ? ` (${b.customer_contact})` : ""}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <RecurringBillingBadge booking={b} />
