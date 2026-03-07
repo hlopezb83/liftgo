@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { Plus, ChevronRight } from "lucide-react";
+import { Plus, ChevronRight, CalendarDays } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
@@ -101,6 +101,9 @@ export default function BookingsPage() {
       totalPages={totalPages}
       onPageChange={setPage}
       emptyMessage="No se encontraron reservas"
+      emptyIcon={CalendarDays}
+      emptyActionLabel="Nueva Reserva"
+      onEmptyAction={() => navigate("/bookings/new")}
       tableHeader={
         <TableRow>
           <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Equipo</SortableTableHead>

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, Download, ChevronRight } from "lucide-react";
+import { PlusCircle, Download, ChevronRight, Forklift } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
@@ -108,6 +108,9 @@ export default function Fleet() {
       totalPages={totalPages}
       onPageChange={setPage}
       emptyMessage="No se encontraron montacargas"
+      emptyIcon={Forklift}
+      emptyActionLabel="Agregar Montacargas"
+      onEmptyAction={() => navigate("/fleet/new")}
       customContent={mobileContent}
       tableHeader={
         <TableRow>
