@@ -1,17 +1,28 @@
 
 
-## Cambiar etiqueta "Enviado" → "Sin Pagar"
+## Plan: Separar Estado de Resultados por Año
 
-### Cambio
+### Concepto
 
-**Archivo: `src/lib/constants.ts`**
+Agregar un selector de año dentro del reporte de Estado de Resultados. En lugar de mostrar todos los meses del rango en una sola tabla, agrupar por año y mostrar solo los meses del año seleccionado. Incluir opción "Todos" para ver el comportamiento actual.
 
-En el objeto `STATUS_LABELS`, cambiar:
-```typescript
-sent: "Enviado",
-// →
-sent: "Sin Pagar",
-```
+### Cambios
 
-Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
+**Archivo: `src/components/reports/IncomeStatementReport.tsx`**
+
+1. Agregar estado `selectedYear` con valores extraídos dinámicamente de los datos (ej: 2025, 2026)
+2. Agregar un `Select` de año arriba de los KPIs con opciones: "Todos", "2025", "2026", etc.
+3. Filtrar `data` por año seleccionado antes de calcular `totals`, `statementRows`, `chartData` y `csvRows`
+4. Los KPIs, gráfica y tabla reflejan solo el año filtrado (o todos si se selecciona "Todos")
+
+### Detalle técnico
+
+- Extraer años únicos del array `data` usando `getYear()` del key `yyyy-MM`
+- Crear `filteredData = selectedYear === "all" ? data : data.filter(d => d.month key starts with selectedYear)`
+- Recalcular `totals` y `statementRows` basados en `filteredData` en vez de `data`
+- El selector de año se renderiza dentro del `CardHeader` del reporte, junto al botón de exportar
+
+### Changelog
+
+**v3.16.2** — Filtro por año en Estado de Resultados
 
