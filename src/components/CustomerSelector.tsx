@@ -16,9 +16,10 @@ interface CustomerSelectorProps {
   required?: boolean;
   hideManualName?: boolean;
   helpText?: string;
+  error?: string;
 }
 
-export function CustomerSelector({ customers, customerId, customerName, onCustomerIdChange, onCustomerNameChange, customerContact, onCustomerContactChange, required, hideManualName, helpText }: CustomerSelectorProps) {
+export function CustomerSelector({ customers, customerId, customerName, onCustomerIdChange, onCustomerNameChange, customerContact, onCustomerContactChange, required, hideManualName, helpText, error }: CustomerSelectorProps) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
@@ -55,6 +56,7 @@ export function CustomerSelector({ customers, customerId, customerName, onCustom
             )}
           </div>
         )}
+        {error && <p className="text-sm text-destructive">{error}</p>}
       </CardContent>
     </Card>
   );

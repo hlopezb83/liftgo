@@ -15,9 +15,10 @@ interface DateRangePickerFieldProps {
   onSelect: (range?: DateRange) => void;
   placeholder?: string;
   required?: boolean;
+  error?: string;
 }
 
-export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required }: DateRangePickerFieldProps) {
+export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required, error }: DateRangePickerFieldProps) {
   const [open, setOpen] = useState(false);
 
   const handleSelect = (range?: DateRange) => {
@@ -51,6 +52,7 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
           />
         </PopoverContent>
       </Popover>
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }
