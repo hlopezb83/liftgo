@@ -8,7 +8,7 @@ const statusStyles: Record<string, string> = {
   maintenance: "bg-status-maintenance text-white border-transparent",
   retired: "bg-status-retired text-white border-transparent",
   draft: "bg-muted text-muted-foreground border-transparent",
-  sent: "bg-status-rented text-white border-transparent",
+  sent: "bg-destructive text-destructive-foreground border-transparent",
   paid: "bg-status-available text-white border-transparent",
   overdue: "bg-destructive text-destructive-foreground border-transparent",
   confirmed: "bg-status-available text-white border-transparent",
