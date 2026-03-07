@@ -1,0 +1,1 @@
+ALTER TABLE public.deliveries ADD COLUMN signature_base64 text;
