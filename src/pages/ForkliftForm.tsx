@@ -12,12 +12,13 @@ import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { NotesCard } from "@/components/NotesCard";
 import { FORKLIFT_STATUSES, FUEL_TYPES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
+import { forkliftFormSchema, type ForkliftFormData } from "@/lib/formSchemas";
 import { useFormState } from "@/hooks/useFormState";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 
-const emptyForm = {
+const emptyForm: ForkliftFormData = {
   name: "",
   model: "",
   manufacturer: "",
@@ -96,8 +97,9 @@ export default function ForkliftForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.model) {
-      toast.error("Nombre y modelo son requeridos");
+    const parsed = forkliftFormSchema.safeParse(form);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0].message);
       return;
     }
 
