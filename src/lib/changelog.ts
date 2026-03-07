@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.4",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Devolución anticipada abre formulario completo de devoluciones",
+    description: "El botón 'Devolución Anticipada' en reservas ahora navega al módulo de devoluciones con la reserva pre-seleccionada, usando el mismo flujo de inspección completo.",
+    changes: [
+      "Botón 'Devolución Anticipada' navega a /returns con booking_id",
+      "ReturnInspectionPage auto-abre dialog y pre-selecciona reserva desde query param",
+      "Eliminado dialog inline de devolución anticipada en BookingActions",
+    ],
+  },
+  {
     version: "3.17.3",
     date: "2026-03-07",
     type: "patch",

@@ -20,9 +20,9 @@ interface BookingActionsProps { booking: BookingWithForklift; }
 
 export function BookingActions({ booking }: BookingActionsProps) {
   const [extendOpen, setExtendOpen] = useState(false);
-  const [returnOpen, setReturnOpen] = useState(false);
+  
   const [newEndDate, setNewEndDate] = useState<Date>();
-  const [earlyReturnDate, setEarlyReturnDate] = useState<Date>();
+  
   const { data: forklifts } = useForklifts();
   const updateBooking = useUpdateBooking();
   const queryClient = useQueryClient();
@@ -78,7 +78,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
     return computeTotals(items, 21);
   };
   const extendPreview = getPreview(booking.start_date, newEndDate);
-  const returnPreview = getPreview(booking.start_date, earlyReturnDate);
+  
 
   const handleExtend = () => {
     if (!newEndDate) return;
@@ -88,13 +88,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
     );
   };
 
-  const handleEarlyReturn = () => {
-    if (!earlyReturnDate) return;
-    updateBooking.mutate(
-      { id: booking.id, end_date: format(earlyReturnDate, "yyyy-MM-dd") },
-      { onSuccess: () => { toast.success("Fecha de devolución anticipada actualizada"); setReturnOpen(false); } }
-    );
-  };
+
 
   const handleCancel = async () => {
     try {
@@ -117,7 +111,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
       <Button variant="ghost" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
         <CalendarPlus className="h-3.5 w-3.5 mr-1" />Extender
       </Button>
-      <Button variant="ghost" size="sm" onClick={() => { setEarlyReturnDate(undefined); setReturnOpen(true); }}>
+      <Button variant="ghost" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}`)}>
         <Undo2 className="h-3.5 w-3.5 mr-1" />Devolución Anticipada
       </Button>
 
@@ -184,22 +178,8 @@ export function BookingActions({ booking }: BookingActionsProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={returnOpen} onOpenChange={setReturnOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Devolución Anticipada</DialogTitle></DialogHeader>
-          <p className="text-sm text-muted-foreground">Fecha de fin actual: {formatDateDisplay(booking.end_date)}</p>
-          <DatePickerField label="Fecha de Devolución" date={earlyReturnDate} onSelect={setEarlyReturnDate} />
-          {returnPreview && (
-            <div className="p-3 rounded-lg bg-muted text-sm">
-              <p>Total ajustado: <span className="font-bold">{formatCurrency(returnPreview.total)}</span></p>
-            </div>
-          )}
-          <div className="flex gap-3">
-            <Button onClick={handleEarlyReturn} disabled={updateBooking.isPending}>Confirmar Devolución</Button>
-            <Button variant="outline" onClick={() => setReturnOpen(false)}>Cancelar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
+
     </div>
   );
 }
