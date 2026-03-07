@@ -9,27 +9,36 @@ import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import type { OperatingExpense, ExpenseCategory } from "@/hooks/useOperatingExpenses";
+import { EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperatingExpenses";
 
 interface Props {
   invoices: Tables<"invoices">[];
   maintenanceLogs: Tables<"maintenance_logs">[];
   damageRecords: Tables<"damage_records">[];
+  operatingExpenses: OperatingExpense[];
   startDate: Date;
   endDate: Date;
 }
+
+const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "otro"];
 
 interface MonthRow {
   month: string;
   revenue: number;
   maintenanceCost: number;
   damageCost: number;
-  grossProfit: number;
+  expenses: Record<ExpenseCategory, number>;
+  totalExpenses: number;
+  netProfit: number;
   margin: number;
 }
 
-export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, startDate, endDate }: Props) {
+export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate }: Props) {
   const data = useMemo(() => {
-    const months: Record<string, { month: string; revenue: number; maintenanceCost: number; damageCost: number }> = {};
+    const months: Record<string, { month: string; revenue: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
+
+    const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0 });
 
     const ensureMonth = (date: Date) => {
       const key = format(startOfMonth(date), "yyyy-MM");
@@ -39,12 +48,13 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
           revenue: 0,
           maintenanceCost: 0,
           damageCost: 0,
+          expenses: emptyExpenses(),
         };
       }
       return key;
     };
 
-    // Revenue: paid invoices, using subtotal (sin IVA)
+    // Revenue: paid invoices subtotal (sin IVA)
     invoices
       .filter((inv) => inv.status === "paid" && inv.paid_at)
       .filter((inv) => isWithinInterval(parseISO(inv.paid_at!), { start: startDate, end: endDate }))
@@ -69,43 +79,63 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         months[key].damageCost += Number(dr.actual_cost ?? 0);
       });
 
+    // Operating expenses by category
+    operatingExpenses
+      .filter((oe) => isWithinInterval(parseISO(oe.expense_date), { start: startDate, end: endDate }))
+      .forEach((oe) => {
+        const key = ensureMonth(parseISO(oe.expense_date));
+        months[key].expenses[oe.category] += Number(oe.amount);
+      });
+
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([, m]): MonthRow => {
-        const grossProfit = m.revenue - m.maintenanceCost - m.damageCost;
-        const margin = m.revenue > 0 ? (grossProfit / m.revenue) * 100 : 0;
-        return { ...m, grossProfit, margin };
+        const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
+        const totalExpenses = m.maintenanceCost + m.damageCost + opexTotal;
+        const netProfit = m.revenue - totalExpenses;
+        const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
+        return { ...m, totalExpenses, netProfit, margin };
       });
-  }, [invoices, maintenanceLogs, damageRecords, startDate, endDate]);
+  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate]);
 
   const totals = useMemo(() => {
     const t = data.reduce(
-      (acc, r) => ({
-        revenue: acc.revenue + r.revenue,
-        maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
-        damageCost: acc.damageCost + r.damageCost,
-      }),
-      { revenue: 0, maintenanceCost: 0, damageCost: 0 }
+      (acc, r) => {
+        const expenses = { ...acc.expenses };
+        EXPENSE_CATEGORIES.forEach((c) => { expenses[c] = (expenses[c] || 0) + r.expenses[c]; });
+        return {
+          revenue: acc.revenue + r.revenue,
+          maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
+          damageCost: acc.damageCost + r.damageCost,
+          expenses,
+        };
+      },
+      { revenue: 0, maintenanceCost: 0, damageCost: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0 } as Record<ExpenseCategory, number> }
     );
-    const grossProfit = t.revenue - t.maintenanceCost - t.damageCost;
-    const margin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
-    return { ...t, grossProfit, margin };
+    const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
+    const totalExpenses = t.maintenanceCost + t.damageCost + opexTotal;
+    const netProfit = t.revenue - totalExpenses;
+    const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
+    return { ...t, totalExpenses, netProfit, margin };
   }, [data]);
 
   const chartData = data.map((r) => ({
     month: r.month,
     Ingresos: r.revenue,
-    Costos: r.maintenanceCost + r.damageCost,
+    Costos: r.totalExpenses,
   }));
 
   const csvRows = data.map((r) => ({
     Mes: r.month,
     Ingresos: r.revenue.toFixed(2),
-    "Costos Mantenimiento": r.maintenanceCost.toFixed(2),
-    "Costos Daños": r.damageCost.toFixed(2),
-    "Utilidad Bruta": r.grossProfit.toFixed(2),
+    Mantenimiento: r.maintenanceCost.toFixed(2),
+    Daños: r.damageCost.toFixed(2),
+    ...Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [EXPENSE_CATEGORY_LABELS[c], r.expenses[c].toFixed(2)])),
+    "Utilidad Neta": r.netProfit.toFixed(2),
     "Margen %": r.margin.toFixed(1),
   }));
+
+  const hasOpex = EXPENSE_CATEGORIES.some((c) => totals.expenses[c] > 0);
 
   return (
     <>
@@ -141,7 +171,10 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                 <TableHead className="text-right">Ingresos</TableHead>
                 <TableHead className="text-right">Mantenimiento</TableHead>
                 <TableHead className="text-right">Daños</TableHead>
-                <TableHead className="text-right">Utilidad Bruta</TableHead>
+                {hasOpex && EXPENSE_CATEGORIES.filter((c) => totals.expenses[c] > 0).map((c) => (
+                  <TableHead key={c} className="text-right">{EXPENSE_CATEGORY_LABELS[c]}</TableHead>
+                ))}
+                <TableHead className="text-right">Utilidad Neta</TableHead>
                 <TableHead className="text-right">Margen</TableHead>
               </TableRow>
             </TableHeader>
@@ -152,7 +185,10 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                   <TableCell className="text-right font-mono">{formatCurrency(r.revenue)}</TableCell>
                   <TableCell className="text-right font-mono text-destructive">{formatCurrency(r.maintenanceCost)}</TableCell>
                   <TableCell className="text-right font-mono text-destructive">{formatCurrency(r.damageCost)}</TableCell>
-                  <TableCell className="text-right font-mono font-semibold">{formatCurrency(r.grossProfit)}</TableCell>
+                  {hasOpex && EXPENSE_CATEGORIES.filter((c) => totals.expenses[c] > 0).map((c) => (
+                    <TableCell key={c} className="text-right font-mono text-destructive">{formatCurrency(r.expenses[c])}</TableCell>
+                  ))}
+                  <TableCell className="text-right font-mono font-semibold">{formatCurrency(r.netProfit)}</TableCell>
                   <TableCell className="text-right font-mono">{r.margin.toFixed(1)}%</TableCell>
                 </TableRow>
               ))}
@@ -163,7 +199,10 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                 <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.revenue)}</TableCell>
                 <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.maintenanceCost)}</TableCell>
                 <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.damageCost)}</TableCell>
-                <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.grossProfit)}</TableCell>
+                {hasOpex && EXPENSE_CATEGORIES.filter((c) => totals.expenses[c] > 0).map((c) => (
+                  <TableCell key={c} className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.expenses[c])}</TableCell>
+                ))}
+                <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.netProfit)}</TableCell>
                 <TableCell className="text-right font-mono font-bold">{totals.margin.toFixed(1)}%</TableCell>
               </TableRow>
             </TableFooter>
