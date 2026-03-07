@@ -109,13 +109,14 @@ export default function DeliveriesPage() {
     );
   };
 
-  const markComplete = (id: string) => {
+  const markComplete = (id: string, signatureBase64?: string) => {
     const delivery = deliveries?.find((d) => d.id === id);
     updateDelivery.mutate(
-      { id, status: "completed", completed_at: new Date().toISOString() },
+      { id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}) } as any,
       {
         onSuccess: () => {
           toast.success("Marcado como completado");
+          setSignatureTarget(null);
           if (delivery && delivery.type === "delivery" && delivery.booking_id) {
             const booking = bookings?.find((b) => b.id === delivery.booking_id);
             const forklift = forkliftMap.get(delivery.forklift_id);
