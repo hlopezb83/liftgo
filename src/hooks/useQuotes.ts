@@ -23,7 +23,8 @@ export function useQuote(id?: string) {
     queryKey: ["quotes", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("quotes").select("*").eq("id", id!).single();
+      if (!id) throw new Error("Quote ID is required");
+      const { data, error } = await supabase.from("quotes").select("*").eq("id", id).single();
       if (error) throw error;
       return data;
     },
