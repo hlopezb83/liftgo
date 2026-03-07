@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.15.1",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Estado de Resultados mejorado",
+    description: "Reporte de Estado de Resultados con KPIs, gráfica de barras apiladas por categoría de gasto, utilidad bruta y total de egresos.",
+    changes: [
+      "4 tarjetas KPI: Ingresos, Total Egresos, Utilidad Neta, Margen Neto con colores condicionales",
+      "Gráfica de barras apiladas desglosando costos por categoría (mantenimiento, daños, renta, nómina, etc.)",
+      "Columna de Utilidad Bruta separando costos directos de gastos operativos",
+      "Columna de Total Egresos explícita",
+      "Todas las categorías de gastos siempre visibles para consistencia",
+    ],
+  },
+  {
     version: "3.15.0",
     date: "2026-03-07",
     type: "minor",
