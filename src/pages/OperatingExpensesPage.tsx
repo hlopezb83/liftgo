@@ -20,6 +20,7 @@ import {
 } from "@/hooks/useOperatingExpenses";
 import { EmptyState } from "@/components/EmptyState";
 import { TableSkeleton } from "@/components/TableSkeleton";
+import { ExpenseFormDialog } from "@/components/expenses/ExpenseFormDialog";
 
 const CATEGORIES = Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, string][];
 
@@ -40,12 +41,11 @@ export default function OperatingExpensesPage() {
   const deleteExpense = useDeleteExpense();
   const generateRecurring = useGenerateRecurring();
 
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [filterCategory, setFilterCategory] = useState<string>("all");
-
-  const openCreate = () => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); };
   const openEdit = (e: any) => {
     setEditingId(e.id);
     setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false });
@@ -72,7 +72,7 @@ export default function OperatingExpensesPage() {
             <Button variant="outline" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
               <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />Generar Recurrentes
             </Button>
-            <Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />Nuevo Gasto</Button>
+            <Button onClick={() => setCreateDialogOpen(true)}><Plus className="h-4 w-4 mr-1" />Registrar Gasto</Button>
           </div>
         } />
 
@@ -133,6 +133,8 @@ export default function OperatingExpensesPage() {
             )}
           </CardContent>
         </Card>
+
+        <ExpenseFormDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>

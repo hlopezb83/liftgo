@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.1",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Formulario de Registro de Gastos con Validación",
+    description: "Nuevo diálogo ExpenseFormDialog con react-hook-form + zod para registrar gastos con validación inline en español.",
+    changes: [
+      "Componente ExpenseFormDialog con validación zod y mensajes en español mexicano",
+      "Schema expenseFormSchema centralizado en formSchemas.ts",
+      "Errores inline bajo cada campo en lugar de toasts genéricos",
+      "Categoría 'Costo de Venta (Directo)' explícita en el selector",
+    ],
+  },
+  {
     version: "3.17.0",
     date: "2026-03-07",
     type: "minor",
