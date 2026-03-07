@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Pencil, Trash2, Repeat, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Pencil, Trash2, Repeat, RefreshCw, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -18,7 +19,8 @@ import {
   useOperatingExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useGenerateRecurring,
   EXPENSE_CATEGORY_LABELS, type ExpenseCategory,
 } from "@/hooks/useOperatingExpenses";
-import { EmptyState } from "@/components/EmptyState";
+import { SearchBar } from "@/components/SearchBar";
+import { EmptyRow } from "@/components/EmptyRow";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { ExpenseFormDialog } from "@/components/expenses/ExpenseFormDialog";
 
@@ -36,7 +38,6 @@ const emptyForm: FormData = { category: "renta", description: "", amount: "", ex
 
 export default function OperatingExpensesPage() {
   const { data: expenses, isLoading } = useOperatingExpenses();
-  const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
   const generateRecurring = useGenerateRecurring();
@@ -46,6 +47,8 @@ export default function OperatingExpensesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [search, setSearch] = useState("");
+
   const openEdit = (e: any) => {
     setEditingId(e.id);
     setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false });
@@ -57,12 +60,18 @@ export default function OperatingExpensesPage() {
     if (!payload.amount || isNaN(payload.amount)) return;
     if (editingId) {
       updateExpense.mutate({ id: editingId, ...payload }, { onSuccess: () => setDialogOpen(false) });
-    } else {
-      createExpense.mutate(payload, { onSuccess: () => setDialogOpen(false) });
     }
   };
 
-  const filtered = (expenses || []).filter((e) => filterCategory === "all" || e.category === filterCategory);
+  const filtered = useMemo(() => {
+    return (expenses || []).filter((e) => {
+      if (filterCategory !== "all" && e.category !== filterCategory) return false;
+      if (search && !(e.description || "").toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [expenses, filterCategory, search]);
+
+  const total = useMemo(() => filtered.reduce((sum, e) => sum + e.amount, 0), [filtered]);
 
   return (
     <PageTransition>
@@ -76,24 +85,34 @@ export default function OperatingExpensesPage() {
           </div>
         } />
 
+        {/* Summary card */}
+        <Card>
+          <CardContent className="flex items-center gap-4 py-5">
+            <div className="rounded-full bg-primary/10 p-3">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total de Gastos</p>
+              <p className="text-2xl font-bold font-mono">{formatCurrency(total)}</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardContent className="pt-6">
-            <div className="flex gap-4 items-end mb-4">
-              <div className="space-y-1.5">
-                <Label>Categoría</Label>
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {CATEGORIES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Filter bar */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <SearchBar value={search} onChange={setSearch} placeholder="Buscar por descripción…" className="sm:max-w-xs" />
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  {CATEGORIES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
 
-            {isLoading ? <TableSkeleton columnCount={6} rows={5} /> : filtered.length === 0 ? (
-              <EmptyState title="Sin gastos" subtitle="Agrega tu primer gasto operativo" />
-            ) : (
+            {isLoading ? <TableSkeleton columnCount={6} rows={5} /> : (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -106,28 +125,36 @@ export default function OperatingExpensesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((e) => (
-                    <TableRow key={e.id}>
-                      <TableCell>{format(parseISO(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
-                      <TableCell>{EXPENSE_CATEGORY_LABELS[e.category]}</TableCell>
-                      <TableCell className="text-muted-foreground">{e.description || "—"}</TableCell>
-                      <TableCell className="text-right font-mono">{formatCurrency(e.amount)}</TableCell>
-                      <TableCell className="text-center">
-                        {e.is_recurring && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                            <Repeat className="h-3 w-3" />
-                            Mensual
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => deleteExpense.mutate(e.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filtered.length === 0 ? (
+                    <EmptyRow colSpan={6} message="Sin gastos registrados" />
+                  ) : (
+                    filtered.map((e) => (
+                      <TableRow key={e.id}>
+                        <TableCell>{format(parseISO(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
+                        <TableCell>
+                          <Badge variant={e.category === "costo_venta" ? "secondary" : "outline"}>
+                            {EXPENSE_CATEGORY_LABELS[e.category]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{e.description || "—"}</TableCell>
+                        <TableCell className="text-right font-mono">{formatCurrency(e.amount)}</TableCell>
+                        <TableCell className="text-center">
+                          {e.is_recurring && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                              <Repeat className="h-3 w-3" />
+                              Mensual
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="icon" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => deleteExpense.mutate(e.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             )}
@@ -138,7 +165,7 @@ export default function OperatingExpensesPage() {
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
-            <DialogHeader><DialogTitle>{editingId ? "Editar Gasto" : "Nuevo Gasto"}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Editar Gasto</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label>Categoría</Label>
@@ -174,8 +201,8 @@ export default function OperatingExpensesPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={!form.amount || createExpense.isPending || updateExpense.isPending}>
-                {editingId ? "Guardar" : "Crear"}
+              <Button onClick={handleSave} disabled={!form.amount || updateExpense.isPending}>
+                Guardar
               </Button>
             </DialogFooter>
           </DialogContent>

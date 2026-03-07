@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.2",
+    date: "2026-03-07",
+    type: "patch",
+    title: "UI mejorada de Gastos Operativos",
+    description: "Tarjeta de total, barra de búsqueda, badges de categoría y empty state mejorado en la página de gastos.",
+    changes: [
+      "Tarjeta resumen 'Total de Gastos' con formatCurrency",
+      "SearchBar para filtrar por descripción",
+      "Badge con variante secondary para costo_venta y outline para el resto",
+      "EmptyRow en lugar de EmptyState para tabla vacía con headers visibles",
+    ],
+  },
+  {
     version: "3.17.1",
     date: "2026-03-07",
     type: "patch",
