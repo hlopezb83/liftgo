@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { Plus, Eye, Download, ChevronRight, RefreshCw } from "lucide-react";
+import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
@@ -134,6 +134,9 @@ export default function InvoicesPage() {
       totalPages={totalPages}
       onPageChange={setPage}
       emptyMessage="No se encontraron facturas"
+      emptyIcon={Receipt}
+      emptyActionLabel="Nueva Factura"
+      onEmptyAction={() => navigate("/invoices/new")}
       tableHeader={
         <TableRow>
           <SortableTableHead sortKey="invoice_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Factura #</SortableTableHead>
