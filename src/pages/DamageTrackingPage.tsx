@@ -87,7 +87,14 @@ export default function DamageTrackingPage() {
         <Card>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</span>
+                {getPhotoCount(r.id) > 0 && (
+                  <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
+                    <Camera className="h-3 w-3" /> {getPhotoCount(r.id)}
+                  </Badge>
+                )}
+              </div>
               <StatusBadge status={r.status} />
             </div>
             <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
@@ -149,6 +156,7 @@ export default function DamageTrackingPage() {
           <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
           <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
           <TableHead>Descripción</TableHead>
+          <TableHead className="w-16 text-center">Fotos</TableHead>
           <SortableTableHead sortKey="estimated_cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Costo Est.</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
           <TableHead>Acciones</TableHead>
@@ -170,6 +178,15 @@ export default function DamageTrackingPage() {
             <TableCell className="font-medium">{r.forklifts?.name || "—"}</TableCell>
             <TableCell>{r.customers?.name || "—"}</TableCell>
             <TableCell className="max-w-[200px] truncate">{r.description}</TableCell>
+            <TableCell className="text-center">
+              {getPhotoCount(r.id) > 0 ? (
+                <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
+                  <Camera className="h-3 w-3" /> {getPhotoCount(r.id)}
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground text-xs">—</span>
+              )}
+            </TableCell>
             <TableCell className="font-mono">{formatCurrency(r.estimated_cost)}</TableCell>
             <TableCell><StatusBadge status={r.status} /></TableCell>
             <TableCell onClick={(e) => e.stopPropagation()}><DamageActions record={r} /></TableCell>
