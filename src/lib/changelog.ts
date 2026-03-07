@@ -9,6 +9,34 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.8.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Empty states, loading states y localización MXN",
+    description: "Mejoras de UX en formularios, estados vacíos rediseñados y correcciones de localización en moneda y fechas.",
+    changes: [
+      "Nuevo componente EmptyState con icono, título, subtítulo y botón de acción",
+      "Empty states aplicados automáticamente en Reservas, Flota y Facturas vía ListPageLayout",
+      "Spinner de carga y texto 'Guardando…' en botones de envío de Reservas, Facturas y Contratos",
+      "ContractForm migrado al componente compartido FormActions",
+      "Botón Cancelar deshabilitado durante envío para prevenir navegación accidental",
+    ],
+  },
+  {
+    version: "3.7.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Localización completa a pesos mexicanos y español",
+    description: "Correcciones de formato de moneda y fechas para garantizar consistencia en toda la aplicación.",
+    changes: [
+      "Meses en español (Ene, Feb…) en reporte de Ingresos vía locale es de date-fns",
+      "Contratos PDF usan formatCurrency en lugar de .toFixed(2) para tarifas y depósito",
+      "Eliminada función duplicada fmtMXN en pdfHelpers.ts, reemplazada por formatCurrency centralizado",
+      "Limpieza de imports no usados en QuotePDFButton e InvoicePDFButton",
+      "Spinner de carga con marca 'Cargando LiftGo…' en App.tsx",
+    ],
+  },
+  {
     version: "3.6.2",
     date: "2026-03-05",
     type: "patch",
