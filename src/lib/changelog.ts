@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.3",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Fix paréntesis vacíos en contacto de reserva",
+    description: "Corregido renderizado de '()' cuando el contacto del cliente está vacío en la tarjeta de reservas del calendario.",
+    changes: [
+      "Renderizado condicional del contacto del cliente en CalendarPage",
+    ],
+  },
+  {
     version: "3.17.2",
     date: "2026-03-07",
     type: "patch",
