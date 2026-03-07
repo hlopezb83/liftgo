@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.16.2",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Filtro por año en Estado de Resultados",
+    description: "Selector de año en el reporte de Estado de Resultados para separar datos por período anual.",
+    changes: [
+      "Selector de año (Todos / 2025 / 2026 / etc.) en el encabezado del reporte",
+      "KPIs, gráfica, tabla y CSV se filtran según el año seleccionado",
+      "Años disponibles se detectan dinámicamente de los datos",
+    ],
+  },
+  {
     version: "3.16.1",
     date: "2026-03-07",
     type: "patch",

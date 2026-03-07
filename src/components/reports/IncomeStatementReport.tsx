@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { format, parseISO, isWithinInterval, startOfMonth, getYear } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
-import { Download, TrendingUp, TrendingDown, DollarSign, Percent, CalendarDays } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, DollarSign, Percent } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { OperatingExpense, ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperatingExpenses";
@@ -98,20 +98,33 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([, m]): MonthData => {
+      .map(([key, m]): MonthData => {
         const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const grossProfit = m.revenue - m.maintenanceCost - m.damageCost - costoVenta;
         const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const totalExpenses = m.maintenanceCost + m.damageCost + costoVenta + opexTotal;
         const netProfit = m.revenue - totalExpenses;
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
-        return { ...m, grossProfit, totalExpenses, netProfit, margin };
+        return { ...m, monthKey: key, grossProfit, totalExpenses, netProfit, margin };
       });
   }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate]);
 
+  // Year filter
+  const availableYears = useMemo(() => {
+    const years = [...new Set(data.map((d) => d.monthKey.substring(0, 4)))].sort();
+    return years;
+  }, [data]);
+
+  const [selectedYear, setSelectedYear] = useState<string>("all");
+
+  const filteredData = useMemo(() => {
+    if (selectedYear === "all") return data;
+    return data.filter((d) => d.monthKey.startsWith(selectedYear));
+  }, [data, selectedYear]);
+
   const totals = useMemo(() => {
     const allCats = [...EXPENSE_CATEGORIES, ...DIRECT_COST_CATEGORIES];
-    const t = data.reduce(
+    const t = filteredData.reduce(
       (acc, r) => {
         const expenses = { ...acc.expenses };
         allCats.forEach((c) => { expenses[c] = (expenses[c] || 0) + r.expenses[c]; });
@@ -131,32 +144,32 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     const netProfit = t.revenue - totalExpenses;
     const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
     return { ...t, grossProfit, totalExpenses, netProfit, margin };
-  }, [data]);
+  }, [filteredData]);
 
   // Build statement rows (vertical format)
   const statementRows: StatementRow[] = useMemo(() => [
-    { label: "Ingresos", values: data.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
-    { label: "(-) Mantenimiento", values: data.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },
-    { label: "(-) Daños", values: data.map((r) => r.damageCost), total: totals.damageCost, isCost: true },
+    { label: "Ingresos", values: filteredData.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
+    { label: "(-) Mantenimiento", values: filteredData.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },
+    { label: "(-) Daños", values: filteredData.map((r) => r.damageCost), total: totals.damageCost, isCost: true },
     ...DIRECT_COST_CATEGORIES.map((c) => ({
       label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
-      values: data.map((r) => r.expenses[c]),
+      values: filteredData.map((r) => r.expenses[c]),
       total: totals.expenses[c],
       isCost: true,
     })),
-    { label: "= Utilidad Bruta", values: data.map((r) => r.grossProfit), total: totals.grossProfit, isSubtotal: true },
+    { label: "= Utilidad Bruta", values: filteredData.map((r) => r.grossProfit), total: totals.grossProfit, isSubtotal: true },
     ...EXPENSE_CATEGORIES.map((c) => ({
       label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
-      values: data.map((r) => r.expenses[c]),
+      values: filteredData.map((r) => r.expenses[c]),
       total: totals.expenses[c],
       isCost: true,
     })),
-    { label: "= Total Egresos", values: data.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
-    { label: "= Utilidad Neta", values: data.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
-    { label: "Margen Neto", values: data.map((r) => r.margin), total: totals.margin, isPercent: true },
-  ], [data, totals]);
+    { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
+    { label: "= Utilidad Neta", values: filteredData.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
+    { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
+  ], [filteredData, totals]);
 
-  const chartData = data.map((r) => ({
+  const chartData = filteredData.map((r) => ({
     month: r.month,
     Ingresos: r.revenue,
     Mantenimiento: r.maintenanceCost,
@@ -171,7 +184,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
   const csvRows = statementRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
-    data.forEach((d, i) => {
+    filteredData.forEach((d, i) => {
       obj[d.month] = row.isPercent ? `${row.values[i].toFixed(1)}%` : row.values[i].toFixed(2);
     });
     obj["Total"] = row.isPercent ? `${row.total.toFixed(1)}%` : row.total.toFixed(2);
@@ -218,11 +231,26 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
       {/* Stacked Bar Chart */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle className="text-base">Estado de Resultados</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("estado-resultados.csv", csvRows)}>
-            <Download className="h-4 w-4 mr-1" />Exportar CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            {availableYears.length > 1 && (
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-[120px] h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {availableYears.map((y) => (
+                    <SelectItem key={y} value={y}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button variant="outline" size="sm" onClick={() => exportToCsv("estado-resultados.csv", csvRows)}>
+              <Download className="h-4 w-4 mr-1" />Exportar CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-64">
@@ -254,7 +282,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
             <TableHeader>
               <TableRow>
                 <TableHead className="sticky left-0 bg-background z-10 min-w-[180px]">Concepto</TableHead>
-                {data.map((d) => (
+                {filteredData.map((d) => (
                   <TableHead key={d.month} className="text-right min-w-[110px]">{d.month}</TableHead>
                 ))}
                 <TableHead className="text-right min-w-[120px] font-bold">Total</TableHead>
