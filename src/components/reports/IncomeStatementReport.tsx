@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -23,7 +23,7 @@ interface Props {
 
 const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "otro"];
 
-interface MonthRow {
+interface MonthData {
   month: string;
   revenue: number;
   maintenanceCost: number;
@@ -33,6 +33,15 @@ interface MonthRow {
   totalExpenses: number;
   netProfit: number;
   margin: number;
+}
+
+interface StatementRow {
+  label: string;
+  values: number[];
+  total: number;
+  isSubtotal?: boolean;
+  isCost?: boolean;
+  isPercent?: boolean;
 }
 
 export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate }: Props) {
@@ -86,7 +95,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([, m]): MonthRow => {
+      .map(([, m]): MonthData => {
         const grossProfit = m.revenue - m.maintenanceCost - m.damageCost;
         const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const totalExpenses = m.maintenanceCost + m.damageCost + opexTotal;
@@ -118,6 +127,23 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     return { ...t, grossProfit, totalExpenses, netProfit, margin };
   }, [data]);
 
+  // Build statement rows (vertical format)
+  const statementRows: StatementRow[] = useMemo(() => [
+    { label: "Ingresos", values: data.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
+    { label: "(-) Mantenimiento", values: data.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },
+    { label: "(-) Daños", values: data.map((r) => r.damageCost), total: totals.damageCost, isCost: true },
+    { label: "= Utilidad Bruta", values: data.map((r) => r.grossProfit), total: totals.grossProfit, isSubtotal: true },
+    ...EXPENSE_CATEGORIES.map((c) => ({
+      label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
+      values: data.map((r) => r.expenses[c]),
+      total: totals.expenses[c],
+      isCost: true,
+    })),
+    { label: "= Total Egresos", values: data.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
+    { label: "= Utilidad Neta", values: data.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
+    { label: "Margen Neto", values: data.map((r) => r.margin), total: totals.margin, isPercent: true },
+  ], [data, totals]);
+
   const chartData = data.map((r) => ({
     month: r.month,
     Ingresos: r.revenue,
@@ -130,17 +156,14 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     Otros: r.expenses.otro,
   }));
 
-  const csvRows = data.map((r) => ({
-    Mes: r.month,
-    Ingresos: r.revenue.toFixed(2),
-    Mantenimiento: r.maintenanceCost.toFixed(2),
-    Daños: r.damageCost.toFixed(2),
-    "Utilidad Bruta": r.grossProfit.toFixed(2),
-    ...Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [EXPENSE_CATEGORY_LABELS[c], r.expenses[c].toFixed(2)])),
-    "Total Egresos": r.totalExpenses.toFixed(2),
-    "Utilidad Neta": r.netProfit.toFixed(2),
-    "Margen %": r.margin.toFixed(1),
-  }));
+  const csvRows = statementRows.map((row) => {
+    const obj: Record<string, string> = { Concepto: row.label };
+    data.forEach((d, i) => {
+      obj[d.month] = row.isPercent ? `${row.values[i].toFixed(1)}%` : row.values[i].toFixed(2);
+    });
+    obj["Total"] = row.isPercent ? `${row.total.toFixed(1)}%` : row.total.toFixed(2);
+    return obj;
+  });
 
   const kpis = [
     { label: "Ingresos", value: formatCurrency(totals.revenue), icon: DollarSign, color: "text-chart-2" },
@@ -148,6 +171,18 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: TrendingUp, color: totals.netProfit >= 0 ? "text-chart-2" : "text-destructive" },
     { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: totals.margin >= 0 ? "text-chart-2" : "text-destructive" },
   ];
+
+  const formatCell = (row: StatementRow, value: number) => {
+    if (row.isPercent) return `${value.toFixed(1)}%`;
+    return formatCurrency(value);
+  };
+
+  const cellColor = (row: StatementRow, value: number) => {
+    if (row.isPercent) return value >= 0 ? "" : "text-destructive";
+    if (row.label === "= Utilidad Neta") return value >= 0 ? "" : "text-destructive";
+    if (row.isCost) return "text-destructive";
+    return "";
+  };
 
   return (
     <>
@@ -198,57 +233,44 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* Vertical Statement Table */}
       <Card>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Mes</TableHead>
-                <TableHead className="text-right">Ingresos</TableHead>
-                <TableHead className="text-right">Mantenimiento</TableHead>
-                <TableHead className="text-right">Daños</TableHead>
-                <TableHead className="text-right font-semibold">Ut. Bruta</TableHead>
-                {EXPENSE_CATEGORIES.map((c) => (
-                  <TableHead key={c} className="text-right">{EXPENSE_CATEGORY_LABELS[c]}</TableHead>
+                <TableHead className="sticky left-0 bg-background z-10 min-w-[180px]">Concepto</TableHead>
+                {data.map((d) => (
+                  <TableHead key={d.month} className="text-right min-w-[110px]">{d.month}</TableHead>
                 ))}
-                <TableHead className="text-right font-semibold">Total Egresos</TableHead>
-                <TableHead className="text-right font-semibold">Ut. Neta</TableHead>
-                <TableHead className="text-right">Margen</TableHead>
+                <TableHead className="text-right min-w-[120px] font-bold">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((r) => (
-                <TableRow key={r.month}>
-                  <TableCell className="font-medium">{r.month}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(r.revenue)}</TableCell>
-                  <TableCell className="text-right font-mono text-destructive">{formatCurrency(r.maintenanceCost)}</TableCell>
-                  <TableCell className="text-right font-mono text-destructive">{formatCurrency(r.damageCost)}</TableCell>
-                  <TableCell className="text-right font-mono font-semibold">{formatCurrency(r.grossProfit)}</TableCell>
-                  {EXPENSE_CATEGORIES.map((c) => (
-                    <TableCell key={c} className="text-right font-mono text-destructive">{formatCurrency(r.expenses[c])}</TableCell>
+              {statementRows.map((row) => (
+                <TableRow
+                  key={row.label}
+                  className={row.isSubtotal ? "bg-muted/40 border-t border-border" : ""}
+                >
+                  <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
+                    {row.label}
+                  </TableCell>
+                  {row.values.map((val, i) => (
+                    <TableCell
+                      key={i}
+                      className={`text-right font-mono ${row.isSubtotal ? "font-semibold" : ""} ${cellColor(row, val)}`}
+                    >
+                      {formatCell(row, val)}
+                    </TableCell>
                   ))}
-                  <TableCell className="text-right font-mono font-semibold text-destructive">{formatCurrency(r.totalExpenses)}</TableCell>
-                  <TableCell className={`text-right font-mono font-semibold ${r.netProfit >= 0 ? "" : "text-destructive"}`}>{formatCurrency(r.netProfit)}</TableCell>
-                  <TableCell className={`text-right font-mono ${r.margin >= 0 ? "" : "text-destructive"}`}>{r.margin.toFixed(1)}%</TableCell>
+                  <TableCell
+                    className={`text-right font-mono font-bold ${cellColor(row, row.total)}`}
+                  >
+                    {formatCell(row, row.total)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell className="font-bold">Total</TableCell>
-                <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.revenue)}</TableCell>
-                <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.maintenanceCost)}</TableCell>
-                <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.damageCost)}</TableCell>
-                <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.grossProfit)}</TableCell>
-                {EXPENSE_CATEGORIES.map((c) => (
-                  <TableCell key={c} className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.expenses[c])}</TableCell>
-                ))}
-                <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.totalExpenses)}</TableCell>
-                <TableCell className={`text-right font-mono font-bold ${totals.netProfit >= 0 ? "" : "text-destructive"}`}>{formatCurrency(totals.netProfit)}</TableCell>
-                <TableCell className={`text-right font-mono font-bold ${totals.margin >= 0 ? "" : "text-destructive"}`}>{totals.margin.toFixed(1)}%</TableCell>
-              </TableRow>
-            </TableFooter>
           </Table>
         </CardContent>
       </Card>
