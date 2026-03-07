@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.5",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Eliminar carta de Reservas del Calendario",
+    description: "Se eliminó la carta duplicada de reservas del módulo de calendario ya que esta información está disponible en el módulo dedicado de reservas.",
+    changes: [
+      "Eliminada carta de 'Reservas' con filtros de estado del CalendarPage",
+      "Limpieza de imports y estado no utilizados",
+    ],
+  },
+  {
     version: "3.17.4",
     date: "2026-03-07",
     type: "patch",

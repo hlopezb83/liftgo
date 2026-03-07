@@ -2,7 +2,7 @@ import { useBookings } from "@/hooks/useBookings";
 import { useForklifts } from "@/hooks/useForklifts";
 import { PageTransition } from "@/components/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
+
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,9 +11,7 @@ import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, diffe
 import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, AlertTriangle, Repeat, Plus } from "lucide-react";
-import { BookingActions } from "@/components/BookingActions";
-import { RecurringBillingBadge } from "@/components/RecurringBillingBadge";
+import { ChevronLeft, ChevronRight, AlertTriangle, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CalendarStatCards } from "@/components/calendar/CalendarStatCards";
 import { GanttChart } from "@/components/calendar/GanttChart";
@@ -23,7 +21,7 @@ export default function CalendarPage() {
   const { data: bookings, isLoading: bLoading } = useBookings();
   const { data: forklifts, isLoading: fLoading } = useForklifts();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [statusFilter, setStatusFilter] = useState("all");
+  
   const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
 
@@ -54,11 +52,6 @@ export default function CalendarPage() {
     });
   }, [bookings]);
 
-  const filteredBookings = useMemo(() => {
-    if (!bookings) return [];
-    if (statusFilter === "all") return bookings;
-    return bookings.filter((b) => b.status === statusFilter);
-  }, [bookings, statusFilter]);
 
   if (bLoading || fLoading) {
     return <div className="p-6"><Skeleton className="h-96" /></div>;
@@ -146,49 +139,6 @@ export default function CalendarPage() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Reservas</CardTitle>
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="h-8">
-              <TabsTrigger value="all" className="text-xs px-2.5 h-6">Todas</TabsTrigger>
-              <TabsTrigger value="confirmed" className="text-xs px-2.5 h-6">Confirmadas</TabsTrigger>
-              <TabsTrigger value="completed" className="text-xs px-2.5 h-6">Completadas</TabsTrigger>
-              <TabsTrigger value="cancelled" className="text-xs px-2.5 h-6">Canceladas</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardHeader>
-        <CardContent>
-          {filteredBookings.length > 0 ? (
-            <div className="space-y-2">
-              {filteredBookings.map((b) => {
-                const duration = differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1;
-                return (
-                  <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
-                    <div>
-                      <p className="font-medium text-sm">{forkliftMap.get(b.forklift_id)?.name} — {forkliftMap.get(b.forklift_id)?.model}</p>
-                      <p className="text-xs text-muted-foreground">{b.customer_name}{b.customer_contact ? ` (${b.customer_contact})` : ""}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RecurringBillingBadge booking={b} />
-                      <div className="text-right">
-                        <p className="text-sm font-medium">
-                          {format(parseISO(b.start_date), "dd/MM/yyyy")} → {format(parseISO(b.end_date), "dd/MM/yyyy")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{duration} día{duration !== 1 ? "s" : ""}</p>
-                        <StatusBadge status={b.status} />
-                      </div>
-                      <BookingActions booking={b} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm text-center py-6">No se encontraron reservas</p>
-          )}
-        </CardContent>
-      </Card>
     </div>
     </TooltipProvider>
     </PageTransition>
