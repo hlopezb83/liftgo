@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.11.2",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Fotos por registro de daño en seguimiento",
+    description: "Cada registro de daño ahora tiene su propia sección expandible de fotos con carga drag-and-drop y galería lightbox.",
+    changes: [
+      "Filas expandibles en DamageTrackingPage: clic en una fila revela la sección de fotos de ese daño",
+      "Soporte completo en móvil con toggle para ver/subir fotos por daño",
+      "Cada registro usa su ID como entidad para almacenar fotos independientes",
+    ],
+  },
+  {
     version: "3.11.1",
     date: "2026-03-07",
     type: "patch",
