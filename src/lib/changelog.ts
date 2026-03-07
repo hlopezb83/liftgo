@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.15.2",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Estado de Resultados en formato vertical",
+    description: "Tabla del Estado de Resultados transpuesta al formato contable tradicional: conceptos como filas y meses como columnas.",
+    changes: [
+      "Tabla transpuesta: conceptos financieros de arriba a abajo, meses de izquierda a derecha",
+      "Filas de subtotal (Utilidad Bruta, Utilidad Neta) con estilo diferenciado",
+      "Costos con prefijo (-) y color rojo para fácil identificación",
+      "Columna sticky de conceptos para scroll horizontal",
+    ],
+  },
+  {
     version: "3.15.1",
     date: "2026-03-07",
     type: "patch",
