@@ -18,7 +18,8 @@ export function useInvoice(id: string | undefined) {
     queryKey: ["invoices", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("invoices").select("*").eq("id", id!).single();
+      if (!id) throw new Error("Invoice ID is required");
+      const { data, error } = await supabase.from("invoices").select("*").eq("id", id).single();
       if (error) throw error;
       return data;
     },

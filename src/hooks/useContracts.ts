@@ -56,10 +56,11 @@ export function useContract(id: string | undefined) {
     queryKey: ["contracts", id],
     enabled: !!id,
     queryFn: async () => {
+      if (!id) throw new Error("Contract ID is required");
       const { data, error } = await supabase
         .from("contracts")
         .select("*, customers(name), forklifts(name)")
-        .eq("id", id!)
+        .eq("id", id)
         .single();
       if (error) throw error;
       const c = data as Record<string, unknown>;

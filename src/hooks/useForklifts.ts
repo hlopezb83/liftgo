@@ -23,7 +23,8 @@ export function useForklift(id: string | undefined) {
     queryKey: ["forklifts", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("forklifts").select("*").eq("id", id!).single();
+      if (!id) throw new Error("Forklift ID is required");
+      const { data, error } = await supabase.from("forklifts").select("*").eq("id", id).single();
       if (error) throw error;
       return data as Forklift;
     },
