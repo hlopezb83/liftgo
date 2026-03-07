@@ -7,7 +7,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
-import { Download } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, DollarSign, Percent } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { OperatingExpense, ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperatingExpenses";
@@ -28,6 +28,7 @@ interface MonthRow {
   revenue: number;
   maintenanceCost: number;
   damageCost: number;
+  grossProfit: number;
   expenses: Record<ExpenseCategory, number>;
   totalExpenses: number;
   netProfit: number;
@@ -54,7 +55,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       return key;
     };
 
-    // Revenue: paid invoices subtotal (sin IVA)
     invoices
       .filter((inv) => inv.status === "paid" && inv.paid_at)
       .filter((inv) => isWithinInterval(parseISO(inv.paid_at!), { start: startDate, end: endDate }))
@@ -63,7 +63,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         months[key].revenue += Number(inv.subtotal);
       });
 
-    // Maintenance costs
     maintenanceLogs
       .filter((ml) => isWithinInterval(parseISO(ml.performed_at), { start: startDate, end: endDate }))
       .forEach((ml) => {
@@ -71,7 +70,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         months[key].maintenanceCost += Number(ml.cost ?? 0);
       });
 
-    // Damage costs
     damageRecords
       .filter((dr) => isWithinInterval(parseISO(dr.created_at), { start: startDate, end: endDate }))
       .forEach((dr) => {
@@ -79,7 +77,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         months[key].damageCost += Number(dr.actual_cost ?? 0);
       });
 
-    // Operating expenses by category
     operatingExpenses
       .filter((oe) => isWithinInterval(parseISO(oe.expense_date), { start: startDate, end: endDate }))
       .forEach((oe) => {
@@ -90,11 +87,12 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([, m]): MonthRow => {
+        const grossProfit = m.revenue - m.maintenanceCost - m.damageCost;
         const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const totalExpenses = m.maintenanceCost + m.damageCost + opexTotal;
         const netProfit = m.revenue - totalExpenses;
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
-        return { ...m, totalExpenses, netProfit, margin };
+        return { ...m, grossProfit, totalExpenses, netProfit, margin };
       });
   }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate]);
 
@@ -112,17 +110,24 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       },
       { revenue: 0, maintenanceCost: 0, damageCost: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0 } as Record<ExpenseCategory, number> }
     );
+    const grossProfit = t.revenue - t.maintenanceCost - t.damageCost;
     const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
     const totalExpenses = t.maintenanceCost + t.damageCost + opexTotal;
     const netProfit = t.revenue - totalExpenses;
     const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
-    return { ...t, totalExpenses, netProfit, margin };
+    return { ...t, grossProfit, totalExpenses, netProfit, margin };
   }, [data]);
 
   const chartData = data.map((r) => ({
     month: r.month,
     Ingresos: r.revenue,
-    Costos: r.totalExpenses,
+    Mantenimiento: r.maintenanceCost,
+    Daños: r.damageCost,
+    Renta: r.expenses.renta,
+    Nómina: r.expenses.nomina,
+    Software: r.expenses.software,
+    Depreciación: r.expenses.depreciacion,
+    Otros: r.expenses.otro,
   }));
 
   const csvRows = data.map((r) => ({
@@ -130,15 +135,40 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     Ingresos: r.revenue.toFixed(2),
     Mantenimiento: r.maintenanceCost.toFixed(2),
     Daños: r.damageCost.toFixed(2),
+    "Utilidad Bruta": r.grossProfit.toFixed(2),
     ...Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [EXPENSE_CATEGORY_LABELS[c], r.expenses[c].toFixed(2)])),
+    "Total Egresos": r.totalExpenses.toFixed(2),
     "Utilidad Neta": r.netProfit.toFixed(2),
     "Margen %": r.margin.toFixed(1),
   }));
 
-  const hasOpex = EXPENSE_CATEGORIES.some((c) => totals.expenses[c] > 0);
+  const kpis = [
+    { label: "Ingresos", value: formatCurrency(totals.revenue), icon: DollarSign, color: "text-chart-2" },
+    { label: "Total Egresos", value: formatCurrency(totals.totalExpenses), icon: TrendingDown, color: "text-destructive" },
+    { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: TrendingUp, color: totals.netProfit >= 0 ? "text-chart-2" : "text-destructive" },
+    { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: totals.margin >= 0 ? "text-chart-2" : "text-destructive" },
+  ];
 
   return (
     <>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map((kpi) => (
+          <Card key={kpi.label}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`p-2 rounded-lg bg-muted ${kpi.color}`}>
+                <kpi.icon className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-muted-foreground truncate">{kpi.label}</p>
+                <p className="text-lg font-bold truncate">{kpi.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Stacked Bar Chart */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Estado de Resultados</CardTitle>
@@ -155,15 +185,22 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                 <Tooltip formatter={(val: number) => formatCurrency(val)} />
                 <Legend />
                 <Bar dataKey="Ingresos" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Costos" fill="hsl(var(--chart-5))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Mantenimiento" stackId="costs" fill="hsl(var(--chart-5))" />
+                <Bar dataKey="Daños" stackId="costs" fill="hsl(var(--chart-4))" />
+                <Bar dataKey="Renta" stackId="costs" fill="hsl(var(--chart-1))" />
+                <Bar dataKey="Nómina" stackId="costs" fill="hsl(var(--chart-3))" />
+                <Bar dataKey="Software" stackId="costs" fill="hsl(142 71% 45%)" />
+                <Bar dataKey="Depreciación" stackId="costs" fill="hsl(280 65% 60%)" />
+                <Bar dataKey="Otros" stackId="costs" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
 
+      {/* Table */}
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -171,10 +208,12 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                 <TableHead className="text-right">Ingresos</TableHead>
                 <TableHead className="text-right">Mantenimiento</TableHead>
                 <TableHead className="text-right">Daños</TableHead>
-                {hasOpex && EXPENSE_CATEGORIES.filter((c) => totals.expenses[c] > 0).map((c) => (
+                <TableHead className="text-right font-semibold">Ut. Bruta</TableHead>
+                {EXPENSE_CATEGORIES.map((c) => (
                   <TableHead key={c} className="text-right">{EXPENSE_CATEGORY_LABELS[c]}</TableHead>
                 ))}
-                <TableHead className="text-right">Utilidad Neta</TableHead>
+                <TableHead className="text-right font-semibold">Total Egresos</TableHead>
+                <TableHead className="text-right font-semibold">Ut. Neta</TableHead>
                 <TableHead className="text-right">Margen</TableHead>
               </TableRow>
             </TableHeader>
@@ -185,11 +224,13 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                   <TableCell className="text-right font-mono">{formatCurrency(r.revenue)}</TableCell>
                   <TableCell className="text-right font-mono text-destructive">{formatCurrency(r.maintenanceCost)}</TableCell>
                   <TableCell className="text-right font-mono text-destructive">{formatCurrency(r.damageCost)}</TableCell>
-                  {hasOpex && EXPENSE_CATEGORIES.filter((c) => totals.expenses[c] > 0).map((c) => (
+                  <TableCell className="text-right font-mono font-semibold">{formatCurrency(r.grossProfit)}</TableCell>
+                  {EXPENSE_CATEGORIES.map((c) => (
                     <TableCell key={c} className="text-right font-mono text-destructive">{formatCurrency(r.expenses[c])}</TableCell>
                   ))}
-                  <TableCell className="text-right font-mono font-semibold">{formatCurrency(r.netProfit)}</TableCell>
-                  <TableCell className="text-right font-mono">{r.margin.toFixed(1)}%</TableCell>
+                  <TableCell className="text-right font-mono font-semibold text-destructive">{formatCurrency(r.totalExpenses)}</TableCell>
+                  <TableCell className={`text-right font-mono font-semibold ${r.netProfit >= 0 ? "" : "text-destructive"}`}>{formatCurrency(r.netProfit)}</TableCell>
+                  <TableCell className={`text-right font-mono ${r.margin >= 0 ? "" : "text-destructive"}`}>{r.margin.toFixed(1)}%</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -199,11 +240,13 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                 <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.revenue)}</TableCell>
                 <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.maintenanceCost)}</TableCell>
                 <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.damageCost)}</TableCell>
-                {hasOpex && EXPENSE_CATEGORIES.filter((c) => totals.expenses[c] > 0).map((c) => (
+                <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.grossProfit)}</TableCell>
+                {EXPENSE_CATEGORIES.map((c) => (
                   <TableCell key={c} className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.expenses[c])}</TableCell>
                 ))}
-                <TableCell className="text-right font-mono font-bold">{formatCurrency(totals.netProfit)}</TableCell>
-                <TableCell className="text-right font-mono font-bold">{totals.margin.toFixed(1)}%</TableCell>
+                <TableCell className="text-right font-mono font-bold text-destructive">{formatCurrency(totals.totalExpenses)}</TableCell>
+                <TableCell className={`text-right font-mono font-bold ${totals.netProfit >= 0 ? "" : "text-destructive"}`}>{formatCurrency(totals.netProfit)}</TableCell>
+                <TableCell className={`text-right font-mono font-bold ${totals.margin >= 0 ? "" : "text-destructive"}`}>{totals.margin.toFixed(1)}%</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
