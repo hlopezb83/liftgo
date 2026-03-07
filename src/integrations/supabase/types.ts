@@ -673,6 +673,7 @@ export type Database = {
       }
       forklifts: {
         Row: {
+          acquisition_cost: number | null
           capacity_kg: number | null
           created_at: string
           daily_rate: number | null
@@ -692,6 +693,7 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          acquisition_cost?: number | null
           capacity_kg?: number | null
           created_at?: string
           daily_rate?: number | null
@@ -711,6 +713,7 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          acquisition_cost?: number | null
           capacity_kg?: number | null
           created_at?: string
           daily_rate?: number | null
@@ -1372,6 +1375,7 @@ export type Database = {
         | "software"
         | "depreciacion"
         | "otro"
+        | "costo_venta"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1507,7 +1511,14 @@ export const Constants = {
         "administrativo",
         "auditor",
       ],
-      expense_category: ["renta", "nomina", "software", "depreciacion", "otro"],
+      expense_category: [
+        "renta",
+        "nomina",
+        "software",
+        "depreciacion",
+        "otro",
+        "costo_venta",
+      ],
     },
   },
 } as const
