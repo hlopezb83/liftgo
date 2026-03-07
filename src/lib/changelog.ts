@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.12.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Reporte manual de daños",
+    description: "Los operadores ahora pueden reportar daños encontrados en almacén sin necesidad de una inspección de devolución.",
+    changes: [
+      "Nuevo diálogo 'Reportar Daño' en la página de Seguimiento de Daños",
+      "Selección de montacargas de todo el inventario, cliente opcional, descripción y costo estimado",
+      "Disponible para roles admin, administrativo, despachador y mecánico",
+    ],
+  },
+  {
     version: "3.11.2",
     date: "2026-03-07",
     type: "patch",

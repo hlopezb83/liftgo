@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { DamageActions } from "@/components/DamageActions";
 import { DamagePhotosSection } from "@/components/DamagePhotosSection";
+import { ReportDamageDialog } from "@/components/ReportDamageDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
@@ -96,6 +97,7 @@ export default function DamageTrackingPage() {
     <ListPageLayout
       title="Seguimiento de Daños"
       subtitle="Rastrea daños desde inspecciones hasta reparación y facturación"
+      actions={<ReportDamageDialog />}
       filters={
         <div className="flex flex-col sm:flex-row gap-3">
           <SearchBar value={search} onChange={setSearch} placeholder="Buscar por descripción, montacargas..." />
