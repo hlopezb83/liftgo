@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
+import { es } from "date-fns/locale";
 import { Download } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -21,7 +22,7 @@ export function RevenueReport({ invoices, startDate, endDate }: Props) {
     const months: Record<string, { month: string; invoiced: number; paid: number; count: number }> = {};
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
-      const label = format(startOfMonth(parseISO(inv.issued_at)), "MMM yyyy");
+      const label = format(startOfMonth(parseISO(inv.issued_at)), "MMM yyyy", { locale: es });
       if (!months[key]) months[key] = { month: label, invoiced: 0, paid: 0, count: 0 };
       months[key].invoiced += Number(inv.total);
       months[key].count++;

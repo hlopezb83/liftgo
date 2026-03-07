@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 // ─── Types ────────────────────────────────────────────
 
@@ -19,11 +20,7 @@ export interface CompanyData {
   logo_url: string | null;
 }
 
-// ─── Currency formatter ───────────────────────────────
-
-export function fmtMXN(n: number): string {
-  return `$${n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+// fmtMXN removed — use formatCurrency from @/lib/formatCurrency instead
 
 // ─── Fetch company data + logo ────────────────────────
 
@@ -123,8 +120,8 @@ export function drawLineItemsTable(
   for (const item of lineItems) {
     doc.text(String(item.description || ""), margin + 2, cursorY);
     doc.text(String(item.quantity), 120, cursorY, { align: "right" });
-    doc.text(fmtMXN(Number(item.unit_price)), 150, cursorY, { align: "right" });
-    doc.text(fmtMXN(Number(item.total)), pageWidth - margin, cursorY, { align: "right" });
+    doc.text(formatCurrency(Number(item.unit_price)), 150, cursorY, { align: "right" });
+    doc.text(formatCurrency(Number(item.total)), pageWidth - margin, cursorY, { align: "right" });
     cursorY += 3;
     doc.setDrawColor(238, 238, 238);
     doc.setLineWidth(0.2);
@@ -171,11 +168,11 @@ export function drawTotals(
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Subtotal:", pageWidth - margin - 50, cursorY, { align: "right" });
-  doc.text(fmtMXN(subtotal), pageWidth - margin, cursorY, { align: "right" });
+  doc.text(formatCurrency(subtotal), pageWidth - margin, cursorY, { align: "right" });
 
   cursorY += 7;
   doc.text(`IVA (${taxRate}%):`, pageWidth - margin - 50, cursorY, { align: "right" });
-  doc.text(fmtMXN(taxAmount), pageWidth - margin, cursorY, { align: "right" });
+  doc.text(formatCurrency(taxAmount), pageWidth - margin, cursorY, { align: "right" });
 
   cursorY += 4;
   doc.setDrawColor(51, 51, 51);
@@ -186,7 +183,7 @@ export function drawTotals(
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text("Total:", pageWidth - margin - 50, cursorY, { align: "right" });
-  doc.text(`${fmtMXN(total)} ${currency}`, pageWidth - margin, cursorY, { align: "right" });
+  doc.text(`${formatCurrency(total)} ${currency}`, pageWidth - margin, cursorY, { align: "right" });
 
   return cursorY;
 }
