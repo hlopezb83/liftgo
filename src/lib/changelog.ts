@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.16.1",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Mejora y estandarización de tablas",
+    description: "Tablas mejoradas con filas zebra, encabezados sticky, bordes definidos y densidad compacta en toda la app.",
+    changes: [
+      "Filas zebra con fondo alternado para mejor legibilidad",
+      "Encabezados sticky que permanecen fijos al hacer scroll",
+      "Bordes y separadores mejorados con fondo en header",
+      "Densidad compacta: padding reducido para mostrar más datos",
+      "Encabezados en mayúsculas con tracking amplio para jerarquía visual",
+    ],
+  },
+  {
     version: "3.16.0",
     date: "2026-03-07",
     type: "minor",
