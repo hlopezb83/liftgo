@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { useListFilters } from "@/hooks/useListFilters";
 import { usePagination } from "@/hooks/usePagination";
@@ -13,17 +15,38 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { DamageActions } from "@/components/DamageActions";
 import { DamagePhotosSection } from "@/components/DamagePhotosSection";
 import { ReportDamageDialog } from "@/components/ReportDamageDialog";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Camera, ChevronDown, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 
 
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Fetch photo counts per damage record
+  const { data: photoCounts } = useQuery({
+    queryKey: ["damage_photo_counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("entity_id")
+        .eq("entity_type", "damage_record")
+        .like("mime_type", "image/%");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      data?.forEach((d) => {
+        counts[d.entity_id] = (counts[d.entity_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
+  const getPhotoCount = (id: string) => photoCounts?.[id] || 0;
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(records, {
     searchFields: ["description"],
