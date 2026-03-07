@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import type { Database } from "@/integrations/supabase/types";
 
-export type AppRole = "admin" | "dispatcher" | "mechanic" | "customer" | "administrativo" | "auditor";
+export type AppRole = Database["public"]["Enums"]["app_role"];
 
 export function useUserRole() {
   const { user } = useAuth();
