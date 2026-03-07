@@ -70,7 +70,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {overdueInvoices.length > 0 && (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader className="pb-2">
