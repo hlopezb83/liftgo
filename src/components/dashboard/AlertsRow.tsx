@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Wrench, CheckCircle, ClipboardList } from "lucide-react";
+import { AlertTriangle, Wrench, CheckCircle, ClipboardList, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUpdateInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
@@ -115,7 +115,46 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
                   </div>
                 ))}
               </div>
-            )}
+      )}
+
+      {overdueBookings.length > 0 && (
+        <Card className="border-orange-500/30 bg-orange-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2 text-orange-600">
+              <Clock className="h-4 w-4" /> Rentas Vencidas ({overdueBookings.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {overdueBookings.slice(0, 5).map((ob) => (
+              <div
+                key={ob.booking_id}
+                className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background"
+                onClick={() => navigate(`/returns?booking_id=${ob.booking_id}`)}
+              >
+                <div>
+                  <span className="font-medium">{ob.forklift_name}</span>
+                  <span className="text-muted-foreground ml-2">{ob.customer_name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <span className="font-mono font-semibold text-orange-600">{ob.days_overdue} días</span>
+                    <p className="text-xs text-muted-foreground">Venció: {formatDateDisplay(ob.end_date)}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/returns?booking_id=${ob.booking_id}`); }}
+                    title="Registrar Devolución"
+                  >
+                    <ClipboardList className="h-4 w-4 text-orange-600" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
           </CardContent>
         </Card>
       )}
