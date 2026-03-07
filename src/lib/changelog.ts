@@ -9,6 +9,22 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.9.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Firma electrónica en entregas y skeleton de carga en listas",
+    description: "Nuevo componente de firma digital para completar entregas, y eliminación de layout shift en todas las páginas de lista con skeletons alineados a columnas.",
+    changes: [
+      "Nuevo componente SignaturePad con canvas táctil, deshacer y limpiar",
+      "Diálogo de firma del cliente al marcar una entrega como completada",
+      "Opción de omitir firma para completar sin captura",
+      "Firma guardada como base64 en columna signature_base64 de deliveries",
+      "Skeleton de carga alineado a columnas en BookingsPage (7 cols), Fleet (8 cols), InvoicesPage (7), ContractsPage (7), QuotesPage (7) y CustomersPage (6)",
+      "Componente TableSkeleton mejorado con prop columnCount para renderizar tabla con celdas skeleton",
+      "ListPageLayout acepta skeletonColumns para eliminar layout shift durante carga",
+    ],
+  },
+  {
     version: "3.8.0",
     date: "2026-03-07",
     type: "minor",
