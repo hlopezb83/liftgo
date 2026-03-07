@@ -13,6 +13,7 @@ import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialo
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
+import { bookingFormSchema } from "@/lib/formSchemas";
 import type { DateRange } from "react-day-picker";
 
 interface PostBookingState { bookingId: string; forkliftId: string; startDate: string; customerAddress: string | null; }
@@ -38,8 +39,16 @@ export default function BookingForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forkliftId || !startDate || !endDate) { toast.error("Montacargas, fecha de inicio y fecha de fin son requeridos"); return; }
-    if (endDate < startDate) { toast.error("La fecha de fin debe ser posterior a la de inicio"); return; }
+    const parsed = bookingFormSchema.safeParse({
+      forklift_id: forkliftId,
+      start_date: startDate,
+      end_date: endDate,
+      customer_id: customerId,
+      customer_name: customerName,
+      customer_contact: customerContact,
+      recurring_billing: recurringBilling,
+    });
+    if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     const selectedCustomer = customers?.find((c) => c.id === customerId);
     createBooking.mutate(
       { forklift_id: forkliftId, start_date: format(startDate, "yyyy-MM-dd"), end_date: format(endDate, "yyyy-MM-dd"), customer_name: selectedCustomer?.name || customerName || null, customer_contact: selectedCustomer?.email || customerContact || null, customer_id: customerId || null, status: "confirmed", recurring_billing: recurringBilling },

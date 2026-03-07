@@ -19,12 +19,13 @@ import { useSort } from "@/hooks/useSort";
 import { PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
+import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const emptyCustomer = {
+const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
   website: "", contact_person: "", billing_address: "",
   rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
@@ -101,7 +102,8 @@ export default function CustomersPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name) { toast.error("El nombre es requerido"); return; }
+    const parsed = customerFormSchema.safeParse(form);
+    if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     const payload = {
       name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
       address: form.address || null, notes: form.notes || null,
