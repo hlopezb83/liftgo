@@ -274,6 +274,21 @@ export default function DeliveriesPage() {
           forkliftName={pickupPrompt.forkliftName}
         />
       )}
+
+      <Dialog open={!!signatureTarget} onOpenChange={(open) => { if (!open) setSignatureTarget(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-primary" /> Firma del Cliente</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Solicite la firma del cliente para confirmar la entrega.</p>
+          <SignaturePad
+            onSave={(base64) => { if (signatureTarget) markComplete(signatureTarget, base64); }}
+          />
+          <Button variant="link" size="sm" className="text-muted-foreground" onClick={() => { if (signatureTarget) markComplete(signatureTarget); }}>
+            Omitir Firma
+          </Button>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
