@@ -11,6 +11,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
 import { NotesCard } from "@/components/NotesCard";
+import { DamagePhotosSection } from "@/components/DamagePhotosSection";
 import { ForkliftSpecsCard } from "@/components/forklift-detail/ForkliftSpecsCard";
 import { ForkliftRatesCard } from "@/components/forklift-detail/ForkliftRatesCard";
 import { ForkliftBookingsList } from "@/components/forklift-detail/ForkliftBookingsList";
@@ -82,6 +83,7 @@ export default function ForkliftDetail() {
       <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
       <ForkliftBookingsList bookings={bookings || []} />
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
+      {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" />}
       {id && <DocumentAttachments entityType="forklift" entityId={id} />}
       <ForkliftStatusHistory logs={logs || []} />
     </div>

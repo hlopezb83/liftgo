@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.11.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Fotos de daño con drag-and-drop y galería lightbox",
+    description: "Nuevo sistema de captura de fotos con arrastrar y soltar, cámara móvil y galería de imágenes a pantalla completa con navegación táctil.",
+    changes: [
+      "Nuevo componente DragDropImageUploader con react-dropzone: drag-and-drop, previsualización y captura de cámara en móvil",
+      "Nuevo componente ImageGalleryLightbox con navegación por teclado, swipe táctil, zoom y tira de miniaturas",
+      "Sección DamagePhotosSection integrada en ForkliftDetail para ver y subir fotos de daño",
+      "Componente reutilizable para cualquier entidad que necesite gestión de fotos",
+    ],
+  },
+  {
     version: "3.10.0",
     date: "2026-03-07",
     type: "minor",
