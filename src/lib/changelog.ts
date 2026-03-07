@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.11.1",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Fotos en inspección de devolución",
+    description: "Se agregó el componente de carga de fotos drag-and-drop al formulario de inspección de devolución.",
+    changes: [
+      "DragDropImageUploader integrado en el diálogo de nueva inspección de devolución",
+      "Permite capturar fotos del estado del equipo durante la inspección desde móvil o escritorio",
+    ],
+  },
+  {
     version: "3.11.0",
     date: "2026-03-07",
     type: "minor",

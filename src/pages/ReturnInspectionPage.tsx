@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
@@ -23,6 +23,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle, ClipboardCheck } from "lucide-react";
+import { DragDropImageUploader } from "@/components/DragDropImageUploader";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
@@ -198,6 +199,16 @@ export default function ReturnInspectionPage() {
               <Label>Notas de Daños</Label>
               <Textarea value={form.damageNotes} onChange={(e) => set("damageNotes", e.target.value)} placeholder="Describe cualquier daño..." rows={3} />
             </div>
+            {form.bookingId && (() => {
+              const selectedBooking = bookings?.find((b) => b.id === form.bookingId);
+              if (!selectedBooking) return null;
+              return (
+                <div className="space-y-1.5">
+                  <Label>Fotos de Inspección</Label>
+                  <DragDropImageUploader entityType="return_inspection" entityId={selectedBooking.forklift_id} maxFiles={8} />
+                </div>
+              );
+            })()}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Costo por Daños ($)</Label>
