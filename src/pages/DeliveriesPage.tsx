@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { PostDeliveryPickupDialog } from "@/components/PostDeliveryPickupDialog";
+import { SignaturePad } from "@/components/SignaturePad";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveDrivers } from "@/hooks/useDrivers";
 import { Card, CardContent } from "@/components/ui/card";
