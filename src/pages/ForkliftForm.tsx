@@ -31,6 +31,7 @@ const emptyForm: ForkliftFormData = {
   daily_rate: "",
   weekly_rate: "",
   monthly_rate: "",
+  acquisition_cost: "",
   notes: "",
 };
 
@@ -71,6 +72,7 @@ export default function ForkliftForm() {
         daily_rate: existing.daily_rate?.toString() || "",
         weekly_rate: existing.weekly_rate?.toString() || "",
         monthly_rate: existing.monthly_rate?.toString() || "",
+        acquisition_cost: (existing as any).acquisition_cost?.toString() || "",
         notes: existing.notes || "",
       });
     }
@@ -126,6 +128,7 @@ export default function ForkliftForm() {
       daily_rate: form.daily_rate ? parseFloat(form.daily_rate) : 0,
       weekly_rate: form.weekly_rate ? parseFloat(form.weekly_rate) : 0,
       monthly_rate: form.monthly_rate ? parseFloat(form.monthly_rate) : 0,
+      acquisition_cost: form.acquisition_cost ? parseFloat(form.acquisition_cost) : 0,
       notes: form.notes || null,
     };
 
@@ -257,8 +260,8 @@ export default function ForkliftForm() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">Tarifas de Renta</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <CardHeader><CardTitle className="text-base">Tarifas y Costos</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Tarifa Diaria ($)</Label>
               <Input type="number" placeholder="150" value={form.daily_rate} onChange={(e) => set("daily_rate", e.target.value)} />
@@ -270,6 +273,10 @@ export default function ForkliftForm() {
             <div className="space-y-1.5">
               <Label>Tarifa Mensual ($)</Label>
               <Input type="number" placeholder="2500" value={form.monthly_rate} onChange={(e) => set("monthly_rate", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Costo de Adquisición ($)</Label>
+              <Input type="number" placeholder="250000" value={form.acquisition_cost} onChange={(e) => set("acquisition_cost", e.target.value)} />
             </div>
           </CardContent>
         </Card>

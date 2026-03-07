@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.16.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Costo de Venta de Montacargas",
+    description: "Campo de costo de adquisición en montacargas y generación automática de gasto operativo al vender un equipo.",
+    changes: [
+      "Nuevo campo 'Costo de Adquisición' en formulario y detalle de montacargas",
+      "Nueva categoría de gasto 'Costo de Venta' en gastos operativos",
+      "Al cambiar status a 'Vendido', se genera automáticamente un gasto con el costo de adquisición",
+      "Estado de Resultados incluye '(-) Costo de Venta' como costo directo antes de Utilidad Bruta",
+    ],
+  },
+  {
     version: "3.15.2",
     date: "2026-03-07",
     type: "patch",

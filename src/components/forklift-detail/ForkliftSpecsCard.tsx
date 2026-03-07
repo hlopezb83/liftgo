@@ -2,12 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 interface ForkliftSpecsCardProps {
   forklift: Tables<"forklifts">;
 }
 
 export function ForkliftSpecsCard({ forklift }: ForkliftSpecsCardProps) {
+  const acquisitionCost = (forklift as any).acquisition_cost;
   const specs = [
     { label: "Modelo", value: forklift.model },
     { label: "Fabricante", value: forklift.manufacturer },
@@ -16,6 +18,7 @@ export function ForkliftSpecsCard({ forklift }: ForkliftSpecsCardProps) {
     { label: "Altura del Mástil", value: forklift.mast_height_m ? `${forklift.mast_height_m} m` : null },
     { label: "Tipo de Combustible", value: forklift.fuel_type ? (FUEL_TYPE_LABELS[forklift.fuel_type] || forklift.fuel_type) : null },
     { label: "No. de Serie", value: forklift.serial_number },
+    { label: "Costo de Adquisición", value: acquisitionCost ? formatCurrency(Number(acquisitionCost)) : null },
   ];
 
   return (

@@ -102,10 +102,26 @@ export function useUpdateStatus() {
       await supabase.from("status_logs").insert({
         forklift_id: forkliftId, from_status: fromStatus, to_status: toStatus, note,
       });
+
+      // Auto-create costo_venta expense when sold
+      if (toStatus === "sold") {
+        const { data: fl } = await supabase.from("forklifts").select("name, acquisition_cost").eq("id", forkliftId).single();
+        const cost = Number((fl as any)?.acquisition_cost ?? 0);
+        if (cost > 0) {
+          await supabase.from("operating_expenses").insert({
+            category: "costo_venta" as any,
+            description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
+            amount: cost,
+            expense_date: new Date().toISOString().slice(0, 10),
+            is_recurring: false,
+          });
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
     },
   });
 }
