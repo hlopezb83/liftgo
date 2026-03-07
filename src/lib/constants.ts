@@ -1,3 +1,27 @@
+import { Constants } from "@/integrations/supabase/types";
+import type { AppRole } from "@/hooks/useUserRole";
+
+export const APP_ROLES = Constants.public.Enums.app_role;
+export const STAFF_ROLES = APP_ROLES.filter((r): r is Exclude<AppRole, "customer"> => r !== "customer");
+
+export const ROLE_LABELS: Record<AppRole, string> = {
+  admin: "Admin",
+  administrativo: "Administrativo",
+  dispatcher: "Despachador",
+  mechanic: "Mecánico",
+  auditor: "Auditor",
+  customer: "Cliente",
+};
+
+export const ROLE_COLORS: Record<AppRole, string> = {
+  admin: "bg-red-600 text-white",
+  administrativo: "bg-blue-600 text-white",
+  dispatcher: "bg-amber-500 text-white",
+  mechanic: "bg-emerald-600 text-white",
+  auditor: "bg-purple-600 text-white",
+  customer: "bg-gray-500 text-white",
+};
+
 export const FORKLIFT_STATUSES = ["available", "rented", "maintenance", "retired", "sold"] as const;
 export const FUEL_TYPES = ["Diesel", "Electric", "LPG"] as const;
 export const SERVICE_TYPES = [
