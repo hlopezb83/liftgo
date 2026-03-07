@@ -1,17 +1,27 @@
 
 
-## Cambiar etiqueta "Enviado" → "Sin Pagar"
+## Eliminar Non-Null Assertions en hooks de consulta
 
 ### Cambio
 
-**Archivo: `src/lib/constants.ts`**
+En 4 hooks, reemplazar `id!` por un guard explícito que lanza un error descriptivo antes de la query. Esto estrecha el tipo a `string` sin usar `!`.
 
-En el objeto `STATUS_LABELS`, cambiar:
+**Archivos a modificar:**
+
+1. **`src/hooks/useInvoices.ts`** — `useInvoice`
+2. **`src/hooks/useForklifts.ts`** — `useForklift`
+3. **`src/hooks/useQuotes.ts`** — `useQuote`
+4. **`src/hooks/useContracts.ts`** — `useContract`
+
+**Patrón aplicado (idéntico en los 4):**
+
 ```typescript
-sent: "Enviado",
-// →
-sent: "Sin Pagar",
+queryFn: async () => {
+  if (!id) throw new Error("ID is required");
+  const { data, error } = await supabase.from("table").select("*").eq("id", id).single();
+  // ...
+}
 ```
 
-Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
+Cada error tendrá un mensaje específico al recurso (e.g. "Invoice ID is required", "Forklift ID is required", etc.).
 
