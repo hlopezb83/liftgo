@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReturnInspectionWithJoins } from "@/types/rental";
 import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
