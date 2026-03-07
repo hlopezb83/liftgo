@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.15.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Gastos Recurrentes",
+    description: "Permite marcar gastos operativos como recurrentes mensuales y generarlos automáticamente con un solo clic.",
+    changes: [
+      "Switch 'Gasto recurrente mensual' en el formulario de crear/editar gastos",
+      "Badge visual 'Mensual' en la tabla para identificar gastos recurrentes",
+      "Botón 'Generar Recurrentes' que crea automáticamente los gastos del mes actual evitando duplicados",
+      "Nueva columna 'is_recurring' en la base de datos",
+    ],
+  },
+  {
     version: "3.14.1",
     date: "2026-03-07",
     type: "patch",
