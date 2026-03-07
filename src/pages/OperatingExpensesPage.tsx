@@ -132,7 +132,10 @@ export default function OperatingExpensesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Monto</Label>
-                <Input type="number" min="0" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0.00" />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <Input type="number" min="0" step="0.01" className="pl-7" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0.00" />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Fecha</Label>

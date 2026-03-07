@@ -1,13 +1,17 @@
 
 
-## Plan: Prefijo $ en campo de monto (type number)
+## Cambiar etiqueta "Enviado" → "Sin Pagar"
 
-### Cambios
+### Cambio
 
-1. **`src/pages/OperatingExpensesPage.tsx`**
-   - Envolver el `<Input type="number">` en un `div relative` con un `<span>$</span>` posicionado a la izquierda
-   - Agregar `className="pl-7"` al input para no solapar el símbolo
-   - Cambiar placeholder a `"0.00"`
+**Archivo: `src/lib/constants.ts`**
 
-2. **`src/lib/changelog.ts`** — v3.14.1
+En el objeto `STATUS_LABELS`, cambiar:
+```typescript
+sent: "Enviado",
+// →
+sent: "Sin Pagar",
+```
+
+Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
 
