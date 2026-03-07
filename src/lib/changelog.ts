@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.12.2",
+    date: "2026-03-07",
+    type: "patch",
+    title: "Badge de fotos en tabla de daños",
+    description: "Cada fila de daño muestra un contador de fotos para identificar rápidamente cuáles tienen evidencia fotográfica.",
+    changes: [
+      "Badge con ícono de cámara y conteo de fotos en cada fila de la tabla de daños",
+      "Visible tanto en vista de escritorio como en tarjetas móviles",
+      "Consulta optimizada que obtiene los conteos en una sola petición",
+    ],
+  },
+  {
     version: "3.12.1",
     date: "2026-03-07",
     type: "patch",

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { useListFilters } from "@/hooks/useListFilters";
 import { usePagination } from "@/hooks/usePagination";
@@ -13,17 +15,38 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { DamageActions } from "@/components/DamageActions";
 import { DamagePhotosSection } from "@/components/DamagePhotosSection";
 import { ReportDamageDialog } from "@/components/ReportDamageDialog";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Camera, ChevronDown, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 
 
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Fetch photo counts per damage record
+  const { data: photoCounts } = useQuery({
+    queryKey: ["damage_photo_counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("entity_id")
+        .eq("entity_type", "damage_record")
+        .like("mime_type", "image/%");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      data?.forEach((d) => {
+        counts[d.entity_id] = (counts[d.entity_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
+  const getPhotoCount = (id: string) => photoCounts?.[id] || 0;
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(records, {
     searchFields: ["description"],
@@ -64,7 +87,14 @@ export default function DamageTrackingPage() {
         <Card>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</span>
+                {getPhotoCount(r.id) > 0 && (
+                  <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
+                    <Camera className="h-3 w-3" /> {getPhotoCount(r.id)}
+                  </Badge>
+                )}
+              </div>
               <StatusBadge status={r.status} />
             </div>
             <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
@@ -126,6 +156,7 @@ export default function DamageTrackingPage() {
           <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
           <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
           <TableHead>Descripción</TableHead>
+          <TableHead className="w-16 text-center">Fotos</TableHead>
           <SortableTableHead sortKey="estimated_cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Costo Est.</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
           <TableHead>Acciones</TableHead>
@@ -147,13 +178,22 @@ export default function DamageTrackingPage() {
             <TableCell className="font-medium">{r.forklifts?.name || "—"}</TableCell>
             <TableCell>{r.customers?.name || "—"}</TableCell>
             <TableCell className="max-w-[200px] truncate">{r.description}</TableCell>
+            <TableCell className="text-center">
+              {getPhotoCount(r.id) > 0 ? (
+                <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
+                  <Camera className="h-3 w-3" /> {getPhotoCount(r.id)}
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground text-xs">—</span>
+              )}
+            </TableCell>
             <TableCell className="font-mono">{formatCurrency(r.estimated_cost)}</TableCell>
             <TableCell><StatusBadge status={r.status} /></TableCell>
             <TableCell onClick={(e) => e.stopPropagation()}><DamageActions record={r} /></TableCell>
           </TableRow>
           {expandedId === r.id && (
             <TableRow key={`${r.id}-photos`}>
-              <TableCell colSpan={8} className="p-4 bg-muted/20">
+              <TableCell colSpan={9} className="p-4 bg-muted/20">
                 <DamagePhotosSection entityType="damage_record" entityId={r.id} title="Fotos de Daño" />
               </TableCell>
             </TableRow>
