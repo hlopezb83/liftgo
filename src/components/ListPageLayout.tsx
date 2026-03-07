@@ -27,6 +27,7 @@ interface ListPageLayoutProps<T> {
   tableHeader: ReactNode;
   renderRow: (item: T, index: number) => ReactNode;
   customContent?: ReactNode;
+  skeletonColumns?: number;
 }
 
 export function ListPageLayout<T extends { id?: string }>({
