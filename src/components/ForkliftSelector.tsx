@@ -10,10 +10,11 @@ interface ForkliftSelectorProps {
   availableForklifts: Tables<"forklifts">[];
   datesSelected: boolean;
   showStatus?: boolean;
+  error?: string;
 }
 
 /** Single-select version (legacy, used by BookingForm etc.) */
-export function ForkliftSelector({ value, onValueChange, availableForklifts, datesSelected, showStatus }: ForkliftSelectorProps) {
+export function ForkliftSelector({ value, onValueChange, availableForklifts, datesSelected, showStatus, error }: ForkliftSelectorProps) {
   return (
     <div className="space-y-1.5">
       <Label>Montacargas *</Label>
@@ -29,6 +30,7 @@ export function ForkliftSelector({ value, onValueChange, availableForklifts, dat
           ))}
         </SelectContent>
       </Select>
+      {error && <p className="text-sm text-destructive">{error}</p>}
       {datesSelected && availableForklifts.length === 0 && (
         <p className="text-xs text-muted-foreground">No hay montacargas disponibles para las fechas seleccionadas.</p>
       )}
