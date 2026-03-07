@@ -160,6 +160,7 @@ export default function InvoicesPage() {
         </TableRow>
       )}
       customContent={mobileContent}
+      skeletonColumns={7}
     />
   );
 }
