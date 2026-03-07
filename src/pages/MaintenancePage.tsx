@@ -186,7 +186,7 @@ export default function MaintenancePage() {
             <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(log.next_service_date)}</TableCell>
           </TableRow>
         )}
-        customContent={mobileContent}
+        customContent={kanbanContent || mobileContent}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
