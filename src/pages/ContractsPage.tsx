@@ -112,6 +112,7 @@ export default function ContractsPage() {
         </TableRow>
       )}
       customContent={mobileContent}
+      skeletonColumns={7}
     />
   );
 }

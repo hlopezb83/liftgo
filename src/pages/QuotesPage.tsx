@@ -123,6 +123,7 @@ export default function QuotesPage() {
         </TableRow>
       )}
       customContent={mobileContent}
+      skeletonColumns={7}
     />
   );
 }

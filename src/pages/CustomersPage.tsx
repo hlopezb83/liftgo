@@ -165,6 +165,7 @@ export default function CustomersPage() {
           </TableRow>
         )}
         customContent={mobileContent}
+        skeletonColumns={6}
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
