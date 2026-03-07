@@ -15,6 +15,7 @@ import { RevenueReport } from "@/components/reports/RevenueReport";
 import { MaintenanceCostReport } from "@/components/reports/MaintenanceCostReport";
 import { ProfitabilityByModelReport } from "@/components/reports/ProfitabilityByModelReport";
 import { UtilizationByModelReport } from "@/components/reports/UtilizationByModelReport";
+import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
 import { subMonths } from "date-fns";
 
 const REPORT_TYPES = [
@@ -23,6 +24,7 @@ const REPORT_TYPES = [
   { value: "revenue", label: "Ingresos" },
   { value: "maintenance", label: "Costos de Mantenimiento" },
   { value: "profitability", label: "Rentabilidad por Modelo" },
+  { value: "income-statement", label: "Estado de Resultados" },
 ];
 
 export default function ReportsPage() {
@@ -75,6 +77,15 @@ export default function ReportsPage() {
           forklifts={forklifts || []}
           invoices={invoices || []}
           bookings={bookings || []}
+          maintenanceLogs={maintenanceLogs || []}
+          damageRecords={damageRecords || []}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      )}
+      {reportType === "income-statement" && (
+        <IncomeStatementReport
+          invoices={invoices || []}
           maintenanceLogs={maintenanceLogs || []}
           damageRecords={damageRecords || []}
           startDate={startDate}
