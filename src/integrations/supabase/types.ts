@@ -950,6 +950,36 @@ export type Database = {
         }
         Relationships: []
       }
+      operating_expenses: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          description: string | null
+          expense_date: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          description?: string | null
+          expense_date?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          description?: string | null
+          expense_date?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -1333,6 +1363,12 @@ export type Database = {
         | "customer"
         | "administrativo"
         | "auditor"
+      expense_category:
+        | "renta"
+        | "nomina"
+        | "software"
+        | "depreciacion"
+        | "otro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1468,6 +1504,7 @@ export const Constants = {
         "administrativo",
         "auditor",
       ],
+      expense_category: ["renta", "nomina", "software", "depreciacion", "otro"],
     },
   },
 } as const
