@@ -22,7 +22,9 @@ import { useActiveMechanics } from "@/hooks/useMechanics";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { SERVICE_TYPES } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, Wrench, Download } from "lucide-react";
+import { PlusCircle, Wrench, Download, List, LayoutGrid } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { MaintenanceKanban } from "@/components/maintenance/MaintenanceKanban";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -46,6 +48,7 @@ export default function MaintenancePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
   const [forkliftFilter, setForkliftFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<"list" | "board">("list");
   const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
 
   const enrichedLogs = logs?.map((log) => ({
@@ -128,7 +131,11 @@ export default function MaintenancePage() {
         title="Mantenimiento"
         subtitle={`${logs?.length || 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "list" | "board")} size="sm">
+              <ToggleGroupItem value="list" aria-label="Vista de lista"><List className="h-4 w-4" /></ToggleGroupItem>
+              <ToggleGroupItem value="board" aria-label="Vista de tablero"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+            </ToggleGroup>
             <Button variant="outline" size="sm" onClick={() => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({ Fecha: l.performed_at, Montacargas: forkliftMap.get(l.forklift_id)?.name || "", Servicio: l.service_type, "Realizado Por": l.performed_by || "", Costo: l.cost || 0, "Próximo Servicio": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
             <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio</Button>
           </div>
