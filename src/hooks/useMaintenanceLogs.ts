@@ -12,7 +12,7 @@ export function useMaintenanceLogs(forkliftId?: string) {
       if (forkliftId) query = query.eq("forklift_id", forkliftId);
       const { data, error } = await query;
       if (error) throw error;
-      return data as MaintenanceLog[];
+      return data;
     },
   });
 }

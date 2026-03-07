@@ -1,16 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface Payment {
-  id: string;
-  invoice_id: string;
-  amount: number;
-  payment_date: string;
-  payment_method: string | null;
-  reference_number: string | null;
-  notes: string | null;
-  created_at: string;
-}
+import type { Tables } from "@/integrations/supabase/types";
+
+export type Payment = Tables<"payments">;
 
 export function usePayments(invoiceId: string | undefined) {
   return useQuery({
@@ -23,7 +16,7 @@ export function usePayments(invoiceId: string | undefined) {
         .eq("invoice_id", invoiceId!)
         .order("payment_date", { ascending: false });
       if (error) throw error;
-      return data as Payment[];
+      return data;
     },
   });
 }

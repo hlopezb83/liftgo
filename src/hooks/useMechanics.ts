@@ -1,17 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Mechanic = {
-  id: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  specialization: string | null;
-  is_active: boolean;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-};
+import type { Tables } from "@/integrations/supabase/types";
+
+export type Mechanic = Tables<"mechanics">;
 
 type MechanicInput = {
   name: string;
@@ -31,7 +23,7 @@ export function useMechanics() {
         .select("*")
         .order("name");
       if (error) throw error;
-      return data as Mechanic[];
+      return data;
     },
   });
 }
@@ -46,7 +38,7 @@ export function useActiveMechanics() {
         .eq("is_active", true)
         .order("name");
       if (error) throw error;
-      return data as Mechanic[];
+      return data;
     },
   });
 }

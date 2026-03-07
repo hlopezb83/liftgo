@@ -10,7 +10,7 @@ export function useCustomers() {
     queryFn: async () => {
       const { data, error } = await supabase.from("customers").select("*").order("name");
       if (error) throw error;
-      return data as Customer[];
+      return data;
     },
   });
 }

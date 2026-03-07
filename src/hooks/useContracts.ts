@@ -13,11 +13,11 @@ export function useContracts() {
         .select("*, customers(name), forklifts(name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as Record<string, any>[]).map((c) => ({
+      return data.map((c) => ({
         ...c,
         customer_name: c.customers?.name || null,
         forklift_name: c.forklifts?.name || null,
-      })) as Contract[];
+      }));
     },
   });
 }
@@ -34,8 +34,7 @@ export function useContract(id: string | undefined) {
         .eq("id", id)
         .single();
       if (error) throw error;
-      const c = data as Record<string, unknown>;
-      return { ...c, customer_name: (c.customers as any)?.name || null, forklift_name: (c.forklifts as any)?.name || null } as Contract;
+      return { ...data, customer_name: data.customers?.name || null, forklift_name: data.forklifts?.name || null };
     },
   });
 }
