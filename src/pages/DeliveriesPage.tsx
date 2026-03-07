@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { PostDeliveryPickupDialog } from "@/components/PostDeliveryPickupDialog";
+import { SignaturePad } from "@/components/SignaturePad";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveDrivers } from "@/hooks/useDrivers";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,6 +54,8 @@ export default function DeliveriesPage() {
     forkliftName: string;
   } | null>(null);
 
+  const [signatureTarget, setSignatureTarget] = useState<string | null>(null);
+
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(deliveries, {
     accessors: {
       scheduled_date: (d) => d.scheduled_date,
@@ -82,7 +85,7 @@ export default function DeliveriesPage() {
             {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
             {d.status !== "completed" && (
               <div className="mt-3 pt-3 border-t">
-                <Button variant="outline" size="sm" className="w-full" onClick={() => markComplete(d.id)}>
+                <Button variant="outline" size="sm" className="w-full" onClick={() => setSignatureTarget(d.id)}>
                   <CheckCircle className="h-4 w-4 mr-1 text-status-available" /> Completar
                 </Button>
               </div>
@@ -106,13 +109,14 @@ export default function DeliveriesPage() {
     );
   };
 
-  const markComplete = (id: string) => {
+  const markComplete = (id: string, signatureBase64?: string) => {
     const delivery = deliveries?.find((d) => d.id === id);
     updateDelivery.mutate(
-      { id, status: "completed", completed_at: new Date().toISOString() },
+      { id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}) } as any,
       {
         onSuccess: () => {
           toast.success("Marcado como completado");
+          setSignatureTarget(null);
           if (delivery && delivery.type === "delivery" && delivery.booking_id) {
             const booking = bookings?.find((b) => b.id === delivery.booking_id);
             const forklift = forkliftMap.get(delivery.forklift_id);
@@ -165,7 +169,7 @@ export default function DeliveriesPage() {
             <TableCell><StatusBadge status={d.status} /></TableCell>
             <TableCell>
               {d.status !== "completed" && (
-                <Button variant="ghost" size="icon" onClick={() => markComplete(d.id)} title="Marcar completado">
+                <Button variant="ghost" size="icon" onClick={() => setSignatureTarget(d.id)} title="Marcar completado">
                   <CheckCircle className="h-4 w-4 text-status-available" />
                 </Button>
               )}
@@ -270,6 +274,21 @@ export default function DeliveriesPage() {
           forkliftName={pickupPrompt.forkliftName}
         />
       )}
+
+      <Dialog open={!!signatureTarget} onOpenChange={(open) => { if (!open) setSignatureTarget(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-primary" /> Firma del Cliente</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Solicite la firma del cliente para confirmar la entrega.</p>
+          <SignaturePad
+            onSave={(base64) => { if (signatureTarget) markComplete(signatureTarget, base64); }}
+          />
+          <Button variant="link" size="sm" className="text-muted-foreground" onClick={() => { if (signatureTarget) markComplete(signatureTarget); }}>
+            Omitir Firma
+          </Button>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

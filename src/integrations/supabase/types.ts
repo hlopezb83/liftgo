@@ -510,6 +510,7 @@ export type Database = {
           notes: string | null
           scheduled_date: string
           scheduled_time: string | null
+          signature_base64: string | null
           status: string
           type: string
           updated_at: string
@@ -526,6 +527,7 @@ export type Database = {
           notes?: string | null
           scheduled_date: string
           scheduled_time?: string | null
+          signature_base64?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -542,6 +544,7 @@ export type Database = {
           notes?: string | null
           scheduled_date?: string
           scheduled_time?: string | null
+          signature_base64?: string | null
           status?: string
           type?: string
           updated_at?: string
