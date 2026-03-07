@@ -20,16 +20,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { CredentialsDialog } from "@/components/CredentialsDialog";
 import type { AppRole } from "@/hooks/useUserRole";
-
-const STAFF_ROLES: Exclude<AppRole, "customer">[] = ["admin", "administrativo", "dispatcher", "mechanic", "auditor"];
-const ROLE_LABELS: Record<string, string> = { admin: "Admin", administrativo: "Administrativo", dispatcher: "Despachador", mechanic: "Mecánico", auditor: "Auditor" };
-const ROLE_COLORS: Record<string, string> = {
-  admin: "bg-red-600 text-white",
-  administrativo: "bg-blue-600 text-white",
-  dispatcher: "bg-amber-500 text-white",
-  mechanic: "bg-emerald-600 text-white",
-  auditor: "bg-purple-600 text-white",
-};
+import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 
 interface UserRow {
   user_id: string;
