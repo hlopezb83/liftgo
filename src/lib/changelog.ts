@@ -9,6 +9,22 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.14.0",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Módulo de Gastos Operativos y Estado de Resultados mejorado",
+    description: "Nueva tabla y página CRUD para registrar gastos operativos (renta, nómina, software, depreciación, otros). El Estado de Resultados ahora incluye todas las categorías de gastos para calcular utilidad neta.",
+    changes: [
+      "Nueva página 'Gastos Operativos' con formulario para registrar, editar y eliminar gastos",
+      "Categorías de gasto: Renta, Nómina, Software, Depreciación, Otro",
+      "Filtro por categoría en la lista de gastos",
+      "Estado de Resultados actualizado: muestra columnas dinámicas por cada categoría de gasto con datos",
+      "Cálculo de Utilidad Neta = Ingresos - Mantenimiento - Daños - Gastos Operativos",
+      "Entrada en sidebar bajo Administración con acceso para admin, administrativo y auditor",
+      "Exportación CSV del Estado de Resultados incluye todas las categorías",
+    ],
+  },
+  {
     version: "3.13.0",
     date: "2026-03-07",
     type: "minor",

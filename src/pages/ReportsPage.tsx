@@ -5,6 +5,7 @@ import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
+import { useOperatingExpenses } from "@/hooks/useOperatingExpenses";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,6 +39,7 @@ export default function ReportsPage() {
   const { data: invoices } = useInvoices();
   const { data: maintenanceLogs } = useMaintenanceLogs();
   const { data: damageRecords } = useDamageRecords();
+  const { data: operatingExpenses } = useOperatingExpenses();
 
   return (
     <PageTransition>
@@ -88,6 +90,7 @@ export default function ReportsPage() {
           invoices={invoices || []}
           maintenanceLogs={maintenanceLogs || []}
           damageRecords={damageRecords || []}
+          operatingExpenses={operatingExpenses || []}
           startDate={startDate}
           endDate={endDate}
         />
