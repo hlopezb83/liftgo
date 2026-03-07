@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useUpdateDamageRecord, type DamageRecord } from "@/hooks/useDamageRecords";
+import { useUpdateDamageRecord } from "@/hooks/useDamageRecords";
+import type { DamageRecordWithJoins } from "@/types/rental";
 import { useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { Wrench, Receipt } from "lucide-react";
 import { toast } from "sonner";
 
-interface DamageActionsProps { record: DamageRecord & { forklifts?: { name: string; model: string } | null }; }
+interface DamageActionsProps { record: DamageRecordWithJoins; }
 
 export function DamageActions({ record }: DamageActionsProps) {
   const navigate = useNavigate();

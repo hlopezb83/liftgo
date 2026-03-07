@@ -1,11 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-
-export type Booking = Tables<"bookings">;
-export type BookingWithForklift = Booking & {
-  forklifts: { name: string; model: string } | null;
-};
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+export type { Booking, BookingWithForklift } from "@/types/rental";
+import type { BookingWithForklift } from "@/types/rental";
 
 export function useBookings(forkliftId?: string) {
   return useQuery({

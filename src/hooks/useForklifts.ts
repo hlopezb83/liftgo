@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-
-export type Forklift = Tables<"forklifts">;
-export type StatusLog = Tables<"status_logs">;
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+export type { Forklift, StatusLog } from "@/types/rental";
+import type { Forklift, StatusLog } from "@/types/rental";
 
 // ─── Forklifts ────────────────────────────────────────
 
