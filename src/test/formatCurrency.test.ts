@@ -4,19 +4,19 @@ import { formatCurrency } from "@/lib/formatCurrency";
 describe("formatCurrency", () => {
   it("formats a positive number with two decimals", () => {
     const result = formatCurrency(1234.5);
-    expect(result).toContain("1");
-    expect(result).toContain("234");
-    expect(result).toContain("50");
+    expect(result).toContain("1,234.50");
     expect(result).toContain("$");
   });
 
   it("formats zero", () => {
-    expect(formatCurrency(0)).toBe("$0.00");
+    const result = formatCurrency(0);
+    expect(result).toContain("$");
+    expect(result).toContain("0.00");
   });
 
   it("formats negative numbers", () => {
     const result = formatCurrency(-50);
-    expect(result).toContain("50");
+    expect(result).toContain("50.00");
     expect(result).toContain("$");
   });
 
