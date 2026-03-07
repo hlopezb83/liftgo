@@ -43,6 +43,14 @@ export interface DashboardStats {
     week_label: string;
     utilization: number;
   }>;
+  overdue_bookings: Array<{
+    booking_id: string;
+    forklift_name: string;
+    forklift_id: string;
+    customer_name: string | null;
+    end_date: string;
+    days_overdue: number;
+  }>;
 }
 
 export function useDashboardStats() {

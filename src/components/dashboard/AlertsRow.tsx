@@ -28,18 +28,28 @@ interface AgingBucket {
   total: number;
 }
 
+interface OverdueBooking {
+  booking_id: string;
+  forklift_name: string;
+  forklift_id: string;
+  customer_name: string | null;
+  end_date: string;
+  days_overdue: number;
+}
+
 interface AlertsRowProps {
   overdueInvoices: OverdueInvoice[];
   maintenanceAlerts: MaintenanceAlert[];
   agingBuckets: AgingBucket[];
+  overdueBookings: OverdueBooking[];
 }
 
-export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets }: AlertsRowProps) {
+export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings }: AlertsRowProps) {
   const navigate = useNavigate();
   const updateInvoice = useUpdateInvoice();
   const updateBooking = useUpdateBooking();
 
-  if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0) return null;
+  if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0 && overdueBookings.length === 0) return null;
 
   const handleMarkPaid = (inv: OverdueInvoice, e: React.MouseEvent) => {
     e.stopPropagation();
