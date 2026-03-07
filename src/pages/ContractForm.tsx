@@ -7,12 +7,12 @@ import { useBookings } from "@/hooks/useBookings";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useDefaultContractTemplate } from "@/hooks/useContractTemplates";
 import { FormPageHeader } from "@/components/FormPageHeader";
+import { FormActions } from "@/components/FormActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { DatePickerField } from "@/components/DatePickerField";
 import { format, parseISO } from "date-fns";
@@ -162,7 +162,10 @@ export default function ContractForm() {
     setTemplateApplied(true);
   }, [isEdit, templateApplied, template, form.customer_id, form.forklift_id, customers, forklifts, company]);
 
-  const handleSubmit = () => {
+  const isPending = createContract.isPending || updateContract.isPending;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!form.customer_id || !form.forklift_id) {
       toast.error("Cliente y equipo son requeridos");
       return;
@@ -209,6 +212,7 @@ export default function ContractForm() {
     <div className="p-6 max-w-3xl space-y-6">
       <FormPageHeader title={isEdit ? "Editar Contrato" : "Nuevo Contrato"} onBack={() => navigate("/contracts")} />
 
+      <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader><CardTitle className="text-base">Información General</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -325,12 +329,8 @@ export default function ContractForm() {
         </CardContent>
       </Card>
 
-      <div className="flex gap-3 pt-2">
-        <Button onClick={handleSubmit} disabled={createContract.isPending || updateContract.isPending}>
-          {isEdit ? "Guardar Cambios" : "Crear Contrato"}
-        </Button>
-        <Button variant="outline" onClick={() => navigate("/contracts")}>Cancelar</Button>
-      </div>
+      <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Crear Contrato"} isPending={isPending} onCancel={() => navigate("/contracts")} />
+      </form>
     </div>
   );
 }
