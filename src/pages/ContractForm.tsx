@@ -212,6 +212,7 @@ export default function ContractForm() {
     <div className="p-6 max-w-3xl space-y-6">
       <FormPageHeader title={isEdit ? "Editar Contrato" : "Nuevo Contrato"} onBack={() => navigate("/contracts")} />
 
+      <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader><CardTitle className="text-base">Información General</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -329,7 +330,7 @@ export default function ContractForm() {
       </Card>
 
       <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Crear Contrato"} isPending={isPending} onCancel={() => navigate("/contracts")} />
-    </form>
+      </form>
     </div>
   );
 }
