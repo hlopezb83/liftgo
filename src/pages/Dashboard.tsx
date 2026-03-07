@@ -116,7 +116,7 @@ export default function Dashboard() {
     <div className="p-6 space-y-6">
       <PageHeader title="Panel" subtitle="Vista general de la flota" />
       <StatCards cards={statCards} />
-      <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} />
+      <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />

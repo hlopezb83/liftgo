@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.6",
+    date: "2026-03-07",
+    type: "minor",
+    title: "Alerta de Rentas Vencidas en el Panel",
+    description: "Nueva alerta en el dashboard que muestra reservas confirmadas cuya fecha de fin ya pasó y no se ha registrado devolución, con acceso directo al módulo de devoluciones.",
+    changes: [
+      "Nueva sección 'Rentas Vencidas' en AlertsRow del dashboard",
+      "Función get_dashboard_stats actualizada con campo overdue_bookings",
+      "Muestra nombre del equipo, cliente y días de retraso",
+      "Botón de acción navega a /returns con booking_id pre-seleccionado",
+    ],
+  },
+  {
     version: "3.17.5",
     date: "2026-03-07",
     type: "patch",
