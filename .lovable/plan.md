@@ -1,15 +1,17 @@
 
 
-## Plan: Eliminar carta de Reservas del Calendario (v3.17.5)
+## Cambiar etiqueta "Enviado" → "Sin Pagar"
 
-Eliminar el bloque `<Card>` de "Reservas" (líneas 149-191) y limpiar imports y estado que ya no se usan.
+### Cambio
 
-### Cambios en `src/pages/CalendarPage.tsx`
+**Archivo: `src/lib/constants.ts`**
 
-- Eliminar la carta de Reservas completa (líneas 149-191)
-- Eliminar estado `statusFilter` (ya no se usa)
-- Eliminar memo `filteredBookings` (ya no se usa)
-- Eliminar imports no utilizados: `StatusBadge`, `BookingActions`, `RecurringBillingBadge`, `Repeat`
+En el objeto `STATUS_LABELS`, cambiar:
+```typescript
+sent: "Enviado",
+// →
+sent: "Sin Pagar",
+```
 
-### `src/lib/changelog.ts` — v3.17.5
+Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
 
