@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
@@ -27,6 +27,7 @@ import { DragDropImageUploader } from "@/components/DragDropImageUploader";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
+import { useSearchParams } from "react-router-dom";
 
 const initialForm = {
   bookingId: "" as string,
@@ -52,8 +53,19 @@ export default function ReturnInspectionPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
   const [invoicePrompt, setInvoicePrompt] = useState<InvoicePromptData | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
+
+  useEffect(() => {
+    const bookingId = searchParams.get("booking_id");
+    if (bookingId && activeBookings?.some((b) => b.id === bookingId)) {
+      reset();
+      set("bookingId", bookingId);
+      setDialogOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, activeBookings]);
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(inspections, {
     accessors: {
