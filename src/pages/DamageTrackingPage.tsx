@@ -193,7 +193,7 @@ export default function DamageTrackingPage() {
           </TableRow>
           {expandedId === r.id && (
             <TableRow key={`${r.id}-photos`}>
-              <TableCell colSpan={8} className="p-4 bg-muted/20">
+              <TableCell colSpan={9} className="p-4 bg-muted/20">
                 <DamagePhotosSection entityType="damage_record" entityId={r.id} title="Fotos de Daño" />
               </TableCell>
             </TableRow>
