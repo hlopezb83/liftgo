@@ -27,6 +27,7 @@ interface ListPageLayoutProps<T> {
   tableHeader: ReactNode;
   renderRow: (item: T, index: number) => ReactNode;
   customContent?: ReactNode;
+  skeletonColumns?: number;
 }
 
 export function ListPageLayout<T extends { id?: string }>({
@@ -47,6 +48,7 @@ export function ListPageLayout<T extends { id?: string }>({
   tableHeader,
   renderRow,
   customContent,
+  skeletonColumns,
 }: ListPageLayoutProps<T>) {
   return (
     <PageTransition>
@@ -57,7 +59,7 @@ export function ListPageLayout<T extends { id?: string }>({
           <Card>
             <CardContent className="p-0">
               {isLoading ? (
-                <TableSkeleton />
+                <TableSkeleton columnCount={skeletonColumns} />
               ) : items.length === 0 ? (
                 <EmptyState
                   icon={emptyIcon}
