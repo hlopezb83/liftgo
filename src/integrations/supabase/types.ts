@@ -876,6 +876,7 @@ export type Database = {
           performed_by: string | null
           service_type: string
           updated_at: string
+          work_status: string
         }
         Insert: {
           cost?: number | null
@@ -888,6 +889,7 @@ export type Database = {
           performed_by?: string | null
           service_type: string
           updated_at?: string
+          work_status?: string
         }
         Update: {
           cost?: number | null
@@ -900,6 +902,7 @@ export type Database = {
           performed_by?: string | null
           service_type?: string
           updated_at?: string
+          work_status?: string
         }
         Relationships: [
           {
