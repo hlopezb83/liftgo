@@ -54,6 +54,8 @@ export default function DeliveriesPage() {
     forkliftName: string;
   } | null>(null);
 
+  const [signatureTarget, setSignatureTarget] = useState<string | null>(null);
+
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(deliveries, {
     accessors: {
       scheduled_date: (d) => d.scheduled_date,
