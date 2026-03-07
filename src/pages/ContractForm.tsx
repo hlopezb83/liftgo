@@ -7,12 +7,13 @@ import { useBookings } from "@/hooks/useBookings";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useDefaultContractTemplate } from "@/hooks/useContractTemplates";
 import { FormPageHeader } from "@/components/FormPageHeader";
+import { FormActions } from "@/components/FormActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { DatePickerField } from "@/components/DatePickerField";
 import { format, parseISO } from "date-fns";
@@ -162,7 +163,10 @@ export default function ContractForm() {
     setTemplateApplied(true);
   }, [isEdit, templateApplied, template, form.customer_id, form.forklift_id, customers, forklifts, company]);
 
-  const handleSubmit = () => {
+  const isPending = createContract.isPending || updateContract.isPending;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!form.customer_id || !form.forklift_id) {
       toast.error("Cliente y equipo son requeridos");
       return;
