@@ -16,7 +16,7 @@ import { SortableTableHead } from "@/components/SortableTableHead";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
 import { useSort } from "@/hooks/useSort";
-import { PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
+import { PlusCircle, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
