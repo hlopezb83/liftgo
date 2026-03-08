@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import type { Customer } from "@/hooks/useCustomers";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
@@ -21,9 +21,10 @@ import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUpdateProspect } from "@/hooks/useProspects";
 
 const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
