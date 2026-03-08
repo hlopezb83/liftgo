@@ -36,12 +36,34 @@ const emptyCustomer: CustomerFormData = {
 export default function CustomersPage() {
   const { data: customers, isLoading } = useCustomers();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
+  const updateProspect = useUpdateProspect();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [prospectId, setProspectId] = useState<string | null>(null);
   const { form, set, setForm, reset } = useFormState(emptyCustomer);
+
+  // Auto-open dialog with pre-filled data from prospect conversion
+  useEffect(() => {
+    if (searchParams.get("from_prospect") === "true") {
+      const pId = searchParams.get("prospect_id");
+      setProspectId(pId);
+      setEditId(null);
+      setForm({
+        ...emptyCustomer,
+        name: searchParams.get("company") || "",
+        contact_person: searchParams.get("contact") || "",
+        email: searchParams.get("email") || "",
+        phone: searchParams.get("phone") || "",
+      });
+      setDialogOpen(true);
+      // Clean URL
+      setSearchParams({}, { replace: true });
+    }
+  }, []);
 
   const filtered = customers?.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
