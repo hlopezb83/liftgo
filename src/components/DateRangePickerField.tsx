@@ -6,7 +6,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
@@ -20,40 +20,32 @@ interface DateRangePickerFieldProps {
 
 export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required, error }: DateRangePickerFieldProps) {
   const [open, setOpen] = useState(false);
-  // Local state to avoid re-rendering the trigger while calendar is open
+  // Local range to avoid re-rendering trigger while calendar is open
   const [localRange, setLocalRange] = useState<DateRange | undefined>(dateRange);
-  const pendingRange = useRef<DateRange | undefined>(dateRange);
-
-  // Sync external changes when popover is closed
-  useEffect(() => {
-    if (!open) {
-      setLocalRange(dateRange);
-      pendingRange.current = dateRange;
-    }
-  }, [dateRange, open]);
 
   const handleSelect = (range?: DateRange) => {
     setLocalRange(range);
-    pendingRange.current = range;
-    // When both dates selected, close and propagate
     if (range?.from && range?.to) {
-      setOpen(false);
+      // Both dates selected — propagate and schedule close
+      onSelect(range);
+      setTimeout(() => setOpen(false), 200);
     }
   };
 
   const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen && pendingRange.current) {
-      // Propagate selection to parent when closing
-      onSelect(pendingRange.current);
-    }
     setOpen(isOpen);
+    if (isOpen) {
+      // Reset local range to current external value when opening
+      setLocalRange(dateRange);
+    }
   };
 
+  const displayRange = open ? localRange : dateRange;
+
   const formatLabel = () => {
-    const dr = open ? localRange : dateRange;
-    if (!dr?.from) return placeholder;
-    if (!dr.to) return format(dr.from, "dd/MM/yyyy") + " — …";
-    return format(dr.from, "dd/MM") + " — " + format(dr.to, "dd/MM/yyyy");
+    if (!displayRange?.from) return placeholder;
+    if (!displayRange.to) return format(displayRange.from, "dd/MM/yyyy") + " — …";
+    return format(displayRange.from, "dd/MM") + " — " + format(displayRange.to, "dd/MM/yyyy");
   };
 
   return (
