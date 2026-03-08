@@ -34,21 +34,6 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
 
       if (error || !quote) throw new Error("Cotización no encontrada");
 
-      // Fetch customer fiscal data if available
-      let customerRfc: string | null = null;
-      let customerCp: string | null = null;
-      if (quote.customer_id) {
-        const { data: customer } = await supabase
-          .from("customers")
-          .select("rfc, domicilio_fiscal_cp")
-          .eq("id", quote.customer_id)
-          .single();
-        if (customer) {
-          customerRfc = customer.rfc;
-          customerCp = customer.domicilio_fiscal_cp;
-        }
-      }
-
       const { company, logoBase64 } = await fetchCompanyDataAndLogo();
 
       const doc = new jsPDF();
@@ -61,7 +46,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       let y = drawPremiumHeader(doc, company, logoBase64, quote.quote_number, isSale);
 
       // 3. Info cards (client + details)
-      y = drawInfoCardsAt(doc, y, quote.customer_name, quote.start_date, quote.end_date, quote.valid_until, isSale, customerRfc, customerCp);
+      y = drawInfoCardsAt(doc, y, quote.customer_name, quote.start_date, quote.end_date, quote.valid_until, isSale);
 
       // 4. Line items table
       const lineItems = (quote.line_items as unknown as PdfLineItem[]) || [];
