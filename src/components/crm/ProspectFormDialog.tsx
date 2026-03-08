@@ -4,13 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
 import type { Prospect } from "@/hooks/useProspects";
+
+const STAGE_LABELS: Record<string, string> = {
+  nuevo_prospecto: "Nuevo Prospecto",
+  contactado: "Contactado",
+  cotizacion_enviada: "Cotización Enviada",
+  negociacion: "Negociación",
+  cerrado_ganado: "Cerrado Ganado",
+  cerrado_perdido: "Cerrado Perdido",
+};
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   prospect?: Prospect | null;
   defaultStage?: string;
+  overrideStage?: string;
   onSave: (data: {
     company_name: string;
     contact_person: string;
@@ -23,7 +35,7 @@ interface Props {
   onDelete?: () => void;
 }
 
-export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage = "nuevo_prospecto", onSave, onDelete }: Props) {
+export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage = "nuevo_prospecto", overrideStage, onSave, onDelete }: Props) {
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
   const [email, setEmail] = useState("");
@@ -53,7 +65,7 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
       phone,
       deal_value: parseFloat(dealValue) || 0,
       notes,
-      stage: prospect?.stage ?? defaultStage,
+      stage: overrideStage ?? prospect?.stage ?? defaultStage,
     });
     onOpenChange(false);
   };
@@ -64,8 +76,19 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
         <DialogHeader>
           <DialogTitle>{prospect ? "Editar Prospecto" : "Nuevo Prospecto"}</DialogTitle>
           <DialogDescription>
-            {prospect ? "Actualiza la información del prospecto." : "Agrega un nuevo prospecto al pipeline."}
+            {overrideStage && prospect
+              ? "Confirma los datos antes de mover el prospecto de etapa."
+              : prospect
+                ? "Actualiza la información del prospecto."
+                : "Agrega un nuevo prospecto al pipeline."}
           </DialogDescription>
+          {overrideStage && prospect && (
+            <div className="flex items-center gap-2 mt-2 text-sm">
+              <Badge variant="secondary">{STAGE_LABELS[prospect.stage] ?? prospect.stage}</Badge>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              <Badge>{STAGE_LABELS[overrideStage] ?? overrideStage}</Badge>
+            </div>
+          )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

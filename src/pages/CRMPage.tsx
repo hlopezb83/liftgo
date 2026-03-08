@@ -27,6 +27,7 @@ export default function CRMPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
   const [defaultStage, setDefaultStage] = useState("nuevo_prospecto");
+  const [overrideStage, setOverrideStage] = useState<string | undefined>(undefined);
 
   const prospectsByStage = STAGES.map((s) => ({
     ...s,
@@ -37,23 +38,34 @@ export default function CRMPage() {
   const onDragEnd = useCallback(
     (result: DropResult) => {
       if (!result.destination) return;
-      const { draggableId, destination } = result;
+      const { draggableId, source, destination } = result;
       const newStage = destination.droppableId;
-      const newOrder = destination.index;
-      // Optimistic: just fire mutation
-      updateProspect.mutate({ id: draggableId, stage: newStage, stage_order: newOrder });
+      // If same column reorder, just update order directly
+      if (source.droppableId === newStage) {
+        updateProspect.mutate({ id: draggableId, stage_order: destination.index });
+        return;
+      }
+      // Different stage: open dialog for validation
+      const prospect = prospects.find((p) => p.id === draggableId);
+      if (prospect) {
+        setEditingProspect(prospect);
+        setOverrideStage(newStage);
+        setDialogOpen(true);
+      }
     },
-    [updateProspect]
+    [updateProspect, prospects]
   );
 
   const openCreate = (stage: string) => {
     setEditingProspect(null);
     setDefaultStage(stage);
+    setOverrideStage(undefined);
     setDialogOpen(true);
   };
 
   const openEdit = (p: Prospect) => {
     setEditingProspect(p);
+    setOverrideStage(undefined);
     setDialogOpen(true);
   };
 
@@ -157,9 +169,13 @@ export default function CRMPage() {
 
       <ProspectFormDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setOverrideStage(undefined);
+        }}
         prospect={editingProspect}
         defaultStage={defaultStage}
+        overrideStage={overrideStage}
         onSave={(data) => {
           if (editingProspect) {
             updateProspect.mutate({ id: editingProspect.id, ...data });

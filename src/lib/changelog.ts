@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.2",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Diálogo de validación al mover prospectos",
+    description: "Al arrastrar un prospecto a otra etapa del pipeline, se abre automáticamente el formulario de edición para validar o actualizar campos como el valor del trato.",
+    changes: [
+      "Diálogo de edición se abre al cambiar etapa por drag-and-drop",
+      "Indicador visual de etapa origen → destino en el diálogo",
+      "Cancelar el diálogo deja el prospecto en su etapa original",
+      "Reordenar dentro de la misma columna no abre diálogo",
+    ],
+  },
+  {
     version: "3.18.1",
     date: "2026-03-08",
     type: "patch",
