@@ -181,7 +181,7 @@ export function drawInfoCardsAt(
     doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 16);
   }
 
-  return y + 34;
+  return y + clientCardH + 8;
 }
 
 // ─── Premium Table ────────────────────────────────────
