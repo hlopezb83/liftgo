@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.6",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Diseño premium PDF en facturas",
+    description: "Aplicado el diseño gráfico profesional a las facturas PDF: barra accent navy, tarjetas de receptor y detalles, badge de estado, tabla premium, totales destacados y pie de página corporativo.",
+    changes: [
+      "Facturas con la misma estructura visual que las cotizaciones",
+      "Tarjeta de receptor con RFC y régimen fiscal",
+      "Badge de estado (Pagada/Pendiente/Cancelada) con color semafórico",
+      "Badge verde 'Timbrado SAT' cuando tiene CFDI",
+      "Información de forma y método de pago integrada",
+      "QR placeholder y leyenda CFDI estilizados",
+    ],
+  },
+  {
     version: "3.18.5",
     date: "2026-03-08",
     type: "patch",
