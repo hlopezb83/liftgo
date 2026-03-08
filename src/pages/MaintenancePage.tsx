@@ -167,6 +167,12 @@ export default function MaintenancePage() {
               <ToggleGroupItem value="board" aria-label="Vista de tablero"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
             </ToggleGroup>
             <Button variant="outline" size="sm" onClick={() => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({ Fecha: l.performed_at, Montacargas: forkliftMap.get(l.forklift_id)?.name || "", Servicio: l.service_type, "Realizado Por": l.performed_by || "", Costo: l.cost || 0, "Próximo Servicio": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+            <RoleGuard allowed={["admin", "administrativo"]}>
+              <Button variant="outline" size="sm" onClick={handleGenerateRecurring} disabled={generatingRecurring}>
+                <RefreshCw className={`h-4 w-4 mr-1 ${generatingRecurring ? "animate-spin" : ""}`} />
+                Generar Recurrente
+              </Button>
+            </RoleGuard>
             <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio</Button>
           </div>
         }

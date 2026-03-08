@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.10",
+    date: "2026-03-08",
+    type: "minor",
+    title: "Mantenimiento Recurrente con Póliza de Proveedor Externo",
+    description: "Genera automáticamente registros de mantenimiento mensual para cada montacargas rentado con póliza activa de proveedor externo.",
+    changes: [
+      "Nueva tabla 'maintenance_policies' para configurar pólizas por montacargas",
+      "Pestaña 'Pólizas de Mantenimiento' en Configuración de Operaciones con CRUD completo",
+      "Edge Function 'generate-recurring-maintenance' ejecutable por cron o manualmente",
+      "Botón 'Generar Recurrente' en página de Mantenimiento (admin/administrativo)",
+      "'Póliza de Mantenimiento' agregado como tipo de servicio",
+      "Control de duplicados con campo last_generated_month",
+    ],
+  },
+  {
     version: "3.17.9",
     date: "2026-03-08",
     type: "minor",
