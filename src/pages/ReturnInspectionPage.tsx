@@ -67,7 +67,9 @@ export default function ReturnInspectionPage() {
     });
   }, [inspections, filterDate]);
 
-  const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status && new Date(b.end_date) <= today);
 
   useEffect(() => {
     const bookingId = searchParams.get("booking_id");
@@ -216,6 +218,9 @@ export default function ReturnInspectionPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Solo se muestran reservas cuyo periodo de renta ha finalizado. Si no encuentras la reserva, verifica que la fecha de fin ya haya pasado o edita la reserva para ajustar las fechas antes de registrar la devolución.
+              </p>
             </div>
             <DatePickerField label="Fecha de Inspección" date={form.inspectedAt} onSelect={(d) => set("inspectedAt", d || new Date())} required />
             <div className="space-y-1.5">
