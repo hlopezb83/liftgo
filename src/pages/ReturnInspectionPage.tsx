@@ -5,6 +5,7 @@ import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useCreateReturnInspection, useReturnInspections } from "@/hooks/useReturnInspections";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
+import { DatePickerField } from "@/components/DatePickerField";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,16 @@ export default function ReturnInspectionPage() {
   const { form, set, reset } = useFormState(initialForm);
   const [invoicePrompt, setInvoicePrompt] = useState<InvoicePromptData | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [filterDate, setFilterDate] = useState<Date | undefined>();
+
+  const filteredInspections = useMemo(() => {
+    if (!inspections) return undefined;
+    if (!filterDate) return inspections;
+    return inspections.filter((i) => {
+      const d = parseDateLocal(i.inspected_at);
+      return d.getFullYear() === filterDate.getFullYear() && d.getMonth() === filterDate.getMonth() && d.getDate() === filterDate.getDate();
+    });
+  }, [inspections, filterDate]);
 
   const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
 
@@ -67,7 +78,7 @@ export default function ReturnInspectionPage() {
     }
   }, [searchParams, activeBookings]);
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(inspections, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filteredInspections, {
     accessors: {
       inspected_at: (i) => i.inspected_at,
       forklift_name: (i) => (i as any).forklifts?.name || "",
@@ -138,6 +149,14 @@ export default function ReturnInspectionPage() {
       <ListPageLayout
         title="Devoluciones y Revisión"
         subtitle="Inspecciona equipos devueltos y actualiza el estado de la flota"
+        filters={
+          <div className="flex items-end gap-3">
+            <DatePickerField label="Filtrar por fecha" date={filterDate} onSelect={setFilterDate} placeholder="Todas las fechas" />
+            {filterDate && (
+              <Button variant="ghost" size="sm" onClick={() => setFilterDate(undefined)}>Limpiar</Button>
+            )}
+          </div>
+        }
         actions={
           <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
             <PlusCircle className="h-4 w-4 mr-1" /> Nueva Devolución
