@@ -59,11 +59,13 @@ export default function CRMPage() {
   const openCreate = (stage: string) => {
     setEditingProspect(null);
     setDefaultStage(stage);
+    setOverrideStage(undefined);
     setDialogOpen(true);
   };
 
   const openEdit = (p: Prospect) => {
     setEditingProspect(p);
+    setOverrideStage(undefined);
     setDialogOpen(true);
   };
 
