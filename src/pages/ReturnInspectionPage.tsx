@@ -67,7 +67,9 @@ export default function ReturnInspectionPage() {
     });
   }, [inspections, filterDate]);
 
-  const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status && new Date(b.end_date) <= today);
 
   useEffect(() => {
     const bookingId = searchParams.get("booking_id");
