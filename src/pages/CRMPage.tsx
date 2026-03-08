@@ -1,12 +1,15 @@
 import { useState, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { Plus, Building2, User, DollarSign } from "lucide-react";
+import { Plus, Building2, User, DollarSign, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageTransition } from "@/components/PageTransition";
 import { ProspectFormDialog } from "@/components/crm/ProspectFormDialog";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
+import { useQuotes } from "@/hooks/useQuotes";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 const STAGES = [
@@ -20,14 +23,19 @@ const STAGES = [
 
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();
+  const { data: quotes = [] } = useQuotes();
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
   const deleteProspect = useDeleteProspect();
+  const navigate = useNavigate();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
   const [defaultStage, setDefaultStage] = useState("nuevo_prospecto");
   const [overrideStage, setOverrideStage] = useState<string | undefined>(undefined);
+
+  // Build a lookup map for quote_id -> quote_number
+  const quoteMap = new Map(quotes.map((q) => [q.id, q.quote_number]));
 
   const prospectsByStage = STAGES.map((s) => ({
     ...s,
@@ -40,12 +48,10 @@ export default function CRMPage() {
       if (!result.destination) return;
       const { draggableId, source, destination } = result;
       const newStage = destination.droppableId;
-      // If same column reorder, just update order directly
       if (source.droppableId === newStage) {
         updateProspect.mutate({ id: draggableId, stage_order: destination.index });
         return;
       }
-      // Different stage: open dialog for validation
       const prospect = prospects.find((p) => p.id === draggableId);
       if (prospect) {
         setEditingProspect(prospect);
@@ -72,7 +78,6 @@ export default function CRMPage() {
   return (
     <PageTransition>
       <div className="flex flex-col h-[calc(100vh-3rem)]">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Pipeline CRM</h1>
@@ -83,7 +88,6 @@ export default function CRMPage() {
           </Button>
         </div>
 
-        {/* Kanban Board */}
         <div className="flex-1 overflow-x-auto p-4">
           {isLoading ? (
             <div className="flex gap-4">
@@ -96,7 +100,6 @@ export default function CRMPage() {
               <div className="flex gap-4 h-full min-w-max">
                 {prospectsByStage.map((stage) => (
                   <div key={stage.key} className="w-72 shrink-0 flex flex-col rounded-xl bg-muted/40 border">
-                    {/* Column Header */}
                     <div className="px-3 py-3 border-b">
                       <div className="flex items-center gap-2">
                         <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
@@ -110,7 +113,6 @@ export default function CRMPage() {
                       </p>
                     </div>
 
-                    {/* Droppable area */}
                     <Droppable droppableId={stage.key}>
                       {(provided, snapshot) => (
                         <ScrollArea className="flex-1">
@@ -143,6 +145,21 @@ export default function CRMPage() {
                                       <DollarSign className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                       <span className="text-xs font-medium">{formatCurrency(prospect.deal_value ?? 0)}</span>
                                     </div>
+                                    {prospect.quote_id && quoteMap.has(prospect.quote_id) && (
+                                      <div className="mt-2">
+                                        <Badge
+                                          variant="secondary"
+                                          className="text-xs cursor-pointer hover:bg-accent gap-1"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/quotes/${prospect.quote_id}`);
+                                          }}
+                                        >
+                                          <FileText className="h-3 w-3" />
+                                          {quoteMap.get(prospect.quote_id)}
+                                        </Badge>
+                                      </div>
+                                    )}
                                   </Card>
                                 )}
                               </Draggable>
@@ -153,7 +170,6 @@ export default function CRMPage() {
                       )}
                     </Droppable>
 
-                    {/* Add button */}
                     <div className="p-2 border-t">
                       <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => openCreate(stage.key)}>
                         <Plus className="h-3.5 w-3.5 mr-1" /> Agregar

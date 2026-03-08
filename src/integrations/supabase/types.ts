@@ -1192,6 +1192,7 @@ export type Database = {
           id: string
           notes: string | null
           phone: string | null
+          quote_id: string | null
           stage: string
           stage_order: number | null
           updated_at: string | null
@@ -1205,6 +1206,7 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string | null
+          quote_id?: string | null
           stage?: string
           stage_order?: number | null
           updated_at?: string | null
@@ -1218,11 +1220,20 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string | null
+          quote_id?: string | null
           stage?: string
           stage_order?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prospects_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quote_assigned_forklifts: {
         Row: {

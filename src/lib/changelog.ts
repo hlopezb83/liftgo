@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.3",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Vinculación de prospectos con cotizaciones",
+    description: "Los prospectos CRM ahora pueden vincularse a cotizaciones existentes. Al mover a 'Cotización Enviada', el valor del trato es obligatorio y se auto-llena al seleccionar una cotización.",
+    changes: [
+      "Nuevo selector de cotización en el formulario de prospecto",
+      "Valor del trato obligatorio (> $0) desde etapa Cotización Enviada en adelante",
+      "Auto-llenado del valor al vincular cotización",
+      "Badge clicable con número de cotización en las tarjetas del Kanban",
+      "Navegación directa al detalle de la cotización desde el pipeline",
+    ],
+  },
+  {
     version: "3.18.2",
     date: "2026-03-08",
     type: "patch",
