@@ -1,17 +1,11 @@
 
 
-## Cambiar etiqueta "Enviado" → "Sin Pagar"
+## Plan: Eliminar botones de acción redundantes en tabla de clientes (v3.18.9)
 
 ### Cambio
+Eliminar la columna de botones Ver/Editar de la tabla de clientes, ya que la fila completa es clickeable y los hace redundantes.
 
-**Archivo: `src/lib/constants.ts`**
-
-En el objeto `STATUS_LABELS`, cambiar:
-```typescript
-sent: "Enviado",
-// →
-sent: "Sin Pagar",
-```
-
-Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
+### Archivos
+- **`src/pages/CustomersPage.tsx`** — Eliminar la columna `<TableHead>` vacía del header y el `<TableCell>` con los botones de la función `renderRow`
+- **`src/lib/changelog.ts`** — v3.18.9
 
