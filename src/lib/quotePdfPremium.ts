@@ -35,11 +35,21 @@ export function drawPremiumHeader(
   doc: jsPDF,
   company: CompanyData | null,
   logoBase64: string | null,
-  quoteNumber: string,
-  isSale: boolean,
+  documentNumber: string,
+  titleOrSaleFlag: boolean | string = false,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   let y = 18;
+  
+  // Determine document title
+  let title: string;
+  if (typeof titleOrSaleFlag === "string") {
+    title = titleOrSaleFlag;
+  } else if (titleOrSaleFlag === true) {
+    title = "COTIZACIÓN DE VENTA";
+  } else {
+    title = "COTIZACIÓN";
+  }
 
   // Logo
   const logoSize = 22;
@@ -63,17 +73,16 @@ export function drawPremiumHeader(
   }
 
   // Right side: document title
-  const title = isSale ? "COTIZACIÓN DE VENTA" : "COTIZACIÓN";
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(NAVY.r, NAVY.g, NAVY.b);
   doc.text(title, pw - MARGIN, y, { align: "right" });
 
-  // Quote number
+  // Document number
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GOLD.r, GOLD.g, GOLD.b);
-  doc.text(quoteNumber, pw - MARGIN, y + 8, { align: "right" });
+  doc.text(documentNumber, pw - MARGIN, y + 8, { align: "right" });
 
   // Date
   doc.setFontSize(8);
