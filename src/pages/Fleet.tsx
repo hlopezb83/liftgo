@@ -65,7 +65,7 @@ export default function Fleet() {
 
   const actions = (
     <div className="flex gap-2">
-      <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", (filtered || []).map(f => ({ Nombre: f.name, Modelo: f.model, Fabricante: f.manufacturer || "", Capacidad: f.capacity_kg || "", Combustible: f.fuel_type || "", Estado: f.status, "Tarifa Diaria": f.daily_rate || 0 })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+      <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", (filtered || []).map(f => ({ Nombre: f.name, Modelo: f.model, Fabricante: f.manufacturer || "", Capacidad: f.capacity_kg || "", Combustible: f.fuel_type || "", Estado: f.status })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
       <Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
     </div>
   );
