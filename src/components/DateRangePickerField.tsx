@@ -20,21 +20,38 @@ interface DateRangePickerFieldProps {
 
 export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required, error }: DateRangePickerFieldProps) {
   const [open, setOpen] = useState(false);
+  // Local range to avoid re-rendering trigger while calendar is open
+  const [localRange, setLocalRange] = useState<DateRange | undefined>(dateRange);
 
   const handleSelect = (range?: DateRange) => {
-    onSelect(range);
+    setLocalRange(range);
+    if (range?.from && range?.to) {
+      // Both dates selected — propagate and schedule close
+      onSelect(range);
+      setTimeout(() => setOpen(false), 200);
+    }
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen) {
+      // Reset local range to current external value when opening
+      setLocalRange(dateRange);
+    }
+  };
+
+  const displayRange = open ? localRange : dateRange;
+
   const formatLabel = () => {
-    if (!dateRange?.from) return placeholder;
-    if (!dateRange.to) return format(dateRange.from, "dd/MM/yyyy") + " — …";
-    return format(dateRange.from, "dd/MM") + " — " + format(dateRange.to, "dd/MM/yyyy");
+    if (!displayRange?.from) return placeholder;
+    if (!displayRange.to) return format(displayRange.from, "dd/MM/yyyy") + " — …";
+    return format(displayRange.from, "dd/MM") + " — " + format(displayRange.to, "dd/MM/yyyy");
   };
 
   return (
     <div className="space-y-1.5">
       <Label>{label}{required && " *"}</Label>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dateRange?.from && "text-muted-foreground")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -44,10 +61,9 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="range"
-            selected={dateRange}
+            selected={localRange}
             onSelect={handleSelect}
             numberOfMonths={2}
-            initialFocus
             className="p-3 pointer-events-auto"
           />
         </PopoverContent>
