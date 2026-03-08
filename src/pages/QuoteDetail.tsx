@@ -70,6 +70,7 @@ export default function QuoteDetail() {
   });
   const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
 
+  const customerMatch = useMemo(() => customers?.find(c => c.id === quote?.customer_id), [customers, quote?.customer_id]);
   const quoteType = (quote as any)?.quote_type || "rental";
   const isSale = quoteType === "sale";
 
