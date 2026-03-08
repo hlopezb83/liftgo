@@ -9,6 +9,22 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.5",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Rediseño profesional del PDF de cotizaciones",
+    description: "Las cotizaciones ahora se generan con un diseño premium: barra de acento navy, tarjetas de información, tabla con header navy y filas alternadas, total destacado, términos y condiciones automáticos, y pie de página corporativo.",
+    changes: [
+      "Barra superior navy con línea dorada como acento de marca",
+      "Encabezado con logo, datos de empresa y número de cotización destacado",
+      "Tarjetas de info lado a lado para cliente y detalles del periodo",
+      "Tabla de conceptos con header navy/texto blanco y filas alternadas",
+      "Total en caja navy con tipografía dorada",
+      "Sección de términos y condiciones automática",
+      "Pie de página con datos de la empresa",
+    ],
+  },
+  {
     version: "3.18.4",
     date: "2026-03-08",
     type: "minor",
