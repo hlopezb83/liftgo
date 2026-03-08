@@ -64,11 +64,6 @@ export default function CalendarPage() {
       <PageHeader
         title="Calendario de Disponibilidad"
         subtitle="Ver reservas de toda la flota"
-        action={
-          <Button asChild>
-            <Link to="/bookings/new"><Plus className="h-4 w-4" /> Nueva Reserva</Link>
-          </Button>
-        }
       />
 
       {endingSoon.length > 0 && (
