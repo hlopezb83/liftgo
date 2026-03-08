@@ -32,6 +32,7 @@ import { useSearchParams } from "react-router-dom";
 
 const initialForm = {
   bookingId: "" as string,
+  inspectedAt: new Date() as Date,
   condition: "good" as string,
   damageNotes: "" as string,
   damageCost: "" as string,
@@ -126,6 +127,7 @@ export default function ReturnInspectionPage() {
         booking_id: form.bookingId, forklift_id: booking.forklift_id, condition: form.condition,
         damage_notes: form.damageNotes || null, damage_cost: damageCost,
         hours_used: form.hoursUsed ? parseFloat(form.hoursUsed) : null, fuel_level: form.fuelLevel || null, inspected_by: form.inspectedBy || null,
+        inspected_at: form.inspectedAt.toISOString(),
       },
       {
         onSuccess: () => {
@@ -215,6 +217,7 @@ export default function ReturnInspectionPage() {
                 </SelectContent>
               </Select>
             </div>
+            <DatePickerField label="Fecha de Inspección" date={form.inspectedAt} onSelect={(d) => set("inspectedAt", d || new Date())} required />
             <div className="space-y-1.5">
               <Label>Condición *</Label>
               <Select value={form.condition} onValueChange={(v) => set("condition", v)}>

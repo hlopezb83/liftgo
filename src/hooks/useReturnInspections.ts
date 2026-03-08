@@ -28,6 +28,7 @@ export function useCreateReturnInspection() {
         p_hours_used: inspection.hours_used ?? undefined,
         p_fuel_level: inspection.fuel_level ?? undefined,
         p_inspected_by: inspection.inspected_by ?? undefined,
+        p_inspected_at: (inspection as any).inspected_at ?? new Date().toISOString(),
       });
       if (error) throw error;
       return data;

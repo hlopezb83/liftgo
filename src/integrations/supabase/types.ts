@@ -1512,19 +1512,34 @@ export type Database = {
     }
     Functions: {
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
-      complete_return_inspection: {
-        Args: {
-          p_booking_id: string
-          p_condition?: string
-          p_damage_cost?: number
-          p_damage_notes?: string
-          p_forklift_id: string
-          p_fuel_level?: string
-          p_hours_used?: number
-          p_inspected_by?: string
-        }
-        Returns: string
-      }
+      complete_return_inspection:
+        | {
+            Args: {
+              p_booking_id: string
+              p_condition?: string
+              p_damage_cost?: number
+              p_damage_notes?: string
+              p_forklift_id: string
+              p_fuel_level?: string
+              p_hours_used?: number
+              p_inspected_by?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_booking_id: string
+              p_condition?: string
+              p_damage_cost?: number
+              p_damage_notes?: string
+              p_forklift_id: string
+              p_fuel_level?: string
+              p_hours_used?: number
+              p_inspected_at?: string
+              p_inspected_by?: string
+            }
+            Returns: string
+          }
       create_booking: {
         Args: {
           p_customer_contact?: string
