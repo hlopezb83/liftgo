@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.11",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Alerta de Póliza Faltante al Crear Reserva",
+    description: "Al crear una reserva, si el montacargas no tiene póliza de mantenimiento activa, se ofrece crearla inmediatamente.",
+    changes: [
+      "Nuevo diálogo PostBookingPolicyDialog para crear póliza post-reserva",
+      "Detección automática de póliza faltante al confirmar reserva",
+      "Flujo encadenado: Entrega → Póliza → Calendario",
+    ],
+  },
+  {
     version: "3.17.10",
     date: "2026-03-08",
     type: "minor",

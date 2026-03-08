@@ -12,6 +12,8 @@ import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { ForkliftSelector } from "@/components/ForkliftSelector";
 import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
+import { PostBookingPolicyDialog } from "@/components/PostBookingPolicyDialog";
+import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
@@ -23,8 +25,10 @@ interface PostBookingState { bookingId: string; forkliftId: string; startDate: s
 export default function BookingForm() {
   const navigate = useNavigate();
   const { data: customers } = useCustomers();
+  const { data: policies } = useMaintenancePolicies();
   const createBooking = useCreateBooking();
   const [postBooking, setPostBooking] = useState<PostBookingState | null>(null);
+  const [showPolicyDialog, setShowPolicyDialog] = useState(false);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
@@ -78,7 +82,25 @@ export default function BookingForm() {
     );
   };
 
-  const handleSkipDelivery = () => { setPostBooking(null); toast.success("Reserva creada"); navigate("/calendar"); };
+  const handleDeliveryDone = () => {
+    // After delivery dialog, check if policy is needed
+    const hasPolicy = policies?.some(
+      (p) => p.forklift_id === postBooking?.forkliftId && p.is_active
+    );
+    if (!hasPolicy && postBooking) {
+      setShowPolicyDialog(true);
+    } else {
+      setPostBooking(null);
+      toast.success("Reserva creada");
+      navigate("/calendar");
+    }
+  };
+  const handlePolicyDone = () => {
+    setShowPolicyDialog(false);
+    setPostBooking(null);
+    toast.success("Reserva creada");
+    navigate("/calendar");
+  };
   const selectedForklift = forklifts?.find((f) => f.id === postBooking?.forkliftId);
 
   const dateRangeError = form.formState.errors.date_range?.message
@@ -136,8 +158,11 @@ export default function BookingForm() {
         />
         <FormActions submitLabel="Crear Reserva" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
       </form>
-      {postBooking && (
-        <PostBookingDeliveryDialog open={!!postBooking} onOpenChange={(open) => { if (!open) handleSkipDelivery(); }} bookingId={postBooking.bookingId} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} startDate={postBooking.startDate} customerAddress={postBooking.customerAddress} onSkip={handleSkipDelivery} />
+      {postBooking && !showPolicyDialog && (
+        <PostBookingDeliveryDialog open={!!postBooking && !showPolicyDialog} onOpenChange={(open) => { if (!open) handleDeliveryDone(); }} bookingId={postBooking.bookingId} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} startDate={postBooking.startDate} customerAddress={postBooking.customerAddress} onSkip={handleDeliveryDone} />
+      )}
+      {showPolicyDialog && postBooking && (
+        <PostBookingPolicyDialog open={showPolicyDialog} onOpenChange={(open) => { if (!open) handlePolicyDone(); }} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} onSkip={handlePolicyDone} />
       )}
     </div>
   );
