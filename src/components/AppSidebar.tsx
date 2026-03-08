@@ -1,4 +1,4 @@
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText, History, HelpCircle, Wallet, Package } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText, History, HelpCircle, Wallet, Package, Target } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +25,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Operaciones",
     items: [
+      { title: "Pipeline CRM", url: "/crm", icon: Target, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Clientes", url: "/customers", icon: Users },
       { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Reservas", url: "/bookings", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo", "auditor"] },

@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.0",
+    date: "2026-03-08",
+    type: "minor",
+    title: "Pipeline de Ventas CRM",
+    description: "Nuevo tablero Kanban drag-and-drop para rastrear prospectos de venta a través de 6 etapas.",
+    changes: [
+      "Nueva página Pipeline CRM con tablero tipo Trello",
+      "6 etapas: Nuevo Prospecto, Contactado, Cotización Enviada, Negociación, Cerrado Ganado, Cerrado Perdido",
+      "Drag & drop entre columnas para mover prospectos",
+      "Tarjetas con empresa, contacto y valor del trato en MXN",
+      "Diálogo para crear, editar y eliminar prospectos",
+      "Totales por columna visibles en el encabezado",
+    ],
+  },
+  {
     version: "3.17.11",
     date: "2026-03-08",
     type: "patch",

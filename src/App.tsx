@@ -47,6 +47,7 @@ const ChangelogPage = lazy(() => import("./pages/ChangelogPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
 const OperatingExpensesPage = lazy(() => import("./pages/OperatingExpensesPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
+const CRMPage = lazy(() => import("./pages/CRMPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -103,6 +104,7 @@ const routes: RouteConfig[] = [
   { path: "/damage", component: DamageTrackingPage },
   { path: "/expenses", component: OperatingExpensesPage, roles: ["admin", "administrativo", "auditor"] },
   { path: "/inventory", component: InventoryPage, roles: ["admin", "administrativo", "mechanic", "auditor"] },
+  { path: "/crm", component: CRMPage, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
   { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin", "administrativo", "auditor"] },
   { path: "/settings/company", component: CompanySettingsPage, roles: ["admin", "auditor"] },
   { path: "/users", component: UserManagementPage, roles: ["admin", "auditor"] },

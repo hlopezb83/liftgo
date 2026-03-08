@@ -1182,6 +1182,48 @@ export type Database = {
         }
         Relationships: []
       }
+      prospects: {
+        Row: {
+          company_name: string
+          contact_person: string | null
+          created_at: string | null
+          deal_value: number | null
+          email: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          stage: string
+          stage_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_name: string
+          contact_person?: string | null
+          created_at?: string | null
+          deal_value?: number | null
+          email?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          stage?: string
+          stage_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_name?: string
+          contact_person?: string | null
+          created_at?: string | null
+          deal_value?: number | null
+          email?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          stage?: string
+          stage_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       quote_assigned_forklifts: {
         Row: {
           created_at: string
