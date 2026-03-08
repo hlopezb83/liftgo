@@ -44,7 +44,7 @@ export default function Fleet() {
       mast_height_m: (f) => f.mast_height_m || 0,
       fuel_type: (f) => f.fuel_type || "",
       status: (f) => f.status,
-      daily_rate: (f) => f.daily_rate || 0,
+      
     },
   });
 
