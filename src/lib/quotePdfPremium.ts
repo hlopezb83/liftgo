@@ -52,43 +52,45 @@ export function drawPremiumHeader(
   }
 
   // Logo
-  const logoSize = 22;
+  const logoSize = 20;
   const textStartX = logoBase64 ? MARGIN + logoSize + 6 : MARGIN;
   if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", MARGIN, y - 3, logoSize, logoSize);
+    doc.addImage(logoBase64, "PNG", MARGIN, y, logoSize, logoSize);
   }
 
-  // Company name
-  doc.setFontSize(16);
+  // Company name — limited width to avoid overlap with title
+  const maxNameWidth = pw / 2 - MARGIN - 4;
+  doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(company?.razon_social || "LiftGo", textStartX, y + 3);
+  const nameLines = doc.splitTextToSize(company?.razon_social || "LiftGo", maxNameWidth);
+  doc.text(nameLines, textStartX, y + 5);
 
   // RFC line
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
   if (company) {
-    doc.text(`RFC: ${company.rfc}  •  C.P. ${company.lugar_expedicion}`, textStartX, y + 10);
+    doc.text(`RFC: ${company.rfc}  •  C.P. ${company.lugar_expedicion}`, textStartX, y + 12);
   }
 
   // Right side: document title
-  doc.setFontSize(20);
+  doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(NAVY.r, NAVY.g, NAVY.b);
-  doc.text(title, pw - MARGIN, y, { align: "right" });
+  doc.text(title, pw - MARGIN, y + 2, { align: "right" });
 
   // Document number
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GOLD.r, GOLD.g, GOLD.b);
-  doc.text(documentNumber, pw - MARGIN, y + 8, { align: "right" });
+  doc.text(documentNumber, pw - MARGIN, y + 9, { align: "right" });
 
   // Date
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
-  doc.text(`Fecha: ${format(new Date(), "dd/MM/yyyy")}`, pw - MARGIN, y + 14, { align: "right" });
+  doc.text(`Fecha: ${format(new Date(), "dd/MM/yyyy")}`, pw - MARGIN, y + 15, { align: "right" });
 
   y += 28;
 
