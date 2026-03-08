@@ -111,7 +111,7 @@ export function MaintenancePoliciesTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? <TableSkeleton columns={7} /> : !policies?.length ? (
+            {isLoading ? <TableSkeleton columnCount={7} /> : !policies?.length ? (
               <EmptyRow colSpan={7} message="No hay pólizas de mantenimiento configuradas" />
             ) : policies.map((p) => (
               <TableRow key={p.id}>
