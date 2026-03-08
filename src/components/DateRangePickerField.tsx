@@ -22,11 +22,13 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
   const [open, setOpen] = useState(false);
 
   const handleSelect = (range?: DateRange) => {
-    onSelect(range);
-    // Close popover only when both dates are selected
-    if (range?.from && range?.to) {
-      setTimeout(() => setOpen(false), 150);
-    }
+    // Defer state update to avoid DOM conflict between popover trigger re-render and calendar
+    requestAnimationFrame(() => {
+      onSelect(range);
+      if (range?.from && range?.to) {
+        setTimeout(() => setOpen(false), 100);
+      }
+    });
   };
 
   const formatLabel = () => {
