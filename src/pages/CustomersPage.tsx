@@ -187,15 +187,15 @@ export default function CustomersPage() {
           </TableRow>
         }
         renderRow={(c) => (
-          <TableRow key={c.id}>
+          <TableRow key={c.id} className="cursor-pointer" onClick={() => navigate(`/customers/${c.id}`)}>
             <TableCell className="font-medium">{c.name}</TableCell>
             <TableCell className="font-mono text-xs">{c.rfc || "—"}</TableCell>
             <TableCell>{c.email || "—"}</TableCell>
             <TableCell>{c.phone || "—"}</TableCell>
             <TableCell>{c.contact_person || "—"}</TableCell>
             <TableCell className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${c.id}`)}><Eye className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => openEdit(c as Customer)}><Edit className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/customers/${c.id}`); }}><Eye className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(c as Customer); }}><Edit className="h-4 w-4" /></Button>
             </TableCell>
           </TableRow>
         )}
