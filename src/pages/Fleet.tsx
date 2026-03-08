@@ -79,7 +79,10 @@ export default function Fleet() {
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/fleet/${f.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-mono font-semibold text-sm">{f.name}</span>
+              <span className="font-mono font-semibold text-sm flex items-center gap-1.5">
+                {f.name}
+                {activePolicyForkliftIds.has(f.id) && <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+              </span>
               <StatusBadge status={f.status} />
             </div>
             <p className="text-sm text-muted-foreground">{f.model} {f.manufacturer ? `· ${f.manufacturer}` : ""}</p>
