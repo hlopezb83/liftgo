@@ -195,9 +195,6 @@ export default function QuoteDetail() {
             {alreadyConverted && (
               <Button size="sm" variant="outline" disabled className="opacity-70"><BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva</Button>
             )}
-            {(quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
-              <Button size="sm" variant="outline" onClick={convertToInvoice}><Receipt className="h-4 w-4 mr-1" />Convertir a Factura</Button>
-            )}
             {quote.status === "sent" && (
               <>
                 <Button size="sm" variant="default" onClick={() => setStatus("accepted")}><CheckCircle className="h-4 w-4 mr-1" />Aceptar</Button>
