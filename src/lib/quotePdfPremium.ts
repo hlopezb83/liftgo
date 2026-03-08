@@ -77,7 +77,7 @@ export function drawPremiumHeader(
   doc.setTextColor(NAVY.r, NAVY.g, NAVY.b);
   doc.text(title, pw - MARGIN, y, { align: "right" });
 
-  // Quote number
+  // Document number
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GOLD.r, GOLD.g, GOLD.b);
