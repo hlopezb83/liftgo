@@ -217,8 +217,8 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
             <div className="rounded-lg border border-dashed p-3">
               {prospect.customer_id ? (
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">Cliente creado</span>
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Cliente creado</span>
                   <Button
                     type="button"
                     variant="link"

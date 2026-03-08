@@ -40,7 +40,7 @@ export function useProspects() {
 export function useCreateProspect() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (p: Omit<ProspectInsert, "stage_order">) => {
+    mutationFn: async (p: Omit<ProspectInsert, "stage_order" | "customer_id">) => {
       // Get max stage_order for this stage
       const { data: existing } = await supabase
         .from("prospects")
