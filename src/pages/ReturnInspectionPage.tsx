@@ -220,7 +220,7 @@ export default function ReturnInspectionPage() {
               </Select>
               <p className="text-xs text-muted-foreground">
                 Solo se muestran reservas cuyo periodo de renta ha finalizado. Si no encuentras la reserva, verifica que la fecha de fin ya haya pasado o{" "}
-                <a href="/bookings" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80 transition-colors">
+                <a href="/bookings" className="underline text-primary hover:text-primary/80 transition-colors">
                   edita la reserva
                 </a>{" "}
                 para ajustar las fechas antes de registrar la devolución.
