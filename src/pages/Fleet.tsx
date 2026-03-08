@@ -3,7 +3,7 @@ import { useForklifts } from "@/hooks/useForklifts";
 import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
 import { usePagination } from "@/hooks/usePagination";
 import { useSort } from "@/hooks/useSort";
-import { formatCurrency } from "@/lib/formatCurrency";
+
 import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
