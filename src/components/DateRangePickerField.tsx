@@ -38,7 +38,7 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
   return (
     <div className="space-y-1.5">
       <Label>{label}{required && " *"}</Label>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
           <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dateRange?.from && "text-muted-foreground")}>
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -51,7 +51,6 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
             selected={dateRange}
             onSelect={handleSelect}
             numberOfMonths={2}
-            initialFocus
             className="p-3 pointer-events-auto"
           />
         </PopoverContent>
