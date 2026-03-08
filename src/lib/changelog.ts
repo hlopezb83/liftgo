@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.8",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Filtrar solo reservas terminadas en devoluciones",
+    description: "El formulario de nueva devolución ahora solo muestra reservas cuyo periodo de renta ya finalizó, con mensaje informativo para el usuario.",
+    changes: [
+      "Filtro de activeBookings validando que end_date <= hoy",
+      "Mensaje informativo debajo del selector de reserva",
+    ],
+  },
+  {
     version: "3.19.7",
     date: "2026-03-08",
     type: "patch",
