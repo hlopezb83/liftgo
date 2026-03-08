@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.8",
+    date: "2026-03-08",
+    type: "minor",
+    title: "Página de Control de Refacciones",
+    description: "Nueva página de inventario de refacciones con tabla, búsqueda, filtro por categoría, alertas de stock bajo y formulario de alta/edición.",
+    changes: [
+      "Página InventoryPage con tabla de refacciones y acciones CRUD",
+      "Badge destructive 'Reabastecer' cuando stock ≤ mínimo",
+      "Formulario con validación Zod en español mexicano",
+      "Sección 'Inventario' en sidebar con icono Package",
+      "Schema partFormSchema centralizado en formSchemas.ts",
+    ],
+  },
+  {
     version: "3.17.7",
     date: "2026-03-08",
     type: "minor",
