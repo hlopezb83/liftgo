@@ -235,7 +235,11 @@ export default function QuoteDetail() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-          <CardContent><p className="font-medium">{quote.customer_name || "—"}</p></CardContent>
+          <CardContent>
+            <p className="font-medium">{quote.customer_name || "—"}</p>
+            {customerMatch?.rfc && <p className="text-sm text-muted-foreground">RFC: {customerMatch.rfc}</p>}
+            {customerMatch?.domicilio_fiscal_cp && <p className="text-sm text-muted-foreground">C.P. {customerMatch.domicilio_fiscal_cp}</p>}
+          </CardContent>
         </Card>
         {!isSale ? (
           <Card>
