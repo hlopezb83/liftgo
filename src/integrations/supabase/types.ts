@@ -959,6 +959,53 @@ export type Database = {
           },
         ]
       }
+      maintenance_policies: {
+        Row: {
+          created_at: string
+          description: string | null
+          forklift_id: string
+          id: string
+          is_active: boolean
+          last_generated_month: string | null
+          monthly_cost: number
+          provider_name: string
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          forklift_id: string
+          id?: string
+          is_active?: boolean
+          last_generated_month?: string | null
+          monthly_cost?: number
+          provider_name: string
+          service_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          forklift_id?: string
+          id?: string
+          is_active?: boolean
+          last_generated_month?: string | null
+          monthly_cost?: number
+          provider_name?: string
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_policies_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: true
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mechanics: {
         Row: {
           created_at: string

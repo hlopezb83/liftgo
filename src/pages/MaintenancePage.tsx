@@ -17,18 +17,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { MarkAvailableDialog } from "@/components/MarkAvailableDialog";
+import { RoleGuard } from "@/components/RoleGuard";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { SERVICE_TYPES } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, Wrench, Download, List, LayoutGrid } from "lucide-react";
+import { PlusCircle, Wrench, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MaintenanceKanban } from "@/components/maintenance/MaintenanceKanban";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const initialForm = {
   forkliftId: "" as string,
@@ -50,6 +52,27 @@ export default function MaintenancePage() {
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
   const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
+  const [generatingRecurring, setGeneratingRecurring] = useState(false);
+
+  const handleGenerateRecurring = async () => {
+    setGeneratingRecurring(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-recurring-maintenance");
+      if (error) throw error;
+      const result = data as { generated: number; skipped: number; month: string; details?: string[] };
+      if (result.generated > 0) {
+        toast.success(`${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`);
+        // Refresh maintenance logs
+        window.location.reload();
+      } else {
+        toast.info("No hay pólizas pendientes de generar para este mes");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Error al generar mantenimiento recurrente");
+    } finally {
+      setGeneratingRecurring(false);
+    }
+  };
 
   const enrichedLogs = logs?.map((log) => ({
     ...log,
@@ -141,6 +164,12 @@ export default function MaintenancePage() {
               <ToggleGroupItem value="board" aria-label="Vista de tablero"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
             </ToggleGroup>
             <Button variant="outline" size="sm" onClick={() => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({ Fecha: l.performed_at, Montacargas: forkliftMap.get(l.forklift_id)?.name || "", Servicio: l.service_type, "Realizado Por": l.performed_by || "", Costo: l.cost || 0, "Próximo Servicio": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+            <RoleGuard allowed={["admin", "administrativo"]}>
+              <Button variant="outline" size="sm" onClick={handleGenerateRecurring} disabled={generatingRecurring}>
+                <RefreshCw className={`h-4 w-4 mr-1 ${generatingRecurring ? "animate-spin" : ""}`} />
+                Generar Recurrente
+              </Button>
+            </RoleGuard>
             <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio</Button>
           </div>
         }

@@ -26,7 +26,7 @@ export const FORKLIFT_STATUSES = ["available", "rented", "maintenance", "retired
 export const FUEL_TYPES = ["Diesel", "Electric", "LPG"] as const;
 export const SERVICE_TYPES = [
   "Inspección de Rutina", "Cambio de Aceite", "Servicio de Batería", "Reemplazo de Llantas",
-  "Reparación Hidráulica", "Servicio de Frenos", "Reparación Eléctrica", "Otro",
+  "Reparación Hidráulica", "Servicio de Frenos", "Reparación Eléctrica", "Póliza de Mantenimiento", "Otro",
 ] as const;
 export const INSPECTION_CONDITIONS = ["good", "minor_damage", "major_damage", "needs_repair"] as const;
 export const FUEL_LEVELS = ["Full", "3/4", "1/2", "1/4", "Empty"] as const;

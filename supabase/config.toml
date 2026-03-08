@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-manual]
 verify_jwt = false
+
+[functions.generate-recurring-maintenance]
+verify_jwt = false
