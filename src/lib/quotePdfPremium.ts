@@ -52,43 +52,45 @@ export function drawPremiumHeader(
   }
 
   // Logo
-  const logoSize = 22;
+  const logoSize = 20;
   const textStartX = logoBase64 ? MARGIN + logoSize + 6 : MARGIN;
   if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", MARGIN, y - 3, logoSize, logoSize);
+    doc.addImage(logoBase64, "PNG", MARGIN, y, logoSize, logoSize);
   }
 
-  // Company name
-  doc.setFontSize(16);
+  // Company name — limited width to avoid overlap with title
+  const maxNameWidth = pw / 2 - MARGIN - 4;
+  doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(company?.razon_social || "LiftGo", textStartX, y + 3);
+  const nameLines = doc.splitTextToSize(company?.razon_social || "LiftGo", maxNameWidth);
+  doc.text(nameLines, textStartX, y + 5);
 
   // RFC line
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
   if (company) {
-    doc.text(`RFC: ${company.rfc}  •  C.P. ${company.lugar_expedicion}`, textStartX, y + 10);
+    doc.text(`RFC: ${company.rfc}  •  C.P. ${company.lugar_expedicion}`, textStartX, y + 12);
   }
 
   // Right side: document title
-  doc.setFontSize(20);
+  doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(NAVY.r, NAVY.g, NAVY.b);
-  doc.text(title, pw - MARGIN, y, { align: "right" });
+  doc.text(title, pw - MARGIN, y + 2, { align: "right" });
 
   // Document number
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GOLD.r, GOLD.g, GOLD.b);
-  doc.text(documentNumber, pw - MARGIN, y + 8, { align: "right" });
+  doc.text(documentNumber, pw - MARGIN, y + 9, { align: "right" });
 
   // Date
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
-  doc.text(`Fecha: ${format(new Date(), "dd/MM/yyyy")}`, pw - MARGIN, y + 14, { align: "right" });
+  doc.text(`Fecha: ${format(new Date(), "dd/MM/yyyy")}`, pw - MARGIN, y + 15, { align: "right" });
 
   y += 28;
 
@@ -126,14 +128,17 @@ export function drawInfoCardsAt(
   endDate: string | null,
   validUntil: string | null,
   isSale: boolean,
+  customerRfc?: string | null,
+  customerCp?: string | null,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   const cardWidth = (pw - MARGIN * 2 - 8) / 2;
+  const clientCardH = 34;
   let y = startY;
 
   // ── Client Card ──
   doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-  doc.roundedRect(MARGIN, y, cardWidth, 26, 2, 2, "F");
+  doc.roundedRect(MARGIN, y, cardWidth, clientCardH, 2, 2, "F");
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
@@ -143,12 +148,21 @@ export function drawInfoCardsAt(
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(customerName || "—", MARGIN + 6, y + 16);
+  doc.text(customerName || "—", MARGIN + 6, y + 15);
+
+  // RFC & C.P.
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
+  const rfcLine = [customerRfc ? `RFC: ${customerRfc}` : null, customerCp ? `C.P. ${customerCp}` : null].filter(Boolean).join("  •  ");
+  if (rfcLine) {
+    doc.text(rfcLine, MARGIN + 6, y + 22);
+  }
 
   // ── Details Card ──
   const cardX = MARGIN + cardWidth + 8;
   doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-  doc.roundedRect(cardX, y, cardWidth, 26, 2, 2, "F");
+  doc.roundedRect(cardX, y, cardWidth, clientCardH, 2, 2, "F");
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
@@ -160,13 +174,13 @@ export function drawInfoCardsAt(
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
 
   if (!isSale && startDate && endDate) {
-    doc.text(`Periodo: ${fmtDate(startDate)} → ${fmtDate(endDate)}`, cardX + 6, y + 14);
-    doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 21);
+    doc.text(`Periodo: ${fmtDate(startDate)} → ${fmtDate(endDate)}`, cardX + 6, y + 15);
+    doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 22);
   } else {
     doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 16);
   }
 
-  return y + 34;
+  return y + clientCardH + 8;
 }
 
 // ─── Premium Table ────────────────────────────────────

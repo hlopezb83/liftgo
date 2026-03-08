@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.2",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Corrección de PDF de cotización y datos fiscales del cliente",
+    description: "Se corrigieron solapamientos de texto en el encabezado del PDF, se ajustó el logo y se agregó RFC y C.P. del cliente en la tarjeta de información.",
+    changes: [
+      "Reducido tamaño de fuente del título y nombre de empresa para evitar solapamiento",
+      "Ajustada posición del logo en el encabezado",
+      "Limitado ancho del nombre de empresa con maxWidth",
+      "Agregado RFC y C.P. del cliente en la tarjeta de Cliente del PDF",
+      "Aumentada altura de tarjeta de cliente para acomodar datos fiscales",
+    ],
+  },
+  {
     version: "3.19.1",
     date: "2026-03-08",
     type: "patch",
