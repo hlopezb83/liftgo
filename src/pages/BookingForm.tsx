@@ -25,8 +25,10 @@ interface PostBookingState { bookingId: string; forkliftId: string; startDate: s
 export default function BookingForm() {
   const navigate = useNavigate();
   const { data: customers } = useCustomers();
+  const { data: policies } = useMaintenancePolicies();
   const createBooking = useCreateBooking();
   const [postBooking, setPostBooking] = useState<PostBookingState | null>(null);
+  const [showPolicyDialog, setShowPolicyDialog] = useState(false);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
