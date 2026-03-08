@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.4",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Mejora de diseño en PDF de facturas",
+    description: "Se aplicaron las mismas mejoras de jerarquía visual (etiquetas bold/normal) a la tarjeta de Detalles del PDF de facturas.",
+    changes: [
+      "Etiquetas 'Emitida' y 'Vence' en negrita con valores en texto normal",
+      "Consistencia visual con el PDF de cotizaciones",
+    ],
+  },
+  {
     version: "3.19.3",
     date: "2026-03-08",
     type: "patch",

@@ -117,10 +117,16 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.text("DETALLES", cardX + 6, y + 7);
 
       doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
+      doc.setFont("helvetica", "bold");
       doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-      doc.text(`Emitida: ${fmtDate(invoice.issued_at)}`, cardX + 6, y + 14);
-      doc.text(`Vence: ${fmtDate(invoice.due_date)}`, cardX + 6, y + 20);
+      doc.text("Emitida:", cardX + 6, y + 14);
+      doc.setFont("helvetica", "normal");
+      doc.text(fmtDate(invoice.issued_at), cardX + 24, y + 14);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Vence:", cardX + 6, y + 20);
+      doc.setFont("helvetica", "normal");
+      doc.text(fmtDate(invoice.due_date), cardX + 22, y + 20);
       
       // Status badge
       const statusLabel = invoice.status === "paid" ? "PAGADA" : invoice.status === "cancelled" ? "CANCELADA" : "PENDIENTE";
