@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.10",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Remover botón de nueva reserva en calendario",
+    description: "Se eliminó el botón de 'Nueva Reserva' en la página de calendario para centrar la vista exclusivamente en la disponibilidad.",
+    changes: [
+      "Se quitó la propiedad action del PageHeader en CalendarPage.tsx",
+    ],
+  },
+  {
     version: "3.19.9",
     date: "2026-03-08",
     type: "patch",
