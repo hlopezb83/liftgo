@@ -15,7 +15,7 @@ const statusStyles: Record<string, string> = {
   accepted: "bg-status-available text-white border-transparent",
   declined: "bg-destructive text-destructive-foreground border-transparent",
   expired: "bg-status-retired text-white border-transparent",
-  completed: "bg-status-available text-white border-transparent",
+  completed: "bg-status-completed text-white border-transparent",
   reported: "bg-status-maintenance text-white border-transparent",
   in_repair: "bg-status-maintenance text-white border-transparent",
   repaired: "bg-status-available text-white border-transparent",

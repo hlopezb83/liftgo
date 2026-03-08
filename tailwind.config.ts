@@ -63,6 +63,7 @@ export default {
           maintenance: "hsl(var(--status-maintenance))",
           retired: "hsl(var(--status-retired))",
           sold: "hsl(var(--status-sold))",
+          completed: "hsl(var(--status-completed))",
         },
         chart: {
           "1": "hsl(var(--chart-1))",

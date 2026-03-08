@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.5",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Diferenciar colores de Confirmado y Completado",
+    description: "Se asignó un color gris-azul oscuro al estado 'Completado' para distinguirlo del verde de 'Confirmado'.",
+    changes: [
+      "Nuevo token --status-completed (gris-azul oscuro)",
+      "StatusBadge usa bg-status-completed para el estado completado",
+      "Confirmado mantiene verde, Completado ahora es gris-azul",
+    ],
+  },
+  {
     version: "3.19.4",
     date: "2026-03-08",
     type: "patch",
