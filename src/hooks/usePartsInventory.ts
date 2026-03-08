@@ -99,18 +99,34 @@ export function useMaintenanceParts(maintenanceLogId?: string) {
 export function useAddMaintenancePart() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (row: TablesInsert<"maintenance_parts">) => {
+    mutationFn: async (row: TablesInsert<"maintenance_parts"> & { currentLogCost?: number }) => {
+      const { currentLogCost, ...insertRow } = row;
+      
+      // Insert the maintenance_part (trigger handles stock decrement)
       const { data, error } = await supabase
         .from("maintenance_parts")
-        .insert(row)
+        .insert(insertRow)
         .select()
         .single();
       if (error) throw error;
+
+      // Update maintenance_logs.cost by adding the part cost
+      const partCost = (insertRow.quantity_used || 1) * (insertRow.cost_at_time || 0);
+      const newTotalCost = (currentLogCost || 0) + partCost;
+      
+      const { error: updateError } = await supabase
+        .from("maintenance_logs")
+        .update({ cost: newTotalCost })
+        .eq("id", insertRow.maintenance_log_id);
+      
+      if (updateError) throw updateError;
+
       return data;
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["maintenance_parts", variables.maintenance_log_id] });
       qc.invalidateQueries({ queryKey: ["parts_inventory"] });
+      qc.invalidateQueries({ queryKey: ["maintenance_logs"] });
     },
     onError: (err: Error) => {
       import("sonner").then(({ toast }) =>

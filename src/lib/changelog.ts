@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.9",
+    date: "2026-03-08",
+    type: "minor",
+    title: "Integración Inventario ↔ Mantenimiento",
+    description: "Los mecánicos pueden agregar refacciones usadas directamente desde el tablero Kanban. El sistema descuenta stock automáticamente y actualiza el costo del mantenimiento.",
+    changes: [
+      "Sección 'Refacciones Utilizadas' en el detalle de cada tarea de mantenimiento",
+      "Combobox buscable por nombre o SKU con alerta de stock bajo",
+      "Al agregar refacción: inserta en maintenance_parts, descuenta stock vía trigger, suma costo al log",
+      "Sheet lateral al hacer clic en tarjeta del Kanban con info completa y gestión de refacciones",
+      "Costo total del mantenimiento se actualiza en tiempo real",
+    ],
+  },
+  {
     version: "3.17.8",
     date: "2026-03-08",
     type: "minor",
