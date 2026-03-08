@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowRight, FileText } from "lucide-react";
+import { useQuotes } from "@/hooks/useQuotes";
+import { formatCurrency } from "@/lib/formatCurrency";
 import type { Prospect } from "@/hooks/useProspects";
 
 const STAGE_LABELS: Record<string, string> = {
@@ -16,6 +19,8 @@ const STAGE_LABELS: Record<string, string> = {
   cerrado_ganado: "Cerrado Ganado",
   cerrado_perdido: "Cerrado Perdido",
 };
+
+const STAGES_REQUIRING_DEAL_VALUE = ["cotizacion_enviada", "negociacion", "cerrado_ganado", "cerrado_perdido"];
 
 interface Props {
   open: boolean;
@@ -31,6 +36,7 @@ interface Props {
     deal_value: number;
     notes: string;
     stage: string;
+    quote_id: string | null;
   }) => void;
   onDelete?: () => void;
 }
@@ -42,6 +48,24 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
   const [phone, setPhone] = useState("");
   const [dealValue, setDealValue] = useState("");
   const [notes, setNotes] = useState("");
+  const [quoteId, setQuoteId] = useState<string | null>(null);
+  const [dealValueError, setDealValueError] = useState<string | null>(null);
+
+  const { data: allQuotes = [] } = useQuotes();
+
+  // Filter quotes that match prospect's company name (case-insensitive partial match)
+  const matchingQuotes = useMemo(() => {
+    if (!company.trim()) return allQuotes;
+    const lowerCompany = company.toLowerCase();
+    return allQuotes.filter(
+      (q) =>
+        q.customer_name?.toLowerCase().includes(lowerCompany) ||
+        lowerCompany.includes(q.customer_name?.toLowerCase() ?? "")
+    );
+  }, [allQuotes, company]);
+
+  const effectiveStage = overrideStage ?? prospect?.stage ?? defaultStage;
+  const requiresDealValue = STAGES_REQUIRING_DEAL_VALUE.includes(effectiveStage);
 
   useEffect(() => {
     if (prospect) {
@@ -51,24 +75,50 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
       setPhone(prospect.phone ?? "");
       setDealValue(String(prospect.deal_value ?? 0));
       setNotes(prospect.notes ?? "");
+      setQuoteId(prospect.quote_id ?? null);
     } else {
-      setCompany(""); setContact(""); setEmail(""); setPhone(""); setDealValue(""); setNotes("");
+      setCompany(""); setContact(""); setEmail(""); setPhone(""); setDealValue(""); setNotes(""); setQuoteId(null);
     }
+    setDealValueError(null);
   }, [prospect, open]);
+
+  // When a quote is selected, auto-fill deal_value
+  const handleQuoteChange = (value: string) => {
+    const selectedId = value === "none" ? null : value;
+    setQuoteId(selectedId);
+    if (selectedId) {
+      const quote = allQuotes.find((q) => q.id === selectedId);
+      if (quote) {
+        setDealValue(String(quote.total ?? 0));
+        setDealValueError(null);
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsedValue = parseFloat(dealValue) || 0;
+
+    // Validation: deal_value must be > 0 for stages after "contactado"
+    if (requiresDealValue && parsedValue <= 0) {
+      setDealValueError("El valor del trato debe ser mayor a $0 para esta etapa");
+      return;
+    }
+
     onSave({
       company_name: company,
       contact_person: contact,
       email,
       phone,
-      deal_value: parseFloat(dealValue) || 0,
+      deal_value: parsedValue,
       notes,
-      stage: overrideStage ?? prospect?.stage ?? defaultStage,
+      stage: effectiveStage,
+      quote_id: quoteId,
     });
     onOpenChange(false);
   };
+
+  const selectedQuote = quoteId ? allQuotes.find((q) => q.id === quoteId) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,9 +159,52 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
               <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
           </div>
+
+          {/* Quote Selector - shown for stages requiring deal value */}
+          {requiresDealValue && (
+            <div className="space-y-2">
+              <Label htmlFor="quote">Cotización Vinculada</Label>
+              <Select value={quoteId ?? "none"} onValueChange={handleQuoteChange}>
+                <SelectTrigger id="quote">
+                  <SelectValue placeholder="Seleccionar cotización..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin cotización</SelectItem>
+                  {matchingQuotes.map((q) => (
+                    <SelectItem key={q.id} value={q.id}>
+                      <span className="flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5" />
+                        {q.quote_number} — {q.customer_name} — {formatCurrency(q.total)}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedQuote && (
+                <p className="text-xs text-muted-foreground">
+                  Cotización por {formatCurrency(selectedQuote.total)} — Estado: {selectedQuote.status}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="deal">Valor del Trato (MXN)</Label>
-            <Input id="deal" type="number" min="0" step="0.01" value={dealValue} onChange={(e) => setDealValue(e.target.value)} />
+            <Label htmlFor="deal">
+              Valor del Trato (MXN) {requiresDealValue && <span className="text-destructive">*</span>}
+            </Label>
+            <Input
+              id="deal"
+              type="number"
+              min="0"
+              step="0.01"
+              value={dealValue}
+              onChange={(e) => {
+                setDealValue(e.target.value);
+                setDealValueError(null);
+              }}
+              className={dealValueError ? "border-destructive" : ""}
+            />
+            {dealValueError && <p className="text-xs text-destructive">{dealValueError}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">Notas</Label>
