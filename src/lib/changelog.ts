@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.6",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Filtro de fecha en Inspección de Devolución",
+    description: "Se agregó un selector de fecha para filtrar inspecciones por día en la tabla de devoluciones.",
+    changes: [
+      "Nuevo filtro DatePickerField en la página de Devoluciones",
+      "Filtrado client-side por fecha de inspección",
+      "Botón para limpiar el filtro",
+    ],
+  },
+  {
     version: "3.19.5",
     date: "2026-03-08",
     type: "patch",

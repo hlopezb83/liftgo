@@ -149,6 +149,14 @@ export default function ReturnInspectionPage() {
       <ListPageLayout
         title="Devoluciones y Revisión"
         subtitle="Inspecciona equipos devueltos y actualiza el estado de la flota"
+        filters={
+          <div className="flex items-end gap-3">
+            <DatePickerField label="Filtrar por fecha" date={filterDate} onSelect={setFilterDate} placeholder="Todas las fechas" />
+            {filterDate && (
+              <Button variant="ghost" size="sm" onClick={() => setFilterDate(undefined)}>Limpiar</Button>
+            )}
+          </div>
+        }
         actions={
           <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
             <PlusCircle className="h-4 w-4 mr-1" /> Nueva Devolución
