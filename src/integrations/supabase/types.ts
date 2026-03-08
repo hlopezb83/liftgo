@@ -1187,6 +1187,7 @@ export type Database = {
           company_name: string
           contact_person: string | null
           created_at: string | null
+          customer_id: string | null
           deal_value: number | null
           email: string | null
           id: string
@@ -1201,6 +1202,7 @@ export type Database = {
           company_name: string
           contact_person?: string | null
           created_at?: string | null
+          customer_id?: string | null
           deal_value?: number | null
           email?: string | null
           id?: string
@@ -1215,6 +1217,7 @@ export type Database = {
           company_name?: string
           contact_person?: string | null
           created_at?: string | null
+          customer_id?: string | null
           deal_value?: number | null
           email?: string | null
           id?: string
@@ -1226,6 +1229,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "prospects_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "prospects_quote_id_fkey"
             columns: ["quote_id"]
