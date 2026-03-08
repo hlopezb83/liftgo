@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.0",
+    date: "2026-03-08",
+    type: "minor",
+    title: "RFC y C.P. en tarjeta de cliente (cotización)",
+    description: "Se muestran el RFC y código postal del cliente en la tarjeta de Cliente del detalle de cotización.",
+    changes: [
+      "Agregado RFC y C.P. en la tarjeta de cliente del detalle de cotización",
+    ],
+  },
+  {
     version: "3.18.9",
     date: "2026-03-08",
     type: "patch",

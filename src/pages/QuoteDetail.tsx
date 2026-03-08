@@ -70,6 +70,7 @@ export default function QuoteDetail() {
   });
   const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
 
+  const customerMatch = useMemo(() => customers?.find(c => c.id === quote?.customer_id), [customers, quote?.customer_id]);
   const quoteType = (quote as any)?.quote_type || "rental";
   const isSale = quoteType === "sale";
 
@@ -234,7 +235,11 @@ export default function QuoteDetail() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-          <CardContent><p className="font-medium">{quote.customer_name || "—"}</p></CardContent>
+          <CardContent>
+            <p className="font-medium">{quote.customer_name || "—"}</p>
+            {customerMatch?.rfc && <p className="text-sm text-muted-foreground">RFC: {customerMatch.rfc}</p>}
+            {customerMatch?.domicilio_fiscal_cp && <p className="text-sm text-muted-foreground">C.P. {customerMatch.domicilio_fiscal_cp}</p>}
+          </CardContent>
         </Card>
         {!isSale ? (
           <Card>
