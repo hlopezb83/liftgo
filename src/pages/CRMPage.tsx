@@ -169,9 +169,13 @@ export default function CRMPage() {
 
       <ProspectFormDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setOverrideStage(undefined);
+        }}
         prospect={editingProspect}
         defaultStage={defaultStage}
+        overrideStage={overrideStage}
         onSave={(data) => {
           if (editingProspect) {
             updateProspect.mutate({ id: editingProspect.id, ...data });

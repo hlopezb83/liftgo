@@ -76,8 +76,19 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
         <DialogHeader>
           <DialogTitle>{prospect ? "Editar Prospecto" : "Nuevo Prospecto"}</DialogTitle>
           <DialogDescription>
-            {prospect ? "Actualiza la información del prospecto." : "Agrega un nuevo prospecto al pipeline."}
+            {overrideStage && prospect
+              ? "Confirma los datos antes de mover el prospecto de etapa."
+              : prospect
+                ? "Actualiza la información del prospecto."
+                : "Agrega un nuevo prospecto al pipeline."}
           </DialogDescription>
+          {overrideStage && prospect && (
+            <div className="flex items-center gap-2 mt-2 text-sm">
+              <Badge variant="secondary">{STAGE_LABELS[prospect.stage] ?? prospect.stage}</Badge>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              <Badge>{STAGE_LABELS[overrideStage] ?? overrideStage}</Badge>
+            </div>
+          )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
