@@ -25,7 +25,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Operaciones",
     items: [
-      { title: "Pipeline CRM", url: "/crm", icon: Target, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+      { title: "CRM", url: "/crm", icon: Target, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Clientes", url: "/customers", icon: Users },
       { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Reservas", url: "/bookings", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
