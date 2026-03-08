@@ -60,7 +60,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
         ? `${invoice.serie}-${invoice.folio}`
         : invoice.invoice_number;
 
-      let y = drawPremiumHeader(doc, company, logoBase64, invoiceLabel, false);
+      let y = drawPremiumHeader(doc, company, logoBase64, invoiceLabel, "FACTURA");
 
       // 3. CFDI UUID badge if stamped
       if (invoice.cfdi_status === "stamped" && invoice.cfdi_uuid) {

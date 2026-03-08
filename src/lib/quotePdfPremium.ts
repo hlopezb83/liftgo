@@ -36,18 +36,19 @@ export function drawPremiumHeader(
   company: CompanyData | null,
   logoBase64: string | null,
   documentNumber: string,
-  isSaleOrInvoice: boolean | string = false,
+  titleOrSaleFlag: boolean | string = false,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   let y = 18;
   
   // Determine document title
-  let title = "COTIZACIÓN";
-  if (typeof isSaleOrInvoice === "string") {
-    // If string passed, use as custom title (for invoices)
-    title = "FACTURA";
-  } else if (isSaleOrInvoice === true) {
+  let title: string;
+  if (typeof titleOrSaleFlag === "string") {
+    title = titleOrSaleFlag;
+  } else if (titleOrSaleFlag === true) {
     title = "COTIZACIÓN DE VENTA";
+  } else {
+    title = "COTIZACIÓN";
   }
 
   // Logo
