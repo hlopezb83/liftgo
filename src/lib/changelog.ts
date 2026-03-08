@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.4",
+    date: "2026-03-08",
+    type: "minor",
+    title: "Conversión de prospecto a cliente",
+    description: "Los prospectos en etapa 'Cerrado Ganado' pueden convertirse en clientes registrados con un clic. Los datos se pre-llenan automáticamente.",
+    changes: [
+      "Botón 'Convertir a Cliente' en prospectos cerrados ganados",
+      "Pre-llenado automático de nombre, contacto, email y teléfono",
+      "Vinculación automática del prospecto con el cliente creado",
+      "Badge 'Cliente creado' con enlace directo al detalle del cliente",
+    ],
+  },
+  {
     version: "3.18.3",
     date: "2026-03-08",
     type: "patch",

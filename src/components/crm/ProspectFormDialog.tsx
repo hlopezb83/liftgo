@@ -212,6 +212,48 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
             <Label htmlFor="notes">Notas</Label>
             <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
+          {/* Convert to Customer button for cerrado_ganado */}
+          {prospect && effectiveStage === "cerrado_ganado" && (
+            <div className="rounded-lg border border-dashed p-3">
+              {prospect.customer_id ? (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">Cliente creado</span>
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    className="ml-auto p-0 h-auto"
+                    onClick={() => navigate(`/customers/${prospect.customer_id}`)}
+                  >
+                    Ver cliente
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      from_prospect: "true",
+                      prospect_id: prospect.id,
+                      company: prospect.company_name,
+                      contact: prospect.contact_person || "",
+                      email: prospect.email || "",
+                      phone: prospect.phone || "",
+                    });
+                    onOpenChange(false);
+                    navigate(`/customers?${params.toString()}`);
+                  }}
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Convertir a Cliente
+                </Button>
+              )}
+            </div>
+          )}
+
           <DialogFooter className="flex justify-between sm:justify-between">
             {prospect && onDelete && (
               <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(); onOpenChange(false); }}>

@@ -140,7 +140,19 @@ export default function CustomersPage() {
     if (editId) {
       updateCustomer.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Cliente actualizado"); setDialogOpen(false); } });
     } else {
-      createCustomer.mutate(payload, { onSuccess: () => { toast.success("Cliente agregado"); setDialogOpen(false); reset(); } });
+      createCustomer.mutate(payload, {
+        onSuccess: (newCustomer) => {
+          toast.success("Cliente agregado");
+          setDialogOpen(false);
+          reset();
+          // Link prospect to the newly created customer
+          if (prospectId && newCustomer?.id) {
+            updateProspect.mutate({ id: prospectId, customer_id: newCustomer.id });
+            setProspectId(null);
+            toast.success("Prospecto vinculado al nuevo cliente");
+          }
+        },
+      });
     }
   };
 

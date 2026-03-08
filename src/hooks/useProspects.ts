@@ -13,6 +13,7 @@ export interface Prospect {
   notes: string | null;
   stage_order: number;
   quote_id: string | null;
+  customer_id: string | null;
   created_at: string;
   updated_at: string;
 }
