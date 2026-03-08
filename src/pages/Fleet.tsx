@@ -92,10 +92,7 @@ export default function Fleet() {
                 {f.mast_height_m && <span>{f.mast_height_m} m</span>}
                 {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}
               </div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-medium">{formatCurrency(f.daily_rate || 0)}/día</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
