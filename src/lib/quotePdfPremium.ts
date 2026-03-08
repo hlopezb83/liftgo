@@ -35,11 +35,20 @@ export function drawPremiumHeader(
   doc: jsPDF,
   company: CompanyData | null,
   logoBase64: string | null,
-  quoteNumber: string,
-  isSale: boolean,
+  documentNumber: string,
+  isSaleOrInvoice: boolean | string = false,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   let y = 18;
+  
+  // Determine document title
+  let title = "COTIZACIÓN";
+  if (typeof isSaleOrInvoice === "string") {
+    // If string passed, use as custom title (for invoices)
+    title = "FACTURA";
+  } else if (isSaleOrInvoice === true) {
+    title = "COTIZACIÓN DE VENTA";
+  }
 
   // Logo
   const logoSize = 22;
