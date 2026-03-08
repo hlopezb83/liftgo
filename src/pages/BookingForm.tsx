@@ -158,8 +158,11 @@ export default function BookingForm() {
         />
         <FormActions submitLabel="Crear Reserva" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
       </form>
-      {postBooking && (
-        <PostBookingDeliveryDialog open={!!postBooking} onOpenChange={(open) => { if (!open) handleSkipDelivery(); }} bookingId={postBooking.bookingId} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} startDate={postBooking.startDate} customerAddress={postBooking.customerAddress} onSkip={handleSkipDelivery} />
+      {postBooking && !showPolicyDialog && (
+        <PostBookingDeliveryDialog open={!!postBooking && !showPolicyDialog} onOpenChange={(open) => { if (!open) handleDeliveryDone(); }} bookingId={postBooking.bookingId} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} startDate={postBooking.startDate} customerAddress={postBooking.customerAddress} onSkip={handleDeliveryDone} />
+      )}
+      {showPolicyDialog && postBooking && (
+        <PostBookingPolicyDialog open={showPolicyDialog} onOpenChange={(open) => { if (!open) handlePolicyDone(); }} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} onSkip={handlePolicyDone} />
       )}
     </div>
   );
