@@ -4,13 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
 import type { Prospect } from "@/hooks/useProspects";
+
+const STAGE_LABELS: Record<string, string> = {
+  nuevo_prospecto: "Nuevo Prospecto",
+  contactado: "Contactado",
+  cotizacion_enviada: "Cotización Enviada",
+  negociacion: "Negociación",
+  cerrado_ganado: "Cerrado Ganado",
+  cerrado_perdido: "Cerrado Perdido",
+};
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   prospect?: Prospect | null;
   defaultStage?: string;
+  overrideStage?: string;
   onSave: (data: {
     company_name: string;
     contact_person: string;
@@ -23,7 +35,7 @@ interface Props {
   onDelete?: () => void;
 }
 
-export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage = "nuevo_prospecto", onSave, onDelete }: Props) {
+export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage = "nuevo_prospecto", overrideStage, onSave, onDelete }: Props) {
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
   const [email, setEmail] = useState("");
