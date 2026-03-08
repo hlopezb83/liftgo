@@ -32,6 +32,7 @@ import { useSearchParams } from "react-router-dom";
 
 const initialForm = {
   bookingId: "" as string,
+  inspectedAt: new Date() as Date,
   condition: "good" as string,
   damageNotes: "" as string,
   damageCost: "" as string,
