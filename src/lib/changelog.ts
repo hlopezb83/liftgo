@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.1",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Reorganización del Sidebar",
+    description: "Reestructuración de la navegación lateral en 5 grupos lógicos siguiendo el flujo del negocio.",
+    changes: [
+      "Nuevo grupo 'Comercial': CRM, Clientes, Cotizaciones, Reservas",
+      "Grupo 'Operaciones' enfocado: Contratos, Entregas, Devoluciones, Facturas",
+      "Refacciones absorbido en 'Flota y Mantenimiento'",
+      "Administración reordenada: Gastos y Reportes priorizados",
+    ],
+  },
+  {
     version: "3.18.0",
     date: "2026-03-08",
     type: "minor",
