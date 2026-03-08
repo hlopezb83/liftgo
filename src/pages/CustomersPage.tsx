@@ -183,7 +183,6 @@ export default function CustomersPage() {
             <SortableTableHead sortKey="email" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Correo</SortableTableHead>
             <SortableTableHead sortKey="phone" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Teléfono</SortableTableHead>
             <SortableTableHead sortKey="contact_person" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Persona de Contacto</SortableTableHead>
-            <TableHead className="w-16"></TableHead>
           </TableRow>
         }
         renderRow={(c) => (
