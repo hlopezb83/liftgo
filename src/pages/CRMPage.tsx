@@ -38,13 +38,22 @@ export default function CRMPage() {
   const onDragEnd = useCallback(
     (result: DropResult) => {
       if (!result.destination) return;
-      const { draggableId, destination } = result;
+      const { draggableId, source, destination } = result;
       const newStage = destination.droppableId;
-      const newOrder = destination.index;
-      // Optimistic: just fire mutation
-      updateProspect.mutate({ id: draggableId, stage: newStage, stage_order: newOrder });
+      // If same column reorder, just update order directly
+      if (source.droppableId === newStage) {
+        updateProspect.mutate({ id: draggableId, stage_order: destination.index });
+        return;
+      }
+      // Different stage: open dialog for validation
+      const prospect = prospects.find((p) => p.id === draggableId);
+      if (prospect) {
+        setEditingProspect(prospect);
+        setOverrideStage(newStage);
+        setDialogOpen(true);
+      }
     },
-    [updateProspect]
+    [updateProspect, prospects]
   );
 
   const openCreate = (stage: string) => {
