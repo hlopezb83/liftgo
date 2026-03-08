@@ -129,7 +129,7 @@ export default function Fleet() {
           <SortableTableHead sortKey="mast_height_m" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Altura</SortableTableHead>
           <SortableTableHead sortKey="fuel_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Combustible</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <SortableTableHead sortKey="daily_rate" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort} className="text-right">Tarifa Diaria</SortableTableHead>
+          
         </TableRow>
       }
       renderRow={(f) => (
