@@ -43,6 +43,7 @@ interface Props {
 }
 
 export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage = "nuevo_prospecto", overrideStage, onSave, onDelete }: Props) {
+  const navigate = useNavigate();
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
   const [email, setEmail] = useState("");
