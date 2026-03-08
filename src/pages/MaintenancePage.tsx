@@ -55,6 +55,27 @@ export default function MaintenancePage() {
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
   const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
+  const [generatingRecurring, setGeneratingRecurring] = useState(false);
+
+  const handleGenerateRecurring = async () => {
+    setGeneratingRecurring(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-recurring-maintenance");
+      if (error) throw error;
+      const result = data as { generated: number; skipped: number; month: string; details?: string[] };
+      if (result.generated > 0) {
+        toast.success(`${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`);
+        // Refresh maintenance logs
+        window.location.reload();
+      } else {
+        toast.info("No hay pólizas pendientes de generar para este mes");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Error al generar mantenimiento recurrente");
+    } finally {
+      setGeneratingRecurring(false);
+    }
+  };
 
   const enrichedLogs = logs?.map((log) => ({
     ...log,
