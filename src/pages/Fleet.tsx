@@ -148,7 +148,7 @@ export default function Fleet() {
           <TableCell>{f.mast_height_m ? `${f.mast_height_m} m` : "—"}</TableCell>
           <TableCell>{f.fuel_type ? (FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type) : "—"}</TableCell>
           <TableCell><StatusBadge status={f.status} /></TableCell>
-          <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/día</TableCell>
+          
         </TableRow>
       )}
     />
