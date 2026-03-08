@@ -174,10 +174,25 @@ export function drawInfoCardsAt(
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
 
   if (!isSale && startDate && endDate) {
-    doc.text(`Periodo: ${fmtDate(startDate)} → ${fmtDate(endDate)}`, cardX + 6, y + 15);
-    doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 22);
+    doc.setFont("helvetica", "bold");
+    doc.text("Inicio:", cardX + 6, y + 15);
+    doc.setFont("helvetica", "normal");
+    doc.text(fmtDate(startDate), cardX + 22, y + 15);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Fin:", cardX + 50, y + 15);
+    doc.setFont("helvetica", "normal");
+    doc.text(fmtDate(endDate), cardX + 60, y + 15);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Vigencia hasta:", cardX + 6, y + 22);
+    doc.setFont("helvetica", "normal");
+    doc.text(fmtDate(validUntil), cardX + 38, y + 22);
   } else {
-    doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Vigencia hasta:", cardX + 6, y + 16);
+    doc.setFont("helvetica", "normal");
+    doc.text(fmtDate(validUntil), cardX + 38, y + 16);
   }
 
   return y + clientCardH + 8;
