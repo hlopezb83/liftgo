@@ -128,14 +128,17 @@ export function drawInfoCardsAt(
   endDate: string | null,
   validUntil: string | null,
   isSale: boolean,
+  customerRfc?: string | null,
+  customerCp?: string | null,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   const cardWidth = (pw - MARGIN * 2 - 8) / 2;
+  const clientCardH = 34;
   let y = startY;
 
   // ── Client Card ──
   doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-  doc.roundedRect(MARGIN, y, cardWidth, 26, 2, 2, "F");
+  doc.roundedRect(MARGIN, y, cardWidth, clientCardH, 2, 2, "F");
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
@@ -145,12 +148,21 @@ export function drawInfoCardsAt(
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(customerName || "—", MARGIN + 6, y + 16);
+  doc.text(customerName || "—", MARGIN + 6, y + 15);
+
+  // RFC & C.P.
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
+  const rfcLine = [customerRfc ? `RFC: ${customerRfc}` : null, customerCp ? `C.P. ${customerCp}` : null].filter(Boolean).join("  •  ");
+  if (rfcLine) {
+    doc.text(rfcLine, MARGIN + 6, y + 22);
+  }
 
   // ── Details Card ──
   const cardX = MARGIN + cardWidth + 8;
   doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-  doc.roundedRect(cardX, y, cardWidth, 26, 2, 2, "F");
+  doc.roundedRect(cardX, y, cardWidth, clientCardH, 2, 2, "F");
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
@@ -162,13 +174,13 @@ export function drawInfoCardsAt(
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
 
   if (!isSale && startDate && endDate) {
-    doc.text(`Periodo: ${fmtDate(startDate)} → ${fmtDate(endDate)}`, cardX + 6, y + 14);
-    doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 21);
+    doc.text(`Periodo: ${fmtDate(startDate)} → ${fmtDate(endDate)}`, cardX + 6, y + 15);
+    doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 22);
   } else {
     doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 16);
   }
 
-  return y + 34;
+  return y + clientCardH + 8;
 }
 
 // ─── Premium Table ────────────────────────────────────

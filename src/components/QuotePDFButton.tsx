@@ -36,6 +36,21 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
 
       const { company, logoBase64 } = await fetchCompanyDataAndLogo();
 
+      // Fetch customer RFC & C.P.
+      let customerRfc: string | null = null;
+      let customerCp: string | null = null;
+      if (quote.customer_id) {
+        const { data: cust } = await supabase
+          .from("customers")
+          .select("rfc, domicilio_fiscal_cp")
+          .eq("id", quote.customer_id)
+          .single();
+        if (cust) {
+          customerRfc = cust.rfc;
+          customerCp = cust.domicilio_fiscal_cp;
+        }
+      }
+
       const doc = new jsPDF();
       const isSale = (quote as any).quote_type === "sale";
 
@@ -46,7 +61,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       let y = drawPremiumHeader(doc, company, logoBase64, quote.quote_number, isSale);
 
       // 3. Info cards (client + details)
-      y = drawInfoCardsAt(doc, y, quote.customer_name, quote.start_date, quote.end_date, quote.valid_until, isSale);
+      y = drawInfoCardsAt(doc, y, quote.customer_name, quote.start_date, quote.end_date, quote.valid_until, isSale, customerRfc, customerCp);
 
       // 4. Line items table
       const lineItems = (quote.line_items as unknown as PdfLineItem[]) || [];
