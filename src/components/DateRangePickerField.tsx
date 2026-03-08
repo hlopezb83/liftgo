@@ -23,6 +23,10 @@ export function DateRangePickerField({ label, dateRange, onSelect, placeholder =
 
   const handleSelect = (range?: DateRange) => {
     onSelect(range);
+    // Close popover only when both dates are selected
+    if (range?.from && range?.to) {
+      setTimeout(() => setOpen(false), 150);
+    }
   };
 
   const formatLabel = () => {
