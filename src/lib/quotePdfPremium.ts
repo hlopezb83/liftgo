@@ -126,14 +126,21 @@ export function drawInfoCardsAt(
   endDate: string | null,
   validUntil: string | null,
   isSale: boolean,
+  customerRfc?: string | null,
+  customerCp?: string | null,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   const cardWidth = (pw - MARGIN * 2 - 8) / 2;
   let y = startY;
 
+  // Calculate client card height based on extra info
+  const hasExtra = customerRfc || customerCp;
+  const clientCardH = hasExtra ? 32 : 26;
+  const detailsCardH = clientCardH; // keep same height
+
   // ── Client Card ──
   doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-  doc.roundedRect(MARGIN, y, cardWidth, 26, 2, 2, "F");
+  doc.roundedRect(MARGIN, y, cardWidth, clientCardH, 2, 2, "F");
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
@@ -145,10 +152,18 @@ export function drawInfoCardsAt(
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
   doc.text(customerName || "—", MARGIN + 6, y + 16);
 
+  if (hasExtra) {
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
+    const extras = [customerRfc ? `RFC: ${customerRfc}` : null, customerCp ? `C.P. ${customerCp}` : null].filter(Boolean).join("  •  ");
+    doc.text(extras, MARGIN + 6, y + 23);
+  }
+
   // ── Details Card ──
   const cardX = MARGIN + cardWidth + 8;
   doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-  doc.roundedRect(cardX, y, cardWidth, 26, 2, 2, "F");
+  doc.roundedRect(cardX, y, cardWidth, detailsCardH, 2, 2, "F");
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
@@ -166,7 +181,7 @@ export function drawInfoCardsAt(
     doc.text(`Vigencia: ${fmtDate(validUntil)}`, cardX + 6, y + 16);
   }
 
-  return y + 34;
+  return y + clientCardH + 8;
 }
 
 // ─── Premium Table ────────────────────────────────────
