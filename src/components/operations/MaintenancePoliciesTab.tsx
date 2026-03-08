@@ -18,7 +18,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
-import { StatusBadge } from "@/components/StatusBadge";
+
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
