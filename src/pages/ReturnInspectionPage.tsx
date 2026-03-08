@@ -55,6 +55,16 @@ export default function ReturnInspectionPage() {
   const { form, set, reset } = useFormState(initialForm);
   const [invoicePrompt, setInvoicePrompt] = useState<InvoicePromptData | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [filterDate, setFilterDate] = useState<Date | undefined>();
+
+  const filteredInspections = useMemo(() => {
+    if (!inspections) return undefined;
+    if (!filterDate) return inspections;
+    return inspections.filter((i) => {
+      const d = parseDateLocal(i.inspected_at);
+      return d.getFullYear() === filterDate.getFullYear() && d.getMonth() === filterDate.getMonth() && d.getDate() === filterDate.getDate();
+    });
+  }, [inspections, filterDate]);
 
   const activeBookings = bookings?.filter((b) => b.status === "confirmed" && !b.return_status);
 
