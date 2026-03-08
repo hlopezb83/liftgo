@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.7",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Campo de fecha en formulario de Nueva Devolución",
+    description: "Se agregó un selector de fecha al formulario de nueva inspección de devolución para poder registrar inspecciones con fecha diferente a la actual.",
+    changes: [
+      "Nuevo campo DatePickerField en el diálogo de Nueva Devolución",
+      "Parámetro p_inspected_at agregado a la función complete_return_inspection",
+      "Valor predeterminado: fecha actual",
+    ],
+  },
+  {
     version: "3.19.6",
     date: "2026-03-08",
     type: "patch",

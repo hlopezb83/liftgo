@@ -127,6 +127,7 @@ export default function ReturnInspectionPage() {
         booking_id: form.bookingId, forklift_id: booking.forklift_id, condition: form.condition,
         damage_notes: form.damageNotes || null, damage_cost: damageCost,
         hours_used: form.hoursUsed ? parseFloat(form.hoursUsed) : null, fuel_level: form.fuelLevel || null, inspected_by: form.inspectedBy || null,
+        inspected_at: form.inspectedAt.toISOString(),
       },
       {
         onSuccess: () => {
