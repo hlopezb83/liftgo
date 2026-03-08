@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.3",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Mejora en sección de Periodo del PDF de cotización",
+    description: "Se mejoró la presentación del periodo de renta en la tarjeta de Detalles del PDF, separando fechas de inicio y fin con etiquetas claras.",
+    changes: [
+      "Reemplazado carácter Unicode → por etiquetas 'Inicio' y 'Fin' separadas",
+      "Agregado formato bold/normal para mejor jerarquía visual",
+      "Cambiado 'Vigencia' por 'Vigencia hasta' para mayor claridad",
+    ],
+  },
+  {
     version: "3.19.2",
     date: "2026-03-08",
     type: "patch",

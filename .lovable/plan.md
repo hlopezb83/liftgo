@@ -1,28 +1,17 @@
 
 
-## Plan: Mejorar sección de Periodo en tarjeta Detalles del PDF (v3.19.3)
+## Cambiar etiqueta "Enviado" → "Sin Pagar"
 
-### Problema
-La línea `Periodo: 01/03/2025 → 30/04/2025` usa el carácter `→` que puede no renderizarse correctamente en jsPDF (fuente Helvetica no soporta todos los glyphs Unicode). Además, la presentación es plana y poco clara.
+### Cambio
 
-### Cambios
+**Archivo: `src/lib/constants.ts`**
 
-**`src/lib/quotePdfPremium.ts`** — `drawInfoCardsAt` (líneas 176-181)
-
-Reemplazar la línea única de periodo por un diseño con etiquetas separadas para "Inicio" y "Fin", usando texto en negrita para las fechas y una flecha ASCII segura (`->`  o simplemente separación visual con `al`). Agregar también etiqueta "Vigencia hasta" más descriptiva.
-
-```
-DETALLES
-Inicio: 01/03/2025    Fin: 30/04/2025
-Vigencia hasta: 15/03/2025
+En el objeto `STATUS_LABELS`, cambiar:
+```typescript
+sent: "Enviado",
+// →
+sent: "Sin Pagar",
 ```
 
-- Usar `doc.setFont("helvetica", "bold")` para las etiquetas y `"normal"` para los valores
-- Reemplazar `→` por `al` (más legible y seguro en Helvetica)
-- Mantener el layout en las mismas posiciones Y existentes
-
-**`src/lib/changelog.ts`** — v3.19.3
-
-### Archivos
-- **Editar**: `src/lib/quotePdfPremium.ts`, `src/lib/changelog.ts`
+Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
 
