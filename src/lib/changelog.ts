@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.1",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Hover estandarizado en tablas clickeables",
+    description: "Se unificó el efecto hover en todas las tablas con filas clickeables (Clientes, Flota) para usar el mismo estilo que Contratos, Cotizaciones, Facturas y Auditoría.",
+    changes: [
+      "Agregado borde izquierdo al hover en filas de Clientes",
+      "Cambiado color de hover en Flota de accent a muted para consistencia",
+    ],
+  },
+  {
     version: "3.19.0",
     date: "2026-03-08",
     type: "minor",
