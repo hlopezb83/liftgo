@@ -130,7 +130,7 @@ export default function Fleet() {
         </TableRow>
       }
       renderRow={(f) => (
-        <TableRow key={f.id} className="cursor-pointer hover:bg-accent/50 transition-colors duration-150 border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/fleet/${f.id}`)}>
+        <TableRow key={f.id} className="cursor-pointer hover:bg-muted/50 transition-colors border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/fleet/${f.id}`)}>
           <TableCell className="font-mono font-medium">
             <span className="flex items-center gap-1.5">
               {f.name}
