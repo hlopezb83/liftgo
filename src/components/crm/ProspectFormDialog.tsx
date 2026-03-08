@@ -65,7 +65,7 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
       phone,
       deal_value: parseFloat(dealValue) || 0,
       notes,
-      stage: prospect?.stage ?? defaultStage,
+      stage: overrideStage ?? prospect?.stage ?? defaultStage,
     });
     onOpenChange(false);
   };
