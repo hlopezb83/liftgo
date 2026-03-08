@@ -3,7 +3,7 @@ import { useForklifts } from "@/hooks/useForklifts";
 import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
 import { usePagination } from "@/hooks/usePagination";
 import { useSort } from "@/hooks/useSort";
-import { formatCurrency } from "@/lib/formatCurrency";
+
 import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
@@ -44,7 +44,7 @@ export default function Fleet() {
       mast_height_m: (f) => f.mast_height_m || 0,
       fuel_type: (f) => f.fuel_type || "",
       status: (f) => f.status,
-      daily_rate: (f) => f.daily_rate || 0,
+      
     },
   });
 
@@ -65,7 +65,7 @@ export default function Fleet() {
 
   const actions = (
     <div className="flex gap-2">
-      <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", (filtered || []).map(f => ({ Nombre: f.name, Modelo: f.model, Fabricante: f.manufacturer || "", Capacidad: f.capacity_kg || "", Combustible: f.fuel_type || "", Estado: f.status, "Tarifa Diaria": f.daily_rate || 0 })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+      <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", (filtered || []).map(f => ({ Nombre: f.name, Modelo: f.model, Fabricante: f.manufacturer || "", Capacidad: f.capacity_kg || "", Combustible: f.fuel_type || "", Estado: f.status })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
       <Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
     </div>
   );
@@ -92,10 +92,7 @@ export default function Fleet() {
                 {f.mast_height_m && <span>{f.mast_height_m} m</span>}
                 {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}
               </div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-medium">{formatCurrency(f.daily_rate || 0)}/día</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -119,7 +116,7 @@ export default function Fleet() {
       emptyActionLabel="Agregar Montacargas"
       onEmptyAction={() => navigate("/fleet/new")}
       customContent={mobileContent}
-      skeletonColumns={8}
+      skeletonColumns={7}
       tableHeader={
         <TableRow>
           <SortableTableHead sortKey="name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>ID</SortableTableHead>
@@ -129,7 +126,7 @@ export default function Fleet() {
           <SortableTableHead sortKey="mast_height_m" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Altura</SortableTableHead>
           <SortableTableHead sortKey="fuel_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Combustible</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <SortableTableHead sortKey="daily_rate" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort} className="text-right">Tarifa Diaria</SortableTableHead>
+          
         </TableRow>
       }
       renderRow={(f) => (
@@ -148,7 +145,7 @@ export default function Fleet() {
           <TableCell>{f.mast_height_m ? `${f.mast_height_m} m` : "—"}</TableCell>
           <TableCell>{f.fuel_type ? (FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type) : "—"}</TableCell>
           <TableCell><StatusBadge status={f.status} /></TableCell>
-          <TableCell className="text-right font-medium">{formatCurrency(f.daily_rate || 0)}/día</TableCell>
+          
         </TableRow>
       )}
     />
