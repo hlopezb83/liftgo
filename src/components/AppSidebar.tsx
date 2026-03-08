@@ -43,6 +43,12 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: "Inventario",
+    items: [
+      { title: "Refacciones", url: "/inventory", icon: Package, roles: ["admin", "administrativo", "mechanic", "auditor"] },
+    ],
+  },
+  {
     label: "Administración",
     items: [
       { title: "Actividad", url: "/activity", icon: Activity },
