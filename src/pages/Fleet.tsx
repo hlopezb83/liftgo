@@ -119,7 +119,7 @@ export default function Fleet() {
       emptyActionLabel="Agregar Montacargas"
       onEmptyAction={() => navigate("/fleet/new")}
       customContent={mobileContent}
-      skeletonColumns={8}
+      skeletonColumns={7}
       tableHeader={
         <TableRow>
           <SortableTableHead sortKey="name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>ID</SortableTableHead>
