@@ -186,7 +186,7 @@ export default function CustomersPage() {
           </TableRow>
         }
         renderRow={(c) => (
-          <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate(`/customers/${c.id}`)}>
+          <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 transition-colors border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/customers/${c.id}`)}>
             <TableCell className="font-medium">{c.name}</TableCell>
             <TableCell className="font-mono text-xs">{c.rfc || "—"}</TableCell>
             <TableCell>{c.email || "—"}</TableCell>
