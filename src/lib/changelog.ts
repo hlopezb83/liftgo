@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.8",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Filas de clientes clickeables",
+    description: "Al hacer clic en cualquier parte de la fila de un cliente se navega a su detalle.",
+    changes: [
+      "Filas de la tabla de clientes ahora son clickeables para abrir el detalle",
+      "Botones de acción mantienen su comportamiento independiente",
+    ],
+  },
+  {
     version: "3.18.6",
     date: "2026-03-08",
     type: "patch",
