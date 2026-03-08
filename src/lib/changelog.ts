@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.19.9",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Enlace directo a reservas desde mensaje de devoluciones",
+    description: "El mensaje informativo en el formulario de devolución ahora incluye un enlace directo a la página de reservas para facilitar el ajuste de fechas.",
+    changes: [
+      "Enlace clickeable 'edita la reserva' que abre la página de reservas en nueva pestaña",
+    ],
+  },
+  {
     version: "3.19.8",
     date: "2026-03-08",
     type: "patch",
