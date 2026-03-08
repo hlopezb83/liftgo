@@ -131,7 +131,14 @@ export default function Fleet() {
       }
       renderRow={(f) => (
         <TableRow key={f.id} className="cursor-pointer hover:bg-accent/50 transition-colors duration-150 border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/fleet/${f.id}`)}>
-          <TableCell className="font-mono font-medium">{f.name}</TableCell>
+          <TableCell className="font-mono font-medium">
+            <span className="flex items-center gap-1.5">
+              {f.name}
+              {activePolicyForkliftIds.has(f.id) && (
+                <Tooltip><TooltipTrigger asChild><ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" /></TooltipTrigger><TooltipContent>Póliza de mantenimiento activa</TooltipContent></Tooltip>
+              )}
+            </span>
+          </TableCell>
           <TableCell>{f.model}</TableCell>
           <TableCell>{f.manufacturer || "—"}</TableCell>
           <TableCell>{f.capacity_kg ? `${f.capacity_kg} kg` : "—"}</TableCell>
