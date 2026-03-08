@@ -81,7 +81,7 @@ export function drawPremiumHeader(
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GOLD.r, GOLD.g, GOLD.b);
-  doc.text(quoteNumber, pw - MARGIN, y + 8, { align: "right" });
+  doc.text(documentNumber, pw - MARGIN, y + 8, { align: "right" });
 
   // Date
   doc.setFontSize(8);
