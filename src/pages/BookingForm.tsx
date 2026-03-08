@@ -82,7 +82,25 @@ export default function BookingForm() {
     );
   };
 
-  const handleSkipDelivery = () => { setPostBooking(null); toast.success("Reserva creada"); navigate("/calendar"); };
+  const handleDeliveryDone = () => {
+    // After delivery dialog, check if policy is needed
+    const hasPolicy = policies?.some(
+      (p) => p.forklift_id === postBooking?.forkliftId && p.is_active
+    );
+    if (!hasPolicy && postBooking) {
+      setShowPolicyDialog(true);
+    } else {
+      setPostBooking(null);
+      toast.success("Reserva creada");
+      navigate("/calendar");
+    }
+  };
+  const handlePolicyDone = () => {
+    setShowPolicyDialog(false);
+    setPostBooking(null);
+    toast.success("Reserva creada");
+    navigate("/calendar");
+  };
   const selectedForklift = forklifts?.find((f) => f.id === postBooking?.forkliftId);
 
   const dateRangeError = form.formState.errors.date_range?.message
