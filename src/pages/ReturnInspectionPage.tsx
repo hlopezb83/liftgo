@@ -219,7 +219,11 @@ export default function ReturnInspectionPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Solo se muestran reservas cuyo periodo de renta ha finalizado. Si no encuentras la reserva, verifica que la fecha de fin ya haya pasado o edita la reserva para ajustar las fechas antes de registrar la devolución.
+                Solo se muestran reservas cuyo periodo de renta ha finalizado. Si no encuentras la reserva, verifica que la fecha de fin ya haya pasado o{" "}
+                <a href="/bookings" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80 transition-colors">
+                  edita la reserva
+                </a>{" "}
+                para ajustar las fechas antes de registrar la devolución.
               </p>
             </div>
             <DatePickerField label="Fecha de Inspección" date={form.inspectedAt} onSelect={(d) => set("inspectedAt", d || new Date())} required />
