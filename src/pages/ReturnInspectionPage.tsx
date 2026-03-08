@@ -78,7 +78,7 @@ export default function ReturnInspectionPage() {
     }
   }, [searchParams, activeBookings]);
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(inspections, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filteredInspections, {
     accessors: {
       inspected_at: (i) => i.inspected_at,
       forklift_name: (i) => (i as any).forklifts?.name || "",
