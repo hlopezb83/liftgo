@@ -23,12 +23,17 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Operaciones",
+    label: "Comercial",
     items: [
       { title: "CRM", url: "/crm", icon: Target, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Clientes", url: "/customers", icon: Users },
       { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Reservas", url: "/bookings", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+    ],
+  },
+  {
+    label: "Operaciones",
+    items: [
       { title: "Contratos", url: "/contracts", icon: ScrollText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Entregas", url: "/deliveries", icon: TruckIcon, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
@@ -36,26 +41,21 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Flota",
+    label: "Flota y Mantenimiento",
     items: [
       { title: "Equipos", url: "/fleet", icon: Truck },
       { title: "Mantenimiento", url: "/maintenance", icon: Wrench },
       { title: "Daños", url: "/damage", icon: AlertTriangle },
-    ],
-  },
-  {
-    label: "Inventario",
-    items: [
       { title: "Refacciones", url: "/inventory", icon: Package, roles: ["admin", "administrativo", "mechanic", "auditor"] },
     ],
   },
   {
     label: "Administración",
     items: [
-      { title: "Actividad", url: "/activity", icon: Activity },
       { title: "Gastos Operativos", url: "/expenses", icon: Wallet, roles: ["admin", "administrativo", "auditor"] },
-      { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+      { title: "Actividad", url: "/activity", icon: Activity },
+      { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin", "administrativo", "auditor"] },
       { title: "Datos Fiscales", url: "/settings/company", icon: Building2, roles: ["admin", "auditor"] },
       { title: "Usuarios", url: "/users", icon: ShieldCheck, roles: ["admin", "auditor"] },
