@@ -13,6 +13,7 @@ export interface Prospect {
   notes: string | null;
   stage_order: number;
   quote_id: string | null;
+  customer_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,7 +40,7 @@ export function useProspects() {
 export function useCreateProspect() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (p: Omit<ProspectInsert, "stage_order">) => {
+    mutationFn: async (p: Omit<ProspectInsert, "stage_order" | "customer_id">) => {
       // Get max stage_order for this stage
       const { data: existing } = await supabase
         .from("prospects")

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import type { Customer } from "@/hooks/useCustomers";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
@@ -21,9 +21,10 @@ import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUpdateProspect } from "@/hooks/useProspects";
 
 const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
@@ -35,12 +36,34 @@ const emptyCustomer: CustomerFormData = {
 export default function CustomersPage() {
   const { data: customers, isLoading } = useCustomers();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
+  const updateProspect = useUpdateProspect();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [prospectId, setProspectId] = useState<string | null>(null);
   const { form, set, setForm, reset } = useFormState(emptyCustomer);
+
+  // Auto-open dialog with pre-filled data from prospect conversion
+  useEffect(() => {
+    if (searchParams.get("from_prospect") === "true") {
+      const pId = searchParams.get("prospect_id");
+      setProspectId(pId);
+      setEditId(null);
+      setForm({
+        ...emptyCustomer,
+        name: searchParams.get("company") || "",
+        contact_person: searchParams.get("contact") || "",
+        email: searchParams.get("email") || "",
+        phone: searchParams.get("phone") || "",
+      });
+      setDialogOpen(true);
+      // Clean URL
+      setSearchParams({}, { replace: true });
+    }
+  }, []);
 
   const filtered = customers?.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -117,7 +140,19 @@ export default function CustomersPage() {
     if (editId) {
       updateCustomer.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Cliente actualizado"); setDialogOpen(false); } });
     } else {
-      createCustomer.mutate(payload, { onSuccess: () => { toast.success("Cliente agregado"); setDialogOpen(false); reset(); } });
+      createCustomer.mutate(payload, {
+        onSuccess: (newCustomer) => {
+          toast.success("Cliente agregado");
+          setDialogOpen(false);
+          reset();
+          // Link prospect to the newly created customer
+          if (prospectId && newCustomer?.id) {
+            updateProspect.mutate({ id: prospectId, customer_id: newCustomer.id });
+            setProspectId(null);
+            toast.success("Prospecto vinculado al nuevo cliente");
+          }
+        },
+      });
     }
   };
 
