@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, FileText, UserPlus, CheckCircle2 } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { useNavigate } from "react-router-dom";
 import type { Prospect } from "@/hooks/useProspects";
 
 const STAGE_LABELS: Record<string, string> = {
