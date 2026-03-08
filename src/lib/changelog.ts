@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.18.9",
+    date: "2026-03-08",
+    type: "patch",
+    title: "Eliminar botones redundantes en tabla de clientes",
+    description: "Se eliminaron los botones Ver/Editar de la tabla de clientes ya que la fila completa es clickeable.",
+    changes: [
+      "Eliminada columna de acciones redundante en tabla de clientes",
+    ],
+  },
+  {
     version: "3.18.8",
     date: "2026-03-08",
     type: "patch",

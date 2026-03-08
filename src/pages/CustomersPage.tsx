@@ -16,7 +16,7 @@ import { SortableTableHead } from "@/components/SortableTableHead";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
 import { useSort } from "@/hooks/useSort";
-import { PlusCircle, Edit, Eye, Download, ChevronRight } from "lucide-react";
+import { PlusCircle, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
@@ -183,7 +183,6 @@ export default function CustomersPage() {
             <SortableTableHead sortKey="email" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Correo</SortableTableHead>
             <SortableTableHead sortKey="phone" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Teléfono</SortableTableHead>
             <SortableTableHead sortKey="contact_person" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Persona de Contacto</SortableTableHead>
-            <TableHead className="w-16"></TableHead>
           </TableRow>
         }
         renderRow={(c) => (
@@ -193,10 +192,6 @@ export default function CustomersPage() {
             <TableCell>{c.email || "—"}</TableCell>
             <TableCell>{c.phone || "—"}</TableCell>
             <TableCell>{c.contact_person || "—"}</TableCell>
-            <TableCell className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); navigate(`/customers/${c.id}`); }}><Eye className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEdit(c as Customer); }}><Edit className="h-4 w-4" /></Button>
-            </TableCell>
           </TableRow>
         )}
         customContent={mobileContent}
