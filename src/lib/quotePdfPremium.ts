@@ -72,7 +72,6 @@ export function drawPremiumHeader(
   }
 
   // Right side: document title
-  const title = isSale ? "COTIZACIÓN DE VENTA" : "COTIZACIÓN";
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(NAVY.r, NAVY.g, NAVY.b);
