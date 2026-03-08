@@ -22,6 +22,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
+  const { data: policies } = useMaintenancePolicies();
+  const activePolicyForkliftIds = new Set(policies?.filter(p => p.is_active).map(p => p.forklift_id) ?? []);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
