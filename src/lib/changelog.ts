@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.17.7",
+    date: "2026-03-08",
+    type: "minor",
+    title: "Módulo de Control de Refacciones — Infraestructura",
+    description: "Nuevas tablas parts_inventory y maintenance_parts con RLS, trigger de descuento automático de stock y hooks React Query para CRUD completo.",
+    changes: [
+      "Tabla parts_inventory con categorías, stock mínimo y costo unitario",
+      "Tabla maintenance_parts como junction con maintenance_logs",
+      "Trigger handle_part_usage para decrementar stock automáticamente",
+      "RLS: lectura para staff, escritura para admin/administrativo/mechanic",
+      "Hook usePartsInventory con CRUD completo y useMaintenanceParts",
+    ],
+  },
+  {
     version: "3.17.6",
     date: "2026-03-07",
     type: "minor",
