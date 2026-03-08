@@ -12,6 +12,8 @@ import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { ForkliftSelector } from "@/components/ForkliftSelector";
 import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
+import { PostBookingPolicyDialog } from "@/components/PostBookingPolicyDialog";
+import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
