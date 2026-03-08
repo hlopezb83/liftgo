@@ -917,6 +917,48 @@ export type Database = {
           },
         ]
       }
+      maintenance_parts: {
+        Row: {
+          cost_at_time: number
+          created_at: string
+          id: string
+          maintenance_log_id: string
+          part_id: string
+          quantity_used: number
+        }
+        Insert: {
+          cost_at_time?: number
+          created_at?: string
+          id?: string
+          maintenance_log_id: string
+          part_id: string
+          quantity_used?: number
+        }
+        Update: {
+          cost_at_time?: number
+          created_at?: string
+          id?: string
+          maintenance_log_id?: string
+          part_id?: string
+          quantity_used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_parts_maintenance_log_id_fkey"
+            columns: ["maintenance_log_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mechanics: {
         Row: {
           created_at: string
@@ -982,6 +1024,45 @@ export type Database = {
           expense_date?: string
           id?: string
           is_recurring?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parts_inventory: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          location: string | null
+          min_stock_level: number
+          name: string
+          sku: string | null
+          stock_quantity: number
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          min_stock_level?: number
+          name: string
+          sku?: string | null
+          stock_quantity?: number
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          min_stock_level?: number
+          name?: string
+          sku?: string | null
+          stock_quantity?: number
+          unit_cost?: number
           updated_at?: string
         }
         Relationships: []
