@@ -216,6 +216,7 @@ export default function ReturnInspectionPage() {
                 </SelectContent>
               </Select>
             </div>
+            <DatePickerField label="Fecha de Inspección" date={form.inspectedAt} onSelect={(d) => set("inspectedAt", d || new Date())} required />
             <div className="space-y-1.5">
               <Label>Condición *</Label>
               <Select value={form.condition} onValueChange={(v) => set("condition", v)}>
