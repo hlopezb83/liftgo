@@ -97,8 +97,7 @@ export default function Dashboard() {
     { label: "Rentados", value: counts.rented, icon: Clock, color: "text-status-rented" },
     { label: "Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
     { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
-    { label: "Pendiente", value: formatCurrency(outstandingRevenue), icon: Receipt, color: "text-primary" },
-  ], [counts, activeFleet, outstandingRevenue]);
+  ], [counts, activeFleet]);
 
   if (isLoading) {
     return (
