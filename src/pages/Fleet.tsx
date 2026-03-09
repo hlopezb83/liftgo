@@ -81,6 +81,7 @@ export default function Fleet() {
               <StatusBadge status={f.status} />
             </div>
             <p className="text-sm text-muted-foreground">{f.model} {f.manufacturer ? `· ${f.manufacturer}` : ""}</p>
+            {f.serial_number && <p className="text-xs text-muted-foreground font-mono">S/N: {f.serial_number}</p>}
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <div className="flex gap-4 text-xs text-muted-foreground">
                 {f.capacity_kg && <span>{f.capacity_kg} kg</span>}
