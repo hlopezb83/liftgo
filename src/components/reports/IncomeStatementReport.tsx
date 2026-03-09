@@ -39,6 +39,7 @@ interface MonthData {
   revenue: number;
   maintenanceCost: number;
   damageCost: number;
+  depreciation: number;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
