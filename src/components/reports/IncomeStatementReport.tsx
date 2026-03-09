@@ -24,6 +24,8 @@ interface Props {
   maintenanceLogs: Tables<"maintenance_logs">[];
   damageRecords: Tables<"damage_records">[];
   operatingExpenses: OperatingExpense[];
+  bookings: Tables<"bookings">[];
+  forklifts: Tables<"forklifts">[];
   startDate: Date;
   endDate: Date;
 }
@@ -37,6 +39,7 @@ interface MonthData {
   revenue: number;
   maintenanceCost: number;
   damageCost: number;
+  depreciation: number;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
@@ -60,6 +63,7 @@ interface YearTotals {
   revenue: number;
   maintenanceCost: number;
   damageCost: number;
+  depreciation: number;
   expenses: Record<ExpenseCategory, number>;
   grossProfit: number;
   grossMargin: number;
@@ -78,7 +82,17 @@ interface ComparisonRow {
   isPercent?: boolean;
 }
 
-export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate }: Props) {
+export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forklifts, startDate, endDate }: Props) {
+  // Build a map of forklift_id → monthly depreciation (acquisition_cost / 36)
+  const forkliftDepreciationMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const fl of forklifts) {
+      const cost = Number((fl as any).acquisition_cost ?? 0);
+      if (cost > 0) map.set(fl.id, cost / 36);
+    }
+    return map;
+  }, [forklifts]);
+
   const data = useMemo(() => {
     const months: Record<string, { month: string; revenue: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
 
@@ -127,19 +141,40 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         months[key].expenses[oe.category] += Number(oe.amount);
       });
 
+    // Calculate depreciation per month based on active rentals
+    const activeBookings = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");
+
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, m]): MonthData => {
+        // Find forklifts with active rentals in this month
+        const monthStart = `${key}-01`;
+        const [yyyy, mm] = key.split("-").map(Number);
+        const lastDay = new Date(yyyy, mm, 0).getDate();
+        const monthEnd = `${key}-${String(lastDay).padStart(2, "0")}`;
+
+        const rentedForkliftIds = new Set<string>();
+        for (const b of activeBookings) {
+          if (b.start_date <= monthEnd && b.end_date >= monthStart) {
+            rentedForkliftIds.add(b.forklift_id);
+          }
+        }
+
+        let depreciation = 0;
+        for (const fid of rentedForkliftIds) {
+          depreciation += forkliftDepreciationMap.get(fid) ?? 0;
+        }
+
         const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const grossProfit = m.revenue - m.maintenanceCost - m.damageCost - costoVenta;
         const grossMargin = m.revenue > 0 ? (grossProfit / m.revenue) * 100 : 0;
         const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const totalExpenses = m.maintenanceCost + m.damageCost + costoVenta + opexTotal;
-        const netProfit = m.revenue - totalExpenses;
+        const netProfit = m.revenue - totalExpenses - depreciation;
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
-        return { ...m, monthKey: key, grossProfit, grossMargin, totalExpenses, netProfit, margin };
+        return { ...m, monthKey: key, depreciation, grossProfit, grossMargin, totalExpenses, netProfit, margin };
       });
-  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate]);
+  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, startDate, endDate]);
 
   // Year filter
   const availableYears = useMemo(() => {
@@ -165,17 +200,18 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
           revenue: acc.revenue + r.revenue,
           maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
           damageCost: acc.damageCost + r.damageCost,
+          depreciation: acc.depreciation + r.depreciation,
           expenses,
         };
       },
-      { revenue: 0, maintenanceCost: 0, damageCost: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
+      { revenue: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
     );
     const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
     const grossProfit = t.revenue - t.maintenanceCost - t.damageCost - costoVenta;
     const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
     const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
     const totalExpenses = t.maintenanceCost + t.damageCost + costoVenta + opexTotal;
-    const netProfit = t.revenue - totalExpenses;
+    const netProfit = t.revenue - totalExpenses - t.depreciation;
     const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
     return { ...t, grossProfit, grossMargin, totalExpenses, netProfit, margin };
   }, [filteredData]);
@@ -190,16 +226,16 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         (acc, r) => {
           const expenses = { ...acc.expenses };
           allCats.forEach((c) => { expenses[c] = (expenses[c] || 0) + r.expenses[c]; });
-          return { revenue: acc.revenue + r.revenue, maintenanceCost: acc.maintenanceCost + r.maintenanceCost, damageCost: acc.damageCost + r.damageCost, expenses };
+          return { revenue: acc.revenue + r.revenue, maintenanceCost: acc.maintenanceCost + r.maintenanceCost, damageCost: acc.damageCost + r.damageCost, depreciation: acc.depreciation + r.depreciation, expenses };
         },
-        { revenue: 0, maintenanceCost: 0, damageCost: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
+        { revenue: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
       );
       const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
       const grossProfit = t.revenue - t.maintenanceCost - t.damageCost - costoVenta;
       const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
       const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
       const totalExpenses = t.maintenanceCost + t.damageCost + costoVenta + opexTotal;
-      const netProfit = t.revenue - totalExpenses;
+      const netProfit = t.revenue - totalExpenses - t.depreciation;
       const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
       return { year, ...t, grossProfit, grossMargin, totalExpenses, netProfit, margin };
     });
@@ -229,7 +265,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
         ...getValues((yt) => yt.expenses[c], { isCost: true }),
       })),
-      { label: "= Total Egresos", ...getValues((yt) => yt.totalExpenses, { isSubtotal: true, isCost: true }) },
+      { label: "(-) Depreciación (Equipos Rentados)", ...getValues((yt) => yt.depreciation, { isCost: true }) },
+      { label: "= Total Egresos", ...getValues((yt) => yt.totalExpenses + yt.depreciation, { isSubtotal: true, isCost: true }) },
       { label: "= Utilidad Neta", ...getValues((yt) => yt.netProfit, { isSubtotal: true }) },
       { label: "Margen Neto", ...getValues((yt) => yt.margin, { isPercent: true }) },
     ];
@@ -254,7 +291,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       total: totals.expenses[c],
       isCost: true,
     })),
-    { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
+    { label: "(-) Depreciación (Equipos Rentados)", values: filteredData.map((r) => r.depreciation), total: totals.depreciation, isCost: true },
+    { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses + r.depreciation), total: totals.totalExpenses + totals.depreciation, isSubtotal: true, isCost: true },
     { label: "= Utilidad Neta", values: filteredData.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ], [filteredData, totals]);
@@ -268,7 +306,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     Renta: r.expenses.renta,
     Nómina: r.expenses.nomina,
     Software: r.expenses.software,
-    Depreciación: r.expenses.depreciacion,
+    "Depr. Contable": r.expenses.depreciacion,
+    "Depr. Equipos": r.depreciation,
     Otros: r.expenses.otro,
   }));
 
@@ -503,7 +542,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                   <Bar dataKey="Renta" stackId="costs" fill="hsl(var(--chart-1))" />
                   <Bar dataKey="Nómina" stackId="costs" fill="hsl(var(--chart-3))" />
                   <Bar dataKey="Software" stackId="costs" fill="hsl(142 71% 45%)" />
-                  <Bar dataKey="Depreciación" stackId="costs" fill="hsl(280 65% 60%)" />
+                  <Bar dataKey="Depr. Contable" stackId="costs" fill="hsl(280 65% 60%)" />
+                  <Bar dataKey="Depr. Equipos" stackId="costs" fill="hsl(320 65% 50%)" />
                   <Bar dataKey="Otros" stackId="costs" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
