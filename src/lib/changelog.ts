@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.2",
+    date: "2026-03-09",
+    type: "patch",
+    title: "Fix precarga de fabricante y modelo al editar montacargas",
+    description: "Corregido bug donde los campos Fabricante y Modelo aparecían vacíos al editar un montacargas existente.",
+    changes: [
+      "Sincronizado el llenado del formulario con la carga de modelos de equipo",
+      "Agregado fallback para mostrar valores guardados aunque no estén en el catálogo",
+    ],
+  },
+  {
     version: "3.23.1",
     date: "2026-03-09",
     type: "patch",

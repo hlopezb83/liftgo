@@ -49,13 +49,19 @@ export default function ForkliftForm() {
 
   const manufacturers = useMemo(() => {
     if (!equipmentModels) return [];
-    return [...new Set(equipmentModels.map((m) => m.manufacturer))].sort();
-  }, [equipmentModels]);
+    const set = new Set(equipmentModels.map((m) => m.manufacturer));
+    if (existing?.manufacturer && !set.has(existing.manufacturer)) set.add(existing.manufacturer);
+    return [...set].sort();
+  }, [equipmentModels, existing]);
 
   const filteredModels = useMemo(() => {
     if (!equipmentModels || !form.manufacturer) return [];
-    return equipmentModels.filter((m) => m.manufacturer === form.manufacturer);
-  }, [equipmentModels, form.manufacturer]);
+    const models = equipmentModels.filter((m) => m.manufacturer === form.manufacturer);
+    if (existing?.model && existing?.manufacturer === form.manufacturer && !models.some((m) => m.model === existing.model)) {
+      models.push({ id: "fallback", manufacturer: form.manufacturer, model: existing.model, default_capacity_kg: null, default_mast_height_m: null, default_fuel_type: "Diesel", created_at: "", updated_at: "" });
+    }
+    return models;
+  }, [equipmentModels, form.manufacturer, existing]);
 
   useEffect(() => {
     if (existing) {
@@ -76,7 +82,7 @@ export default function ForkliftForm() {
         notes: existing.notes || "",
       });
     }
-  }, [existing]);
+  }, [existing, equipmentModels]);
 
   const handleManufacturerChange = (value: string) => {
     setForm((prev) => ({ ...prev, manufacturer: value, model: "" }));
