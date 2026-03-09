@@ -130,13 +130,6 @@ export default function ReturnInspectionPage() {
         onSuccess: () => {
           toast.success("Inspección de devolución registrada — montacargas marcado como disponible");
           setDialogOpen(false);
-          const forklift = forkliftMap.get(booking.forklift_id);
-          if (forklift) {
-            setInvoicePrompt({
-              booking: { id: booking.id, customer_name: booking.customer_name, customer_id: booking.customer_id, start_date: booking.start_date, end_date: booking.end_date, forklift_id: booking.forklift_id },
-              forklift, damageCost,
-            });
-          }
           reset();
         },
       }
