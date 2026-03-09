@@ -46,6 +46,7 @@ const CompanySettingsPage = lazy(() => import("./pages/CompanySettingsPage"));
 const ChangelogPage = lazy(() => import("./pages/ChangelogPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
 const OperatingExpensesPage = lazy(() => import("./pages/OperatingExpensesPage"));
+const IncomeStatementPage = lazy(() => import("./pages/IncomeStatementPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const CRMPage = lazy(() => import("./pages/CRMPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
