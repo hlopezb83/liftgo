@@ -24,7 +24,6 @@ import { EmptyRow } from "@/components/EmptyRow";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { ExpenseFormDialog } from "@/components/expenses/ExpenseFormDialog";
 import { SupplierSelector } from "@/components/SupplierSelector";
-import { useSuppliers } from "@/hooks/useSuppliers";
 
 const CATEGORIES = Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, string][];
 
