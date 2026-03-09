@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.21.0",
+    date: "2026-03-09",
+    type: "minor",
+    title: "Depreciación de equipos rentados en Estado de Resultados",
+    description: "El Estado de Resultados ahora calcula automáticamente la depreciación mensual (costo de adquisición / 36 meses) únicamente para montacargas que tuvieron rentas activas en cada mes.",
+    changes: [
+      "Nueva fila 'Depreciación (Equipos Rentados)' en el Estado de Resultados",
+      "Cálculo automático de depreciación línea recta a 36 meses solo para equipos con rentas activas",
+      "Ajuste de Utilidad Neta: ahora resta depreciación de equipos rentados",
+      "Incluido en tabla estándar, comparativo YoY, gráficas, exportación CSV y PDF",
+      "Montacargas sin costo de adquisición se omiten del cálculo",
+    ],
+  },
+  {
     version: "3.20.0",
     date: "2026-03-09",
     type: "minor",

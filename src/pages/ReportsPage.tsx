@@ -91,6 +91,8 @@ export default function ReportsPage() {
           maintenanceLogs={maintenanceLogs || []}
           damageRecords={damageRecords || []}
           operatingExpenses={operatingExpenses || []}
+          bookings={bookings || []}
+          forklifts={forklifts || []}
           startDate={startDate}
           endDate={endDate}
         />
