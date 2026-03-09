@@ -17,7 +17,7 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FormActions } from "@/components/FormActions";
-import { PostInspectionInvoiceDialog } from "@/components/PostInspectionInvoiceDialog";
+
 import { useFormState } from "@/hooks/useFormState";
 import { formatDateDisplay } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
