@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.20.0",
+    date: "2026-03-09",
+    type: "minor",
+    title: "Refactorización de código y consolidación de patrones",
+    description: "Mejora significativa de la arquitectura del código: consolidación del hook useListPage en todas las páginas de lista, estandarización de manejo de errores con sonner, y nuevo hook useDialogState para gestión de diálogos.",
+    changes: [
+      "Nuevo hook useDialogState para gestión unificada de estados de diálogos con formularios",
+      "Migración de 6 páginas de lista a usar useListPage: BookingsPage, ContractsPage, QuotesPage, InvoicesPage, CustomersPage, Fleet",
+      "Eliminación de imports redundantes de useSort, usePagination, useIsMobile en páginas migradas",
+      "Estandarización de error handling: useBookings, useInvoices, useForklifts, useQuotes ahora usan sonner directamente",
+      "Eliminación de dynamic imports de toast en favor de imports estáticos de sonner",
+      "Reducción de ~20-30 líneas de boilerplate por página",
+    ],
+  },
+  {
     version: "3.19.10",
     date: "2026-03-08",
     type: "patch",
