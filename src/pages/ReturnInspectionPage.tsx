@@ -49,7 +49,7 @@ export default function ReturnInspectionPage() {
   const createInspection = useCreateReturnInspection();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
-  const [invoicePrompt, setInvoicePrompt] = useState<InvoicePromptData | null>(null);
+  
   const [searchParams, setSearchParams] = useSearchParams();
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
