@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 export type { Forklift, StatusLog } from "@/types/rental";
-import type { Forklift, StatusLog } from "@/types/rental";
+import type { Forklift } from "@/types/rental";
 
 // ─── Forklifts ────────────────────────────────────────
 
@@ -45,9 +46,7 @@ export function useCreateForklift() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al crear montacargas", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al crear montacargas", { description: err.message });
     },
   });
 }
@@ -65,9 +64,7 @@ export function useUpdateForklift() {
       queryClient.invalidateQueries({ queryKey: ["forklifts", data.id] });
     },
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al actualizar montacargas", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al actualizar montacargas", { description: err.message });
     },
   });
 }

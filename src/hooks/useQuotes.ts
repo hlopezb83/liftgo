@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 export type { Quote } from "@/types/rental";
 import type { Quote } from "@/types/rental";
@@ -41,9 +42,7 @@ export function useCreateQuote() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al crear cotización", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al crear cotización", { description: err.message });
     },
   });
 }
@@ -58,9 +57,7 @@ export function useUpdateQuote() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al actualizar cotización", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al actualizar cotización", { description: err.message });
     },
   });
 }

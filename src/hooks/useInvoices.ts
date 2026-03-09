@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useInvoices() {
@@ -42,9 +43,7 @@ export function useCreateInvoice() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["invoices"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al crear factura", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al crear factura", { description: err.message });
     },
   });
 }
@@ -62,9 +61,7 @@ export function useUpdateInvoice() {
       queryClient.invalidateQueries({ queryKey: ["invoices", data.id] });
     },
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al actualizar factura", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al actualizar factura", { description: err.message });
     },
   });
 }
