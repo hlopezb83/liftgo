@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useInvoices";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
@@ -18,10 +17,9 @@ import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt } from "lucide-re
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { RoleGuard } from "@/components/RoleGuard";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
@@ -29,7 +27,6 @@ const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const
 export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -39,13 +36,12 @@ export default function InvoicesPage() {
       const { data, error } = await supabase.functions.invoke("generate-recurring-invoices");
       if (error) throw error;
       const count = data?.invoicesCreated ?? 0;
-      toast({
-        title: count > 0 ? `${count} factura(s) generada(s)` : "Sin facturas pendientes",
+      toast.success(count > 0 ? `${count} factura(s) generada(s)` : "Sin facturas pendientes", {
         description: count > 0 ? "Se crearon borradores de facturas recurrentes." : "No hay reservas con facturación recurrente pendiente.",
       });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
     } catch (err: any) {
-      toast({ title: "Error al generar facturas", description: err.message || "Intenta de nuevo.", variant: "destructive" });
+      toast.error("Error al generar facturas", { description: err.message || "Intenta de nuevo." });
     } finally {
       setIsGenerating(false);
     }
@@ -56,9 +52,9 @@ export default function InvoicesPage() {
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
-    defaultKey: "invoice_number",
-    defaultDirection: "desc",
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
+    defaultSortKey: "invoice_number",
+    defaultSortDirection: "desc",
     accessors: {
       invoice_number: (i) => i.invoice_number,
       customer_name: (i) => i.customer_name || "",
@@ -68,8 +64,6 @@ export default function InvoicesPage() {
       due_date: (i) => i.due_date || "",
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const mobileContent = isMobile ? (
     <MobileCardList

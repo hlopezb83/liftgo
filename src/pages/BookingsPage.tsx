@@ -3,9 +3,8 @@ import { format, differenceInDays, parseISO } from "date-fns";
 
 import { STATUS_LABELS } from "@/lib/constants";
 import { useBookings } from "@/hooks/useBookings";
-import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
@@ -18,21 +17,19 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Plus, ChevronRight, CalendarDays } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 
 export default function BookingsPage() {
   const { data: bookings, isLoading } = useBookings();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(bookings, {
     searchFields: ["customer_name"],
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, totalItems, paginatedItems, isMobile } = useListPage(filtered, {
     accessors: {
       forklift_name: (b) => b.forklifts?.name || "",
       customer_name: (b) => b.customer_name || "",
@@ -41,8 +38,6 @@ export default function BookingsPage() {
       status: (b) => b.status,
     },
   });
-
-  const { page, setPage, totalPages, totalItems, paginatedItems } = usePagination(sortedItems);
 
   const getDuration = (start: string, end: string) => {
     const days = differenceInDays(parseISO(end), parseISO(start));

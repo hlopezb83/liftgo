@@ -1,8 +1,7 @@
 import { useQuotes } from "@/hooks/useQuotes";
 import { useNavigate } from "react-router-dom";
 import { useListFilters } from "@/hooks/useListFilters";
-import { usePagination } from "@/hooks/usePagination";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
@@ -15,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { STATUS_LABELS } from "@/lib/constants";
 import { PlusCircle, ChevronRight } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
 import { formatDateDisplay } from "@/lib/utils";
 
@@ -24,14 +22,13 @@ const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 export default function QuotesPage() {
   const { data: quotes, isLoading } = useQuotes();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(quotes, {
     searchFields: ["quote_number", "customer_name"],
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
     accessors: {
       quote_number: (q) => q.quote_number,
       customer_name: (q) => q.customer_name || "",
@@ -40,8 +37,6 @@ export default function QuotesPage() {
       valid_until: (q) => q.valid_until || "",
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const mobileContent = isMobile ? (
     <MobileCardList

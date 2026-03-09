@@ -1,9 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { STATUS_LABELS } from "@/lib/constants";
 import { useContracts } from "@/hooks/useContracts";
-import { usePagination } from "@/hooks/usePagination";
 import { useListFilters } from "@/hooks/useListFilters";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
@@ -14,7 +13,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Plus, Eye, ChevronRight } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateDisplay } from "@/lib/utils";
 
 const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
@@ -22,14 +20,13 @@ const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
 export default function ContractsPage() {
   const { data: contracts, isLoading } = useContracts();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(contracts, {
     searchFields: ["contract_number", "customer_name"],
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
     accessors: {
       contract_number: (c) => c.contract_number,
       customer_name: (c) => c.customer_name || "",
@@ -39,8 +36,6 @@ export default function ContractsPage() {
       status: (c) => c.status,
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const mobileContent = isMobile ? (
     <MobileCardList
