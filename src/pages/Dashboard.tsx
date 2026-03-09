@@ -9,7 +9,7 @@ import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { Truck, CheckCircle, Clock, Wrench, Receipt, ShoppingCart } from "lucide-react";
+import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { differenceInDays, parseISO } from "date-fns";
@@ -97,14 +97,13 @@ export default function Dashboard() {
     { label: "Rentados", value: counts.rented, icon: Clock, color: "text-status-rented" },
     { label: "Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
     { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
-    { label: "Pendiente", value: formatCurrency(outstandingRevenue), icon: Receipt, color: "text-primary" },
-  ], [counts, activeFleet, outstandingRevenue]);
+  ], [counts, activeFleet]);
 
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
         <h1 className="text-2xl font-bold">Panel</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
       </div>
