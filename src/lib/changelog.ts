@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.22.1",
+    date: "2026-03-09",
+    type: "patch",
+    title: "Selector de rango por mes en Estado de Resultados",
+    description: "El selector de fechas del Estado de Resultados ahora permite elegir meses completos en lugar de días individuales, alineándose con la naturaleza mensual de los estados financieros.",
+    changes: [
+      "Reemplazo de selector de rango por día con dos selectores de mes (Desde / Hasta)",
+      "Opciones dinámicas de los últimos 24 meses en español",
+      "Cálculo automático del primer y último día del mes seleccionado",
+    ],
+  },
+  {
     version: "3.22.0",
     date: "2026-03-09",
     type: "minor",
