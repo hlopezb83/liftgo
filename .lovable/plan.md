@@ -1,17 +1,17 @@
 
 
-## Cambiar etiqueta "Enviado" → "Sin Pagar"
+# Plan: Eliminar diálogo de factura post-inspección
 
-### Cambio
+## Cambio
+Remover la lógica que muestra el diálogo `PostInspectionInvoiceDialog` después de completar una devolución en `ReturnInspectionPage.tsx`.
 
-**Archivo: `src/lib/constants.ts`**
+## Detalle técnico
 
-En el objeto `STATUS_LABELS`, cambiar:
-```typescript
-sent: "Enviado",
-// →
-sent: "Sin Pagar",
-```
+### `src/pages/ReturnInspectionPage.tsx`
+- Eliminar el estado `invoicePrompt` y su tipo `InvoicePromptData`
+- Eliminar el bloque `onSuccess` que establece `setInvoicePrompt(...)` tras crear la inspección
+- Eliminar el render de `<PostInspectionInvoiceDialog />`
+- Eliminar imports de `PostInspectionInvoiceDialog` y `useCreateInvoice` (si aplica)
 
-Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
+El flujo quedará: completar devolución → toast de éxito → cerrar dialog. Sin preguntas adicionales.
 
