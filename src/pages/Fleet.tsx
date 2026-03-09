@@ -27,7 +27,7 @@ export default function Fleet() {
   const navigate = useNavigate();
 
   const filtered = forklifts?.filter((f) => {
-    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase()) || (f.serial_number || "").toLowerCase().includes(search.toLowerCase());
     return matchesSearch && (statusFilter === "all" || f.status === statusFilter);
   });
 
