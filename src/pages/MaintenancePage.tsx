@@ -259,6 +259,7 @@ export default function MaintenancePage() {
               <DatePickerField label="Fecha de Servicio" date={form.performedAt} onSelect={(d) => d && set("performedAt", d)} />
               <DatePickerField label="Próximo Servicio" date={form.nextServiceDate} onSelect={(d) => set("nextServiceDate", d)} placeholder="Opcional" />
             </div>
+            <SupplierSelector value={form.supplierId} onChange={(v) => set("supplierId", v)} />
             <FormActions submitLabel="Agregar Registro" isPending={createLog.isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
