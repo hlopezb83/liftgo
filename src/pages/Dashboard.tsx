@@ -9,7 +9,7 @@ import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { Truck, CheckCircle, Clock, Wrench, Receipt, ShoppingCart } from "lucide-react";
+import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { differenceInDays, parseISO } from "date-fns";
