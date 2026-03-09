@@ -54,7 +54,7 @@ export default function OperatingExpensesPage() {
 
   const openEdit = (e: any) => {
     setEditingId(e.id);
-    setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false });
+    setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false, supplier_id: e.supplier_id || "" });
     setDialogOpen(true);
   };
 
