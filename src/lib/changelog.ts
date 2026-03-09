@@ -9,17 +9,6 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
-    version: "3.22.2",
-    date: "2026-03-09",
-    type: "patch",
-    title: "Rango completo en Estado de Resultados",
-    description: "El Estado de Resultados ahora muestra todos los meses del rango seleccionado, incluso aquellos sin datos.",
-    changes: [
-      "Pre-poblado de todos los meses entre las fechas seleccionadas",
-      "Meses sin transacciones aparecen con valores en cero",
-    ],
-  },
-  {
     version: "3.22.1",
     date: "2026-03-09",
     type: "patch",

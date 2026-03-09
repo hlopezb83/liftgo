@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { format, parseISO, isWithinInterval, startOfMonth, eachMonthOfInterval } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown } from "lucide-react";
 import { jsPDF } from "jspdf";
@@ -97,18 +97,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     const months: Record<string, { month: string; revenue: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
 
     const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 });
-
-    // Pre-populate all months in range so they always appear
-    eachMonthOfInterval({ start: startDate, end: endDate }).forEach((d) => {
-      const key = format(d, "yyyy-MM");
-      months[key] = {
-        month: format(d, "MMM yyyy", { locale: es }),
-        revenue: 0,
-        maintenanceCost: 0,
-        damageCost: 0,
-        expenses: emptyExpenses(),
-      };
-    });
 
     const ensureMonth = (date: Date) => {
       const key = format(startOfMonth(date), "yyyy-MM");
