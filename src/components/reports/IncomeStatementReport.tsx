@@ -98,6 +98,18 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
     const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 });
 
+    // Pre-populate all months in range so they always appear
+    eachMonthOfInterval({ start: startDate, end: endDate }).forEach((d) => {
+      const key = format(d, "yyyy-MM");
+      months[key] = {
+        month: format(d, "MMM yyyy", { locale: es }),
+        revenue: 0,
+        maintenanceCost: 0,
+        damageCost: 0,
+        expenses: emptyExpenses(),
+      };
+    });
+
     const ensureMonth = (date: Date) => {
       const key = format(startOfMonth(date), "yyyy-MM");
       if (!months[key]) {
