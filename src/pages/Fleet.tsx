@@ -118,6 +118,7 @@ export default function Fleet() {
           <SortableTableHead sortKey="name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>ID</SortableTableHead>
           <SortableTableHead sortKey="model" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Modelo</SortableTableHead>
           <SortableTableHead sortKey="manufacturer" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fabricante</SortableTableHead>
+          <SortableTableHead sortKey="serial_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>No. de Serie</SortableTableHead>
           <SortableTableHead sortKey="capacity_kg" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Capacidad</SortableTableHead>
           <SortableTableHead sortKey="mast_height_m" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Altura</SortableTableHead>
           <SortableTableHead sortKey="fuel_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Combustible</SortableTableHead>
