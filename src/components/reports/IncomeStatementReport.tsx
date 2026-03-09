@@ -200,17 +200,18 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
           revenue: acc.revenue + r.revenue,
           maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
           damageCost: acc.damageCost + r.damageCost,
+          depreciation: acc.depreciation + r.depreciation,
           expenses,
         };
       },
-      { revenue: 0, maintenanceCost: 0, damageCost: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
+      { revenue: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
     );
     const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
     const grossProfit = t.revenue - t.maintenanceCost - t.damageCost - costoVenta;
     const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
     const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
     const totalExpenses = t.maintenanceCost + t.damageCost + costoVenta + opexTotal;
-    const netProfit = t.revenue - totalExpenses;
+    const netProfit = t.revenue - totalExpenses - t.depreciation;
     const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
     return { ...t, grossProfit, grossMargin, totalExpenses, netProfit, margin };
   }, [filteredData]);
