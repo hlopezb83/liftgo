@@ -265,8 +265,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
         ...getValues((yt) => yt.expenses[c], { isCost: true }),
       })),
+      { label: "= Total Egresos", ...getValues((yt) => yt.totalExpenses, { isSubtotal: true, isCost: true }) },
       { label: "(-) Depreciación (Equipos Rentados)", ...getValues((yt) => yt.depreciation, { isCost: true }) },
-      { label: "= Total Egresos", ...getValues((yt) => yt.totalExpenses + yt.depreciation, { isSubtotal: true, isCost: true }) },
       { label: "= Utilidad Neta", ...getValues((yt) => yt.netProfit, { isSubtotal: true }) },
       { label: "Margen Neto", ...getValues((yt) => yt.margin, { isPercent: true }) },
     ];
