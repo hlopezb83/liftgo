@@ -17,6 +17,7 @@ export function ForkliftRatesCard({ forklift }: ForkliftRatesCardProps) {
         <div className="flex justify-between"><span className="text-sm text-muted-foreground">Diaria</span><span className="font-semibold">{formatCurrency(forklift.daily_rate || 0)}</span></div>
         <div className="flex justify-between"><span className="text-sm text-muted-foreground">Semanal</span><span className="font-semibold">{formatCurrency(forklift.weekly_rate || 0)}</span></div>
         <div className="flex justify-between"><span className="text-sm text-muted-foreground">Mensual</span><span className="font-semibold">{formatCurrency(forklift.monthly_rate || 0)}</span></div>
+        <div className="border-t pt-3 flex justify-between"><span className="text-sm text-muted-foreground">Costo de Adquisición</span><span className="font-semibold">{formatCurrency(forklift.acquisition_cost || 0)}</span></div>
       </CardContent>
     </Card>
   );
