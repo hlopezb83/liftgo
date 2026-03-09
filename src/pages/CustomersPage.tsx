@@ -103,19 +103,6 @@ export default function CustomersPage() {
   ) : undefined;
 
   const openCreate = () => { setEditId(null); reset(); setDialogOpen(true); };
-  const openEdit = (c: Customer) => {
-    setEditId(c.id);
-    setForm({
-      name: c.name, email: c.email || "", phone: c.phone || "",
-      address: c.address || "", notes: c.notes || "",
-      website: c.website || "", contact_person: c.contact_person || "",
-      billing_address: c.billing_address || "",
-      rfc: c.rfc || "", regimen_fiscal: c.regimen_fiscal || "",
-      uso_cfdi: c.uso_cfdi || "", domicilio_fiscal_cp: c.domicilio_fiscal_cp || "",
-      representante_legal: c.representante_legal || "",
-    });
-    setDialogOpen(true);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
