@@ -193,6 +193,7 @@ export default function OperatingExpensesPage() {
                 <Label>Descripción (opcional)</Label>
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
               </div>
+              <SupplierSelector value={form.supplier_id} onChange={(v) => setForm({ ...form, supplier_id: v })} />
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
                   <Label>Gasto recurrente mensual</Label>
