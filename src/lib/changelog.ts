@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.0",
+    date: "2026-03-09",
+    type: "minor",
+    title: "Módulo de Proveedores",
+    description: "Nuevo módulo completo de Proveedores integrado al ERP, con vinculación a gastos operativos y registros de mantenimiento.",
+    changes: [
+      "Tabla de proveedores con RLS, auditoría y actividad",
+      "Página de listado con búsqueda, ordenamiento, paginación y exportación CSV",
+      "Página de detalle con datos de contacto, fiscales, gastos y mantenimiento vinculados",
+      "Selector de proveedor en formularios de gastos operativos y mantenimiento",
+      "Columna supplier_id en operating_expenses y maintenance_logs",
+      "Navegación en sidebar bajo Administración",
+    ],
+  },
+  {
     version: "3.22.2",
     date: "2026-03-09",
     type: "patch",

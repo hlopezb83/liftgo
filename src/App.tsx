@@ -109,6 +109,8 @@ const routes: RouteConfig[] = [
   { path: "/income-statement", component: IncomeStatementPage, roles: ["admin", "administrativo", "auditor"] },
   { path: "/inventory", component: InventoryPage, roles: ["admin", "administrativo", "mechanic", "auditor"] },
   { path: "/crm", component: CRMPage, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+  { path: "/suppliers", component: SuppliersPage, roles: ["admin", "administrativo", "auditor"] },
+  { path: "/suppliers/:id", component: SupplierDetailPage, roles: ["admin", "administrativo", "auditor"] },
   { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin", "administrativo", "auditor"] },
   { path: "/settings/company", component: CompanySettingsPage, roles: ["admin", "auditor"] },
   { path: "/users", component: UserManagementPage, roles: ["admin", "auditor"] },
