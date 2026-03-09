@@ -272,15 +272,6 @@ export default function ReturnInspectionPage() {
         </DialogContent>
       </Dialog>
 
-      {invoicePrompt && (
-        <PostInspectionInvoiceDialog
-          open={!!invoicePrompt}
-          onOpenChange={(open) => { if (!open) setInvoicePrompt(null); }}
-          booking={invoicePrompt.booking}
-          forklift={invoicePrompt.forklift}
-          damageCost={invoicePrompt.damageCost}
-        />
-      )}
     </>
   );
 }
