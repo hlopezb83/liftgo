@@ -265,8 +265,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
         ...getValues((yt) => yt.expenses[c], { isCost: true }),
       })),
+      { label: "= Total Egresos", ...getValues((yt) => yt.totalExpenses, { isSubtotal: true, isCost: true }) },
       { label: "(-) Depreciación (Equipos Rentados)", ...getValues((yt) => yt.depreciation, { isCost: true }) },
-      { label: "= Total Egresos", ...getValues((yt) => yt.totalExpenses + yt.depreciation, { isSubtotal: true, isCost: true }) },
       { label: "= Utilidad Neta", ...getValues((yt) => yt.netProfit, { isSubtotal: true }) },
       { label: "Margen Neto", ...getValues((yt) => yt.margin, { isPercent: true }) },
     ];
@@ -291,8 +291,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       total: totals.expenses[c],
       isCost: true,
     })),
+    { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
     { label: "(-) Depreciación (Equipos Rentados)", values: filteredData.map((r) => r.depreciation), total: totals.depreciation, isCost: true },
-    { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses + r.depreciation), total: totals.totalExpenses + totals.depreciation, isSubtotal: true, isCost: true },
     { label: "= Utilidad Neta", values: filteredData.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ], [filteredData, totals]);

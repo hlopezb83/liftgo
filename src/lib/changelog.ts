@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.5",
+    date: "2026-03-09",
+    type: "patch",
+    title: "Reorden del Estado de Resultados",
+    description: "Se reordenó el Estado de Resultados para mostrar Total de Egresos antes de Depreciación, ya que esta no es una salida de efectivo.",
+    changes: [
+      "Total Egresos ahora excluye depreciación de equipos",
+      "Depreciación se muestra como deducción separada antes de Utilidad Neta",
+      "Aplicado en vista mensual y comparativa YoY",
+    ],
+  },
+  {
     version: "3.23.4",
     date: "2026-03-09",
     type: "patch",
