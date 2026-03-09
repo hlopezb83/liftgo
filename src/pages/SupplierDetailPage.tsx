@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "@/hooks/useSuppliers";
 import { useOperatingExpenses } from "@/hooks/useOperatingExpenses";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
@@ -16,7 +16,6 @@ import { Mail, Phone, Globe, MapPin, FileText, Wrench, DollarSign } from "lucide
 
 export default function SupplierDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { data: suppliers, isLoading } = useSuppliers();
   const { data: expenses } = useOperatingExpenses();
   const { data: maintenanceLogs } = useMaintenanceLogs();
@@ -24,7 +23,6 @@ export default function SupplierDetailPage() {
 
   const supplier = suppliers?.find((s) => s.id === id);
 
-  // Filter linked records
   const linkedExpenses = (expenses || []).filter((e: any) => e.supplier_id === id);
   const linkedMaintenance = (maintenanceLogs || []).filter((m: any) => m.supplier_id === id);
 
@@ -38,7 +36,7 @@ export default function SupplierDetailPage() {
   if (!supplier) {
     return (
       <div className="p-6">
-        <DetailPageHeader title="Proveedor no encontrado" backTo="/suppliers" backLabel="Proveedores" />
+        <DetailPageHeader title="Proveedor no encontrado" backTo="/suppliers" />
       </div>
     );
   }
@@ -48,8 +46,7 @@ export default function SupplierDetailPage() {
       <DetailPageHeader
         title={supplier.name}
         backTo="/suppliers"
-        backLabel="Proveedores"
-        badges={supplier.category ? [<Badge key="cat" variant="outline">{SUPPLIER_CATEGORIES[supplier.category] || supplier.category}</Badge>] : undefined}
+        badges={supplier.category ? <Badge variant="outline">{SUPPLIER_CATEGORIES[supplier.category] || supplier.category}</Badge> : undefined}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -101,7 +98,7 @@ export default function SupplierDetailPage() {
           </CardContent>
         </Card>
 
-        <NotesCard notes={supplier.notes} readOnly />
+        <NotesCard value={supplier.notes || ""} readOnly />
       </div>
 
       {/* Financial summary */}

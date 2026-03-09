@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier, SUPPLIER_CATEGORIES } from "@/hooks/useSuppliers";
+import { useState } from "react";
+import { useSuppliers, useCreateSupplier, useUpdateSupplier, SUPPLIER_CATEGORIES } from "@/hooks/useSuppliers";
 import type { Supplier } from "@/hooks/useSuppliers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +13,8 @@ import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { FormActions } from "@/components/FormActions";
-import { useFormState } from "@/hooks/useFormState";
 import { useListPage } from "@/hooks/useListPage";
-import { PlusCircle, Download, ChevronRight, Trash2 } from "lucide-react";
+import { PlusCircle, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Badge } from "@/components/ui/badge";
@@ -49,11 +48,13 @@ export default function SuppliersPage() {
   const navigate = useNavigate();
   const createSupplier = useCreateSupplier();
   const updateSupplier = useUpdateSupplier();
-  const deleteSupplier = useDeleteSupplier();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const { form, set, setForm, reset } = useFormState(emptyForm);
+  const [form, setForm] = useState<SupplierForm>(emptyForm);
+
+  const setField = <K extends keyof SupplierForm>(key: K, value: SupplierForm[K]) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
   const filtered = (suppliers || []).filter((s) => {
     if (!search) return true;
@@ -76,7 +77,7 @@ export default function SuppliersPage() {
     },
   });
 
-  const openCreate = () => { reset(); setEditId(null); setDialogOpen(true); };
+  const openCreate = () => { setForm(emptyForm); setEditId(null); setDialogOpen(true); };
   const openEdit = (s: Supplier) => {
     setEditId(s.id);
     setForm({
@@ -186,20 +187,20 @@ export default function SuppliersPage() {
           <DialogHeader>
             <DialogTitle>{editId ? "Editar Proveedor" : "Nuevo Proveedor"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
             {/* Identidad */}
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label>Nombre *</Label>
-                <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Nombre del proveedor" />
+                <Input value={form.name} onChange={(e) => setField("name", e.target.value)} placeholder="Nombre del proveedor" />
               </div>
               <div className="space-y-1.5">
                 <Label>Persona de Contacto</Label>
-                <Input value={form.contact_person} onChange={(e) => set("contact_person", e.target.value)} />
+                <Input value={form.contact_person} onChange={(e) => setField("contact_person", e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label>Categoría</Label>
-                <Select value={form.category} onValueChange={(v) => set("category", v)}>
+                <Select value={form.category} onValueChange={(v) => setField("category", v)}>
                   <SelectTrigger><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
                   <SelectContent>
                     {CATEGORIES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
@@ -214,11 +215,11 @@ export default function SuppliersPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>RFC</Label>
-                  <Input value={form.rfc} onChange={(e) => set("rfc", e.target.value)} placeholder="XAXX010101000" />
+                  <Input value={form.rfc} onChange={(e) => setField("rfc", e.target.value)} placeholder="XAXX010101000" />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Régimen Fiscal</Label>
-                  <Select value={form.regimen_fiscal} onValueChange={(v) => set("regimen_fiscal", v)}>
+                  <Select value={form.regimen_fiscal} onValueChange={(v) => setField("regimen_fiscal", v)}>
                     <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                     <SelectContent>
                       {REGIMEN_FISCAL.map((r) => <SelectItem key={r.code} value={r.code}>{r.code} — {r.label}</SelectItem>)}
@@ -234,37 +235,37 @@ export default function SuppliersPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Correo</Label>
-                  <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
+                  <Input type="email" value={form.email} onChange={(e) => setField("email", e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Teléfono</Label>
-                  <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
+                  <Input value={form.phone} onChange={(e) => setField("phone", e.target.value)} />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Sitio Web</Label>
-                <Input value={form.website} onChange={(e) => set("website", e.target.value)} />
+                <Input value={form.website} onChange={(e) => setField("website", e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label>Dirección</Label>
-                <Input value={form.address} onChange={(e) => set("address", e.target.value)} />
+                <Input value={form.address} onChange={(e) => setField("address", e.target.value)} />
               </div>
             </div>
 
             {/* Notas */}
             <div className="space-y-1.5 border-t pt-3">
               <Label>Notas</Label>
-              <Textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} />
+              <Textarea value={form.notes} onChange={(e) => setField("notes", e.target.value)} rows={2} />
             </div>
-          </div>
-          <DialogFooter>
-            <FormActions
-              submitLabel={editId ? "Guardar" : "Crear"}
-              isPending={createSupplier.isPending || updateSupplier.isPending}
-              onCancel={() => setDialogOpen(false)}
-              onSubmit={handleSave}
-            />
-          </DialogFooter>
+
+            <DialogFooter>
+              <FormActions
+                submitLabel={editId ? "Guardar" : "Crear"}
+                isPending={createSupplier.isPending || updateSupplier.isPending}
+                onCancel={() => setDialogOpen(false)}
+              />
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>
