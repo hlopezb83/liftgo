@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.4",
+    date: "2026-03-09",
+    type: "patch",
+    title: "Simplificación de tabla de flota",
+    description: "Se eliminaron las columnas Fabricante, Capacidad y Altura de la tabla de inventario de flota para simplificar la vista.",
+    changes: [
+      "Eliminada columna Fabricante",
+      "Eliminada columna Capacidad",
+      "Eliminada columna Altura",
+      "Actualizado export CSV y vista móvil",
+    ],
+  },
+  {
     version: "3.23.3",
     date: "2026-03-09",
     type: "patch",

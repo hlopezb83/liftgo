@@ -1,14 +1,17 @@
 
 
-# Plan: Quitar columnas de la tabla de Flota
+## Cambiar etiqueta "Enviado" → "Sin Pagar"
 
-Eliminar las columnas "Fabricante", "Capacidad" y "Altura" de la tabla de inventario de flota.
+### Cambio
 
-## `src/pages/Fleet.tsx`
-- Quitar los accessors `manufacturer`, `capacity_kg`, `mast_height_m` del `useListPage`
-- Quitar los 3 `<SortableTableHead>` correspondientes
-- Quitar las 3 `<TableCell>` en `renderRow`
-- Quitar esos campos del CSV export
-- Quitar esos datos de las mobile cards
-- Actualizar `skeletonColumns` de 8 a 5
+**Archivo: `src/lib/constants.ts`**
+
+En el objeto `STATUS_LABELS`, cambiar:
+```typescript
+sent: "Enviado",
+// →
+sent: "Sin Pagar",
+```
+
+Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
 
