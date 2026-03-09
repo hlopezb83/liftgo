@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.22.0",
+    date: "2026-03-09",
+    type: "minor",
+    title: "Módulo independiente de Estado de Resultados",
+    description: "El Estado de Resultados ahora tiene su propia entrada en el sidebar para acceso directo, manteniendo también su disponibilidad dentro del módulo de Reportes.",
+    changes: [
+      "Nueva página standalone de Estado de Resultados con selector de fechas propio",
+      "Entrada dedicada en sidebar bajo sección Administración",
+      "Acceso restringido a roles admin, administrativo y auditor",
+      "Se mantiene disponible también dentro del módulo de Reportes",
+    ],
+  },
+  {
     version: "3.21.0",
     date: "2026-03-09",
     type: "minor",
