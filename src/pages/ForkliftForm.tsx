@@ -82,7 +82,7 @@ export default function ForkliftForm() {
         notes: existing.notes || "",
       });
     }
-  }, [existing]);
+  }, [existing, equipmentModels]);
 
   const handleManufacturerChange = (value: string) => {
     setForm((prev) => ({ ...prev, manufacturer: value, model: "" }));
