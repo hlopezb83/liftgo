@@ -291,7 +291,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       total: totals.expenses[c],
       isCost: true,
     })),
-    { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
+    { label: "(-) Depreciación (Equipos Rentados)", values: filteredData.map((r) => r.depreciation), total: totals.depreciation, isCost: true },
+    { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses + r.depreciation), total: totals.totalExpenses + totals.depreciation, isSubtotal: true, isCost: true },
     { label: "= Utilidad Neta", values: filteredData.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ], [filteredData, totals]);
