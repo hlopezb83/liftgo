@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.1",
+    date: "2026-03-09",
+    type: "patch",
+    title: "Eliminar diálogo de factura post-devolución",
+    description: "Se removió el diálogo automático que preguntaba si generar factura al completar una inspección de devolución.",
+    changes: [
+      "Eliminado el diálogo PostInspectionInvoiceDialog del flujo de devoluciones",
+      "El flujo ahora es: completar devolución → toast de éxito → cerrar",
+    ],
+  },
+  {
     version: "3.23.0",
     date: "2026-03-09",
     type: "minor",
