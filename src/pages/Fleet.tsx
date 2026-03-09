@@ -27,7 +27,7 @@ export default function Fleet() {
   const navigate = useNavigate();
 
   const filtered = forklifts?.filter((f) => {
-    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase()) || (f.serial_number || "").toLowerCase().includes(search.toLowerCase());
     return matchesSearch && (statusFilter === "all" || f.status === statusFilter);
   });
 
@@ -37,6 +37,7 @@ export default function Fleet() {
       name: (f) => f.name,
       model: (f) => f.model,
       manufacturer: (f) => f.manufacturer || "",
+      serial_number: (f) => f.serial_number || "",
       capacity_kg: (f) => f.capacity_kg || 0,
       mast_height_m: (f) => f.mast_height_m || 0,
       fuel_type: (f) => f.fuel_type || "",
@@ -59,7 +60,7 @@ export default function Fleet() {
 
   const actions = (
     <div className="flex gap-2">
-      <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", (filtered || []).map(f => ({ Nombre: f.name, Modelo: f.model, Fabricante: f.manufacturer || "", Capacidad: f.capacity_kg || "", Combustible: f.fuel_type || "", Estado: f.status })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+      <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", (filtered || []).map(f => ({ Nombre: f.name, Modelo: f.model, Fabricante: f.manufacturer || "", "No. de Serie": f.serial_number || "", Capacidad: f.capacity_kg || "", Combustible: f.fuel_type || "", Estado: f.status })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
       <Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
     </div>
   );
@@ -80,6 +81,7 @@ export default function Fleet() {
               <StatusBadge status={f.status} />
             </div>
             <p className="text-sm text-muted-foreground">{f.model} {f.manufacturer ? `· ${f.manufacturer}` : ""}</p>
+            {f.serial_number && <p className="text-xs text-muted-foreground font-mono">S/N: {f.serial_number}</p>}
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <div className="flex gap-4 text-xs text-muted-foreground">
                 {f.capacity_kg && <span>{f.capacity_kg} kg</span>}
@@ -110,12 +112,13 @@ export default function Fleet() {
       emptyActionLabel="Agregar Montacargas"
       onEmptyAction={() => navigate("/fleet/new")}
       customContent={mobileContent}
-      skeletonColumns={7}
+      skeletonColumns={8}
       tableHeader={
         <TableRow>
           <SortableTableHead sortKey="name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>ID</SortableTableHead>
           <SortableTableHead sortKey="model" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Modelo</SortableTableHead>
           <SortableTableHead sortKey="manufacturer" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fabricante</SortableTableHead>
+          <SortableTableHead sortKey="serial_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>No. de Serie</SortableTableHead>
           <SortableTableHead sortKey="capacity_kg" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Capacidad</SortableTableHead>
           <SortableTableHead sortKey="mast_height_m" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Altura</SortableTableHead>
           <SortableTableHead sortKey="fuel_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Combustible</SortableTableHead>
@@ -134,6 +137,7 @@ export default function Fleet() {
           </TableCell>
           <TableCell>{f.model}</TableCell>
           <TableCell>{f.manufacturer || "—"}</TableCell>
+          <TableCell className="font-mono text-xs">{f.serial_number || "—"}</TableCell>
           <TableCell>{f.capacity_kg ? `${f.capacity_kg} kg` : "—"}</TableCell>
           <TableCell>{f.mast_height_m ? `${f.mast_height_m} m` : "—"}</TableCell>
           <TableCell>{f.fuel_type ? (FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type) : "—"}</TableCell>

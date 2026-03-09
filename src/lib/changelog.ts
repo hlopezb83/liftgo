@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.3",
+    date: "2026-03-09",
+    type: "patch",
+    title: "Columna No. de Serie en inventario de flota",
+    description: "Se agregó la columna 'No. de Serie' a la tabla de inventario de flota, visible en desktop, móvil, búsqueda y exportación CSV.",
+    changes: [
+      "Nueva columna sorteable 'No. de Serie' entre Fabricante y Capacidad",
+      "Búsqueda incluye número de serie",
+      "Exportación CSV incluye número de serie",
+      "Tarjetas móviles muestran S/N cuando existe",
+    ],
+  },
+  {
     version: "3.23.2",
     date: "2026-03-09",
     type: "patch",
