@@ -138,7 +138,8 @@ export default function MaintenancePage() {
         cost: form.cost ? parseFloat(form.cost) : 0, performed_by: form.performedBy || null,
         performed_at: format(form.performedAt, "yyyy-MM-dd"),
         next_service_date: form.nextServiceDate ? format(form.nextServiceDate, "yyyy-MM-dd") : null,
-      },
+        supplier_id: form.supplierId || null,
+      } as any,
       {
         onSuccess: () => {
           toast.success("Registro de mantenimiento agregado");
