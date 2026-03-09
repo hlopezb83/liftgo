@@ -36,10 +36,7 @@ export default function Fleet() {
     accessors: {
       name: (f) => f.name,
       model: (f) => f.model,
-      manufacturer: (f) => f.manufacturer || "",
       serial_number: (f) => f.serial_number || "",
-      capacity_kg: (f) => f.capacity_kg || 0,
-      mast_height_m: (f) => f.mast_height_m || 0,
       fuel_type: (f) => f.fuel_type || "",
       status: (f) => f.status,
     },
