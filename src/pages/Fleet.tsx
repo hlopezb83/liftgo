@@ -128,10 +128,7 @@ export default function Fleet() {
             </span>
           </TableCell>
           <TableCell>{f.model}</TableCell>
-          <TableCell>{f.manufacturer || "—"}</TableCell>
           <TableCell className="font-mono text-xs">{f.serial_number || "—"}</TableCell>
-          <TableCell>{f.capacity_kg ? `${f.capacity_kg} kg` : "—"}</TableCell>
-          <TableCell>{f.mast_height_m ? `${f.mast_height_m} m` : "—"}</TableCell>
           <TableCell>{f.fuel_type ? (FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type) : "—"}</TableCell>
           <TableCell><StatusBadge status={f.status} /></TableCell>
         </TableRow>
