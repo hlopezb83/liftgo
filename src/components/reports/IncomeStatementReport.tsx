@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
+import { format, parseISO, isWithinInterval, startOfMonth, eachMonthOfInterval } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown } from "lucide-react";
 import { jsPDF } from "jspdf";
