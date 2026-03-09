@@ -43,6 +43,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
 
   useEffect(() => {
     if (open) {
+      setSupplierId("");
       form.reset({
         expense_date: new Date(),
         amount: undefined as unknown as number,
