@@ -32,8 +32,10 @@ export default function IncomeStatementPage() {
   const [startMonth, setStartMonth] = useState(() => format(subMonths(new Date(), 3), "yyyy-MM"));
   const [endMonth, setEndMonth] = useState(() => format(new Date(), "yyyy-MM"));
 
-  const startDate = startOfMonth(new Date(startMonth + "-01"));
-  const endDate = endOfMonth(new Date(endMonth + "-01"));
+  const [sy, sm] = startMonth.split("-").map(Number);
+  const startDate = startOfMonth(new Date(sy, sm - 1, 1));
+  const [ey, em] = endMonth.split("-").map(Number);
+  const endDate = endOfMonth(new Date(ey, em - 1, 1));
 
   const { data: invoices } = useInvoices();
   const { data: maintenanceLogs } = useMaintenanceLogs();

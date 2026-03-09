@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.22.2",
+    date: "2026-03-09",
+    type: "patch",
+    title: "Corrección de rango de fechas en Estado de Resultados",
+    description: "Se corrigió un bug donde el mes seleccionado en 'Hasta' no se incluía completamente debido a interpretación UTC de fechas.",
+    changes: [
+      "Construcción de fechas con parámetros locales en lugar de cadenas ISO para evitar desfase por zona horaria",
+    ],
+  },
+  {
     version: "3.22.1",
     date: "2026-03-09",
     type: "patch",
