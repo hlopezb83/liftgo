@@ -29,6 +29,7 @@ interface ExpenseFormDialogProps {
 
 export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps) {
   const createExpense = useCreateExpense();
+  const [supplierId, setSupplierId] = useState("");
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseFormSchema),
