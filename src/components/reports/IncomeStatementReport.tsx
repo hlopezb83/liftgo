@@ -306,7 +306,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     Renta: r.expenses.renta,
     Nómina: r.expenses.nomina,
     Software: r.expenses.software,
-    Depreciación: r.expenses.depreciacion,
+    "Depr. Contable": r.expenses.depreciacion,
+    "Depr. Equipos": r.depreciation,
     Otros: r.expenses.otro,
   }));
 
