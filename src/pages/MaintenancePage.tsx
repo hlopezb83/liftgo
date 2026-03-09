@@ -41,6 +41,7 @@ const initialForm = {
   performedBy: "" as string,
   performedAt: new Date() as Date,
   nextServiceDate: undefined as Date | undefined,
+  supplierId: "" as string,
 };
 
 export default function MaintenancePage() {
