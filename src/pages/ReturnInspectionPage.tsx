@@ -17,7 +17,7 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FormActions } from "@/components/FormActions";
-import { PostInspectionInvoiceDialog } from "@/components/PostInspectionInvoiceDialog";
+
 import { useFormState } from "@/hooks/useFormState";
 import { formatDateDisplay } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -41,11 +41,6 @@ const initialForm = {
   inspectedBy: "" as string,
 };
 
-interface InvoicePromptData {
-  booking: { id: string; customer_name: string | null; customer_id: string | null; start_date: string; end_date: string; forklift_id: string };
-  forklift: any;
-  damageCost: number;
-}
 
 export default function ReturnInspectionPage() {
   const { data: bookings } = useBookings();
@@ -54,7 +49,7 @@ export default function ReturnInspectionPage() {
   const createInspection = useCreateReturnInspection();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
-  const [invoicePrompt, setInvoicePrompt] = useState<InvoicePromptData | null>(null);
+  
   const [searchParams, setSearchParams] = useSearchParams();
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
@@ -135,13 +130,6 @@ export default function ReturnInspectionPage() {
         onSuccess: () => {
           toast.success("Inspección de devolución registrada — montacargas marcado como disponible");
           setDialogOpen(false);
-          const forklift = forkliftMap.get(booking.forklift_id);
-          if (forklift) {
-            setInvoicePrompt({
-              booking: { id: booking.id, customer_name: booking.customer_name, customer_id: booking.customer_id, start_date: booking.start_date, end_date: booking.end_date, forklift_id: booking.forklift_id },
-              forklift, damageCost,
-            });
-          }
           reset();
         },
       }
@@ -284,15 +272,6 @@ export default function ReturnInspectionPage() {
         </DialogContent>
       </Dialog>
 
-      {invoicePrompt && (
-        <PostInspectionInvoiceDialog
-          open={!!invoicePrompt}
-          onOpenChange={(open) => { if (!open) setInvoicePrompt(null); }}
-          booking={invoicePrompt.booking}
-          forklift={invoicePrompt.forklift}
-          damageCost={invoicePrompt.damageCost}
-        />
-      )}
     </>
   );
 }
