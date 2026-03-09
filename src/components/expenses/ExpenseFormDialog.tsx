@@ -60,7 +60,8 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         description: data.description || undefined,
         amount: data.amount,
         expense_date: format(data.expense_date, "yyyy-MM-dd"),
-      },
+        supplier_id: supplierId || undefined,
+      } as any,
       { onSuccess: () => onOpenChange(false) },
     );
   };
