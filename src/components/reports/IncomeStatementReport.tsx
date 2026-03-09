@@ -63,6 +63,7 @@ interface YearTotals {
   revenue: number;
   maintenanceCost: number;
   damageCost: number;
+  depreciation: number;
   expenses: Record<ExpenseCategory, number>;
   grossProfit: number;
   grossMargin: number;
