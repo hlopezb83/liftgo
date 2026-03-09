@@ -82,7 +82,17 @@ interface ComparisonRow {
   isPercent?: boolean;
 }
 
-export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate }: Props) {
+export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forklifts, startDate, endDate }: Props) {
+  // Build a map of forklift_id → monthly depreciation (acquisition_cost / 36)
+  const forkliftDepreciationMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const fl of forklifts) {
+      const cost = Number((fl as any).acquisition_cost ?? 0);
+      if (cost > 0) map.set(fl.id, cost / 36);
+    }
+    return map;
+  }, [forklifts]);
+
   const data = useMemo(() => {
     const months: Record<string, { month: string; revenue: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
 
@@ -131,19 +141,40 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         months[key].expenses[oe.category] += Number(oe.amount);
       });
 
+    // Calculate depreciation per month based on active rentals
+    const activeBookings = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");
+
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, m]): MonthData => {
+        // Find forklifts with active rentals in this month
+        const monthStart = `${key}-01`;
+        const [yyyy, mm] = key.split("-").map(Number);
+        const lastDay = new Date(yyyy, mm, 0).getDate();
+        const monthEnd = `${key}-${String(lastDay).padStart(2, "0")}`;
+
+        const rentedForkliftIds = new Set<string>();
+        for (const b of activeBookings) {
+          if (b.start_date <= monthEnd && b.end_date >= monthStart) {
+            rentedForkliftIds.add(b.forklift_id);
+          }
+        }
+
+        let depreciation = 0;
+        for (const fid of rentedForkliftIds) {
+          depreciation += forkliftDepreciationMap.get(fid) ?? 0;
+        }
+
         const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const grossProfit = m.revenue - m.maintenanceCost - m.damageCost - costoVenta;
         const grossMargin = m.revenue > 0 ? (grossProfit / m.revenue) * 100 : 0;
         const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
         const totalExpenses = m.maintenanceCost + m.damageCost + costoVenta + opexTotal;
-        const netProfit = m.revenue - totalExpenses;
+        const netProfit = m.revenue - totalExpenses - depreciation;
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
-        return { ...m, monthKey: key, grossProfit, grossMargin, totalExpenses, netProfit, margin };
+        return { ...m, monthKey: key, depreciation, grossProfit, grossMargin, totalExpenses, netProfit, margin };
       });
-  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, startDate, endDate]);
+  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, startDate, endDate]);
 
   // Year filter
   const availableYears = useMemo(() => {
