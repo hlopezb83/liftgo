@@ -34,9 +34,10 @@ interface FormData {
   amount: string;
   expense_date: string;
   is_recurring: boolean;
+  supplier_id: string;
 }
 
-const emptyForm: FormData = { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), is_recurring: false };
+const emptyForm: FormData = { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), is_recurring: false, supplier_id: "" };
 
 export default function OperatingExpensesPage() {
   const { data: expenses, isLoading } = useOperatingExpenses();

@@ -136,6 +136,9 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
             )}
           </div>
 
+          {/* Proveedor */}
+          <SupplierSelector value={supplierId} onChange={setSupplierId} />
+
           {/* Descripción */}
           <div className="space-y-1.5">
             <Label>Descripción (opcional)</Label>
