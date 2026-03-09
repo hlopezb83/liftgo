@@ -77,12 +77,10 @@ export default function Fleet() {
               </span>
               <StatusBadge status={f.status} />
             </div>
-            <p className="text-sm text-muted-foreground">{f.model} {f.manufacturer ? `· ${f.manufacturer}` : ""}</p>
+            <p className="text-sm text-muted-foreground">{f.model}</p>
             {f.serial_number && <p className="text-xs text-muted-foreground font-mono">S/N: {f.serial_number}</p>}
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <div className="flex gap-4 text-xs text-muted-foreground">
-                {f.capacity_kg && <span>{f.capacity_kg} kg</span>}
-                {f.mast_height_m && <span>{f.mast_height_m} m</span>}
                 {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
