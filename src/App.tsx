@@ -49,6 +49,8 @@ const OperatingExpensesPage = lazy(() => import("./pages/OperatingExpensesPage")
 const IncomeStatementPage = lazy(() => import("./pages/IncomeStatementPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const CRMPage = lazy(() => import("./pages/CRMPage"));
+const SuppliersPage = lazy(() => import("./pages/SuppliersPage"));
+const SupplierDetailPage = lazy(() => import("./pages/SupplierDetailPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
