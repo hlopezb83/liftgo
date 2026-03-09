@@ -53,7 +53,7 @@ const navGroups: NavGroup[] = [
     label: "Administración",
     items: [
       { title: "Gastos Operativos", url: "/expenses", icon: Wallet, roles: ["admin", "administrativo", "auditor"] },
-      { title: "Estado de Resultados", url: "/income-statement", icon: Receipt, roles: ["admin", "administrativo", "auditor"] },
+      { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign, roles: ["admin", "administrativo", "auditor"] },
       { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Actividad", url: "/activity", icon: Activity },
       { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
