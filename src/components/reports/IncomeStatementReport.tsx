@@ -24,6 +24,8 @@ interface Props {
   maintenanceLogs: Tables<"maintenance_logs">[];
   damageRecords: Tables<"damage_records">[];
   operatingExpenses: OperatingExpense[];
+  bookings: Tables<"bookings">[];
+  forklifts: Tables<"forklifts">[];
   startDate: Date;
   endDate: Date;
 }
