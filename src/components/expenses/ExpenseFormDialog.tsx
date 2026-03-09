@@ -13,6 +13,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { expenseFormSchema, type ExpenseFormData } from "@/lib/formSchemas";
 import { useCreateExpense, EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@/hooks/useOperatingExpenses";
+import { SupplierSelector } from "@/components/SupplierSelector";
 
 const CATEGORY_DISPLAY: Record<string, string> = {
   ...EXPENSE_CATEGORY_LABELS,
