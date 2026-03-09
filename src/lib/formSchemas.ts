@@ -95,3 +95,25 @@ export const partFormSchema = z.object({
 });
 
 export type PartFormData = z.infer<typeof partFormSchema>;
+
+// ─── Supplier Form ─────────────────────────────────────────────────────────
+
+export const supplierFormSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido"),
+  contact_person: z.string().default(""),
+  email: z
+    .string()
+    .default("")
+    .refine((v) => !v || z.string().email().safeParse(v).success, {
+      message: "Correo electrónico inválido",
+    }),
+  phone: z.string().default(""),
+  website: z.string().default(""),
+  address: z.string().default(""),
+  rfc: z.string().default(""),
+  regimen_fiscal: z.string().default(""),
+  category: z.string().default(""),
+  notes: z.string().default(""),
+});
+
+export type SupplierFormData = z.infer<typeof supplierFormSchema>;

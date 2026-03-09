@@ -1,4 +1,4 @@
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -52,6 +52,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Administración",
     items: [
+      { title: "Proveedores", url: "/suppliers", icon: Handshake, roles: ["admin", "administrativo", "auditor"] },
       { title: "Gastos Operativos", url: "/expenses", icon: Wallet, roles: ["admin", "administrativo", "auditor"] },
       { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign, roles: ["admin", "administrativo", "auditor"] },
       { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher", "administrativo", "auditor"] },

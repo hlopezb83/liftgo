@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -13,6 +13,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { expenseFormSchema, type ExpenseFormData } from "@/lib/formSchemas";
 import { useCreateExpense, EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@/hooks/useOperatingExpenses";
+import { SupplierSelector } from "@/components/SupplierSelector";
 
 const CATEGORY_DISPLAY: Record<string, string> = {
   ...EXPENSE_CATEGORY_LABELS,
@@ -28,6 +29,7 @@ interface ExpenseFormDialogProps {
 
 export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps) {
   const createExpense = useCreateExpense();
+  const [supplierId, setSupplierId] = useState("");
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseFormSchema),
@@ -41,6 +43,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
 
   useEffect(() => {
     if (open) {
+      setSupplierId("");
       form.reset({
         expense_date: new Date(),
         amount: undefined as unknown as number,
@@ -57,7 +60,8 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         description: data.description || undefined,
         amount: data.amount,
         expense_date: format(data.expense_date, "yyyy-MM-dd"),
-      },
+        supplier_id: supplierId || undefined,
+      } as any,
       { onSuccess: () => onOpenChange(false) },
     );
   };
@@ -131,6 +135,9 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
               <p className="text-sm text-destructive">{form.formState.errors.category.message}</p>
             )}
           </div>
+
+          {/* Proveedor */}
+          <SupplierSelector value={supplierId} onChange={setSupplierId} />
 
           {/* Descripción */}
           <div className="space-y-1.5">

@@ -878,6 +878,7 @@ export type Database = {
           performed_at: string
           performed_by: string | null
           service_type: string
+          supplier_id: string | null
           updated_at: string
           work_status: string
         }
@@ -891,6 +892,7 @@ export type Database = {
           performed_at?: string
           performed_by?: string | null
           service_type: string
+          supplier_id?: string | null
           updated_at?: string
           work_status?: string
         }
@@ -904,6 +906,7 @@ export type Database = {
           performed_at?: string
           performed_by?: string | null
           service_type?: string
+          supplier_id?: string | null
           updated_at?: string
           work_status?: string
         }
@@ -913,6 +916,13 @@ export type Database = {
             columns: ["forklift_id"]
             isOneToOne: false
             referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_logs_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -1051,6 +1061,7 @@ export type Database = {
           expense_date: string
           id: string
           is_recurring: boolean
+          supplier_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1061,6 +1072,7 @@ export type Database = {
           expense_date?: string
           id?: string
           is_recurring?: boolean
+          supplier_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1071,9 +1083,18 @@ export type Database = {
           expense_date?: string
           id?: string
           is_recurring?: boolean
+          supplier_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "operating_expenses_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       parts_inventory: {
         Row: {
@@ -1463,6 +1484,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          category: string | null
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          regimen_fiscal: string | null
+          rfc: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          regimen_fiscal?: string | null
+          rfc?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
       }
       user_manual: {
         Row: {

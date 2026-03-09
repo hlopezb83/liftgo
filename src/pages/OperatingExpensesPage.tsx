@@ -23,6 +23,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { EmptyRow } from "@/components/EmptyRow";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { ExpenseFormDialog } from "@/components/expenses/ExpenseFormDialog";
+import { SupplierSelector } from "@/components/SupplierSelector";
 
 const CATEGORIES = Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, string][];
 
@@ -32,9 +33,10 @@ interface FormData {
   amount: string;
   expense_date: string;
   is_recurring: boolean;
+  supplier_id: string;
 }
 
-const emptyForm: FormData = { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), is_recurring: false };
+const emptyForm: FormData = { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), is_recurring: false, supplier_id: "" };
 
 export default function OperatingExpensesPage() {
   const { data: expenses, isLoading } = useOperatingExpenses();
@@ -51,12 +53,12 @@ export default function OperatingExpensesPage() {
 
   const openEdit = (e: any) => {
     setEditingId(e.id);
-    setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false });
+    setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false, supplier_id: e.supplier_id || "" });
     setDialogOpen(true);
   };
 
   const handleSave = () => {
-    const payload = { category: form.category, description: form.description || undefined, amount: parseFloat(form.amount), expense_date: form.expense_date, is_recurring: form.is_recurring };
+    const payload = { category: form.category, description: form.description || undefined, amount: parseFloat(form.amount), expense_date: form.expense_date, is_recurring: form.is_recurring, supplier_id: form.supplier_id || null } as any;
     if (!payload.amount || isNaN(payload.amount)) return;
     if (editingId) {
       updateExpense.mutate({ id: editingId, ...payload }, { onSuccess: () => setDialogOpen(false) });
@@ -191,6 +193,7 @@ export default function OperatingExpensesPage() {
                 <Label>Descripción (opcional)</Label>
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
               </div>
+              <SupplierSelector value={form.supplier_id} onChange={(v) => setForm({ ...form, supplier_id: v })} />
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
                   <Label>Gasto recurrente mensual</Label>
