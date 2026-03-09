@@ -41,11 +41,6 @@ const initialForm = {
   inspectedBy: "" as string,
 };
 
-interface InvoicePromptData {
-  booking: { id: string; customer_name: string | null; customer_id: string | null; start_date: string; end_date: string; forklift_id: string };
-  forklift: any;
-  damageCost: number;
-}
 
 export default function ReturnInspectionPage() {
   const { data: bookings } = useBookings();
