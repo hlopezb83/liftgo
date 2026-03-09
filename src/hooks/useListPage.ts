@@ -11,6 +11,8 @@ interface UseListPageOptions<T> {
 /**
  * Combines useSort + usePagination + useIsMobile into a single hook
  * for list pages that follow the standard pattern.
+ * 
+ * Pass pre-filtered items for pages with custom filtering logic.
  */
 export function useListPage<T>(
   items: T[] | undefined,
@@ -22,7 +24,7 @@ export function useListPage<T>(
     accessors: options.accessors,
   });
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
+  const { page, setPage, totalPages, totalItems, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
   return {
@@ -32,6 +34,7 @@ export function useListPage<T>(
     page,
     setPage,
     totalPages,
+    totalItems,
     paginatedItems,
     isMobile,
   };

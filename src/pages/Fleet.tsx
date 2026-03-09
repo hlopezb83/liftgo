@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
-import { usePagination } from "@/hooks/usePagination";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 
 import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -18,7 +17,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
@@ -27,15 +25,14 @@ export default function Fleet() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const filtered = forklifts?.filter((f) => {
     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase());
     return matchesSearch && (statusFilter === "all" || f.status === statusFilter);
   });
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
-    defaultKey: "name",
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
+    defaultSortKey: "name",
     accessors: {
       name: (f) => f.name,
       model: (f) => f.model,
@@ -44,11 +41,8 @@ export default function Fleet() {
       mast_height_m: (f) => f.mast_height_m || 0,
       fuel_type: (f) => f.fuel_type || "",
       status: (f) => f.status,
-      
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
 
   const filters = (
     <div className="flex gap-3">
@@ -126,7 +120,6 @@ export default function Fleet() {
           <SortableTableHead sortKey="mast_height_m" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Altura</SortableTableHead>
           <SortableTableHead sortKey="fuel_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Combustible</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          
         </TableRow>
       }
       renderRow={(f) => (
@@ -145,7 +138,6 @@ export default function Fleet() {
           <TableCell>{f.mast_height_m ? `${f.mast_height_m} m` : "—"}</TableCell>
           <TableCell>{f.fuel_type ? (FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type) : "—"}</TableCell>
           <TableCell><StatusBadge status={f.status} /></TableCell>
-          
         </TableRow>
       )}
     />

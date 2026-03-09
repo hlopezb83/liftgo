@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableCell, TableHead, TableRow } from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -15,15 +15,13 @@ import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
-import { useSort } from "@/hooks/useSort";
+import { useListPage } from "@/hooks/useListPage";
 import { PlusCircle, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { usePagination } from "@/hooks/usePagination";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useUpdateProspect } from "@/hooks/useProspects";
 
 const emptyCustomer: CustomerFormData = {
@@ -60,7 +58,6 @@ export default function CustomersPage() {
         phone: searchParams.get("phone") || "",
       });
       setDialogOpen(true);
-      // Clean URL
       setSearchParams({}, { replace: true });
     }
   }, []);
@@ -71,8 +68,8 @@ export default function CustomersPage() {
     (c.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(filtered, {
-    defaultKey: "name",
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
+    defaultSortKey: "name",
     accessors: {
       name: (c) => c.name,
       rfc: (c) => c.rfc || "",
@@ -81,9 +78,6 @@ export default function CustomersPage() {
       contact_person: (c) => c.contact_person || "",
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
-  const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
     <MobileCardList
@@ -109,19 +103,6 @@ export default function CustomersPage() {
   ) : undefined;
 
   const openCreate = () => { setEditId(null); reset(); setDialogOpen(true); };
-  const openEdit = (c: Customer) => {
-    setEditId(c.id);
-    setForm({
-      name: c.name, email: c.email || "", phone: c.phone || "",
-      address: c.address || "", notes: c.notes || "",
-      website: c.website || "", contact_person: c.contact_person || "",
-      billing_address: c.billing_address || "",
-      rfc: c.rfc || "", regimen_fiscal: c.regimen_fiscal || "",
-      uso_cfdi: c.uso_cfdi || "", domicilio_fiscal_cp: c.domicilio_fiscal_cp || "",
-      representante_legal: c.representante_legal || "",
-    });
-    setDialogOpen(true);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +126,6 @@ export default function CustomersPage() {
           toast.success("Cliente agregado");
           setDialogOpen(false);
           reset();
-          // Link prospect to the newly created customer
           if (prospectId && newCustomer?.id) {
             updateProspect.mutate({ id: prospectId, customer_id: newCustomer.id });
             setProspectId(null);
