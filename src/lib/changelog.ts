@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.27.0",
+    date: "2026-03-10",
+    type: "minor",
+    title: "Eliminar clientes",
+    description: "Los administradores ahora pueden eliminar clientes desde la página de detalle, con validación de dependencias y confirmación.",
+    changes: [
+      "Botón 'Eliminar' en detalle de cliente (solo admin)",
+      "Validación: no se permite eliminar si tiene reservas o facturas",
+      "Diálogo de confirmación con AlertDialog",
+    ],
+  },
+  {
     version: "3.26.1",
     date: "2026-03-10",
     type: "patch",

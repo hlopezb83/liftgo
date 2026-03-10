@@ -199,6 +199,38 @@ export default function CustomerDetailPage() {
         onSubmit={handleEditSubmit}
       />
 
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(bookings && bookings.length > 0) || (invoices && invoices.length > 0)
+                ? "Este cliente tiene reservas o facturas asociadas y no puede ser eliminado. Elimina primero las dependencias."
+                : "Esta acción no se puede deshacer. Se eliminará permanentemente el cliente del sistema."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            {!((bookings && bookings.length > 0) || (invoices && invoices.length > 0)) && (
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (!id) return;
+                  deleteCustomer.mutate(id, {
+                    onSuccess: () => {
+                      sonnerToast.success("Cliente eliminado");
+                      navigate("/customers");
+                    },
+                  });
+                }}
+              >
+                {deleteCustomer.isPending ? "Eliminando..." : "Eliminar"}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent>
           <DialogHeader>
