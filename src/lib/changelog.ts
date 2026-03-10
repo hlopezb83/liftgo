@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.24.0",
+    date: "2026-03-10",
+    type: "minor",
+    title: "Persistencia de filtros en todas las páginas de listado",
+    description: "Los filtros de búsqueda y estado ahora se sincronizan con la URL en todas las páginas de listado, preservándose al navegar y regresar.",
+    changes: [
+      "Hook useListFilters migrado de useState a useSearchParams para persistencia automática",
+      "Páginas beneficiadas: Facturas, Cotizaciones, Reservas, Contratos, Mantenimiento, Daños y Clientes",
+      "Al regresar con la flecha atrás, todos los filtros se restauran automáticamente",
+    ],
+  },
+  {
     version: "3.23.7",
     date: "2026-03-10",
     type: "patch",

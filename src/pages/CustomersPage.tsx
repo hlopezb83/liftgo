@@ -62,11 +62,9 @@ export default function CustomersPage() {
     }
   }, []);
 
-  const filtered = customers?.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    (c.company || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.email || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const { search, setSearch, filtered } = useListFilters(customers, {
+    searchFields: ["name", "company", "email"],
+  });
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
     defaultSortKey: "name",
