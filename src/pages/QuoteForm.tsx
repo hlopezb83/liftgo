@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 
-const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0 };
+const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0, discount: 0, discountType: "%" };
 
 export default function QuoteForm() {
   const { id } = useParams();
