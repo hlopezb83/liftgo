@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { applyDiscount } from "@/lib/invoiceUtils";
 import type { LineItem } from "@/lib/invoiceUtils";
 
 interface ReadOnlyLineItemsTableProps {
@@ -8,6 +9,8 @@ interface ReadOnlyLineItemsTableProps {
 }
 
 export function ReadOnlyLineItemsTable({ lineItems }: ReadOnlyLineItemsTableProps) {
+  const hasDiscount = lineItems.some((item) => item.discount && item.discount > 0);
+
   return (
     <Card>
       <CardContent className="p-0">
@@ -17,6 +20,7 @@ export function ReadOnlyLineItemsTable({ lineItems }: ReadOnlyLineItemsTableProp
               <TableHead>Descripción</TableHead>
               <TableHead className="w-24 text-right">Cant.</TableHead>
               <TableHead className="w-32 text-right">Precio Unit.</TableHead>
+              {hasDiscount && <TableHead className="w-28 text-right">Dto.</TableHead>}
               <TableHead className="w-32 text-right">Total</TableHead>
             </TableRow>
           </TableHeader>
@@ -26,7 +30,16 @@ export function ReadOnlyLineItemsTable({ lineItems }: ReadOnlyLineItemsTableProp
                 <TableCell>{item.description}</TableCell>
                 <TableCell className="text-right">{item.quantity}</TableCell>
                 <TableCell className="text-right font-mono">{formatCurrency(Number(item.unit_price))}</TableCell>
-                <TableCell className="text-right font-mono">{formatCurrency(Number(item.total))}</TableCell>
+                {hasDiscount && (
+                  <TableCell className="text-right text-destructive font-mono">
+                    {item.discount && item.discount > 0
+                      ? item.discount_type === "$"
+                        ? `-${formatCurrency(item.discount)}`
+                        : `-${item.discount}%`
+                      : "—"}
+                  </TableCell>
+                )}
+                <TableCell className="text-right font-mono">{formatCurrency(applyDiscount(item))}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -3,7 +3,9 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useAvailableForklifts } from "@/hooks/useAvailableForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
-import { generateLineItems, computeTotals, type LineItem } from "@/lib/invoiceUtils";
+import { generateLineItems, computeTotals, applyDiscount, type LineItem } from "@/lib/invoiceUtils";
+import { formatCurrency } from "@/lib/formatCurrency";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,7 +28,7 @@ import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 
-const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0 };
+const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0, discount: 0, discountType: "%" };
 
 export default function QuoteForm() {
   const { id } = useParams();
@@ -48,6 +50,7 @@ export default function QuoteForm() {
   const [validUntil, setValidUntil] = useState<Date>();
   const [includeLogistics, setIncludeLogistics] = useState(false);
   const [logisticsCost, setLogisticsCost] = useState(0);
+  const [rentalDiscounts, setRentalDiscounts] = useState<Record<number, { value: number; type: "%" | "$" }>>({});
 
   const { data: equipmentModels } = useEquipmentModels();
 
@@ -72,10 +75,22 @@ export default function QuoteForm() {
         setLogisticsCost(logisticsItem.unit_price || logisticsItem.total || 0);
       }
 
+      // Restore rental discounts from existing line_items
+      if (!isSale) {
+        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
+        const restored: Record<number, { value: number; type: "%" | "$" }> = {};
+        nonLogisticsItems.forEach((item, idx) => {
+          if (item.discount && item.discount > 0) {
+            restored[idx] = { value: item.discount, type: item.discount_type || "%" };
+          }
+        });
+        if (Object.keys(restored).length > 0) setRentalDiscounts(restored);
+      }
+
       if (isSale && equipmentModels) {
         const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
         if (nonLogisticsItems.length > 0) {
-          const rebuilt = nonLogisticsItems.map((item) => {
+        const rebuilt = nonLogisticsItems.map((item) => {
             const found = equipmentModels.find(
               (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
             );
@@ -83,6 +98,8 @@ export default function QuoteForm() {
               modelId: found?.id || "",
               quantity: item.quantity || 1,
               unitPrice: item.unit_price || 0,
+              discount: item.discount || 0,
+              discountType: (item.discount_type || "%") as "%" | "$",
             };
           });
           setSaleLines(rebuilt);
@@ -151,14 +168,26 @@ export default function QuoteForm() {
             quantity: l.quantity,
             unit_price: l.unitPrice,
             total: l.quantity * l.unitPrice,
+            discount: l.discount || 0,
+            discount_type: l.discountType || "%",
           };
         });
     } else {
       if (forkliftIds.length === 0 || !startDate || !endDate) return [];
+      let rentalIdx = 0;
       for (const fid of forkliftIds) {
         const fl = allForkliftsFromHook?.find((f) => f.id === fid);
         if (fl) {
-          items.push(...generateLineItems(fl, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd")));
+          const flItems = generateLineItems(fl, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
+          for (const item of flItems) {
+            const d = rentalDiscounts[rentalIdx];
+            if (d && d.value > 0) {
+              item.discount = d.value;
+              item.discount_type = d.type;
+            }
+            items.push(item);
+            rentalIdx++;
+          }
         }
       }
     }
@@ -166,7 +195,7 @@ export default function QuoteForm() {
       items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
     }
     return items;
-  }, [allForkliftsFromHook, forkliftIds, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost]);
+  }, [allForkliftsFromHook, forkliftIds, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost, rentalDiscounts]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
@@ -286,6 +315,52 @@ export default function QuoteForm() {
         {/* 4. Equipos a Cotizar (solo venta) */}
         {quoteType === "sale" && (
           <SaleLineItems lines={saleLines} onChange={setSaleLines} models={equipmentModels || []} />
+        )}
+
+        {/* 4b. Descuentos por línea (solo renta) */}
+        {quoteType === "rental" && lineItems.filter((i) => !i.description?.includes("Logística")).length > 0 && (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Descuentos por Línea</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {lineItems
+                .map((item, idx) => ({ item, idx }))
+                .filter(({ item }) => !item.description?.includes("Logística"))
+                .map(({ item, idx }) => {
+                  const d = rentalDiscounts[idx] || { value: 0, type: "%" as const };
+                  return (
+                    <div key={idx} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                      <span className="text-sm flex-1 truncate">{item.description}</span>
+                      <div className="flex gap-1 items-center shrink-0">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0"
+                          className="w-20 h-8"
+                          value={d.value || ""}
+                          onChange={(e) => setRentalDiscounts((prev) => ({
+                            ...prev,
+                            [idx]: { ...d, value: parseFloat(e.target.value) || 0 },
+                          }))}
+                        />
+                        <ToggleGroup
+                          type="single"
+                          value={d.type}
+                          onValueChange={(v) => { if (v) setRentalDiscounts((prev) => ({ ...prev, [idx]: { ...d, type: v as "%" | "$" } })); }}
+                          className="shrink-0"
+                        >
+                          <ToggleGroupItem value="%" className="h-8 w-7 text-xs px-0">%</ToggleGroupItem>
+                          <ToggleGroupItem value="$" className="h-8 w-7 text-xs px-0">$</ToggleGroupItem>
+                        </ToggleGroup>
+                      </div>
+                      <span className="text-sm font-mono w-24 text-right shrink-0">
+                        {formatCurrency(applyDiscount(item))}
+                      </span>
+                    </div>
+                  );
+                })}
+            </CardContent>
+          </Card>
         )}
 
         {/* 5. Servicio de Logística */}

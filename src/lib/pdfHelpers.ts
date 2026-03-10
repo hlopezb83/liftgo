@@ -10,6 +10,8 @@ export interface PdfLineItem {
   quantity: number;
   unit_price: number;
   total: number;
+  discount?: number;
+  discount_type?: "%" | "$";
 }
 
 export interface CompanyData {

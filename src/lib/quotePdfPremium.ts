@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { applyDiscount } from "@/lib/invoiceUtils";
 import type { CompanyData, PdfLineItem } from "@/lib/pdfHelpers";
 import { format, parseISO } from "date-fns";
 
@@ -208,17 +209,19 @@ export function drawPremiumTable(
   const tableWidth = pw - MARGIN * 2;
   let y = startY;
 
-  // Column positions
+  const hasDiscount = lineItems.some((item) => item.discount && item.discount > 0);
+
+  // Column positions — adjust if discount column present
   const colDesc = MARGIN + 4;
-  const colQty = MARGIN + tableWidth * 0.6;
-  const colUnit = MARGIN + tableWidth * 0.75;
+  const colQty = MARGIN + tableWidth * (hasDiscount ? 0.48 : 0.6);
+  const colUnit = MARGIN + tableWidth * (hasDiscount ? 0.62 : 0.75);
+  const colDisc = MARGIN + tableWidth * 0.78;
   const colTotal = pw - MARGIN - 4;
 
   // Header row
   const headerH = 10;
   doc.setFillColor(NAVY.r, NAVY.g, NAVY.b);
   doc.roundedRect(MARGIN, y, tableWidth, headerH, 1.5, 1.5, "F");
-  // Cover bottom corners with a filled rect
   doc.rect(MARGIN, y + headerH - 2, tableWidth, 2, "F");
 
   doc.setFont("helvetica", "bold");
@@ -228,6 +231,7 @@ export function drawPremiumTable(
   doc.text("DESCRIPCIÓN", colDesc, headerY);
   doc.text("CANT.", colQty, headerY, { align: "right" });
   doc.text("P. UNITARIO", colUnit + 14, headerY, { align: "right" });
+  if (hasDiscount) doc.text("DTO.", colDisc + 6, headerY, { align: "right" });
   doc.text("TOTAL", colTotal, headerY, { align: "right" });
 
   y += headerH + 2;
@@ -240,7 +244,6 @@ export function drawPremiumTable(
   for (let i = 0; i < lineItems.length; i++) {
     const item = lineItems[i];
 
-    // Alternating bg
     if (i % 2 === 0) {
       doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
       doc.rect(MARGIN, y - 1, tableWidth, rowH, "F");
@@ -252,9 +255,20 @@ export function drawPremiumTable(
     doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
     doc.text(String(item.quantity), colQty, rowTextY, { align: "right" });
     doc.text(formatCurrency(Number(item.unit_price)), colUnit + 14, rowTextY, { align: "right" });
+
+    if (hasDiscount) {
+      if (item.discount && item.discount > 0) {
+        const discLabel = item.discount_type === "$" ? `-${formatCurrency(item.discount)}` : `-${item.discount}%`;
+        doc.text(discLabel, colDisc + 6, rowTextY, { align: "right" });
+      } else {
+        doc.text("—", colDisc + 6, rowTextY, { align: "right" });
+      }
+    }
+
     doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
     doc.setFont("helvetica", "bold");
-    doc.text(formatCurrency(Number(item.total)), colTotal, rowTextY, { align: "right" });
+    const netTotal = applyDiscount(item);
+    doc.text(formatCurrency(netTotal), colTotal, rowTextY, { align: "right" });
     doc.setFont("helvetica", "normal");
 
     y += rowH;

@@ -6,6 +6,15 @@ export interface LineItem {
   quantity: number;
   unit_price: number;
   total: number;
+  discount?: number;
+  discount_type?: "%" | "$";
+}
+
+export function applyDiscount(item: LineItem): number {
+  const base = item.total || 0;
+  if (!item.discount || item.discount <= 0) return base;
+  if (item.discount_type === "$") return Math.max(0, base - item.discount);
+  return Math.max(0, base * (1 - item.discount / 100));
 }
 
 export function calculateRentalCost(
@@ -77,7 +86,7 @@ export function generateLineItems(
 }
 
 export function computeTotals(lineItems: LineItem[], taxRate: number) {
-  const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
+  const subtotal = lineItems.reduce((sum, item) => sum + applyDiscount(item), 0);
   const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
   const total = Math.round((subtotal + taxAmount) * 100) / 100;
   return { subtotal, taxAmount, total };

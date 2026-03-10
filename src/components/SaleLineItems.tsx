@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Plus, Trash2 } from "lucide-react";
 import type { EquipmentModel } from "@/hooks/useEquipmentModels";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -11,12 +12,21 @@ export interface SaleLine {
   modelId: string;
   quantity: number;
   unitPrice: number;
+  discount: number;
+  discountType: "%" | "$";
 }
 
 interface SaleLineItemsProps {
   lines: SaleLine[];
   onChange: (lines: SaleLine[]) => void;
   models: EquipmentModel[];
+}
+
+function computeLineTotal(line: SaleLine): number {
+  const base = line.quantity * line.unitPrice;
+  if (!line.discount || line.discount <= 0) return base;
+  if (line.discountType === "$") return Math.max(0, base - line.discount);
+  return Math.max(0, base * (1 - line.discount / 100));
 }
 
 export function SaleLineItems({ lines, onChange, models }: SaleLineItemsProps) {
@@ -28,7 +38,7 @@ export function SaleLineItems({ lines, onChange, models }: SaleLineItemsProps) {
   };
 
   const addLine = () => {
-    onChange([...lines, { modelId: "", quantity: 1, unitPrice: 0 }]);
+    onChange([...lines, { modelId: "", quantity: 1, unitPrice: 0, discount: 0, discountType: "%" }]);
   };
 
   const removeLine = (index: number) => {
@@ -43,7 +53,7 @@ export function SaleLineItems({ lines, onChange, models }: SaleLineItemsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {lines.map((line, index) => (
-          <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_120px_100px_40px] gap-3 items-end border-b border-border pb-4 last:border-0 last:pb-0">
+          <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_120px_140px_100px_40px] gap-3 items-end border-b border-border pb-4 last:border-0 last:pb-0">
             <div className="space-y-1.5">
               <Label className="text-xs">Modelo *</Label>
               <Select value={line.modelId} onValueChange={(v) => updateLine(index, "modelId", v)}>
@@ -84,9 +94,33 @@ export function SaleLineItems({ lines, onChange, models }: SaleLineItemsProps) {
             </div>
 
             <div className="space-y-1.5">
+              <Label className="text-xs">Descuento</Label>
+              <div className="flex gap-1">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0"
+                  value={line.discount || ""}
+                  onChange={(e) => updateLine(index, "discount", parseFloat(e.target.value) || 0)}
+                  className="flex-1"
+                />
+                <ToggleGroup
+                  type="single"
+                  value={line.discountType || "%"}
+                  onValueChange={(v) => { if (v) updateLine(index, "discountType", v); }}
+                  className="shrink-0"
+                >
+                  <ToggleGroupItem value="%" className="h-10 w-8 text-xs px-0">%</ToggleGroupItem>
+                  <ToggleGroupItem value="$" className="h-10 w-8 text-xs px-0">$</ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
               <Label className="text-xs">Total</Label>
               <div className="h-10 flex items-center text-sm font-medium">
-                {formatCurrency(line.quantity * line.unitPrice)}
+                {formatCurrency(computeLineTotal(line))}
               </div>
             </div>
 
