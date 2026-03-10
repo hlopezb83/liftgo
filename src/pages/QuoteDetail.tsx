@@ -26,6 +26,7 @@ import type { LineItem } from "@/lib/invoiceUtils";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { QuotePDFButton } from "@/components/QuotePDFButton";
+import { CustomerSelector } from "@/components/CustomerSelector";
 import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { AssignForkliftsCard } from "@/components/AssignForkliftsCard";
