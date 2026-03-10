@@ -74,6 +74,18 @@ export default function QuoteForm() {
         setLogisticsCost(logisticsItem.unit_price || logisticsItem.total || 0);
       }
 
+      // Restore rental discounts from existing line_items
+      if (!isSale) {
+        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
+        const restored: Record<number, { value: number; type: "%" | "$" }> = {};
+        nonLogisticsItems.forEach((item, idx) => {
+          if (item.discount && item.discount > 0) {
+            restored[idx] = { value: item.discount, type: item.discount_type || "%" };
+          }
+        });
+        if (Object.keys(restored).length > 0) setRentalDiscounts(restored);
+      }
+
       if (isSale && equipmentModels) {
         const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
         if (nonLogisticsItems.length > 0) {
