@@ -86,7 +86,7 @@ export function generateLineItems(
 }
 
 export function computeTotals(lineItems: LineItem[], taxRate: number) {
-  const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
+  const subtotal = lineItems.reduce((sum, item) => sum + applyDiscount(item), 0);
   const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
   const total = Math.round((subtotal + taxAmount) * 100) / 100;
   return { subtotal, taxAmount, total };
