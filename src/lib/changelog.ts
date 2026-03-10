@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.25.0",
+    date: "2026-03-10",
+    type: "minor",
+    title: "Editar cliente desde página de detalle",
+    description: "Se agregó un botón 'Editar' en la página de detalle de cliente que abre un formulario pre-llenado para modificar la información.",
+    changes: [
+      "Botón 'Editar' con icono en el header de detalle de cliente",
+      "Formulario de edición reutilizable extraído como componente compartido (CustomerFormDialog)",
+    ],
+  },
+  {
     version: "3.24.3",
     date: "2026-03-10",
     type: "patch",

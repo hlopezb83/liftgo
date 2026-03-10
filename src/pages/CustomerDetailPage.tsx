@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCustomers } from "@/hooks/useCustomers";
+import { useCustomers, useUpdateCustomer } from "@/hooks/useCustomers";
 import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { UserPlus, CalendarDays, Receipt } from "lucide-react";
+import { UserPlus, CalendarDays, Receipt, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -21,6 +21,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
+import { CustomerFormDialog } from "@/components/CustomerFormDialog";
+import type { CustomerFormData } from "@/lib/formSchemas";
+import { toast as sonnerToast } from "sonner";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
@@ -31,10 +34,12 @@ export default function CustomerDetailPage() {
   const { data: role } = useUserRole();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const updateCustomer = useUpdateCustomer();
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const customer = customers?.find((c) => c.id === id);
   const bookings = allBookings?.filter((b) => b.customer_id === id);
@@ -64,6 +69,39 @@ export default function CustomerDetailPage() {
     }
   };
 
+  const handleEditSubmit = (form: CustomerFormData) => {
+    if (!id) return;
+    const payload = {
+      id,
+      name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
+      address: form.address || null, notes: form.notes || null,
+      website: form.website || null,
+      contact_person: form.contact_person || null, billing_address: form.billing_address || null,
+      rfc: form.rfc || null, regimen_fiscal: form.regimen_fiscal || null,
+      uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
+      representante_legal: form.representante_legal || null,
+    };
+    updateCustomer.mutate(payload, {
+      onSuccess: () => { sonnerToast.success("Cliente actualizado"); setEditOpen(false); },
+    });
+  };
+
+  const editInitialData = customer ? {
+    name: customer.name || "",
+    email: customer.email || "",
+    phone: customer.phone || "",
+    address: customer.address || "",
+    notes: customer.notes || "",
+    website: customer.website || "",
+    contact_person: customer.contact_person || "",
+    billing_address: customer.billing_address || "",
+    rfc: customer.rfc || "",
+    regimen_fiscal: customer.regimen_fiscal || "",
+    uso_cfdi: customer.uso_cfdi || "",
+    domicilio_fiscal_cp: customer.domicilio_fiscal_cp || "",
+    representante_legal: customer.representante_legal || "",
+  } : undefined;
+
   if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
   if (!customer) return <div className="p-6 text-muted-foreground">Cliente no encontrado</div>;
 
@@ -75,6 +113,9 @@ export default function CustomerDetailPage() {
         backTo="/customers"
         actions={
           <>
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4 mr-2" /> Editar
+            </Button>
             {role === "admin" && !hasPortalAccess && (
               <Button variant="outline" onClick={() => { setInviteEmail(customer.email || ""); setInviteOpen(true); }}>
                 <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
@@ -140,6 +181,15 @@ export default function CustomerDetailPage() {
       {customer.notes && (
         <NotesCard value={customer.notes} readOnly />
       )}
+
+      <CustomerFormDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        initialData={editInitialData}
+        isEdit
+        isPending={updateCustomer.isPending}
+        onSubmit={handleEditSubmit}
+      />
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent>
