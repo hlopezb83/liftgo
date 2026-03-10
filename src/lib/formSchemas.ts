@@ -36,7 +36,7 @@ export const customerFormSchema = z.object({
   notes: z.string().default(""),
   website: z.string().default(""),
   contact_person: z.string().default(""),
-  billing_address: z.string().default(""),
+  
   rfc: z.string().default(""),
   regimen_fiscal: z.string().default(""),
   uso_cfdi: z.string().default(""),

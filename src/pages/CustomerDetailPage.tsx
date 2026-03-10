@@ -94,7 +94,7 @@ export default function CustomerDetailPage() {
     notes: customer.notes || "",
     website: customer.website || "",
     contact_person: customer.contact_person || "",
-    billing_address: customer.billing_address || "",
+    
     rfc: customer.rfc || "",
     regimen_fiscal: customer.regimen_fiscal || "",
     uso_cfdi: customer.uso_cfdi || "",

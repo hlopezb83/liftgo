@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.26.1",
+    date: "2026-03-10",
+    type: "patch",
+    title: "Eliminar campo Dirección de Facturación",
+    description: "Se removió el campo 'Dirección de Facturación' del formulario de cliente. El C.P. Fiscal cubre la parte fiscal del CFDI y el campo 'Dirección' queda como dirección general/de entrega.",
+    changes: [
+      "Eliminado campo 'Dirección de Facturación' del formulario de cliente",
+      "Simplificada la sección de direcciones en el diálogo de cliente",
+    ],
+  },
+  {
     version: "3.26.0",
     date: "2026-03-10",
     type: "minor",
