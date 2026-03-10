@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { applyDiscount } from "@/lib/invoiceUtils";
 import type { CompanyData, PdfLineItem } from "@/lib/pdfHelpers";
 import { format, parseISO } from "date-fns";
 
