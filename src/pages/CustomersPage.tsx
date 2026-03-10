@@ -16,6 +16,7 @@ import { SortableTableHead } from "@/components/SortableTableHead";
 import { FormActions } from "@/components/FormActions";
 import { useFormState } from "@/hooks/useFormState";
 import { useListPage } from "@/hooks/useListPage";
+import { useListFilters } from "@/hooks/useListFilters";
 import { PlusCircle, Download, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -38,7 +39,6 @@ export default function CustomersPage() {
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
   const updateProspect = useUpdateProspect();
-  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [prospectId, setProspectId] = useState<string | null>(null);
@@ -62,11 +62,9 @@ export default function CustomersPage() {
     }
   }, []);
 
-  const filtered = customers?.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    (c.company || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.email || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const { search, setSearch, filtered } = useListFilters(customers, {
+    searchFields: ["name", "company", "email"],
+  });
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
     defaultSortKey: "name",
