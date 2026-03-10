@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.6",
+    date: "2026-03-10",
+    type: "patch",
+    title: "Persistencia de filtros en Inventario de Flota",
+    description: "Los filtros de búsqueda y estado se conservan en la URL al navegar a un detalle y volver con el botón atrás.",
+    changes: [
+      "Filtros de búsqueda y estado sincronizados con query params de la URL",
+      "Al volver con el botón atrás, los filtros se restauran automáticamente",
+    ],
+  },
+  {
     version: "3.23.5",
     date: "2026-03-09",
     type: "patch",
