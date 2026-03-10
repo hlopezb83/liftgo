@@ -194,7 +194,7 @@ export default function QuoteForm() {
       items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
     }
     return items;
-  }, [allForkliftsFromHook, forkliftIds, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost]);
+  }, [allForkliftsFromHook, forkliftIds, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost, rentalDiscounts]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
