@@ -36,11 +36,13 @@ export default function CustomerDetailPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateCustomer = useUpdateCustomer();
+  const deleteCustomer = useDeleteCustomer();
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const customer = customers?.find((c) => c.id === id);
   const bookings = allBookings?.filter((b) => b.customer_id === id);
