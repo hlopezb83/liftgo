@@ -81,6 +81,9 @@ export default function QuoteDetail() {
 
   const [isConverting, setIsConverting] = useState(false);
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
+  const [showCustomerReassignDialog, setShowCustomerReassignDialog] = useState(false);
+  const [reassignCustomerId, setReassignCustomerId] = useState("");
+  const [reassignCustomerName, setReassignCustomerName] = useState("");
 
   const durationDays = useMemo(() => {
     if (!quote?.start_date || !quote?.end_date) return 0;
