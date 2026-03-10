@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.26.0",
+    date: "2026-03-10",
+    type: "minor",
+    title: "Importar cliente desde CSF del SAT",
+    description: "Al agregar un cliente, ahora se puede subir un PDF de Constancia de Situación Fiscal (CSF) para extraer automáticamente los datos fiscales mediante IA.",
+    changes: [
+      "Nueva pestaña 'Importar desde CSF' en el diálogo de agregar cliente",
+      "Extracción automática de RFC, razón social, C.P. fiscal, dirección y régimen fiscal",
+      "Soporte drag-and-drop para subir el PDF",
+      "Nueva función backend parse-csf con Lovable AI",
+    ],
+  },
+  {
     version: "3.25.0",
     date: "2026-03-10",
     type: "minor",
