@@ -6,6 +6,15 @@ export interface LineItem {
   quantity: number;
   unit_price: number;
   total: number;
+  discount?: number;
+  discount_type?: "%" | "$";
+}
+
+export function applyDiscount(item: LineItem): number {
+  const base = item.total || 0;
+  if (!item.discount || item.discount <= 0) return base;
+  if (item.discount_type === "$") return Math.max(0, base - item.discount);
+  return Math.max(0, base * (1 - item.discount / 100));
 }
 
 export function calculateRentalCost(
