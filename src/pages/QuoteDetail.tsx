@@ -90,12 +90,33 @@ export default function QuoteDetail() {
     return differenceInDays(new Date(quote.end_date), new Date(quote.start_date));
   }, [quote?.start_date, quote?.end_date]);
 
+  const isPublicoGeneral = (name?: string | null) =>
+    !!name && name.trim().toLowerCase().includes("público en general") || !!name && name.trim().toLowerCase().includes("publico en general");
+
   const handleConvertClick = () => {
+    if (isPublicoGeneral(quote?.customer_name)) {
+      setReassignCustomerId("");
+      setReassignCustomerName("");
+      setShowCustomerReassignDialog(true);
+    } else {
+      proceedWithConversion();
+    }
+  };
+
+  const proceedWithConversion = () => {
     if (durationDays >= 30) {
       setShowRecurringDialog(true);
     } else {
       convertToBooking(false);
     }
+  };
+
+  const handleReassignConfirm = async () => {
+    if (!quote || !reassignCustomerId) return;
+    await updateQuote.mutateAsync({ id: quote.id, customer_id: reassignCustomerId, customer_name: reassignCustomerName });
+    setShowCustomerReassignDialog(false);
+    toast.success("Cliente actualizado");
+    proceedWithConversion();
   };
 
   const convertToBooking = async (recurringBilling: boolean) => {
