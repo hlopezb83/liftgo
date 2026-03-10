@@ -4,6 +4,7 @@ import { useAvailableForklifts } from "@/hooks/useAvailableForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
 import { generateLineItems, computeTotals, applyDiscount, type LineItem } from "@/lib/invoiceUtils";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
