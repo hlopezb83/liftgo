@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
-  website: "", contact_person: "", billing_address: "",
+  website: "", contact_person: "",
   rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
   representante_legal: "",
 };
@@ -171,11 +171,8 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Direcciones</p>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5"><Label>Dirección</Label><Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Av. Reforma 123" /></div>
-          <div className="space-y-1.5"><Label>Dirección de Facturación</Label><Input value={form.billing_address} onChange={(e) => set("billing_address", e.target.value)} placeholder="Calle Facturación 456" /></div>
-        </div>
+        <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Dirección</p>
+        <div className="space-y-1.5"><Label>Dirección</Label><Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Av. Reforma 123, Col. Centro, CDMX" /></div>
       </div>
 
       <div className="space-y-3">

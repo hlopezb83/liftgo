@@ -76,7 +76,7 @@ export default function CustomerDetailPage() {
       name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
       address: form.address || null, notes: form.notes || null,
       website: form.website || null,
-      contact_person: form.contact_person || null, billing_address: form.billing_address || null,
+      contact_person: form.contact_person || null,
       rfc: form.rfc || null, regimen_fiscal: form.regimen_fiscal || null,
       uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
       representante_legal: form.representante_legal || null,
@@ -94,7 +94,7 @@ export default function CustomerDetailPage() {
     notes: customer.notes || "",
     website: customer.website || "",
     contact_person: customer.contact_person || "",
-    billing_address: customer.billing_address || "",
+    
     rfc: customer.rfc || "",
     regimen_fiscal: customer.regimen_fiscal || "",
     uso_cfdi: customer.uso_cfdi || "",

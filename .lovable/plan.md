@@ -1,25 +1,17 @@
 
 
-# Eliminar campo "Dirección de Facturación"
+## Cambiar etiqueta "Enviado" → "Sin Pagar"
 
-Remover el campo `billing_address` del formulario de cliente. La columna en la base de datos se mantiene (no rompe nada) pero se deja de usar en la UI.
+### Cambio
 
-## Cambios
+**Archivo: `src/lib/constants.ts`**
 
-### `src/components/CustomerFormDialog.tsx`
-- Quitar `billing_address` del objeto `emptyCustomer`
-- En la sección "Direcciones", quitar el grid de 2 columnas y dejar solo el campo "Dirección" a ancho completo
-- Si la sección solo tiene un campo, simplificar el layout
+En el objeto `STATUS_LABELS`, cambiar:
+```typescript
+sent: "Enviado",
+// →
+sent: "Sin Pagar",
+```
 
-### `src/lib/formSchemas.ts`
-- Quitar `billing_address` del schema `customerFormSchema`
-
-### `src/pages/CustomersPage.tsx`
-- Quitar `billing_address` del objeto que se envía al crear cliente
-
-### `src/pages/CustomerDetailPage.tsx`
-- Quitar `billing_address` del objeto de actualización y del `editInitialData`
-
-### `src/lib/changelog.ts`
-- Registrar cambio en v3.26.1
+Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
 
