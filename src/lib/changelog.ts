@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.28.0",
+    date: "2026-03-10",
+    type: "minor",
+    title: "Reasignar cliente al convertir cotización genérica",
+    description: "Al convertir una cotización de 'Público en General' a reserva, se muestra un diálogo para seleccionar el cliente final antes de proceder.",
+    changes: [
+      "Diálogo intermedio de reasignación de cliente al detectar 'Público en General'",
+      "Actualización automática de la cotización con el cliente seleccionado",
+      "Filtrado del cliente genérico en el selector",
+    ],
+  },
+  {
     version: "3.27.0",
     date: "2026-03-10",
     type: "minor",
