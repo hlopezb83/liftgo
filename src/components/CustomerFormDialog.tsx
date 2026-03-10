@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
-  website: "", contact_person: "", billing_address: "",
+  website: "", contact_person: "",
   rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
   representante_legal: "",
 };
