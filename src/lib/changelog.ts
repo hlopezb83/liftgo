@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.23.7",
+    date: "2026-03-10",
+    type: "patch",
+    title: "Flecha atrás preserva filtros de búsqueda",
+    description: "El botón de retroceso en páginas de detalle ahora usa el historial del navegador para conservar los filtros activos al regresar.",
+    changes: [
+      "DetailPageHeader usa navigate(-1) en lugar de ruta fija para preservar query params",
+      "Fallback a ruta fija (backTo) cuando no hay historial previo",
+    ],
+  },
+  {
     version: "3.23.6",
     date: "2026-03-10",
     type: "patch",
