@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCustomers, useUpdateCustomer } from "@/hooks/useCustomers";
+import { useCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useCustomers";
 import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
