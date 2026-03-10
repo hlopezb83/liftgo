@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.29.0",
+    date: "2026-03-10",
+    type: "minor",
+    title: "Descuento por línea en cotizaciones",
+    description: "Cada línea de una cotización (renta o venta) ahora puede tener un descuento en porcentaje (%) o monto fijo ($). Se refleja en formulario, vista de detalle, resumen de costos y PDF.",
+    changes: [
+      "Nuevo campo de descuento por línea con selector de tipo (% o $)",
+      "Soporte en cotizaciones de renta y venta",
+      "Columna 'Dto.' condicional en tabla de detalle y PDF Premium",
+      "Resumen de costos muestra indicador de descuento aplicado",
+      "Persistencia automática en JSONB sin migración de base de datos",
+    ],
+  },
     version: "3.28.0",
     date: "2026-03-10",
     type: "minor",
