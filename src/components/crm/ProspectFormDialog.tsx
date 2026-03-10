@@ -144,8 +144,8 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col">
-          <ScrollArea className="max-h-[60vh] pr-4">
-            <div className="space-y-4 pb-1">
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4 pb-1 pr-4">
           <div className="space-y-2">
             <Label htmlFor="company">Empresa *</Label>
             <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} required />
