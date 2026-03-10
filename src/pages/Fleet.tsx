@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback } from "react";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
 import { useListPage } from "@/hooks/useListPage";
@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PlusCircle, Download, ChevronRight, Forklift, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SearchBar } from "@/components/SearchBar";
@@ -22,9 +22,26 @@ export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
   const { data: policies } = useMaintenancePolicies();
   const activePolicyForkliftIds = new Set(policies?.filter(p => p.is_active).map(p => p.forklift_id) ?? []);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("q") || "";
+  const statusFilter = searchParams.get("status") || "all";
   const navigate = useNavigate();
+
+  const setSearch = useCallback((value: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set("q", value); else next.delete("q");
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  const setStatusFilter = useCallback((value: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value && value !== "all") next.set("status", value); else next.delete("status");
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const filtered = forklifts?.filter((f) => {
     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase()) || f.model.toLowerCase().includes(search.toLowerCase()) || (f.manufacturer || "").toLowerCase().includes(search.toLowerCase()) || (f.serial_number || "").toLowerCase().includes(search.toLowerCase());
