@@ -22,6 +22,7 @@ export const changelog: ChangelogEntry[] = [
       "Persistencia automática en JSONB sin migración de base de datos",
     ],
   },
+  {
     version: "3.28.0",
     date: "2026-03-10",
     type: "minor",
