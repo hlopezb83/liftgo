@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.24.2",
+    date: "2026-03-10",
+    type: "patch",
+    title: "Selector de cotizaciones muestra todas las opciones",
+    description: "El selector de cotización vinculada en el diálogo de prospecto ahora muestra todas las cotizaciones, priorizando las que coinciden con el nombre de empresa.",
+    changes: [
+      "Se reemplazó el filtro excluyente por un ordenamiento por relevancia",
+    ],
+  },
+  {
     version: "3.24.1",
     date: "2026-03-10",
     type: "patch",
