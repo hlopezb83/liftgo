@@ -39,7 +39,6 @@ export default function CustomersPage() {
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
   const updateProspect = useUpdateProspect();
-  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [prospectId, setProspectId] = useState<string | null>(null);
