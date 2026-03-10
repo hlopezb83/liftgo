@@ -49,6 +49,7 @@ export default function QuoteForm() {
   const [validUntil, setValidUntil] = useState<Date>();
   const [includeLogistics, setIncludeLogistics] = useState(false);
   const [logisticsCost, setLogisticsCost] = useState(0);
+  const [rentalDiscounts, setRentalDiscounts] = useState<Record<number, { value: number; type: "%" | "$" }>>({});
 
   const { data: equipmentModels } = useEquipmentModels();
 
