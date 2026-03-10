@@ -335,6 +335,30 @@ export default function QuoteDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showCustomerReassignDialog} onOpenChange={setShowCustomerReassignDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Asignar Cliente</DialogTitle>
+            <DialogDescription>
+              Esta cotización está asignada a "Público en General". Selecciona el cliente final antes de convertir a reserva.
+            </DialogDescription>
+          </DialogHeader>
+          <CustomerSelector
+            customers={customers?.filter(c => !isPublicoGeneral(c.name))}
+            customerId={reassignCustomerId}
+            customerName={reassignCustomerName}
+            onCustomerIdChange={setReassignCustomerId}
+            onCustomerNameChange={setReassignCustomerName}
+            required
+            hideManualName
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCustomerReassignDialog(false)}>Cancelar</Button>
+            <Button onClick={handleReassignConfirm} disabled={!reassignCustomerId}>Confirmar y Convertir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
