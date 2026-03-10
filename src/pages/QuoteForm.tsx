@@ -161,10 +161,20 @@ export default function QuoteForm() {
         });
     } else {
       if (forkliftIds.length === 0 || !startDate || !endDate) return [];
+      let rentalIdx = 0;
       for (const fid of forkliftIds) {
         const fl = allForkliftsFromHook?.find((f) => f.id === fid);
         if (fl) {
-          items.push(...generateLineItems(fl, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd")));
+          const flItems = generateLineItems(fl, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
+          for (const item of flItems) {
+            const d = rentalDiscounts[rentalIdx];
+            if (d && d.value > 0) {
+              item.discount = d.value;
+              item.discount_type = d.type;
+            }
+            items.push(item);
+            rentalIdx++;
+          }
         }
       }
     }
