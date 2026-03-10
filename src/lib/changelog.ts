@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.24.1",
+    date: "2026-03-10",
+    type: "patch",
+    title: "Columnas Kanban más angostas en CRM",
+    description: "Se redujo el ancho de las columnas del pipeline Kanban de 288px a 256px para mejor aprovechamiento del espacio.",
+    changes: [
+      "Columnas Kanban reducidas de w-72 a w-64",
+    ],
+  },
+  {
     version: "3.24.0",
     date: "2026-03-10",
     type: "minor",
