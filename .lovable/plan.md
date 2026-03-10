@@ -1,17 +1,27 @@
 
 
-## Cambiar etiqueta "Enviado" → "Sin Pagar"
+# Agregar botón "Editar Cliente" en la página de detalle
 
-### Cambio
+## Problema
+No existe ningún botón para editar un cliente existente. La página de detalle (`CustomerDetailPage`) solo muestra datos y el botón de invitar al portal, pero no permite modificar la información del cliente.
 
-**Archivo: `src/lib/constants.ts`**
+## Solución
+Agregar un botón "Editar" en el header de `CustomerDetailPage` que abra el mismo diálogo de formulario que ya existe en `CustomersPage`, pero pre-llenado con los datos del cliente actual.
 
-En el objeto `STATUS_LABELS`, cambiar:
-```typescript
-sent: "Enviado",
-// →
-sent: "Sin Pagar",
+## Cambios
+
+### `src/pages/CustomerDetailPage.tsx`
+- Importar los componentes del diálogo de formulario (`Dialog`, `Label`, `Select`, etc.) y los hooks `useUpdateCustomer`, `useFormState`, y el schema `customerFormSchema`.
+- Agregar estado para controlar el diálogo de edición (`editOpen`).
+- Agregar un botón "Editar" con icono `Pencil` en las `actions` del `DetailPageHeader`.
+- Al abrir, pre-llenar el formulario con todos los campos del cliente actual (name, email, phone, rfc, regimen_fiscal, etc.).
+- Reutilizar el mismo formulario que ya existe en `CustomersPage` (campos de identidad, datos fiscales, contacto, direcciones, notas).
+- Al guardar, usar `useUpdateCustomer` e invalidar queries para refrescar la vista.
+
+### Estructura del botón en el header
+```
+[Editar]  [Invitar al Portal]
 ```
 
-Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
+El formulario será idéntico al de `CustomersPage` para mantener consistencia.
 
