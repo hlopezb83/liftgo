@@ -143,7 +143,9 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
             </div>
           )}
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <ScrollArea className="max-h-[60vh] pr-4">
+            <div className="space-y-4 pb-1">
           <div className="space-y-2">
             <Label htmlFor="company">Empresa *</Label>
             <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} required />
@@ -163,7 +165,6 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
             </div>
           </div>
 
-          {/* Quote Selector - shown for stages requiring deal value */}
           {requiresDealValue && (
             <div className="space-y-2">
               <Label htmlFor="quote">Cotización Vinculada</Label>
@@ -213,7 +214,6 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
             <Label htmlFor="notes">Notas</Label>
             <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
-          {/* Convert to Customer button for cerrado_ganado */}
           {prospect && effectiveStage === "cerrado_ganado" && (
             <div className="rounded-lg border border-dashed p-3">
               {prospect.customer_id ? (
@@ -254,8 +254,10 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
               )}
             </div>
           )}
+            </div>
+          </ScrollArea>
 
-          <DialogFooter className="flex justify-between sm:justify-between">
+          <DialogFooter className="flex justify-between sm:justify-between pt-4">
             {prospect && onDelete && (
               <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(); onOpenChange(false); }}>
                 Eliminar
