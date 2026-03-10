@@ -119,6 +119,11 @@ export default function CustomerDetailPage() {
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" /> Editar
             </Button>
+            {role === "admin" && (
+              <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+              </Button>
+            )}
             {role === "admin" && !hasPortalAccess && (
               <Button variant="outline" onClick={() => { setInviteEmail(customer.email || ""); setInviteOpen(true); }}>
                 <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
