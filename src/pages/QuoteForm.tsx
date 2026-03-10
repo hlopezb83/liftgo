@@ -316,6 +316,52 @@ export default function QuoteForm() {
           <SaleLineItems lines={saleLines} onChange={setSaleLines} models={equipmentModels || []} />
         )}
 
+        {/* 4b. Descuentos por línea (solo renta) */}
+        {quoteType === "rental" && lineItems.filter((i) => !i.description?.includes("Logística")).length > 0 && (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Descuentos por Línea</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {lineItems
+                .map((item, idx) => ({ item, idx }))
+                .filter(({ item }) => !item.description?.includes("Logística"))
+                .map(({ item, idx }) => {
+                  const d = rentalDiscounts[idx] || { value: 0, type: "%" as const };
+                  return (
+                    <div key={idx} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                      <span className="text-sm flex-1 truncate">{item.description}</span>
+                      <div className="flex gap-1 items-center shrink-0">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0"
+                          className="w-20 h-8"
+                          value={d.value || ""}
+                          onChange={(e) => setRentalDiscounts((prev) => ({
+                            ...prev,
+                            [idx]: { ...d, value: parseFloat(e.target.value) || 0 },
+                          }))}
+                        />
+                        <ToggleGroup
+                          type="single"
+                          value={d.type}
+                          onValueChange={(v) => { if (v) setRentalDiscounts((prev) => ({ ...prev, [idx]: { ...d, type: v as "%" | "$" } })); }}
+                          className="shrink-0"
+                        >
+                          <ToggleGroupItem value="%" className="h-8 w-7 text-xs px-0">%</ToggleGroupItem>
+                          <ToggleGroupItem value="$" className="h-8 w-7 text-xs px-0">$</ToggleGroupItem>
+                        </ToggleGroup>
+                      </div>
+                      <span className="text-sm font-mono w-24 text-right shrink-0">
+                        {formatCurrency(applyDiscount(item))}
+                      </span>
+                    </div>
+                  );
+                })}
+            </CardContent>
+          </Card>
+        )}
+
         {/* 5. Servicio de Logística */}
         <Card>
           <CardContent className="pt-6 space-y-3">
