@@ -75,7 +75,7 @@ export default function QuoteForm() {
       if (isSale && equipmentModels) {
         const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
         if (nonLogisticsItems.length > 0) {
-          const rebuilt = nonLogisticsItems.map((item) => {
+        const rebuilt = nonLogisticsItems.map((item) => {
             const found = equipmentModels.find(
               (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
             );
@@ -83,6 +83,8 @@ export default function QuoteForm() {
               modelId: found?.id || "",
               quantity: item.quantity || 1,
               unitPrice: item.unit_price || 0,
+              discount: item.discount || 0,
+              discountType: (item.discount_type || "%") as "%" | "$",
             };
           });
           setSaleLines(rebuilt);
