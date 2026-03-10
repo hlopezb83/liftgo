@@ -99,7 +99,7 @@ export default function CRMPage() {
             <DragDropContext onDragEnd={onDragEnd}>
               <div className="flex gap-4 h-full min-w-max">
                 {prospectsByStage.map((stage) => (
-                  <div key={stage.key} className="w-72 shrink-0 flex flex-col rounded-xl bg-muted/40 border">
+                  <div key={stage.key} className="w-64 shrink-0 flex flex-col rounded-xl bg-muted/40 border">
                     <div className="px-3 py-3 border-b">
                       <div className="flex items-center gap-2">
                         <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
