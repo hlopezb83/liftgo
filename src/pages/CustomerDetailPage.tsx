@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCustomers, useUpdateCustomer } from "@/hooks/useCustomers";
+import { useCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useCustomers";
 import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
@@ -9,7 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { UserPlus, CalendarDays, Receipt, Pencil } from "lucide-react";
+import { UserPlus, CalendarDays, Receipt, Pencil, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -35,11 +36,13 @@ export default function CustomerDetailPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateCustomer = useUpdateCustomer();
+  const deleteCustomer = useDeleteCustomer();
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const customer = customers?.find((c) => c.id === id);
   const bookings = allBookings?.filter((b) => b.customer_id === id);
@@ -116,6 +119,11 @@ export default function CustomerDetailPage() {
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" /> Editar
             </Button>
+            {role === "admin" && (
+              <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+              </Button>
+            )}
             {role === "admin" && !hasPortalAccess && (
               <Button variant="outline" onClick={() => { setInviteEmail(customer.email || ""); setInviteOpen(true); }}>
                 <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
@@ -190,6 +198,38 @@ export default function CustomerDetailPage() {
         isPending={updateCustomer.isPending}
         onSubmit={handleEditSubmit}
       />
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(bookings && bookings.length > 0) || (invoices && invoices.length > 0)
+                ? "Este cliente tiene reservas o facturas asociadas y no puede ser eliminado. Elimina primero las dependencias."
+                : "Esta acción no se puede deshacer. Se eliminará permanentemente el cliente del sistema."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            {!((bookings && bookings.length > 0) || (invoices && invoices.length > 0)) && (
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (!id) return;
+                  deleteCustomer.mutate(id, {
+                    onSuccess: () => {
+                      sonnerToast.success("Cliente eliminado");
+                      navigate("/customers");
+                    },
+                  });
+                }}
+              >
+                {deleteCustomer.isPending ? "Eliminando..." : "Eliminar"}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent>
