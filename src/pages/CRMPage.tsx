@@ -92,7 +92,7 @@ export default function CRMPage() {
           {isLoading ? (
             <div className="flex gap-4">
               {STAGES.map((s) => (
-                <div key={s.key} className="w-72 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
+                <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
               ))}
             </div>
           ) : (
