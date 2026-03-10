@@ -155,6 +155,8 @@ export default function QuoteForm() {
             quantity: l.quantity,
             unit_price: l.unitPrice,
             total: l.quantity * l.unitPrice,
+            discount: l.discount || 0,
+            discount_type: l.discountType || "%",
           };
         });
     } else {
