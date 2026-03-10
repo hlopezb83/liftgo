@@ -26,6 +26,7 @@ import type { LineItem } from "@/lib/invoiceUtils";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { QuotePDFButton } from "@/components/QuotePDFButton";
+import { CustomerSelector } from "@/components/CustomerSelector";
 import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { AssignForkliftsCard } from "@/components/AssignForkliftsCard";
@@ -81,18 +82,42 @@ export default function QuoteDetail() {
 
   const [isConverting, setIsConverting] = useState(false);
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
+  const [showCustomerReassignDialog, setShowCustomerReassignDialog] = useState(false);
+  const [reassignCustomerId, setReassignCustomerId] = useState("");
+  const [reassignCustomerName, setReassignCustomerName] = useState("");
 
   const durationDays = useMemo(() => {
     if (!quote?.start_date || !quote?.end_date) return 0;
     return differenceInDays(new Date(quote.end_date), new Date(quote.start_date));
   }, [quote?.start_date, quote?.end_date]);
 
+  const isPublicoGeneral = (name?: string | null) =>
+    !!name && name.trim().toLowerCase().includes("público en general") || !!name && name.trim().toLowerCase().includes("publico en general");
+
   const handleConvertClick = () => {
+    if (isPublicoGeneral(quote?.customer_name)) {
+      setReassignCustomerId("");
+      setReassignCustomerName("");
+      setShowCustomerReassignDialog(true);
+    } else {
+      proceedWithConversion();
+    }
+  };
+
+  const proceedWithConversion = () => {
     if (durationDays >= 30) {
       setShowRecurringDialog(true);
     } else {
       convertToBooking(false);
     }
+  };
+
+  const handleReassignConfirm = async () => {
+    if (!quote || !reassignCustomerId) return;
+    await updateQuote.mutateAsync({ id: quote.id, customer_id: reassignCustomerId, customer_name: reassignCustomerName });
+    setShowCustomerReassignDialog(false);
+    toast.success("Cliente actualizado");
+    proceedWithConversion();
   };
 
   const convertToBooking = async (recurringBilling: boolean) => {
@@ -307,6 +332,30 @@ export default function QuoteDetail() {
             <Button onClick={() => { setShowRecurringDialog(false); convertToBooking(true); }}>
               Sí, habilitar recurrente
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCustomerReassignDialog} onOpenChange={setShowCustomerReassignDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Asignar Cliente</DialogTitle>
+            <DialogDescription>
+              Esta cotización está asignada a "Público en General". Selecciona el cliente final antes de convertir a reserva.
+            </DialogDescription>
+          </DialogHeader>
+          <CustomerSelector
+            customers={customers?.filter(c => !isPublicoGeneral(c.name))}
+            customerId={reassignCustomerId}
+            customerName={reassignCustomerName}
+            onCustomerIdChange={setReassignCustomerId}
+            onCustomerNameChange={setReassignCustomerName}
+            required
+            hideManualName
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCustomerReassignDialog(false)}>Cancelar</Button>
+            <Button onClick={handleReassignConfirm} disabled={!reassignCustomerId}>Confirmar y Convertir</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
