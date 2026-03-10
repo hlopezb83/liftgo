@@ -1,17 +1,14 @@
 
 
-## Cambiar etiqueta "Enviado" → "Sin Pagar"
+# Fix: Inputs cortados en el diálogo de prospecto
 
-### Cambio
+## Problema
+El `ScrollArea` tiene `pr-4` aplicado en el componente raíz, pero el contenedor interno (viewport) del ScrollArea no respeta ese padding correctamente, causando que los inputs se recorten o desborden.
 
-**Archivo: `src/lib/constants.ts`**
+## Solución
+Mover el `pr-4` del `ScrollArea` al `div` interno que contiene los campos del formulario, para que el padding se aplique dentro del viewport scrollable y los inputs tengan espacio suficiente sin recortarse.
 
-En el objeto `STATUS_LABELS`, cambiar:
-```typescript
-sent: "Enviado",
-// →
-sent: "Sin Pagar",
-```
-
-Un solo cambio en una línea. Al estar centralizado en `constants.ts`, se reflejará automáticamente en toda la app (StatusBadge, filtros, tablas, portal, etc.).
+## Archivo: `src/components/crm/ProspectFormDialog.tsx`
+- Línea 147: Quitar `pr-4` del `ScrollArea`
+- Línea 148: Agregar `pr-4` al `div` interno (`space-y-4 pb-1` → `space-y-4 pb-1 pr-4`)
 
