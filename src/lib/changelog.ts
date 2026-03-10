@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.24.3",
+    date: "2026-03-10",
+    type: "patch",
+    title: "Modelo seleccionado se mantiene al editar equipo",
+    description: "Se corrigió un problema donde el dropdown de modelo aparecía vacío al editar un montacargas existente.",
+    changes: [
+      "Se agregó key al Select de modelo para forzar re-montaje cuando cambia el fabricante",
+    ],
+  },
+  {
     version: "3.24.2",
     date: "2026-03-10",
     type: "patch",

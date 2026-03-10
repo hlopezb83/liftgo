@@ -207,7 +207,7 @@ export default function ForkliftForm() {
 
             <div className="space-y-1.5">
               <Label>Modelo *</Label>
-              <Select value={form.model} onValueChange={handleModelChange} disabled={!form.manufacturer}>
+              <Select key={form.manufacturer} value={form.model} onValueChange={handleModelChange} disabled={!form.manufacturer}>
                 <SelectTrigger><SelectValue placeholder={form.manufacturer ? "Seleccionar modelo" : "Primero selecciona fabricante"} /></SelectTrigger>
                 <SelectContent>
                   {filteredModels.map((m) => (
