@@ -96,6 +96,25 @@ export default function DeliveriesPage() {
                 </Button>
               </div>
             )}
+            <RoleGuard allowed={["admin", "administrativo"]}>
+              <div className={`${d.status === "completed" ? "mt-3 pt-3 border-t" : "mt-2"}`}>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full text-destructive"><Trash2 className="h-4 w-4 mr-1" /> Eliminar</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar esta entrega?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteDelivery.mutate(d.id, { onSuccess: () => toast.success("Entrega eliminada") })}>Eliminar</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </RoleGuard>
           </CardContent>
         </Card>
       )}
