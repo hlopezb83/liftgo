@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
-import { Edit, Send, CheckCircle, XCircle, BookOpen, Receipt, Trash2 } from "lucide-react";
+import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2 } from "lucide-react";
 import { RoleGuard } from "@/components/RoleGuard";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -30,6 +30,7 @@ import { CustomerSelector } from "@/components/CustomerSelector";
 import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { AssignForkliftsCard } from "@/components/AssignForkliftsCard";
+import { EquipmentAssignmentDialog } from "@/components/EquipmentAssignmentDialog";
 import { formatDateDisplay } from "@/lib/utils";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -60,7 +61,6 @@ export default function QuoteDetail() {
     }
   };
 
-  // Check if bookings already exist for this quote
   const { data: linkedBookings } = useQuery({
     queryKey: ["bookings_for_quote", id],
     enabled: !!id,
@@ -85,6 +85,8 @@ export default function QuoteDetail() {
   const [showCustomerReassignDialog, setShowCustomerReassignDialog] = useState(false);
   const [reassignCustomerId, setReassignCustomerId] = useState("");
   const [reassignCustomerName, setReassignCustomerName] = useState("");
+  const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
+  const [pendingRecurring, setPendingRecurring] = useState(false);
 
   const durationDays = useMemo(() => {
     if (!quote?.start_date || !quote?.end_date) return 0;
@@ -93,6 +95,16 @@ export default function QuoteDetail() {
 
   const isPublicoGeneral = (name?: string | null) =>
     !!name && name.trim().toLowerCase().includes("público en general") || !!name && name.trim().toLowerCase().includes("publico en general");
+
+  // Extract rental meta from line_items
+  const rentalMeta = useMemo(() => {
+    if (!quote || isSale) return [];
+    const allItems = (quote.line_items as unknown as LineItem[]) || [];
+    const meta = (allItems as any)?.[0]?._rentalMeta as { modelId: string; quantity: number }[] | undefined;
+    return meta || [];
+  }, [quote, isSale]);
+
+  const isModelBasedQuote = rentalMeta.length > 0;
 
   const handleConvertClick = () => {
     if (isPublicoGeneral(quote?.customer_name)) {
@@ -105,10 +117,22 @@ export default function QuoteDetail() {
   };
 
   const proceedWithConversion = () => {
-    if (durationDays >= 30) {
-      setShowRecurringDialog(true);
+    if (isModelBasedQuote) {
+      // Show assignment dialog first
+      if (durationDays >= 30) {
+        // Ask recurring first, then show assignment
+        setShowRecurringDialog(true);
+      } else {
+        setPendingRecurring(false);
+        setShowAssignmentDialog(true);
+      }
     } else {
-      convertToBooking(false);
+      // Legacy flow: forklift already in line_items
+      if (durationDays >= 30) {
+        setShowRecurringDialog(true);
+      } else {
+        convertToBookingLegacy(false);
+      }
     }
   };
 
@@ -120,29 +144,18 @@ export default function QuoteDetail() {
     proceedWithConversion();
   };
 
-  const convertToBooking = async (recurringBilling: boolean) => {
+  const handleRecurringChoice = (recurring: boolean) => {
+    setShowRecurringDialog(false);
+    setPendingRecurring(recurring);
+    if (isModelBasedQuote) {
+      setShowAssignmentDialog(true);
+    } else {
+      convertToBookingLegacy(recurring);
+    }
+  };
+
+  const handleAssignmentConfirm = async (forkliftIds: string[]) => {
     if (!quote || !forklifts) return;
-    const lineItems = (quote.line_items as unknown as LineItem[]) || [];
-
-    // Extract all forklift IDs from line_items by matching description to forklift name
-    const forkliftIds: string[] = [];
-    for (const item of lineItems) {
-      const matched = forklifts.find((f) => item.description?.includes(f.name));
-      if (matched && !forkliftIds.includes(matched.id)) {
-        forkliftIds.push(matched.id);
-      }
-    }
-
-    // Fallback to quote.forklift_id if no matches found
-    if (forkliftIds.length === 0 && quote.forklift_id) {
-      forkliftIds.push(quote.forklift_id);
-    }
-
-    if (forkliftIds.length === 0) {
-      toast.error("No se encontraron montacargas para crear reservas");
-      return;
-    }
-
     setIsConverting(true);
     try {
       const createdBookingIds: string[] = [];
@@ -154,17 +167,16 @@ export default function QuoteDetail() {
           customer_name: quote.customer_name,
           customer_id: quote.customer_id,
           status: "confirmed",
-          recurring_billing: recurringBilling,
+          recurring_billing: pendingRecurring,
         });
-        // Link booking to this quote
         await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
         createdBookingIds.push(bookingId);
       }
 
       updateQuote.mutate({ id: quote.id, status: "accepted" });
       toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
+      setShowAssignmentDialog(false);
 
-      // Build delivery queue for all bookings
       const cust = customers?.find((c) => c.id === quote.customer_id);
       const deliveries: DeliveryInfo[] = forkliftIds.map((fId, i) => {
         const fl = forklifts.find((f) => f.id === fId);
@@ -185,9 +197,63 @@ export default function QuoteDetail() {
     }
   };
 
-  const convertToInvoice = () => {
-    if (!quote) return;
-    navigate(`/invoices/new?from_quote=${quote.id}`);
+  // Legacy conversion for old quotes with forklift_id
+  const convertToBookingLegacy = async (recurringBilling: boolean) => {
+    if (!quote || !forklifts) return;
+    const lineItems = (quote.line_items as unknown as LineItem[]) || [];
+    const forkliftIds: string[] = [];
+    for (const item of lineItems) {
+      const matched = forklifts.find((f) => item.description?.includes(f.name));
+      if (matched && !forkliftIds.includes(matched.id)) {
+        forkliftIds.push(matched.id);
+      }
+    }
+    if (forkliftIds.length === 0 && quote.forklift_id) {
+      forkliftIds.push(quote.forklift_id);
+    }
+    if (forkliftIds.length === 0) {
+      toast.error("No se encontraron montacargas para crear reservas");
+      return;
+    }
+
+    setIsConverting(true);
+    try {
+      const createdBookingIds: string[] = [];
+      for (const fId of forkliftIds) {
+        const bookingId = await createBooking.mutateAsync({
+          forklift_id: fId,
+          start_date: quote.start_date!,
+          end_date: quote.end_date!,
+          customer_name: quote.customer_name,
+          customer_id: quote.customer_id,
+          status: "confirmed",
+          recurring_billing: recurringBilling,
+        });
+        await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
+        createdBookingIds.push(bookingId);
+      }
+
+      updateQuote.mutate({ id: quote.id, status: "accepted" });
+      toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
+
+      const cust = customers?.find((c) => c.id === quote.customer_id);
+      const deliveries: DeliveryInfo[] = forkliftIds.map((fId, i) => {
+        const fl = forklifts.find((f) => f.id === fId);
+        return {
+          bookingId: createdBookingIds[i],
+          forkliftId: fId,
+          forkliftName: fl?.name || "Montacargas",
+          startDate: quote.start_date!,
+          customerAddress: cust?.address || null,
+        };
+      });
+      setCurrentDeliveryIndex(0);
+      setPendingDeliveries(deliveries);
+    } catch (err: any) {
+      toast.error(`Error al crear reserva: ${err.message}`);
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   if (isLoading) return <div className="p-6"><Skeleton className="h-64" /></div>;
@@ -326,10 +392,10 @@ export default function QuoteDetail() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowRecurringDialog(false); convertToBooking(false); }}>
+            <Button variant="outline" onClick={() => handleRecurringChoice(false)}>
               No, crear sin recurrente
             </Button>
-            <Button onClick={() => { setShowRecurringDialog(false); convertToBooking(true); }}>
+            <Button onClick={() => handleRecurringChoice(true)}>
               Sí, habilitar recurrente
             </Button>
           </DialogFooter>
@@ -359,6 +425,18 @@ export default function QuoteDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {showAssignmentDialog && equipmentModels && forklifts && (
+        <EquipmentAssignmentDialog
+          open={showAssignmentDialog}
+          onOpenChange={setShowAssignmentDialog}
+          rentalMeta={rentalMeta}
+          models={equipmentModels}
+          forklifts={forklifts}
+          onConfirm={handleAssignmentConfirm}
+          isLoading={isConverting}
+        />
+      )}
     </div>
   );
 }

@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.30.0",
+    date: "2026-03-11",
+    type: "minor",
+    title: "Cotización de renta por modelo de equipo",
+    description: "Las cotizaciones de renta ahora se crean seleccionando modelos de equipo con cantidad y tarifas, en lugar de montacargas específicos. Al convertir a reserva, se asignan los equipos físicos disponibles.",
+    changes: [
+      "Nuevo componente RentalLineItems para cotizaciones de renta por modelo",
+      "Tarifas por defecto (diaria, semanal, mensual) en modelos de equipo",
+      "Diálogo de asignación de equipos al convertir cotización a reserva",
+      "Función generateLineItemsFromModel en invoiceUtils",
+      "Compatibilidad con cotizaciones existentes (flujo legacy)",
+      "Formulario de modelos de equipo actualizado con campos de tarifas",
+    ],
+  },
+  {
     version: "3.29.2",
     date: "2026-03-11",
     type: "patch",

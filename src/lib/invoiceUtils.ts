@@ -85,6 +85,27 @@ export function generateLineItems(
   }));
 }
 
+export function generateLineItemsFromModel(
+  modelName: string,
+  dailyRate: number,
+  weeklyRate: number,
+  monthlyRate: number,
+  startDate: string,
+  endDate: string,
+  quantity: number = 1
+): LineItem[] {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
+  return items.map((item) => ({
+    ...item,
+    description: `${modelName} (x${quantity}) — ${item.description}`,
+    quantity: item.quantity,
+    unit_price: item.unit_price * quantity,
+    total: item.total * quantity,
+  }));
+}
+
 export function computeTotals(lineItems: LineItem[], taxRate: number) {
   const subtotal = lineItems.reduce((sum, item) => sum + applyDiscount(item), 0);
   const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;

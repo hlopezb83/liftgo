@@ -11,6 +11,9 @@ type EquipmentModelInput = {
   default_capacity_kg?: number | null;
   default_mast_height_m?: number | null;
   default_fuel_type?: string;
+  default_daily_rate?: number;
+  default_weekly_rate?: number;
+  default_monthly_rate?: number;
 };
 
 export function useEquipmentModels() {

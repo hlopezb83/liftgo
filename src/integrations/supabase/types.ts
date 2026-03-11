@@ -642,8 +642,11 @@ export type Database = {
         Row: {
           created_at: string
           default_capacity_kg: number | null
+          default_daily_rate: number | null
           default_fuel_type: string
           default_mast_height_m: number | null
+          default_monthly_rate: number | null
+          default_weekly_rate: number | null
           id: string
           manufacturer: string
           model: string
@@ -652,8 +655,11 @@ export type Database = {
         Insert: {
           created_at?: string
           default_capacity_kg?: number | null
+          default_daily_rate?: number | null
           default_fuel_type?: string
           default_mast_height_m?: number | null
+          default_monthly_rate?: number | null
+          default_weekly_rate?: number | null
           id?: string
           manufacturer: string
           model: string
@@ -662,8 +668,11 @@ export type Database = {
         Update: {
           created_at?: string
           default_capacity_kg?: number | null
+          default_daily_rate?: number | null
           default_fuel_type?: string
           default_mast_height_m?: number | null
+          default_monthly_rate?: number | null
+          default_weekly_rate?: number | null
           id?: string
           manufacturer?: string
           model?: string

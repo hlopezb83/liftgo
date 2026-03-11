@@ -1,0 +1,124 @@
+import { useState, useMemo } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Forklift = Tables<"forklifts">;
+type EquipmentModel = Tables<"equipment_models">;
+
+interface AssignmentSlot {
+  modelId: string;
+  modelName: string;
+  lineIndex: number;
+  forkliftId: string;
+}
+
+interface EquipmentAssignmentDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** Rental lines metadata from the quote */
+  rentalMeta: { modelId: string; quantity: number }[];
+  models: EquipmentModel[];
+  forklifts: Forklift[];
+  onConfirm: (forkliftIds: string[]) => void;
+  isLoading?: boolean;
+}
+
+export function EquipmentAssignmentDialog({
+  open, onOpenChange, rentalMeta, models, forklifts, onConfirm, isLoading,
+}: EquipmentAssignmentDialogProps) {
+  // Build assignment slots: one per unit per model line
+  const slots = useMemo(() => {
+    const result: AssignmentSlot[] = [];
+    for (const line of rentalMeta) {
+      const model = models.find((m) => m.id === line.modelId);
+      const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
+      for (let i = 0; i < line.quantity; i++) {
+        result.push({ modelId: line.modelId, modelName, lineIndex: result.length, forkliftId: "" });
+      }
+    }
+    return result;
+  }, [rentalMeta, models]);
+
+  const [assignments, setAssignments] = useState<AssignmentSlot[]>(slots);
+
+  // Reset assignments when slots change
+  useMemo(() => {
+    setAssignments(slots);
+  }, [slots]);
+
+  // Available forklifts per model: match by manufacturer+model and status=available
+  const getAvailableForModel = (modelId: string, currentSlotIndex: number) => {
+    const model = models.find((m) => m.id === modelId);
+    if (!model) return [];
+    const alreadyAssigned = new Set(
+      assignments.filter((a, i) => i !== currentSlotIndex && a.forkliftId).map((a) => a.forkliftId)
+    );
+    return forklifts.filter(
+      (f) =>
+        f.status === "available" &&
+        f.manufacturer === model.manufacturer &&
+        f.model === model.model &&
+        !alreadyAssigned.has(f.id)
+    );
+  };
+
+  const updateAssignment = (index: number, forkliftId: string) => {
+    setAssignments((prev) => prev.map((a, i) => (i === index ? { ...a, forkliftId } : a)));
+  };
+
+  const allAssigned = assignments.every((a) => a.forkliftId);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Asignar Equipos</DialogTitle>
+          <DialogDescription>
+            Selecciona el montacargas específico para cada unidad cotizada antes de crear las reservas.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 max-h-[50vh] overflow-y-auto py-2">
+          {assignments.map((slot, index) => {
+            const available = getAvailableForModel(slot.modelId, index);
+            return (
+              <div key={index} className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">{slot.modelName}</Label>
+                  <Badge variant="outline" className="text-xs">Unidad {index + 1}</Badge>
+                </div>
+                <Select value={slot.forkliftId} onValueChange={(v) => updateAssignment(index, v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar montacargas disponible" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {available.length === 0 && (
+                      <SelectItem value="__none" disabled>No hay unidades disponibles</SelectItem>
+                    )}
+                    {available.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.manufacturer} {f.model} — {f.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button
+            onClick={() => onConfirm(assignments.map((a) => a.forkliftId))}
+            disabled={!allAssigned || isLoading}
+          >
+            {isLoading ? "Creando reservas..." : "Confirmar y Crear Reservas"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

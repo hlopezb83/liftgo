@@ -20,20 +20,20 @@ export function EquipmentModelsTab() {
   const del = useDeleteEquipmentModel();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const emptyForm = { manufacturer: "", model: "", default_capacity_kg: "", default_mast_height_m: "", default_fuel_type: "Diesel" };
+  const emptyForm = { manufacturer: "", model: "", default_capacity_kg: "", default_mast_height_m: "", default_fuel_type: "Diesel", default_daily_rate: "", default_weekly_rate: "", default_monthly_rate: "" };
   const [form, setForm] = useState(emptyForm);
   const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
 
   const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
   const openEdit = (m: EquipmentModel) => {
     setEditId(m.id);
-    setForm({ manufacturer: m.manufacturer, model: m.model, default_capacity_kg: m.default_capacity_kg?.toString() ?? "", default_mast_height_m: m.default_mast_height_m?.toString() ?? "", default_fuel_type: m.default_fuel_type });
+    setForm({ manufacturer: m.manufacturer, model: m.model, default_capacity_kg: m.default_capacity_kg?.toString() ?? "", default_mast_height_m: m.default_mast_height_m?.toString() ?? "", default_fuel_type: m.default_fuel_type, default_daily_rate: m.default_daily_rate?.toString() ?? "", default_weekly_rate: m.default_weekly_rate?.toString() ?? "", default_monthly_rate: m.default_monthly_rate?.toString() ?? "" });
     setOpen(true);
   };
 
   const handleSubmit = () => {
     if (!form.manufacturer || !form.model) { toast.error("Fabricante y modelo son requeridos"); return; }
-    const payload = { manufacturer: form.manufacturer, model: form.model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type };
+    const payload = { manufacturer: form.manufacturer, model: form.model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type, default_daily_rate: form.default_daily_rate ? parseFloat(form.default_daily_rate) : 0, default_weekly_rate: form.default_weekly_rate ? parseFloat(form.default_weekly_rate) : 0, default_monthly_rate: form.default_monthly_rate ? parseFloat(form.default_monthly_rate) : 0 };
     if (editId) {
       update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); } });
     } else {
@@ -94,6 +94,11 @@ export function EquipmentModelsTab() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{FUEL_TYPES.map((f) => <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5"><Label>Tarifa Diaria</Label><Input type="number" placeholder="0" value={form.default_daily_rate} onChange={(e) => set("default_daily_rate", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Tarifa Semanal</Label><Input type="number" placeholder="0" value={form.default_weekly_rate} onChange={(e) => set("default_weekly_rate", e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Tarifa Mensual</Label><Input type="number" placeholder="0" value={form.default_monthly_rate} onChange={(e) => set("default_monthly_rate", e.target.value)} /></div>
             </div>
           </div>
           <DialogFooter>
