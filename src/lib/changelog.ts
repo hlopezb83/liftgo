@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.31.0",
+    date: "2026-03-11",
+    type: "minor",
+    title: "Nuevo rol: Ventas",
+    description: "Se agregó el rol 'Ventas' orientado al equipo comercial con acceso completo a CRM, clientes y cotizaciones, y lectura en flota, reservas y reportes.",
+    changes: [
+      "Nuevo valor 'ventas' en el enum de roles",
+      "Políticas RLS: acceso completo a clientes, prospectos y cotizaciones",
+      "Políticas RLS: lectura en equipos, reservas, actividad, auditoría y documentos",
+      "Sidebar y rutas actualizadas con permisos para el rol ventas",
+      "Color del rol: teal-600",
+    ],
+  },
     version: "3.30.2",
     date: "2026-03-11",
     type: "patch",
