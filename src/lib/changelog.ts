@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.29.1",
+    date: "2026-03-11",
+    type: "patch",
+    title: "Administrativo puede eliminar cotizaciones",
+    description: "El rol Administrativo ahora puede eliminar cotizaciones desde la vista de detalle, además de crearlas y editarlas.",
+    changes: [
+      "Botón de eliminar cotización visible para rol Administrativo",
+    ],
+  },
+  {
     version: "3.29.0",
     date: "2026-03-10",
     type: "minor",
