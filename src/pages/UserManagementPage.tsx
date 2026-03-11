@@ -417,10 +417,7 @@ export default function UserManagementPage() {
                           <SelectContent>
                             {STAFF_ROLES.map((r) => (
                               <SelectItem key={r} value={r}>
-                                <div className="flex items-center gap-1">
-                                  {renderRoleBadge(r)}
-                                  <RolePermissionsTooltip role={r} />
-                                </div>
+                                {renderRoleBadge(r)}
                               </SelectItem>
                             ))}
                           </SelectContent>
