@@ -1653,6 +1653,7 @@ export type Database = {
         | "customer"
         | "administrativo"
         | "auditor"
+        | "ventas"
       expense_category:
         | "renta"
         | "nomina"
@@ -1794,6 +1795,7 @@ export const Constants = {
         "customer",
         "administrativo",
         "auditor",
+        "ventas",
       ],
       expense_category: [
         "renta",
