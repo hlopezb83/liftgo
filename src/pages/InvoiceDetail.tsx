@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { useInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
+import { useInvoice, useUpdateInvoice, useDeleteInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
 import { TotalsSummary } from "@/components/TotalsSummary";
