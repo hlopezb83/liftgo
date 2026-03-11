@@ -10,6 +10,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   dispatcher: "Despachador",
   mechanic: "Mecánico",
   auditor: "Auditor",
+  ventas: "Ventas",
   customer: "Cliente",
 };
 
@@ -19,6 +20,7 @@ export const ROLE_COLORS: Record<AppRole, string> = {
   dispatcher: "bg-amber-500 text-white",
   mechanic: "bg-emerald-600 text-white",
   auditor: "bg-purple-600 text-white",
+  ventas: "bg-teal-600 text-white",
   customer: "bg-gray-500 text-white",
 };
 
