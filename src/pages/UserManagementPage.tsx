@@ -24,6 +24,7 @@ import { es } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { CredentialsDialog } from "@/components/CredentialsDialog";
 import { RolePermissionsTooltip } from "@/components/RolePermissionsTooltip";
+import { RolePermissionsMatrix } from "@/components/RolePermissionsMatrix";
 import { TablePagination } from "@/components/TablePagination";
 import type { AppRole } from "@/hooks/useUserRole";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -330,6 +331,8 @@ export default function UserManagementPage() {
             </SelectContent>
           </Select>
         </div>
+
+        <RolePermissionsMatrix />
 
         {isLoading ? (
           <TableSkeleton columnCount={6} />

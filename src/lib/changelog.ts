@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.32.1",
+    date: "2026-03-11",
+    type: "patch",
+    title: "Mejora de visibilidad de permisos por rol",
+    description: "Se reemplazó el tooltip invisible por un popover funcional y se agregó una matriz colapsable de permisos por rol en la página de usuarios.",
+    changes: [
+      "RolePermissionsTooltip ahora usa Popover en lugar de Tooltip para compatibilidad con Select",
+      "Nueva matriz visual de permisos (roles vs módulos) con indicadores de acceso completo, solo lectura y sin acceso",
+      "Panel colapsable integrado en la página de Gestión de Usuarios",
+    ],
+  },
+  {
     version: "3.32.0",
     date: "2026-03-11",
     type: "minor",
