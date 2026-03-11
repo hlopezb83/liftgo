@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.30.1",
+    date: "2026-03-11",
+    type: "patch",
+    title: "Eliminar entregas y recolecciones",
+    description: "Se agregó la funcionalidad de eliminar registros de entregas y recolecciones, disponible para los roles Admin y Administrativo.",
+    changes: [
+      "Botón de eliminar entrega en tabla y vista móvil",
+      "Confirmación con diálogo antes de eliminar",
+      "Restringido a roles admin y administrativo",
+    ],
+  },
+  {
     version: "3.30.0",
     date: "2026-03-11",
     type: "minor",

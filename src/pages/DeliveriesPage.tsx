@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useBookings } from "@/hooks/useBookings";
-import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
+import { useDeliveries, useCreateDelivery, useUpdateDelivery, useDeleteDelivery } from "@/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
@@ -21,7 +21,12 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveDrivers } from "@/hooks/useDrivers";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
+import { PlusCircle, TruckIcon, CheckCircle, Trash2 } from "lucide-react";
+import { RoleGuard } from "@/components/RoleGuard";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
@@ -45,6 +50,7 @@ export default function DeliveriesPage() {
   const { data: deliveries, isLoading } = useDeliveries();
   const createDelivery = useCreateDelivery();
   const updateDelivery = useUpdateDelivery();
+  const deleteDelivery = useDeleteDelivery();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
 
@@ -90,6 +96,25 @@ export default function DeliveriesPage() {
                 </Button>
               </div>
             )}
+            <RoleGuard allowed={["admin", "administrativo"]}>
+              <div className={`${d.status === "completed" ? "mt-3 pt-3 border-t" : "mt-2"}`}>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full text-destructive"><Trash2 className="h-4 w-4 mr-1" /> Eliminar</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar esta entrega?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteDelivery.mutate(d.id, { onSuccess: () => toast.success("Entrega eliminada") })}>Eliminar</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </RoleGuard>
           </CardContent>
         </Card>
       )}
@@ -168,11 +193,30 @@ export default function DeliveriesPage() {
             <TableCell>{d.driver_name || "—"}</TableCell>
             <TableCell><StatusBadge status={d.status} /></TableCell>
             <TableCell>
-              {d.status !== "completed" && (
-                <Button variant="ghost" size="icon" onClick={() => setSignatureTarget(d.id)} title="Marcar completado">
-                  <CheckCircle className="h-4 w-4 text-status-available" />
-                </Button>
-              )}
+              <div className="flex gap-1">
+                {d.status !== "completed" && (
+                  <Button variant="ghost" size="icon" onClick={() => setSignatureTarget(d.id)} title="Marcar completado">
+                    <CheckCircle className="h-4 w-4 text-status-available" />
+                  </Button>
+                )}
+                <RoleGuard allowed={["admin", "administrativo"]}>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" title="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar esta entrega?</AlertDialogTitle>
+                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteDelivery.mutate(d.id, { onSuccess: () => toast.success("Entrega eliminada") })}>Eliminar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </RoleGuard>
+              </div>
             </TableCell>
           </TableRow>
         )}
