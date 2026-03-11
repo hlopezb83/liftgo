@@ -46,7 +46,7 @@ export default function RolePermissionsPage() {
       <div className="p-4 md:p-6 space-y-6">
         <PageHeader
           title="Permisos por Rol"
-          description="Consulta los permisos de acceso de cada rol a los módulos del sistema."
+          subtitle="Consulta los permisos de acceso de cada rol a los módulos del sistema."
         />
 
         <Card>
