@@ -227,7 +227,7 @@ export default function QuoteDetail() {
                 <Button size="sm" variant="destructive" onClick={() => setStatus("declined")}><XCircle className="h-4 w-4 mr-1" />Rechazar</Button>
               </>
             )}
-            <RoleGuard allowed={["admin"]}>
+            <RoleGuard allowed={["admin", "administrativo"]}>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>
