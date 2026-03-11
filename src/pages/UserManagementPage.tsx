@@ -23,7 +23,6 @@ import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { CredentialsDialog } from "@/components/CredentialsDialog";
-import { RolePermissionsTooltip } from "@/components/RolePermissionsTooltip";
 import { RolePermissionsMatrix } from "@/components/RolePermissionsMatrix";
 import { TablePagination } from "@/components/TablePagination";
 import type { AppRole } from "@/hooks/useUserRole";
@@ -297,10 +296,7 @@ export default function UserManagementPage() {
                       <SelectContent>
                         {STAFF_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>
-                            <div className="flex items-center gap-1">
-                              {renderRoleBadge(r)}
-                              <RolePermissionsTooltip role={r} />
-                            </div>
+                            {renderRoleBadge(r)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -421,10 +417,7 @@ export default function UserManagementPage() {
                           <SelectContent>
                             {STAFF_ROLES.map((r) => (
                               <SelectItem key={r} value={r}>
-                                <div className="flex items-center gap-1">
-                                  {renderRoleBadge(r)}
-                                  <RolePermissionsTooltip role={r} />
-                                </div>
+                                {renderRoleBadge(r)}
                               </SelectItem>
                             ))}
                           </SelectContent>
