@@ -174,11 +174,30 @@ export default function DeliveriesPage() {
             <TableCell>{d.driver_name || "—"}</TableCell>
             <TableCell><StatusBadge status={d.status} /></TableCell>
             <TableCell>
-              {d.status !== "completed" && (
-                <Button variant="ghost" size="icon" onClick={() => setSignatureTarget(d.id)} title="Marcar completado">
-                  <CheckCircle className="h-4 w-4 text-status-available" />
-                </Button>
-              )}
+              <div className="flex gap-1">
+                {d.status !== "completed" && (
+                  <Button variant="ghost" size="icon" onClick={() => setSignatureTarget(d.id)} title="Marcar completado">
+                    <CheckCircle className="h-4 w-4 text-status-available" />
+                  </Button>
+                )}
+                <RoleGuard allowed={["admin", "administrativo"]}>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" title="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar esta entrega?</AlertDialogTitle>
+                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteDelivery.mutate(d.id, { onSuccess: () => toast.success("Entrega eliminada") })}>Eliminar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </RoleGuard>
+              </div>
             </TableCell>
           </TableRow>
         )}
