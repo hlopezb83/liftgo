@@ -1,9 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useCustomers } from "@/hooks/useCustomers";
-import { useAvailableForklifts } from "@/hooks/useAvailableForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
-import { generateLineItems, computeTotals, applyDiscount, type LineItem } from "@/lib/invoiceUtils";
+import { generateLineItemsFromModel, computeTotals, applyDiscount, type LineItem } from "@/lib/invoiceUtils";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +15,8 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
-import { MultiForkliftSelector } from "@/components/ForkliftSelector";
 import { SaleLineItems, type SaleLine } from "@/components/SaleLineItems";
+import { RentalLineItems, type RentalLine } from "@/components/RentalLineItems";
 import { CostSummaryCard } from "@/components/CostSummaryCard";
 import { NotesCard } from "@/components/NotesCard";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +28,7 @@ import { format, addDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 
 const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0, discount: 0, discountType: "%" };
+const EMPTY_RENTAL_LINE: RentalLine = { modelId: "", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 0, discount: 0, discountType: "%" };
 
 export default function QuoteForm() {
   const { id } = useParams();
@@ -40,7 +40,7 @@ export default function QuoteForm() {
   const updateQuote = useUpdateQuote();
 
   const [quoteType, setQuoteType] = useState<"rental" | "sale">("rental");
-  const [forkliftIds, setForkliftIds] = useState<string[]>([]);
+  const [rentalLines, setRentalLines] = useState<RentalLine[]>([{ ...EMPTY_RENTAL_LINE }]);
   const [saleLines, setSaleLines] = useState<SaleLine[]>([{ ...EMPTY_SALE_LINE }]);
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -50,7 +50,6 @@ export default function QuoteForm() {
   const [validUntil, setValidUntil] = useState<Date>();
   const [includeLogistics, setIncludeLogistics] = useState(false);
   const [logisticsCost, setLogisticsCost] = useState(0);
-  const [rentalDiscounts, setRentalDiscounts] = useState<Record<number, { value: number; type: "%" | "$" }>>({});
 
   const { data: equipmentModels } = useEquipmentModels();
 
@@ -67,7 +66,6 @@ export default function QuoteForm() {
       setNotes(existingQuote.notes || "");
       setValidUntil(existingQuote.valid_until ? parseDateLocal(existingQuote.valid_until) : undefined);
 
-      // Restore logistics from existing line_items
       const allItems = (existingQuote.line_items as unknown as LineItem[]) || [];
       const logisticsItem = allItems.find((item) => item.description?.includes("Logística"));
       if (logisticsItem) {
@@ -75,22 +73,10 @@ export default function QuoteForm() {
         setLogisticsCost(logisticsItem.unit_price || logisticsItem.total || 0);
       }
 
-      // Restore rental discounts from existing line_items
-      if (!isSale) {
-        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
-        const restored: Record<number, { value: number; type: "%" | "$" }> = {};
-        nonLogisticsItems.forEach((item, idx) => {
-          if (item.discount && item.discount > 0) {
-            restored[idx] = { value: item.discount, type: item.discount_type || "%" };
-          }
-        });
-        if (Object.keys(restored).length > 0) setRentalDiscounts(restored);
-      }
-
       if (isSale && equipmentModels) {
         const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
         if (nonLogisticsItems.length > 0) {
-        const rebuilt = nonLogisticsItems.map((item) => {
+          const rebuilt = nonLogisticsItems.map((item) => {
             const found = equipmentModels.find(
               (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
             );
@@ -106,54 +92,44 @@ export default function QuoteForm() {
         }
       }
 
-      // Restore forklift ids for rental quotes
-      if (!isSale && existingQuote.forklift_id) {
-        // Start with the stored forklift_id; also try to find others from line_items
-        const ids = new Set<string>([existingQuote.forklift_id]);
-        // We'll refine after forklifts load via the other effect
-        setForkliftIds(Array.from(ids));
+      // Restore rental lines from line_items metadata
+      if (!isSale && equipmentModels) {
+        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
+        // Try to reconstruct rental lines from metadata stored in line_items
+        const meta = (allItems as any)?.[0]?._rentalMeta as RentalLine[] | undefined;
+        if (meta && meta.length > 0) {
+          setRentalLines(meta);
+        } else if (nonLogisticsItems.length > 0) {
+          // Legacy: try to match models from descriptions
+          const matchedModels = new Map<string, RentalLine>();
+          for (const item of nonLogisticsItems) {
+            const found = equipmentModels.find(
+              (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
+            );
+            if (found && !matchedModels.has(found.id)) {
+              matchedModels.set(found.id, {
+                modelId: found.id,
+                quantity: 1,
+                dailyRate: found.default_daily_rate ?? 0,
+                weeklyRate: found.default_weekly_rate ?? 0,
+                monthlyRate: found.default_monthly_rate ?? 0,
+                discount: item.discount || 0,
+                discountType: (item.discount_type || "%") as "%" | "$",
+              });
+            }
+          }
+          if (matchedModels.size > 0) {
+            setRentalLines(Array.from(matchedModels.values()));
+          }
+        }
       }
     } else if (!validUntil) {
       setValidUntil(addDays(new Date(), 30));
     }
   }, [existingQuote, equipmentModels]);
 
-  const { availableForklifts, forklifts: allForkliftsFromHook, datesSelected } = useAvailableForklifts(dateRange);
-
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
-
-  // Rebuild forkliftIds from line items when editing existing rental quote and forklifts are loaded
-  useEffect(() => {
-    if (!existingQuote || (existingQuote as any).quote_type === "sale" || !allForkliftsFromHook) return;
-    const allItems = (existingQuote.line_items as unknown as LineItem[]) || [];
-    const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
-    if (nonLogisticsItems.length === 0) return;
-
-    const matchedIds = new Set<string>();
-    if (existingQuote.forklift_id) matchedIds.add(existingQuote.forklift_id);
-
-    for (const item of nonLogisticsItems) {
-      const matched = allForkliftsFromHook.find((f) => item.description?.includes(f.name));
-      if (matched) matchedIds.add(matched.id);
-    }
-    if (matchedIds.size > 0) {
-      setForkliftIds(Array.from(matchedIds));
-    }
-  }, [existingQuote, allForkliftsFromHook]);
-
-  // Remove selected forklifts that became unavailable
-  useEffect(() => {
-    if (quoteType === "rental" && datesSelected && forkliftIds.length > 0) {
-      const availableSet = new Set(availableForklifts.map((f) => f.id));
-      // When editing, also keep forklifts that are already in the quote
-      const existingForkliftId = existingQuote?.forklift_id;
-      const filtered = forkliftIds.filter((fid) => availableSet.has(fid) || fid === existingForkliftId);
-      if (filtered.length !== forkliftIds.length) {
-        setForkliftIds(filtered);
-      }
-    }
-  }, [availableForklifts, forkliftIds, datesSelected, quoteType, existingQuote]);
 
   const lineItems: LineItem[] = useMemo(() => {
     let items: LineItem[] = [];
@@ -173,21 +149,21 @@ export default function QuoteForm() {
           };
         });
     } else {
-      if (forkliftIds.length === 0 || !startDate || !endDate) return [];
-      let rentalIdx = 0;
-      for (const fid of forkliftIds) {
-        const fl = allForkliftsFromHook?.find((f) => f.id === fid);
-        if (fl) {
-          const flItems = generateLineItems(fl, format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"));
-          for (const item of flItems) {
-            const d = rentalDiscounts[rentalIdx];
-            if (d && d.value > 0) {
-              item.discount = d.value;
-              item.discount_type = d.type;
-            }
-            items.push(item);
-            rentalIdx++;
+      if (!equipmentModels || !startDate || !endDate) return [];
+      const validLines = rentalLines.filter((l) => l.modelId && (l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0));
+      for (const line of validLines) {
+        const model = equipmentModels.find((m) => m.id === line.modelId);
+        const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
+        const generated = generateLineItemsFromModel(
+          modelName, line.dailyRate, line.weeklyRate, line.monthlyRate,
+          format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), line.quantity
+        );
+        for (const item of generated) {
+          if (line.discount && line.discount > 0) {
+            item.discount = line.discount;
+            item.discount_type = line.discountType;
           }
+          items.push(item);
         }
       }
     }
@@ -195,13 +171,13 @@ export default function QuoteForm() {
       items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
     }
     return items;
-  }, [allForkliftsFromHook, forkliftIds, startDate, endDate, quoteType, saleLines, equipmentModels, includeLogistics, logisticsCost, rentalDiscounts]);
+  }, [equipmentModels, rentalLines, startDate, endDate, quoteType, saleLines, includeLogistics, logisticsCost]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
   const handleTypeChange = (type: string) => {
     setQuoteType(type as "rental" | "sale");
-    setForkliftIds([]);
+    setRentalLines([{ ...EMPTY_RENTAL_LINE }]);
     setSaleLines([{ ...EMPTY_SALE_LINE }]);
     setDateRange(undefined);
     setIncludeLogistics(false);
@@ -211,25 +187,36 @@ export default function QuoteForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerId) { toast.error("Selecciona un cliente"); return; }
-    if (quoteType === "rental" && forkliftIds.length === 0) { toast.error("Selecciona al menos un montacargas"); return; }
     if (quoteType === "rental" && (!startDate || !endDate)) { toast.error("Selecciona el periodo de renta"); return; }
+    if (quoteType === "rental") {
+      const validLines = rentalLines.filter((l) => l.modelId && (l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0));
+      if (validLines.length === 0) { toast.error("Agrega al menos un modelo con tarifas"); return; }
+    }
     if (quoteType === "sale") {
       const validLines = saleLines.filter((l) => l.modelId && l.unitPrice > 0 && l.quantity > 0);
       if (validLines.length === 0) { toast.error("Agrega al menos un modelo con cantidad y precio"); return; }
     }
 
     const today = format(new Date(), "yyyy-MM-dd");
-    const firstModelId = quoteType === "sale" ? (saleLines.find((l) => l.modelId)?.modelId || null) : null;
+    const firstModelId = quoteType === "sale"
+      ? (saleLines.find((l) => l.modelId)?.modelId || null)
+      : (rentalLines.find((l) => l.modelId)?.modelId || null);
+
+    // Store rental meta in the first line item for restoration on edit
+    const finalLineItems = [...lineItems];
+    if (quoteType === "rental" && finalLineItems.length > 0) {
+      (finalLineItems[0] as any)._rentalMeta = rentalLines;
+    }
 
     const payload = {
       quote_number: existingQuote?.quote_number || nextNumber || "COT-0001",
       customer_id: customerId || null,
       customer_name: customerName || null,
-      forklift_id: quoteType === "rental" ? (forkliftIds[0] || null) : null,
+      forklift_id: null,
       equipment_model_id: firstModelId,
       start_date: quoteType === "rental" ? format(startDate!, "yyyy-MM-dd") : today,
       end_date: quoteType === "rental" ? format(endDate!, "yyyy-MM-dd") : today,
-      line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
+      line_items: finalLineItems as unknown as import("@/integrations/supabase/types").Json,
       subtotal, tax_rate: Number(taxRate), tax_amount: taxAmount, total,
       status: existingQuote?.status || "draft",
       valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
@@ -281,16 +268,6 @@ export default function QuoteForm() {
               <DateRangePickerField label="Periodo de Renta *" dateRange={dateRange} onSelect={setDateRange} required />
             )}
 
-            {quoteType === "rental" && (
-              <MultiForkliftSelector
-                selectedIds={forkliftIds}
-                onChange={setForkliftIds}
-                availableForklifts={availableForklifts}
-                allForklifts={allForkliftsFromHook}
-                datesSelected={datesSelected}
-              />
-            )}
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>IVA</Label>
@@ -312,55 +289,19 @@ export default function QuoteForm() {
           </CardContent>
         </Card>
 
-        {/* 4. Equipos a Cotizar (solo venta) */}
+        {/* 4. Equipos a Cotizar */}
         {quoteType === "sale" && (
           <SaleLineItems lines={saleLines} onChange={setSaleLines} models={equipmentModels || []} />
         )}
 
-        {/* 4b. Descuentos por línea (solo renta) */}
-        {quoteType === "rental" && lineItems.filter((i) => !i.description?.includes("Logística")).length > 0 && (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Descuentos por Línea</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              {lineItems
-                .map((item, idx) => ({ item, idx }))
-                .filter(({ item }) => !item.description?.includes("Logística"))
-                .map(({ item, idx }) => {
-                  const d = rentalDiscounts[idx] || { value: 0, type: "%" as const };
-                  return (
-                    <div key={idx} className="flex items-center gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
-                      <span className="text-sm flex-1 truncate">{item.description}</span>
-                      <div className="flex gap-1 items-center shrink-0">
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0"
-                          className="w-20 h-8"
-                          value={d.value || ""}
-                          onChange={(e) => setRentalDiscounts((prev) => ({
-                            ...prev,
-                            [idx]: { ...d, value: parseFloat(e.target.value) || 0 },
-                          }))}
-                        />
-                        <ToggleGroup
-                          type="single"
-                          value={d.type}
-                          onValueChange={(v) => { if (v) setRentalDiscounts((prev) => ({ ...prev, [idx]: { ...d, type: v as "%" | "$" } })); }}
-                          className="shrink-0"
-                        >
-                          <ToggleGroupItem value="%" className="h-8 w-7 text-xs px-0">%</ToggleGroupItem>
-                          <ToggleGroupItem value="$" className="h-8 w-7 text-xs px-0">$</ToggleGroupItem>
-                        </ToggleGroup>
-                      </div>
-                      <span className="text-sm font-mono w-24 text-right shrink-0">
-                        {formatCurrency(applyDiscount(item))}
-                      </span>
-                    </div>
-                  );
-                })}
-            </CardContent>
-          </Card>
+        {quoteType === "rental" && (
+          <RentalLineItems
+            lines={rentalLines}
+            onChange={setRentalLines}
+            models={equipmentModels || []}
+            startDate={startDate}
+            endDate={endDate}
+          />
         )}
 
         {/* 5. Servicio de Logística */}
