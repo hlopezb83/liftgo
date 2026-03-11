@@ -209,11 +209,11 @@ export default function QuoteDetail() {
         actions={
           <>
             <QuotePDFButton quoteId={quote.id} />
+            {(quote.status === "draft" || quote.status === "sent") && (
+              <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
+            )}
             {quote.status === "draft" && (
-              <>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
-                <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
-              </>
+              <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
             )}
             {!isSale && !alreadyConverted && (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
               <Button size="sm" variant="default" onClick={handleConvertClick} disabled={isConverting}><BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas..." : "Convertir a Reserva"}</Button>
