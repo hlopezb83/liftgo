@@ -18,7 +18,7 @@ export function useUserRole() {
         .eq("user_id", user!.id);
       if (error || !data || data.length === 0) return "dispatcher" as AppRole;
       // Priority: admin > customer > mechanic > dispatcher
-      const priority: AppRole[] = ["admin", "customer", "administrativo", "auditor", "mechanic", "dispatcher"];
+      const priority: AppRole[] = ["admin", "customer", "administrativo", "auditor", "ventas", "mechanic", "dispatcher"];
       const roles = data.map((r) => r.role as AppRole);
       return priority.find((p) => roles.includes(p)) ?? "dispatcher";
     },

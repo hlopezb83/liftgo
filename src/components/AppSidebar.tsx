@@ -55,7 +55,7 @@ const navGroups: NavGroup[] = [
       { title: "Proveedores", url: "/suppliers", icon: Handshake, roles: ["admin", "administrativo", "auditor"] },
       { title: "Gastos Operativos", url: "/expenses", icon: Wallet, roles: ["admin", "administrativo", "auditor"] },
       { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign, roles: ["admin", "administrativo", "auditor"] },
-      { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+      { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
       { title: "Actividad", url: "/activity", icon: Activity },
       { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
       { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin", "administrativo", "auditor"] },
