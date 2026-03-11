@@ -328,7 +328,7 @@ export default function UserManagementPage() {
           </Select>
         </div>
 
-        <RolePermissionsMatrix />
+        
 
         {isLoading ? (
           <TableSkeleton columnCount={6} />
