@@ -10,6 +10,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   dispatcher: "Despachador",
   mechanic: "Mecánico",
   auditor: "Auditor",
+  ventas: "Ventas",
   customer: "Cliente",
 };
 
