@@ -65,3 +65,20 @@ export function useUpdateInvoice() {
     },
   });
 }
+
+export function useDeleteInvoice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("invoices").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("Factura eliminada");
+    },
+    onError: (err: Error) => {
+      toast.error("Error al eliminar factura", { description: err.message });
+    },
+  });
+}

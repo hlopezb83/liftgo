@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { useInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
+import { useInvoice, useUpdateInvoice, useDeleteInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
 import { TotalsSummary } from "@/components/TotalsSummary";
@@ -16,9 +16,11 @@ import { NotesCard } from "@/components/NotesCard";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, FileText, CalendarIcon } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, FileText, CalendarIcon, Trash2 } from "lucide-react";
 import { InvoicePDFButton } from "@/components/InvoicePDFButton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { RoleGuard } from "@/components/RoleGuard";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn, formatDateDisplay } from "@/lib/utils";
@@ -36,10 +38,12 @@ export default function InvoiceDetail() {
   const navigate = useNavigate();
   const { data: invoice, isLoading, refetch } = useInvoice(id);
   const updateInvoice = useUpdateInvoice();
+  const deleteInvoice = useDeleteInvoice();
   const updateBooking = useUpdateBooking();
   const [stampLoading, setStampLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [paidDate, setPaidDate] = useState<Date>(new Date());
   const [paidPopoverOpen, setPaidPopoverOpen] = useState(false);
   const { data: payments } = usePayments(id);
@@ -163,6 +167,12 @@ export default function InvoiceDetail() {
                   </>
                 )}
                 <DropdownMenuItem onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" /> Imprimir</DropdownMenuItem>
+                <RoleGuard allowed={["admin", "administrativo"]}>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                  </DropdownMenuItem>
+                </RoleGuard>
               </DropdownMenuContent>
             </DropdownMenu>
             {id && <InvoicePDFButton invoiceId={id} />}
@@ -242,6 +252,24 @@ export default function InvoiceDetail() {
 
       {id && <RecordPaymentDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} invoiceId={id} balance={balance} />}
       {id && <CancelCfdiDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen} invoiceId={id} invoiceTotal={Number(invoice.total)} onSuccess={refetch} />}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar factura {invoice.invoice_number}?</AlertDialogTitle>
+            <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará la factura y sus datos asociados permanentemente.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteInvoice.mutate(id!, { onSuccess: () => navigate("/invoices") })}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

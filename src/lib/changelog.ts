@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.30.2",
+    date: "2026-03-11",
+    type: "patch",
+    title: "Eliminar facturas",
+    description: "Se agregó la funcionalidad de eliminar facturas desde el detalle, disponible para los roles Admin y Administrativo.",
+    changes: [
+      "Opción de eliminar en el menú de acciones del detalle de factura",
+      "Confirmación con diálogo antes de eliminar",
+      "Restringido a roles admin y administrativo",
+    ],
+  },
+  {
     version: "3.30.1",
     date: "2026-03-11",
     type: "patch",
