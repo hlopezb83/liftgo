@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.29.2",
+    date: "2026-03-11",
+    type: "patch",
+    title: "Editar cotizaciones enviadas",
+    description: "El botón Editar ahora permanece visible cuando una cotización está en estado 'enviada', permitiendo modificarla después de enviarla.",
+    changes: [
+      "Botón Editar visible en cotizaciones con status draft y sent",
+      "Botón Marcar Enviada solo visible en status draft",
+    ],
+  },
+  {
     version: "3.29.1",
     date: "2026-03-11",
     type: "patch",
