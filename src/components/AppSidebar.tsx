@@ -25,10 +25,10 @@ const navGroups: NavGroup[] = [
   {
     label: "Comercial",
     items: [
-      { title: "CRM", url: "/crm", icon: Target, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+      { title: "CRM", url: "/crm", icon: Target, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
       { title: "Clientes", url: "/customers", icon: Users },
-      { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-      { title: "Reservas", url: "/bookings", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+      { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
+      { title: "Reservas", url: "/bookings", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
     ],
   },
   {
