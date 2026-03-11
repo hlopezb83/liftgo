@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useBookings } from "@/hooks/useBookings";
-import { useDeliveries, useCreateDelivery, useUpdateDelivery } from "@/hooks/useDeliveries";
+import { useDeliveries, useCreateDelivery, useUpdateDelivery, useDeleteDelivery } from "@/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
