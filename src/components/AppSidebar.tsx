@@ -61,7 +61,6 @@ const navGroups: NavGroup[] = [
       { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin", "administrativo", "auditor"] },
       { title: "Datos Fiscales", url: "/settings/company", icon: Building2, roles: ["admin", "auditor"] },
       { title: "Usuarios", url: "/users", icon: ShieldCheck, roles: ["admin", "auditor"] },
-      { title: "Permisos por Rol", url: "/users/permissions", icon: ShieldCheck, roles: ["admin", "auditor"] },
       { title: "Changelog", url: "/changelog", icon: ScrollText },
       { title: "Ayuda", url: "/help", icon: HelpCircle },
     ],

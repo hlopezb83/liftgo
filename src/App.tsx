@@ -42,7 +42,6 @@ const AuditTrailPage = lazy(() => import("./pages/AuditTrailPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const DamageTrackingPage = lazy(() => import("./pages/DamageTrackingPage"));
 const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
-const RolePermissionsPage = lazy(() => import("./pages/RolePermissionsPage"));
 const CompanySettingsPage = lazy(() => import("./pages/CompanySettingsPage"));
 const ChangelogPage = lazy(() => import("./pages/ChangelogPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
@@ -115,7 +114,6 @@ const routes: RouteConfig[] = [
   { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin", "administrativo", "auditor"] },
   { path: "/settings/company", component: CompanySettingsPage, roles: ["admin", "auditor"] },
   { path: "/users", component: UserManagementPage, roles: ["admin", "auditor"] },
-  { path: "/users/permissions", component: RolePermissionsPage, roles: ["admin", "auditor"] },
   { path: "/changelog", component: ChangelogPage },
   { path: "/help", component: HelpPage },
 ];
