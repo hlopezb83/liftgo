@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
 
     await adminClient
       .from("profiles")
-      .update({ full_name })
+      .update({ full_name, email })
       .eq("user_id", userId);
 
     return new Response(
