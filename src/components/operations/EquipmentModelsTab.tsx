@@ -20,7 +20,7 @@ export function EquipmentModelsTab() {
   const del = useDeleteEquipmentModel();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const emptyForm = { manufacturer: "", model: "", default_capacity_kg: "", default_mast_height_m: "", default_fuel_type: "Diesel" };
+  const emptyForm = { manufacturer: "", model: "", default_capacity_kg: "", default_mast_height_m: "", default_fuel_type: "Diesel", default_daily_rate: "", default_weekly_rate: "", default_monthly_rate: "" };
   const [form, setForm] = useState(emptyForm);
   const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
 
