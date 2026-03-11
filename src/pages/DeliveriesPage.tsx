@@ -21,7 +21,12 @@ import { SignaturePad } from "@/components/SignaturePad";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveDrivers } from "@/hooks/useDrivers";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, TruckIcon, CheckCircle } from "lucide-react";
+import { PlusCircle, TruckIcon, CheckCircle, Trash2 } from "lucide-react";
+import { RoleGuard } from "@/components/RoleGuard";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
