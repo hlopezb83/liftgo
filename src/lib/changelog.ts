@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.33.0",
+    date: "2026-03-11",
+    type: "minor",
+    title: "Página dedicada de Permisos por Rol",
+    description: "Nueva página dentro de la sección de Usuarios que muestra una matriz visual de roles vs módulos con indicadores de acceso.",
+    changes: [
+      "Nueva ruta /users/permissions con página de consulta de permisos",
+      "Matriz visual con indicadores de acceso completo, solo lectura y sin acceso",
+      "Accesible desde el sidebar para Admin y Auditor",
+      "Se removió la matriz colapsable de la página de Usuarios",
+    ],
+  },
+  {
     version: "3.32.1",
     date: "2026-03-11",
     type: "patch",
