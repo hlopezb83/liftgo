@@ -22,6 +22,7 @@ export const changelog: ChangelogEntry[] = [
       "Color del rol: teal-600",
     ],
   },
+  {
     version: "3.30.2",
     date: "2026-03-11",
     type: "patch",
