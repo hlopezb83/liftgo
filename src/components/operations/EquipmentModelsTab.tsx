@@ -27,7 +27,7 @@ export function EquipmentModelsTab() {
   const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
   const openEdit = (m: EquipmentModel) => {
     setEditId(m.id);
-    setForm({ manufacturer: m.manufacturer, model: m.model, default_capacity_kg: m.default_capacity_kg?.toString() ?? "", default_mast_height_m: m.default_mast_height_m?.toString() ?? "", default_fuel_type: m.default_fuel_type });
+    setForm({ manufacturer: m.manufacturer, model: m.model, default_capacity_kg: m.default_capacity_kg?.toString() ?? "", default_mast_height_m: m.default_mast_height_m?.toString() ?? "", default_fuel_type: m.default_fuel_type, default_daily_rate: m.default_daily_rate?.toString() ?? "", default_weekly_rate: m.default_weekly_rate?.toString() ?? "", default_monthly_rate: m.default_monthly_rate?.toString() ?? "" });
     setOpen(true);
   };
 
