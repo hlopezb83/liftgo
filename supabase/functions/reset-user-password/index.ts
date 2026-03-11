@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
+import { isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -23,9 +23,7 @@ Deno.serve(async (req) => {
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const {
-      data: { user: caller },
-    } = await callerClient.auth.getUser();
+    const { data: { user: caller } } = await callerClient.auth.getUser();
     if (!caller) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -48,72 +46,43 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, full_name, role, password } = body;
+    const { user_id } = body;
 
-    if (!isEmail(email)) {
+    if (!isUUID(user_id)) {
       return new Response(
-        JSON.stringify({ error: "A valid email is required (max 255 chars)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (!isNonEmptyString(full_name, 200)) {
-      return new Response(
-        JSON.stringify({ error: "full_name is required (max 200 chars)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (!isValidRole(role)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid role. Must be admin, administrativo, dispatcher or mechanic" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (password !== undefined && (typeof password !== "string" || password.length < 8)) {
-      return new Response(
-        JSON.stringify({ error: "Password must be at least 8 characters" }),
+        JSON.stringify({ error: "user_id must be a valid UUID" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const finalPassword = password || (crypto.randomUUID() + "Aa1!");
-    const { data: newUser, error: createErr } =
-      await adminClient.auth.admin.createUser({
-        email,
-        password: finalPassword,
-        email_confirm: true,
-        user_metadata: { full_name },
-      });
+    // Get user email
+    const { data: userData, error: getUserErr } = await adminClient.auth.admin.getUserById(user_id);
+    if (getUserErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "User not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    if (createErr) {
-      return new Response(JSON.stringify({ error: createErr.message }), {
+    const newPassword = crypto.randomUUID().slice(0, 12) + "Aa1!";
+
+    const { error: updateErr } = await adminClient.auth.admin.updateUserById(user_id, {
+      password: newPassword,
+    });
+
+    if (updateErr) {
+      return new Response(JSON.stringify({ error: updateErr.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = newUser.user.id;
-
-    if (role !== "dispatcher") {
-      await adminClient
-        .from("user_roles")
-        .update({ role })
-        .eq("user_id", userId);
-    }
-
-    await adminClient
-      .from("profiles")
-      .update({ full_name, email })
-      .eq("user_id", userId);
-
     return new Response(
-      JSON.stringify({ success: true, user_id: userId, email, password: finalPassword }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, email: userData.user.email, password: newPassword }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (_err) {
-    console.error("invite-user error:", _err);
+    console.error("reset-user-password error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }

@@ -9,6 +9,26 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.32.0",
+    date: "2026-03-11",
+    type: "minor",
+    title: "Robustecimiento del módulo de Gestión de Usuarios",
+    description: "Mejoras significativas en la administración de usuarios: búsqueda, filtrado, estado activo/inactivo, reseteo de contraseña y descripción de permisos por rol.",
+    changes: [
+      "Columna de email visible en la tabla de usuarios",
+      "Barra de búsqueda por nombre o email",
+      "Filtro por rol con dropdown",
+      "Activar/desactivar usuarios sin eliminarlos (ban/unban)",
+      "Botón para resetear contraseña y generar credenciales temporales",
+      "Confirmación al cambiar rol con resumen de permisos",
+      "Tooltip de permisos por rol (acceso completo vs solo lectura)",
+      "Badge 'Tú' junto al usuario actual",
+      "Paginación en la tabla de usuarios",
+      "Nuevas Edge Functions: reset-user-password, toggle-user-status",
+      "Campos email e is_active en tabla profiles con sincronización automática",
+    ],
+  },
+  {
     version: "3.31.0",
     date: "2026-03-11",
     type: "minor",

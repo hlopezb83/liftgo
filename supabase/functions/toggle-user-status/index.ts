@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
+import { isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -23,9 +23,7 @@ Deno.serve(async (req) => {
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const {
-      data: { user: caller },
-    } = await callerClient.auth.getUser();
+    const { data: { user: caller } } = await callerClient.auth.getUser();
     if (!caller) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -48,72 +46,60 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { email, full_name, role, password } = body;
+    const { user_id, is_active } = body;
 
-    if (!isEmail(email)) {
+    if (!isUUID(user_id)) {
       return new Response(
-        JSON.stringify({ error: "A valid email is required (max 255 chars)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (!isNonEmptyString(full_name, 200)) {
-      return new Response(
-        JSON.stringify({ error: "full_name is required (max 200 chars)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (!isValidRole(role)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid role. Must be admin, administrativo, dispatcher or mechanic" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (password !== undefined && (typeof password !== "string" || password.length < 8)) {
-      return new Response(
-        JSON.stringify({ error: "Password must be at least 8 characters" }),
+        JSON.stringify({ error: "user_id must be a valid UUID" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const finalPassword = password || (crypto.randomUUID() + "Aa1!");
-    const { data: newUser, error: createErr } =
-      await adminClient.auth.admin.createUser({
-        email,
-        password: finalPassword,
-        email_confirm: true,
-        user_metadata: { full_name },
-      });
+    if (user_id === caller.id) {
+      return new Response(
+        JSON.stringify({ error: "No puedes desactivar tu propia cuenta" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    if (createErr) {
-      return new Response(JSON.stringify({ error: createErr.message }), {
+    if (typeof is_active !== "boolean") {
+      return new Response(
+        JSON.stringify({ error: "is_active must be a boolean" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Ban or unban the user in auth
+    const { error: authErr } = await adminClient.auth.admin.updateUserById(user_id, {
+      ban_duration: is_active ? "none" : "876600h", // ~100 years ban
+    });
+
+    if (authErr) {
+      return new Response(JSON.stringify({ error: authErr.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = newUser.user.id;
+    // Update profiles table
+    const { error: profileErr } = await adminClient
+      .from("profiles")
+      .update({ is_active })
+      .eq("user_id", user_id);
 
-    if (role !== "dispatcher") {
-      await adminClient
-        .from("user_roles")
-        .update({ role })
-        .eq("user_id", userId);
+    if (profileErr) {
+      return new Response(JSON.stringify({ error: profileErr.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    await adminClient
-      .from("profiles")
-      .update({ full_name, email })
-      .eq("user_id", userId);
-
     return new Response(
-      JSON.stringify({ success: true, user_id: userId, email, password: finalPassword }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, is_active }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (_err) {
-    console.error("invite-user error:", _err);
+    console.error("toggle-user-status error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
