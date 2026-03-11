@@ -50,6 +50,7 @@ export default function DeliveriesPage() {
   const { data: deliveries, isLoading } = useDeliveries();
   const createDelivery = useCreateDelivery();
   const updateDelivery = useUpdateDelivery();
+  const deleteDelivery = useDeleteDelivery();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
 
