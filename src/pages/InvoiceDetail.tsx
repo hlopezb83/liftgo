@@ -167,6 +167,12 @@ export default function InvoiceDetail() {
                   </>
                 )}
                 <DropdownMenuItem onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" /> Imprimir</DropdownMenuItem>
+                <RoleGuard allowedRoles={["admin", "administrativo"]}>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                  </DropdownMenuItem>
+                </RoleGuard>
               </DropdownMenuContent>
             </DropdownMenu>
             {id && <InvoicePDFButton invoiceId={id} />}
