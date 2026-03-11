@@ -38,10 +38,12 @@ export default function InvoiceDetail() {
   const navigate = useNavigate();
   const { data: invoice, isLoading, refetch } = useInvoice(id);
   const updateInvoice = useUpdateInvoice();
+  const deleteInvoice = useDeleteInvoice();
   const updateBooking = useUpdateBooking();
   const [stampLoading, setStampLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [paidDate, setPaidDate] = useState<Date>(new Date());
   const [paidPopoverOpen, setPaidPopoverOpen] = useState(false);
   const { data: payments } = usePayments(id);
