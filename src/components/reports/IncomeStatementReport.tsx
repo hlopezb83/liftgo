@@ -692,29 +692,57 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {statementRows.map((row) => (
-                  <TableRow
-                    key={row.label}
-                    className={row.isSubtotal ? "bg-muted/40 border-t border-border" : ""}
-                  >
-                    <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
-                      {row.label}
-                    </TableCell>
-                    {row.values.map((val, i) => (
-                      <TableCell
-                        key={i}
-                        className={`text-right font-mono ${row.isSubtotal ? "font-semibold" : ""} ${cellColor(row, val)}`}
+                {statementRows.map((row) => {
+                  const isDepRow = row.label === "(-) Depreciación (Equipos Rentados)";
+                  return (
+                    <>
+                      <TableRow
+                        key={row.label}
+                        className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""} ${isDepRow ? "cursor-pointer hover:bg-muted/30" : ""}`}
+                        onClick={isDepRow ? () => setShowDepBreakdown(!showDepBreakdown) : undefined}
                       >
-                        {formatCell(row, val)}
-                      </TableCell>
-                    ))}
-                    <TableCell
-                      className={`text-right font-mono font-bold ${cellColor(row, row.total)}`}
-                    >
-                      {formatCell(row, row.total)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
+                          <span className="flex items-center gap-1">
+                            {isDepRow && (
+                              showDepBreakdown
+                                ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                                : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                            )}
+                            {row.label}
+                          </span>
+                        </TableCell>
+                        {row.values.map((val, i) => (
+                          <TableCell
+                            key={i}
+                            className={`text-right font-mono ${row.isSubtotal ? "font-semibold" : ""} ${cellColor(row, val)}`}
+                          >
+                            {formatCell(row, val)}
+                          </TableCell>
+                        ))}
+                        <TableCell
+                          className={`text-right font-mono font-bold ${cellColor(row, row.total)}`}
+                        >
+                          {formatCell(row, row.total)}
+                        </TableCell>
+                      </TableRow>
+                      {isDepRow && showDepBreakdown && depreciationBreakdownRows.map((bRow) => (
+                        <TableRow key={bRow.label} className="bg-muted/10">
+                          <TableCell className="sticky left-0 bg-muted/10 z-10 text-muted-foreground text-xs">
+                            {bRow.label}
+                          </TableCell>
+                          {bRow.values.map((val, i) => (
+                            <TableCell key={i} className="text-right font-mono text-xs text-muted-foreground">
+                              {val > 0 ? formatCurrency(val) : "—"}
+                            </TableCell>
+                          ))}
+                          <TableCell className="text-right font-mono text-xs font-semibold text-muted-foreground">
+                            {formatCurrency(bRow.total)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
