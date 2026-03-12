@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.33.1",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Favicon y meta tags de LiftGo",
+    description: "Se agregó el favicon con el ícono LG y se actualizaron los meta tags de título y descripción del sitio.",
+    changes: [
+      "Favicon personalizado con las iniciales LG en naranja",
+      "Título del sitio actualizado a 'LiftGo — Gestión de Montacargas'",
+      "Meta descripción y Open Graph tags actualizados",
+    ],
+  },
+  {
     version: "3.33.0",
     date: "2026-03-12",
     type: "minor",
