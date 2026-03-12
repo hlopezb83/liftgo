@@ -17,7 +17,7 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, actions }: D
   return (
     <div className="flex items-center justify-between flex-wrap gap-2">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => window.history.length > 1 ? navigate(-1) : navigate(backTo)}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(backTo)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
