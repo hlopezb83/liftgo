@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.34.0",
+    date: "2026-03-12",
+    type: "minor",
+    title: "Persistencia de filtros al regresar desde detalle",
+    description: "Los filtros de búsqueda y estado en las listas se preservan al navegar a una página de detalle y regresar.",
+    changes: [
+      "Filtros de lista se guardan en sessionStorage al cambiar",
+      "Botón atrás restaura filtros previos automáticamente",
+    ],
+  },
+  {
     version: "3.33.3",
     date: "2026-03-12",
     type: "patch",

@@ -1,5 +1,5 @@
-import { useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useMemo, useCallback, useEffect } from "react";
+import { useSearchParams, useLocation } from "react-router-dom";
 
 interface UseListFiltersOptions<T> {
   searchFields: (keyof T)[];
@@ -13,6 +13,18 @@ export function useListFilters<T extends Record<string, any>>(
   options: UseListFiltersOptions<T>
 ) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+
+  // Persist current search params to sessionStorage keyed by pathname
+  useEffect(() => {
+    const key = `list-filters:${location.pathname}`;
+    const qs = searchParams.toString();
+    if (qs) {
+      sessionStorage.setItem(key, qs);
+    } else {
+      sessionStorage.removeItem(key);
+    }
+  }, [searchParams, location.pathname]);
   const { searchParam = "q", statusParam = "status" } = options;
 
   const search = searchParams.get(searchParam) || "";
