@@ -128,10 +128,10 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     };
 
     invoices
-      .filter((inv) => inv.status === "paid" && inv.paid_at)
-      .filter((inv) => isWithinInterval(parseISO(inv.paid_at!), { start: startDate, end: endDate }))
+      .filter((inv) => inv.status !== "draft" && inv.status !== "cancelled")
+      .filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }))
       .forEach((inv) => {
-        const key = ensureMonth(parseISO(inv.paid_at!));
+        const key = ensureMonth(parseISO(inv.issued_at));
         const subtotal = Number(inv.subtotal);
         months[key].revenue += subtotal;
         if (inv.booking_id) {
