@@ -336,20 +336,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ], [filteredData, totals]);
 
-  const chartData = filteredData.map((r) => ({
-    month: r.month,
-    "Ing. Rentas": r.revenueRental,
-    "Ing. Ventas": r.revenueSales,
-    Mantenimiento: r.maintenanceCost,
-    Daños: r.damageCost,
-    "Costo de Venta": r.expenses.costo_venta,
-    Renta: r.expenses.renta,
-    Nómina: r.expenses.nomina,
-    Software: r.expenses.software,
-    "Depr. Contable": r.expenses.depreciacion,
-    "Depr. Equipos": r.depreciation,
-    Otros: r.expenses.otro,
-  }));
 
 
   const csvRows = statementRows.map((row) => {
