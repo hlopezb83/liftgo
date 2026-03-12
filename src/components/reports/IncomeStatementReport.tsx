@@ -63,6 +63,8 @@ interface StatementRow {
 interface YearTotals {
   year: string;
   revenue: number;
+  revenueRental: number;
+  revenueSales: number;
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
