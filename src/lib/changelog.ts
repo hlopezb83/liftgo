@@ -9,7 +9,7 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
-    version: "3.33.1",
+    version: "3.33.2",
     date: "2026-03-12",
     type: "patch",
     title: "Favicon y meta tags de LiftGo",
