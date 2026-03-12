@@ -181,8 +181,14 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         }
 
         let depreciation = 0;
+        const depreciationByForklift: Record<string, number> = {};
         for (const fid of rentedForkliftIds) {
-          depreciation += forkliftDepreciationMap.get(fid) ?? 0;
+          const amt = forkliftDepreciationMap.get(fid) ?? 0;
+          if (amt > 0) {
+            depreciation += amt;
+            const name = forkliftNameMap.get(fid) ?? fid;
+            depreciationByForklift[name] = amt;
+          }
         }
 
         const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
