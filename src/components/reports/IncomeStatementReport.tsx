@@ -344,10 +344,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     Otros: r.expenses.otro,
   }));
 
-  const netProfitChartData = filteredData.map((r) => ({
-    month: r.month,
-    "Utilidad Neta": r.netProfit,
-  }));
 
   const csvRows = statementRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
