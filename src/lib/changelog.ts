@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.36.0",
+    date: "2026-03-12",
+    type: "minor",
+    title: "Desglose de depreciación por equipo",
+    description: "El Estado de Resultados ahora permite expandir la fila de depreciación para ver el detalle por montacargas.",
+    changes: [
+      "Fila de depreciación expandible con chevron para mostrar/ocultar desglose",
+      "Detalle por equipo mostrando monto mensual y total",
+      "Solo se muestran equipos con rentas activas en cada mes",
+    ],
+  },
+  {
     version: "3.35.0",
     date: "2026-03-12",
     type: "minor",
