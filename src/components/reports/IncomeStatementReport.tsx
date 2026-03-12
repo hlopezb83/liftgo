@@ -37,6 +37,8 @@ interface MonthData {
   monthKey: string;
   month: string;
   revenue: number;
+  revenueRental: number;
+  revenueSales: number;
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
