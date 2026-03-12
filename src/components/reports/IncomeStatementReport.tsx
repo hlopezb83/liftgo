@@ -565,59 +565,29 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         </div>
       )}
 
-      {/* Stacked Bar Chart + Controls */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <CardTitle className="text-base">Estado de Resultados</CardTitle>
-          <div className="flex items-center gap-2 flex-wrap">
-            {availableYears.length > 1 && (
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[140px] h-8 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {availableYears.map((y) => (
-                    <SelectItem key={y} value={y}>{y}</SelectItem>
-                  ))}
-                  <SelectItem value="compare">Comparativo</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-            <Button variant="outline" size="sm" onClick={() => exportToCsv("estado-resultados.csv", csvRows)}>
-              <Download className="h-4 w-4 mr-1" />CSV
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={pdfLoading}>
-              <FileDown className="h-4 w-4 mr-1" />{pdfLoading ? "Generando..." : "PDF"}
-            </Button>
-          </div>
-        </CardHeader>
-        {!isComparison && (
-          <CardContent>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis />
-                  <Tooltip formatter={(val: number) => formatCurrency(val)} />
-                  <Legend />
-                  <Bar dataKey="Ing. Rentas" stackId="income" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Ing. Ventas" stackId="income" fill="hsl(142 71% 45%)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Mantenimiento" stackId="costs" fill="hsl(var(--chart-5))" />
-                  <Bar dataKey="Daños" stackId="costs" fill="hsl(var(--chart-4))" />
-                  <Bar dataKey="Costo de Venta" stackId="costs" fill="hsl(30 80% 55%)" />
-                  <Bar dataKey="Renta" stackId="costs" fill="hsl(var(--chart-1))" />
-                  <Bar dataKey="Nómina" stackId="costs" fill="hsl(var(--chart-3))" />
-                  <Bar dataKey="Software" stackId="costs" fill="hsl(200 70% 50%)" />
-                  <Bar dataKey="Depr. Contable" stackId="costs" fill="hsl(280 65% 60%)" />
-                  <Bar dataKey="Depr. Equipos" stackId="costs" fill="hsl(320 65% 50%)" />
-                  <Bar dataKey="Otros" stackId="costs" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
+      {/* Controls bar */}
+      <div className="flex items-center justify-end gap-2 flex-wrap">
+        {availableYears.length > 1 && (
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[140px] h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {availableYears.map((y) => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
+              ))}
+              <SelectItem value="compare">Comparativo</SelectItem>
+            </SelectContent>
+          </Select>
         )}
-      </Card>
+        <Button variant="outline" size="sm" onClick={() => exportToCsv("estado-resultados.csv", csvRows)}>
+          <Download className="h-4 w-4 mr-1" />CSV
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={pdfLoading}>
+          <FileDown className="h-4 w-4 mr-1" />{pdfLoading ? "Generando..." : "PDF"}
+        </Button>
+      </div>
 
 
       {/* Comparison Table (Year vs Year) */}

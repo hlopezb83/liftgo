@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.38.1",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Limpieza visual del Estado de Resultados",
+    description: "Se elimina la gráfica de barras y se reacomodan los controles de año, CSV y PDF en una barra independiente entre los KPIs y la tabla.",
+    changes: [
+      "Eliminación de la gráfica BarChart del Estado de Resultados",
+      "Barra de controles (año, CSV, PDF) reubicada entre KPIs y tabla",
+      "Limpieza de imports y código muerto de recharts",
+    ],
+  },
+  {
     version: "3.38.0",
     date: "2026-03-12",
     type: "minor",
