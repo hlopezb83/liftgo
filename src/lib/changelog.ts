@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.38.4",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Limpieza de código sin uso",
+    description: "Eliminación de componentes y hooks que ya no se utilizan en la aplicación.",
+    changes: [
+      "Eliminado EquipmentModelSelector (sin referencias)",
+      "Eliminado PostInspectionInvoiceDialog (deprecado desde v2.17.0)",
+      "Eliminado useDialogState hook (nunca adoptado)",
+    ],
+  },
+  {
     version: "3.38.3",
     date: "2026-03-12",
     type: "patch",
