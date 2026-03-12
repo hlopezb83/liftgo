@@ -266,7 +266,9 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       return { yearValues: vals, delta, deltaPct, ...opts };
     };
     return [
-      { label: "Ingresos", ...getValues((yt) => yt.revenue, { isSubtotal: true }) },
+      { label: "  Ingresos por Rentas", ...getValues((yt) => yt.revenueRental) },
+      { label: "  Ingresos por Ventas", ...getValues((yt) => yt.revenueSales) },
+      { label: "= Total Ingresos", ...getValues((yt) => yt.revenue, { isSubtotal: true }) },
       { label: "(-) Mantenimiento", ...getValues((yt) => yt.maintenanceCost, { isCost: true }) },
       { label: "(-) Daños", ...getValues((yt) => yt.damageCost, { isCost: true }) },
       ...DIRECT_COST_CATEGORIES.map((c) => ({
