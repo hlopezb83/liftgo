@@ -163,6 +163,7 @@ function useToggleStatus() {
 
 // ─── Page ────────────────────────────────────────────────
 export default function UserManagementPage() {
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
   const updateRole = useUpdateRole();
