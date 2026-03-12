@@ -561,7 +561,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                   <Bar dataKey="Costo de Venta" stackId="costs" fill="hsl(30 80% 55%)" />
                   <Bar dataKey="Renta" stackId="costs" fill="hsl(var(--chart-1))" />
                   <Bar dataKey="Nómina" stackId="costs" fill="hsl(var(--chart-3))" />
-                  <Bar dataKey="Software" stackId="costs" fill="hsl(142 71% 45%)" />
+                  <Bar dataKey="Software" stackId="costs" fill="hsl(200 70% 50%)" />
                   <Bar dataKey="Depr. Contable" stackId="costs" fill="hsl(280 65% 60%)" />
                   <Bar dataKey="Depr. Equipos" stackId="costs" fill="hsl(320 65% 50%)" />
                   <Bar dataKey="Otros" stackId="costs" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
