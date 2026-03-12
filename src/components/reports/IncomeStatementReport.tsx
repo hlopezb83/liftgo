@@ -28,6 +28,7 @@ interface Props {
   forklifts: Tables<"forklifts">[];
   startDate: Date;
   endDate: Date;
+  accountingBasis?: "accrual" | "cash";
 }
 
 const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "otro"];
