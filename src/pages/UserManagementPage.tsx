@@ -316,6 +316,7 @@ export default function UserManagementPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            </div>
           }
         />
 
