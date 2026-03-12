@@ -88,6 +88,13 @@ interface ComparisonRow {
 }
 
 export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forklifts, startDate, endDate }: Props) {
+  // Build maps for forklift lookup
+  const forkliftNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const fl of forklifts) map.set(fl.id, fl.name);
+    return map;
+  }, [forklifts]);
+
   // Build a map of forklift_id → monthly depreciation (acquisition_cost / 36)
   const forkliftDepreciationMap = useMemo(() => {
     const map = new Map<string, number>();
