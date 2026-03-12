@@ -290,7 +290,9 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
   // Build statement rows (vertical format) — now with Gross Margin
   const statementRows: StatementRow[] = useMemo(() => [
-    { label: "Ingresos", values: filteredData.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
+    { label: "  Ingresos por Rentas", values: filteredData.map((r) => r.revenueRental), total: totals.revenueRental },
+    { label: "  Ingresos por Ventas", values: filteredData.map((r) => r.revenueSales), total: totals.revenueSales },
+    { label: "= Total Ingresos", values: filteredData.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
     { label: "(-) Mantenimiento", values: filteredData.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },
     { label: "(-) Daños", values: filteredData.map((r) => r.damageCost), total: totals.damageCost, isCost: true },
     ...DIRECT_COST_CATEGORIES.map((c) => ({
