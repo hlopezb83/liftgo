@@ -3,6 +3,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
 import { useInvoices } from "@/hooks/useInvoices";
