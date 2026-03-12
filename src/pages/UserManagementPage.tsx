@@ -265,6 +265,10 @@ export default function UserManagementPage() {
           title="Gestión de Usuarios"
           subtitle="Ver y administrar roles de usuarios"
           action={
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate("/users/permissions")}>
+                <ShieldCheck className="mr-2 h-4 w-4" />Ver permisos
+              </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button><UserPlus className="mr-2 h-4 w-4" />Crear Usuario</Button>
