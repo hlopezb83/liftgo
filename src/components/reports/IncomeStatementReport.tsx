@@ -554,7 +554,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                   <YAxis />
                   <Tooltip formatter={(val: number) => formatCurrency(val)} />
                   <Legend />
-                  <Bar dataKey="Ingresos" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Ing. Rentas" stackId="income" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Ing. Ventas" stackId="income" fill="hsl(142 71% 45%)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Mantenimiento" stackId="costs" fill="hsl(var(--chart-5))" />
                   <Bar dataKey="Daños" stackId="costs" fill="hsl(var(--chart-4))" />
                   <Bar dataKey="Costo de Venta" stackId="costs" fill="hsl(30 80% 55%)" />
