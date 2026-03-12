@@ -88,7 +88,7 @@ interface ComparisonRow {
   isPercent?: boolean;
 }
 
-export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forklifts, startDate, endDate }: Props) {
+export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forklifts, startDate, endDate, accountingBasis = "accrual" }: Props) {
   // Build maps for forklift lookup
   const forkliftNameMap = useMemo(() => {
     const map = new Map<string, string>();
