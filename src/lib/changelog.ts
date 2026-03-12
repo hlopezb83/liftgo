@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.33.3",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Botón atrás navega a lista correcta",
+    description: "El botón de regreso en páginas de detalle ahora siempre navega a la lista correspondiente en lugar de usar el historial del navegador.",
+    changes: [
+      "Botón atrás usa ruta fija (backTo) en vez de navigate(-1)",
+      "Comportamiento consistente en todas las páginas de detalle",
+    ],
+  },
+  {
     version: "3.33.2",
     date: "2026-03-12",
     type: "patch",
