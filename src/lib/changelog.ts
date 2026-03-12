@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.34.2",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Corregir fechas de costo de venta",
+    description: "Se actualizaron las fechas de los registros de costo de venta para usar la fecha de factura correspondiente en lugar de la fecha de creación del registro.",
+    changes: [
+      "Corregida fecha de costo de venta para 5 equipos vendidos",
+      "Las fechas ahora coinciden con la fecha de emisión de la factura de venta",
+    ],
+  },
+  {
     version: "3.34.1",
     date: "2026-03-12",
     type: "patch",
