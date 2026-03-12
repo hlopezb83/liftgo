@@ -11,7 +11,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
-import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown, ChevronDown, ChevronRight } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { fetchCompanyDataAndLogo } from "@/lib/pdfHelpers";
 import { toast } from "sonner";
@@ -42,6 +42,7 @@ interface MonthData {
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
+  depreciationByForklift: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
@@ -87,6 +88,13 @@ interface ComparisonRow {
 }
 
 export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forklifts, startDate, endDate }: Props) {
+  // Build maps for forklift lookup
+  const forkliftNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const fl of forklifts) map.set(fl.id, fl.name);
+    return map;
+  }, [forklifts]);
+
   // Build a map of forklift_id → monthly depreciation (acquisition_cost / 36)
   const forkliftDepreciationMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -173,8 +181,14 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         }
 
         let depreciation = 0;
+        const depreciationByForklift: Record<string, number> = {};
         for (const fid of rentedForkliftIds) {
-          depreciation += forkliftDepreciationMap.get(fid) ?? 0;
+          const amt = forkliftDepreciationMap.get(fid) ?? 0;
+          if (amt > 0) {
+            depreciation += amt;
+            const name = forkliftNameMap.get(fid) ?? fid;
+            depreciationByForklift[name] = amt;
+          }
         }
 
         const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + m.expenses[c], 0);
@@ -184,9 +198,9 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         const totalExpenses = m.maintenanceCost + m.damageCost + costoVenta + opexTotal;
         const netProfit = m.revenue - totalExpenses - depreciation;
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
-        return { ...m, monthKey: key, revenueRental: m.revenueRental, revenueSales: m.revenueSales, depreciation, grossProfit, grossMargin, totalExpenses, netProfit, margin };
+        return { ...m, monthKey: key, revenueRental: m.revenueRental, revenueSales: m.revenueSales, depreciation, depreciationByForklift, grossProfit, grossMargin, totalExpenses, netProfit, margin };
       });
-  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, startDate, endDate]);
+  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, forkliftNameMap, startDate, endDate]);
 
   // Year filter
   const availableYears = useMemo(() => {
@@ -350,6 +364,23 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: TrendingUp, color: totals.netProfit >= 0 ? "text-chart-2" : "text-destructive" },
     { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: totals.margin >= 0 ? "text-chart-2" : "text-destructive" },
   ];
+
+  const [showDepBreakdown, setShowDepBreakdown] = useState(false);
+
+  // Compute depreciation breakdown rows by forklift
+  const depreciationBreakdownRows = useMemo((): StatementRow[] => {
+    // Gather all forklift names that appear in any month
+    const allNames = new Set<string>();
+    filteredData.forEach((r) => {
+      Object.keys(r.depreciationByForklift).forEach((n) => allNames.add(n));
+    });
+    return [...allNames].sort().map((name): StatementRow => ({
+      label: `      ${name}`,
+      values: filteredData.map((r) => r.depreciationByForklift[name] ?? 0),
+      total: filteredData.reduce((s, r) => s + (r.depreciationByForklift[name] ?? 0), 0),
+      isCost: true,
+    }));
+  }, [filteredData]);
 
   const formatCell = (row: StatementRow | ComparisonRow, value: number) => {
     if (row.isPercent) return `${value.toFixed(1)}%`;
@@ -661,29 +692,57 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {statementRows.map((row) => (
-                  <TableRow
-                    key={row.label}
-                    className={row.isSubtotal ? "bg-muted/40 border-t border-border" : ""}
-                  >
-                    <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
-                      {row.label}
-                    </TableCell>
-                    {row.values.map((val, i) => (
-                      <TableCell
-                        key={i}
-                        className={`text-right font-mono ${row.isSubtotal ? "font-semibold" : ""} ${cellColor(row, val)}`}
+                {statementRows.map((row) => {
+                  const isDepRow = row.label === "(-) Depreciación (Equipos Rentados)";
+                  return (
+                    <>
+                      <TableRow
+                        key={row.label}
+                        className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""} ${isDepRow ? "cursor-pointer hover:bg-muted/30" : ""}`}
+                        onClick={isDepRow ? () => setShowDepBreakdown(!showDepBreakdown) : undefined}
                       >
-                        {formatCell(row, val)}
-                      </TableCell>
-                    ))}
-                    <TableCell
-                      className={`text-right font-mono font-bold ${cellColor(row, row.total)}`}
-                    >
-                      {formatCell(row, row.total)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
+                          <span className="flex items-center gap-1">
+                            {isDepRow && (
+                              showDepBreakdown
+                                ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                                : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                            )}
+                            {row.label}
+                          </span>
+                        </TableCell>
+                        {row.values.map((val, i) => (
+                          <TableCell
+                            key={i}
+                            className={`text-right font-mono ${row.isSubtotal ? "font-semibold" : ""} ${cellColor(row, val)}`}
+                          >
+                            {formatCell(row, val)}
+                          </TableCell>
+                        ))}
+                        <TableCell
+                          className={`text-right font-mono font-bold ${cellColor(row, row.total)}`}
+                        >
+                          {formatCell(row, row.total)}
+                        </TableCell>
+                      </TableRow>
+                      {isDepRow && showDepBreakdown && depreciationBreakdownRows.map((bRow) => (
+                        <TableRow key={bRow.label} className="bg-muted/10">
+                          <TableCell className="sticky left-0 bg-muted/10 z-10 text-muted-foreground text-xs">
+                            {bRow.label}
+                          </TableCell>
+                          {bRow.values.map((val, i) => (
+                            <TableCell key={i} className="text-right font-mono text-xs text-muted-foreground">
+                              {val > 0 ? formatCurrency(val) : "—"}
+                            </TableCell>
+                          ))}
+                          <TableCell className="text-right font-mono text-xs font-semibold text-muted-foreground">
+                            {formatCurrency(bRow.total)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
