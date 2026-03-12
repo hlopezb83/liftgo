@@ -53,6 +53,15 @@ export default function IncomeStatementPage() {
 
         <Card>
           <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Label htmlFor="accounting-basis" className={accountingBasis === "accrual" ? "font-semibold text-foreground" : "text-muted-foreground"}>Devengado</Label>
+              <Switch
+                id="accounting-basis"
+                checked={accountingBasis === "cash"}
+                onCheckedChange={(checked) => setAccountingBasis(checked ? "cash" : "accrual")}
+              />
+              <Label htmlFor="accounting-basis-cash" className={accountingBasis === "cash" ? "font-semibold text-foreground" : "text-muted-foreground"}>Flujo de efectivo</Label>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Desde</Label>
