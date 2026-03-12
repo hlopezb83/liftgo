@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.37.0",
+    date: "2026-03-12",
+    type: "minor",
+    title: "Ingresos en base devengada",
+    description: "El Estado de Resultados ahora registra ingresos por fecha de emisión (issued_at) en lugar de fecha de cobro, incluyendo facturas emitidas, pagadas y vencidas.",
+    changes: [
+      "Cambio de base contable de flujo de efectivo a devengado",
+      "Inclusión de facturas con status sent, paid y overdue",
+      "Exclusión solo de borradores y canceladas",
+    ],
+  },
+  {
     version: "3.36.1",
     date: "2026-03-12",
     type: "patch",
