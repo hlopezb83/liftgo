@@ -12,6 +12,17 @@ export const changelog: ChangelogEntry[] = [
     version: "3.33.2",
     date: "2026-03-12",
     type: "patch",
+    title: "Imagen Open Graph personalizada",
+    description: "Se generó una imagen OG profesional con la marca LiftGo para redes sociales.",
+    changes: [
+      "Imagen OG 1200×630 con logo, montacargas y subtítulo",
+      "Meta tags de OG e imagen Twitter actualizados",
+    ],
+  },
+  {
+    version: "3.33.2",
+    date: "2026-03-12",
+    type: "patch",
     title: "Favicon y meta tags de LiftGo",
     description: "Se agregó el favicon con el ícono LG y se actualizaron los meta tags de título y descripción del sitio.",
     changes: [
