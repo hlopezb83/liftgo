@@ -545,6 +545,19 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
   return (
     <>
+      {/* Alert: rented forklifts without acquisition cost */}
+      {rentedWithoutCost.length > 0 && (
+        <Alert variant="destructive" className="border-amber-500/50 text-amber-700 dark:text-amber-400 [&>svg]:text-amber-600">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Equipos sin costo de adquisición</AlertTitle>
+          <AlertDescription>
+            Los siguientes equipos rentados no tienen costo de adquisición registrado y se omiten del cálculo de depreciación:{" "}
+            <span className="font-semibold">{rentedWithoutCost.map((fl) => fl.name).join(", ")}</span>.
+            Actualiza el costo en la ficha del equipo para incluirlos.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* KPI Cards */}
       {!isComparison && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
