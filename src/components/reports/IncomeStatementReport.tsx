@@ -12,7 +12,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
-import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown, ChevronDown, ChevronRight } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { fetchCompanyDataAndLogo } from "@/lib/pdfHelpers";
 import { toast } from "sonner";
