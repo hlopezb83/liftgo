@@ -57,11 +57,29 @@ export function useUpdateForklift() {
     mutationFn: async ({ id, ...updates }: TablesUpdate<"forklifts"> & { id: string }) => {
       const { data, error } = await supabase.from("forklifts").update(updates).eq("id", id).select().single();
       if (error) throw error;
+
+      // Sync costo_venta expense when acquisition_cost changes on a sold forklift
+      if (updates.acquisition_cost !== undefined && data.status === "sold") {
+        const { data: expenses } = await supabase
+          .from("operating_expenses")
+          .select("id")
+          .eq("category", "costo_venta" as any)
+          .ilike("description", `%${data.name}%`);
+
+        if (expenses && expenses.length > 0) {
+          await supabase
+            .from("operating_expenses")
+            .update({ amount: Number(updates.acquisition_cost) })
+            .eq("id", expenses[0].id);
+        }
+      }
+
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });
       queryClient.invalidateQueries({ queryKey: ["forklifts", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
     },
     onError: (err: Error) => {
       toast.error("Error al actualizar montacargas", { description: err.message });

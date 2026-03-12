@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.38.3",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Sincronización automática de costo de venta",
+    description: "Al modificar el costo de adquisición de un equipo vendido, se actualiza automáticamente el gasto de costo de venta correspondiente en gastos operativos.",
+    changes: [
+      "Sincronización automática entre costo de adquisición y gasto de costo de venta",
+      "Invalidación de caché de gastos operativos al actualizar equipo",
+    ],
+  },
+  {
     version: "3.38.2",
     date: "2026-03-12",
     type: "patch",
