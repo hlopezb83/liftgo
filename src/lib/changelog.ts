@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.37.1",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Simplificación de Estado de Resultados",
+    description: "Se remueve la gráfica de Utilidad Neta Mensual del reporte para mantener el enfoque en la tabla de datos y reducir la complejidad visual.",
+    changes: [
+      "Eliminación de la gráfica de área de Utilidad Neta Mensual",
+      "Limpieza de imports y variables no utilizadas",
+    ],
+  },
+  {
     version: "3.37.0",
     date: "2026-03-12",
     type: "minor",

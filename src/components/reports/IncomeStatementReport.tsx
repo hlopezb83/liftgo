@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
-  LineChart, Line, ReferenceLine, Area, AreaChart,
 } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -345,10 +344,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     Otros: r.expenses.otro,
   }));
 
-  const netProfitChartData = filteredData.map((r) => ({
-    month: r.month,
-    "Utilidad Neta": r.netProfit,
-  }));
 
   const csvRows = statementRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
@@ -631,39 +626,6 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         )}
       </Card>
 
-      {/* Net Profit Line Chart */}
-      {!isComparison && filteredData.length > 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Utilidad Neta Mensual</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={netProfitChartData}>
-                  <defs>
-                    <linearGradient id="netProfitGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis />
-                  <Tooltip formatter={(val: number) => formatCurrency(val)} />
-                  <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
-                  <Area
-                    type="monotone"
-                    dataKey="Utilidad Neta"
-                    stroke="hsl(var(--chart-2))"
-                    fill="url(#netProfitGradient)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Comparison Table (Year vs Year) */}
       {isComparison && comparisonRows.length > 0 && (
