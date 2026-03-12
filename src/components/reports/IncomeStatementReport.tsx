@@ -317,7 +317,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
   const chartData = filteredData.map((r) => ({
     month: r.month,
-    Ingresos: r.revenue,
+    "Ing. Rentas": r.revenueRental,
+    "Ing. Ventas": r.revenueSales,
     Mantenimiento: r.maintenanceCost,
     Daños: r.damageCost,
     "Costo de Venta": r.expenses.costo_venta,
