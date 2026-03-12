@@ -198,7 +198,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         const totalExpenses = m.maintenanceCost + m.damageCost + costoVenta + opexTotal;
         const netProfit = m.revenue - totalExpenses - depreciation;
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
-        return { ...m, monthKey: key, revenueRental: m.revenueRental, revenueSales: m.revenueSales, depreciation, grossProfit, grossMargin, totalExpenses, netProfit, margin };
+        return { ...m, monthKey: key, revenueRental: m.revenueRental, revenueSales: m.revenueSales, depreciation, depreciationByForklift, grossProfit, grossMargin, totalExpenses, netProfit, margin };
       });
   }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, startDate, endDate]);
 
