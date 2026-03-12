@@ -200,7 +200,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
         return { ...m, monthKey: key, revenueRental: m.revenueRental, revenueSales: m.revenueSales, depreciation, depreciationByForklift, grossProfit, grossMargin, totalExpenses, netProfit, margin };
       });
-  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, startDate, endDate]);
+  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, forkliftNameMap, startDate, endDate]);
 
   // Year filter
   const availableYears = useMemo(() => {
