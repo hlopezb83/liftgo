@@ -15,10 +15,11 @@ import { expenseFormSchema, type ExpenseFormData } from "@/lib/formSchemas";
 import { useCreateExpense, EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { SupplierSelector } from "@/components/SupplierSelector";
 
-const CATEGORY_DISPLAY: Record<string, string> = {
-  ...EXPENSE_CATEGORY_LABELS,
-  costo_venta: "Costo de Venta (Directo)",
-};
+const EXCLUDED_CATEGORIES = ["software", "depreciacion"];
+
+const CATEGORY_DISPLAY: Record<string, string> = Object.fromEntries(
+  Object.entries(EXPENSE_CATEGORY_LABELS).filter(([key]) => !EXCLUDED_CATEGORIES.includes(key))
+);
 
 const CATEGORIES = Object.entries(CATEGORY_DISPLAY) as [ExpenseCategory, string][];
 
