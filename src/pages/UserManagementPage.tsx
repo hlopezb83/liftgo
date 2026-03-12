@@ -23,7 +23,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { CredentialsDialog } from "@/components/CredentialsDialog";
-import { RolePermissionsMatrix } from "@/components/RolePermissionsMatrix";
+import { useNavigate } from "react-router-dom";
 import { TablePagination } from "@/components/TablePagination";
 import type { AppRole } from "@/hooks/useUserRole";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -163,6 +163,7 @@ function useToggleStatus() {
 
 // ─── Page ────────────────────────────────────────────────
 export default function UserManagementPage() {
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
   const updateRole = useUpdateRole();
@@ -264,6 +265,10 @@ export default function UserManagementPage() {
           title="Gestión de Usuarios"
           subtitle="Ver y administrar roles de usuarios"
           action={
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate("/users/permissions")}>
+                <ShieldCheck className="mr-2 h-4 w-4" />Ver permisos
+              </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button><UserPlus className="mr-2 h-4 w-4" />Crear Usuario</Button>
@@ -311,6 +316,7 @@ export default function UserManagementPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            </div>
           }
         />
 
@@ -328,7 +334,7 @@ export default function UserManagementPage() {
           </Select>
         </div>
 
-        <RolePermissionsMatrix />
+        
 
         {isLoading ? (
           <TableSkeleton columnCount={6} />
