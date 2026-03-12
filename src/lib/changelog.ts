@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.38.2",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Filtrado de categorías en gastos",
+    description: "Se eliminan las categorías 'Software' y 'Depreciación' del dropdown al registrar un nuevo gasto operativo para simplificar el catálogo visible.",
+    changes: [
+      "Categorías 'software' y 'depreciacion' excluidas del selector de categorías",
+      "Categorías visibles: Renta, Nómina, Costo de Venta, Otro",
+    ],
+  },
+  {
     version: "3.38.1",
     date: "2026-03-12",
     type: "patch",
