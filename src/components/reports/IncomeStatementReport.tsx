@@ -42,6 +42,7 @@ interface MonthData {
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
+  depreciationByForklift: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
