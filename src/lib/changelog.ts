@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.36.1",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Alerta de equipos sin costo de adquisición",
+    description: "Se muestra una alerta en el Estado de Resultados cuando existen equipos rentados sin costo de adquisición registrado, evitando omisiones en el cálculo de depreciación.",
+    changes: [
+      "Alerta visible con los nombres de equipos afectados",
+      "Detección automática de montacargas rentados sin costo registrado",
+    ],
+  },
+  {
     version: "3.36.0",
     date: "2026-03-12",
     type: "minor",
