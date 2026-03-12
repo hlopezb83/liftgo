@@ -3,6 +3,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -31,6 +32,7 @@ export default function IncomeStatementPage() {
 
   const [startMonth, setStartMonth] = useState(() => format(subMonths(new Date(), 3), "yyyy-MM"));
   const [endMonth, setEndMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const [accountingBasis, setAccountingBasis] = useState<"accrual" | "cash">("accrual");
 
   const [sy, sm] = startMonth.split("-").map(Number);
   const startDate = startOfMonth(new Date(sy, sm - 1, 1));
@@ -51,6 +53,15 @@ export default function IncomeStatementPage() {
 
         <Card>
           <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Label htmlFor="accounting-basis" className={accountingBasis === "accrual" ? "font-semibold text-foreground" : "text-muted-foreground"}>Devengado</Label>
+              <Switch
+                id="accounting-basis"
+                checked={accountingBasis === "cash"}
+                onCheckedChange={(checked) => setAccountingBasis(checked ? "cash" : "accrual")}
+              />
+              <Label htmlFor="accounting-basis-cash" className={accountingBasis === "cash" ? "font-semibold text-foreground" : "text-muted-foreground"}>Flujo de efectivo</Label>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Desde</Label>
@@ -91,6 +102,7 @@ export default function IncomeStatementPage() {
           forklifts={forklifts || []}
           startDate={startDate}
           endDate={endDate}
+          accountingBasis={accountingBasis}
         />
       </div>
     </PageTransition>
