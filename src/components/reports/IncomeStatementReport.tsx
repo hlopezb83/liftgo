@@ -127,11 +127,20 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       return key;
     };
 
+    const isCash = accountingBasis === "cash";
+
     invoices
-      .filter((inv) => inv.status !== "draft" && inv.status !== "cancelled")
-      .filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }))
+      .filter((inv) => isCash
+        ? inv.status === "paid" && !!inv.paid_at
+        : inv.status !== "draft" && inv.status !== "cancelled"
+      )
+      .filter((inv) => {
+        const dateStr = isCash ? inv.paid_at! : inv.issued_at;
+        return isWithinInterval(parseISO(dateStr), { start: startDate, end: endDate });
+      })
       .forEach((inv) => {
-        const key = ensureMonth(parseISO(inv.issued_at));
+        const dateStr = isCash ? inv.paid_at! : inv.issued_at;
+        const key = ensureMonth(parseISO(dateStr));
         const subtotal = Number(inv.subtotal);
         months[key].revenue += subtotal;
         if (inv.booking_id) {

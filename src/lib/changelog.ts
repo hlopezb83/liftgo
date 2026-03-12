@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.38.0",
+    date: "2026-03-12",
+    type: "minor",
+    title: "Toggle base contable en Estado de Resultados",
+    description: "Se agrega un switch para alternar entre base devengada (por fecha de emisión) y flujo de efectivo (por fecha de cobro) en el reporte de Estado de Resultados.",
+    changes: [
+      "Toggle Devengado / Flujo de efectivo en la página de Estado de Resultados",
+      "Filtrado condicional de facturas según la base contable seleccionada",
+    ],
+  },
+  {
     version: "3.37.1",
     date: "2026-03-12",
     type: "patch",

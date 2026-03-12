@@ -102,6 +102,7 @@ export default function IncomeStatementPage() {
           forklifts={forklifts || []}
           startDate={startDate}
           endDate={endDate}
+          accountingBasis={accountingBasis}
         />
       </div>
     </PageTransition>
