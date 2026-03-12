@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.33.0",
+    date: "2026-03-12",
+    type: "minor",
+    title: "Página dedicada de Permisos por Rol",
+    description: "Nueva página /users/permissions con la matriz completa de roles vs módulos, accesible desde Gestión de Usuarios.",
+    changes: [
+      "Nueva página de Permisos por Rol con tabla de acceso por módulo",
+      "Botón 'Ver permisos' en la página de Usuarios",
+      "Eliminado el panel colapsable en favor de la página dedicada",
+    ],
+  },
+  {
     version: "3.32.1",
     date: "2026-03-11",
     type: "patch",

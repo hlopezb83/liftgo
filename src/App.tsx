@@ -115,6 +115,7 @@ const routes: RouteConfig[] = [
   { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin", "administrativo", "auditor"] },
   { path: "/settings/company", component: CompanySettingsPage, roles: ["admin", "auditor"] },
   { path: "/users", component: UserManagementPage, roles: ["admin", "auditor"] },
+  { path: "/users/permissions", component: RolePermissionsPage, roles: ["admin", "auditor"] },
   { path: "/changelog", component: ChangelogPage },
   { path: "/help", component: HelpPage },
 ];
