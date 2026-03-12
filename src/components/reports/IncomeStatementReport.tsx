@@ -98,7 +98,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
   }, [forklifts]);
 
   const data = useMemo(() => {
-    const months: Record<string, { month: string; revenue: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
+    const months: Record<string, { month: string; revenue: number; revenueRental: number; revenueSales: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
 
     const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 });
 
@@ -108,6 +108,8 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         months[key] = {
           month: format(startOfMonth(date), "MMM yyyy", { locale: es }),
           revenue: 0,
+          revenueRental: 0,
+          revenueSales: 0,
           maintenanceCost: 0,
           damageCost: 0,
           expenses: emptyExpenses(),
@@ -121,7 +123,13 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       .filter((inv) => isWithinInterval(parseISO(inv.paid_at!), { start: startDate, end: endDate }))
       .forEach((inv) => {
         const key = ensureMonth(parseISO(inv.paid_at!));
-        months[key].revenue += Number(inv.subtotal);
+        const subtotal = Number(inv.subtotal);
+        months[key].revenue += subtotal;
+        if (inv.booking_id) {
+          months[key].revenueRental += subtotal;
+        } else {
+          months[key].revenueSales += subtotal;
+        }
       });
 
     maintenanceLogs
