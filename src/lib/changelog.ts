@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.35.0",
+    date: "2026-03-12",
+    type: "minor",
+    title: "Desglose de ingresos: Rentas vs Ventas",
+    description: "El Estado de Resultados ahora distingue entre ingresos por rentas y ventas de equipo.",
+    changes: [
+      "Ingresos separados en 'Ingresos por Rentas' e 'Ingresos por Ventas' con subtotal",
+      "Gráfico de barras actualizado con barras apiladas para ambos tipos de ingreso",
+      "Comparativo YoY incluye el desglose de ingresos",
+    ],
+  },
+  {
     version: "3.34.2",
     date: "2026-03-12",
     type: "patch",
