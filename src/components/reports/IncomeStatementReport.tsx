@@ -368,6 +368,20 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
 
   const [showDepBreakdown, setShowDepBreakdown] = useState(false);
 
+  // Detect rented forklifts missing acquisition cost
+  const rentedWithoutCost = useMemo(() => {
+    const activeBookings = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");
+    const rentedIds = new Set<string>();
+    activeBookings.forEach((b) => {
+      if (b.start_date <= format(endDate, "yyyy-MM-dd") && b.end_date >= format(startDate, "yyyy-MM-dd")) {
+        rentedIds.add(b.forklift_id);
+      }
+    });
+    return forklifts.filter(
+      (fl) => rentedIds.has(fl.id) && Number((fl as any).acquisition_cost ?? 0) === 0
+    );
+  }, [bookings, forklifts, startDate, endDate]);
+
   // Compute depreciation breakdown rows by forklift
   const depreciationBreakdownRows = useMemo((): StatementRow[] => {
     // Gather all forklift names that appear in any month
