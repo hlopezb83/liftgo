@@ -365,6 +365,23 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
     { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: totals.margin >= 0 ? "text-chart-2" : "text-destructive" },
   ];
 
+  const [showDepBreakdown, setShowDepBreakdown] = useState(false);
+
+  // Compute depreciation breakdown rows by forklift
+  const depreciationBreakdownRows = useMemo((): StatementRow[] => {
+    // Gather all forklift names that appear in any month
+    const allNames = new Set<string>();
+    filteredData.forEach((r) => {
+      Object.keys(r.depreciationByForklift).forEach((n) => allNames.add(n));
+    });
+    return [...allNames].sort().map((name): StatementRow => ({
+      label: `      ${name}`,
+      values: filteredData.map((r) => r.depreciationByForklift[name] ?? 0),
+      total: filteredData.reduce((s, r) => s + (r.depreciationByForklift[name] ?? 0), 0),
+      isCost: true,
+    }));
+  }, [filteredData]);
+
   const formatCell = (row: StatementRow | ComparisonRow, value: number) => {
     if (row.isPercent) return `${value.toFixed(1)}%`;
     return formatCurrency(value);
