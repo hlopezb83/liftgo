@@ -210,13 +210,15 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
         allCats.forEach((c) => { expenses[c] = (expenses[c] || 0) + r.expenses[c]; });
         return {
           revenue: acc.revenue + r.revenue,
+          revenueRental: acc.revenueRental + r.revenueRental,
+          revenueSales: acc.revenueSales + r.revenueSales,
           maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
           damageCost: acc.damageCost + r.damageCost,
           depreciation: acc.depreciation + r.depreciation,
           expenses,
         };
       },
-      { revenue: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
+      { revenue: 0, revenueRental: 0, revenueSales: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
     );
     const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
     const grossProfit = t.revenue - t.maintenanceCost - t.damageCost - costoVenta;
