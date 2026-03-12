@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.34.1",
+    date: "2026-03-12",
+    type: "patch",
+    title: "Fix costo de venta en estado de resultados",
+    description: "Se corrigió que el costo de venta no aparecía en el estado de resultados al vender un montacargas.",
+    changes: [
+      "Backfill de registros de costo de venta faltantes para equipos vendidos",
+      "Manejo de errores al crear gasto automático de costo de venta",
+    ],
+  },
+  {
     version: "3.34.0",
     date: "2026-03-12",
     type: "minor",

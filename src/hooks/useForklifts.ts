@@ -105,13 +105,16 @@ export function useUpdateStatus() {
         const { data: fl } = await supabase.from("forklifts").select("name, acquisition_cost").eq("id", forkliftId).single();
         const cost = Number((fl as any)?.acquisition_cost ?? 0);
         if (cost > 0) {
-          await supabase.from("operating_expenses").insert({
+          const { error: expError } = await supabase.from("operating_expenses").insert({
             category: "costo_venta" as any,
             description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
             amount: cost,
             expense_date: new Date().toISOString().slice(0, 10),
             is_recurring: false,
           });
+          if (expError) {
+            toast.warning("No se pudo registrar el costo de venta automáticamente", { description: expError.message });
+          }
         }
       }
     },
