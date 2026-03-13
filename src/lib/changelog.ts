@@ -9,6 +9,23 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.45.1",
+    date: "2026-03-13",
+    type: "patch",
+    title: "Migración completa de toasts a sonner",
+    description: "Todos los archivos restantes migrados de use-toast (shadcn) a sonner — una sola API de notificaciones en toda la app.",
+    changes: [
+      "useProspects.ts — migrado a toast.success/toast.error de sonner",
+      "useUserManual.ts — eliminado useToast hook, reemplazado con import estático de sonner",
+      "useDamageRecords.ts — eliminados dynamic imports de use-toast",
+      "useDeliveries.ts — eliminados dynamic imports de use-toast",
+      "useReturnInspections.ts — eliminado dynamic import de use-toast",
+      "CredentialsDialog.tsx — migrado a toast.success de sonner",
+      "ReportDamageDialog.tsx — migrado a toast.error/toast.success de sonner",
+      "CustomerDetailPage.tsx — consolidado dual-import (useToast + sonnerToast) a un solo import de sonner",
+    ],
+  },
+  {
     version: "3.45.0",
     date: "2026-03-13",
     type: "minor",
