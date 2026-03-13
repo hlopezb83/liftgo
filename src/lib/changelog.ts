@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.49.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Limpieza arquitectónica — as any, reportes modulares, query invalidation",
+    description: "Eliminación de casts inseguros restantes, modularización de reportes y reemplazo de window.location.reload con invalidación de queries.",
+    changes: [
+      "Eliminados ~15 casts as any en useUserManagement, useForklifts, ForkliftForm, DeliveriesPage, ExpenseFormDialog, MaintenanceKanban, MaintenancePoliciesTab, IncomeStatementReport",
+      "ReportsPage: cada reporte ahora obtiene sus datos internamente en lugar de recibirlos como props desde el padre",
+      "IncomeStatementPage: simplificado al delegar data fetching al componente de reporte",
+      "MaintenancePage: reemplazado window.location.reload() con queryClient.invalidateQueries",
+      "useContractTemplates: tipado correcto del payload de actualización",
+    ],
+  },
+  {
     version: "3.48.0",
     date: "2026-03-13",
     type: "minor",
