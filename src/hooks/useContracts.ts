@@ -41,7 +41,7 @@ export function useContract(id: string | undefined) {
 }
 
 export function useCreateContract() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (contract: Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name">) => {
       const { data: num, error: numErr } = await supabase.rpc("next_contract_number");
