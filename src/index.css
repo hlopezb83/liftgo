@@ -54,6 +54,19 @@
     --status-retired: 220 10% 55%;
     --status-sold: 200 15% 45%;
     --status-completed: 220 15% 40%;
+    --status-overdue: 0 84% 60%;
+    --status-draft: 220 10% 55%;
+    --status-warning: 45 93% 47%;
+
+    /* Gantt / calendar palette */
+    --gantt-1: 217 91% 60%;
+    --gantt-2: 25 95% 53%;
+    --gantt-3: 280 65% 60%;
+    --gantt-4: 142 71% 45%;
+    --gantt-5: 38 92% 50%;
+    --gantt-6: 340 75% 55%;
+    --gantt-7: 190 80% 45%;
+    --gantt-8: 60 70% 45%;
 
     --chart-1: 220 45% 20%;
     --chart-2: 142 71% 45%;
