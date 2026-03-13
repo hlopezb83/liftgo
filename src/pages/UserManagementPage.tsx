@@ -154,10 +154,10 @@ function useToggleStatus() {
       return data;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: vars.isActive ? "Usuario activado" : "Usuario desactivado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success(vars.isActive ? "Usuario activado" : "Usuario desactivado");
     },
-    onError: (err: Error) => toast({ title: "Error al cambiar estado", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al cambiar estado", { description: err.message }),
   });
 }
 
