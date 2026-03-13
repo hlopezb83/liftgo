@@ -10,8 +10,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AuthGuard } from "@/components/AuthGuard";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { AppRole } from "@/hooks/useUserRole";
+
 
 // Lazy-loaded pages
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
@@ -69,53 +68,53 @@ const NoAccess = () => (
   </div>
 );
 
-// Route configuration
+// Route configuration — uses module names from role_permissions table
 interface RouteConfig {
   path: string;
   component: ComponentType;
-  roles?: AppRole[];
+  module?: string;
 }
 
 const routes: RouteConfig[] = [
-  { path: "/", component: Dashboard },
-  { path: "/fleet", component: Fleet },
-  { path: "/fleet/new", component: ForkliftForm, roles: ["admin", "administrativo"] },
-  { path: "/fleet/:id", component: ForkliftDetail },
-  { path: "/fleet/:id/edit", component: ForkliftForm, roles: ["admin", "administrativo"] },
-  { path: "/calendar", component: CalendarPage },
-  { path: "/bookings", component: BookingsPage, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
-  { path: "/bookings/new", component: BookingForm, roles: ["admin", "dispatcher", "administrativo"] },
-  { path: "/customers", component: CustomersPage },
-  { path: "/customers/:id", component: CustomerDetailPage },
-  { path: "/maintenance", component: MaintenancePage },
-  { path: "/invoices", component: InvoicesPage, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-  { path: "/invoices/new", component: InvoiceForm, roles: ["admin", "dispatcher", "administrativo"] },
-  { path: "/invoices/:id", component: InvoiceDetail, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-  { path: "/invoices/:id/edit", component: InvoiceForm, roles: ["admin", "dispatcher", "administrativo"] },
-  { path: "/returns", component: ReturnInspectionPage, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-  { path: "/deliveries", component: DeliveriesPage, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-  { path: "/quotes", component: QuotesPage, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
-  { path: "/quotes/new", component: QuoteForm, roles: ["admin", "dispatcher", "administrativo", "ventas"] },
-  { path: "/quotes/:id", component: QuoteDetail, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
-  { path: "/quotes/:id/edit", component: QuoteForm, roles: ["admin", "dispatcher", "administrativo", "ventas"] },
-  { path: "/contracts", component: ContractsPage, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-  { path: "/contracts/new", component: ContractForm, roles: ["admin", "dispatcher", "administrativo"] },
-  { path: "/contracts/:id", component: ContractDetail, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-  { path: "/contracts/:id/edit", component: ContractForm, roles: ["admin", "dispatcher", "administrativo"] },
+  { path: "/", component: Dashboard, module: "Dashboard" },
+  { path: "/fleet", component: Fleet, module: "Flota" },
+  { path: "/fleet/new", component: ForkliftForm, module: "Flota" },
+  { path: "/fleet/:id", component: ForkliftDetail, module: "Flota" },
+  { path: "/fleet/:id/edit", component: ForkliftForm, module: "Flota" },
+  { path: "/calendar", component: CalendarPage, module: "Calendario" },
+  { path: "/bookings", component: BookingsPage, module: "Reservas" },
+  { path: "/bookings/new", component: BookingForm, module: "Reservas" },
+  { path: "/customers", component: CustomersPage, module: "Clientes" },
+  { path: "/customers/:id", component: CustomerDetailPage, module: "Clientes" },
+  { path: "/maintenance", component: MaintenancePage, module: "Mantenimiento" },
+  { path: "/invoices", component: InvoicesPage, module: "Facturas" },
+  { path: "/invoices/new", component: InvoiceForm, module: "Facturas" },
+  { path: "/invoices/:id", component: InvoiceDetail, module: "Facturas" },
+  { path: "/invoices/:id/edit", component: InvoiceForm, module: "Facturas" },
+  { path: "/returns", component: ReturnInspectionPage, module: "Entregas" },
+  { path: "/deliveries", component: DeliveriesPage, module: "Entregas" },
+  { path: "/quotes", component: QuotesPage, module: "Cotizaciones" },
+  { path: "/quotes/new", component: QuoteForm, module: "Cotizaciones" },
+  { path: "/quotes/:id", component: QuoteDetail, module: "Cotizaciones" },
+  { path: "/quotes/:id/edit", component: QuoteForm, module: "Cotizaciones" },
+  { path: "/contracts", component: ContractsPage, module: "Contratos" },
+  { path: "/contracts/new", component: ContractForm, module: "Contratos" },
+  { path: "/contracts/:id", component: ContractDetail, module: "Contratos" },
+  { path: "/contracts/:id/edit", component: ContractForm, module: "Contratos" },
   { path: "/activity", component: ActivityPage },
-  { path: "/audit", component: AuditTrailPage, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-  { path: "/reports", component: ReportsPage, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
-  { path: "/damage", component: DamageTrackingPage },
-  { path: "/expenses", component: OperatingExpensesPage, roles: ["admin", "administrativo", "auditor"] },
-  { path: "/income-statement", component: IncomeStatementPage, roles: ["admin", "administrativo", "auditor"] },
-  { path: "/inventory", component: InventoryPage, roles: ["admin", "administrativo", "mechanic", "auditor"] },
-  { path: "/crm", component: CRMPage, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
-  { path: "/suppliers", component: SuppliersPage, roles: ["admin", "administrativo", "auditor"] },
-  { path: "/suppliers/:id", component: SupplierDetailPage, roles: ["admin", "administrativo", "auditor"] },
-  { path: "/settings/operations", component: OperationsSetupPage, roles: ["admin", "administrativo", "auditor"] },
-  { path: "/settings/company", component: CompanySettingsPage, roles: ["admin", "auditor"] },
-  { path: "/users", component: UserManagementPage, roles: ["admin", "auditor"] },
-  { path: "/users/permissions", component: RolePermissionsPage, roles: ["admin", "auditor"] },
+  { path: "/audit", component: AuditTrailPage },
+  { path: "/reports", component: ReportsPage, module: "Reportes" },
+  { path: "/damage", component: DamageTrackingPage, module: "Daños" },
+  { path: "/expenses", component: OperatingExpensesPage, module: "Gastos" },
+  { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
+  { path: "/inventory", component: InventoryPage, module: "Refacciones" },
+  { path: "/crm", component: CRMPage, module: "CRM / Prospectos" },
+  { path: "/suppliers", component: SuppliersPage, module: "Proveedores" },
+  { path: "/suppliers/:id", component: SupplierDetailPage, module: "Proveedores" },
+  { path: "/settings/operations", component: OperationsSetupPage, module: "Configuración" },
+  { path: "/settings/company", component: CompanySettingsPage, module: "Configuración" },
+  { path: "/users", component: UserManagementPage, module: "Gestión de Usuarios" },
+  { path: "/users/permissions", component: RolePermissionsPage, module: "Gestión de Usuarios" },
   { path: "/changelog", component: ChangelogPage },
   { path: "/help", component: HelpPage },
 ];
@@ -141,13 +140,13 @@ const App = () => (
                     <ErrorBoundary>
                     <Suspense fallback={<PageFallback />}>
                     <Routes>
-                      {routes.map(({ path, component: Component, roles }) => (
+                      {routes.map(({ path, component: Component, module }) => (
                         <Route
                           key={path}
                           path={path}
                           element={
-                            roles ? (
-                              <RoleGuard allowed={roles} fallback={<NoAccess />}>
+                            module ? (
+                              <RoleGuard module={module} fallback={<NoAccess />}>
                                 <Component />
                               </RoleGuard>
                             ) : (

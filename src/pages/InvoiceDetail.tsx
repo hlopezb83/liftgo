@@ -167,7 +167,7 @@ export default function InvoiceDetail() {
                   </>
                 )}
                 <DropdownMenuItem onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" /> Imprimir</DropdownMenuItem>
-                <RoleGuard allowed={["admin", "administrativo"]}>
+                <RoleGuard module="Facturas" minAccess="full">
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">
                     <Trash2 className="h-4 w-4 mr-2" /> Eliminar

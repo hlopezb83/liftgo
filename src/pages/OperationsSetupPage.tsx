@@ -24,12 +24,12 @@ export default function OperationsSetupPage() {
         <TabsContent value="drivers"><DriversTab /></TabsContent>
         <TabsContent value="mechanics"><MechanicsTab /></TabsContent>
         <TabsContent value="policies">
-          <RoleGuard allowed={["admin", "administrativo"]}>
+          <RoleGuard module="Configuración" minAccess="full">
             <MaintenancePoliciesTab />
           </RoleGuard>
         </TabsContent>
         <TabsContent value="contract-template">
-          <RoleGuard allowed={["admin", "administrativo"]}>
+          <RoleGuard module="Configuración" minAccess="full">
             <ContractTemplateTab />
           </RoleGuard>
         </TabsContent>
