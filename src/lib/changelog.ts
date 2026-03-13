@@ -9,6 +9,28 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.48.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Auditoría de tipos — eliminación masiva de as any",
+    description: "Reducción significativa de casts inseguros (as any) en hooks, páginas y componentes aprovechando los tipos generados por Supabase.",
+    changes: [
+      "useMaintenancePolicies: eliminados 6 casts — la tabla ya existe en el esquema tipado",
+      "useUserManual: eliminados 2 casts — supabase client ya reconoce user_manual",
+      "useQuoteDetailLogic, useQuoteFormLogic, QuotesPage, QuotePDFButton: eliminados casts para quote_type y rental_meta",
+      "InvoiceDetail: quote_id ya es propiedad tipada de invoices",
+      "ForkliftSpecsCard: acquisition_cost ya es propiedad tipada de forklifts",
+      "useAuditLogs: revert_audit_log ya está en las funciones tipadas",
+      "useForklifts: costo_venta ya es valor válido del enum expense_category",
+      "ReturnInspectionPage: usa ReturnInspectionWithJoins en lugar de as any",
+      "OperatingExpensesPage: tipado explícito con OperatingExpense y ExpenseCategory",
+      "ContractTemplateTab: arrays pasados directamente sin cast (hook ya acepta Partial<ContractTemplate>)",
+      "contractPdfGenerator: data de Supabase ya está correctamente tipada",
+      "useInvoiceFormLogic: cast de setCfdi usa tipo correcto CfdiFormState[keyof CfdiFormState]",
+      "OperatingExpense interface ahora incluye supplier_id",
+    ],
+  },
+  {
     version: "3.47.0",
     date: "2026-03-13",
     type: "minor",
