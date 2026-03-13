@@ -69,7 +69,7 @@ export function useAssignForklift() {
 }
 
 export function useUnassignForklift() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ assignmentId, forkliftId }: { assignmentId: string; forkliftId: string }) => {
       const { error } = await supabase
