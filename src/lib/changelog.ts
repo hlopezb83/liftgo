@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.45.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Refactor estructural de App.tsx",
+    description: "Separación de responsabilidades: proveedores, layout y rutas extraídos a archivos dedicados.",
+    changes: [
+      "AppProviders.tsx creado — centraliza ThemeProvider, QueryClient, AuthProvider, TooltipProvider y toasts",
+      "MainLayout.tsx creado — sidebar, header y ErrorBoundary con <Outlet /> (patrón layout routes de react-router v6)",
+      "routes.tsx creado — configuración de rutas, lazy imports y fallbacks extraídos de App.tsx",
+      "App.tsx reducido a ~40 líneas — solo compone proveedores, router y layout",
+      "Eliminado patrón de doble <Routes> anidado con wildcard catch-all",
+    ],
+  },
+  {
     version: "3.44.0",
     date: "2026-03-13",
     type: "minor",
