@@ -1,26 +1,22 @@
-import { useUserRole, type AppRole } from "@/hooks/useUserRole";
-import { useRolePermissions, type AccessLevel } from "@/hooks/useRolePermissions";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useRolePermissions, getAccessLevel, type AccessLevel } from "@/hooks/useRolePermissions";
 
 interface RoleGuardProps {
-  allowed?: AppRole[];
   module?: string;
   minAccess?: AccessLevel;
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }
 
-export function RoleGuard({ allowed, module, minAccess = "read", children, fallback = null }: RoleGuardProps) {
+export function RoleGuard({ module, minAccess = "read", children, fallback = null }: RoleGuardProps) {
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
 
   if (!role) return <>{fallback}</>;
 
-  // Legacy static check
-  if (allowed && !allowed.includes(role)) return <>{fallback}</>;
-
-  // Dynamic permission check
+  // Dynamic permission check via database
   if (module && perms) {
-    const level = perms[role]?.[module] ?? "none";
+    const level = getAccessLevel(perms, role, module);
     const hierarchy: AccessLevel[] = ["none", "read", "full"];
     if (hierarchy.indexOf(level) < hierarchy.indexOf(minAccess)) return <>{fallback}</>;
   }

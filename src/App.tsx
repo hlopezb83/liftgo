@@ -140,13 +140,13 @@ const App = () => (
                     <ErrorBoundary>
                     <Suspense fallback={<PageFallback />}>
                     <Routes>
-                      {routes.map(({ path, component: Component, roles }) => (
+                      {routes.map(({ path, component: Component, module }) => (
                         <Route
                           key={path}
                           path={path}
                           element={
-                            roles ? (
-                              <RoleGuard allowed={roles} fallback={<NoAccess />}>
+                            module ? (
+                              <RoleGuard module={module} fallback={<NoAccess />}>
                                 <Component />
                               </RoleGuard>
                             ) : (
