@@ -18,7 +18,7 @@ export function useCompanySettings() {
 }
 
 export function useUpsertCompanySettings() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (settings: {
       id?: string;
