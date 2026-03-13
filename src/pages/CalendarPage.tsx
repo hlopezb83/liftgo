@@ -1,5 +1,5 @@
 import { useBookings } from "@/hooks/useBookings";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { PageTransition } from "@/components/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -18,13 +18,13 @@ import { EquipmentListView } from "@/components/calendar/EquipmentListView";
 
 export default function CalendarPage() {
   const { data: bookings, isLoading: bLoading } = useBookings();
-  const { data: forklifts, isLoading: fLoading } = useForklifts();
+  const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
 
-  const forkliftMap = useMemo(() => new Map(forklifts?.map((f) => [f.id, f])), [forklifts]);
+  
 
   // Compute range based on ganttRange
   const rangeStart = ganttRange === "month" ? startOfMonth(currentDate) : startOfWeek(currentDate, { weekStartsOn: 1 });

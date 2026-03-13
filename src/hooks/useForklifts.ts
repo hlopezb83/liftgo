@@ -10,6 +10,7 @@ import type { Forklift } from "@/types/rental";
 export function useForklifts() {
   return useQuery({
     queryKey: ["forklifts"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("forklifts").select("*").order("name");
       if (error) throw error;

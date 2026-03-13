@@ -7,6 +7,7 @@ export type Customer = Tables<"customers">;
 export function useCustomers() {
   return useQuery({
     queryKey: ["customers"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("customers").select("*").order("name");
       if (error) throw error;

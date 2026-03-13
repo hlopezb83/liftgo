@@ -3,18 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { jsPDF } from "jspdf";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdfHelpers";
-import {
-  drawAccentBar,
-  drawPremiumHeader,
-  drawInfoCardsAt,
-  drawPremiumTable,
-  drawPremiumTotals,
-  drawPremiumNotes,
-  drawTermsSection,
-  drawFooter,
-} from "@/lib/quotePdfPremium";
 
 interface QuotePDFButtonProps {
   quoteId: string;
@@ -50,6 +39,13 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
           customerCp = cust.domicilio_fiscal_cp;
         }
       }
+
+      const { jsPDF } = await import("jspdf");
+      const {
+        drawAccentBar, drawPremiumHeader, drawInfoCardsAt,
+        drawPremiumTable, drawPremiumTotals, drawPremiumNotes,
+        drawTermsSection, drawFooter,
+      } = await import("@/lib/quotePdfPremium");
 
       const doc = new jsPDF();
       const isSale = (quote as any).quote_type === "sale";

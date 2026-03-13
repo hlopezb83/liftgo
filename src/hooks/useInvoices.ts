@@ -6,6 +6,7 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 export function useInvoices() {
   return useQuery({
     queryKey: ["invoices"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false });
       if (error) throw error;

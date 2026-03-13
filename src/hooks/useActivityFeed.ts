@@ -8,6 +8,7 @@ export type ActivityEntry = Tables<"activity_feed">;
 export function useActivityFeed(limit = 50, entityType?: string) {
   return useQuery({
     queryKey: ["activity_feed", limit, entityType],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
         .from("activity_feed")

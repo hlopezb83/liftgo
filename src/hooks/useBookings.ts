@@ -7,6 +7,7 @@ export type { Booking, BookingWithForklift } from "@/types/rental";
 export function useBookings(forkliftId?: string) {
   return useQuery({
     queryKey: ["bookings", forkliftId],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase.from("bookings").select("*, forklifts(name, model)").order("start_date");
       if (forkliftId) query = query.eq("forklift_id", forkliftId);

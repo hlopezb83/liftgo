@@ -7,6 +7,7 @@ export type MaintenanceLog = Tables<"maintenance_logs">;
 export function useMaintenanceLogs(forkliftId?: string) {
   return useQuery({
     queryKey: ["maintenance_logs", forkliftId],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase.from("maintenance_logs").select("*").order("performed_at", { ascending: false });
       if (forkliftId) query = query.eq("forklift_id", forkliftId);

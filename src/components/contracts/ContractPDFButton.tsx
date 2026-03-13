@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FileDown, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { jsPDF } from "jspdf";
-import {
-  type ContractData, type PDFMode,
-  fetchRelatedData, fetchTemplate, fetchLogoBase64,
-  buildPlaceholderVars,
-  generateContractPages, generateChecklistPage, generatePagarePage,
-} from "@/lib/contractPdfGenerator";
+import type { ContractData, PDFMode } from "@/lib/contractPdfGenerator";
 
 export type { ContractData } from "@/lib/contractPdfGenerator";
 
@@ -19,6 +13,13 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
   const handleDownload = async (mode: PDFMode) => {
     setLoading(true);
     try {
+      const { jsPDF } = await import("jspdf");
+      const {
+        fetchRelatedData, fetchTemplate, fetchLogoBase64,
+        buildPlaceholderVars,
+        generateContractPages, generateChecklistPage, generatePagarePage,
+      } = await import("@/lib/contractPdfGenerator");
+
       const [{ company, customer, forklift }, tpl] = await Promise.all([
         fetchRelatedData(contract),
         fetchTemplate(),

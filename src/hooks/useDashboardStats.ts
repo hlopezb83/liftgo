@@ -51,6 +51,15 @@ export interface DashboardStats {
     end_date: string;
     days_overdue: number;
   }>;
+  recent_activity: Array<{
+    id: string;
+    event_type: string;
+    entity_type: string;
+    entity_id: string;
+    title: string;
+    description: string | null;
+    created_at: string;
+  }>;
 }
 
 export function useDashboardStats() {
