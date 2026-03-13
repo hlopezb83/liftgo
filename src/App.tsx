@@ -11,7 +11,6 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AppRole } from "@/hooks/useUserRole";
 
 // Lazy-loaded pages
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
