@@ -46,10 +46,8 @@ export interface TemplateData {
   pagare_text: string | null;
 }
 
-// --- Placeholder replacement ---
-export function replacePlaceholders(text: string, vars: Record<string, string>): string {
-  return text.replace(/\{(\w+)\}/g, (match, key) => vars[key] ?? match);
-}
+// Re-export from shared utility for backward compatibility
+export { replacePlaceholders } from "@/lib/templateUtils";
 
 export function buildPlaceholderVars(contract: ContractData, company: any, customer: any, forklift: any): Record<string, string> {
   return {

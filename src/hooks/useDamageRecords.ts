@@ -6,6 +6,7 @@ export type { DamageRecord } from "@/types/rental";
 export function useDamageRecords() {
   return useQuery({
     queryKey: ["damage_records"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("damage_records")

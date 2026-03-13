@@ -28,6 +28,7 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
 export function useOperatingExpenses() {
   return useQuery({
     queryKey: ["operating_expenses"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operating_expenses")

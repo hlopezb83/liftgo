@@ -5,6 +5,7 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 export function useReturnInspections(forkliftId?: string) {
   return useQuery({
     queryKey: ["return_inspections", forkliftId],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase.from("return_inspections").select("*, bookings(customer_name, start_date, end_date), forklifts(name, model)").order("inspected_at", { ascending: false });
       if (forkliftId) query = query.eq("forklift_id", forkliftId);

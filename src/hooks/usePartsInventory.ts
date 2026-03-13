@@ -10,6 +10,7 @@ export type MaintenancePart = Tables<"maintenance_parts">;
 export function usePartsInventory() {
   return useQuery({
     queryKey: ["parts_inventory"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("parts_inventory")

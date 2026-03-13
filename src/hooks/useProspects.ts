@@ -26,6 +26,7 @@ const QUERY_KEY = ["prospects"];
 export function useProspects() {
   return useQuery({
     queryKey: QUERY_KEY,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("prospects")

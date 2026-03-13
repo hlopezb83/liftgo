@@ -8,6 +8,7 @@ import type { Quote } from "@/types/rental";
 export function useQuotes() {
   return useQuery({
     queryKey: ["quotes"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quotes")

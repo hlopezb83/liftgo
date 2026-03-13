@@ -17,6 +17,7 @@ type MechanicInput = {
 export function useMechanics() {
   return useQuery({
     queryKey: ["mechanics"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mechanics")

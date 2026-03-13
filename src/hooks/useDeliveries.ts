@@ -5,6 +5,7 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 export function useDeliveries(bookingId?: string) {
   return useQuery({
     queryKey: ["deliveries", bookingId],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase.from("deliveries").select("*, forklifts(name, model)").order("scheduled_date");
       if (bookingId) query = query.eq("booking_id", bookingId);
