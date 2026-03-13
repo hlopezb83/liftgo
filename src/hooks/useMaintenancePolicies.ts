@@ -93,7 +93,7 @@ export function useDeleteMaintenancePolicy() {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["maintenance_policies"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
       toast.success("Póliza eliminada");
     },
     onError: (err: Error) => toast.error(err.message),
