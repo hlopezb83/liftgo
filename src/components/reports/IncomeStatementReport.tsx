@@ -97,7 +97,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
   const forkliftDepreciationMap = useMemo(() => {
     const map = new Map<string, number>();
     for (const fl of forklifts) {
-      const cost = Number((fl as any).acquisition_cost ?? 0);
+      const cost = Number(fl.acquisition_cost ?? 0);
       if (cost > 0) map.set(fl.id, cost / 36);
     }
     return map;
