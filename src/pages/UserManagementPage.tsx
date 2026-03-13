@@ -116,7 +116,7 @@ function useInviteUser() {
 }
 
 function useDeleteUser() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
       const { data, error } = await supabase.functions.invoke("delete-user", { body: { user_id: userId } });
@@ -125,10 +125,10 @@ function useDeleteUser() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Usuario eliminado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Usuario eliminado");
     },
-    onError: (err: Error) => toast({ title: "Error al eliminar usuario", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al eliminar usuario", { description: err.message }),
   });
 }
 
