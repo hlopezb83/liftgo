@@ -27,9 +27,7 @@ export function useCreateCustomer() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      import("sonner").then(({ toast }) =>
-        toast.error("Error al crear cliente", { description: err.message })
-      );
+      toast.error("Error al crear cliente", { description: err.message });
     },
   });
 }
