@@ -42,9 +42,7 @@ export function useUpdateCustomer() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      import("sonner").then(({ toast }) =>
-        toast.error("Error al actualizar cliente", { description: err.message })
-      );
+      toast.error("Error al actualizar cliente", { description: err.message });
     },
   });
 }
