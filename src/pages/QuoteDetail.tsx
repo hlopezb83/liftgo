@@ -14,7 +14,7 @@ import { NotesCard } from "@/components/NotesCard";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PostBookingDeliveryDialog } from "@/components/PostBookingDeliveryDialog";
+import { PostBookingDeliveryDialog } from "@/components/bookings/PostBookingDeliveryDialog";
 import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2 } from "lucide-react";
 import { RoleGuard } from "@/components/RoleGuard";
 import {
