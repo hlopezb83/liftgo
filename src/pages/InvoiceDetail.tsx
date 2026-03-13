@@ -50,8 +50,7 @@ export default function InvoiceDetail() {
   const quoteId = invoice?.quote_id;
   const { data: sourceQuote } = useQuote(quoteId || undefined);
   const bookingId = invoice?.booking_id;
-  const { data: allBookings } = useBookings();
-  const sourceBooking = allBookings?.find((b) => b.id === bookingId) as BookingWithForklift | undefined;
+  const { data: sourceBooking } = useBooking(bookingId || undefined);
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
 
   const setStatus = (status: string, paidAt?: string) => {
