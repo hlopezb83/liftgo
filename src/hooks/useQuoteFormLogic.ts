@@ -39,7 +39,7 @@ export function useQuoteFormLogic() {
   // Restore form state from existing quote
   useEffect(() => {
     if (existingQuote) {
-      const isSale = (existingQuote as any).quote_type === "sale";
+      const isSale = existingQuote.quote_type === "sale";
       setQuoteType(isSale ? "sale" : "rental");
       setCustomerId(existingQuote.customer_id || "");
       setCustomerName(existingQuote.customer_name || "");
