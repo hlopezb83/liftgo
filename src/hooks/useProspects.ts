@@ -79,7 +79,7 @@ export function useUpdateProspect() {
       return data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast.error("Error", { description: e.message }),
   });
 }
 
