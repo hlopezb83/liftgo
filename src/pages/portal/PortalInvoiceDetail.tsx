@@ -12,7 +12,9 @@ import { formatDateDisplay } from "@/lib/utils";
 export default function PortalInvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { invoices, payments, isLoading } = useCustomerPortal();
+  const { data: invoices, isLoading: invoicesLoading } = usePortalInvoices();
+  const { data: payments, isLoading: paymentsLoading } = usePortalPayments();
+  const isLoading = invoicesLoading || paymentsLoading;
 
   if (isLoading) return <Skeleton className="h-96" />;
 
