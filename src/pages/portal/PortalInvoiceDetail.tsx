@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
-import { useCustomerPortal } from "@/hooks/useCustomerPortal";
+import { usePortalInvoices, usePortalPayments } from "@/hooks/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
