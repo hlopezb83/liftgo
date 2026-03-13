@@ -67,8 +67,8 @@ export function useUpdateMaintenancePolicy() {
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenancePolicy>) => {
       const { data, error } = await supabase
-        .from("maintenance_policies" as any)
-        .update(updates as any)
+        .from("maintenance_policies")
+        .update(updates)
         .eq("id", id)
         .select()
         .single();
