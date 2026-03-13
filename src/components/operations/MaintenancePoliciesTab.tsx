@@ -78,7 +78,7 @@ export function MaintenancePoliciesTab() {
       description: form.description || null,
     };
     if (editId) {
-      update.mutate({ id: editId, ...payload } as any, { onSuccess: () => setOpen(false) });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => setOpen(false) });
     } else {
       create.mutate(payload, { onSuccess: () => setOpen(false) });
     }
