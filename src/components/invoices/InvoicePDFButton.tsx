@@ -3,17 +3,8 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { jsPDF } from "jspdf";
 import { format, parseISO } from "date-fns";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdfHelpers";
-import {
-  drawAccentBar,
-  drawPremiumHeader,
-  drawPremiumTable,
-  drawPremiumTotals,
-  drawPremiumNotes,
-  drawFooter,
-} from "@/lib/quotePdfPremium";
 
 // ─── Brand Colors ─────────────────────────────────────
 const NAVY = { r: 15, g: 23, b: 42 };
