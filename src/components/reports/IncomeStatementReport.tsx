@@ -12,7 +12,7 @@ import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown, Chev
 import { jsPDF } from "jspdf";
 import { fetchCompanyDataAndLogo } from "@/lib/pdfHelpers";
 import { toast } from "sonner";
-import type { OperatingExpense, ExpenseCategory } from "@/hooks/useOperatingExpenses";
+import type { ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperatingExpenses";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
