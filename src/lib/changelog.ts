@@ -9,6 +9,22 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.43.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Refactorización de arquitectura",
+    description: "Mejora de modularidad, separación de responsabilidades y estándares de código en hooks y formularios.",
+    changes: [
+      "Lógica de QuoteForm extraída a useQuoteFormLogic (reducción de ~200 líneas en componente UI)",
+      "Lógica de ContractForm extraída a useContractFormLogic (reducción de ~180 líneas en componente UI)",
+      "replacePlaceholders consolidado en src/lib/templateUtils.ts (elimina duplicación entre ContractForm y contractPdfGenerator)",
+      "staleTime: 60_000 agregado a 13 hooks faltantes (quotes, contracts, deliveries, inspections, drivers, mechanics, parts, prospects, equipment_models, damage_records, expenses, suppliers, payments)",
+      "Variable 'qc' renombrada a 'queryClient' en todos los hooks (estándar de código legible)",
+      "useCustomerPortal dividido en hooks individuales: usePortalCustomer, usePortalBookings, usePortalInvoices, usePortalContracts, usePortalPayments",
+      "Páginas del portal actualizadas para usar hooks individuales en lugar del monolito",
+    ],
+  },
+  {
     version: "3.42.0",
     date: "2026-03-13",
     type: "minor",
