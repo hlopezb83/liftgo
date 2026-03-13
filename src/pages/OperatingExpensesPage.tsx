@@ -17,8 +17,8 @@ import { capitalize, parseDateLocal } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  useOperatingExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useGenerateRecurring,
-  EXPENSE_CATEGORY_LABELS, type ExpenseCategory,
+  useOperatingExpenses, useUpdateExpense, useDeleteExpense, useGenerateRecurring,
+  EXPENSE_CATEGORY_LABELS, type ExpenseCategory, type OperatingExpense,
 } from "@/hooks/useOperatingExpenses";
 import { SearchBar } from "@/components/SearchBar";
 import { EmptyRow } from "@/components/EmptyRow";
