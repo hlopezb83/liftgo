@@ -17,14 +17,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
 import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
 import type { CustomerFormData } from "@/lib/formSchemas";
-import { toast as sonnerToast } from "sonner";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
