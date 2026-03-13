@@ -9,6 +9,24 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.42.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Optimización de rendimiento integral",
+    description: "Reducción de llamadas redundantes a la base de datos, carga diferida de jsPDF, contexto compartido de autenticación y mejoras de caché a nivel global.",
+    changes: [
+      "QueryClient con staleTime global de 30s y retry: 1",
+      "useAuth migrado a React Context compartido (elimina ~10 suscripciones duplicadas)",
+      "staleTime de 60s en useForklifts, useBookings, useCustomers, useInvoices, useMaintenanceLogs, useActivityFeed",
+      "staleTime de 5 min en useCompanySettings",
+      "jsPDF cargado dinámicamente (lazy import) en QuotePDFButton, InvoicePDFButton y ContractPDFButton (~200KB menos en bundle inicial)",
+      "Actividad reciente integrada en get_dashboard_stats RPC (1 query menos en Dashboard)",
+      "Nueva función RPC get_available_forklifts: reemplaza 3 queries client-side por 1 server-side",
+      "CalendarPage usa useForkliftMap compartido en lugar de useForklifts duplicado",
+      "React.memo aplicado a BookingRow en EquipmentListView",
+    ],
+  },
+  {
     version: "3.41.0",
     date: "2026-03-13",
     type: "minor",
