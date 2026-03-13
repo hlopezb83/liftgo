@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ChevronRight } from "lucide-react";

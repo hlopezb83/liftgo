@@ -40,6 +40,13 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
         }
       }
 
+      const { jsPDF } = await import("jspdf");
+      const {
+        drawAccentBar, drawPremiumHeader, drawInfoCardsAt,
+        drawPremiumTable, drawPremiumTotals, drawPremiumNotes,
+        drawTermsSection, drawFooter,
+      } = await import("@/lib/quotePdfPremium");
+
       const doc = new jsPDF();
       const isSale = (quote as any).quote_type === "sale";
 

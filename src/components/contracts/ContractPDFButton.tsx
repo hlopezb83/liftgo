@@ -13,6 +13,13 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
   const handleDownload = async (mode: PDFMode) => {
     setLoading(true);
     try {
+      const { jsPDF } = await import("jspdf");
+      const {
+        fetchRelatedData, fetchTemplate, fetchLogoBase64,
+        buildPlaceholderVars,
+        generateContractPages, generateChecklistPage, generatePagarePage,
+      } = await import("@/lib/contractPdfGenerator");
+
       const [{ company, customer, forklift }, tpl] = await Promise.all([
         fetchRelatedData(contract),
         fetchTemplate(),

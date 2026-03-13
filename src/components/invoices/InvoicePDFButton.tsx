@@ -40,6 +40,12 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
 
       const { company, logoBase64 } = await fetchCompanyDataAndLogo();
 
+      const { jsPDF } = await import("jspdf");
+      const {
+        drawAccentBar, drawPremiumHeader, drawPremiumTable,
+        drawPremiumTotals, drawPremiumNotes, drawFooter,
+      } = await import("@/lib/quotePdfPremium");
+
       const doc = new jsPDF();
       const pw = doc.internal.pageSize.getWidth();
 
