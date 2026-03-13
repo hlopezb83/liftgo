@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.40.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Permisos dinámicos por rol",
+    description: "Los administradores ahora pueden editar los niveles de acceso (completo, lectura, sin acceso) de cada rol por módulo directamente desde la interfaz, sin necesidad de modificar código.",
+    changes: [
+      "Nueva tabla de permisos dinámicos en la base de datos con seed de valores actuales",
+      "Página de Permisos por Rol ahora es interactiva para administradores",
+      "Sidebar y guardias de ruta se actualizan automáticamente según los permisos configurados",
+      "Los permisos del rol Admin no son editables (siempre acceso completo)",
+      "Matriz de permisos colapsable también refleja datos dinámicos",
+    ],
+  },
+  {
     version: "3.39.0",
     date: "2026-03-13",
     type: "minor",
