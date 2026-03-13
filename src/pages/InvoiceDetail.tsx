@@ -7,7 +7,7 @@ import { usePayments } from "@/hooks/usePayments";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
-import { RecordPaymentDialog } from "@/components/RecordPaymentDialog";
+import { RecordPaymentDialog } from "@/components/invoices/RecordPaymentDialog";
 import { InvoiceFiscalDataCard } from "@/components/invoice-detail/InvoiceFiscalDataCard";
 import { InvoicePaymentSummary } from "@/components/invoice-detail/InvoicePaymentSummary";
 import { CancelCfdiDialog } from "@/components/invoice-detail/CancelCfdiDialog";
