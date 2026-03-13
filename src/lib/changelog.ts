@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.46.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Modularización de Gestión de Usuarios",
+    description: "UserManagementPage refactorizado: 7 hooks extraídos a useUserManagement.ts y 4 diálogos a componentes independientes.",
+    changes: [
+      "useUserManagement.ts creado — consolida useUsersWithRoles, useUpdateRole, useUpdateName, useInviteUser, useDeleteUser, useResetPassword y useToggleStatus",
+      "InviteUserDialog.tsx extraído — formulario de creación de usuario autocontenido",
+      "EditNameDialog.tsx extraído — diálogo de edición de nombre con estado propio",
+      "DeleteUserDialog.tsx extraído — confirmación de eliminación desacoplada",
+      "RoleChangeDialog.tsx extraído — confirmación de cambio de rol independiente",
+      "UserManagementPage.tsx reducido de ~530 a ~230 líneas — solo orquestación y renderizado",
+    ],
+  },
+  {
     version: "3.45.1",
     date: "2026-03-13",
     type: "patch",
