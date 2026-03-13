@@ -75,6 +75,12 @@ export default function OperatingExpensesPage() {
     }
   };
 
+  const availableCategories = useMemo(() => {
+    const set = new Set<ExpenseCategory>();
+    (expenses || []).forEach((e) => set.add(e.category));
+    return CATEGORIES.filter(([v]) => set.has(v));
+  }, [expenses]);
+
   const filtered = useMemo(() => {
     return (expenses || []).filter((e) => {
       if (filterCategory !== "all" && e.category !== filterCategory) return false;
@@ -131,7 +137,7 @@ export default function OperatingExpensesPage() {
                 <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas las categorías</SelectItem>
-                  {CATEGORIES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+                  {availableCategories.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
