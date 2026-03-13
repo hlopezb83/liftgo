@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { replacePlaceholders } from "@/lib/templateUtils";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
