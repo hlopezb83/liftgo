@@ -23,7 +23,7 @@ export function useQuoteAssignments(quoteId: string | undefined) {
 }
 
 export function useAssignForklift() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (assignments: { quoteId: string; forkliftId: string; lineIndex: number }[]) => {
       // Insert assignments
