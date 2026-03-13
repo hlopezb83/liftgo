@@ -85,7 +85,7 @@ export function MaintenancePoliciesTab() {
   };
 
   const toggleActive = (p: MaintenancePolicy) => {
-    update.mutate({ id: p.id, is_active: !p.is_active } as any);
+    update.mutate({ id: p.id, is_active: !p.is_active });
   };
 
   return (

@@ -122,10 +122,10 @@ export function useUpdateStatus() {
       // Auto-create costo_venta expense when sold
       if (toStatus === "sold") {
         const { data: fl } = await supabase.from("forklifts").select("name, acquisition_cost").eq("id", forkliftId).single();
-        const cost = Number((fl as any)?.acquisition_cost ?? 0);
+        const cost = Number(fl?.acquisition_cost ?? 0);
         if (cost > 0) {
           const { error: expError } = await supabase.from("operating_expenses").insert({
-            category: "costo_venta" as any,
+            category: "costo_venta",
             description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
             amount: cost,
             expense_date: new Date().toISOString().slice(0, 10),

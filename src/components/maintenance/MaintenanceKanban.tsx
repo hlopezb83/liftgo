@@ -54,7 +54,7 @@ export function MaintenanceKanban({ logs }: Props) {
     );
 
     updateLog.mutate(
-      { id: logId, work_status: newStatus } as any,
+      { id: logId, work_status: newStatus },
       {
         onError: () => {
           queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });

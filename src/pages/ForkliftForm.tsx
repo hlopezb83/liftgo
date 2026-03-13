@@ -78,7 +78,7 @@ export default function ForkliftForm() {
         daily_rate: existing.daily_rate?.toString() || "",
         weekly_rate: existing.weekly_rate?.toString() || "",
         monthly_rate: existing.monthly_rate?.toString() || "",
-        acquisition_cost: (existing as any).acquisition_cost?.toString() || "",
+        acquisition_cost: existing.acquisition_cost?.toString() || "",
         notes: existing.notes || "",
       });
     }

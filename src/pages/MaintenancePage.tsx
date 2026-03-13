@@ -64,8 +64,7 @@ export default function MaintenancePage() {
       const result = data as { generated: number; skipped: number; month: string; details?: string[] };
       if (result.generated > 0) {
         toast.success(`${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`);
-        // Refresh maintenance logs
-        window.location.reload();
+        queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
       } else {
         toast.info("No hay pólizas pendientes de generar para este mes");
       }

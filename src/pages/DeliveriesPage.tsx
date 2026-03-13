@@ -137,7 +137,7 @@ export default function DeliveriesPage() {
   const markComplete = (id: string, signatureBase64?: string) => {
     const delivery = deliveries?.find((d) => d.id === id);
     updateDelivery.mutate(
-      { id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}) } as any,
+      { id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}) },
       {
         onSuccess: () => {
           toast.success("Marcado como completado");

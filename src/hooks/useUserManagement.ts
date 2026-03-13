@@ -33,10 +33,10 @@ export function useUsersWithRoles() {
       return (profiles ?? []).map((p) => ({
         user_id: p.user_id,
         full_name: p.full_name,
-        email: (p as any).email ?? null,
+        email: p.email ?? null,
         created_at: p.created_at,
         role: roleMap.get(p.user_id) ?? ("dispatcher" as AppRole),
-        is_active: (p as any).is_active ?? true,
+        is_active: p.is_active ?? true,
       })) as UserRow[];
     },
   });

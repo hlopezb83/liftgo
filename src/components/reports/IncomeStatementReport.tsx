@@ -366,7 +366,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       }
     });
     return forklifts.filter(
-      (fl) => rentedIds.has(fl.id) && Number((fl as any).acquisition_cost ?? 0) === 0
+      (fl) => rentedIds.has(fl.id) && Number(fl.acquisition_cost ?? 0) === 0
     );
   }, [bookings, forklifts, startDate, endDate]);
 
