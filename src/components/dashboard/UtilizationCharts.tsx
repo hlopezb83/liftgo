@@ -33,7 +33,7 @@ export function UtilizationCharts({ weeklyUtilization, revenuePerUnit }: Utiliza
                 <XAxis dataKey="week_label" tick={{ fontSize: 11 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
                 <Tooltip formatter={(v: number) => `${v}%`} />
-                <Bar dataKey="utilization" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="utilization" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
