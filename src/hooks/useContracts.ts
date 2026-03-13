@@ -59,7 +59,7 @@ export function useCreateContract() {
 }
 
 export function useUpdateContract() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
       const { data, error } = await supabase
