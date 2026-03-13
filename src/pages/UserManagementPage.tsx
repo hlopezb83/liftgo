@@ -69,17 +69,17 @@ function useUsersWithRoles() {
 }
 
 function useUpdateRole() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
       const { error } = await supabase.from("user_roles").update({ role }).eq("user_id", userId);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Rol actualizado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Rol actualizado");
     },
-    onError: (err: Error) => toast({ title: "Error al actualizar rol", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al actualizar rol", { description: err.message }),
   });
 }
 
