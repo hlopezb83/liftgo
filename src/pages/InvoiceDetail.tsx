@@ -31,7 +31,6 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useQuote } from "@/hooks/useQuotes";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { Badge } from "@/components/ui/badge";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
