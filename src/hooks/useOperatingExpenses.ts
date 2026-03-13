@@ -110,12 +110,12 @@ export function useGenerateRecurring() {
       if (existErr) throw existErr;
 
       const existingSet = new Set(
-        (existing || []).map((e: any) => `${e.category}::${e.description || ""}`)
+        (existing || []).map((e) => `${e.category}::${e.description || ""}`)
       );
 
       const toInsert = recurring
-        .filter((r: any) => !existingSet.has(`${r.category}::${r.description || ""}`))
-        .map((r: any) => ({
+        .filter((r) => !existingSet.has(`${r.category}::${r.description || ""}`))
+        .map((r) => ({
           category: r.category,
           description: r.description,
           amount: r.amount,
