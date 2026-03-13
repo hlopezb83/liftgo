@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Repeat, RefreshCw, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { capitalize } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import {
