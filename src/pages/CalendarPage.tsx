@@ -18,7 +18,7 @@ import { EquipmentListView } from "@/components/calendar/EquipmentListView";
 
 export default function CalendarPage() {
   const { data: bookings, isLoading: bLoading } = useBookings();
-  const { data: forklifts, isLoading: fLoading } = useForklifts();
+  const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
