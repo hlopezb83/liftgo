@@ -1,11 +1,4 @@
-import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { differenceInDays } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { useQuote, useUpdateQuote, useDeleteQuote } from "@/hooks/useQuotes";
-import { useCreateBooking } from "@/hooks/useBookings";
-import { useCustomers } from "@/hooks/useCustomers";
-import { supabase } from "@/integrations/supabase/client";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
@@ -21,10 +14,6 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
-import type { LineItem } from "@/lib/invoiceUtils";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { QuotePDFButton } from "@/components/quotes/QuotePDFButton";
 import { CustomerSelector } from "@/components/customers/CustomerSelector";
 import { STATUS_LABELS } from "@/lib/constants";
@@ -35,233 +24,28 @@ import { formatDateDisplay } from "@/lib/utils";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { useQuoteDetailLogic } from "@/hooks/useQuoteDetailLogic";
 
 export default function QuoteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: quote, isLoading } = useQuote(id);
-  const updateQuote = useUpdateQuote();
-  const deleteQuote = useDeleteQuote();
-  const createBooking = useCreateBooking();
-  const { data: customers } = useCustomers();
-  const { data: forklifts } = useForklifts();
-  const { data: equipmentModels } = useEquipmentModels();
+  const logic = useQuoteDetailLogic(id);
 
-  type DeliveryInfo = { bookingId: string; forkliftId: string; forkliftName: string; startDate: string; customerAddress: string | null };
-  const [pendingDeliveries, setPendingDeliveries] = useState<DeliveryInfo[]>([]);
-  const [currentDeliveryIndex, setCurrentDeliveryIndex] = useState(0);
-
-  const handleDeliveryNext = () => {
-    if (currentDeliveryIndex < pendingDeliveries.length - 1) {
-      setCurrentDeliveryIndex((prev) => prev + 1);
-    } else {
-      setPendingDeliveries([]);
-      setCurrentDeliveryIndex(0);
-      navigate("/calendar");
-    }
-  };
-
-  const { data: linkedBookings } = useQuery({
-    queryKey: ["bookings_for_quote", id],
-    enabled: !!id,
-    queryFn: async () => {
-      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id!);
-      return data || [];
-    },
-  });
-  const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
-
-  const customerMatch = useMemo(() => customers?.find(c => c.id === quote?.customer_id), [customers, quote?.customer_id]);
-  const quoteType = (quote as any)?.quote_type || "rental";
-  const isSale = quoteType === "sale";
-
-  const setStatus = (status: string) => {
-    if (!id) return;
-    updateQuote.mutate({ id, status }, { onSuccess: () => toast.success(`Cotización marcada como ${status}`) });
-  };
-
-  const [isConverting, setIsConverting] = useState(false);
-  const [showRecurringDialog, setShowRecurringDialog] = useState(false);
-  const [showCustomerReassignDialog, setShowCustomerReassignDialog] = useState(false);
-  const [reassignCustomerId, setReassignCustomerId] = useState("");
-  const [reassignCustomerName, setReassignCustomerName] = useState("");
-  const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
-  const [pendingRecurring, setPendingRecurring] = useState(false);
-
-  const durationDays = useMemo(() => {
-    if (!quote?.start_date || !quote?.end_date) return 0;
-    return differenceInDays(new Date(quote.end_date), new Date(quote.start_date));
-  }, [quote?.start_date, quote?.end_date]);
-
-  const isPublicoGeneral = (name?: string | null) =>
-    !!name && name.trim().toLowerCase().includes("público en general") || !!name && name.trim().toLowerCase().includes("publico en general");
-
-  // Extract rental meta from dedicated column, fallback to legacy _rentalMeta in line_items
-  const rentalMeta = useMemo(() => {
-    if (!quote || isSale) return [];
-    const fromColumn = (quote as any).rental_meta as { modelId: string; quantity: number }[] | undefined;
-    if (fromColumn && fromColumn.length > 0) return fromColumn;
-    const allItems = (quote.line_items as unknown as LineItem[]) || [];
-    const legacy = (allItems as any)?.[0]?._rentalMeta as { modelId: string; quantity: number }[] | undefined;
-    return legacy || [];
-  }, [quote, isSale]);
-
-  const isModelBasedQuote = rentalMeta.length > 0;
-
-  const handleConvertClick = () => {
-    if (isPublicoGeneral(quote?.customer_name)) {
-      setReassignCustomerId("");
-      setReassignCustomerName("");
-      setShowCustomerReassignDialog(true);
-    } else {
-      proceedWithConversion();
-    }
-  };
-
-  const proceedWithConversion = () => {
-    if (isModelBasedQuote) {
-      // Show assignment dialog first
-      if (durationDays >= 30) {
-        // Ask recurring first, then show assignment
-        setShowRecurringDialog(true);
-      } else {
-        setPendingRecurring(false);
-        setShowAssignmentDialog(true);
-      }
-    } else {
-      // Legacy flow: forklift already in line_items
-      if (durationDays >= 30) {
-        setShowRecurringDialog(true);
-      } else {
-        convertToBookingLegacy(false);
-      }
-    }
-  };
-
-  const handleReassignConfirm = async () => {
-    if (!quote || !reassignCustomerId) return;
-    await updateQuote.mutateAsync({ id: quote.id, customer_id: reassignCustomerId, customer_name: reassignCustomerName });
-    setShowCustomerReassignDialog(false);
-    toast.success("Cliente actualizado");
-    proceedWithConversion();
-  };
-
-  const handleRecurringChoice = (recurring: boolean) => {
-    setShowRecurringDialog(false);
-    setPendingRecurring(recurring);
-    if (isModelBasedQuote) {
-      setShowAssignmentDialog(true);
-    } else {
-      convertToBookingLegacy(recurring);
-    }
-  };
-
-  const handleAssignmentConfirm = async (forkliftIds: string[]) => {
-    if (!quote || !forklifts) return;
-    setIsConverting(true);
-    try {
-      const createdBookingIds: string[] = [];
-      for (const fId of forkliftIds) {
-        const bookingId = await createBooking.mutateAsync({
-          forklift_id: fId,
-          start_date: quote.start_date!,
-          end_date: quote.end_date!,
-          customer_name: quote.customer_name,
-          customer_id: quote.customer_id,
-          status: "confirmed",
-          recurring_billing: pendingRecurring,
-        });
-        await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
-        createdBookingIds.push(bookingId);
-      }
-
-      updateQuote.mutate({ id: quote.id, status: "accepted" });
-      toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
-      setShowAssignmentDialog(false);
-
-      const cust = customers?.find((c) => c.id === quote.customer_id);
-      const deliveries: DeliveryInfo[] = forkliftIds.map((fId, i) => {
-        const fl = forklifts.find((f) => f.id === fId);
-        return {
-          bookingId: createdBookingIds[i],
-          forkliftId: fId,
-          forkliftName: fl?.name || "Montacargas",
-          startDate: quote.start_date!,
-          customerAddress: cust?.address || null,
-        };
-      });
-      setCurrentDeliveryIndex(0);
-      setPendingDeliveries(deliveries);
-    } catch (err: any) {
-      toast.error(`Error al crear reserva: ${err.message}`);
-    } finally {
-      setIsConverting(false);
-    }
-  };
-
-  // Legacy conversion for old quotes with forklift_id
-  const convertToBookingLegacy = async (recurringBilling: boolean) => {
-    if (!quote || !forklifts) return;
-    const lineItems = (quote.line_items as unknown as LineItem[]) || [];
-    const forkliftIds: string[] = [];
-    for (const item of lineItems) {
-      const matched = forklifts.find((f) => item.description?.includes(f.name));
-      if (matched && !forkliftIds.includes(matched.id)) {
-        forkliftIds.push(matched.id);
-      }
-    }
-    if (forkliftIds.length === 0 && quote.forklift_id) {
-      forkliftIds.push(quote.forklift_id);
-    }
-    if (forkliftIds.length === 0) {
-      toast.error("No se encontraron montacargas para crear reservas");
-      return;
-    }
-
-    setIsConverting(true);
-    try {
-      const createdBookingIds: string[] = [];
-      for (const fId of forkliftIds) {
-        const bookingId = await createBooking.mutateAsync({
-          forklift_id: fId,
-          start_date: quote.start_date!,
-          end_date: quote.end_date!,
-          customer_name: quote.customer_name,
-          customer_id: quote.customer_id,
-          status: "confirmed",
-          recurring_billing: recurringBilling,
-        });
-        await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
-        createdBookingIds.push(bookingId);
-      }
-
-      updateQuote.mutate({ id: quote.id, status: "accepted" });
-      toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
-
-      const cust = customers?.find((c) => c.id === quote.customer_id);
-      const deliveries: DeliveryInfo[] = forkliftIds.map((fId, i) => {
-        const fl = forklifts.find((f) => f.id === fId);
-        return {
-          bookingId: createdBookingIds[i],
-          forkliftId: fId,
-          forkliftName: fl?.name || "Montacargas",
-          startDate: quote.start_date!,
-          customerAddress: cust?.address || null,
-        };
-      });
-      setCurrentDeliveryIndex(0);
-      setPendingDeliveries(deliveries);
-    } catch (err: any) {
-      toast.error(`Error al crear reserva: ${err.message}`);
-    } finally {
-      setIsConverting(false);
-    }
-  };
+  const {
+    quote, isLoading, lineItems, customerMatch, quoteType, isSale,
+    alreadyConverted, durationDays, rentalMeta, customers, forklifts, equipmentModels,
+    isConverting, showRecurringDialog, setShowRecurringDialog,
+    showCustomerReassignDialog, setShowCustomerReassignDialog,
+    reassignCustomerId, setReassignCustomerId, reassignCustomerName, setReassignCustomerName,
+    showAssignmentDialog, setShowAssignmentDialog,
+    pendingDeliveries, currentDeliveryIndex,
+    setStatus, handleDelete, handleConvertClick, handleReassignConfirm,
+    handleRecurringChoice, handleAssignmentConfirm, handleDeliveryNext,
+    isPublicoGeneral,
+  } = logic;
 
   if (isLoading) return <div className="p-6"><Skeleton className="h-64" /></div>;
   if (!quote) return <div className="p-6 text-muted-foreground">Cotización no encontrada</div>;
-
-  const lineItems = (quote.line_items as unknown as LineItem[]) || [];
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -309,13 +93,7 @@ export default function QuoteDetail() {
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={() => deleteQuote.mutate(id!, {
-                        onSuccess: async () => {
-                          toast.success("Cotización eliminada");
-                          navigate("/quotes");
-                        },
-                        onError: (err: Error) => toast.error(err.message),
-                      })}
+                      onClick={handleDelete}
                     >Eliminar</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -361,9 +139,7 @@ export default function QuoteDetail() {
         total={quote.total}
       />
 
-      {quote.notes && (
-        <NotesCard value={quote.notes} readOnly />
-      )}
+      {quote.notes && <NotesCard value={quote.notes} readOnly />}
 
       {isSale && quote.status === "accepted" && (
         <AssignForkliftsCard quoteId={quote.id} lineItems={lineItems} />
@@ -394,12 +170,8 @@ export default function QuoteDetail() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => handleRecurringChoice(false)}>
-              No, crear sin recurrente
-            </Button>
-            <Button onClick={() => handleRecurringChoice(true)}>
-              Sí, habilitar recurrente
-            </Button>
+            <Button variant="outline" onClick={() => handleRecurringChoice(false)}>No, crear sin recurrente</Button>
+            <Button onClick={() => handleRecurringChoice(true)}>Sí, habilitar recurrente</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
