@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FileDown, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { jsPDF } from "jspdf";
-import {
-  type ContractData, type PDFMode,
-  fetchRelatedData, fetchTemplate, fetchLogoBase64,
-  buildPlaceholderVars,
-  generateContractPages, generateChecklistPage, generatePagarePage,
-} from "@/lib/contractPdfGenerator";
+import type { ContractData, PDFMode } from "@/lib/contractPdfGenerator";
 
 export type { ContractData } from "@/lib/contractPdfGenerator";
 
