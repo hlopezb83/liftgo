@@ -57,7 +57,7 @@ export function MaintenanceKanban({ logs }: Props) {
       { id: logId, work_status: newStatus } as any,
       {
         onError: () => {
-          qc.invalidateQueries({ queryKey: ["maintenance_logs"] });
+          queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
           toast.error("Error al actualizar estado");
         },
       }

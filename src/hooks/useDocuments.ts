@@ -64,6 +64,6 @@ export function useDeleteDocument() {
       const { error } = await supabase.from("documents").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["documents"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["documents"] }),
   });
 }

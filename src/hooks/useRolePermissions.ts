@@ -63,7 +63,7 @@ export function useRolePermissions() {
 }
 
 export function useUpdatePermission() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ role, module, access_level }: { role: AppRole; module: string; access_level: AccessLevel }) => {
@@ -75,7 +75,7 @@ export function useUpdatePermission() {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["role_permissions"] });
+      queryClient.invalidateQueries({ queryKey: ["role_permissions"] });
     },
   });
 }

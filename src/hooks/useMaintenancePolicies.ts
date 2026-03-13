@@ -20,6 +20,7 @@ export interface MaintenancePolicy {
 export function useMaintenancePolicies() {
   return useQuery({
     queryKey: ["maintenance_policies"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("maintenance_policies" as any)

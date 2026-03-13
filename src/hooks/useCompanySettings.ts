@@ -47,6 +47,6 @@ export function useUpsertCompanySettings() {
         return data;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["company_settings"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["company_settings"] }),
   });
 }

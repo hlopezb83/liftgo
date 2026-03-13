@@ -96,12 +96,14 @@ export default function QuoteDetail() {
   const isPublicoGeneral = (name?: string | null) =>
     !!name && name.trim().toLowerCase().includes("público en general") || !!name && name.trim().toLowerCase().includes("publico en general");
 
-  // Extract rental meta from line_items
+  // Extract rental meta from dedicated column, fallback to legacy _rentalMeta in line_items
   const rentalMeta = useMemo(() => {
     if (!quote || isSale) return [];
+    const fromColumn = (quote as any).rental_meta as { modelId: string; quantity: number }[] | undefined;
+    if (fromColumn && fromColumn.length > 0) return fromColumn;
     const allItems = (quote.line_items as unknown as LineItem[]) || [];
-    const meta = (allItems as any)?.[0]?._rentalMeta as { modelId: string; quantity: number }[] | undefined;
-    return meta || [];
+    const legacy = (allItems as any)?.[0]?._rentalMeta as { modelId: string; quantity: number }[] | undefined;
+    return legacy || [];
   }, [quote, isSale]);
 
   const isModelBasedQuote = rentalMeta.length > 0;

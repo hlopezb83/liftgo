@@ -19,6 +19,7 @@ export interface AuditLog {
 export function useAuditLogs(filters?: { table_name?: string; record_id?: string }) {
   return useQuery({
     queryKey: ["audit_logs", filters],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
         .from("audit_logs")

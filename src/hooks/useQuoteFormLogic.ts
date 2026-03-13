@@ -185,11 +185,6 @@ export function useQuoteFormLogic() {
       ? (saleLines.find((l) => l.modelId)?.modelId || null)
       : (rentalLines.find((l) => l.modelId)?.modelId || null);
 
-    const finalLineItems = [...lineItems];
-    if (quoteType === "rental" && finalLineItems.length > 0) {
-      (finalLineItems[0] as any)._rentalMeta = rentalLines;
-    }
-
     const payload = {
       quote_number: existingQuote?.quote_number || nextNumber || "COT-0001",
       customer_id: customerId || null,
@@ -198,12 +193,13 @@ export function useQuoteFormLogic() {
       equipment_model_id: firstModelId,
       start_date: quoteType === "rental" ? format(startDate!, "yyyy-MM-dd") : today,
       end_date: quoteType === "rental" ? format(endDate!, "yyyy-MM-dd") : today,
-      line_items: finalLineItems as unknown as import("@/integrations/supabase/types").Json,
+      line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
       subtotal, tax_rate: Number(taxRate), tax_amount: taxAmount, total,
       status: existingQuote?.status || "draft",
       valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
       notes: notes || null,
       quote_type: quoteType,
+      rental_meta: quoteType === "rental" ? (rentalLines as unknown as import("@/integrations/supabase/types").Json) : null,
     };
 
     if (id) {

@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerField } from "@/components/DatePickerField";
+import { parseISO, format } from "date-fns";
 
 export default function ContractForm() {
   const {
     isEdit, form, customers, forklifts, isPending,
-    handleSubmit, updateField, navigate, parseISO, format,
+    handleSubmit, updateField, navigate,
   } = useContractFormLogic();
 
   return (
