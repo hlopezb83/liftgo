@@ -116,6 +116,17 @@ export default function OperatingExpensesPage() {
             {/* Filter bar */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <SearchBar value={search} onChange={setSearch} placeholder="Buscar por descripción…" className="sm:max-w-xs" />
+              <Select value={filterMonth} onValueChange={setFilterMonth}>
+                <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los meses</SelectItem>
+                  {availableMonths.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {capitalize(format(new Date(m + "-15"), "MMM yyyy", { locale: es }))}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
