@@ -79,8 +79,8 @@ export function useQuoteFormLogic() {
       if (!isSale && equipmentModels) {
         const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
         // Read rental_meta from dedicated column first, fallback to legacy _rentalMeta in line_items
-        const meta = ((existingQuote as any).rental_meta as RentalLine[] | undefined)
-          || ((allItems as any)?.[0]?._rentalMeta as RentalLine[] | undefined);
+        const meta = (existingQuote.rental_meta as unknown as RentalLine[] | undefined)
+          || ((allItems as unknown as Array<LineItem & { _rentalMeta?: RentalLine[] }>)?.[0]?._rentalMeta);
         if (meta && meta.length > 0) {
           setRentalLines(meta);
         } else if (nonLogisticsItems.length > 0) {
