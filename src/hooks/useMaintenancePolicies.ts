@@ -36,7 +36,7 @@ export function useMaintenancePolicies() {
 }
 
 export function useCreateMaintenancePolicy() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (policy: {
       forklift_id: string;
