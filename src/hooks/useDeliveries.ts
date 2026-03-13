@@ -27,9 +27,7 @@ export function useCreateDelivery() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al crear entrega", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al crear entrega", { description: err.message });
     },
   });
 }
