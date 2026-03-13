@@ -79,7 +79,7 @@ export default function Dashboard() {
       status: b.status,
       count: b.count,
       total: b.total,
-      color: INVOICE_STATUS_COLORS[b.status] || "hsl(220, 10%, 55%)",
+      color: INVOICE_STATUS_COLORS[b.status] || "hsl(var(--status-draft))",
     }))
   , [stats?.invoice_stats?.breakdown]);
 

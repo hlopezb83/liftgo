@@ -32,8 +32,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
           <p className="text-muted-foreground text-sm text-center py-10">Sin datos de facturación aún</p>
         )}
         <div className="flex justify-center gap-6 mt-2">
-          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full" style={{ background: "hsl(217, 91%, 60%)" }} />Facturado</div>
-          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full" style={{ background: "hsl(142, 71%, 45%)" }} />Pagado</div>
+          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-rented" />Facturado</div>
+          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-available" />Pagado</div>
         </div>
       </CardContent>
     </Card>

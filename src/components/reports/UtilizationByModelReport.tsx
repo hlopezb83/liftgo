@@ -29,9 +29,9 @@ interface ModelRow {
 const EXCLUDED_STATUSES = ["sold", "retired", "vendido", "retirado"];
 
 function getUtilColor(pct: number) {
-  if (pct > 75) return "hsl(142, 71%, 45%)";
-  if (pct >= 40) return "hsl(45, 93%, 47%)";
-  return "hsl(0, 84%, 60%)";
+  if (pct > 75) return "hsl(var(--status-available))";
+  if (pct >= 40) return "hsl(var(--status-warning))";
+  return "hsl(var(--status-overdue))";
 }
 
 export function UtilizationByModelReport({ forklifts, bookings, startDate, endDate }: Props) {
