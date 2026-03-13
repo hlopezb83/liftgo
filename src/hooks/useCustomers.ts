@@ -58,9 +58,7 @@ export function useDeleteCustomer() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      import("sonner").then(({ toast }) =>
-        toast.error("Error al eliminar cliente", { description: err.message })
-      );
+      toast.error("Error al eliminar cliente", { description: err.message });
     },
   });
 }
