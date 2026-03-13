@@ -1,9 +1,7 @@
-import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PageFallback } from "@/routes";
 
 export default function MainLayout() {
   return (
@@ -15,9 +13,7 @@ export default function MainLayout() {
             <SidebarTrigger />
           </header>
           <ErrorBoundary>
-            <Suspense fallback={<PageFallback />}>
-              <Outlet />
-            </Suspense>
+            <Outlet />
           </ErrorBoundary>
         </main>
       </div>
