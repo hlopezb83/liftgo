@@ -1,9 +1,6 @@
-import { lazy, Suspense, type ComponentType } from "react";
-import { Route } from "react-router-dom";
-import { RoleGuard } from "@/components/RoleGuard";
+import { lazy, type ComponentType } from "react";
 
 // Lazy-loaded pages
-const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Fleet = lazy(() => import("./pages/Fleet"));
 const ForkliftDetail = lazy(() => import("./pages/ForkliftDetail"));
@@ -41,7 +38,6 @@ const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const CRMPage = lazy(() => import("./pages/CRMPage"));
 const SuppliersPage = lazy(() => import("./pages/SuppliersPage"));
 const SupplierDetailPage = lazy(() => import("./pages/SupplierDetailPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Shared fallback
 export const PageFallback = () => (
@@ -51,20 +47,14 @@ export const PageFallback = () => (
   </div>
 );
 
-const NoAccess = () => (
-  <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
-    No tienes permiso para acceder a esta página.
-  </div>
-);
-
 // Route configuration — uses module names from role_permissions table
-interface RouteConfig {
+export interface RouteConfig {
   path: string;
   component: ComponentType;
   module?: string;
 }
 
-const routes: RouteConfig[] = [
+export const appRoutes: RouteConfig[] = [
   { path: "/", component: Dashboard, module: "Dashboard" },
   { path: "/fleet", component: Fleet, module: "Flota" },
   { path: "/fleet/new", component: ForkliftForm, module: "Flota" },
@@ -107,41 +97,3 @@ const routes: RouteConfig[] = [
   { path: "/changelog", component: ChangelogPage },
   { path: "/help", component: HelpPage },
 ];
-
-/** Generates all authenticated route elements for use inside a layout route */
-export function AppRoutes() {
-  return (
-    <>
-      {routes.map(({ path, component: Component, module }) => (
-        <Route
-          key={path}
-          path={path}
-          element={
-            module ? (
-              <RoleGuard module={module} fallback={<NoAccess />}>
-                <Component />
-              </RoleGuard>
-            ) : (
-              <Component />
-            )
-          }
-        />
-      ))}
-      <Route path="*" element={<NotFound />} />
-    </>
-  );
-}
-
-/** Portal login route (public, outside auth guard) */
-export function PortalLoginRoute() {
-  return (
-    <Route
-      path="/portal/login"
-      element={
-        <Suspense fallback={<PageFallback />}>
-          <PortalLogin />
-        </Suspense>
-      }
-    />
-  );
-}
