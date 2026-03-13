@@ -140,12 +140,12 @@ function useResetPassword() {
       if (data?.error) throw new Error(data.error);
       return data as { email: string; password: string };
     },
-    onError: (err: Error) => toast({ title: "Error al resetear contraseña", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al resetear contraseña", { description: err.message }),
   });
 }
 
 function useToggleStatus() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       const { data, error } = await supabase.functions.invoke("toggle-user-status", { body: { user_id: userId, is_active: isActive } });
