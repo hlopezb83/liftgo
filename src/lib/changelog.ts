@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.47.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Extracción de lógica de detalle de cotización",
+    description: "Toda la lógica de negocio de QuoteDetail.tsx extraída a useQuoteDetailLogic.ts — la página ahora es un componente puro de presentación.",
+    changes: [
+      "useQuoteDetailLogic.ts creado — consolida conversión a reserva, reasignación de cliente, facturación recurrente, asignación de equipos y flujo de entregas",
+      "QuoteDetail.tsx reducido de ~444 a ~200 líneas — solo renderizado y orquestación de UI",
+      "Fix: error de suspense sincrónico resuelto — MainLayout ya no es lazy-loaded y cada ruta tiene su propio Suspense boundary",
+    ],
+  },
+  {
     version: "3.46.0",
     date: "2026-03-13",
     type: "minor",
