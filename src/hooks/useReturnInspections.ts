@@ -5,6 +5,7 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 export function useReturnInspections(forkliftId?: string) {
   return useQuery({
     queryKey: ["return_inspections", forkliftId],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase.from("return_inspections").select("*, bookings(customer_name, start_date, end_date), forklifts(name, model)").order("inspected_at", { ascending: false });
       if (forkliftId) query = query.eq("forklift_id", forkliftId);
@@ -16,7 +17,7 @@ export function useReturnInspections(forkliftId?: string) {
 }
 
 export function useCreateReturnInspection() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (inspection: TablesInsert<"return_inspections">) => {
       const { data, error } = await supabase.rpc("complete_return_inspection", {
@@ -34,10 +35,10 @@ export function useCreateReturnInspection() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["return_inspections"] });
-      qc.invalidateQueries({ queryKey: ["bookings"] });
-      qc.invalidateQueries({ queryKey: ["forklifts"] });
-      qc.invalidateQueries({ queryKey: ["status_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["return_inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>

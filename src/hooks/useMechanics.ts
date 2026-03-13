@@ -17,6 +17,7 @@ type MechanicInput = {
 export function useMechanics() {
   return useQuery({
     queryKey: ["mechanics"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mechanics")
@@ -31,6 +32,7 @@ export function useMechanics() {
 export function useActiveMechanics() {
   return useQuery({
     queryKey: ["mechanics", "active"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mechanics")
@@ -44,36 +46,36 @@ export function useActiveMechanics() {
 }
 
 export function useCreateMechanic() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: MechanicInput) => {
       const { data, error } = await supabase.from("mechanics").insert(input).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["mechanics"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mechanics"] }),
   });
 }
 
 export function useUpdateMechanic() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...input }: MechanicInput & { id: string }) => {
       const { data, error } = await supabase.from("mechanics").update(input).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["mechanics"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mechanics"] }),
   });
 }
 
 export function useDeleteMechanic() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("mechanics").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["mechanics"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mechanics"] }),
   });
 }

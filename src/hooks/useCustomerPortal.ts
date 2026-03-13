@@ -2,12 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
-export function useCustomerPortal() {
+export function usePortalCustomer() {
   const { user } = useAuth();
-
-  const customerQuery = useQuery({
+  return useQuery({
     queryKey: ["portal_customer", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customers")
@@ -18,10 +18,14 @@ export function useCustomerPortal() {
       return data;
     },
   });
+}
 
-  const bookingsQuery = useQuery({
+export function usePortalBookings() {
+  const { user } = useAuth();
+  return useQuery({
     queryKey: ["portal_bookings", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
@@ -31,10 +35,14 @@ export function useCustomerPortal() {
       return data;
     },
   });
+}
 
-  const invoicesQuery = useQuery({
+export function usePortalInvoices() {
+  const { user } = useAuth();
+  return useQuery({
     queryKey: ["portal_invoices", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
@@ -44,10 +52,14 @@ export function useCustomerPortal() {
       return data;
     },
   });
+}
 
-  const contractsQuery = useQuery({
+export function usePortalContracts() {
+  const { user } = useAuth();
+  return useQuery({
     queryKey: ["portal_contracts", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contracts")
@@ -57,10 +69,14 @@ export function useCustomerPortal() {
       return data;
     },
   });
+}
 
-  const paymentsQuery = useQuery({
+export function usePortalPayments() {
+  const { user } = useAuth();
+  return useQuery({
     queryKey: ["portal_payments", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
@@ -70,17 +86,24 @@ export function useCustomerPortal() {
       return data;
     },
   });
+}
+
+/**
+ * @deprecated Use individual hooks (usePortalCustomer, usePortalBookings, etc.) instead.
+ */
+export function useCustomerPortal() {
+  const { data: customer, isLoading: customerLoading } = usePortalCustomer();
+  const { data: bookings, isLoading: bookingsLoading } = usePortalBookings();
+  const { data: invoices, isLoading: invoicesLoading } = usePortalInvoices();
+  const { data: contracts, isLoading: contractsLoading } = usePortalContracts();
+  const { data: payments } = usePortalPayments();
 
   return {
-    customer: customerQuery.data,
-    bookings: bookingsQuery.data,
-    invoices: invoicesQuery.data,
-    contracts: contractsQuery.data,
-    payments: paymentsQuery.data,
-    isLoading:
-      customerQuery.isLoading ||
-      bookingsQuery.isLoading ||
-      invoicesQuery.isLoading ||
-      contractsQuery.isLoading,
+    customer,
+    bookings,
+    invoices,
+    contracts,
+    payments,
+    isLoading: customerLoading || bookingsLoading || invoicesLoading || contractsLoading,
   };
 }

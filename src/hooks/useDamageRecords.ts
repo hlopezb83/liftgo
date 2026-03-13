@@ -6,6 +6,7 @@ export type { DamageRecord } from "@/types/rental";
 export function useDamageRecords() {
   return useQuery({
     queryKey: ["damage_records"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("damage_records")
@@ -18,14 +19,14 @@ export function useDamageRecords() {
 }
 
 export function useCreateDamageRecord() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (record: TablesInsert<"damage_records">) => {
       const { data, error } = await supabase.from("damage_records").insert(record).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["damage_records"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al crear registro de daño", description: err.message, variant: "destructive" })
@@ -35,14 +36,14 @@ export function useCreateDamageRecord() {
 }
 
 export function useUpdateDamageRecord() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"damage_records"> & { id: string }) => {
       const { data, error } = await supabase.from("damage_records").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["damage_records"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al actualizar registro de daño", description: err.message, variant: "destructive" })

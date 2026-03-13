@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { replacePlaceholders } from "@/lib/templateUtils";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
@@ -46,10 +47,8 @@ export interface TemplateData {
   pagare_text: string | null;
 }
 
-// --- Placeholder replacement ---
-export function replacePlaceholders(text: string, vars: Record<string, string>): string {
-  return text.replace(/\{(\w+)\}/g, (match, key) => vars[key] ?? match);
-}
+// replacePlaceholders is now imported from @/lib/templateUtils
+export { replacePlaceholders } from "@/lib/templateUtils";
 
 export function buildPlaceholderVars(contract: ContractData, company: any, customer: any, forklift: any): Record<string, string> {
   return {

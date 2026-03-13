@@ -28,6 +28,7 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
 export function useOperatingExpenses() {
   return useQuery({
     queryKey: ["operating_expenses"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operating_expenses")
@@ -40,14 +41,14 @@ export function useOperatingExpenses() {
 }
 
 export function useCreateExpense() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (expense: { category: ExpenseCategory; description?: string; amount: number; expense_date: string; is_recurring?: boolean }) => {
       const { error } = await supabase.from("operating_expenses").insert(expense);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["operating_expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
       toast.success("Gasto registrado");
     },
     onError: () => toast.error("Error al registrar gasto"),
@@ -55,14 +56,14 @@ export function useCreateExpense() {
 }
 
 export function useUpdateExpense() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; category?: ExpenseCategory; description?: string; amount?: number; expense_date?: string; is_recurring?: boolean }) => {
       const { error } = await supabase.from("operating_expenses").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["operating_expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
       toast.success("Gasto actualizado");
     },
     onError: () => toast.error("Error al actualizar gasto"),
@@ -70,14 +71,14 @@ export function useUpdateExpense() {
 }
 
 export function useDeleteExpense() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("operating_expenses").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["operating_expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
       toast.success("Gasto eliminado");
     },
     onError: () => toast.error("Error al eliminar gasto"),
@@ -85,10 +86,9 @@ export function useDeleteExpense() {
 }
 
 export function useGenerateRecurring() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      // 1. Get all recurring templates
       const { data: recurring, error: fetchErr } = await supabase
         .from("operating_expenses")
         .select("*")
@@ -99,11 +99,9 @@ export function useGenerateRecurring() {
         return 0;
       }
 
-      // 2. Get current month boundaries
       const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
       const monthKey = format(new Date(), "yyyy-MM");
 
-      // 3. Get existing expenses this month
       const { data: existing, error: existErr } = await supabase
         .from("operating_expenses")
         .select("category, description")
@@ -111,7 +109,6 @@ export function useGenerateRecurring() {
         .lt("expense_date", `${monthKey}-32`);
       if (existErr) throw existErr;
 
-      // 4. Filter out already-existing
       const existingSet = new Set(
         (existing || []).map((e: any) => `${e.category}::${e.description || ""}`)
       );
@@ -138,7 +135,7 @@ export function useGenerateRecurring() {
     },
     onSuccess: (count) => {
       if (count && count > 0) {
-        qc.invalidateQueries({ queryKey: ["operating_expenses"] });
+        queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
         toast.success(`${count} gasto(s) recurrente(s) generado(s)`);
       }
     },

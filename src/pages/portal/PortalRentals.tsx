@@ -1,12 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
-import { useCustomerPortal } from "@/hooks/useCustomerPortal";
+import { usePortalBookings } from "@/hooks/useCustomerPortal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 
 export default function PortalRentals() {
-  const { bookings, isLoading } = useCustomerPortal();
+  const { data: bookings, isLoading } = usePortalBookings();
 
   if (isLoading) return <Skeleton className="h-96" />;
 

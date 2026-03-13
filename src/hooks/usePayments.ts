@@ -28,7 +28,7 @@ export function useInvoicePaymentsTotal(invoiceId: string | undefined) {
 }
 
 export function useCreatePayment() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payment: Omit<Payment, "id" | "created_at">) => {
       const { data, error } = await supabase
@@ -38,7 +38,6 @@ export function useCreatePayment() {
         .single();
       if (error) throw error;
 
-      // Check if invoice is fully paid
       const { data: allPayments } = await supabase
         .from("payments")
         .select("amount")
@@ -63,8 +62,8 @@ export function useCreatePayment() {
       return data;
     },
     onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: ["payments", vars.invoice_id] });
-      qc.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["payments", vars.invoice_id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
     },
   });
 }

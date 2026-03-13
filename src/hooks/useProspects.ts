@@ -26,6 +26,7 @@ const QUERY_KEY = ["prospects"];
 export function useProspects() {
   return useQuery({
     queryKey: QUERY_KEY,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("prospects")
@@ -38,10 +39,9 @@ export function useProspects() {
 }
 
 export function useCreateProspect() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (p: Omit<ProspectInsert, "stage_order" | "customer_id">) => {
-      // Get max stage_order for this stage
       const { data: existing } = await supabase
         .from("prospects")
         .select("stage_order")
@@ -58,7 +58,7 @@ export function useCreateProspect() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       toast({ title: "Prospecto creado" });
     },
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
@@ -66,7 +66,7 @@ export function useCreateProspect() {
 }
 
 export function useUpdateProspect() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: ProspectUpdate) => {
       const { data, error } = await supabase
@@ -78,20 +78,20 @@ export function useUpdateProspect() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 }
 
 export function useDeleteProspect() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("prospects").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       toast({ title: "Prospecto eliminado" });
     },
     onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),

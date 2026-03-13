@@ -7,6 +7,7 @@ type Contract = ContractViewModel;
 export function useContracts() {
   return useQuery({
     queryKey: ["contracts"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contracts")
@@ -40,7 +41,7 @@ export function useContract(id: string | undefined) {
 }
 
 export function useCreateContract() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (contract: Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name">) => {
       const { data: num, error: numErr } = await supabase.rpc("next_contract_number");
@@ -53,12 +54,12 @@ export function useCreateContract() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["contracts"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contracts"] }),
   });
 }
 
 export function useUpdateContract() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
       const { data, error } = await supabase
@@ -71,8 +72,8 @@ export function useUpdateContract() {
       return data;
     },
     onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: ["contracts"] });
-      qc.invalidateQueries({ queryKey: ["contracts", vars.id] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts", vars.id] });
     },
   });
 }
