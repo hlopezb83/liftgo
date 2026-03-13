@@ -1664,6 +1664,35 @@ export type Database = {
         Returns: string
       }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
+      get_available_forklifts: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: {
+          acquisition_cost: number | null
+          capacity_kg: number | null
+          created_at: string
+          daily_rate: number | null
+          fuel_type: string | null
+          id: string
+          image_url: string | null
+          manufacturer: string | null
+          mast_height_m: number | null
+          model: string
+          monthly_rate: number | null
+          name: string
+          notes: string | null
+          serial_number: string | null
+          status: string
+          updated_at: string
+          weekly_rate: number | null
+          year: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "forklifts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_customer_id_for_user: { Args: { p_user_id: string }; Returns: string }
       get_dashboard_stats: { Args: never; Returns: Json }
       has_role: {

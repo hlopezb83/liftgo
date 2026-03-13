@@ -1,4 +1,4 @@
-import { useActivityFeed } from "@/hooks/useActivityFeed";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Activity } from "lucide-react";
@@ -20,7 +20,8 @@ const ENTITY_ROUTES: Record<string, string> = {
 };
 
 export function RecentActivity() {
-  const { data: activities } = useActivityFeed(5);
+  const { data: stats } = useDashboardStats();
+  const activities = stats?.recent_activity ?? [];
   const navigate = useNavigate();
 
   return (
@@ -31,7 +32,7 @@ export function RecentActivity() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {activities && activities.length > 0 ? (
+        {activities.length > 0 ? (
           <div className="space-y-3">
             {activities.map((a) => (
               <div
