@@ -19,7 +19,7 @@ export function useDocuments(entityType: string, entityId: string | undefined) {
 }
 
 export function useUploadDocument() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
       file,
