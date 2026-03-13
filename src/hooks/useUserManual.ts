@@ -25,7 +25,7 @@ export function useUserManual() {
   const versionsQuery = useQuery({
     queryKey: ["user-manual-versions"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("user_manual")
         .select("id, version, generated_at")
         .order("generated_at", { ascending: false });
