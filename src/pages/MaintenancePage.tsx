@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
-import { MarkAvailableDialog } from "@/components/MarkAvailableDialog";
+import { MarkAvailableDialog } from "@/components/fleet/MarkAvailableDialog";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveMechanics } from "@/hooks/useMechanics";
