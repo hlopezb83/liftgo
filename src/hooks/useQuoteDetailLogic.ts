@@ -67,10 +67,10 @@ export function useQuoteDetailLogic(id: string | undefined) {
 
   const rentalMeta = useMemo(() => {
     if (!quote || isSale) return [];
-    const fromColumn = (quote as any).rental_meta as { modelId: string; quantity: number }[] | undefined;
+    const fromColumn = quote.rental_meta as unknown as { modelId: string; quantity: number }[] | undefined;
     if (fromColumn && fromColumn.length > 0) return fromColumn;
     const allItems = (quote.line_items as unknown as LineItem[]) || [];
-    const legacy = (allItems as any)?.[0]?._rentalMeta as { modelId: string; quantity: number }[] | undefined;
+    const legacy = (allItems as unknown as Array<LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }>)?.[0]?._rentalMeta;
     return legacy || [];
   }, [quote, isSale]);
 
