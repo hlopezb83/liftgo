@@ -59,9 +59,9 @@ export function useCreateProspect() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast({ title: "Prospecto creado" });
+      toast.success("Prospecto creado");
     },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast.error("Error", { description: e.message }),
   });
 }
 
