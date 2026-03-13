@@ -75,6 +75,12 @@ export default function OperatingExpensesPage() {
     }
   };
 
+  const availableCategories = useMemo(() => {
+    const set = new Set<ExpenseCategory>();
+    (expenses || []).forEach((e) => set.add(e.category));
+    return CATEGORIES.filter(([v]) => set.has(v));
+  }, [expenses]);
+
   const filtered = useMemo(() => {
     return (expenses || []).filter((e) => {
       if (filterCategory !== "all" && e.category !== filterCategory) return false;
