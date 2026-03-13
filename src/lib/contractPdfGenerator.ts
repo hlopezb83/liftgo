@@ -47,7 +47,7 @@ export interface TemplateData {
   pagare_text: string | null;
 }
 
-// Re-export from shared utility for backward compatibility
+// replacePlaceholders is now imported from @/lib/templateUtils
 export { replacePlaceholders } from "@/lib/templateUtils";
 
 export function buildPlaceholderVars(contract: ContractData, company: any, customer: any, forklift: any): Record<string, string> {
