@@ -127,6 +127,7 @@ const routes: RouteConfig[] = [
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="forklift-theme">
   <QueryClientProvider client={queryClient}>
+    <AuthProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
