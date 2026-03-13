@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AppProviders } from "@/components/AppProviders";
 import { AuthGuard } from "@/components/AuthGuard";
 import { appRoutes, PageFallback } from "@/routes";
 import { RoleGuard } from "@/components/RoleGuard";
+import MainLayout from "@/layouts/MainLayout";
 
-const MainLayout = lazy(() => import("./layouts/MainLayout"));
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -26,17 +26,19 @@ const App = () => (
               key={path}
               path={path}
               element={
-                module ? (
-                  <RoleGuard module={module} fallback={<NoAccess />}>
+                <Suspense fallback={<PageFallback />}>
+                  {module ? (
+                    <RoleGuard module={module} fallback={<NoAccess />}>
+                      <Component />
+                    </RoleGuard>
+                  ) : (
                     <Component />
-                  </RoleGuard>
-                ) : (
-                  <Component />
-                )
+                  )}
+                </Suspense>
               }
             />
           ))}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<Suspense fallback={<PageFallback />}><NotFound /></Suspense>} />
         </Route>
       </Routes>
     </BrowserRouter>
