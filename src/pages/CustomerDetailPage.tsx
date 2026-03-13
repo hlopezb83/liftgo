@@ -59,7 +59,7 @@ export default function CustomerDetailPage() {
       const res = await supabase.functions.invoke("invite-customer", { body: { customer_id: id, email: inviteEmail } });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
-      toast({ title: "Invitación enviada", description: `Acceso al portal creado para ${inviteEmail}` });
+      toast.success("Invitación enviada", { description: `Acceso al portal creado para ${inviteEmail}` });
       setInviteOpen(false);
       setInviteEmail("");
       queryClient.invalidateQueries({ queryKey: ["customers"] });
