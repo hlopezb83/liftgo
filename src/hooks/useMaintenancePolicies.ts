@@ -47,8 +47,8 @@ export function useCreateMaintenancePolicy() {
       description?: string;
     }) => {
       const { data, error } = await supabase
-        .from("maintenance_policies" as any)
-        .insert(policy as any)
+        .from("maintenance_policies")
+        .insert(policy)
         .select()
         .single();
       if (error) throw error;
