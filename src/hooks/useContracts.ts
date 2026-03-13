@@ -7,6 +7,7 @@ type Contract = ContractViewModel;
 export function useContracts() {
   return useQuery({
     queryKey: ["contracts"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contracts")
