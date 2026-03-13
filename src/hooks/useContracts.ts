@@ -54,7 +54,7 @@ export function useCreateContract() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["contracts"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contracts"] }),
   });
 }
 
