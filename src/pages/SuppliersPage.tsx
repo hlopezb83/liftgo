@@ -125,7 +125,7 @@ export default function SuppliersPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExport}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
-            <RoleGuard allowed={["admin", "administrativo"]}>
+            <RoleGuard module="Proveedores" minAccess="full">
               <Button onClick={openCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" />Nuevo Proveedor</Button>
             </RoleGuard>
           </div>

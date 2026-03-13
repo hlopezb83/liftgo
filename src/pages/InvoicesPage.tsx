@@ -100,7 +100,7 @@ export default function InvoicesPage() {
       subtitle="Administrar facturación y pagos"
       actions={
         <div className="flex gap-2">
-          <RoleGuard allowed={["admin", "administrativo"]}>
+          <RoleGuard module="Facturas" minAccess="full">
             <Button variant="outline" size="sm" onClick={handleGenerateRecurring} disabled={isGenerating}>
               <RefreshCw className={`h-4 w-4 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
               Generar Recurrentes

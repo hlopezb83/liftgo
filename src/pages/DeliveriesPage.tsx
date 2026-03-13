@@ -199,7 +199,7 @@ export default function DeliveriesPage() {
                     <CheckCircle className="h-4 w-4 text-status-available" />
                   </Button>
                 )}
-                <RoleGuard allowed={["admin", "administrativo"]}>
+                <RoleGuard module="Entregas" minAccess="full">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="icon" title="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>
