@@ -72,10 +72,10 @@ export function ContractTemplateTab() {
       await updateMutation.mutateAsync({
         id: template.id,
         intro_text: introText,
-        declarations_landlord: declLandlord as any,
-        declarations_tenant: declTenant as any,
-        clauses: clauses as any,
-        checklist_sections: checklistSections as any,
+        declarations_landlord: declLandlord as unknown as import("@/integrations/supabase/types").Json,
+        declarations_tenant: declTenant as unknown as import("@/integrations/supabase/types").Json,
+        clauses: clauses as unknown as import("@/integrations/supabase/types").Json,
+        checklist_sections: checklistSections as unknown as import("@/integrations/supabase/types").Json,
         pagare_text: pagareText,
       });
       toast.success("Plantilla guardada correctamente.");

@@ -68,7 +68,7 @@ export default function OperatingExpensesPage() {
   };
 
   const handleSave = () => {
-    const payload = { category: form.category, description: form.description || undefined, amount: parseFloat(form.amount), expense_date: form.expense_date, is_recurring: form.is_recurring, supplier_id: form.supplier_id || null } as any;
+    const payload = { category: form.category as import("@/hooks/useOperatingExpenses").ExpenseCategory, description: form.description || undefined, amount: parseFloat(form.amount), expense_date: form.expense_date, is_recurring: form.is_recurring, supplier_id: form.supplier_id || null };
     if (!payload.amount || isNaN(payload.amount)) return;
     if (editingId) {
       updateExpense.mutate({ id: editingId, ...payload }, { onSuccess: () => setDialogOpen(false) });

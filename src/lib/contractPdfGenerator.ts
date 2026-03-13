@@ -86,7 +86,7 @@ export async function fetchRelatedData(contract: ContractData) {
       ? supabase.from("forklifts").select("*").eq("id", contract.forklift_id).single()
       : Promise.resolve({ data: null }),
   ]);
-  return { company: companyRes.data, customer: customerRes.data as any, forklift: forkliftRes.data as any };
+  return { company: companyRes.data, customer: customerRes.data, forklift: forkliftRes.data };
 }
 
 export async function fetchTemplate(): Promise<TemplateData> {

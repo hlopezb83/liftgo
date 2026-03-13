@@ -183,7 +183,7 @@ export function useInvoiceFormLogic() {
   const removeLineItem = (index: number) => setLineItems((previous) => previous.filter((_, i) => i !== index));
 
   const handleCfdiUpdate = (field: string, value: string | number) => {
-    setCfdi(field as keyof CfdiFormState, value as any);
+    setCfdi(field as keyof CfdiFormState, value as CfdiFormState[keyof CfdiFormState]);
   };
 
   // ─── Computed values ────────────────────────────────────
