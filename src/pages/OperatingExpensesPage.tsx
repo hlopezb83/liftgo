@@ -154,7 +154,7 @@ export default function OperatingExpensesPage() {
                   ) : (
                     filtered.map((e) => (
                       <TableRow key={e.id}>
-                        <TableCell>{format(parseISO(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
+                        <TableCell>{format(parseDateLocal(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
                         <TableCell>
                           <Badge variant={e.category === "costo_venta" ? "secondary" : "outline"}>
                             {EXPENSE_CATEGORY_LABELS[e.category]}
