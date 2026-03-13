@@ -96,7 +96,7 @@ export default function DeliveriesPage() {
                 </Button>
               </div>
             )}
-            <RoleGuard allowed={["admin", "administrativo"]}>
+            <RoleGuard module="Entregas" minAccess="full">
               <div className={`${d.status === "completed" ? "mt-3 pt-3 border-t" : "mt-2"}`}>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
