@@ -64,7 +64,7 @@ export default function CustomerDetailPage() {
       setInviteEmail("");
       queryClient.invalidateQueries({ queryKey: ["customers"] });
     } catch (err: unknown) {
-      toast({ title: "Error", description: err instanceof Error ? err.message : "Error desconocido", variant: "destructive" });
+      toast.error("Error", { description: err instanceof Error ? err.message : "Error desconocido" });
     } finally {
       setInviting(false);
     }
