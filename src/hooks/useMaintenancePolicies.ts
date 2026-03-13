@@ -75,7 +75,7 @@ export function useUpdateMaintenancePolicy() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["maintenance_policies"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
       toast.success("Póliza actualizada");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -83,7 +83,7 @@ export function useUpdateMaintenancePolicy() {
 }
 
 export function useDeleteMaintenancePolicy() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
