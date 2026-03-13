@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.41.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Colores migrados a tokens semánticos del design system",
+    description: "Todos los colores HSL hardcodeados en gráficas y componentes del dashboard se reemplazaron por variables CSS centralizadas, facilitando la tematización y el modo oscuro.",
+    changes: [
+      "Nuevos tokens CSS: --status-overdue, --status-draft, --status-warning, --gantt-1 a --gantt-8",
+      "Dashboard, CashFlowChart, UtilizationCharts, GanttChart y UtilizationByModelReport migrados a tokens",
+      "Tailwind config extendido con colores status.overdue, status.draft, status.warning y gantt.1-8",
+      "Leyendas del CashFlowChart usan clases Tailwind en lugar de estilos inline",
+    ],
+  },
+  {
     version: "3.40.0",
     date: "2026-03-13",
     type: "minor",

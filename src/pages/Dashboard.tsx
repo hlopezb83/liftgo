@@ -15,18 +15,18 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { differenceInDays, parseISO } from "date-fns";
 
 const STATUS_COLORS = {
-  available: "hsl(142, 71%, 45%)",
-  rented: "hsl(217, 91%, 60%)",
-  maintenance: "hsl(38, 92%, 50%)",
-  retired: "hsl(220, 10%, 55%)",
-  sold: "hsl(200, 15%, 45%)",
+  available: "hsl(var(--status-available))",
+  rented: "hsl(var(--status-rented))",
+  maintenance: "hsl(var(--status-maintenance))",
+  retired: "hsl(var(--status-retired))",
+  sold: "hsl(var(--status-sold))",
 };
 
 const INVOICE_STATUS_COLORS: Record<string, string> = {
-  draft: "hsl(220, 10%, 55%)",
-  sent: "hsl(217, 91%, 60%)",
-  overdue: "hsl(0, 84%, 60%)",
-  paid: "hsl(142, 71%, 45%)",
+  draft: "hsl(var(--status-draft))",
+  sent: "hsl(var(--status-rented))",
+  overdue: "hsl(var(--status-overdue))",
+  paid: "hsl(var(--status-available))",
 };
 
 export default function Dashboard() {
@@ -79,7 +79,7 @@ export default function Dashboard() {
       status: b.status,
       count: b.count,
       total: b.total,
-      color: INVOICE_STATUS_COLORS[b.status] || "hsl(220, 10%, 55%)",
+      color: INVOICE_STATUS_COLORS[b.status] || "hsl(var(--status-draft))",
     }))
   , [stats?.invoice_stats?.breakdown]);
 

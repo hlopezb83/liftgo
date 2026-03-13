@@ -9,14 +9,14 @@ import type { Tables } from "@/integrations/supabase/types";
 type Forklift = Tables<"forklifts">;
 
 const BOOKING_COLORS = [
-  "hsl(217, 91%, 60%)",
-  "hsl(25, 95%, 53%)",
-  "hsl(280, 65%, 60%)",
-  "hsl(142, 71%, 45%)",
-  "hsl(38, 92%, 50%)",
-  "hsl(340, 75%, 55%)",
-  "hsl(190, 80%, 45%)",
-  "hsl(60, 70%, 45%)",
+  "hsl(var(--gantt-1))",
+  "hsl(var(--gantt-2))",
+  "hsl(var(--gantt-3))",
+  "hsl(var(--gantt-4))",
+  "hsl(var(--gantt-5))",
+  "hsl(var(--gantt-6))",
+  "hsl(var(--gantt-7))",
+  "hsl(var(--gantt-8))",
 ];
 
 function hashColor(name: string): string {
