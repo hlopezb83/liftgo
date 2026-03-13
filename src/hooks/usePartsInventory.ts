@@ -23,7 +23,7 @@ export function usePartsInventory() {
 }
 
 export function useCreatePart() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (part: TablesInsert<"parts_inventory">) => {
       const { data, error } = await supabase
@@ -34,7 +34,7 @@ export function useCreatePart() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["parts_inventory"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
     onError: (err: Error) => {
       import("sonner").then(({ toast }) =>
         toast.error("Error al crear refacción", { description: err.message })
@@ -44,7 +44,7 @@ export function useCreatePart() {
 }
 
 export function useUpdatePart() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<PartInventory>) => {
       const { data, error } = await supabase
@@ -56,12 +56,12 @@ export function useUpdatePart() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["parts_inventory"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
   });
 }
 
 export function useDeletePart() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -70,7 +70,7 @@ export function useDeletePart() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["parts_inventory"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
     onError: (err: Error) => {
       import("sonner").then(({ toast }) =>
         toast.error("Error al eliminar refacción", { description: err.message })
@@ -98,12 +98,11 @@ export function useMaintenanceParts(maintenanceLogId?: string) {
 }
 
 export function useAddMaintenancePart() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (row: TablesInsert<"maintenance_parts"> & { currentLogCost?: number }) => {
       const { currentLogCost, ...insertRow } = row;
       
-      // Insert the maintenance_part (trigger handles stock decrement)
       const { data, error } = await supabase
         .from("maintenance_parts")
         .insert(insertRow)
@@ -111,7 +110,6 @@ export function useAddMaintenancePart() {
         .single();
       if (error) throw error;
 
-      // Update maintenance_logs.cost by adding the part cost
       const partCost = (insertRow.quantity_used || 1) * (insertRow.cost_at_time || 0);
       const newTotalCost = (currentLogCost || 0) + partCost;
       
@@ -125,9 +123,9 @@ export function useAddMaintenancePart() {
       return data;
     },
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: ["maintenance_parts", variables.maintenance_log_id] });
-      qc.invalidateQueries({ queryKey: ["parts_inventory"] });
-      qc.invalidateQueries({ queryKey: ["maintenance_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance_parts", variables.maintenance_log_id] });
+      queryClient.invalidateQueries({ queryKey: ["parts_inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
     },
     onError: (err: Error) => {
       import("sonner").then(({ toast }) =>

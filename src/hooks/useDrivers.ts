@@ -32,6 +32,7 @@ export function useDrivers() {
 export function useActiveDrivers() {
   return useQuery({
     queryKey: ["drivers", "active"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("drivers")
@@ -45,36 +46,36 @@ export function useActiveDrivers() {
 }
 
 export function useCreateDriver() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: DriverInput) => {
       const { data, error } = await supabase.from("drivers").insert(input).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["drivers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drivers"] }),
   });
 }
 
 export function useUpdateDriver() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...input }: DriverInput & { id: string }) => {
       const { data, error } = await supabase.from("drivers").update(input).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["drivers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drivers"] }),
   });
 }
 
 export function useDeleteDriver() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("drivers").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["drivers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drivers"] }),
   });
 }

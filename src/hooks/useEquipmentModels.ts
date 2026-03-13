@@ -33,36 +33,36 @@ export function useEquipmentModels() {
 }
 
 export function useCreateEquipmentModel() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: EquipmentModelInput) => {
       const { data, error } = await supabase.from("equipment_models").insert(input).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipment_models"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["equipment_models"] }),
   });
 }
 
 export function useUpdateEquipmentModel() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...input }: EquipmentModelInput & { id: string }) => {
       const { data, error } = await supabase.from("equipment_models").update(input).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipment_models"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["equipment_models"] }),
   });
 }
 
 export function useDeleteEquipmentModel() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("equipment_models").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["equipment_models"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["equipment_models"] }),
   });
 }

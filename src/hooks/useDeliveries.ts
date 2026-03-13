@@ -17,14 +17,14 @@ export function useDeliveries(bookingId?: string) {
 }
 
 export function useCreateDelivery() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (delivery: TablesInsert<"deliveries">) => {
       const { data, error } = await supabase.from("deliveries").insert(delivery).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["deliveries"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al crear entrega", description: err.message, variant: "destructive" })
@@ -34,14 +34,14 @@ export function useCreateDelivery() {
 }
 
 export function useUpdateDelivery() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"deliveries"> & { id: string }) => {
       const { data, error } = await supabase.from("deliveries").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["deliveries"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>
         toast({ title: "Error al actualizar entrega", description: err.message, variant: "destructive" })
@@ -51,12 +51,12 @@ export function useUpdateDelivery() {
 }
 
 export function useDeleteDelivery() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("deliveries").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["deliveries"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries"] }),
   });
 }

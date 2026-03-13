@@ -17,7 +17,7 @@ export function useReturnInspections(forkliftId?: string) {
 }
 
 export function useCreateReturnInspection() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (inspection: TablesInsert<"return_inspections">) => {
       const { data, error } = await supabase.rpc("complete_return_inspection", {
@@ -35,10 +35,10 @@ export function useCreateReturnInspection() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["return_inspections"] });
-      qc.invalidateQueries({ queryKey: ["bookings"] });
-      qc.invalidateQueries({ queryKey: ["forklifts"] });
-      qc.invalidateQueries({ queryKey: ["status_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["return_inspections"] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
       import("@/hooks/use-toast").then(({ toast }) =>

@@ -29,6 +29,7 @@ export const SUPPLIER_CATEGORIES: Record<string, string> = {
 export function useSuppliers() {
   return useQuery({
     queryKey: ["suppliers"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("suppliers")
@@ -41,7 +42,7 @@ export function useSuppliers() {
 }
 
 export function useCreateSupplier() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (supplier: Omit<Supplier, "id" | "created_at" | "updated_at">) => {
       const { data, error } = await supabase.from("suppliers").insert(supplier).select().single();
@@ -49,7 +50,7 @@ export function useCreateSupplier() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["suppliers"] });
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
       toast.success("Proveedor creado");
     },
     onError: (err: Error) => toast.error(`Error al crear proveedor: ${err.message}`),
@@ -57,7 +58,7 @@ export function useCreateSupplier() {
 }
 
 export function useUpdateSupplier() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Supplier> & { id: string }) => {
       const { data, error } = await supabase.from("suppliers").update(updates).eq("id", id).select().single();
@@ -65,7 +66,7 @@ export function useUpdateSupplier() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["suppliers"] });
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
       toast.success("Proveedor actualizado");
     },
     onError: (err: Error) => toast.error(`Error al actualizar proveedor: ${err.message}`),
@@ -73,14 +74,14 @@ export function useUpdateSupplier() {
 }
 
 export function useDeleteSupplier() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("suppliers").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["suppliers"] });
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
       toast.success("Proveedor eliminado");
     },
     onError: (err: Error) => toast.error(`Error al eliminar proveedor: ${err.message}`),
