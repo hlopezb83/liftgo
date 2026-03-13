@@ -8,26 +8,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ResponsiveContainer }
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
 import { isWithinInterval } from "date-fns";
-import type { Tables } from "@/integrations/supabase/types";
-
-type Forklift = Tables<"forklifts">;
-type Booking = Tables<"bookings">;
-type Invoice = Tables<"invoices">;
-type MaintenanceLog = Tables<"maintenance_logs">;
-
-interface DamageRecord {
-  id: string;
-  forklift_id: string;
-  actual_cost: number | null;
-  created_at: string;
-}
+import { useForklifts } from "@/hooks/useForklifts";
+import { useBookings } from "@/hooks/useBookings";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
+import { useDamageRecords } from "@/hooks/useDamageRecords";
 
 interface Props {
-  forklifts: Forklift[];
-  invoices: Invoice[];
-  bookings: Booking[];
-  maintenanceLogs: MaintenanceLog[];
-  damageRecords: DamageRecord[];
   startDate: Date;
   endDate: Date;
 }
@@ -51,7 +38,12 @@ function inRange(dateStr: string | null | undefined, start: Date, end: Date) {
   }
 }
 
-export function ProfitabilityByModelReport({ forklifts, invoices, bookings, maintenanceLogs, damageRecords, startDate, endDate }: Props) {
+export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
+  const { data: forklifts = [] } = useForklifts();
+  const { data: bookings = [] } = useBookings();
+  const { data: invoices = [] } = useInvoices();
+  const { data: maintenanceLogs = [] } = useMaintenanceLogs();
+  const { data: damageRecords = [] } = useDamageRecords();
   const rows = useMemo<ModelRow[]>(() => {
     // Map forklift_id -> model key
     const forkliftModel = new Map<string, string>();

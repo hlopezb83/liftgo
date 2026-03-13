@@ -6,17 +6,18 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { exportToCsv } from "@/lib/exportCsv";
 import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
-import type { BookingWithForklift } from "@/hooks/useBookings";
+import { useForklifts } from "@/hooks/useForklifts";
+import { useBookings } from "@/hooks/useBookings";
 
 interface Props {
-  forklifts: Tables<"forklifts">[];
-  bookings: BookingWithForklift[];
   startDate: Date;
   endDate: Date;
 }
 
-export function UtilizationReport({ forklifts, bookings, startDate, endDate }: Props) {
+export function UtilizationReport({ startDate, endDate }: Props) {
+  const { data: forklifts = [] } = useForklifts();
+  const { data: bookings = [] } = useBookings();
+
   const data = useMemo(() => {
     const totalDays = Math.max(differenceInDays(endDate, startDate), 1);
     return forklifts.map((fl) => {

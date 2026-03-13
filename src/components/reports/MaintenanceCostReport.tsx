@@ -7,16 +7,17 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import { useForklifts } from "@/hooks/useForklifts";
+import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
 
 interface Props {
-  maintenanceLogs: Tables<"maintenance_logs">[];
-  forklifts: Tables<"forklifts">[];
   startDate: Date;
   endDate: Date;
 }
 
-export function MaintenanceCostReport({ maintenanceLogs, forklifts, startDate, endDate }: Props) {
+export function MaintenanceCostReport({ startDate, endDate }: Props) {
+  const { data: forklifts = [] } = useForklifts();
+  const { data: maintenanceLogs = [] } = useMaintenanceLogs();
   const forkliftMap = useMemo(() => new Map(forklifts.map((f) => [f.id, f.name])), [forklifts]);
 
   const data = useMemo(() => {

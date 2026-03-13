@@ -8,15 +8,15 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import { useInvoices } from "@/hooks/useInvoices";
 
 interface Props {
-  invoices: Tables<"invoices">[];
   startDate: Date;
   endDate: Date;
 }
 
-export function RevenueReport({ invoices, startDate, endDate }: Props) {
+export function RevenueReport({ startDate, endDate }: Props) {
+  const { data: invoices = [] } = useInvoices();
   const data = useMemo(() => {
     const filtered = invoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
     const months: Record<string, { month: string; invoiced: number; paid: number; count: number }> = {};
