@@ -50,7 +50,16 @@ export default function OperatingExpensesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterMonth, setFilterMonth] = useState<string>(format(new Date(), "yyyy-MM"));
   const [search, setSearch] = useState("");
+
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    (expenses || []).forEach((e) => set.add(e.expense_date.slice(0, 7)));
+    // always include current month
+    set.add(format(new Date(), "yyyy-MM"));
+    return Array.from(set).sort().reverse();
+  }, [expenses]);
 
   const openEdit = (e: any) => {
     setEditingId(e.id);
