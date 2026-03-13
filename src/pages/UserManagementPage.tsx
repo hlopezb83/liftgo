@@ -99,7 +99,7 @@ function useUpdateName() {
 }
 
 function useInviteUser() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { email: string; full_name: string; role: string; password?: string }) => {
       const { data, error } = await supabase.functions.invoke("invite-user", { body: payload });
@@ -108,10 +108,10 @@ function useInviteUser() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Usuario creado exitosamente" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Usuario creado exitosamente");
     },
-    onError: (err: Error) => toast({ title: "Error al crear usuario", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al crear usuario", { description: err.message }),
   });
 }
 
