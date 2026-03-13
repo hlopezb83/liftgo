@@ -1,5 +1,5 @@
 import { useBookings } from "@/hooks/useBookings";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { PageTransition } from "@/components/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
