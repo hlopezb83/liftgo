@@ -15,7 +15,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/hooks/useProspects";
-import { CustomerFormDialog } from "@/components/CustomerFormDialog";
+import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
 import type { CustomerFormData } from "@/lib/formSchemas";
 
 export default function CustomersPage() {

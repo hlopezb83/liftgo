@@ -10,8 +10,8 @@ import { Send, CheckCircle, XCircle, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 import { formatDateDisplay } from "@/lib/utils";
-import { ContractPDFButton } from "@/components/ContractPDFButton";
-import { RentalFinancialSummary } from "@/components/RentalFinancialSummary";
+import { ContractPDFButton } from "@/components/contracts/ContractPDFButton";
+import { RentalFinancialSummary } from "@/components/contracts/RentalFinancialSummary";
 import { toast } from "sonner";
 
 export default function ContractDetail() {

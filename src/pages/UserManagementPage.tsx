@@ -22,7 +22,7 @@ import { UserPlus, Trash2, Pencil, KeyRound, ShieldCheck } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
-import { CredentialsDialog } from "@/components/CredentialsDialog";
+import { CredentialsDialog } from "@/components/users/CredentialsDialog";
 import { useNavigate } from "react-router-dom";
 import { TablePagination } from "@/components/TablePagination";
 import type { AppRole } from "@/hooks/useUserRole";
