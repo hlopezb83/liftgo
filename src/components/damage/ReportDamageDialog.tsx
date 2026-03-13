@@ -61,7 +61,7 @@ export function ReportDamageDialog() {
 
   const handleSubmit = async () => {
     if (!forkliftId || !description.trim()) {
-      toast({ title: "Campos requeridos", description: "Selecciona un montacargas y describe el daño.", variant: "destructive" });
+      toast.error("Campos requeridos", { description: "Selecciona un montacargas y describe el daño." });
       return;
     }
     setSubmitting(true);
