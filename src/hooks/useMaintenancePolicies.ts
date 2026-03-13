@@ -88,7 +88,7 @@ export function useDeleteMaintenancePolicy() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("maintenance_policies" as any)
+        .from("maintenance_policies")
         .delete()
         .eq("id", id);
       if (error) throw error;
