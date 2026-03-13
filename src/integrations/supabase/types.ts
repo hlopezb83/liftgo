@@ -1465,6 +1465,33 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          access_level: string
+          created_at: string
+          id: string
+          module: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          created_at?: string
+          id?: string
+          module: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string
+          id?: string
+          module?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       status_logs: {
         Row: {
           changed_at: string

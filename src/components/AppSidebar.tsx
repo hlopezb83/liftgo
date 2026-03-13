@@ -5,13 +5,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import type { AppRole } from "@/hooks/useUserRole";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useRolePermissions, ROUTE_TO_MODULE, type AccessLevel } from "@/hooks/useRolePermissions";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
-type NavItem = { title: string; url: string; icon: React.ElementType; roles?: AppRole[] };
+type NavItem = { title: string; url: string; icon: React.ElementType };
 type NavGroup = { label: string; items: NavItem[] };
 
 const navGroups: NavGroup[] = [
@@ -25,19 +26,19 @@ const navGroups: NavGroup[] = [
   {
     label: "Comercial",
     items: [
-      { title: "CRM", url: "/crm", icon: Target, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
+      { title: "CRM", url: "/crm", icon: Target },
       { title: "Clientes", url: "/customers", icon: Users },
-      { title: "Cotizaciones", url: "/quotes", icon: FileText, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
-      { title: "Reservas", url: "/bookings", icon: BookOpen, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
+      { title: "Cotizaciones", url: "/quotes", icon: FileText },
+      { title: "Reservas", url: "/bookings", icon: BookOpen },
     ],
   },
   {
     label: "Operaciones",
     items: [
-      { title: "Contratos", url: "/contracts", icon: ScrollText, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-      { title: "Entregas", url: "/deliveries", icon: TruckIcon, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-      { title: "Facturas", url: "/invoices", icon: Receipt, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
+      { title: "Contratos", url: "/contracts", icon: ScrollText },
+      { title: "Entregas", url: "/deliveries", icon: TruckIcon },
+      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck },
+      { title: "Facturas", url: "/invoices", icon: Receipt },
     ],
   },
   {
@@ -46,26 +47,29 @@ const navGroups: NavGroup[] = [
       { title: "Equipos", url: "/fleet", icon: Truck },
       { title: "Mantenimiento", url: "/maintenance", icon: Wrench },
       { title: "Daños", url: "/damage", icon: AlertTriangle },
-      { title: "Refacciones", url: "/inventory", icon: Package, roles: ["admin", "administrativo", "mechanic", "auditor"] },
+      { title: "Refacciones", url: "/inventory", icon: Package },
     ],
   },
   {
     label: "Administración",
     items: [
-      { title: "Proveedores", url: "/suppliers", icon: Handshake, roles: ["admin", "administrativo", "auditor"] },
-      { title: "Gastos Operativos", url: "/expenses", icon: Wallet, roles: ["admin", "administrativo", "auditor"] },
-      { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign, roles: ["admin", "administrativo", "auditor"] },
-      { title: "Reportes", url: "/reports", icon: BarChart3, roles: ["admin", "dispatcher", "administrativo", "auditor", "ventas"] },
+      { title: "Proveedores", url: "/suppliers", icon: Handshake },
+      { title: "Gastos Operativos", url: "/expenses", icon: Wallet },
+      { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
+      { title: "Reportes", url: "/reports", icon: BarChart3 },
       { title: "Actividad", url: "/activity", icon: Activity },
-      { title: "Bitácora", url: "/audit", icon: History, roles: ["admin", "dispatcher", "administrativo", "auditor"] },
-      { title: "Configuración", url: "/settings/operations", icon: Settings, roles: ["admin", "administrativo", "auditor"] },
-      { title: "Datos Fiscales", url: "/settings/company", icon: Building2, roles: ["admin", "auditor"] },
-      { title: "Usuarios", url: "/users", icon: ShieldCheck, roles: ["admin", "auditor"] },
+      { title: "Bitácora", url: "/audit", icon: History },
+      { title: "Configuración", url: "/settings/operations", icon: Settings },
+      { title: "Datos Fiscales", url: "/settings/company", icon: Building2 },
+      { title: "Usuarios", url: "/users", icon: ShieldCheck },
       { title: "Changelog", url: "/changelog", icon: ScrollText },
       { title: "Ayuda", url: "/help", icon: HelpCircle },
     ],
   },
 ];
+
+// Items that are always visible (no permission check)
+const ALWAYS_VISIBLE = ["/changelog", "/help", "/activity", "/audit"];
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -76,10 +80,19 @@ function ThemeToggle() {
   );
 }
 
+function getItemAccess(perms: Record<string, Record<string, AccessLevel>> | undefined, role: AppRole | undefined, url: string): AccessLevel {
+  if (!perms || !role) return "none";
+  if (ALWAYS_VISIBLE.includes(url)) return "full";
+  const module = ROUTE_TO_MODULE[url];
+  if (!module) return "full";
+  return perms[role]?.[module] ?? "none";
+}
+
 export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
   const { data: company } = useCompanySettings();
+  const { data: perms } = useRolePermissions();
 
   return (
     <Sidebar>
@@ -100,7 +113,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         {navGroups.map((group) => {
-          const visibleItems = group.items.filter((item) => !item.roles || (role && item.roles.includes(role)));
+          const visibleItems = group.items.filter((item) => getItemAccess(perms, role, item.url) !== "none");
           if (visibleItems.length === 0) return null;
           return (
             <SidebarGroup key={group.label}>
