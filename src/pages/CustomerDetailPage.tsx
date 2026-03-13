@@ -32,7 +32,6 @@ export default function CustomerDetailPage() {
   const { data: allBookings } = useBookings();
   const { data: allInvoices } = useInvoices();
   const { data: role } = useUserRole();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
