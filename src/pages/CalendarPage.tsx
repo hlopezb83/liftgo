@@ -24,7 +24,7 @@ export default function CalendarPage() {
   const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
 
-  const forkliftMap = useMemo(() => new Map(forklifts?.map((f) => [f.id, f])), [forklifts]);
+  
 
   // Compute range based on ganttRange
   const rangeStart = ganttRange === "month" ? startOfMonth(currentDate) : startOfWeek(currentDate, { weekStartsOn: 1 });
