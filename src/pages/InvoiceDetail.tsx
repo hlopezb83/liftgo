@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useInvoice, useUpdateInvoice, useDeleteInvoice } from "@/hooks/useInvoices";
-import { useUpdateBooking } from "@/hooks/useBookings";
+import { useUpdateBooking, useBooking, type BookingWithForklift } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
