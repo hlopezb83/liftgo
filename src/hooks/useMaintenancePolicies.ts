@@ -23,11 +23,11 @@ export function useMaintenancePolicies() {
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("maintenance_policies" as any)
+        .from("maintenance_policies")
         .select("*, forklifts(name, status)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as any[]).map((p) => ({
+      return (data ?? []).map((p) => ({
         ...p,
         forklift_name: p.forklifts?.name ?? "",
         forklift_status: p.forklifts?.status ?? "",
