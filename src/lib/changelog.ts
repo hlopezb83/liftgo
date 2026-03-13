@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.39.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Filtro por mes en Gastos Operativos",
+    description: "Se agregó un dropdown para filtrar gastos operativos por mes, mostrando meses disponibles dinámicamente. El total se actualiza automáticamente según el mes seleccionado.",
+    changes: [
+      "Nuevo selector de mes en la barra de filtros de gastos operativos",
+      "Lista dinámica de meses disponibles a partir de los datos existentes",
+      "El resumen de totales refleja el filtro de mes seleccionado",
+      "Por defecto se muestra el mes actual",
+    ],
+  },
+  {
     version: "3.38.4",
     date: "2026-03-12",
     type: "patch",

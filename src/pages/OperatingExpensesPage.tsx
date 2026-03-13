@@ -13,7 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Repeat, RefreshCw, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { format, parseISO } from "date-fns";
+import { capitalize, parseDateLocal } from "@/lib/utils";
+import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   useOperatingExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useGenerateRecurring,
@@ -49,7 +50,16 @@ export default function OperatingExpensesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterMonth, setFilterMonth] = useState<string>(format(new Date(), "yyyy-MM"));
   const [search, setSearch] = useState("");
+
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    (expenses || []).forEach((e) => set.add(e.expense_date.slice(0, 7)));
+    // always include current month
+    set.add(format(new Date(), "yyyy-MM"));
+    return Array.from(set).sort().reverse();
+  }, [expenses]);
 
   const openEdit = (e: any) => {
     setEditingId(e.id);
@@ -68,10 +78,11 @@ export default function OperatingExpensesPage() {
   const filtered = useMemo(() => {
     return (expenses || []).filter((e) => {
       if (filterCategory !== "all" && e.category !== filterCategory) return false;
+      if (filterMonth !== "all" && !e.expense_date.startsWith(filterMonth)) return false;
       if (search && !(e.description || "").toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [expenses, filterCategory, search]);
+  }, [expenses, filterCategory, filterMonth, search]);
 
   const total = useMemo(() => filtered.reduce((sum, e) => sum + e.amount, 0), [filtered]);
 
@@ -105,6 +116,17 @@ export default function OperatingExpensesPage() {
             {/* Filter bar */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <SearchBar value={search} onChange={setSearch} placeholder="Buscar por descripción…" className="sm:max-w-xs" />
+              <Select value={filterMonth} onValueChange={setFilterMonth}>
+                <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los meses</SelectItem>
+                  {availableMonths.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {capitalize(format(new Date(m + "-15"), "MMM yyyy", { locale: es }))}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -132,7 +154,7 @@ export default function OperatingExpensesPage() {
                   ) : (
                     filtered.map((e) => (
                       <TableRow key={e.id}>
-                        <TableCell>{format(parseISO(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
+                        <TableCell>{format(parseDateLocal(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
                         <TableCell>
                           <Badge variant={e.category === "costo_venta" ? "secondary" : "outline"}>
                             {EXPENSE_CATEGORY_LABELS[e.category]}
