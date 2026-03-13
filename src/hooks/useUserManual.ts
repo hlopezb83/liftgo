@@ -83,10 +83,10 @@ export function useUserManual() {
       setSelectedVersion(null);
       queryClient.invalidateQueries({ queryKey: ["user-manual"] });
       queryClient.invalidateQueries({ queryKey: ["user-manual-versions"] });
-      toast({ title: "Manual generado", description: "El manual de usuario se generó exitosamente." });
+      toast.success("Manual generado", { description: "El manual de usuario se generó exitosamente." });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.error("Error", { description: error.message });
     },
   });
 

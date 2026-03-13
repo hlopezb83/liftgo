@@ -42,9 +42,7 @@ export function useUpdateDelivery() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al actualizar entrega", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al actualizar entrega", { description: err.message });
     },
   });
 }

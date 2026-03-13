@@ -84,8 +84,7 @@ export function ReportDamageDialog() {
         }
       }
 
-      toast({
-        title: "Daño reportado",
+      toast.success("Daño reportado", {
         description: previews.length > 0
           ? `Registro creado con ${previews.length} foto(s).`
           : "El registro de daño se creó correctamente.",

@@ -92,8 +92,8 @@ export function useDeleteProspect() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast({ title: "Prospecto eliminado" });
+      toast.success("Prospecto eliminado");
     },
-    onError: (e: Error) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast.error("Error", { description: e.message }),
   });
 }

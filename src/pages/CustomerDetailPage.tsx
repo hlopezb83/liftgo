@@ -216,7 +216,7 @@ export default function CustomerDetailPage() {
                   if (!id) return;
                   deleteCustomer.mutate(id, {
                     onSuccess: () => {
-                      sonnerToast.success("Cliente eliminado");
+                      toast.success("Cliente eliminado");
                       navigate("/customers");
                     },
                   });

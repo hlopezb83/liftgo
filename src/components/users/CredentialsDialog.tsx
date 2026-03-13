@@ -17,7 +17,7 @@ export function CredentialsDialog({ credentials, onClose }: CredentialsDialogPro
   const handleCopy = async (value: string, field: string) => {
     await navigator.clipboard.writeText(value);
     setCopiedField(field);
-    toast({ title: "Copiado al portapapeles" });
+    toast.success("Copiado al portapapeles");
     setTimeout(() => setCopiedField(null), 2000);
   };
 

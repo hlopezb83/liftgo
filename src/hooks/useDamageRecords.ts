@@ -44,9 +44,7 @@ export function useUpdateDamageRecord() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al actualizar registro de daño", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al actualizar registro de daño", { description: err.message });
     },
   });
 }
