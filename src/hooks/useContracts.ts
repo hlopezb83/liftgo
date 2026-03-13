@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import type { ContractViewModel } from "@/types/rental";
 
 type Contract = ContractViewModel;
@@ -61,7 +62,7 @@ export function useCreateContract() {
 export function useUpdateContract() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+    mutationFn: async ({ id, ...updates }: TablesUpdate<"contracts"> & { id: string }) => {
       const { data, error } = await supabase
         .from("contracts")
         .update(updates)

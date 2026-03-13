@@ -202,7 +202,5 @@ export function useContractFormLogic() {
     handleSubmit,
     updateField,
     navigate,
-    parseISO,
-    format,
   };
 }

@@ -1333,6 +1333,7 @@ export type Database = {
           notes: string | null
           quote_number: string
           quote_type: string
+          rental_meta: Json | null
           start_date: string | null
           status: string
           subtotal: number
@@ -1354,6 +1355,7 @@ export type Database = {
           notes?: string | null
           quote_number: string
           quote_type?: string
+          rental_meta?: Json | null
           start_date?: string | null
           status?: string
           subtotal?: number
@@ -1375,6 +1377,7 @@ export type Database = {
           notes?: string | null
           quote_number?: string
           quote_type?: string
+          rental_meta?: Json | null
           start_date?: string | null
           status?: string
           subtotal?: number

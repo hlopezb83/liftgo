@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
@@ -69,37 +69,37 @@ function useUsersWithRoles() {
 }
 
 function useUpdateRole() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
       const { error } = await supabase.from("user_roles").update({ role }).eq("user_id", userId);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Rol actualizado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Rol actualizado");
     },
-    onError: (err: Error) => toast({ title: "Error al actualizar rol", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al actualizar rol", { description: err.message }),
   });
 }
 
 function useUpdateName() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, fullName }: { userId: string; fullName: string }) => {
       const { error } = await supabase.from("profiles").update({ full_name: fullName }).eq("user_id", userId);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Nombre actualizado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Nombre actualizado");
     },
-    onError: (err: Error) => toast({ title: "Error al actualizar nombre", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al actualizar nombre", { description: err.message }),
   });
 }
 
 function useInviteUser() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: { email: string; full_name: string; role: string; password?: string }) => {
       const { data, error } = await supabase.functions.invoke("invite-user", { body: payload });
@@ -108,15 +108,15 @@ function useInviteUser() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Usuario creado exitosamente" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Usuario creado exitosamente");
     },
-    onError: (err: Error) => toast({ title: "Error al crear usuario", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al crear usuario", { description: err.message }),
   });
 }
 
 function useDeleteUser() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
       const { data, error } = await supabase.functions.invoke("delete-user", { body: { user_id: userId } });
@@ -125,10 +125,10 @@ function useDeleteUser() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Usuario eliminado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Usuario eliminado");
     },
-    onError: (err: Error) => toast({ title: "Error al eliminar usuario", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al eliminar usuario", { description: err.message }),
   });
 }
 
@@ -140,12 +140,12 @@ function useResetPassword() {
       if (data?.error) throw new Error(data.error);
       return data as { email: string; password: string };
     },
-    onError: (err: Error) => toast({ title: "Error al resetear contraseña", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al resetear contraseña", { description: err.message }),
   });
 }
 
 function useToggleStatus() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       const { data, error } = await supabase.functions.invoke("toggle-user-status", { body: { user_id: userId, is_active: isActive } });
@@ -154,10 +154,10 @@ function useToggleStatus() {
       return data;
     },
     onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: vars.isActive ? "Usuario activado" : "Usuario desactivado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success(vars.isActive ? "Usuario activado" : "Usuario desactivado");
     },
-    onError: (err: Error) => toast({ title: "Error al cambiar estado", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al cambiar estado", { description: err.message }),
   });
 }
 

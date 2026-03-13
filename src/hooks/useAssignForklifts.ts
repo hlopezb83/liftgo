@@ -23,7 +23,7 @@ export function useQuoteAssignments(quoteId: string | undefined) {
 }
 
 export function useAssignForklift() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (assignments: { quoteId: string; forkliftId: string; lineIndex: number }[]) => {
       // Insert assignments
@@ -59,9 +59,9 @@ export function useAssignForklift() {
       }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
-      qc.invalidateQueries({ queryKey: ["forklifts"] });
-      qc.invalidateQueries({ queryKey: ["status_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
       toast.success("Equipos asignados correctamente");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -69,7 +69,7 @@ export function useAssignForklift() {
 }
 
 export function useUnassignForklift() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ assignmentId, forkliftId }: { assignmentId: string; forkliftId: string }) => {
       const { error } = await supabase
@@ -91,9 +91,9 @@ export function useUnassignForklift() {
       });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
-      qc.invalidateQueries({ queryKey: ["forklifts"] });
-      qc.invalidateQueries({ queryKey: ["status_logs"] });
+      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
       toast.success("Equipo desasignado");
     },
     onError: (err: Error) => toast.error(err.message),

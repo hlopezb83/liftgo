@@ -88,22 +88,3 @@ export function usePortalPayments() {
   });
 }
 
-/**
- * @deprecated Use individual hooks (usePortalCustomer, usePortalBookings, etc.) instead.
- */
-export function useCustomerPortal() {
-  const { data: customer, isLoading: customerLoading } = usePortalCustomer();
-  const { data: bookings, isLoading: bookingsLoading } = usePortalBookings();
-  const { data: invoices, isLoading: invoicesLoading } = usePortalInvoices();
-  const { data: contracts, isLoading: contractsLoading } = usePortalContracts();
-  const { data: payments } = usePortalPayments();
-
-  return {
-    customer,
-    bookings,
-    invoices,
-    contracts,
-    payments,
-    isLoading: customerLoading || bookingsLoading || invoicesLoading || contractsLoading,
-  };
-}

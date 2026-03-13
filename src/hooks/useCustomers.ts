@@ -17,50 +17,50 @@ export function useCustomers() {
 }
 
 export function useCreateCustomer() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (customer: TablesInsert<"customers">) => {
       const { data, error } = await supabase.from("customers").insert(customer).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al crear cliente", description: err.message, variant: "destructive" })
+      import("sonner").then(({ toast }) =>
+        toast.error("Error al crear cliente", { description: err.message })
       );
     },
   });
 }
 
 export function useUpdateCustomer() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"customers"> & { id: string }) => {
       const { data, error } = await supabase.from("customers").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al actualizar cliente", description: err.message, variant: "destructive" })
+      import("sonner").then(({ toast }) =>
+        toast.error("Error al actualizar cliente", { description: err.message })
       );
     },
   });
 }
 
 export function useDeleteCustomer() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("customers").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al eliminar cliente", description: err.message, variant: "destructive" })
+      import("sonner").then(({ toast }) =>
+        toast.error("Error al eliminar cliente", { description: err.message })
       );
     },
   });

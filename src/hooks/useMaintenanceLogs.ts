@@ -19,30 +19,30 @@ export function useMaintenanceLogs(forkliftId?: string) {
 }
 
 export function useCreateMaintenanceLog() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (log: TablesInsert<"maintenance_logs">) => {
       const { data, error } = await supabase.from("maintenance_logs").insert(log).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["maintenance_logs"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al crear registro de mantenimiento", description: err.message, variant: "destructive" })
+      import("sonner").then(({ toast }) =>
+        toast.error("Error al crear registro de mantenimiento", { description: err.message })
       );
     },
   });
 }
 
 export function useUpdateMaintenanceLog() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenanceLog>) => {
       const { data, error } = await supabase.from("maintenance_logs").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["maintenance_logs"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
   });
 }

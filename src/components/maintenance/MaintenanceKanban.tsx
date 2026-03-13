@@ -34,7 +34,7 @@ interface Props {
 export function MaintenanceKanban({ logs }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
   const updateLog = useUpdateMaintenanceLog();
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
 
   const columns = MAINTENANCE_WORK_STATUSES.map((status) => ({
     id: status,
@@ -49,7 +49,7 @@ export function MaintenanceKanban({ logs }: Props) {
     const newStatus = result.destination.droppableId;
 
     // Optimistic update
-    qc.setQueryData<MaintenanceLog[]>(["maintenance_logs", undefined], (old) =>
+    queryClient.setQueryData<MaintenanceLog[]>(["maintenance_logs", undefined], (old) =>
       old?.map((l) => (l.id === logId ? { ...l, work_status: newStatus } : l))
     );
 
@@ -57,7 +57,7 @@ export function MaintenanceKanban({ logs }: Props) {
       { id: logId, work_status: newStatus } as any,
       {
         onError: () => {
-          qc.invalidateQueries({ queryKey: ["maintenance_logs"] });
+          queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
           toast.error("Error al actualizar estado");
         },
       }

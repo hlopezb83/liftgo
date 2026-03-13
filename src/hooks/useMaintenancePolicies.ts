@@ -20,6 +20,7 @@ export interface MaintenancePolicy {
 export function useMaintenancePolicies() {
   return useQuery({
     queryKey: ["maintenance_policies"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("maintenance_policies" as any)
@@ -36,7 +37,7 @@ export function useMaintenancePolicies() {
 }
 
 export function useCreateMaintenancePolicy() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (policy: {
       forklift_id: string;
@@ -54,7 +55,7 @@ export function useCreateMaintenancePolicy() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["maintenance_policies"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
       toast.success("Póliza de mantenimiento creada");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -62,7 +63,7 @@ export function useCreateMaintenancePolicy() {
 }
 
 export function useUpdateMaintenancePolicy() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenancePolicy>) => {
       const { data, error } = await supabase
@@ -75,7 +76,7 @@ export function useUpdateMaintenancePolicy() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["maintenance_policies"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
       toast.success("Póliza actualizada");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -83,7 +84,7 @@ export function useUpdateMaintenancePolicy() {
 }
 
 export function useDeleteMaintenancePolicy() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -93,7 +94,7 @@ export function useDeleteMaintenancePolicy() {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["maintenance_policies"] });
+      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
       toast.success("Póliza eliminada");
     },
     onError: (err: Error) => toast.error(err.message),

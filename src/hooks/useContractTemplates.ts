@@ -28,6 +28,7 @@ export interface ContractTemplate {
 export function useDefaultContractTemplate() {
   return useQuery({
     queryKey: ["contract_templates", "default"],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contract_templates")

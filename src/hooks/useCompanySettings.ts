@@ -18,7 +18,7 @@ export function useCompanySettings() {
 }
 
 export function useUpsertCompanySettings() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (settings: {
       id?: string;
@@ -47,6 +47,6 @@ export function useUpsertCompanySettings() {
         return data;
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["company_settings"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["company_settings"] }),
   });
 }

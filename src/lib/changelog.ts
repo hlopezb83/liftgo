@@ -9,6 +9,23 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.44.0",
+    date: "2026-03-13",
+    type: "minor",
+    title: "Limpieza arquitectónica: datos, naming y consistencia",
+    description: "Eliminación del hack _rentalMeta, estandarización de naming y toasts, y limpieza de código deprecado.",
+    changes: [
+      "Columna rental_meta agregada a quotes — elimina hack de data smuggling _rentalMeta en line_items",
+      "Renombrado qc → queryClient en 11 archivos (estándar de naming)",
+      "Toasts estandarizados en sonner (eliminados imports de use-toast en hooks de datos)",
+      "Eliminado useCustomerPortal deprecado (los portales ya usan hooks individuales)",
+      "Eliminada re-exportación innecesaria de replacePlaceholders en contractPdfGenerator",
+      "parseISO/format removidos de la API de useContractFormLogic (importados directamente en ContractForm)",
+      "useUpdateContract tipado con TablesUpdate<contracts> en lugar de [key: string]: any",
+      "staleTime agregado a useAuditLogs, useContractTemplates y useMaintenancePolicies",
+    ],
+  },
+  {
     version: "3.43.0",
     date: "2026-03-13",
     type: "minor",
