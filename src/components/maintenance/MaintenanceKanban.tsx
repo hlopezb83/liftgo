@@ -34,7 +34,7 @@ interface Props {
 export function MaintenanceKanban({ logs }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
   const updateLog = useUpdateMaintenanceLog();
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
 
   const columns = MAINTENANCE_WORK_STATUSES.map((status) => ({
     id: status,
