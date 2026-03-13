@@ -46,6 +46,7 @@ const initialForm = {
 };
 
 export default function MaintenancePage() {
+  const queryClient = useQueryClient();
   const { forkliftMap, forklifts } = useForkliftMap();
   const { data: logs, isLoading } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
