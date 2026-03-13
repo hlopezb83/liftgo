@@ -6,12 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
-import { useInvoices } from "@/hooks/useInvoices";
-import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
-import { useDamageRecords } from "@/hooks/useDamageRecords";
-import { useOperatingExpenses } from "@/hooks/useOperatingExpenses";
-import { useBookings } from "@/hooks/useBookings";
-import { useForklifts } from "@/hooks/useForklifts";
 import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -38,13 +32,6 @@ export default function IncomeStatementPage() {
   const startDate = startOfMonth(new Date(sy, sm - 1, 1));
   const [ey, em] = endMonth.split("-").map(Number);
   const endDate = endOfMonth(new Date(ey, em - 1, 1));
-
-  const { data: invoices } = useInvoices();
-  const { data: maintenanceLogs } = useMaintenanceLogs();
-  const { data: damageRecords } = useDamageRecords();
-  const { data: operatingExpenses } = useOperatingExpenses();
-  const { data: bookings } = useBookings();
-  const { data: forklifts } = useForklifts();
 
   return (
     <PageTransition>
@@ -94,12 +81,6 @@ export default function IncomeStatementPage() {
         </Card>
 
         <IncomeStatementReport
-          invoices={invoices || []}
-          maintenanceLogs={maintenanceLogs || []}
-          damageRecords={damageRecords || []}
-          operatingExpenses={operatingExpenses || []}
-          bookings={bookings || []}
-          forklifts={forklifts || []}
           startDate={startDate}
           endDate={endDate}
           accountingBasis={accountingBasis}

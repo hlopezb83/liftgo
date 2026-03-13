@@ -58,7 +58,7 @@ export default function ForkliftForm() {
     if (!equipmentModels || !form.manufacturer) return [];
     const models = equipmentModels.filter((m) => m.manufacturer === form.manufacturer);
     if (existing?.model && existing?.manufacturer === form.manufacturer && !models.some((m) => m.model === existing.model)) {
-      models.push({ id: "fallback", manufacturer: form.manufacturer, model: existing.model, default_capacity_kg: null, default_mast_height_m: null, default_fuel_type: "Diesel", default_daily_rate: 0, default_weekly_rate: 0, default_monthly_rate: 0, created_at: "", updated_at: "" } as any);
+      models.push({ id: "fallback", manufacturer: form.manufacturer, model: existing.model, default_capacity_kg: null, default_mast_height_m: null, default_fuel_type: "Diesel", default_daily_rate: 0, default_weekly_rate: 0, default_monthly_rate: 0, created_at: "", updated_at: "" });
     }
     return models;
   }, [equipmentModels, form.manufacturer, existing]);
@@ -78,7 +78,7 @@ export default function ForkliftForm() {
         daily_rate: existing.daily_rate?.toString() || "",
         weekly_rate: existing.weekly_rate?.toString() || "",
         monthly_rate: existing.monthly_rate?.toString() || "",
-        acquisition_cost: (existing as any).acquisition_cost?.toString() || "",
+        acquisition_cost: existing.acquisition_cost?.toString() || "",
         notes: existing.notes || "",
       });
     }

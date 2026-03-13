@@ -1,11 +1,5 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useBookings } from "@/hooks/useBookings";
-import { useInvoices } from "@/hooks/useInvoices";
-import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
-import { useDamageRecords } from "@/hooks/useDamageRecords";
-import { useOperatingExpenses } from "@/hooks/useOperatingExpenses";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -34,13 +28,6 @@ export default function ReportsPage() {
   const startDate = dateRange?.from ?? subMonths(new Date(), 3);
   const endDate = dateRange?.to ?? new Date();
 
-  const { data: forklifts } = useForklifts();
-  const { data: bookings } = useBookings();
-  const { data: invoices } = useInvoices();
-  const { data: maintenanceLogs } = useMaintenanceLogs();
-  const { data: damageRecords } = useDamageRecords();
-  const { data: operatingExpenses } = useOperatingExpenses();
-
   return (
     <PageTransition>
     <div className="p-6 space-y-6">
@@ -63,39 +50,22 @@ export default function ReportsPage() {
       </Card>
 
       {reportType === "utilization" && (
-        <UtilizationReport forklifts={forklifts || []} bookings={bookings || []} startDate={startDate} endDate={endDate} />
+        <UtilizationReport startDate={startDate} endDate={endDate} />
       )}
       {reportType === "utilization-model" && (
-        <UtilizationByModelReport forklifts={forklifts || []} bookings={bookings || []} startDate={startDate} endDate={endDate} />
+        <UtilizationByModelReport startDate={startDate} endDate={endDate} />
       )}
       {reportType === "revenue" && (
-        <RevenueReport invoices={invoices || []} startDate={startDate} endDate={endDate} />
+        <RevenueReport startDate={startDate} endDate={endDate} />
       )}
       {reportType === "maintenance" && (
-        <MaintenanceCostReport maintenanceLogs={maintenanceLogs || []} forklifts={forklifts || []} startDate={startDate} endDate={endDate} />
+        <MaintenanceCostReport startDate={startDate} endDate={endDate} />
       )}
       {reportType === "profitability" && (
-        <ProfitabilityByModelReport
-          forklifts={forklifts || []}
-          invoices={invoices || []}
-          bookings={bookings || []}
-          maintenanceLogs={maintenanceLogs || []}
-          damageRecords={damageRecords || []}
-          startDate={startDate}
-          endDate={endDate}
-        />
+        <ProfitabilityByModelReport startDate={startDate} endDate={endDate} />
       )}
       {reportType === "income-statement" && (
-        <IncomeStatementReport
-          invoices={invoices || []}
-          maintenanceLogs={maintenanceLogs || []}
-          damageRecords={damageRecords || []}
-          operatingExpenses={operatingExpenses || []}
-          bookings={bookings || []}
-          forklifts={forklifts || []}
-          startDate={startDate}
-          endDate={endDate}
-        />
+        <IncomeStatementReport startDate={startDate} endDate={endDate} />
       )}
     </div>
     </PageTransition>

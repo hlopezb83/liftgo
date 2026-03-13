@@ -18,6 +18,23 @@ export function useBookings(forkliftId?: string) {
   });
 }
 
+export function useBooking(bookingId?: string) {
+  return useQuery({
+    queryKey: ["booking", bookingId],
+    enabled: !!bookingId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*, forklifts(name, model)")
+        .eq("id", bookingId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useCreateBooking() {
   const queryClient = useQueryClient();
   return useMutation({

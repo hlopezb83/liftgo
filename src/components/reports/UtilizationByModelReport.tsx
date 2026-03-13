@@ -6,12 +6,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { exportToCsv } from "@/lib/exportCsv";
 import { differenceInDays, parseISO, max, min } from "date-fns";
 import { Download } from "lucide-react";
+import { useForklifts } from "@/hooks/useForklifts";
+import { useBookings } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
-import type { BookingWithForklift } from "@/hooks/useBookings";
 
 interface Props {
-  forklifts: Tables<"forklifts">[];
-  bookings: BookingWithForklift[];
   startDate: Date;
   endDate: Date;
 }
@@ -34,7 +33,9 @@ function getUtilColor(pct: number) {
   return "hsl(var(--status-overdue))";
 }
 
-export function UtilizationByModelReport({ forklifts, bookings, startDate, endDate }: Props) {
+export function UtilizationByModelReport({ startDate, endDate }: Props) {
+  const { data: forklifts = [] } = useForklifts();
+  const { data: bookings = [] } = useBookings();
   const data = useMemo<ModelRow[]>(() => {
     const rangeDays = Math.max(differenceInDays(endDate, startDate), 1);
 

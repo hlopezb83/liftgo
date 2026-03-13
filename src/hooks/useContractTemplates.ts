@@ -59,7 +59,7 @@ export function useUpdateContractTemplate() {
         .update({
           ...rest,
           updated_at: new Date().toISOString(),
-        } as any)
+        } as Record<string, unknown>)
         .eq("id", id);
       if (error) throw error;
     },

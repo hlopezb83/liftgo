@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useInvoice, useUpdateInvoice, useDeleteInvoice } from "@/hooks/useInvoices";
-import { useUpdateBooking } from "@/hooks/useBookings";
+import { useUpdateBooking, useBooking, type BookingWithForklift } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
@@ -29,7 +29,6 @@ import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuote } from "@/hooks/useQuotes";
-import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -51,8 +50,7 @@ export default function InvoiceDetail() {
   const quoteId = invoice?.quote_id;
   const { data: sourceQuote } = useQuote(quoteId || undefined);
   const bookingId = invoice?.booking_id;
-  const { data: allBookings } = useBookings();
-  const sourceBooking = allBookings?.find((b) => b.id === bookingId) as BookingWithForklift | undefined;
+  const { data: sourceBooking } = useBooking(bookingId || undefined);
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
 
   const setStatus = (status: string, paidAt?: string) => {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -45,6 +46,7 @@ const initialForm = {
 };
 
 export default function MaintenancePage() {
+  const queryClient = useQueryClient();
   const { forkliftMap, forklifts } = useForkliftMap();
   const { data: logs, isLoading } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
@@ -64,8 +66,7 @@ export default function MaintenancePage() {
       const result = data as { generated: number; skipped: number; month: string; details?: string[] };
       if (result.generated > 0) {
         toast.success(`${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`);
-        // Refresh maintenance logs
-        window.location.reload();
+        queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
       } else {
         toast.info("No hay pólizas pendientes de generar para este mes");
       }

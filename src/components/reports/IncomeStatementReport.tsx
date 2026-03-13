@@ -12,17 +12,16 @@ import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown, Chev
 import { jsPDF } from "jspdf";
 import { fetchCompanyDataAndLogo } from "@/lib/pdfHelpers";
 import { toast } from "sonner";
-import type { Tables } from "@/integrations/supabase/types";
-import type { OperatingExpense, ExpenseCategory } from "@/hooks/useOperatingExpenses";
+import type { ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperatingExpenses";
+import { useInvoices } from "@/hooks/useInvoices";
+import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
+import { useDamageRecords } from "@/hooks/useDamageRecords";
+import { useOperatingExpenses } from "@/hooks/useOperatingExpenses";
+import { useBookings } from "@/hooks/useBookings";
+import { useForklifts } from "@/hooks/useForklifts";
 
 interface Props {
-  invoices: Tables<"invoices">[];
-  maintenanceLogs: Tables<"maintenance_logs">[];
-  damageRecords: Tables<"damage_records">[];
-  operatingExpenses: OperatingExpense[];
-  bookings: Tables<"bookings">[];
-  forklifts: Tables<"forklifts">[];
   startDate: Date;
   endDate: Date;
   accountingBasis?: "accrual" | "cash";
@@ -85,7 +84,13 @@ interface ComparisonRow {
   isPercent?: boolean;
 }
 
-export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forklifts, startDate, endDate, accountingBasis = "accrual" }: Props) {
+export function IncomeStatementReport({ startDate, endDate, accountingBasis = "accrual" }: Props) {
+  const { data: invoices = [] } = useInvoices();
+  const { data: maintenanceLogs = [] } = useMaintenanceLogs();
+  const { data: damageRecords = [] } = useDamageRecords();
+  const { data: operatingExpenses = [] } = useOperatingExpenses();
+  const { data: bookings = [] } = useBookings();
+  const { data: forklifts = [] } = useForklifts();
   // Build maps for forklift lookup
   const forkliftNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -97,7 +102,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
   const forkliftDepreciationMap = useMemo(() => {
     const map = new Map<string, number>();
     for (const fl of forklifts) {
-      const cost = Number((fl as any).acquisition_cost ?? 0);
+      const cost = Number(fl.acquisition_cost ?? 0);
       if (cost > 0) map.set(fl.id, cost / 36);
     }
     return map;
@@ -366,7 +371,7 @@ export function IncomeStatementReport({ invoices, maintenanceLogs, damageRecords
       }
     });
     return forklifts.filter(
-      (fl) => rentedIds.has(fl.id) && Number((fl as any).acquisition_cost ?? 0) === 0
+      (fl) => rentedIds.has(fl.id) && Number(fl.acquisition_cost ?? 0) === 0
     );
   }, [bookings, forklifts, startDate, endDate]);
 
