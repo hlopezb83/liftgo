@@ -11,7 +11,7 @@ import { useForklifts } from "@/hooks/useForklifts";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useCreateDamageRecord } from "@/hooks/useDamageRecords";
 import { useUploadDocument } from "@/hooks/useDocuments";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function ReportDamageDialog() {
