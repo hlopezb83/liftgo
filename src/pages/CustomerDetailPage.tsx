@@ -83,7 +83,7 @@ export default function CustomerDetailPage() {
       representante_legal: form.representante_legal || null,
     };
     updateCustomer.mutate(payload, {
-      onSuccess: () => { sonnerToast.success("Cliente actualizado"); setEditOpen(false); },
+      onSuccess: () => { toast.success("Cliente actualizado"); setEditOpen(false); },
     });
   };
 
