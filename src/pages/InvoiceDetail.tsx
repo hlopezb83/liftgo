@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuote } from "@/hooks/useQuotes";
-import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
+import { Link } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
