@@ -25,12 +25,12 @@ import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
-import { QuotePDFButton } from "@/components/QuotePDFButton";
-import { CustomerSelector } from "@/components/CustomerSelector";
+import { QuotePDFButton } from "@/components/quotes/QuotePDFButton";
+import { CustomerSelector } from "@/components/customers/CustomerSelector";
 import { STATUS_LABELS } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
-import { AssignForkliftsCard } from "@/components/AssignForkliftsCard";
-import { EquipmentAssignmentDialog } from "@/components/EquipmentAssignmentDialog";
+import { AssignForkliftsCard } from "@/components/quotes/AssignForkliftsCard";
+import { EquipmentAssignmentDialog } from "@/components/quotes/EquipmentAssignmentDialog";
 import { formatDateDisplay } from "@/lib/utils";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,

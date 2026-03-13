@@ -22,7 +22,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
-import { CustomerFormDialog } from "@/components/CustomerFormDialog";
+import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
 import type { CustomerFormData } from "@/lib/formSchemas";
 import { toast as sonnerToast } from "sonner";
 

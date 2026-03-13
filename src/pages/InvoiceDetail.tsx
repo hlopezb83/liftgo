@@ -18,7 +18,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Printer, Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, FileText, CalendarIcon, Trash2 } from "lucide-react";
-import { InvoicePDFButton } from "@/components/InvoicePDFButton";
+import { InvoicePDFButton } from "@/components/invoices/InvoicePDFButton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { RoleGuard } from "@/components/RoleGuard";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

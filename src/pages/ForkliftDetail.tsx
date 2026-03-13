@@ -11,7 +11,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
 import { NotesCard } from "@/components/NotesCard";
-import { DamagePhotosSection } from "@/components/DamagePhotosSection";
+import { DamagePhotosSection } from "@/components/damage/DamagePhotosSection";
 import { ForkliftSpecsCard } from "@/components/forklift-detail/ForkliftSpecsCard";
 import { ForkliftRatesCard } from "@/components/forklift-detail/ForkliftRatesCard";
 import { ForkliftBookingsList } from "@/components/forklift-detail/ForkliftBookingsList";

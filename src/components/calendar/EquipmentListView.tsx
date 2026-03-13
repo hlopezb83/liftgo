@@ -6,7 +6,7 @@ import { format, parseISO, differenceInDays, isWithinInterval } from "date-fns";
 
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
-import { RecurringBillingBadge } from "@/components/RecurringBillingBadge";
+import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
 
 type Forklift = Tables<"forklifts">;
 
