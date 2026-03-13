@@ -64,7 +64,7 @@ export function useUpdateForklift() {
         const { data: expenses } = await supabase
           .from("operating_expenses")
           .select("id")
-          .eq("category", "costo_venta" as any)
+          .eq("category", "costo_venta")
           .ilike("description", `%${data.name}%`);
 
         if (expenses && expenses.length > 0) {

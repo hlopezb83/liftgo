@@ -38,7 +38,7 @@ export function useUserManual() {
   const query = useQuery({
     queryKey: ["user-manual", selectedVersion],
     queryFn: async () => {
-      let q = (supabase as any)
+      let q = supabase
         .from("user_manual")
         .select("*");
 

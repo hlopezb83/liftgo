@@ -75,7 +75,7 @@ export function useRevertAuditLog() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, tableName }: { id: string; tableName: string }) => {
-      const { error } = await supabase.rpc("revert_audit_log", { p_audit_log_id: id } as any);
+      const { error } = await supabase.rpc("revert_audit_log", { p_audit_log_id: id });
       if (error) throw error;
       return tableName;
     },

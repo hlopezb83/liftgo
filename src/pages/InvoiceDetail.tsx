@@ -48,7 +48,7 @@ export default function InvoiceDetail() {
   const [paidPopoverOpen, setPaidPopoverOpen] = useState(false);
   const { data: payments } = usePayments(id);
   const { data: userRole } = useUserRole();
-  const quoteId = (invoice as any)?.quote_id;
+  const quoteId = invoice?.quote_id;
   const { data: sourceQuote } = useQuote(quoteId || undefined);
   const bookingId = invoice?.booking_id;
   const { data: allBookings } = useBookings();
