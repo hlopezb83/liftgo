@@ -18,7 +18,6 @@ export interface UserManual {
 }
 
 export function useUserManual() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
