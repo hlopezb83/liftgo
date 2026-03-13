@@ -10,7 +10,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AuthGuard } from "@/components/AuthGuard";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Skeleton } from "@/components/ui/skeleton";
+
 
 // Lazy-loaded pages
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
