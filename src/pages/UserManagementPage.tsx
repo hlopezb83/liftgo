@@ -84,17 +84,17 @@ function useUpdateRole() {
 }
 
 function useUpdateName() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, fullName }: { userId: string; fullName: string }) => {
       const { error } = await supabase.from("profiles").update({ full_name: fullName }).eq("user_id", userId);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users_with_roles"] });
-      toast({ title: "Nombre actualizado" });
+      queryClient.invalidateQueries({ queryKey: ["users_with_roles"] });
+      toast.success("Nombre actualizado");
     },
-    onError: (err: Error) => toast({ title: "Error al actualizar nombre", description: err.message, variant: "destructive" }),
+    onError: (err: Error) => toast.error("Error al actualizar nombre", { description: err.message }),
   });
 }
 
