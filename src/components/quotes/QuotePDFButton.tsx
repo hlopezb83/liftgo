@@ -48,7 +48,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       } = await import("@/lib/quotePdfPremium");
 
       const doc = new jsPDF();
-      const isSale = (quote as any).quote_type === "sale";
+      const isSale = quote.quote_type === "sale";
 
       // 1. Accent bar
       drawAccentBar(doc);

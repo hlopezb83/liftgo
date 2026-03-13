@@ -216,7 +216,7 @@ export function useQuoteDetailLogic(id: string | undefined) {
           status: "confirmed",
           recurring_billing: recurringBilling,
         });
-        await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
+        await supabase.from("bookings").update({ quote_id: quote.id }).eq("id", bookingId);
         createdBookingIds.push(bookingId);
       }
       updateQuote.mutate({ id: quote.id, status: "accepted" });

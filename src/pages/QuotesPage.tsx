@@ -106,8 +106,8 @@ export default function QuotesPage() {
         <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/quotes/${q.id}`)}>
           <TableCell className="font-mono font-medium">{q.quote_number}</TableCell>
           <TableCell>
-            <Badge variant={(q as any).quote_type === "sale" ? "default" : "secondary"} className="text-xs">
-              {STATUS_LABELS[(q as any).quote_type || "rental"] || "Renta"}
+            <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-xs">
+              {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
             </Badge>
           </TableCell>
           <TableCell>{q.customer_name || "—"}</TableCell>

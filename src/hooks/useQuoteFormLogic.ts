@@ -205,7 +205,7 @@ export function useQuoteFormLogic() {
     if (id) {
       updateQuote.mutate({ id, ...payload }, { onSuccess: () => { toast.success("Cotización actualizada"); navigate(`/quotes/${id}`); } });
     } else {
-      createQuote.mutate(payload as any, { onSuccess: () => { toast.success("Cotización creada"); navigate("/quotes"); } });
+      createQuote.mutate(payload, { onSuccess: () => { toast.success("Cotización creada"); navigate("/quotes"); } });
     }
   };
 
