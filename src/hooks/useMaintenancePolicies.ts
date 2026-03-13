@@ -23,11 +23,11 @@ export function useMaintenancePolicies() {
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("maintenance_policies" as any)
+        .from("maintenance_policies")
         .select("*, forklifts(name, status)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as any[]).map((p) => ({
+      return (data ?? []).map((p) => ({
         ...p,
         forklift_name: p.forklifts?.name ?? "",
         forklift_status: p.forklifts?.status ?? "",
@@ -47,8 +47,8 @@ export function useCreateMaintenancePolicy() {
       description?: string;
     }) => {
       const { data, error } = await supabase
-        .from("maintenance_policies" as any)
-        .insert(policy as any)
+        .from("maintenance_policies")
+        .insert(policy)
         .select()
         .single();
       if (error) throw error;
@@ -67,8 +67,8 @@ export function useUpdateMaintenancePolicy() {
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenancePolicy>) => {
       const { data, error } = await supabase
-        .from("maintenance_policies" as any)
-        .update(updates as any)
+        .from("maintenance_policies")
+        .update(updates)
         .eq("id", id)
         .select()
         .single();
@@ -88,7 +88,7 @@ export function useDeleteMaintenancePolicy() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("maintenance_policies" as any)
+        .from("maintenance_policies")
         .delete()
         .eq("id", id);
       if (error) throw error;

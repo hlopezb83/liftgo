@@ -39,7 +39,7 @@ export function useQuoteFormLogic() {
   // Restore form state from existing quote
   useEffect(() => {
     if (existingQuote) {
-      const isSale = (existingQuote as any).quote_type === "sale";
+      const isSale = existingQuote.quote_type === "sale";
       setQuoteType(isSale ? "sale" : "rental");
       setCustomerId(existingQuote.customer_id || "");
       setCustomerName(existingQuote.customer_name || "");
@@ -79,8 +79,8 @@ export function useQuoteFormLogic() {
       if (!isSale && equipmentModels) {
         const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
         // Read rental_meta from dedicated column first, fallback to legacy _rentalMeta in line_items
-        const meta = ((existingQuote as any).rental_meta as RentalLine[] | undefined)
-          || ((allItems as any)?.[0]?._rentalMeta as RentalLine[] | undefined);
+        const meta = (existingQuote.rental_meta as unknown as RentalLine[] | undefined)
+          || ((allItems as unknown as Array<LineItem & { _rentalMeta?: RentalLine[] }>)?.[0]?._rentalMeta);
         if (meta && meta.length > 0) {
           setRentalLines(meta);
         } else if (nonLogisticsItems.length > 0) {
@@ -205,7 +205,7 @@ export function useQuoteFormLogic() {
     if (id) {
       updateQuote.mutate({ id, ...payload }, { onSuccess: () => { toast.success("Cotización actualizada"); navigate(`/quotes/${id}`); } });
     } else {
-      createQuote.mutate(payload as any, { onSuccess: () => { toast.success("Cotización creada"); navigate("/quotes"); } });
+      createQuote.mutate(payload, { onSuccess: () => { toast.success("Cotización creada"); navigate("/quotes"); } });
     }
   };
 

@@ -9,7 +9,7 @@ interface ForkliftSpecsCardProps {
 }
 
 export function ForkliftSpecsCard({ forklift }: ForkliftSpecsCardProps) {
-  const acquisitionCost = (forklift as any).acquisition_cost;
+  const acquisitionCost = forklift.acquisition_cost;
   const specs = [
     { label: "Modelo", value: forklift.model },
     { label: "Fabricante", value: forklift.manufacturer },

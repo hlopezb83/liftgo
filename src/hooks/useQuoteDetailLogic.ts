@@ -56,7 +56,7 @@ export function useQuoteDetailLogic(id: string | undefined) {
   const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
 
   const customerMatch = useMemo(() => customers?.find(c => c.id === quote?.customer_id), [customers, quote?.customer_id]);
-  const quoteType = (quote as any)?.quote_type || "rental";
+  const quoteType = quote?.quote_type || "rental";
   const isSale = quoteType === "sale";
   const lineItems = useMemo(() => (quote?.line_items as unknown as LineItem[]) || [], [quote?.line_items]);
 
@@ -67,10 +67,10 @@ export function useQuoteDetailLogic(id: string | undefined) {
 
   const rentalMeta = useMemo(() => {
     if (!quote || isSale) return [];
-    const fromColumn = (quote as any).rental_meta as { modelId: string; quantity: number }[] | undefined;
+    const fromColumn = quote.rental_meta as unknown as { modelId: string; quantity: number }[] | undefined;
     if (fromColumn && fromColumn.length > 0) return fromColumn;
     const allItems = (quote.line_items as unknown as LineItem[]) || [];
-    const legacy = (allItems as any)?.[0]?._rentalMeta as { modelId: string; quantity: number }[] | undefined;
+    const legacy = (allItems as unknown as Array<LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }>)?.[0]?._rentalMeta;
     return legacy || [];
   }, [quote, isSale]);
 
@@ -174,7 +174,7 @@ export function useQuoteDetailLogic(id: string | undefined) {
           status: "confirmed",
           recurring_billing: pendingRecurring,
         });
-        await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
+        await supabase.from("bookings").update({ quote_id: quote.id }).eq("id", bookingId);
         createdBookingIds.push(bookingId);
       }
       updateQuote.mutate({ id: quote.id, status: "accepted" });
@@ -216,7 +216,7 @@ export function useQuoteDetailLogic(id: string | undefined) {
           status: "confirmed",
           recurring_billing: recurringBilling,
         });
-        await supabase.from("bookings").update({ quote_id: quote.id } as any).eq("id", bookingId);
+        await supabase.from("bookings").update({ quote_id: quote.id }).eq("id", bookingId);
         createdBookingIds.push(bookingId);
       }
       updateQuote.mutate({ id: quote.id, status: "accepted" });

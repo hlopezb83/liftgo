@@ -17,8 +17,8 @@ import { capitalize, parseDateLocal } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  useOperatingExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useGenerateRecurring,
-  EXPENSE_CATEGORY_LABELS, type ExpenseCategory,
+  useOperatingExpenses, useUpdateExpense, useDeleteExpense, useGenerateRecurring,
+  EXPENSE_CATEGORY_LABELS, type ExpenseCategory, type OperatingExpense,
 } from "@/hooks/useOperatingExpenses";
 import { SearchBar } from "@/components/SearchBar";
 import { EmptyRow } from "@/components/EmptyRow";
@@ -61,14 +61,14 @@ export default function OperatingExpensesPage() {
     return Array.from(set).sort().reverse();
   }, [expenses]);
 
-  const openEdit = (e: any) => {
+  const openEdit = (e: OperatingExpense) => {
     setEditingId(e.id);
     setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false, supplier_id: e.supplier_id || "" });
     setDialogOpen(true);
   };
 
   const handleSave = () => {
-    const payload = { category: form.category, description: form.description || undefined, amount: parseFloat(form.amount), expense_date: form.expense_date, is_recurring: form.is_recurring, supplier_id: form.supplier_id || null } as any;
+    const payload = { category: form.category as import("@/hooks/useOperatingExpenses").ExpenseCategory, description: form.description || undefined, amount: parseFloat(form.amount), expense_date: form.expense_date, is_recurring: form.is_recurring, supplier_id: form.supplier_id || null };
     if (!payload.amount || isNaN(payload.amount)) return;
     if (editingId) {
       updateExpense.mutate({ id: editingId, ...payload }, { onSuccess: () => setDialogOpen(false) });

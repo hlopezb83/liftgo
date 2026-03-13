@@ -79,8 +79,8 @@ export default function ReturnInspectionPage() {
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filteredInspections, {
     accessors: {
       inspected_at: (i) => i.inspected_at,
-      forklift_name: (i) => (i as any).forklifts?.name || "",
-      customer_name: (i) => (i as any).bookings?.customer_name || "",
+      forklift_name: (i) => (i as ReturnInspectionWithJoins).forklifts?.name || "",
+      customer_name: (i) => (i as ReturnInspectionWithJoins).bookings?.customer_name || "",
       condition: (i) => i.condition,
       damage_cost: (i) => i.damage_cost || 0,
       inspected_by: (i) => i.inspected_by || "",

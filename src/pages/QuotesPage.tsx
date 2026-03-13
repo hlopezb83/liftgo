@@ -49,8 +49,8 @@ export default function QuotesPage() {
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
                 <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
-                <Badge variant={(q as any).quote_type === "sale" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
-                  {STATUS_LABELS[(q as any).quote_type || "rental"] || "Renta"}
+                <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                  {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
                 </Badge>
               </div>
               <StatusBadge status={q.status} />
@@ -106,8 +106,8 @@ export default function QuotesPage() {
         <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/quotes/${q.id}`)}>
           <TableCell className="font-mono font-medium">{q.quote_number}</TableCell>
           <TableCell>
-            <Badge variant={(q as any).quote_type === "sale" ? "default" : "secondary"} className="text-xs">
-              {STATUS_LABELS[(q as any).quote_type || "rental"] || "Renta"}
+            <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-xs">
+              {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
             </Badge>
           </TableCell>
           <TableCell>{q.customer_name || "—"}</TableCell>

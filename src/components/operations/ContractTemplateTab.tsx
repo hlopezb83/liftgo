@@ -72,10 +72,10 @@ export function ContractTemplateTab() {
       await updateMutation.mutateAsync({
         id: template.id,
         intro_text: introText,
-        declarations_landlord: declLandlord as any,
-        declarations_tenant: declTenant as any,
-        clauses: clauses as any,
-        checklist_sections: checklistSections as any,
+        declarations_landlord: declLandlord,
+        declarations_tenant: declTenant,
+        clauses: clauses,
+        checklist_sections: checklistSections,
         pagare_text: pagareText,
       });
       toast.success("Plantilla guardada correctamente.");

@@ -12,6 +12,7 @@ export interface OperatingExpense {
   amount: number;
   expense_date: string;
   is_recurring: boolean;
+  supplier_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -110,12 +111,12 @@ export function useGenerateRecurring() {
       if (existErr) throw existErr;
 
       const existingSet = new Set(
-        (existing || []).map((e: any) => `${e.category}::${e.description || ""}`)
+        (existing || []).map((e) => `${e.category}::${e.description || ""}`)
       );
 
       const toInsert = recurring
-        .filter((r: any) => !existingSet.has(`${r.category}::${r.description || ""}`))
-        .map((r: any) => ({
+        .filter((r) => !existingSet.has(`${r.category}::${r.description || ""}`))
+        .map((r) => ({
           category: r.category,
           description: r.description,
           amount: r.amount,
