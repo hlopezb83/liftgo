@@ -17,14 +17,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
 import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
 import type { CustomerFormData } from "@/lib/formSchemas";
-import { toast as sonnerToast } from "sonner";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
@@ -33,7 +32,6 @@ export default function CustomerDetailPage() {
   const { data: allBookings } = useBookings();
   const { data: allInvoices } = useInvoices();
   const { data: role } = useUserRole();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
@@ -61,12 +59,12 @@ export default function CustomerDetailPage() {
       const res = await supabase.functions.invoke("invite-customer", { body: { customer_id: id, email: inviteEmail } });
       if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
-      toast({ title: "Invitación enviada", description: `Acceso al portal creado para ${inviteEmail}` });
+      toast.success("Invitación enviada", { description: `Acceso al portal creado para ${inviteEmail}` });
       setInviteOpen(false);
       setInviteEmail("");
       queryClient.invalidateQueries({ queryKey: ["customers"] });
     } catch (err: unknown) {
-      toast({ title: "Error", description: err instanceof Error ? err.message : "Error desconocido", variant: "destructive" });
+      toast.error("Error", { description: err instanceof Error ? err.message : "Error desconocido" });
     } finally {
       setInviting(false);
     }
@@ -85,7 +83,7 @@ export default function CustomerDetailPage() {
       representante_legal: form.representante_legal || null,
     };
     updateCustomer.mutate(payload, {
-      onSuccess: () => { sonnerToast.success("Cliente actualizado"); setEditOpen(false); },
+      onSuccess: () => { toast.success("Cliente actualizado"); setEditOpen(false); },
     });
   };
 
@@ -218,7 +216,7 @@ export default function CustomerDetailPage() {
                   if (!id) return;
                   deleteCustomer.mutate(id, {
                     onSuccess: () => {
-                      sonnerToast.success("Cliente eliminado");
+                      toast.success("Cliente eliminado");
                       navigate("/customers");
                     },
                   });

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useDeliveries(bookingId?: string) {
@@ -26,9 +27,7 @@ export function useCreateDelivery() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al crear entrega", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al crear entrega", { description: err.message });
     },
   });
 }
@@ -43,9 +42,7 @@ export function useUpdateDelivery() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["deliveries"] }),
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al actualizar entrega", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al actualizar entrega", { description: err.message });
     },
   });
 }

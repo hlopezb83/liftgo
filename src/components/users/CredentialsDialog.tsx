@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Copy, Check, AlertTriangle } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface CredentialsDialogProps {
   credentials: { email: string; password: string } | null;
@@ -17,7 +17,7 @@ export function CredentialsDialog({ credentials, onClose }: CredentialsDialogPro
   const handleCopy = async (value: string, field: string) => {
     await navigator.clipboard.writeText(value);
     setCopiedField(field);
-    toast({ title: "Copiado al portapapeles" });
+    toast.success("Copiado al portapapeles");
     setTimeout(() => setCopiedField(null), 2000);
   };
 

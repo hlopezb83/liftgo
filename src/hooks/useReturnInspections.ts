@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
 
 export function useReturnInspections(forkliftId?: string) {
@@ -41,9 +42,7 @@ export function useCreateReturnInspection() {
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
-      import("@/hooks/use-toast").then(({ toast }) =>
-        toast({ title: "Error al completar inspección de retorno", description: err.message, variant: "destructive" })
-      );
+      toast.error("Error al completar inspección de retorno", { description: err.message });
     },
   });
 }

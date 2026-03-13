@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useState } from "react";
 
 export interface ManualSection {
@@ -18,7 +18,6 @@ export interface UserManual {
 }
 
 export function useUserManual() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
@@ -84,10 +83,10 @@ export function useUserManual() {
       setSelectedVersion(null);
       queryClient.invalidateQueries({ queryKey: ["user-manual"] });
       queryClient.invalidateQueries({ queryKey: ["user-manual-versions"] });
-      toast({ title: "Manual generado", description: "El manual de usuario se generó exitosamente." });
+      toast.success("Manual generado", { description: "El manual de usuario se generó exitosamente." });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.error("Error", { description: error.message });
     },
   });
 

@@ -11,7 +11,7 @@ import { useForklifts } from "@/hooks/useForklifts";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useCreateDamageRecord } from "@/hooks/useDamageRecords";
 import { useUploadDocument } from "@/hooks/useDocuments";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function ReportDamageDialog() {
@@ -61,7 +61,7 @@ export function ReportDamageDialog() {
 
   const handleSubmit = async () => {
     if (!forkliftId || !description.trim()) {
-      toast({ title: "Campos requeridos", description: "Selecciona un montacargas y describe el daño.", variant: "destructive" });
+      toast.error("Campos requeridos", { description: "Selecciona un montacargas y describe el daño." });
       return;
     }
     setSubmitting(true);
@@ -84,8 +84,7 @@ export function ReportDamageDialog() {
         }
       }
 
-      toast({
-        title: "Daño reportado",
+      toast.success("Daño reportado", {
         description: previews.length > 0
           ? `Registro creado con ${previews.length} foto(s).`
           : "El registro de daño se creó correctamente.",
