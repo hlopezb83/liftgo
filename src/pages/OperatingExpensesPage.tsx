@@ -78,10 +78,11 @@ export default function OperatingExpensesPage() {
   const filtered = useMemo(() => {
     return (expenses || []).filter((e) => {
       if (filterCategory !== "all" && e.category !== filterCategory) return false;
+      if (filterMonth !== "all" && !e.expense_date.startsWith(filterMonth)) return false;
       if (search && !(e.description || "").toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [expenses, filterCategory, search]);
+  }, [expenses, filterCategory, filterMonth, search]);
 
   const total = useMemo(() => filtered.reduce((sum, e) => sum + e.amount, 0), [filtered]);
 
