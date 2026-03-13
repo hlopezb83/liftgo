@@ -24,8 +24,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
               <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={{ borderRadius: "0.5rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
-              <Bar dataKey="invoiced" name="Facturado" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="paid" name="Pagado" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="invoiced" name="Facturado" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="paid" name="Pagado" fill="hsl(var(--status-available))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
