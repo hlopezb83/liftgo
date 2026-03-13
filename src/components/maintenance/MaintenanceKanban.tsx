@@ -49,7 +49,7 @@ export function MaintenanceKanban({ logs }: Props) {
     const newStatus = result.destination.droppableId;
 
     // Optimistic update
-    qc.setQueryData<MaintenanceLog[]>(["maintenance_logs", undefined], (old) =>
+    queryClient.setQueryData<MaintenanceLog[]>(["maintenance_logs", undefined], (old) =>
       old?.map((l) => (l.id === logId ? { ...l, work_status: newStatus } : l))
     );
 
