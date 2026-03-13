@@ -2,13 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
-import { useCustomerPortal } from "@/hooks/useCustomerPortal";
+import { usePortalInvoices } from "@/hooks/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 
 export default function PortalInvoices() {
-  const { invoices, isLoading } = useCustomerPortal();
+  const { data: invoices, isLoading } = usePortalInvoices();
   const navigate = useNavigate();
 
   if (isLoading) return <Skeleton className="h-96" />;

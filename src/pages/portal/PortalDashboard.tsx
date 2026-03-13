@@ -1,13 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { useCustomerPortal } from "@/hooks/useCustomerPortal";
+import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/hooks/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { CalendarDays, Receipt, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 
 export default function PortalDashboard() {
-  const { customer, bookings, invoices, isLoading } = useCustomerPortal();
+  const { data: customer, isLoading: customerLoading } = usePortalCustomer();
+  const { data: bookings, isLoading: bookingsLoading } = usePortalBookings();
+  const { data: invoices, isLoading: invoicesLoading } = usePortalInvoices();
+
+  const isLoading = customerLoading || bookingsLoading || invoicesLoading;
 
   if (isLoading) {
     return (

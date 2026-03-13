@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
-import { useCustomerPortal } from "@/hooks/useCustomerPortal";
+import { usePortalContracts } from "@/hooks/useCustomerPortal";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PortalContracts() {
-  const { contracts, isLoading } = useCustomerPortal();
+  const { data: contracts, isLoading } = usePortalContracts();
 
   if (isLoading) return <Skeleton className="h-96" />;
 
