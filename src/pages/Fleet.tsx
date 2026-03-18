@@ -12,6 +12,7 @@ import { SortableTableHead } from "@/components/SortableTableHead";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { TableHead } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PlusCircle, Download, ChevronRight, Forklift, ShieldCheck } from "lucide-react";
