@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 
 interface ForkliftSpecsCardProps {
   forklift: Tables<"forklifts">;
+  currentLocation?: string | null;
 }
 
 export function ForkliftSpecsCard({ forklift }: ForkliftSpecsCardProps) {
