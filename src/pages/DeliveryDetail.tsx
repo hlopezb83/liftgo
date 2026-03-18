@@ -138,6 +138,7 @@ export default function DeliveryDetail() {
             <CardContent className="space-y-3">
               <InfoRow label="Nombre" value={forklift?.name || "—"} />
               <InfoRow label="Modelo" value={forklift?.model || "—"} />
+              {delivery.hours_reading != null && <InfoRow label="Horómetro" value={`${delivery.hours_reading} hrs`} />}
             </CardContent>
           </Card>
 
