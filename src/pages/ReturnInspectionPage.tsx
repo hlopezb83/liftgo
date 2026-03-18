@@ -28,7 +28,7 @@ import { DragDropImageUploader } from "@/components/DragDropImageUploader";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
-import { useSearchParams, useNavigate as _nav } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const initialForm = {
   bookingId: "" as string,
