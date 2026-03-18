@@ -100,7 +100,7 @@ export default function DeliveriesPage() {
   return (
     <>
       <ListPageLayout
-        title="Entregas y Recolecciones"
+        title="Entregas"
         subtitle="Programa y rastrea el transporte de equipos"
         actions={
           <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm">
