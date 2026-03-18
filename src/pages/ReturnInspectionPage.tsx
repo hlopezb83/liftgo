@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
