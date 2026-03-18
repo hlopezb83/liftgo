@@ -84,9 +84,11 @@ export default function ForkliftDetail() {
         <NotesCard value={forklift.notes} readOnly />
       )}
 
+      <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
       <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
       <ForkliftBookingsList bookings={bookings || []} />
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
+      {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
       {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" />}
       {id && <DocumentAttachments entityType="forklift" entityId={id} />}
       <ForkliftStatusHistory logs={logs || []} />
