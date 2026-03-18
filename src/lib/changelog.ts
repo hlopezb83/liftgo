@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "4.0.0",
+    date: "2026-03-18",
+    type: "major",
+    title: "Mejoras Estratégicas: KPIs Financieros, Rentabilidad y Alertas",
+    description: "Paquete de mejoras estratégicas para mejorar la visibilidad financiera y operativa del negocio.",
+    changes: [
+      "Nuevas tarjetas de KPIs financieros en el dashboard: MRR, Utilización %, DSO y Cartera Vencida",
+      "Alertas proactivas de contratos por vencer (próximos 30 días) en el dashboard",
+      "Card de Resumen Financiero en el detalle de cada equipo: ingresos, costos, margen, ROI y utilización",
+      "Historial consolidado de horómetro por equipo con todas las lecturas cronológicas",
+      "Ubicación actual del equipo en especificaciones (desde contratos o última entrega)",
+      "Nuevas funciones de base de datos: get_financial_kpis y get_forklift_financials",
+    ],
+  },
+  {
     version: "3.57.0",
     date: "2026-03-18",
     type: "minor",

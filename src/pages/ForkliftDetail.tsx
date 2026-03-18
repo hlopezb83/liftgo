@@ -2,6 +2,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useForklift, useDeleteForklift, useStatusLogs } from "@/hooks/useForklifts";
 import { useBookings } from "@/hooks/useBookings";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
+import { useForkliftFinancials } from "@/hooks/useForkliftFinancials";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -18,6 +21,8 @@ import { ForkliftBookingsList } from "@/components/forklift-detail/ForkliftBooki
 import { ForkliftMaintenanceList } from "@/components/forklift-detail/ForkliftMaintenanceList";
 import { ForkliftStatusHistory } from "@/components/forklift-detail/ForkliftStatusHistory";
 import { StatusChangeCard } from "@/components/forklift-detail/StatusChangeCard";
+import { ForkliftFinancialCard } from "@/components/forklift-detail/ForkliftFinancialCard";
+import { ForkliftHourometerHistory } from "@/components/forklift-detail/ForkliftHourometerHistory";
 
 export default function ForkliftDetail() {
   const { id } = useParams();
@@ -26,6 +31,33 @@ export default function ForkliftDetail() {
   const { data: logs } = useStatusLogs(id);
   const { data: bookings } = useBookings(id);
   const { data: maintenanceLogs } = useMaintenanceLogs(id);
+  const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
+  const { data: locationData } = useQuery({
+    queryKey: ["forklift-location", id],
+    enabled: !!id,
+    queryFn: async () => {
+      // Try contract usage_location first
+      const { data: contract } = await supabase
+        .from("contracts")
+        .select("usage_location")
+        .eq("forklift_id", id!)
+        .in("status", ["active", "signed"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (contract?.usage_location) return contract.usage_location;
+      // Fallback to latest delivery address
+      const { data: delivery } = await supabase
+        .from("deliveries")
+        .select("address")
+        .eq("forklift_id", id!)
+        .eq("status", "completed")
+        .order("completed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return delivery?.address || null;
+    },
+  });
   const deleteForklift = useDeleteForklift();
 
   if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
@@ -72,7 +104,7 @@ export default function ForkliftDetail() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ForkliftSpecsCard forklift={forklift} />
+        <ForkliftSpecsCard forklift={forklift} currentLocation={locationData} />
         <ForkliftRatesCard forklift={forklift} />
       </div>
 
@@ -80,9 +112,11 @@ export default function ForkliftDetail() {
         <NotesCard value={forklift.notes} readOnly />
       )}
 
+      <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
       <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
       <ForkliftBookingsList bookings={bookings || []} />
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
+      {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
       {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" />}
       {id && <DocumentAttachments entityType="forklift" entityId={id} />}
       <ForkliftStatusHistory logs={logs || []} />

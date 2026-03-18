@@ -2,7 +2,9 @@ import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCards } from "@/components/dashboard/StatCards";
+import { FinancialKpiCards } from "@/components/dashboard/FinancialKpiCards";
 import { AlertsRow } from "@/components/dashboard/AlertsRow";
+import { ExpiringContractsAlert } from "@/components/dashboard/ExpiringContractsAlert";
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
 import { InvoiceBreakdown } from "@/components/dashboard/InvoiceBreakdown";
 import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
@@ -12,6 +14,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useFinancialKpis } from "@/hooks/useFinancialKpis";
 import { differenceInDays, parseISO } from "date-fns";
 
 const STATUS_COLORS = {
@@ -31,9 +34,11 @@ const INVOICE_STATUS_COLORS: Record<string, string> = {
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useDashboardStats();
+  const { data: kpis } = useFinancialKpis();
 
   const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 };
   const activeFleet = counts.total - counts.retired - counts.sold;
+  const utilizationPercent = activeFleet > 0 ? Math.round((counts.rented / activeFleet) * 100) : 0;
 
   const pieData = useMemo(() => [
     { name: "Disponibles", value: counts.available, color: STATUS_COLORS.available },
@@ -115,7 +120,14 @@ export default function Dashboard() {
     <div className="p-6 space-y-6">
       <PageHeader title="Panel" subtitle="Vista general de la flota" />
       <StatCards cards={statCards} />
+      <FinancialKpiCards
+        mrr={kpis?.mrr ?? 0}
+        utilizationPercent={utilizationPercent}
+        dso={kpis?.dso ?? 0}
+        overdueTotal={kpis?.overdue_total ?? 0}
+      />
       <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
+      <ExpiringContractsAlert contracts={kpis?.expiring_contracts ?? []} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />
