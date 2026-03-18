@@ -24,6 +24,7 @@ export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkl
   const [scheduledTime, setScheduledTime] = useState("");
   const [address, setAddress] = useState(customerAddress || "");
   const [notes, setNotes] = useState("");
+  const [hoursReading, setHoursReading] = useState("");
 
   const handleSchedule = () => {
     createDelivery.mutate(
