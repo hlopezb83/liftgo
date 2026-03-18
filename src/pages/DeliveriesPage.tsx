@@ -117,7 +117,7 @@ export default function DeliveriesPage() {
            <TableRow>
             <SortableTableHead sortKey="delivery_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Entrega #</SortableTableHead>
             <SortableTableHead sortKey="scheduled_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
-            <SortableTableHead sortKey="type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Tipo</SortableTableHead>
+            
             <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
             <SortableTableHead sortKey="address" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Dirección</SortableTableHead>
             <SortableTableHead sortKey="driver_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Operador</SortableTableHead>
