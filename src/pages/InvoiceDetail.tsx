@@ -249,6 +249,10 @@ export default function InvoiceDetail() {
 
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
 
+      {id && invoice.status !== "paid" && invoice.status !== "draft" && (
+        <CollectionNotesCard invoiceId={id} />
+      )}
+
       {id && <RecordPaymentDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} invoiceId={id} balance={balance} />}
       {id && <CancelCfdiDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen} invoiceId={id} invoiceTotal={Number(invoice.total)} onSuccess={refetch} />}
 

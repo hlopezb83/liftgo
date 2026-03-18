@@ -21,6 +21,10 @@ export function ForkliftSpecsCard({ forklift, currentLocation }: ForkliftSpecsCa
     { label: "No. de Serie", value: forklift.serial_number },
     { label: "Costo de Adquisición", value: acquisitionCost ? formatCurrency(Number(acquisitionCost)) : null },
     { label: "Ubicación Actual", value: currentLocation || null },
+    { label: "Aseguradora", value: (forklift as any).insurance_provider || null },
+    { label: "No. Póliza", value: (forklift as any).insurance_policy_number || null },
+    { label: "Vigencia Seguro", value: (forklift as any).insurance_expiry || null },
+    { label: "Costo Póliza", value: (forklift as any).insurance_cost ? formatCurrency(Number((forklift as any).insurance_cost)) : null },
   ];
 
   return (

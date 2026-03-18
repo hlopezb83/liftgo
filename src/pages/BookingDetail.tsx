@@ -172,7 +172,39 @@ export default function BookingDetail() {
         </Card>
       )}
 
+      {extensions && extensions.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <History className="h-4 w-4 text-muted-foreground" /> Extensiones
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {extensions.map((ext: any) => (
+              <div key={ext.id} className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {formatDateDisplay(ext.original_end_date)} → {formatDateDisplay(ext.new_end_date)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{formatDateDisplay(ext.created_at)}</span>
+                </div>
+                {ext.reason && <p className="text-xs">{ext.reason}</p>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <BookingStatusHistory bookingId={booking.id} />
+
+      {extendOpen && (
+        <ExtendBookingDialog
+          open={extendOpen}
+          onOpenChange={setExtendOpen}
+          bookingId={booking.id}
+          currentEndDate={booking.end_date}
+        />
+      )}
     </div>
   );
 }
