@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { format, differenceInDays, parseISO } from "date-fns";
 import { format, differenceInDays, parseISO } from "date-fns";
 
 import { useBooking } from "@/hooks/useBookings";
