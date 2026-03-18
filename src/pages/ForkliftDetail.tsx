@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useForklift, useDeleteForklift, useStatusLogs } from "@/hooks/useForklifts";
 import { useBookings } from "@/hooks/useBookings";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
+import { useForkliftFinancials } from "@/hooks/useForkliftFinancials";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -18,6 +19,8 @@ import { ForkliftBookingsList } from "@/components/forklift-detail/ForkliftBooki
 import { ForkliftMaintenanceList } from "@/components/forklift-detail/ForkliftMaintenanceList";
 import { ForkliftStatusHistory } from "@/components/forklift-detail/ForkliftStatusHistory";
 import { StatusChangeCard } from "@/components/forklift-detail/StatusChangeCard";
+import { ForkliftFinancialCard } from "@/components/forklift-detail/ForkliftFinancialCard";
+import { ForkliftHourometerHistory } from "@/components/forklift-detail/ForkliftHourometerHistory";
 
 export default function ForkliftDetail() {
   const { id } = useParams();
