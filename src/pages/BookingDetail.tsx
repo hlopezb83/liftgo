@@ -60,7 +60,16 @@ export default function BookingDetail() {
         subtitle={`${booking.forklifts?.name || "Equipo"} · ${booking.customer_name || "Sin cliente"}`}
         badges={<StatusBadge status={booking.status} />}
         backTo="/bookings"
-        actions={<BookingActions booking={booking} />}
+        actions={
+          <div className="flex gap-2">
+            {booking.status === "confirmed" && (
+              <Button variant="outline" size="sm" onClick={() => setExtendOpen(true)}>
+                <CalendarPlus className="h-4 w-4 mr-1" /> Extender Renta
+              </Button>
+            )}
+            <BookingActions booking={booking} />
+          </div>
+        }
       />
 
       <div className="grid gap-6 md:grid-cols-2">
