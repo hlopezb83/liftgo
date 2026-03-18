@@ -34,9 +34,11 @@ const INVOICE_STATUS_COLORS: Record<string, string> = {
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useDashboardStats();
+  const { data: kpis } = useFinancialKpis();
 
   const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 };
   const activeFleet = counts.total - counts.retired - counts.sold;
+  const utilizationPercent = activeFleet > 0 ? Math.round((counts.rented / activeFleet) * 100) : 0;
 
   const pieData = useMemo(() => [
     { name: "Disponibles", value: counts.available, color: STATUS_COLORS.available },
