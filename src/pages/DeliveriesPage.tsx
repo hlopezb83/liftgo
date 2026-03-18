@@ -65,7 +65,7 @@ export default function DeliveriesPage() {
       keyExtractor={(d) => d.id}
       emptyMessage="No hay entregas programadas"
       renderCard={(d) => (
-        <Card>
+        <Card className="cursor-pointer" onClick={() => navigate(`/deliveries/${d.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-mono text-muted-foreground">{d.delivery_number}</span>
@@ -78,32 +78,6 @@ export default function DeliveriesPage() {
             <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
             {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
             {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
-            {d.status !== "completed" && (
-              <div className="mt-3 pt-3 border-t">
-                <Button variant="outline" size="sm" className="w-full" onClick={() => setSignatureTarget(d.id)}>
-                  <CheckCircle className="h-4 w-4 mr-1 text-status-available" /> Completar
-                </Button>
-              </div>
-            )}
-            <RoleGuard module="Entregas" minAccess="full">
-              <div className={`${d.status === "completed" ? "mt-3 pt-3 border-t" : "mt-2"}`}>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full text-destructive"><Trash2 className="h-4 w-4 mr-1" /> Eliminar</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar esta entrega?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteDelivery.mutate(d.id, { onSuccess: () => toast.success("Entrega eliminada") })}>Eliminar</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </RoleGuard>
           </CardContent>
         </Card>
       )}
@@ -120,29 +94,6 @@ export default function DeliveriesPage() {
         address: form.address || null, driver_name: form.driverName || null, driver_phone: form.driverPhone || null, notes: form.notes || null,
       },
       { onSuccess: () => { toast.success("Transporte programado"); setDialogOpen(false); reset(); } }
-    );
-  };
-
-  const markComplete = (id: string, signatureBase64?: string) => {
-    const delivery = deliveries?.find((d) => d.id === id);
-    updateDelivery.mutate(
-      { id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}) },
-      {
-        onSuccess: () => {
-          toast.success("Marcado como completado");
-          setSignatureTarget(null);
-          if (delivery && delivery.type === "delivery" && delivery.booking_id) {
-            const booking = bookings?.find((b) => b.id === delivery.booking_id);
-            const forklift = forkliftMap.get(delivery.forklift_id);
-            if (booking && forklift) {
-              setPickupPrompt({
-                delivery: { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, address: delivery.address, driver_name: delivery.driver_name, driver_phone: delivery.driver_phone },
-                bookingEndDate: booking.end_date, forkliftName: forklift.name,
-              });
-            }
-          }
-        },
-      }
     );
   };
 
@@ -171,11 +122,10 @@ export default function DeliveriesPage() {
             <SortableTableHead sortKey="address" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Dirección</SortableTableHead>
             <SortableTableHead sortKey="driver_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Operador</SortableTableHead>
             <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-            <TableHead className="w-12" />
           </TableRow>
         }
         renderRow={(d) => (
-          <TableRow key={d.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+          <TableRow key={d.id} className="hover:bg-muted/50 cursor-pointer border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/deliveries/${d.id}`)}>
             <TableCell className="font-mono text-sm text-primary">{d.delivery_number}</TableCell>
             <TableCell className="font-mono text-sm">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
             <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
@@ -183,32 +133,6 @@ export default function DeliveriesPage() {
             <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
             <TableCell>{d.driver_name || "—"}</TableCell>
             <TableCell><StatusBadge status={d.status} /></TableCell>
-            <TableCell>
-              <div className="flex gap-1">
-                {d.status !== "completed" && (
-                  <Button variant="ghost" size="icon" onClick={() => setSignatureTarget(d.id)} title="Marcar completado">
-                    <CheckCircle className="h-4 w-4 text-status-available" />
-                  </Button>
-                )}
-                <RoleGuard module="Entregas" minAccess="full">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" title="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar esta entrega?</AlertDialogTitle>
-                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteDelivery.mutate(d.id, { onSuccess: () => toast.success("Entrega eliminada") })}>Eliminar</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </RoleGuard>
-              </div>
-            </TableCell>
           </TableRow>
         )}
         customContent={mobileContent}
