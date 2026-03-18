@@ -1,6 +1,8 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
+import { useContracts } from "@/hooks/useContracts";
+import { useDeliveries } from "@/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 
 import { StatusBadge } from "@/components/StatusBadge";
