@@ -23,6 +23,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
 import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
+import { useCustomerProfitability } from "@/hooks/useCustomerProfitability";
 import type { CustomerFormData } from "@/lib/formSchemas";
 
 export default function CustomerDetailPage() {
