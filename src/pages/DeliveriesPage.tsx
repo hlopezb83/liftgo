@@ -64,6 +64,7 @@ export default function DeliveriesPage() {
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(deliveries, {
     accessors: {
+      delivery_number: (d) => d.delivery_number,
       scheduled_date: (d) => d.scheduled_date,
       type: (d) => d.type,
       forklift_name: (d) => forkliftMap.get(d.forklift_id)?.name || "",
