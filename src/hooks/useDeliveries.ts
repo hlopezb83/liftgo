@@ -3,6 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
+export function useDelivery(id?: string) {
+  return useQuery({
+    queryKey: ["deliveries", "detail", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("deliveries").select("*, forklifts(name, model)").eq("id", id!).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useDeliveries(bookingId?: string) {
   return useQuery({
     queryKey: ["deliveries", bookingId],
