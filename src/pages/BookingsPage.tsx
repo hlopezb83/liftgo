@@ -10,7 +10,6 @@ import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
-import { BookingActions } from "@/components/bookings/BookingActions";
 import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
