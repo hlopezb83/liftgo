@@ -4,6 +4,7 @@ import { format, differenceInDays, parseISO } from "date-fns";
 import { useBooking } from "@/hooks/useBookings";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { BookingActions } from "@/components/bookings/BookingActions";
+import { BookingStatusHistory } from "@/components/bookings/BookingStatusHistory";
 import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -117,6 +118,8 @@ export default function BookingDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <BookingStatusHistory bookingId={booking.id} />
     </div>
   );
 }
