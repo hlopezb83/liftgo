@@ -30,6 +30,7 @@ export default function BookingsPage() {
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, totalItems, paginatedItems, isMobile } = useListPage(filtered, {
     accessors: {
+      booking_number: (b) => b.booking_number,
       forklift_name: (b) => b.forklifts?.name || "",
       customer_name: (b) => b.customer_name || "",
       start_date: (b) => b.start_date,
