@@ -117,7 +117,7 @@ export default function DeliveriesPage() {
            <TableRow>
             <SortableTableHead sortKey="delivery_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Entrega #</SortableTableHead>
             <SortableTableHead sortKey="scheduled_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
-            <SortableTableHead sortKey="type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Tipo</SortableTableHead>
+            
             <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
             <SortableTableHead sortKey="address" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Dirección</SortableTableHead>
             <SortableTableHead sortKey="driver_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Operador</SortableTableHead>
@@ -128,7 +128,7 @@ export default function DeliveriesPage() {
           <TableRow key={d.id} className="hover:bg-muted/50 cursor-pointer border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/deliveries/${d.id}`)}>
             <TableCell className="font-mono text-sm text-primary">{d.delivery_number}</TableCell>
             <TableCell className="font-mono text-sm">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
-            <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
+            
             <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
             <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
             <TableCell>{d.driver_name || "—"}</TableCell>
