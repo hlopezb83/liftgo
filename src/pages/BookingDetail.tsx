@@ -42,8 +42,8 @@ export default function BookingDetail() {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        title={booking.forklifts?.name || "Reserva"}
-        subtitle={booking.customer_name || "Sin cliente"}
+        title={booking.booking_number}
+        subtitle={`${booking.forklifts?.name || "Equipo"} · ${booking.customer_name || "Sin cliente"}`}
         badges={<StatusBadge status={booking.status} />}
         backTo="/bookings"
         actions={<BookingActions booking={booking} />}

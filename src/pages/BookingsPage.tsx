@@ -129,7 +129,7 @@ export default function BookingsPage() {
         </TableRow>
       )}
       customContent={mobileContent}
-      skeletonColumns={6}
+      skeletonColumns={7}
     />
   );
 }
