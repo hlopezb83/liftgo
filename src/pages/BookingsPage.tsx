@@ -103,6 +103,7 @@ export default function BookingsPage() {
       onEmptyAction={() => navigate("/bookings/new")}
       tableHeader={
         <TableRow>
+          <SortableTableHead sortKey="booking_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Reserva #</SortableTableHead>
           <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Equipo</SortableTableHead>
           <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
           <SortableTableHead sortKey="start_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inicio</SortableTableHead>
@@ -113,6 +114,7 @@ export default function BookingsPage() {
       }
       renderRow={(b) => (
         <TableRow key={b.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors cursor-pointer" onClick={() => navigate(`/bookings/${b.id}`)}>
+          <TableCell className="font-mono font-medium">{b.booking_number}</TableCell>
           <TableCell className="font-medium">{b.forklifts?.name || "—"}</TableCell>
           <TableCell>
             <div className="flex items-center gap-2">
