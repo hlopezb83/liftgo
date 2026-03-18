@@ -52,6 +52,7 @@ export default function CustomerDetailPage() {
   const outstanding = totalInvoiced - totalPaid;
 
   const hasPortalAccess = !!customer?.user_id;
+  const { data: profitability } = useCustomerProfitability(id);
 
   const handleInvite = async () => {
     if (!inviteEmail || !id) return;
