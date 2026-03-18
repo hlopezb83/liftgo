@@ -506,6 +506,7 @@ export type Database = {
           booking_id: string | null
           completed_at: string | null
           created_at: string
+          delivery_number: string
           driver_name: string | null
           driver_phone: string | null
           forklift_id: string
@@ -523,6 +524,7 @@ export type Database = {
           booking_id?: string | null
           completed_at?: string | null
           created_at?: string
+          delivery_number: string
           driver_name?: string | null
           driver_phone?: string | null
           forklift_id: string
@@ -540,6 +542,7 @@ export type Database = {
           booking_id?: string | null
           completed_at?: string | null
           created_at?: string
+          delivery_number?: string
           driver_name?: string | null
           driver_phone?: string | null
           forklift_id?: string
@@ -1427,6 +1430,7 @@ export type Database = {
           id: string
           inspected_at: string
           inspected_by: string | null
+          inspection_number: string
         }
         Insert: {
           booking_id: string
@@ -1440,6 +1444,7 @@ export type Database = {
           id?: string
           inspected_at?: string
           inspected_by?: string | null
+          inspection_number: string
         }
         Update: {
           booking_id?: string
@@ -1453,6 +1458,7 @@ export type Database = {
           id?: string
           inspected_at?: string
           inspected_by?: string | null
+          inspection_number?: string
         }
         Relationships: [
           {
@@ -1710,6 +1716,8 @@ export type Database = {
       }
       next_booking_number: { Args: never; Returns: string }
       next_contract_number: { Args: never; Returns: string }
+      next_delivery_number: { Args: never; Returns: string }
+      next_inspection_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
