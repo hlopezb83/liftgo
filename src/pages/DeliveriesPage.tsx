@@ -130,7 +130,7 @@ export default function DeliveriesPage() {
             <TableCell className="font-mono text-sm">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
             
             <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
-            <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
+            
             <TableCell>{d.driver_name || "—"}</TableCell>
             <TableCell><StatusBadge status={d.status} /></TableCell>
           </TableRow>
