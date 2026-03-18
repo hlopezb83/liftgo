@@ -69,6 +69,9 @@ export default function ReportsPage() {
       {reportType === "income-statement" && (
         <IncomeStatementReport startDate={startDate} endDate={endDate} />
       )}
+      {reportType === "aging" && (
+        <AgingReport startDate={startDate} endDate={endDate} />
+      )}
     </div>
     </PageTransition>
   );

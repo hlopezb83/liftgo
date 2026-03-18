@@ -21,7 +21,7 @@ function getAgingBucket(days: number): string {
   return "90+";
 }
 
-export function AgingReport({ startDate, endDate }: AgingReportProps) {
+export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
   const { data: invoices } = useInvoices();
 
   const overdueInvoices = useMemo(() => {
