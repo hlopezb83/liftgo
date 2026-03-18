@@ -15,6 +15,7 @@ import { CalendarDays, User, Truck, Clock, Gauge } from "lucide-react";
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: booking, isLoading } = useBooking(id);
+  const { data: deliveries } = useDeliveries(id);
   
 
   if (isLoading) {
