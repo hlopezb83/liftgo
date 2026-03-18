@@ -173,7 +173,7 @@ export default function ReturnInspectionPage() {
             <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
             <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
             <SortableTableHead sortKey="condition" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Condición</SortableTableHead>
-            <SortableTableHead sortKey="damage_cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Costo por Daños</SortableTableHead>
+            
             <SortableTableHead sortKey="inspected_by" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inspector</SortableTableHead>
           </TableRow>
         }
@@ -186,7 +186,7 @@ export default function ReturnInspectionPage() {
               <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
               <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>
               <TableCell><StatusBadge status={ins.condition} /></TableCell>
-              <TableCell className="font-mono">{ins.damage_cost ? formatCurrency(ins.damage_cost) : "—"}</TableCell>
+              
               <TableCell>{ins.inspected_by || "—"}</TableCell>
             </TableRow>
           );
