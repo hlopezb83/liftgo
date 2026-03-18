@@ -33,6 +33,10 @@ const emptyForm: ForkliftFormData = {
   monthly_rate: "",
   acquisition_cost: "",
   notes: "",
+  insurance_provider: "",
+  insurance_policy_number: "",
+  insurance_expiry: "",
+  insurance_cost: "",
 };
 
 export default function ForkliftForm() {
