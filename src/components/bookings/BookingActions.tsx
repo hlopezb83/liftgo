@@ -22,7 +22,8 @@ interface BookingActionsProps { booking: BookingWithForklift; }
 
 export function BookingActions({ booking }: BookingActionsProps) {
   const [extendOpen, setExtendOpen] = useState(false);
-  
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState<string>("");
   const [newEndDate, setNewEndDate] = useState<Date>();
   
   const { data: forklifts } = useForklifts();
