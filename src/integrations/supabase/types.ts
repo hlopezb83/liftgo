@@ -80,6 +80,41 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_extensions: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          id: string
+          new_end_date: string
+          original_end_date: string
+          reason: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          id?: string
+          new_end_date: string
+          original_end_date: string
+          reason?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          id?: string
+          new_end_date?: string
+          original_end_date?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_extensions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_number: string
@@ -94,6 +129,8 @@ export type Database = {
           quote_id: string | null
           recurring_billing: boolean
           return_status: string | null
+          site_contact_name: string | null
+          site_contact_phone: string | null
           start_date: string
           status: string
           updated_at: string
@@ -111,6 +148,8 @@ export type Database = {
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
+          site_contact_name?: string | null
+          site_contact_phone?: string | null
           start_date: string
           status?: string
           updated_at?: string
@@ -128,6 +167,8 @@ export type Database = {
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
+          site_contact_name?: string | null
+          site_contact_phone?: string | null
           start_date?: string
           status?: string
           updated_at?: string
@@ -152,6 +193,41 @@ export type Database = {
             columns: ["quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_notes: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          invoice_id: string
+          next_followup_date: string | null
+          note: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          next_followup_date?: string | null
+          note: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          next_followup_date?: string | null
+          note?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -504,6 +580,7 @@ export type Database = {
         Row: {
           address: string | null
           booking_id: string | null
+          charged_to_customer: boolean | null
           completed_at: string | null
           created_at: string
           delivery_number: string
@@ -517,12 +594,14 @@ export type Database = {
           scheduled_time: string | null
           signature_base64: string | null
           status: string
+          transport_cost: number | null
           type: string
           updated_at: string
         }
         Insert: {
           address?: string | null
           booking_id?: string | null
+          charged_to_customer?: boolean | null
           completed_at?: string | null
           created_at?: string
           delivery_number: string
@@ -536,12 +615,14 @@ export type Database = {
           scheduled_time?: string | null
           signature_base64?: string | null
           status?: string
+          transport_cost?: number | null
           type?: string
           updated_at?: string
         }
         Update: {
           address?: string | null
           booking_id?: string | null
+          charged_to_customer?: boolean | null
           completed_at?: string | null
           created_at?: string
           delivery_number?: string
@@ -555,6 +636,7 @@ export type Database = {
           scheduled_time?: string | null
           signature_base64?: string | null
           status?: string
+          transport_cost?: number | null
           type?: string
           updated_at?: string
         }
@@ -698,6 +780,10 @@ export type Database = {
           fuel_type: string | null
           id: string
           image_url: string | null
+          insurance_cost: number | null
+          insurance_expiry: string | null
+          insurance_policy_number: string | null
+          insurance_provider: string | null
           manufacturer: string | null
           mast_height_m: number | null
           model: string
@@ -718,6 +804,10 @@ export type Database = {
           fuel_type?: string | null
           id?: string
           image_url?: string | null
+          insurance_cost?: number | null
+          insurance_expiry?: string | null
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
           manufacturer?: string | null
           mast_height_m?: number | null
           model: string
@@ -738,6 +828,10 @@ export type Database = {
           fuel_type?: string | null
           id?: string
           image_url?: string | null
+          insurance_cost?: number | null
+          insurance_expiry?: string | null
+          insurance_policy_number?: string | null
+          insurance_provider?: string | null
           manufacturer?: string | null
           mast_height_m?: number | null
           model?: string
@@ -1689,6 +1783,10 @@ export type Database = {
           fuel_type: string | null
           id: string
           image_url: string | null
+          insurance_cost: number | null
+          insurance_expiry: string | null
+          insurance_policy_number: string | null
+          insurance_provider: string | null
           manufacturer: string | null
           mast_height_m: number | null
           model: string
@@ -1709,6 +1807,10 @@ export type Database = {
         }
       }
       get_customer_id_for_user: { Args: { p_user_id: string }; Returns: string }
+      get_customer_profitability: {
+        Args: { p_customer_id: string }
+        Returns: Json
+      }
       get_dashboard_stats: { Args: never; Returns: Json }
       get_financial_kpis: { Args: never; Returns: Json }
       get_forklift_financials: {
