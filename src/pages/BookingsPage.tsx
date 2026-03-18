@@ -59,7 +59,6 @@ export default function BookingsPage() {
               <StatusBadge status={b.status} />
             </div>
             <span className="text-sm font-medium">{b.forklifts?.name || "—"}</span>
-            </div>
             <p className="text-sm text-muted-foreground">{b.customer_name || "Sin cliente"}</p>
             <div className="flex items-center gap-2 mt-1">
               <RecurringBillingBadge booking={b} />
