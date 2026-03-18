@@ -33,6 +33,7 @@ export default function DeliveryDetail() {
   const deleteDelivery = useDeleteDelivery();
 
   const [signatureOpen, setSignatureOpen] = useState(false);
+  const [hoursReading, setHoursReading] = useState("");
   const [pickupPrompt, setPickupPrompt] = useState<{
     delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
     bookingEndDate: string; forkliftName: string;
