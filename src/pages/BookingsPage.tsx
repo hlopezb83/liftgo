@@ -10,7 +10,6 @@ import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
-import { BookingActions } from "@/components/bookings/BookingActions";
 import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,7 +51,7 @@ export default function BookingsPage() {
       keyExtractor={(b) => b.id}
       emptyMessage="No se encontraron reservas"
       renderCard={(b) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform">
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-semibold text-sm">{b.forklifts?.name || "—"}</span>
@@ -107,11 +106,10 @@ export default function BookingsPage() {
           <SortableTableHead sortKey="end_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fin</SortableTableHead>
           <TableHead>Duración</TableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <TableHead>Acciones</TableHead>
         </TableRow>
       }
       renderRow={(b) => (
-        <TableRow key={b.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+        <TableRow key={b.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors cursor-pointer" onClick={() => navigate(`/bookings/${b.id}`)}>
           <TableCell className="font-medium">{b.forklifts?.name || "—"}</TableCell>
           <TableCell>
             <div className="flex items-center gap-2">
@@ -123,13 +121,10 @@ export default function BookingsPage() {
           <TableCell className="text-sm text-muted-foreground">{formatDate(b.end_date)}</TableCell>
           <TableCell className="text-sm text-muted-foreground">{getDuration(b.start_date, b.end_date)}</TableCell>
           <TableCell><StatusBadge status={b.status} /></TableCell>
-          <TableCell onClick={(e) => e.stopPropagation()}>
-            <BookingActions booking={b} />
-          </TableCell>
         </TableRow>
       )}
       customContent={mobileContent}
-      skeletonColumns={7}
+      skeletonColumns={6}
     />
   );
 }

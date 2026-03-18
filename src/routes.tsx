@@ -7,6 +7,7 @@ const ForkliftDetail = lazy(() => import("./pages/ForkliftDetail"));
 const ForkliftForm = lazy(() => import("./pages/ForkliftForm"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const BookingsPage = lazy(() => import("./pages/BookingsPage"));
+const BookingDetail = lazy(() => import("./pages/BookingDetail"));
 const BookingForm = lazy(() => import("./pages/BookingForm"));
 const CustomersPage = lazy(() => import("./pages/CustomersPage"));
 const CustomerDetailPage = lazy(() => import("./pages/CustomerDetailPage"));
@@ -63,6 +64,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/calendar", component: CalendarPage, module: "Calendario" },
   { path: "/bookings", component: BookingsPage, module: "Reservas" },
   { path: "/bookings/new", component: BookingForm, module: "Reservas" },
+  { path: "/bookings/:id", component: BookingDetail, module: "Reservas" },
   { path: "/customers", component: CustomersPage, module: "Clientes" },
   { path: "/customers/:id", component: CustomerDetailPage, module: "Clientes" },
   { path: "/maintenance", component: MaintenancePage, module: "Mantenimiento" },
