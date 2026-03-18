@@ -43,6 +43,7 @@ const initialForm = {
 
 
 export default function ReturnInspectionPage() {
+  const navigate = useNavigate();
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const { data: inspections, isLoading } = useReturnInspections();
