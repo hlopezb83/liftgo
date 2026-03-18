@@ -1,16 +1,21 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { format, differenceInDays, parseISO } from "date-fns";
 
 import { useBooking } from "@/hooks/useBookings";
 import { useDeliveries } from "@/hooks/useDeliveries";
+import { useBookingExtensions } from "@/hooks/useBookingExtensions";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { BookingActions } from "@/components/bookings/BookingActions";
 import { BookingStatusHistory } from "@/components/bookings/BookingStatusHistory";
 import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
+import { ExtendBookingDialog } from "@/components/bookings/ExtendBookingDialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, User, Truck, Clock, Gauge } from "lucide-react";
+import { CalendarDays, User, Truck, Clock, Gauge, CalendarPlus, History, Phone } from "lucide-react";
+import { formatDateDisplay } from "@/lib/utils";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
