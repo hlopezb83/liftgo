@@ -9,7 +9,7 @@ import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBad
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, User, Truck, Clock, RotateCcw } from "lucide-react";
+import { CalendarDays, User, Truck, Clock } from "lucide-react";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
