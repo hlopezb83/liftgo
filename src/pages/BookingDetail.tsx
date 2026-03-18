@@ -98,6 +98,15 @@ export default function BookingDetail() {
           <CardContent className="space-y-3">
             <InfoRow label="Nombre" value={booking.customer_name || "—"} />
             <InfoRow label="Contacto" value={booking.customer_contact || "—"} />
+            {(booking as any).site_contact_name && (
+              <InfoRow label="Contacto en sitio" value={(booking as any).site_contact_name} />
+            )}
+            {(booking as any).site_contact_phone && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> Tel. sitio</span>
+                <span className="text-sm font-medium">{(booking as any).site_contact_phone}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
