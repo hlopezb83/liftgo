@@ -104,7 +104,7 @@ export default function ReturnInspectionPage() {
               </div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
-                <StatusBadge status={ins.condition} />
+                
               </div>
               <p className="text-sm text-muted-foreground">{insWithJoins.bookings?.customer_name || "—"}</p>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
