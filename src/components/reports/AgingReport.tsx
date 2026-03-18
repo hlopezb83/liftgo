@@ -1,5 +1,4 @@
 import { useInvoices } from "@/hooks/useInvoices";
-import { useCollectionNotes } from "@/hooks/useCollectionNotes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
