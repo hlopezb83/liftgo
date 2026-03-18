@@ -144,6 +144,10 @@ export default function ForkliftForm() {
       monthly_rate: form.monthly_rate ? parseFloat(form.monthly_rate) : 0,
       acquisition_cost: form.acquisition_cost ? parseFloat(form.acquisition_cost) : 0,
       notes: form.notes || null,
+      insurance_provider: form.insurance_provider || null,
+      insurance_policy_number: form.insurance_policy_number || null,
+      insurance_expiry: form.insurance_expiry || null,
+      insurance_cost: form.insurance_cost ? parseFloat(form.insurance_cost) : null,
     };
 
     const onError = (err: Error) => {
