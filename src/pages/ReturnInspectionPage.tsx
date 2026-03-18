@@ -99,6 +99,10 @@ export default function ReturnInspectionPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
+                <StatusBadge status={ins.condition} />
+              </div>
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
                 <StatusBadge status={ins.condition} />
               </div>
