@@ -119,7 +119,7 @@ export default function DeliveriesPage() {
             <SortableTableHead sortKey="scheduled_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
             
             <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
-            <SortableTableHead sortKey="address" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Dirección</SortableTableHead>
+            
             <SortableTableHead sortKey="driver_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Operador</SortableTableHead>
             <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
           </TableRow>
@@ -130,7 +130,7 @@ export default function DeliveriesPage() {
             <TableCell className="font-mono text-sm">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
             
             <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>
-            <TableCell className="max-w-[200px] truncate">{d.address || "—"}</TableCell>
+            
             <TableCell>{d.driver_name || "—"}</TableCell>
             <TableCell><StatusBadge status={d.status} /></TableCell>
           </TableRow>
