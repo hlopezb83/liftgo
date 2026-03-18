@@ -191,6 +191,7 @@ export default function DeliveriesPage() {
         }
         renderRow={(d) => (
           <TableRow key={d.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+            <TableCell className="font-mono text-sm text-primary">{d.delivery_number}</TableCell>
             <TableCell className="font-mono text-sm">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
             <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
             <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>

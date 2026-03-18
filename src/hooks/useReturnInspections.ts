@@ -20,7 +20,7 @@ export function useReturnInspections(forkliftId?: string) {
 export function useCreateReturnInspection() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (inspection: TablesInsert<"return_inspections">) => {
+    mutationFn: async (inspection: Omit<TablesInsert<"return_inspections">, "inspection_number">) => {
       const { data, error } = await supabase.rpc("complete_return_inspection", {
         p_booking_id: inspection.booking_id,
         p_forklift_id: inspection.forklift_id,
