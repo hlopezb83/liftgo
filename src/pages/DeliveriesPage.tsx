@@ -38,23 +38,14 @@ const initialForm = {
 };
 
 export default function DeliveriesPage() {
+  const navigate = useNavigate();
   const { forkliftMap, forklifts } = useForkliftMap();
   const { data: bookings } = useBookings();
   const { data: activeDrivers } = useActiveDrivers();
   const { data: deliveries, isLoading } = useDeliveries();
   const createDelivery = useCreateDelivery();
-  const updateDelivery = useUpdateDelivery();
-  const deleteDelivery = useDeleteDelivery();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { form, set, reset } = useFormState(initialForm);
-
-  const [pickupPrompt, setPickupPrompt] = useState<{
-    delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
-    bookingEndDate: string;
-    forkliftName: string;
-  } | null>(null);
-
-  const [signatureTarget, setSignatureTarget] = useState<string | null>(null);
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(deliveries, {
     accessors: {
