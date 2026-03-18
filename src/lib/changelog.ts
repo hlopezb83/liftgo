@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.57.0",
+    date: "2026-03-18",
+    type: "minor",
+    title: "Cálculo automático de horas usadas (Horómetro)",
+    description: "Se calcula automáticamente la diferencia de horas entre la entrega y la recolección de un equipo en la misma reserva.",
+    changes: [
+      "Cálculo automático de horas usadas (recolección - entrega) en DeliveryDetail",
+      "Nueva card de Horómetro en BookingDetail con lecturas de entrega, recolección y horas usadas",
+      "Indicador visual destacado para horas usadas con color primario",
+    ],
+  },
+  {
     version: "3.56.0",
     date: "2026-03-18",
     type: "minor",

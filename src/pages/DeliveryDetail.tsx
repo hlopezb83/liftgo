@@ -153,6 +153,12 @@ export default function DeliveryDetail() {
               <InfoRow label="Nombre" value={forklift?.name || "—"} />
               <InfoRow label="Modelo" value={forklift?.model || "—"} />
               {delivery.hours_reading != null && <InfoRow label="Horómetro" value={`${delivery.hours_reading} hrs`} />}
+              {hoursUsed != null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Horas Usadas</span>
+                  <span className="text-sm font-semibold text-primary">{hoursUsed} hrs</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -127,6 +127,27 @@ export default function BookingDetail() {
         </Card>
       </div>
 
+      {(deliveryReading || pickupReading) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Gauge className="h-4 w-4 text-muted-foreground" />
+              Horómetro
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {deliveryReading && <InfoRow label="Al entregar" value={`${deliveryReading.hours_reading} hrs`} />}
+            {pickupReading && <InfoRow label="Al recoger" value={`${pickupReading.hours_reading} hrs`} />}
+            {hoursUsed != null && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Horas Usadas</span>
+                <span className="text-sm font-semibold text-primary">{hoursUsed} hrs</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <BookingStatusHistory bookingId={booking.id} />
     </div>
   );
