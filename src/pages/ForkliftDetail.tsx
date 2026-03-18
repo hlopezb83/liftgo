@@ -104,7 +104,7 @@ export default function ForkliftDetail() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ForkliftSpecsCard forklift={forklift} />
+        <ForkliftSpecsCard forklift={forklift} currentLocation={locationData} />
         <ForkliftRatesCard forklift={forklift} />
       </div>
 
