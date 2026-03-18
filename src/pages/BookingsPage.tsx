@@ -55,8 +55,10 @@ export default function BookingsPage() {
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-sm">{b.forklifts?.name || "—"}</span>
+              <span className="font-mono font-semibold text-sm">{b.booking_number}</span>
               <StatusBadge status={b.status} />
+            </div>
+            <span className="text-sm font-medium">{b.forklifts?.name || "—"}</span>
             </div>
             <p className="text-sm text-muted-foreground">{b.customer_name || "Sin cliente"}</p>
             <div className="flex items-center gap-2 mt-1">
