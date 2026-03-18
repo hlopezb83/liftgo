@@ -57,6 +57,17 @@ export default function DeliveryDetail() {
 
   const forklift = forkliftMap.get(delivery.forklift_id);
 
+  // Calculate hours used when both delivery and pickup have readings
+  const hoursUsed = (() => {
+    if (!delivery.booking_id || !siblingDeliveries) return null;
+    const deliveryRecord = siblingDeliveries.find((d) => d.type === "delivery" && d.hours_reading != null);
+    const pickupRecord = siblingDeliveries.find((d) => d.type === "pickup" && d.hours_reading != null);
+    if (deliveryRecord?.hours_reading != null && pickupRecord?.hours_reading != null) {
+      return Math.round((pickupRecord.hours_reading - deliveryRecord.hours_reading) * 10) / 10;
+    }
+    return null;
+  })();
+
   const markComplete = (signatureBase64?: string) => {
     const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
     updateDelivery.mutate(
