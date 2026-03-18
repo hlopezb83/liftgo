@@ -180,7 +180,7 @@ export default function ReturnInspectionPage() {
         renderRow={(ins) => {
           const insWithJoins = ins as ReturnInspectionWithJoins;
           return (
-            <TableRow key={ins.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+            <TableRow key={ins.id} className="hover:bg-muted/50 cursor-pointer border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/returns/${ins.id}`)}>
               <TableCell className="font-mono text-sm text-primary">{ins.inspection_number}</TableCell>
               <TableCell className="font-mono text-sm">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</TableCell>
               <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
