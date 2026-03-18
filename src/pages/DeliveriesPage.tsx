@@ -222,6 +222,7 @@ export default function DeliveriesPage() {
             <FormActions submitLabel="Programar" isPending={createDelivery.isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
+      </Dialog>
     </>
   );
 }
