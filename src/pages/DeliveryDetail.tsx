@@ -19,6 +19,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { CalendarDays, Truck, MapPin, CheckCircle, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateDisplay, parseDateLocal } from "@/lib/utils";

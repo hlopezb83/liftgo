@@ -60,7 +60,10 @@ export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkl
                 <div className="space-y-1.5"><Label>Nombre del Operador</Label><Input value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder="Opcional" /></div>
                 <div className="space-y-1.5"><Label>Teléfono del Operador</Label><Input value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} placeholder="Opcional" /></div>
               </div>
-              <div className="space-y-1.5"><Label>Hora Programada</Label><Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5"><Label>Hora Programada</Label><Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Horómetro (hrs)</Label><Input type="number" step="0.1" min="0" placeholder="Ej: 1250" value={hoursReading} onChange={(e) => setHoursReading(e.target.value)} /></div>
+              </div>
               <div className="space-y-1.5"><Label>Notas</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas de entrega opcionales" rows={2} /></div>
             </div>
             <DialogFooter className="flex-col gap-2 sm:flex-row">

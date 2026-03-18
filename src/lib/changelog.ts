@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.56.0",
+    date: "2026-03-18",
+    type: "minor",
+    title: "Registro de Horómetro en Entregas",
+    description: "Se agrega el campo de lectura de horómetro (horas de uso) al flujo de entregas y recolecciones para rastrear el uso del equipo.",
+    changes: [
+      "Nuevo campo hours_reading en la tabla deliveries",
+      "Campo de horómetro en el diálogo de completar entrega (junto a la firma)",
+      "Campo opcional de horómetro al programar entregas y recolecciones",
+      "Lectura visible en la card de Equipo del detalle de entrega",
+    ],
+  },
+  {
     version: "3.55.0",
     date: "2026-03-18",
     type: "minor",
