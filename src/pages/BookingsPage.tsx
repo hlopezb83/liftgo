@@ -24,12 +24,13 @@ export default function BookingsPage() {
   const navigate = useNavigate();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(bookings, {
-    searchFields: ["customer_name"],
+    searchFields: ["customer_name", "booking_number"],
     statusField: "status",
   });
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, totalItems, paginatedItems, isMobile } = useListPage(filtered, {
     accessors: {
+      booking_number: (b) => b.booking_number,
       forklift_name: (b) => b.forklifts?.name || "",
       customer_name: (b) => b.customer_name || "",
       start_date: (b) => b.start_date,
@@ -54,9 +55,10 @@ export default function BookingsPage() {
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-sm">{b.forklifts?.name || "—"}</span>
+              <span className="font-mono font-semibold text-sm">{b.booking_number}</span>
               <StatusBadge status={b.status} />
             </div>
+            <span className="text-sm font-medium">{b.forklifts?.name || "—"}</span>
             <p className="text-sm text-muted-foreground">{b.customer_name || "Sin cliente"}</p>
             <div className="flex items-center gap-2 mt-1">
               <RecurringBillingBadge booking={b} />
@@ -100,6 +102,7 @@ export default function BookingsPage() {
       onEmptyAction={() => navigate("/bookings/new")}
       tableHeader={
         <TableRow>
+          <SortableTableHead sortKey="booking_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Reserva #</SortableTableHead>
           <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Equipo</SortableTableHead>
           <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
           <SortableTableHead sortKey="start_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inicio</SortableTableHead>
@@ -110,6 +113,7 @@ export default function BookingsPage() {
       }
       renderRow={(b) => (
         <TableRow key={b.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors cursor-pointer" onClick={() => navigate(`/bookings/${b.id}`)}>
+          <TableCell className="font-mono font-medium">{b.booking_number}</TableCell>
           <TableCell className="font-medium">{b.forklifts?.name || "—"}</TableCell>
           <TableCell>
             <div className="flex items-center gap-2">
@@ -124,7 +128,7 @@ export default function BookingsPage() {
         </TableRow>
       )}
       customContent={mobileContent}
-      skeletonColumns={6}
+      skeletonColumns={7}
     />
   );
 }

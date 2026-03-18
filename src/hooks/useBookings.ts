@@ -38,7 +38,7 @@ export function useBooking(bookingId?: string) {
 export function useCreateBooking() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (booking: TablesInsert<"bookings">) => {
+    mutationFn: async (booking: Omit<TablesInsert<"bookings">, "booking_number">) => {
       const { data, error } = await supabase.rpc("create_booking", {
         p_forklift_id: booking.forklift_id,
         p_customer_id: booking.customer_id ?? undefined,

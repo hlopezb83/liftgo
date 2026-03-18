@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.53.0",
+    date: "2026-03-18",
+    type: "minor",
+    title: "Consecutivo de reservas (RSV-XXXX)",
+    description: "Las reservas ahora tienen un número consecutivo único con prefijo RSV-, generado automáticamente al crear cada reserva.",
+    changes: [
+      "Nueva columna booking_number en la tabla de reservas con backfill de registros existentes",
+      "Función next_booking_number() para generación secuencial automática",
+      "El RPC create_booking ahora asigna automáticamente el número de reserva",
+      "La tabla y el detalle de reservas muestran el consecutivo RSV-XXXX",
+      "Búsqueda por número de reserva en la lista",
+      "Bitácora de auditoría muestra booking_number como etiqueta de registro",
+    ],
+  },
+  {
     version: "3.52.0",
     date: "2026-03-18",
     type: "patch",

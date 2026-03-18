@@ -93,7 +93,7 @@ function formatTimestamp(ts: string) {
 function getRecordLabel(log: AuditLog): string {
   const data = log.new_data || log.old_data;
   if (!data) return log.record_id.slice(0, 8);
-  return data.name || data.contract_number || data.invoice_number || data.quote_number || data.description?.slice(0, 30) || log.record_id.slice(0, 8);
+  return data.name || data.booking_number || data.contract_number || data.invoice_number || data.quote_number || data.description?.slice(0, 30) || log.record_id.slice(0, 8);
 }
 
 export default function AuditTrailPage() {

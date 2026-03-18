@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { format, differenceInDays, parseISO } from "date-fns";
 
 import { useBooking } from "@/hooks/useBookings";
@@ -9,12 +9,12 @@ import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBad
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, User, Truck, Clock, RotateCcw } from "lucide-react";
+import { CalendarDays, User, Truck, Clock } from "lucide-react";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: booking, isLoading } = useBooking(id);
-  const navigate = useNavigate();
+  
 
   if (isLoading) {
     return (
@@ -42,8 +42,8 @@ export default function BookingDetail() {
   return (
     <div className="space-y-6">
       <DetailPageHeader
-        title={booking.forklifts?.name || "Reserva"}
-        subtitle={booking.customer_name || "Sin cliente"}
+        title={booking.booking_number}
+        subtitle={`${booking.forklifts?.name || "Equipo"} · ${booking.customer_name || "Sin cliente"}`}
         badges={<StatusBadge status={booking.status} />}
         backTo="/bookings"
         actions={<BookingActions booking={booking} />}
