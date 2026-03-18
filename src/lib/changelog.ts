@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.54.0",
+    date: "2026-03-18",
+    type: "minor",
+    title: "Consecutivos para Entregas (ENT-) y Devoluciones (DEV-)",
+    description: "Las entregas y devoluciones ahora tienen identificadores secuenciales automáticos, siguiendo el mismo patrón de las reservas (RSV-).",
+    changes: [
+      "Nueva columna delivery_number (ENT-XXXX) con trigger BEFORE INSERT para auto-asignación",
+      "Nueva columna inspection_number (DEV-XXXX) con trigger BEFORE INSERT para auto-asignación",
+      "Funciones next_delivery_number() y next_inspection_number() para generación secuencial",
+      "Backfill de registros existentes con números consecutivos",
+      "Columna 'Entrega #' en la tabla de entregas (desktop y mobile)",
+      "Columna 'Devolución #' en la tabla de inspecciones de devolución (desktop y mobile)",
+    ],
+  },
+  {
     version: "3.53.0",
     date: "2026-03-18",
     type: "minor",

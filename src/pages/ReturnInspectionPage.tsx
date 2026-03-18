@@ -78,6 +78,7 @@ export default function ReturnInspectionPage() {
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filteredInspections, {
     accessors: {
+      inspection_number: (i) => i.inspection_number,
       inspected_at: (i) => i.inspected_at,
       forklift_name: (i) => (i as ReturnInspectionWithJoins).forklifts?.name || "",
       customer_name: (i) => (i as ReturnInspectionWithJoins).bookings?.customer_name || "",
@@ -98,8 +99,12 @@ export default function ReturnInspectionPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
+                <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
                 <StatusBadge status={ins.condition} />
+              </div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
+                
               </div>
               <p className="text-sm text-muted-foreground">{insWithJoins.bookings?.customer_name || "—"}</p>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
@@ -162,6 +167,7 @@ export default function ReturnInspectionPage() {
         emptyMessage="No hay inspecciones de devolución"
         tableHeader={
           <TableRow>
+            <SortableTableHead sortKey="inspection_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Devolución #</SortableTableHead>
             <SortableTableHead sortKey="inspected_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
             <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
             <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
@@ -174,6 +180,7 @@ export default function ReturnInspectionPage() {
           const insWithJoins = ins as ReturnInspectionWithJoins;
           return (
             <TableRow key={ins.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+              <TableCell className="font-mono text-sm text-primary">{ins.inspection_number}</TableCell>
               <TableCell className="font-mono text-sm">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</TableCell>
               <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
               <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>

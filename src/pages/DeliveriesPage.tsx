@@ -64,6 +64,7 @@ export default function DeliveriesPage() {
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(deliveries, {
     accessors: {
+      delivery_number: (d) => d.delivery_number,
       scheduled_date: (d) => d.scheduled_date,
       type: (d) => d.type,
       forklift_name: (d) => forkliftMap.get(d.forklift_id)?.name || "",
@@ -82,8 +83,11 @@ export default function DeliveriesPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold">{d.type === "delivery" ? "Entrega" : "Recolección"}</span>
+              <span className="text-xs font-mono text-muted-foreground">{d.delivery_number}</span>
               <StatusBadge status={d.status} />
+            </div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold">{d.type === "delivery" ? "Entrega" : "Recolección"}</span>
             </div>
             <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</p>
             <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
@@ -174,7 +178,8 @@ export default function DeliveriesPage() {
         onPageChange={setPage}
         emptyMessage="No hay entregas programadas"
         tableHeader={
-          <TableRow>
+           <TableRow>
+            <SortableTableHead sortKey="delivery_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Entrega #</SortableTableHead>
             <SortableTableHead sortKey="scheduled_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
             <SortableTableHead sortKey="type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Tipo</SortableTableHead>
             <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
@@ -186,6 +191,7 @@ export default function DeliveriesPage() {
         }
         renderRow={(d) => (
           <TableRow key={d.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+            <TableCell className="font-mono text-sm text-primary">{d.delivery_number}</TableCell>
             <TableCell className="font-mono text-sm">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</TableCell>
             <TableCell className="capitalize">{d.type === "delivery" ? "Entrega" : "Recolección"}</TableCell>
             <TableCell className="font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</TableCell>

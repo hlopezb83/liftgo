@@ -20,8 +20,8 @@ export function useDeliveries(bookingId?: string) {
 export function useCreateDelivery() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (delivery: TablesInsert<"deliveries">) => {
-      const { data, error } = await supabase.from("deliveries").insert(delivery).select().single();
+    mutationFn: async (delivery: Omit<TablesInsert<"deliveries">, "delivery_number">) => {
+      const { data, error } = await supabase.from("deliveries").insert(delivery as TablesInsert<"deliveries">).select().single();
       if (error) throw error;
       return data;
     },
