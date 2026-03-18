@@ -29,6 +29,7 @@ export default function ForkliftDetail() {
   const { data: logs } = useStatusLogs(id);
   const { data: bookings } = useBookings(id);
   const { data: maintenanceLogs } = useMaintenanceLogs(id);
+  const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
   const deleteForklift = useDeleteForklift();
 
   if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
