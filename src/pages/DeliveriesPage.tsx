@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useBookings } from "@/hooks/useBookings";
-import { useDeliveries, useCreateDelivery, useUpdateDelivery, useDeleteDelivery } from "@/hooks/useDeliveries";
+import { useDeliveries, useCreateDelivery } from "@/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
@@ -16,17 +17,10 @@ import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
-import { PostDeliveryPickupDialog } from "@/components/deliveries/PostDeliveryPickupDialog";
-import { SignaturePad } from "@/components/contracts/SignaturePad";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveDrivers } from "@/hooks/useDrivers";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, TruckIcon, CheckCircle, Trash2 } from "lucide-react";
-import { RoleGuard } from "@/components/RoleGuard";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { PlusCircle, TruckIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
