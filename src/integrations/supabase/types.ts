@@ -510,6 +510,7 @@ export type Database = {
           driver_name: string | null
           driver_phone: string | null
           forklift_id: string
+          hours_reading: number | null
           id: string
           notes: string | null
           scheduled_date: string
@@ -528,6 +529,7 @@ export type Database = {
           driver_name?: string | null
           driver_phone?: string | null
           forklift_id: string
+          hours_reading?: number | null
           id?: string
           notes?: string | null
           scheduled_date: string
@@ -546,6 +548,7 @@ export type Database = {
           driver_name?: string | null
           driver_phone?: string | null
           forklift_id?: string
+          hours_reading?: number | null
           id?: string
           notes?: string | null
           scheduled_date?: string

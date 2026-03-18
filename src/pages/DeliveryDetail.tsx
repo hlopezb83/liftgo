@@ -19,6 +19,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { CalendarDays, Truck, MapPin, CheckCircle, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
@@ -33,6 +35,7 @@ export default function DeliveryDetail() {
   const deleteDelivery = useDeleteDelivery();
 
   const [signatureOpen, setSignatureOpen] = useState(false);
+  const [hoursReading, setHoursReading] = useState("");
   const [pickupPrompt, setPickupPrompt] = useState<{
     delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
     bookingEndDate: string; forkliftName: string;
@@ -54,8 +57,9 @@ export default function DeliveryDetail() {
   const forklift = forkliftMap.get(delivery.forklift_id);
 
   const markComplete = (signatureBase64?: string) => {
+    const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
     updateDelivery.mutate(
-      { id: delivery.id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}) },
+      { id: delivery.id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}), ...(hrs !== undefined ? { hours_reading: hrs } : {}) },
       {
         onSuccess: () => {
           toast.success("Marcado como completado");
@@ -136,6 +140,7 @@ export default function DeliveryDetail() {
             <CardContent className="space-y-3">
               <InfoRow label="Nombre" value={forklift?.name || "—"} />
               <InfoRow label="Modelo" value={forklift?.model || "—"} />
+              {delivery.hours_reading != null && <InfoRow label="Horómetro" value={`${delivery.hours_reading} hrs`} />}
             </CardContent>
           </Card>
 
@@ -186,6 +191,10 @@ export default function DeliveryDetail() {
             <DialogTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-primary" /> Firma del Cliente</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">Solicite la firma del cliente para confirmar la entrega.</p>
+          <div className="space-y-1.5">
+            <Label htmlFor="hours-reading">Lectura de Horómetro (horas)</Label>
+            <Input id="hours-reading" type="number" step="0.1" min="0" placeholder="Ej: 1250.5" value={hoursReading} onChange={(e) => setHoursReading(e.target.value)} />
+          </div>
           <SignaturePad onSave={(base64) => markComplete(base64)} />
           <Button variant="link" size="sm" className="text-muted-foreground" onClick={() => markComplete()}>Omitir Firma</Button>
         </DialogContent>

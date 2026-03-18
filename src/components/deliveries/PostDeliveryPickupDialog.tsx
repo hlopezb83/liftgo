@@ -22,10 +22,11 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
   const [driverPhone, setDriverPhone] = useState(delivery.driver_phone || "");
   const [scheduledTime, setScheduledTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [hoursReading, setHoursReading] = useState("");
 
   const handleSchedule = () => {
     createDelivery.mutate(
-      { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, type: "pickup", scheduled_date: bookingEndDate, scheduled_time: scheduledTime || null, address: address || null, driver_name: driverName || null, driver_phone: driverPhone || null, notes: notes || null },
+      { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, type: "pickup", scheduled_date: bookingEndDate, scheduled_time: scheduledTime || null, address: address || null, driver_name: driverName || null, driver_phone: driverPhone || null, notes: notes || null, hours_reading: hoursReading ? parseFloat(hoursReading) : null },
       { onSuccess: () => { toast.success("Recolección programada"); onOpenChange(false); } }
     );
   };
@@ -54,7 +55,10 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
                 <div className="space-y-1.5"><Label>Nombre del Operador</Label><Input value={driverName} onChange={(e) => setDriverName(e.target.value)} /></div>
                 <div className="space-y-1.5"><Label>Teléfono del Operador</Label><Input value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} /></div>
               </div>
-              <div className="space-y-1.5"><Label>Hora Programada</Label><Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5"><Label>Hora Programada</Label><Input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Horómetro (hrs)</Label><Input type="number" step="0.1" min="0" placeholder="Ej: 1250" value={hoursReading} onChange={(e) => setHoursReading(e.target.value)} /></div>
+              </div>
               <div className="space-y-1.5"><Label>Notas</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></div>
             </div>
             <DialogFooter className="flex-col gap-2 sm:flex-row">

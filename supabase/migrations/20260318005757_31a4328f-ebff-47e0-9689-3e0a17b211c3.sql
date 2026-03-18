@@ -1,0 +1,1 @@
+ALTER TABLE public.deliveries ADD COLUMN hours_reading numeric;
