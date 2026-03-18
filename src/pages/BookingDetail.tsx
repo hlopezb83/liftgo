@@ -41,6 +41,12 @@ export default function BookingDetail() {
   const duration = differenceInDays(parseISO(booking.end_date), parseISO(booking.start_date));
   const formatDate = (d: string) => format(parseISO(d), "dd/MM/yyyy");
 
+  const deliveryReading = deliveries?.find((d) => d.type === "delivery" && d.hours_reading != null);
+  const pickupReading = deliveries?.find((d) => d.type === "pickup" && d.hours_reading != null);
+  const hoursUsed = (deliveryReading?.hours_reading != null && pickupReading?.hours_reading != null)
+    ? Math.round((pickupReading.hours_reading - deliveryReading.hours_reading) * 10) / 10
+    : null;
+
   return (
     <div className="space-y-6">
       <DetailPageHeader
