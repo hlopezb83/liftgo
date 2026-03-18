@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
-import { useDelivery, useUpdateDelivery, useDeleteDelivery } from "@/hooks/useDeliveries";
+import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "@/hooks/useDeliveries";
 import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
@@ -29,6 +29,7 @@ export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: delivery, isLoading } = useDelivery(id);
+  const { data: siblingDeliveries } = useDeliveries(delivery?.booking_id ?? undefined);
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const updateDelivery = useUpdateDelivery();
@@ -55,6 +56,17 @@ export default function DeliveryDetail() {
   }
 
   const forklift = forkliftMap.get(delivery.forklift_id);
+
+  // Calculate hours used when both delivery and pickup have readings
+  const hoursUsed = (() => {
+    if (!delivery.booking_id || !siblingDeliveries) return null;
+    const deliveryRecord = siblingDeliveries.find((d) => d.type === "delivery" && d.hours_reading != null);
+    const pickupRecord = siblingDeliveries.find((d) => d.type === "pickup" && d.hours_reading != null);
+    if (deliveryRecord?.hours_reading != null && pickupRecord?.hours_reading != null) {
+      return Math.round((pickupRecord.hours_reading - deliveryRecord.hours_reading) * 10) / 10;
+    }
+    return null;
+  })();
 
   const markComplete = (signatureBase64?: string) => {
     const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
@@ -141,6 +153,12 @@ export default function DeliveryDetail() {
               <InfoRow label="Nombre" value={forklift?.name || "—"} />
               <InfoRow label="Modelo" value={forklift?.model || "—"} />
               {delivery.hours_reading != null && <InfoRow label="Horómetro" value={`${delivery.hours_reading} hrs`} />}
+              {hoursUsed != null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Horas Usadas</span>
+                  <span className="text-sm font-semibold text-primary">{hoursUsed} hrs</span>
+                </div>
+              )}
             </CardContent>
           </Card>
 

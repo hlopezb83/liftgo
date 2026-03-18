@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { format, differenceInDays, parseISO } from "date-fns";
 
 import { useBooking } from "@/hooks/useBookings";
+import { useDeliveries } from "@/hooks/useDeliveries";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { BookingActions } from "@/components/bookings/BookingActions";
 import { BookingStatusHistory } from "@/components/bookings/BookingStatusHistory";
@@ -9,11 +10,12 @@ import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBad
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, User, Truck, Clock } from "lucide-react";
+import { CalendarDays, User, Truck, Clock, Gauge } from "lucide-react";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: booking, isLoading } = useBooking(id);
+  const { data: deliveries } = useDeliveries(id);
   
 
   if (isLoading) {
@@ -38,6 +40,12 @@ export default function BookingDetail() {
 
   const duration = differenceInDays(parseISO(booking.end_date), parseISO(booking.start_date));
   const formatDate = (d: string) => format(parseISO(d), "dd/MM/yyyy");
+
+  const deliveryReading = deliveries?.find((d) => d.type === "delivery" && d.hours_reading != null);
+  const pickupReading = deliveries?.find((d) => d.type === "pickup" && d.hours_reading != null);
+  const hoursUsed = (deliveryReading?.hours_reading != null && pickupReading?.hours_reading != null)
+    ? Math.round((pickupReading.hours_reading - deliveryReading.hours_reading) * 10) / 10
+    : null;
 
   return (
     <div className="space-y-6">
@@ -118,6 +126,27 @@ export default function BookingDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {(deliveryReading || pickupReading) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Gauge className="h-4 w-4 text-muted-foreground" />
+              Horómetro
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {deliveryReading && <InfoRow label="Al entregar" value={`${deliveryReading.hours_reading} hrs`} />}
+            {pickupReading && <InfoRow label="Al recoger" value={`${pickupReading.hours_reading} hrs`} />}
+            {hoursUsed != null && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Horas Usadas</span>
+                <span className="text-sm font-semibold text-primary">{hoursUsed} hrs</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <BookingStatusHistory bookingId={booking.id} />
     </div>
