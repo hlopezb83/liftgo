@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
-import { useDelivery, useUpdateDelivery, useDeleteDelivery } from "@/hooks/useDeliveries";
+import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "@/hooks/useDeliveries";
 import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
