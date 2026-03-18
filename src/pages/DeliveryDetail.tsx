@@ -29,6 +29,7 @@ export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: delivery, isLoading } = useDelivery(id);
+  const { data: siblingDeliveries } = useDeliveries(delivery?.booking_id ?? undefined);
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const updateDelivery = useUpdateDelivery();
