@@ -24,7 +24,7 @@ export default function BookingsPage() {
   const navigate = useNavigate();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(bookings, {
-    searchFields: ["customer_name"],
+    searchFields: ["customer_name", "booking_number"],
     statusField: "status",
   });
 
