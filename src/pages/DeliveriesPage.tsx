@@ -83,8 +83,11 @@ export default function DeliveriesPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold">{d.type === "delivery" ? "Entrega" : "Recolección"}</span>
+              <span className="text-xs font-mono text-muted-foreground">{d.delivery_number}</span>
               <StatusBadge status={d.status} />
+            </div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-semibold">{d.type === "delivery" ? "Entrega" : "Recolección"}</span>
             </div>
             <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</p>
             <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
