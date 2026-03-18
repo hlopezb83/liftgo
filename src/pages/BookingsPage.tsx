@@ -51,7 +51,7 @@ export default function BookingsPage() {
       keyExtractor={(b) => b.id}
       emptyMessage="No se encontraron reservas"
       renderCard={(b) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform">
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="font-semibold text-sm">{b.forklifts?.name || "—"}</span>

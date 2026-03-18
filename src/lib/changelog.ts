@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.51.0",
+    date: "2026-03-18",
+    type: "minor",
+    title: "Página de detalle de reserva",
+    description: "Nueva página de detalle para cada reserva con drill-down desde la lista, centralizando la información y acciones en un solo lugar.",
+    changes: [
+      "Nueva página BookingDetail con cards de equipo, cliente, periodo de renta y facturación",
+      "Filas de la tabla de reservas ahora son clickeables para navegar al detalle",
+      "Se eliminó la columna de Acciones de la tabla; las acciones ahora viven en la página de detalle",
+      "Tarjetas móviles también navegan al detalle al hacer tap",
+    ],
+  },
+  {
     version: "3.50.0",
     date: "2026-03-18",
     type: "minor",

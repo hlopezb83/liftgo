@@ -40,6 +40,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });
       toast.success("Reserva eliminada");
+      navigate("/bookings");
     } catch (err: unknown) {
       toast.error("Error al eliminar: " + (err instanceof Error ? err.message : "Error desconocido"));
     }
