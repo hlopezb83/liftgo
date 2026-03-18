@@ -55,8 +55,9 @@ export default function DeliveryDetail() {
   const forklift = forkliftMap.get(delivery.forklift_id);
 
   const markComplete = (signatureBase64?: string) => {
+    const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
     updateDelivery.mutate(
-      { id: delivery.id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}) },
+      { id: delivery.id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}), ...(hrs !== undefined ? { hours_reading: hrs } : {}) },
       {
         onSuccess: () => {
           toast.success("Marcado como completado");
