@@ -18,6 +18,8 @@ const InvoiceDetail = lazy(() => import("./pages/InvoiceDetail"));
 const OperationsSetupPage = lazy(() => import("./pages/OperationsSetupPage"));
 const ReturnInspectionPage = lazy(() => import("./pages/ReturnInspectionPage"));
 const DeliveriesPage = lazy(() => import("./pages/DeliveriesPage"));
+const DeliveryDetail = lazy(() => import("./pages/DeliveryDetail"));
+const ReturnInspectionDetail = lazy(() => import("./pages/ReturnInspectionDetail"));
 const QuotesPage = lazy(() => import("./pages/QuotesPage"));
 const ContractsPage = lazy(() => import("./pages/ContractsPage"));
 const ContractDetail = lazy(() => import("./pages/ContractDetail"));
