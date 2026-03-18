@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.50.0",
+    date: "2026-03-18",
+    type: "minor",
+    title: "Edición manual de estatus de reservas",
+    description: "Los administradores ahora pueden cambiar manualmente el estatus de una reserva entre confirmada, completada y cancelada.",
+    changes: [
+      "Nuevo botón 'Cambiar Estatus' en las acciones de reserva, visible solo para administradores",
+      "Diálogo con selector de estatus que muestra transiciones válidas según el estado actual",
+      "Al cancelar se usa el RPC cancel_booking para liberar el montacargas correctamente",
+      "Disponible en todos los estados de reserva (confirmada, completada, cancelada)",
+    ],
+  },
+  {
     version: "3.49.0",
     date: "2026-03-13",
     type: "minor",
