@@ -5,6 +5,7 @@ import { StatCards } from "@/components/dashboard/StatCards";
 import { FinancialKpiCards } from "@/components/dashboard/FinancialKpiCards";
 import { AlertsRow } from "@/components/dashboard/AlertsRow";
 import { ExpiringContractsAlert } from "@/components/dashboard/ExpiringContractsAlert";
+import { InsuranceAlert } from "@/components/dashboard/InsuranceAlert";
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
 import { InvoiceBreakdown } from "@/components/dashboard/InvoiceBreakdown";
 import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
@@ -15,6 +16,7 @@ import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useFinancialKpis } from "@/hooks/useFinancialKpis";
+import { useForklifts } from "@/hooks/useForklifts";
 import { differenceInDays, parseISO } from "date-fns";
 
 const STATUS_COLORS = {
@@ -35,6 +37,7 @@ const INVOICE_STATUS_COLORS: Record<string, string> = {
 export default function Dashboard() {
   const { data: stats, isLoading } = useDashboardStats();
   const { data: kpis } = useFinancialKpis();
+  const { data: allForklifts } = useForklifts();
 
   const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 };
   const activeFleet = counts.total - counts.retired - counts.sold;
@@ -128,6 +131,7 @@ export default function Dashboard() {
       />
       <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
       <ExpiringContractsAlert contracts={kpis?.expiring_contracts ?? []} />
+      <InsuranceAlert forklifts={(allForklifts || []) as any} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />

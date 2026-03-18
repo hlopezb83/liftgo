@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuote } from "@/hooks/useQuotes";
+import { CollectionNotesCard } from "@/components/invoice-detail/CollectionNotesCard";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -247,6 +248,10 @@ export default function InvoiceDetail() {
       )}
 
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
+
+      {id && invoice.status !== "paid" && invoice.status !== "draft" && (
+        <CollectionNotesCard invoiceId={id} />
+      )}
 
       {id && <RecordPaymentDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen} invoiceId={id} balance={balance} />}
       {id && <CancelCfdiDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen} invoiceId={id} invoiceTotal={Number(invoice.total)} onSuccess={refetch} />}

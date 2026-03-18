@@ -17,6 +17,10 @@ export const forkliftFormSchema = z.object({
   monthly_rate: z.string().default(""),
   acquisition_cost: z.string().default(""),
   notes: z.string().default(""),
+  insurance_provider: z.string().default(""),
+  insurance_policy_number: z.string().default(""),
+  insurance_expiry: z.string().default(""),
+  insurance_cost: z.string().default(""),
 });
 
 export type ForkliftFormData = z.infer<typeof forkliftFormSchema>;

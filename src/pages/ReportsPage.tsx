@@ -11,6 +11,7 @@ import { MaintenanceCostReport } from "@/components/reports/MaintenanceCostRepor
 import { ProfitabilityByModelReport } from "@/components/reports/ProfitabilityByModelReport";
 import { UtilizationByModelReport } from "@/components/reports/UtilizationByModelReport";
 import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
+import { AgingReport } from "@/components/reports/AgingReport";
 import { subMonths } from "date-fns";
 
 const REPORT_TYPES = [
@@ -20,6 +21,7 @@ const REPORT_TYPES = [
   { value: "maintenance", label: "Costos de Mantenimiento" },
   { value: "profitability", label: "Rentabilidad por Modelo" },
   { value: "income-statement", label: "Estado de Resultados" },
+  { value: "aging", label: "Antigüedad de Cartera" },
 ];
 
 export default function ReportsPage() {
@@ -66,6 +68,9 @@ export default function ReportsPage() {
       )}
       {reportType === "income-statement" && (
         <IncomeStatementReport startDate={startDate} endDate={endDate} />
+      )}
+      {reportType === "aging" && (
+        <AgingReport startDate={startDate} endDate={endDate} />
       )}
     </div>
     </PageTransition>

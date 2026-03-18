@@ -1,22 +1,28 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { format, differenceInDays, parseISO } from "date-fns";
 
 import { useBooking } from "@/hooks/useBookings";
 import { useDeliveries } from "@/hooks/useDeliveries";
+import { useBookingExtensions } from "@/hooks/useBookingExtensions";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { BookingActions } from "@/components/bookings/BookingActions";
 import { BookingStatusHistory } from "@/components/bookings/BookingStatusHistory";
 import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
+import { ExtendBookingDialog } from "@/components/bookings/ExtendBookingDialog";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, User, Truck, Clock, Gauge } from "lucide-react";
+import { CalendarDays, User, Truck, Clock, Gauge, CalendarPlus, History, Phone } from "lucide-react";
+import { formatDateDisplay } from "@/lib/utils";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: booking, isLoading } = useBooking(id);
   const { data: deliveries } = useDeliveries(id);
-  
+  const { data: extensions } = useBookingExtensions(id);
+  const [extendOpen, setExtendOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -54,7 +60,16 @@ export default function BookingDetail() {
         subtitle={`${booking.forklifts?.name || "Equipo"} · ${booking.customer_name || "Sin cliente"}`}
         badges={<StatusBadge status={booking.status} />}
         backTo="/bookings"
-        actions={<BookingActions booking={booking} />}
+        actions={
+          <div className="flex gap-2">
+            {booking.status === "confirmed" && (
+              <Button variant="outline" size="sm" onClick={() => setExtendOpen(true)}>
+                <CalendarPlus className="h-4 w-4 mr-1" /> Extender Renta
+              </Button>
+            )}
+            <BookingActions booking={booking} />
+          </div>
+        }
       />
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -83,6 +98,15 @@ export default function BookingDetail() {
           <CardContent className="space-y-3">
             <InfoRow label="Nombre" value={booking.customer_name || "—"} />
             <InfoRow label="Contacto" value={booking.customer_contact || "—"} />
+            {(booking as any).site_contact_name && (
+              <InfoRow label="Contacto en sitio" value={(booking as any).site_contact_name} />
+            )}
+            {(booking as any).site_contact_phone && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> Tel. sitio</span>
+                <span className="text-sm font-medium">{(booking as any).site_contact_phone}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -148,7 +172,39 @@ export default function BookingDetail() {
         </Card>
       )}
 
+      {extensions && extensions.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <History className="h-4 w-4 text-muted-foreground" /> Extensiones
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {extensions.map((ext: any) => (
+              <div key={ext.id} className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">
+                    {formatDateDisplay(ext.original_end_date)} → {formatDateDisplay(ext.new_end_date)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{formatDateDisplay(ext.created_at)}</span>
+                </div>
+                {ext.reason && <p className="text-xs">{ext.reason}</p>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <BookingStatusHistory bookingId={booking.id} />
+
+      {extendOpen && (
+        <ExtendBookingDialog
+          open={extendOpen}
+          onOpenChange={setExtendOpen}
+          bookingId={booking.id}
+          currentEndDate={booking.end_date}
+        />
+      )}
     </div>
   );
 }

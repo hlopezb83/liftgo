@@ -33,6 +33,10 @@ const emptyForm: ForkliftFormData = {
   monthly_rate: "",
   acquisition_cost: "",
   notes: "",
+  insurance_provider: "",
+  insurance_policy_number: "",
+  insurance_expiry: "",
+  insurance_cost: "",
 };
 
 export default function ForkliftForm() {
@@ -80,6 +84,10 @@ export default function ForkliftForm() {
         monthly_rate: existing.monthly_rate?.toString() || "",
         acquisition_cost: existing.acquisition_cost?.toString() || "",
         notes: existing.notes || "",
+        insurance_provider: (existing as any).insurance_provider || "",
+        insurance_policy_number: (existing as any).insurance_policy_number || "",
+        insurance_expiry: (existing as any).insurance_expiry || "",
+        insurance_cost: (existing as any).insurance_cost?.toString() || "",
       });
     }
   }, [existing, equipmentModels]);
@@ -136,6 +144,10 @@ export default function ForkliftForm() {
       monthly_rate: form.monthly_rate ? parseFloat(form.monthly_rate) : 0,
       acquisition_cost: form.acquisition_cost ? parseFloat(form.acquisition_cost) : 0,
       notes: form.notes || null,
+      insurance_provider: form.insurance_provider || null,
+      insurance_policy_number: form.insurance_policy_number || null,
+      insurance_expiry: form.insurance_expiry || null,
+      insurance_cost: form.insurance_cost ? parseFloat(form.insurance_cost) : null,
     };
 
     const onError = (err: Error) => {
@@ -283,6 +295,28 @@ export default function ForkliftForm() {
             <div className="space-y-1.5">
               <Label>Costo de Adquisición ($)</Label>
               <Input type="number" placeholder="250000" value={form.acquisition_cost} onChange={(e) => set("acquisition_cost", e.target.value)} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Seguro</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Aseguradora</Label>
+              <Input placeholder="Ej: GNP Seguros" value={form.insurance_provider} onChange={(e) => set("insurance_provider", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>No. de Póliza</Label>
+              <Input placeholder="Ej: POL-2026-001" value={form.insurance_policy_number} onChange={(e) => set("insurance_policy_number", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Vigencia</Label>
+              <Input type="date" value={form.insurance_expiry} onChange={(e) => set("insurance_expiry", e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Costo de Póliza ($)</Label>
+              <Input type="number" placeholder="15000" value={form.insurance_cost} onChange={(e) => set("insurance_cost", e.target.value)} />
             </div>
           </CardContent>
         </Card>
