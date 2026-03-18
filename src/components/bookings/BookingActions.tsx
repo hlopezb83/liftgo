@@ -45,10 +45,85 @@ export function BookingActions({ booking }: BookingActionsProps) {
     }
   };
 
+  const statusLabels: Record<string, string> = {
+    confirmed: "Confirmada",
+    completed: "Completada",
+    cancelled: "Cancelada",
+  };
+
+  const getValidTransitions = (current: string): string[] => {
+    switch (current) {
+      case "confirmed": return ["completed", "cancelled"];
+      case "completed": return ["confirmed"];
+      case "cancelled": return ["confirmed"];
+      default: return [];
+    }
+  };
+
+  const handleStatusChange = async () => {
+    if (!newStatus || newStatus === booking.status) return;
+    try {
+      if (newStatus === "cancelled") {
+        const { error } = await supabase.rpc("cancel_booking", { p_booking_id: booking.id });
+        if (error) throw error;
+      } else {
+        await new Promise<void>((resolve, reject) => {
+          updateBooking.mutate(
+            { id: booking.id, status: newStatus },
+            { onSuccess: () => resolve(), onError: (err) => reject(err) }
+          );
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
+      toast.success(`Estatus cambiado a ${statusLabels[newStatus] || newStatus}`);
+      setStatusDialogOpen(false);
+    } catch (err: unknown) {
+      toast.error("Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido"));
+    }
+  };
+
+  const statusChangeDialog = (
+    <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Cambiar Estatus de Reserva</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Estatus actual</p>
+            <StatusBadge status={booking.status} />
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Nuevo estatus</p>
+            <Select value={newStatus} onValueChange={setNewStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar estatus" />
+              </SelectTrigger>
+              <SelectContent>
+                {getValidTransitions(booking.status).map((s) => (
+                  <SelectItem key={s} value={s}>{statusLabels[s] || s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-3">
+            <Button onClick={handleStatusChange} disabled={!newStatus || newStatus === booking.status}>
+              Confirmar Cambio
+            </Button>
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>Cancelar</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (booking.status !== "confirmed") {
     if (!isAdmin) return null;
     return (
       <div className="flex gap-1">
+        <Button variant="ghost" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
+          <RefreshCw className="h-3.5 w-3.5 mr-1" />Cambiar Estatus
+        </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
@@ -70,6 +145,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        {statusChangeDialog}
       </div>
     );
   }
