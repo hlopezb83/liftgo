@@ -64,6 +64,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/calendar", component: CalendarPage, module: "Calendario" },
   { path: "/bookings", component: BookingsPage, module: "Reservas" },
   { path: "/bookings/new", component: BookingForm, module: "Reservas" },
+  { path: "/bookings/:id", component: BookingDetail, module: "Reservas" },
   { path: "/customers", component: CustomersPage, module: "Clientes" },
   { path: "/customers/:id", component: CustomerDetailPage, module: "Clientes" },
   { path: "/maintenance", component: MaintenancePage, module: "Mantenimiento" },
