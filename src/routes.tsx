@@ -18,6 +18,8 @@ const InvoiceDetail = lazy(() => import("./pages/InvoiceDetail"));
 const OperationsSetupPage = lazy(() => import("./pages/OperationsSetupPage"));
 const ReturnInspectionPage = lazy(() => import("./pages/ReturnInspectionPage"));
 const DeliveriesPage = lazy(() => import("./pages/DeliveriesPage"));
+const DeliveryDetail = lazy(() => import("./pages/DeliveryDetail"));
+const ReturnInspectionDetail = lazy(() => import("./pages/ReturnInspectionDetail"));
 const QuotesPage = lazy(() => import("./pages/QuotesPage"));
 const ContractsPage = lazy(() => import("./pages/ContractsPage"));
 const ContractDetail = lazy(() => import("./pages/ContractDetail"));
@@ -73,7 +75,9 @@ export const appRoutes: RouteConfig[] = [
   { path: "/invoices/:id", component: InvoiceDetail, module: "Facturas" },
   { path: "/invoices/:id/edit", component: InvoiceForm, module: "Facturas" },
   { path: "/returns", component: ReturnInspectionPage, module: "Entregas" },
+  { path: "/returns/:id", component: ReturnInspectionDetail, module: "Entregas" },
   { path: "/deliveries", component: DeliveriesPage, module: "Entregas" },
+  { path: "/deliveries/:id", component: DeliveryDetail, module: "Entregas" },
   { path: "/quotes", component: QuotesPage, module: "Cotizaciones" },
   { path: "/quotes/new", component: QuoteForm, module: "Cotizaciones" },
   { path: "/quotes/:id", component: QuoteDetail, module: "Cotizaciones" },

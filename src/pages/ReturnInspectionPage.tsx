@@ -28,7 +28,7 @@ import { DragDropImageUploader } from "@/components/DragDropImageUploader";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const initialForm = {
   bookingId: "" as string,
@@ -43,6 +43,7 @@ const initialForm = {
 
 
 export default function ReturnInspectionPage() {
+  const navigate = useNavigate();
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const { data: inspections, isLoading } = useReturnInspections();
@@ -96,7 +97,7 @@ export default function ReturnInspectionPage() {
       renderCard={(ins) => {
         const insWithJoins = ins as ReturnInspectionWithJoins;
         return (
-          <Card>
+          <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
@@ -179,7 +180,7 @@ export default function ReturnInspectionPage() {
         renderRow={(ins) => {
           const insWithJoins = ins as ReturnInspectionWithJoins;
           return (
-            <TableRow key={ins.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+            <TableRow key={ins.id} className="hover:bg-muted/50 cursor-pointer border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/returns/${ins.id}`)}>
               <TableCell className="font-mono text-sm text-primary">{ins.inspection_number}</TableCell>
               <TableCell className="font-mono text-sm">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</TableCell>
               <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>

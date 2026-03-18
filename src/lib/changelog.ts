@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.55.0",
+    date: "2026-03-18",
+    type: "minor",
+    title: "Páginas de detalle para Entregas y Devoluciones",
+    description: "Las entregas y devoluciones ahora tienen páginas de detalle con drill-down desde las listas, centralizando acciones e información.",
+    changes: [
+      "Nueva página DeliveryDetail con información de logística, firma, acciones de completar y eliminar",
+      "Nueva página ReturnInspectionDetail con datos de inspección, equipo, reserva y daños",
+      "Filas clickeables en las tablas de entregas y devoluciones",
+      "Acciones inline eliminadas de las listas — centralizadas en las páginas de detalle",
+      "Hooks useDelivery(id) y useReturnInspection(id) para consultas individuales",
+    ],
+  },
+  {
     version: "3.54.0",
     date: "2026-03-18",
     type: "minor",
