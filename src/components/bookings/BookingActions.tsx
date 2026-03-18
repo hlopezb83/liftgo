@@ -195,27 +195,32 @@ export function BookingActions({ booking }: BookingActionsProps) {
       </Button>
 
       {isAdmin && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-              <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Eliminar esta reserva?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Se eliminará permanentemente la reserva de {booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <>
+          <Button variant="ghost" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
+            <RefreshCw className="h-3.5 w-3.5 mr-1" />Cambiar Estatus
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Eliminar esta reserva?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Se eliminará permanentemente la reserva de {booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       )}
 
       <AlertDialog>
@@ -257,8 +262,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
         </DialogContent>
       </Dialog>
 
-
-
+      {statusChangeDialog}
     </div>
   );
 }
