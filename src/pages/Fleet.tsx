@@ -154,6 +154,7 @@ export default function Fleet() {
           <SortableTableHead sortKey="serial_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>No. de Serie</SortableTableHead>
           <SortableTableHead sortKey="fuel_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Combustible</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
+          <TableHead className="hidden lg:table-cell">Ubicación</TableHead>
         </TableRow>
       }
       renderRow={(f) => (
