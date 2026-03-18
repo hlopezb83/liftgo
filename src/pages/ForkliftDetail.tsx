@@ -3,6 +3,8 @@ import { useForklift, useDeleteForklift, useStatusLogs } from "@/hooks/useForkli
 import { useBookings } from "@/hooks/useBookings";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
 import { useForkliftFinancials } from "@/hooks/useForkliftFinancials";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
