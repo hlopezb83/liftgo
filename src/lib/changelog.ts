@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "3.52.0",
+    date: "2026-03-18",
+    type: "patch",
+    title: "Historial de estatus en detalle de reserva",
+    description: "Se agregó una sección de historial de cambios de estatus en la página de detalle de reserva, mostrando transiciones con badges y fechas.",
+    changes: [
+      "Nuevo componente BookingStatusHistory que consulta la bitácora de auditoría",
+      "Muestra transiciones de estatus con badges visuales y timestamps",
+    ],
+  },
+  {
     version: "3.51.0",
     date: "2026-03-18",
     type: "minor",

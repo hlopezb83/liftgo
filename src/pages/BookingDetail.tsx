@@ -118,6 +118,8 @@ export default function BookingDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <BookingStatusHistory bookingId={booking.id} />
     </div>
   );
 }
