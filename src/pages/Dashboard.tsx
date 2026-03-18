@@ -131,6 +131,7 @@ export default function Dashboard() {
       />
       <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
       <ExpiringContractsAlert contracts={kpis?.expiring_contracts ?? []} />
+      <InsuranceAlert forklifts={(allForklifts || []) as any} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />

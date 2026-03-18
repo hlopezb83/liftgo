@@ -139,6 +139,27 @@ export default function CustomerDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <CustomerContactCard customer={customer} />
         <CustomerFinancialSummary totalInvoiced={totalInvoiced} totalPaid={totalPaid} outstanding={outstanding} />
+        {profitability && (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Rentabilidad</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Ingresos</span>
+                <span className="font-mono font-semibold">{formatCurrency(profitability.revenue)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Costos Mant.</span>
+                <span className="font-mono font-semibold">{formatCurrency(profitability.maintenance_cost)}</span>
+              </div>
+              <div className="flex justify-between text-sm border-t pt-2">
+                <span className="font-medium">Margen Bruto</span>
+                <span className={`font-mono font-bold ${profitability.gross_margin >= 0 ? "text-status-available" : "text-destructive"}`}>
+                  {formatCurrency(profitability.gross_margin)} ({profitability.margin_percent}%)
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Card>
