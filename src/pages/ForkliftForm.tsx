@@ -84,6 +84,10 @@ export default function ForkliftForm() {
         monthly_rate: existing.monthly_rate?.toString() || "",
         acquisition_cost: existing.acquisition_cost?.toString() || "",
         notes: existing.notes || "",
+        insurance_provider: (existing as any).insurance_provider || "",
+        insurance_policy_number: (existing as any).insurance_policy_number || "",
+        insurance_expiry: (existing as any).insurance_expiry || "",
+        insurance_cost: (existing as any).insurance_cost?.toString() || "",
       });
     }
   }, [existing, equipmentModels]);
