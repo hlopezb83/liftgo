@@ -7,6 +7,7 @@ const ForkliftDetail = lazy(() => import("./pages/ForkliftDetail"));
 const ForkliftForm = lazy(() => import("./pages/ForkliftForm"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const BookingsPage = lazy(() => import("./pages/BookingsPage"));
+const BookingDetail = lazy(() => import("./pages/BookingDetail"));
 const BookingForm = lazy(() => import("./pages/BookingForm"));
 const CustomersPage = lazy(() => import("./pages/CustomersPage"));
 const CustomerDetailPage = lazy(() => import("./pages/CustomerDetailPage"));
