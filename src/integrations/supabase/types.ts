@@ -82,6 +82,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          booking_number: string
           created_at: string
           customer_contact: string | null
           customer_id: string | null
@@ -98,6 +99,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          booking_number: string
           created_at?: string
           customer_contact?: string | null
           customer_id?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          booking_number?: string
           created_at?: string
           customer_contact?: string | null
           customer_id?: string | null
@@ -1705,6 +1708,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_booking_number: { Args: never; Returns: string }
       next_contract_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
