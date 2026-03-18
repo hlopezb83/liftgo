@@ -186,7 +186,7 @@ export default function ReturnInspectionPage() {
               <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
               <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>
               <TableCell><StatusBadge status={ins.condition} /></TableCell>
-              <TableCell className="font-mono">{ins.damage_cost ? formatCurrency(ins.damage_cost) : "—"}</TableCell>
+              
               <TableCell>{ins.inspected_by || "—"}</TableCell>
             </TableRow>
           );
