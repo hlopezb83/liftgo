@@ -22,6 +22,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
   const [driverPhone, setDriverPhone] = useState(delivery.driver_phone || "");
   const [scheduledTime, setScheduledTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [hoursReading, setHoursReading] = useState("");
 
   const handleSchedule = () => {
     createDelivery.mutate(
