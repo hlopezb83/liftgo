@@ -23,11 +23,31 @@ import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/consta
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
   const { data: policies } = useMaintenancePolicies();
+  const { data: contracts } = useContracts();
+  const { data: deliveries } = useDeliveries();
   const activePolicyForkliftIds = new Set(policies?.filter(p => p.is_active).map(p => p.forklift_id) ?? []);
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get("q") || "";
   const statusFilter = searchParams.get("status") || "all";
   const navigate = useNavigate();
+
+  // Build location map: forklift_id -> location string
+  const locationMap = useMemo(() => {
+    const map = new Map<string, string>();
+    // From active contracts
+    contracts?.forEach((c) => {
+      if (c.forklift_id && c.status === "active" && c.usage_location) {
+        map.set(c.forklift_id, c.usage_location);
+      }
+    });
+    // From latest completed delivery (if no contract location)
+    deliveries?.forEach((d) => {
+      if (d.address && !map.has(d.forklift_id)) {
+        map.set(d.forklift_id, d.address);
+      }
+    });
+    return map;
+  }, [contracts, deliveries]);
 
   const setSearch = useCallback((value: string) => {
     setSearchParams((prev) => {
