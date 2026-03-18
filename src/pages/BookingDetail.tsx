@@ -21,7 +21,8 @@ export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: booking, isLoading } = useBooking(id);
   const { data: deliveries } = useDeliveries(id);
-  
+  const { data: extensions } = useBookingExtensions(id);
+  const [extendOpen, setExtendOpen] = useState(false);
 
   if (isLoading) {
     return (
