@@ -2,7 +2,9 @@ import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCards } from "@/components/dashboard/StatCards";
+import { FinancialKpiCards } from "@/components/dashboard/FinancialKpiCards";
 import { AlertsRow } from "@/components/dashboard/AlertsRow";
+import { ExpiringContractsAlert } from "@/components/dashboard/ExpiringContractsAlert";
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
 import { InvoiceBreakdown } from "@/components/dashboard/InvoiceBreakdown";
 import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
@@ -12,6 +14,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useFinancialKpis } from "@/hooks/useFinancialKpis";
 import { differenceInDays, parseISO } from "date-fns";
 
 const STATUS_COLORS = {
