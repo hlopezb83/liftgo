@@ -189,6 +189,10 @@ export default function DeliveryDetail() {
             <DialogTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-primary" /> Firma del Cliente</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">Solicite la firma del cliente para confirmar la entrega.</p>
+          <div className="space-y-1.5">
+            <Label htmlFor="hours-reading">Lectura de Horómetro (horas)</Label>
+            <Input id="hours-reading" type="number" step="0.1" min="0" placeholder="Ej: 1250.5" value={hoursReading} onChange={(e) => setHoursReading(e.target.value)} />
+          </div>
           <SignaturePad onSave={(base64) => markComplete(base64)} />
           <Button variant="link" size="sm" className="text-muted-foreground" onClick={() => markComplete()}>Omitir Firma</Button>
         </DialogContent>
