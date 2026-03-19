@@ -227,7 +227,9 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
           </div>
           {prospect && effectiveStage === "cerrado_ganado" && (
             <div className="rounded-lg border border-dashed p-3">
-              {prospect.customer_id ? (
+              {!canCloseDeal ? (
+                <p className="text-xs text-muted-foreground text-center">Solo usuarios administrativos pueden convertir prospectos a clientes</p>
+              ) : prospect.customer_id ? (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium text-primary">Cliente creado</span>
