@@ -100,9 +100,24 @@ export default function CRMPage() {
             <h1 className="text-2xl font-bold tracking-tight">Pipeline CRM</h1>
             <p className="text-sm text-muted-foreground">Gestión de prospectos de venta</p>
           </div>
-          <Button onClick={() => openCreate("nuevo_prospecto")}>
-            <Plus className="h-4 w-4 mr-2" /> Nuevo Prospecto
-          </Button>
+          <div className="flex items-center gap-3">
+            {creators.length > 0 && (
+              <Select value={creatorFilter} onValueChange={setCreatorFilter}>
+                <SelectTrigger className="w-[180px] h-9 text-sm">
+                  <SelectValue placeholder="Filtrar por creador" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los usuarios</SelectItem>
+                  {creators.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button onClick={() => openCreate("nuevo_prospecto")}>
+              <Plus className="h-4 w-4 mr-2" /> Nuevo Prospecto
+            </Button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-x-auto p-4">
