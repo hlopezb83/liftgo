@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateDisplay } from "@/lib/utils";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
+const QUOTE_STATUS_LABELS: Record<string, string> = { ...STATUS_LABELS, sent: "Enviada" };
+const quoteLabel = (status: string) => QUOTE_STATUS_LABELS[status] || status;
 
 export default function QuotesPage() {
   const { data: quotes, isLoading } = useQuotes();
@@ -53,7 +55,7 @@ export default function QuotesPage() {
                   {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
                 </Badge>
               </div>
-              <StatusBadge status={q.status} />
+              <StatusBadge status={q.status} label={quoteLabel(q.status)} />
             </div>
             <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
@@ -80,7 +82,7 @@ export default function QuotesPage() {
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[150px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>)}
+              {STATUSES.map((s) => <SelectItem key={s} value={s}>{QUOTE_STATUS_LABELS[s] || s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -113,7 +115,7 @@ export default function QuotesPage() {
           <TableCell>{q.customer_name || "—"}</TableCell>
           <TableCell className="text-sm">{formatDateDisplay(q.start_date)} → {formatDateDisplay(q.end_date)}</TableCell>
           <TableCell className="font-mono">{formatCurrency(q.total)}</TableCell>
-          <TableCell><StatusBadge status={q.status} /></TableCell>
+          <TableCell><StatusBadge status={q.status} label={quoteLabel(q.status)} /></TableCell>
           <TableCell>{formatDateDisplay(q.valid_until)}</TableCell>
         </TableRow>
       )}

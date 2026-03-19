@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.0.2",
+    date: "2026-03-19",
+    type: "patch",
+    title: "Etiqueta correcta para cotizaciones enviadas",
+    description: "El estado 'sent' en cotizaciones ahora muestra 'Enviada' en lugar de 'Sin Pagar'.",
+    changes: [
+      "Corregida etiqueta de estado 'sent' en el módulo de cotizaciones para mostrar 'Enviada'",
+      "Agregado soporte de label override en componente StatusBadge",
+    ],
+  },
+  {
     version: "5.0.1",
     date: "2026-03-19",
     type: "patch",

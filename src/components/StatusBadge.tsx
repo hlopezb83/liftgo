@@ -36,8 +36,8 @@ const statusStyles: Record<string, string> = {
   pickup: "bg-status-maintenance text-white border-transparent",
 };
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label: labelOverride }: { status: string; label?: string }) {
   const className = statusStyles[status] || "bg-muted text-muted-foreground border-transparent";
-  const label = STATUS_LABELS[status] || status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const label = labelOverride || STATUS_LABELS[status] || status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   return <Badge className={cn(className)}>{label}</Badge>;
 }
