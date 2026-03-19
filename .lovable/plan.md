@@ -1,37 +1,21 @@
 
 
-# Enviar Cotizaciones por Correo Electrónico
+# Fix: Quote "sent" status showing as "Sin Pagar"
 
-## Prerequisito
-Configurar un dominio de correo electrónico para poder enviar desde tu marca.
+## Problem
+`STATUS_LABELS` maps `sent` to `"Sin Pagar"` globally. This is correct for invoices but incorrect for quotes, where it should display `"Enviada"`.
 
-## Implementación (después de configurar el dominio)
+## Solution
+The `StatusBadge` component and the `QuotesPage` filter both rely on `STATUS_LABELS[status]`. Since we cannot have two meanings for the same key in a flat map, the fix is to override the label specifically in the quotes context:
 
-### 1. Edge Function `send-quote-email`
-- Recibe `quote_id` y opcionalmente un `recipient_email` override
-- Consulta la cotización, el cliente (email), y los datos de la empresa
-- Genera el PDF del lado del servidor usando la misma lógica de `quotePdfPremium`
-- Envía el correo con el PDF adjunto como base64
-- El asunto será: "Cotización {COT-XXXX} — {Razón Social}"
-- Cuerpo HTML profesional con resumen (cliente, total, vigencia)
+**File: `src/pages/QuotesPage.tsx`**
+- Define a local `QUOTE_STATUS_LABELS` that overrides `sent` → `"Enviada"` for the filter dropdown.
 
-### 2. Botón "Enviar por Correo" en QuoteDetail
-- Nuevo botón con icono `Mail` junto al botón de "Descargar PDF"
-- Al hacer clic, abre un diálogo que muestra:
-  - Email del cliente (pre-llenado desde `customers.email`, editable)
-  - Mensaje opcional personalizado
-  - Botón "Enviar"
-- Llama a la Edge Function y muestra confirmación
-- Cambia automáticamente el status de `draft` → `sent` si aplica
+**File: `src/components/StatusBadge.tsx`** (or in QuotesPage directly)
+- Pass a label override or render a custom badge in the quotes table/cards so that `sent` displays as `"Enviada"` instead of `"Sin Pagar"`.
 
-### 3. Componente `SendQuoteEmailDialog`
-- Dialog con campo de email (pre-llenado), textarea para mensaje opcional
-- Validación de email antes de enviar
-- Estado de carga mientras se envía
+Alternatively, the simplest approach: add a `labelOverride` or use a wrapper in `QuotesPage` that maps `sent` → `"Enviada"` before passing to `StatusBadge`, without changing the global constant (which invoices still need).
 
-### Archivos a crear/modificar
-- `supabase/functions/send-quote-email/index.ts` — nueva Edge Function
-- `src/components/quotes/SendQuoteEmailDialog.tsx` — nuevo componente
-- `src/pages/QuoteDetail.tsx` — agregar botón y diálogo
-- `supabase/config.toml` — registrar la función
+### Changes
+1. **`src/pages/QuotesPage.tsx`**: Use a local label map for the status filter and render a custom StatusBadge that remaps `sent` to `"Enviada"` in both the table and mobile cards.
 
