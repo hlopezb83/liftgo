@@ -1,7 +1,9 @@
 import { useState, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { Plus, Building2, User, DollarSign, FileText } from "lucide-react";
+import { Plus, Building2, User, DollarSign, FileText, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
