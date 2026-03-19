@@ -1,4 +1,5 @@
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake } from "lucide-react";
+import { useState } from "react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake, KeyRound } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +12,8 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 
 type NavItem = { title: string; url: string; icon: React.ElementType };
 type NavGroup = { label: string; items: NavItem[] };
@@ -93,6 +96,7 @@ export function AppSidebar() {
   const { data: role } = useUserRole();
   const { data: company } = useCompanySettings();
   const { data: perms } = useRolePermissions();
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
 
   return (
     <Sidebar>
@@ -141,11 +145,20 @@ export function AppSidebar() {
           <p className="text-xs text-sidebar-foreground/60 truncate max-w-[140px]">{user?.email}</p>
           <div className="flex gap-1">
             <ThemeToggle />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+                  <KeyRound className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Cambiar contraseña</TooltipContent>
+            </Tooltip>
             <Button variant="ghost" size="sm" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
+        <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
       </SidebarFooter>
     </Sidebar>
   );
