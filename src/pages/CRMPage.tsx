@@ -70,6 +70,10 @@ export default function CRMPage() {
       if (!result.destination) return;
       const { draggableId, source, destination } = result;
       const newStage = destination.droppableId;
+      if (newStage === "cerrado_ganado" && !canCloseDeal) {
+        toast({ title: "Acceso restringido", description: "Solo usuarios administrativos pueden mover prospectos a Cerrado Ganado", variant: "destructive" });
+        return;
+      }
       if (source.droppableId === newStage) {
         updateProspect.mutate({ id: draggableId, stage_order: destination.index });
         return;
@@ -81,7 +85,7 @@ export default function CRMPage() {
         setDialogOpen(true);
       }
     },
-    [updateProspect, prospects]
+    [updateProspect, prospects, canCloseDeal]
   );
 
   const openCreate = (stage: string) => {
