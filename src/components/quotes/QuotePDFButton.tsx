@@ -72,7 +72,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       }
 
       // 7. Terms
-      drawTermsSection(doc, y, quote.valid_until);
+      drawTermsSection(doc, y, quote.valid_until, !isSale);
 
       // 8. Footer
       drawFooter(doc, company);

@@ -370,6 +370,7 @@ export function drawTermsSection(
   doc: jsPDF,
   startY: number,
   validUntil: string | null,
+  isRental: boolean = false,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   let y = startY + 2;
@@ -393,6 +394,11 @@ export function drawTermsSection(
     "• Condiciones de pago sujetas a negociación al momento de la contratación.",
     "• Los tiempos de entrega se confirman al aceptar la cotización.",
   ];
+
+  if (isRental) {
+    terms.push("• Equipo sujeto a 200 horas de uso mensual.");
+    terms.push("• El uso de horas extras lleva un costo adicional.");
+  }
 
   for (const t of terms) {
     doc.text(t, MARGIN, y);
