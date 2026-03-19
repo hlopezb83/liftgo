@@ -145,11 +145,20 @@ export function AppSidebar() {
           <p className="text-xs text-sidebar-foreground/60 truncate max-w-[140px]">{user?.email}</p>
           <div className="flex gap-1">
             <ThemeToggle />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+                  <KeyRound className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Cambiar contraseña</TooltipContent>
+            </Tooltip>
             <Button variant="ghost" size="sm" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
+        <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
       </SidebarFooter>
     </Sidebar>
   );
