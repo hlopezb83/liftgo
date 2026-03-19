@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.3.0",
+    date: "2026-03-19",
+    type: "minor",
+    title: "Restricción de Cerrado Ganado en CRM",
+    description: "Solo usuarios con rol admin o administrativo pueden mover o crear prospectos en la etapa Cerrado Ganado.",
+    changes: [
+      "Bloqueo de drag-and-drop hacia Cerrado Ganado para roles no autorizados",
+      "Bloqueo del botón Agregar en la columna Cerrado Ganado para roles no autorizados",
+      "Mensaje toast informativo al intentar una acción restringida",
+    ],
+  },
+  {
     version: "5.2.0",
     date: "2026-03-19",
     type: "minor",
