@@ -89,6 +89,10 @@ export default function CRMPage() {
   );
 
   const openCreate = (stage: string) => {
+    if (stage === "cerrado_ganado" && !canCloseDeal) {
+      toast({ title: "Acceso restringido", description: "Solo usuarios administrativos pueden crear prospectos en Cerrado Ganado", variant: "destructive" });
+      return;
+    }
     setEditingProspect(null);
     setDefaultStage(stage);
     setOverrideStage(undefined);
