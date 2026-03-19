@@ -29,10 +29,13 @@ const STAGES = [
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();
   const { data: quotes = [] } = useQuotes();
+  const { data: role } = useUserRole();
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
   const deleteProspect = useDeleteProspect();
   const navigate = useNavigate();
+
+  const canCloseDeal = role === "admin" || role === "administrativo";
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
