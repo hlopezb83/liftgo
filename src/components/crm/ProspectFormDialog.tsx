@@ -30,6 +30,7 @@ interface Props {
   prospect?: Prospect | null;
   defaultStage?: string;
   overrideStage?: string;
+  canCloseDeal?: boolean;
   onSave: (data: {
     company_name: string;
     contact_person: string;
