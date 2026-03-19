@@ -36,14 +36,28 @@ export default function CRMPage() {
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
   const [defaultStage, setDefaultStage] = useState("nuevo_prospecto");
   const [overrideStage, setOverrideStage] = useState<string | undefined>(undefined);
+  const [creatorFilter, setCreatorFilter] = useState<string>("all");
 
   // Build a lookup map for quote_id -> quote_number
   const quoteMap = new Map(quotes.map((q) => [q.id, q.quote_number]));
 
+  // Unique creators for the filter dropdown
+  const creators = useMemo(() => {
+    const map = new Map<string, string>();
+    prospects.forEach((p) => {
+      if (p.created_by && p.created_by_name) map.set(p.created_by, p.created_by_name);
+    });
+    return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [prospects]);
+
+  const filteredProspects = creatorFilter === "all"
+    ? prospects
+    : prospects.filter((p) => p.created_by === creatorFilter);
+
   const prospectsByStage = STAGES.map((s) => ({
     ...s,
-    items: prospects.filter((p) => p.stage === s.key).sort((a, b) => a.stage_order - b.stage_order),
-    total: prospects.filter((p) => p.stage === s.key).reduce((sum, p) => sum + (p.deal_value ?? 0), 0),
+    items: filteredProspects.filter((p) => p.stage === s.key).sort((a, b) => a.stage_order - b.stage_order),
+    total: filteredProspects.filter((p) => p.stage === s.key).reduce((sum, p) => sum + (p.deal_value ?? 0), 0),
   }));
 
   const onDragEnd = useCallback(
