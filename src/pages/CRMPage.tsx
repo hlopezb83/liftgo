@@ -13,7 +13,9 @@ import { PageTransition } from "@/components/PageTransition";
 import { ProspectFormDialog } from "@/components/crm/ProspectFormDialog";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
 import { useQuotes } from "@/hooks/useQuotes";
+import { useUserRole } from "@/hooks/useUserRole";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { toast } from "@/hooks/use-toast";
 
 const STAGES = [
   { key: "nuevo_prospecto", label: "Nuevo Prospecto", color: "hsl(var(--primary))" },
@@ -27,10 +29,13 @@ const STAGES = [
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();
   const { data: quotes = [] } = useQuotes();
+  const { data: role } = useUserRole();
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
   const deleteProspect = useDeleteProspect();
   const navigate = useNavigate();
+
+  const canCloseDeal = role === "admin" || role === "administrativo";
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
@@ -65,6 +70,10 @@ export default function CRMPage() {
       if (!result.destination) return;
       const { draggableId, source, destination } = result;
       const newStage = destination.droppableId;
+      if (newStage === "cerrado_ganado" && !canCloseDeal) {
+        toast({ title: "Acceso restringido", description: "Solo usuarios administrativos pueden mover prospectos a Cerrado Ganado", variant: "destructive" });
+        return;
+      }
       if (source.droppableId === newStage) {
         updateProspect.mutate({ id: draggableId, stage_order: destination.index });
         return;
@@ -76,10 +85,14 @@ export default function CRMPage() {
         setDialogOpen(true);
       }
     },
-    [updateProspect, prospects]
+    [updateProspect, prospects, canCloseDeal]
   );
 
   const openCreate = (stage: string) => {
+    if (stage === "cerrado_ganado" && !canCloseDeal) {
+      toast({ title: "Acceso restringido", description: "Solo usuarios administrativos pueden crear prospectos en Cerrado Ganado", variant: "destructive" });
+      return;
+    }
     setEditingProspect(null);
     setDefaultStage(stage);
     setOverrideStage(undefined);
