@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.2.0",
+    date: "2026-03-19",
+    type: "minor",
+    title: "Cambiar contraseña desde la app",
+    description: "Los usuarios autenticados pueden cambiar su contraseña directamente desde el sidebar sin necesidad del flujo de reset por email.",
+    changes: [
+      "Nuevo botón de llave en el footer del sidebar para cambiar contraseña",
+      "Diálogo de cambio de contraseña con validación de mínimo 6 caracteres y confirmación",
+    ],
+  },
+  {
     version: "5.1.0",
     date: "2026-03-19",
     type: "minor",
