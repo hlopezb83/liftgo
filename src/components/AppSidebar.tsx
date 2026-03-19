@@ -12,6 +12,8 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 
 type NavItem = { title: string; url: string; icon: React.ElementType };
 type NavGroup = { label: string; items: NavItem[] };
