@@ -13,7 +13,9 @@ import { PageTransition } from "@/components/PageTransition";
 import { ProspectFormDialog } from "@/components/crm/ProspectFormDialog";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
 import { useQuotes } from "@/hooks/useQuotes";
+import { useUserRole } from "@/hooks/useUserRole";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { toast } from "@/hooks/use-toast";
 
 const STAGES = [
   { key: "nuevo_prospecto", label: "Nuevo Prospecto", color: "hsl(var(--primary))" },
