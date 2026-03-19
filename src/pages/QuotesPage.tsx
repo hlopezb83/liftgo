@@ -55,7 +55,7 @@ export default function QuotesPage() {
                   {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
                 </Badge>
               </div>
-              <StatusBadge status={q.status} />
+              <StatusBadge status={q.status} label={quoteLabel(q.status)} />
             </div>
             <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
