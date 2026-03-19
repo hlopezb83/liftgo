@@ -143,10 +143,20 @@ export default function CRMPage() {
                                         <span className="text-xs text-muted-foreground">{prospect.contact_person}</span>
                                       </div>
                                     )}
-                                    {prospect.created_by_name && (
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <User className="h-3 w-3 text-muted-foreground/60 shrink-0" />
-                                        <span className="text-[11px] text-muted-foreground/60 italic">por {prospect.created_by_name}</span>
+                                    {(prospect.created_by_name || prospect.created_at) && (
+                                      <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground/60">
+                                        {prospect.created_by_name && (
+                                          <span className="flex items-center gap-1">
+                                            <User className="h-3 w-3 shrink-0" />
+                                            {prospect.created_by_name}
+                                          </span>
+                                        )}
+                                        {prospect.created_at && (
+                                          <span className="flex items-center gap-1">
+                                            <Calendar className="h-3 w-3 shrink-0" />
+                                            {format(new Date(prospect.created_at), "dd/MM/yyyy", { locale: es })}
+                                          </span>
+                                        )}
                                       </div>
                                     )}
                                     <div className="flex items-center gap-2 mt-1.5">
