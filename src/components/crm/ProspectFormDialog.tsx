@@ -150,6 +150,12 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
         <form onSubmit={handleSubmit} className="flex flex-col">
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-4 pb-1 pr-4">
+          {prospect?.created_by_name && (
+            <div className="space-y-1">
+              <Label className="text-muted-foreground">Creado por</Label>
+              <p className="text-sm font-medium">{prospect.created_by_name}</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="company">Empresa *</Label>
             <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} required />
