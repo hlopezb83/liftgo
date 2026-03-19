@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.1.0",
+    date: "2026-03-19",
+    type: "minor",
+    title: "Creador visible en tarjetas del CRM",
+    description: "Cada lead del pipeline CRM ahora muestra qué usuario lo creó, tanto en la tarjeta del Kanban como en el diálogo de edición.",
+    changes: [
+      "Agregada columna created_by a la tabla prospects con trigger automático",
+      "Nombre del creador visible en tarjetas del Kanban",
+      "Campo 'Creado por' de solo lectura en el diálogo de edición de prospectos",
+    ],
+  },
+  {
     version: "5.0.2",
     date: "2026-03-19",
     type: "patch",

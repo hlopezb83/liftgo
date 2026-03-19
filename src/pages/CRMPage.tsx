@@ -141,6 +141,12 @@ export default function CRMPage() {
                                         <span className="text-xs text-muted-foreground">{prospect.contact_person}</span>
                                       </div>
                                     )}
+                                    {prospect.created_by_name && (
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <User className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+                                        <span className="text-[11px] text-muted-foreground/60 italic">por {prospect.created_by_name}</span>
+                                      </div>
+                                    )}
                                     <div className="flex items-center gap-2 mt-1.5">
                                       <DollarSign className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                       <span className="text-xs font-medium">{formatCurrency(prospect.deal_value ?? 0)}</span>
