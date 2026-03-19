@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.0.1",
+    date: "2026-03-19",
+    type: "patch",
+    title: "Términos de uso de horas en cotizaciones de renta",
+    description: "Las cotizaciones de renta ahora incluyen automáticamente condiciones de límite de horas mensuales y costo por horas extras.",
+    changes: [
+      "Términos 'Equipo sujeto a 200 horas de uso mensual' y 'El uso de horas extras lleva un costo adicional' se agregan automáticamente al PDF de cotizaciones de renta",
+    ],
+  },
+  {
     version: "5.0.0",
     date: "2026-03-18",
     type: "major",
