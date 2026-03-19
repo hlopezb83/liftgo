@@ -82,7 +82,7 @@ export default function QuotesPage() {
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[150px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>)}
+              {STATUSES.map((s) => <SelectItem key={s} value={s}>{QUOTE_STATUS_LABELS[s] || s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
