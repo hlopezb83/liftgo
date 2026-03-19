@@ -18,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateDisplay } from "@/lib/utils";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
+const QUOTE_STATUS_LABELS: Record<string, string> = { ...STATUS_LABELS, sent: "Enviada" };
+const quoteLabel = (status: string) => QUOTE_STATUS_LABELS[status] || status;
 
 export default function QuotesPage() {
   const { data: quotes, isLoading } = useQuotes();
