@@ -96,6 +96,7 @@ export function AppSidebar() {
   const { data: role } = useUserRole();
   const { data: company } = useCompanySettings();
   const { data: perms } = useRolePermissions();
+  const [pwDialogOpen, setPwDialogOpen] = useState(false);
 
   return (
     <Sidebar>
