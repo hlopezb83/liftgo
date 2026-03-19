@@ -19,7 +19,16 @@ export interface Prospect {
   created_at: string;
   updated_at: string;
 }
-...
+
+export type ProspectInsert = Omit<Prospect, "id" | "created_at" | "updated_at" | "created_by" | "created_by_name">;
+export type ProspectUpdate = Partial<ProspectInsert> & { id: string };
+
+const QUERY_KEY = ["prospects"];
+
+export function useProspects() {
+  return useQuery({
+    queryKey: QUERY_KEY,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("prospects")
