@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.4.0",
+    date: "2026-03-19",
+    type: "minor",
+    title: "Migración de Edge Functions a getClaims()",
+    description: "Todas las Edge Functions ahora usan getClaims() en lugar de getUser() para validación de tokens, asegurando compatibilidad con Lovable Cloud.",
+    changes: [
+      "Migradas 7 Edge Functions: reset-user-password, generate-invoice-pdf, generate-recurring-maintenance, generate-recurring-invoices, invite-customer, generate-manual, delete-user, toggle-user-status",
+      "Se eliminan llamadas de red innecesarias al servidor de Auth — la validación ahora es local via JWT",
+      "Se resuelven errores 401 intermitentes causados por incompatibilidad de signing-keys",
+    ],
+  },
+  {
     version: "5.3.1",
     date: "2026-03-19",
     type: "patch",

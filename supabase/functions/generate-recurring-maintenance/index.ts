@@ -14,19 +14,23 @@ Deno.serve(async (req) => {
     // Verify caller is admin/administrativo (skip for cron calls with service key)
     const authHeader = req.headers.get("authorization") ?? "";
     if (authHeader.includes("Bearer") && !authHeader.includes(serviceKey.slice(0, 20))) {
-      const { data: { user }, error: authError } = await supabase.auth.getUser(
-        authHeader.replace("Bearer ", "")
-      );
-      if (authError || !user) {
+      const token = authHeader.replace("Bearer ", "");
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const callerClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
         return new Response(JSON.stringify({ error: "No autorizado" }), {
           status: 401,
           headers: { ...headers, "Content-Type": "application/json" },
         });
       }
+      const callerId = claimsData.claims.sub as string;
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id);
+        .eq("user_id", callerId);
       const roles = (roleData ?? []).map((r: any) => r.role);
       if (!roles.includes("admin") && !roles.includes("administrativo")) {
         return new Response(JSON.stringify({ error: "Solo admin/administrativo puede ejecutar esta función" }), {
