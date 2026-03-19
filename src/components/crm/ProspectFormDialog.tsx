@@ -278,7 +278,7 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
             )}
             <div className="flex gap-2 ml-auto">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button type="submit">Guardar</Button>
+              <Button type="submit" disabled={effectiveStage === "cerrado_ganado" && !canCloseDeal}>Guardar</Button>
             </div>
           </DialogFooter>
         </form>
