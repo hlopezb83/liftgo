@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.3.1",
+    date: "2026-03-19",
+    type: "patch",
+    title: "Refuerzo de restricción Cerrado Ganado",
+    description: "Se cierran brechas de seguridad en la restricción de Cerrado Ganado del CRM.",
+    changes: [
+      "Guardia en onSave para bloquear guardado en Cerrado Ganado sin permisos",
+      "Botón Convertir a Cliente oculto para usuarios no autorizados",
+      "Botón Guardar deshabilitado al editar prospectos en Cerrado Ganado sin rol admin/administrativo",
+    ],
+  },
+  {
     version: "5.3.0",
     date: "2026-03-19",
     type: "minor",

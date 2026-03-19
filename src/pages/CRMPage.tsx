@@ -253,7 +253,12 @@ export default function CRMPage() {
         prospect={editingProspect}
         defaultStage={defaultStage}
         overrideStage={overrideStage}
+        canCloseDeal={canCloseDeal}
         onSave={(data) => {
+          if (data.stage === "cerrado_ganado" && !canCloseDeal) {
+            toast({ title: "Acceso restringido", description: "Solo usuarios administrativos pueden guardar prospectos en Cerrado Ganado", variant: "destructive" });
+            return;
+          }
           if (editingProspect) {
             updateProspect.mutate({ id: editingProspect.id, ...data });
           } else {

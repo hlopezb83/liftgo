@@ -30,6 +30,7 @@ interface Props {
   prospect?: Prospect | null;
   defaultStage?: string;
   overrideStage?: string;
+  canCloseDeal?: boolean;
   onSave: (data: {
     company_name: string;
     contact_person: string;
@@ -43,7 +44,7 @@ interface Props {
   onDelete?: () => void;
 }
 
-export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage = "nuevo_prospecto", overrideStage, onSave, onDelete }: Props) {
+export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage = "nuevo_prospecto", overrideStage, canCloseDeal = true, onSave, onDelete }: Props) {
   const navigate = useNavigate();
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
@@ -226,7 +227,9 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
           </div>
           {prospect && effectiveStage === "cerrado_ganado" && (
             <div className="rounded-lg border border-dashed p-3">
-              {prospect.customer_id ? (
+              {!canCloseDeal ? (
+                <p className="text-xs text-muted-foreground text-center">Solo usuarios administrativos pueden convertir prospectos a clientes</p>
+              ) : prospect.customer_id ? (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium text-primary">Cliente creado</span>
@@ -275,7 +278,7 @@ export function ProspectFormDialog({ open, onOpenChange, prospect, defaultStage 
             )}
             <div className="flex gap-2 ml-auto">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button type="submit">Guardar</Button>
+              <Button type="submit" disabled={effectiveStage === "cerrado_ganado" && !canCloseDeal}>Guardar</Button>
             </div>
           </DialogFooter>
         </form>
