@@ -13,6 +13,7 @@ export interface OperatingExpense {
   expense_date: string;
   is_recurring: boolean;
   supplier_id: string | null;
+  suppliers: { name: string } | null;
   created_at: string;
   updated_at: string;
 }
