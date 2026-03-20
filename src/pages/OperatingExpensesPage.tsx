@@ -168,14 +168,7 @@ export default function OperatingExpensesPage() {
                         </TableCell>
                         <TableCell className="text-muted-foreground">{e.description || "—"}</TableCell>
                         <TableCell className="text-right font-mono">{formatCurrency(e.amount)}</TableCell>
-                        <TableCell className="text-center">
-                          {e.is_recurring && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                              <Repeat className="h-3 w-3" />
-                              Mensual
-                            </span>
-                          )}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground">{e.suppliers?.name || "—"}</TableCell>
                         <TableCell>
                           <div className="flex gap-1 justify-end">
                             <Button variant="ghost" size="icon" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>

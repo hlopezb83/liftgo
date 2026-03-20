@@ -35,7 +35,7 @@ export function useOperatingExpenses() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operating_expenses")
-        .select("*")
+        .select("*, suppliers(name)")
         .order("expense_date", { ascending: false });
       if (error) throw error;
       return data as OperatingExpense[];
