@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { startOfMonth, format } from "date-fns";
 
-export type ExpenseCategory = "renta" | "nomina" | "software" | "depreciacion" | "otro" | "costo_venta";
+export type ExpenseCategory = "renta" | "nomina" | "software" | "depreciacion" | "otro" | "costo_venta" | "caja_chica";
 
 export interface OperatingExpense {
   id: string;
