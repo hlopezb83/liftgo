@@ -1,22 +1,25 @@
 
 
-## Cambios en la tabla de Gastos Operativos
+## Agregar categoría "Publicidad" a gastos operativos y estado de resultados
 
-Reemplazar la columna "Recurrente" por una columna "Proveedor" que muestre el nombre del proveedor vinculado.
+### Cambios necesarios
 
-### Cambios
+**1. Migración de base de datos**
+Agregar el nuevo valor al enum `expense_category`:
+```sql
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'publicidad';
+```
 
-**`src/hooks/useOperatingExpenses.ts`**
-- Modificar la query de `useOperatingExpenses` para hacer join con suppliers: `.select("*, suppliers(name)")` en lugar de `select("*")`
-- Actualizar la interfaz `OperatingExpense` para incluir `suppliers: { name: string } | null`
+**2. `src/hooks/useOperatingExpenses.ts`**
+- Agregar `"publicidad"` al tipo `ExpenseCategory`
+- Agregar `publicidad: "Publicidad"` al objeto `EXPENSE_CATEGORY_LABELS`
 
-**`src/pages/OperatingExpensesPage.tsx`**
-- En el `TableHeader`: reemplazar `<TableHead className="text-center">Recurrente</TableHead>` por `<TableHead>Proveedor</TableHead>`
-- En el `TableBody`: reemplazar la celda de "Recurrente" (badge con icono Repeat) por una celda que muestre `e.suppliers?.name || "—"`
-- Actualizar `colSpan` de `EmptyRow` si cambia el conteo de columnas (se mantiene en 6)
-- Eliminar el import de `Repeat` si ya no se usa en ningún otro lugar
+**3. `src/components/reports/IncomeStatementReport.tsx`**
+- Agregar `"publicidad"` al array `EXPENSE_CATEGORIES` (línea 30)
+- Agregar `publicidad: 0` en los 3 inicializadores: `emptyExpenses()` (línea 114), `totals` (línea 247), `yearTotals` (línea 271)
 
 ### Archivos a modificar
+- Migración SQL (1 línea)
 - `src/hooks/useOperatingExpenses.ts` (2 ediciones)
-- `src/pages/OperatingExpensesPage.tsx` (3 ediciones menores)
+- `src/components/reports/IncomeStatementReport.tsx` (4 ediciones)
 
