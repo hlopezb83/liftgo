@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Repeat, RefreshCw, DollarSign } from "lucide-react";
+import { Plus, Pencil, Trash2, RefreshCw, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { capitalize, parseDateLocal } from "@/lib/utils";
 import { format } from "date-fns";
