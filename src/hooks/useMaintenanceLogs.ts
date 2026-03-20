@@ -46,3 +46,19 @@ export function useUpdateMaintenanceLog() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
   });
 }
+
+export function useDeleteMaintenanceLog() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("maintenance_logs").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
+    onError: (err: Error) => {
+      import("sonner").then(({ toast }) =>
+        toast.error("Error al eliminar registro de mantenimiento", { description: err.message })
+      );
+    },
+  });
+}

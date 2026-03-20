@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
-import { useMaintenanceLogs, useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import { useMaintenanceLogs, useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -19,6 +19,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { MarkAvailableDialog } from "@/components/fleet/MarkAvailableDialog";
 import { RoleGuard } from "@/components/RoleGuard";
+import { MaintenanceDetailSheet } from "@/components/maintenance/MaintenanceDetailSheet";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -29,7 +30,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MaintenanceKanban } from "@/components/maintenance/MaintenanceKanban";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
@@ -51,7 +52,10 @@ export default function MaintenancePage() {
   const { data: logs, isLoading } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
   const createLog = useCreateMaintenanceLog();
+  const updateLog = useUpdateMaintenanceLog();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<MaintenanceLog | null>(null);
   const { form, set, reset } = useFormState(initialForm);
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
@@ -111,7 +115,7 @@ export default function MaintenancePage() {
       keyExtractor={(log) => log.id}
       emptyMessage="No se encontraron registros"
       renderCard={(log) => (
-        <Card>
+        <Card className="cursor-pointer" onClick={() => setSelectedLog(log)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-semibold">{log.service_type}</span>
@@ -129,19 +133,43 @@ export default function MaintenancePage() {
     />
   ) : undefined;
 
+  const openEditDialog = (log: MaintenanceLog) => {
+    setEditingLogId(log.id);
+    set("forkliftId", log.forklift_id);
+    set("serviceType", log.service_type);
+    set("description", log.description || "");
+    set("cost", log.cost?.toString() || "");
+    set("performedBy", log.performed_by || "");
+    set("performedAt", log.performed_at ? parseISO(log.performed_at) : new Date());
+    set("nextServiceDate", log.next_service_date ? parseISO(log.next_service_date) : undefined);
+    set("supplierId", log.supplier_id || "");
+    setDialogOpen(true);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.forkliftId || !form.serviceType) { toast.error("Montacargas y tipo de servicio son requeridos"); return; }
-    const selectedForklift = forkliftMap.get(form.forkliftId);
-    createLog.mutate(
-      {
-        forklift_id: form.forkliftId, service_type: form.serviceType, description: form.description || null,
-        cost: form.cost ? parseFloat(form.cost) : 0, performed_by: form.performedBy || null,
-        performed_at: format(form.performedAt, "yyyy-MM-dd"),
-        next_service_date: form.nextServiceDate ? format(form.nextServiceDate, "yyyy-MM-dd") : null,
-        supplier_id: form.supplierId || null,
-      },
-      {
+
+    const payload = {
+      forklift_id: form.forkliftId, service_type: form.serviceType, description: form.description || null,
+      cost: form.cost ? parseFloat(form.cost) : 0, performed_by: form.performedBy || null,
+      performed_at: format(form.performedAt, "yyyy-MM-dd"),
+      next_service_date: form.nextServiceDate ? format(form.nextServiceDate, "yyyy-MM-dd") : null,
+      supplier_id: form.supplierId || null,
+    };
+
+    if (editingLogId) {
+      updateLog.mutate({ id: editingLogId, ...payload }, {
+        onSuccess: () => {
+          toast.success("Registro de mantenimiento actualizado");
+          setDialogOpen(false);
+          setEditingLogId(null);
+          reset();
+        },
+      });
+    } else {
+      const selectedForklift = forkliftMap.get(form.forkliftId);
+      createLog.mutate(payload, {
         onSuccess: () => {
           toast.success("Registro de mantenimiento agregado");
           setDialogOpen(false);
@@ -150,11 +178,12 @@ export default function MaintenancePage() {
           }
           reset();
         },
-      }
-    );
+      });
+    }
   };
 
   const totalCost = logs?.reduce((sum, l) => sum + (l.cost || 0), 0) || 0;
+  const isPending = editingLogId ? updateLog.isPending : createLog.isPending;
 
   return (
     <>
@@ -174,7 +203,7 @@ export default function MaintenancePage() {
                 Generar Recurrente
               </Button>
             </RoleGuard>
-            <Button onClick={() => { reset(); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio</Button>
+            <Button onClick={() => { reset(); setEditingLogId(null); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio</Button>
           </div>
         }
         filters={
@@ -210,7 +239,7 @@ export default function MaintenancePage() {
           </TableRow>
         }
         renderRow={(log) => (
-          <TableRow key={log.id} className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors">
+          <TableRow key={log.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => setSelectedLog(log)}>
             <TableCell className="font-mono text-sm">{formatDateDisplay(log.performed_at)}</TableCell>
             <TableCell className="font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</TableCell>
             <TableCell>{log.service_type}</TableCell>
@@ -222,9 +251,17 @@ export default function MaintenancePage() {
         customContent={kanbanContent || mobileContent}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <MaintenanceDetailSheet
+        log={selectedLog}
+        open={!!selectedLog}
+        onOpenChange={(open) => { if (!open) setSelectedLog(null); }}
+        forkliftName={selectedLog ? (forkliftMap.get(selectedLog.forklift_id)?.name || "—") : ""}
+        onEdit={openEditDialog}
+      />
+
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingLogId(null); }}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" /> Registrar Mantenimiento</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" /> {editingLogId ? "Editar Mantenimiento" : "Registrar Mantenimiento"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Montacargas *</Label>
@@ -261,7 +298,7 @@ export default function MaintenancePage() {
               <DatePickerField label="Próximo Servicio" date={form.nextServiceDate} onSelect={(d) => set("nextServiceDate", d)} placeholder="Opcional" />
             </div>
             <SupplierSelector value={form.supplierId} onChange={(v) => set("supplierId", v)} />
-            <FormActions submitLabel="Agregar Registro" isPending={createLog.isPending} onCancel={() => setDialogOpen(false)} />
+            <FormActions submitLabel={editingLogId ? "Guardar Cambios" : "Agregar Registro"} isPending={isPending} onCancel={() => setDialogOpen(false)} />
           </form>
         </DialogContent>
       </Dialog>

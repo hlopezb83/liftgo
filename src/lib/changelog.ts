@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.6.0",
+    date: "2026-03-20",
+    type: "minor",
+    title: "Drill-down, edición y eliminación en Mantenimiento",
+    description: "Se agrega la funcionalidad de drill-down al hacer clic en una fila de mantenimiento, abriendo un panel lateral con detalles completos, refacciones utilizadas y acciones de editar/eliminar.",
+    changes: [
+      "Clic en fila de mantenimiento abre panel lateral con todos los detalles",
+      "Botón de editar pre-llena el formulario existente para modificar registros",
+      "Botón de eliminar con confirmación para borrar registros",
+      "Protegido con permisos de rol (módulo Mantenimiento, acceso completo)",
+    ],
+  },
+  {
     version: "5.5.1",
     date: "2026-03-20",
     type: "patch",
