@@ -94,7 +94,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           )}
 
           <Separator />
-          <MaintenancePartsSection maintenanceLogId={log.id} />
+          <MaintenancePartsSection maintenanceLogId={log.id} currentCost={log.cost || 0} />
 
           <Separator />
           <RoleGuard module="Mantenimiento" minAccess="full">
