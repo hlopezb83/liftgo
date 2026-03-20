@@ -150,7 +150,7 @@ export default function OperatingExpensesPage() {
                     <TableHead>Categoría</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
-                    <TableHead className="text-center">Recurrente</TableHead>
+                    <TableHead>Proveedor</TableHead>
                     <TableHead className="w-24" />
                   </TableRow>
                 </TableHeader>
