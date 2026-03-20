@@ -23,6 +23,7 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   software: "Software",
   depreciacion: "Depreciación",
   costo_venta: "Costo de Venta",
+  caja_chica: "Caja Chica",
   otro: "Otro",
 };
 
