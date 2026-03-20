@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.4.3",
+    date: "2026-03-20",
+    type: "patch",
+    title: "Columna Proveedor en Gastos Operativos",
+    description: "Se reemplazó la columna 'Recurrente' por 'Proveedor' en la tabla de gastos operativos, mostrando el nombre del proveedor vinculado.",
+    changes: [
+      "Reemplazada columna Recurrente por Proveedor en la tabla de gastos",
+      "Query de gastos ahora incluye join con tabla de proveedores",
+    ],
+  },
+  {
     version: "5.4.2",
     date: "2026-03-20",
     type: "patch",
