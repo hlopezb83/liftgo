@@ -27,7 +27,7 @@ interface Props {
   accountingBasis?: "accrual" | "cash";
 }
 
-const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "caja_chica", "otro"];
+const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "caja_chica", "publicidad", "otro"];
 const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];
 
 interface MonthData {
