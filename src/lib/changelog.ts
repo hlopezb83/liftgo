@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.4.1",
+    date: "2026-03-20",
+    type: "patch",
+    title: "Nueva categoría Caja Chica en gastos operativos",
+    description: "Se agregó la categoría 'Caja Chica' al catálogo de gastos operativos para registrar gastos menores de efectivo.",
+    changes: [
+      "Alta de categoría 'caja_chica' en el enum de base de datos",
+      "Etiqueta 'Caja Chica' visible en formulario y reportes",
+    ],
+  },
+  {
     version: "5.4.0",
     date: "2026-03-19",
     type: "minor",
