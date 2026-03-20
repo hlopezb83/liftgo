@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Repeat, RefreshCw, DollarSign } from "lucide-react";
+import { Plus, Pencil, Trash2, RefreshCw, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { capitalize, parseDateLocal } from "@/lib/utils";
 import { format } from "date-fns";
@@ -150,7 +150,7 @@ export default function OperatingExpensesPage() {
                     <TableHead>Categoría</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
-                    <TableHead className="text-center">Recurrente</TableHead>
+                    <TableHead>Proveedor</TableHead>
                     <TableHead className="w-24" />
                   </TableRow>
                 </TableHeader>
@@ -168,14 +168,7 @@ export default function OperatingExpensesPage() {
                         </TableCell>
                         <TableCell className="text-muted-foreground">{e.description || "—"}</TableCell>
                         <TableCell className="text-right font-mono">{formatCurrency(e.amount)}</TableCell>
-                        <TableCell className="text-center">
-                          {e.is_recurring && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                              <Repeat className="h-3 w-3" />
-                              Mensual
-                            </span>
-                          )}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground">{e.suppliers?.name || "—"}</TableCell>
                         <TableCell>
                           <div className="flex gap-1 justify-end">
                             <Button variant="ghost" size="icon" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>

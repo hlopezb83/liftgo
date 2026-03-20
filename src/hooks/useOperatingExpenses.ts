@@ -13,6 +13,7 @@ export interface OperatingExpense {
   expense_date: string;
   is_recurring: boolean;
   supplier_id: string | null;
+  suppliers: { name: string } | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,7 +35,7 @@ export function useOperatingExpenses() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("operating_expenses")
-        .select("*")
+        .select("*, suppliers(name)")
         .order("expense_date", { ascending: false });
       if (error) throw error;
       return data as OperatingExpense[];
