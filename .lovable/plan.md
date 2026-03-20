@@ -1,19 +1,37 @@
 
 
-## Quitar "Software" y "Depreciación" del Estado de Resultados
+## Editar, borrar y drill-down en Mantenimiento
 
-### Cambio
+### Resumen
 
-**`src/components/reports/IncomeStatementReport.tsx`** — Línea 30:
+Agregar funcionalidad de drill-down al hacer clic en una fila de la tabla de mantenimiento, abriendo un panel lateral (Sheet) con los detalles completos, botones de editar y eliminar.
 
-Remover `"software"` y `"depreciacion"` del array `EXPENSE_CATEGORIES`:
+### Cambios
 
-```typescript
-const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
-```
+**1. `src/hooks/useMaintenanceLogs.ts`**
+- Agregar hook `useDeleteMaintenanceLog` con mutación DELETE + invalidación de queries + toast de error.
 
-Esto elimina ambas líneas de la sección de gastos operativos. Los inicializadores con `software: 0` y `depreciacion: 0` pueden quedarse sin efecto visual (no se renderizan si no están en el array), pero opcionalmente se limpian también para consistencia.
+**2. `src/pages/MaintenancePage.tsx`**
+- Agregar estado `selectedLog` para controlar el panel de detalle.
+- Agregar estado `editingLog` para el diálogo de edición (reutiliza el diálogo existente con campos pre-llenados).
+- Hacer las filas de la tabla clickeables (`onClick → setSelectedLog`), también las cards móviles.
+- Importar y renderizar un nuevo componente `MaintenanceDetailSheet`.
+- Refactorizar el diálogo de formulario para soportar modo edición (submit llama `updateLog` en vez de `createLog`, título cambia a "Editar Mantenimiento").
+
+**3. `src/components/maintenance/MaintenanceDetailSheet.tsx`** (nuevo)
+- Panel lateral (Sheet) que muestra:
+  - Tipo de servicio, montacargas, fecha, realizado por, costo, descripción, proveedor, próximo servicio, estado de trabajo.
+  - Sección de refacciones (`MaintenancePartsSection`).
+  - Botón "Editar" → abre diálogo de edición con datos pre-llenados.
+  - Botón "Eliminar" → confirmación con AlertDialog → ejecuta delete → cierra sheet.
+- Protegido con `RoleGuard` para editar/borrar (módulo "Mantenimiento", acceso "full").
 
 ### Archivos a modificar
-- `src/components/reports/IncomeStatementReport.tsx` (1 edición principal)
+- `src/hooks/useMaintenanceLogs.ts` — agregar `useDeleteMaintenanceLog`
+- `src/pages/MaintenancePage.tsx` — estado de selección, filas clickeables, modo edición en diálogo
+- `src/components/maintenance/MaintenanceDetailSheet.tsx` — nuevo componente de detalle
+
+### Detalles técnicos
+
+El Sheet de detalle sigue el mismo patrón que el Kanban (`MaintenanceKanban.tsx`) pero se usa desde la vista de lista. El diálogo de formulario existente se reutiliza para edición pre-llenando los campos y cambiando el submit a `useUpdateMaintenanceLog`.
 
