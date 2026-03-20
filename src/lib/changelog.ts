@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.4.2",
+    date: "2026-03-20",
+    type: "patch",
+    title: "Homologar Caja Chica en Estado de Resultados",
+    description: "La categoría Caja Chica ahora aparece correctamente como línea de gasto operativo en el Estado de Resultados, incluyéndose en los totales y la utilidad neta.",
+    changes: [
+      "Agregada categoría Caja Chica al array de gastos operativos del reporte",
+      "Corregidos inicializadores de totales mensuales y anuales para incluir caja_chica",
+    ],
+  },
+  {
     version: "5.4.1",
     date: "2026-03-20",
     type: "patch",
