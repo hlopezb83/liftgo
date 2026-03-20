@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.5.0",
+    date: "2026-03-20",
+    type: "minor",
+    title: "Categoría Publicidad en Gastos Operativos",
+    description: "Se agrega la categoría 'Publicidad' al catálogo de gastos operativos y al estado de resultados.",
+    changes: [
+      "Nueva categoría 'Publicidad' disponible en el formulario de registro de gastos",
+      "Categoría reflejada como línea en el Estado de Resultados",
+    ],
+  },
+  {
     version: "5.4.3",
     date: "2026-03-20",
     type: "patch",

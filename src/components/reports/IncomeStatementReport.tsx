@@ -27,7 +27,7 @@ interface Props {
   accountingBasis?: "accrual" | "cash";
 }
 
-const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "caja_chica", "otro"];
+const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "caja_chica", "publicidad", "otro"];
 const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];
 
 interface MonthData {
@@ -111,7 +111,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
   const data = useMemo(() => {
     const months: Record<string, { month: string; revenue: number; revenueRental: number; revenueSales: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
 
-    const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0, caja_chica: 0 });
+    const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0, caja_chica: 0, publicidad: 0 });
 
     const ensureMonth = (date: Date) => {
       const key = format(startOfMonth(date), "yyyy-MM");
@@ -244,7 +244,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
           expenses,
         };
       },
-      { revenue: 0, revenueRental: 0, revenueSales: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, caja_chica: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
+      { revenue: 0, revenueRental: 0, revenueSales: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, caja_chica: 0, publicidad: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
     );
     const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
     const grossProfit = t.revenue - t.maintenanceCost - t.damageCost - costoVenta;
@@ -268,7 +268,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
           allCats.forEach((c) => { expenses[c] = (expenses[c] || 0) + r.expenses[c]; });
           return { revenue: acc.revenue + r.revenue, revenueRental: acc.revenueRental + r.revenueRental, revenueSales: acc.revenueSales + r.revenueSales, maintenanceCost: acc.maintenanceCost + r.maintenanceCost, damageCost: acc.damageCost + r.damageCost, depreciation: acc.depreciation + r.depreciation, expenses };
         },
-        { revenue: 0, revenueRental: 0, revenueSales: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, caja_chica: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
+        { revenue: 0, revenueRental: 0, revenueSales: 0, maintenanceCost: 0, damageCost: 0, depreciation: 0, expenses: { renta: 0, nomina: 0, software: 0, depreciacion: 0, caja_chica: 0, publicidad: 0, otro: 0, costo_venta: 0 } as Record<ExpenseCategory, number> }
       );
       const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
       const grossProfit = t.revenue - t.maintenanceCost - t.damageCost - costoVenta;
