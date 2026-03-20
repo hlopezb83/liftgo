@@ -1,25 +1,19 @@
 
 
-## Agregar categoría "Publicidad" a gastos operativos y estado de resultados
+## Quitar "Software" y "Depreciación" del Estado de Resultados
 
-### Cambios necesarios
+### Cambio
 
-**1. Migración de base de datos**
-Agregar el nuevo valor al enum `expense_category`:
-```sql
-ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'publicidad';
+**`src/components/reports/IncomeStatementReport.tsx`** — Línea 30:
+
+Remover `"software"` y `"depreciacion"` del array `EXPENSE_CATEGORIES`:
+
+```typescript
+const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
 ```
 
-**2. `src/hooks/useOperatingExpenses.ts`**
-- Agregar `"publicidad"` al tipo `ExpenseCategory`
-- Agregar `publicidad: "Publicidad"` al objeto `EXPENSE_CATEGORY_LABELS`
-
-**3. `src/components/reports/IncomeStatementReport.tsx`**
-- Agregar `"publicidad"` al array `EXPENSE_CATEGORIES` (línea 30)
-- Agregar `publicidad: 0` en los 3 inicializadores: `emptyExpenses()` (línea 114), `totals` (línea 247), `yearTotals` (línea 271)
+Esto elimina ambas líneas de la sección de gastos operativos. Los inicializadores con `software: 0` y `depreciacion: 0` pueden quedarse sin efecto visual (no se renderizan si no están en el array), pero opcionalmente se limpian también para consistencia.
 
 ### Archivos a modificar
-- Migración SQL (1 línea)
-- `src/hooks/useOperatingExpenses.ts` (2 ediciones)
-- `src/components/reports/IncomeStatementReport.tsx` (4 ediciones)
+- `src/components/reports/IncomeStatementReport.tsx` (1 edición principal)
 
