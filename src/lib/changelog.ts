@@ -9,6 +9,16 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.5.1",
+    date: "2026-03-20",
+    type: "patch",
+    title: "Quitar Software y Depreciación del Estado de Resultados",
+    description: "Se eliminan las líneas de Software y Depreciación de la sección de gastos operativos del estado de resultados ya que no son categorías de gasto.",
+    changes: [
+      "Removidas las líneas '(-) Software' y '(-) Depreciación' del reporte",
+    ],
+  },
+  {
     version: "5.5.0",
     date: "2026-03-20",
     type: "minor",
