@@ -198,15 +198,6 @@ export default function SuppliersPage() {
                 <Label>Persona de Contacto</Label>
                 <Input value={form.contact_person} onChange={(e) => setField("contact_person", e.target.value)} />
               </div>
-              <div className="space-y-1.5">
-                <Label>Categoría</Label>
-                <Select value={form.category} onValueChange={(v) => setField("category", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             {/* Datos Fiscales */}
