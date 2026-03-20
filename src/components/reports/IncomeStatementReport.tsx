@@ -111,7 +111,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
   const data = useMemo(() => {
     const months: Record<string, { month: string; revenue: number; revenueRental: number; revenueSales: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
 
-    const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0, caja_chica: 0 });
+    const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0, caja_chica: 0, publicidad: 0 });
 
     const ensureMonth = (date: Date) => {
       const key = format(startOfMonth(date), "yyyy-MM");
