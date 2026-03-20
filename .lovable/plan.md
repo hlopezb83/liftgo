@@ -1,36 +1,31 @@
 
 
-## Review: "Cerrado Ganado" Restriction Coverage
+## Homologar categorías de gastos operativos en el Estado de Resultados
 
-### Current state
+### Problema
 
-The restriction in `CRMPage.tsx` correctly blocks two paths:
-1. **Drag-and-drop** to "cerrado_ganado" — blocked with toast
-2. **"Agregar" button** on the "cerrado_ganado" column — blocked with toast
+La categoría `caja_chica` se acumula en los datos mensuales (línea 114, `emptyExpenses()`) pero no está incluida en la constante `EXPENSE_CATEGORIES` (línea 30). Esto causa que:
+1. No se muestre como línea en el reporte
+2. No se sume al total de gastos operativos (`opexTotal`)
+3. El cálculo de utilidad neta ignore esos montos
 
-### Gaps found
-
-1. **Editing a prospect already in "cerrado_ganado"**: Any user can click a card in that column, opening `ProspectFormDialog` with the "Convertir a Cliente" button visible. A non-admin user could click it and navigate to create a customer from the prospect. The `openEdit` function has no role check.
-
-2. **Changing stage via form save**: When a user drags a prospect, the dialog opens with `overrideStage` set. However, the `onSave` callback in CRMPage does not re-validate the stage before calling `updateProspect.mutate()`. A determined user could potentially manipulate state.
-
-3. **No backend enforcement**: The `prospects` table has no RLS policy or trigger preventing non-admin users from setting `stage = 'cerrado_ganado'`. The restriction is purely frontend. This is acceptable for now but worth noting.
+El mismo problema existe en los inicializadores de `totals` (línea 247) y `yearTotals` (línea 271), donde `caja_chica` no está en el objeto inicial.
 
 ### Plan
 
-**File: `src/pages/CRMPage.tsx`**
-- In the `onSave` callback (line 256-263), add a guard: if `data.stage === "cerrado_ganado" && !canCloseDeal`, show toast and return without saving.
+**Archivo: `src/components/reports/IncomeStatementReport.tsx`**
 
-**File: `src/components/crm/ProspectFormDialog.tsx`**
-- Accept a new optional prop `canCloseDeal?: boolean` (default `true`).
-- When `canCloseDeal` is false and `effectiveStage === "cerrado_ganado"`, hide the "Convertir a Cliente" button and show a read-only message instead ("Solo administrativos pueden convertir prospectos a clientes").
-- Disable the "Guardar" button when `effectiveStage === "cerrado_ganado"` and `!canCloseDeal` to prevent edits to prospects in that stage from unauthorized users.
+1. **Línea 30** — Agregar `"caja_chica"` al array `EXPENSE_CATEGORIES`:
+   ```typescript
+   const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "software", "depreciacion", "caja_chica", "otro"];
+   ```
 
-**File: `src/pages/CRMPage.tsx`**
-- Pass `canCloseDeal={canCloseDeal}` prop to `ProspectFormDialog`.
+2. **Línea 247** — Agregar `caja_chica: 0` al inicializador de `totals.expenses`.
 
-### Summary of changes
-- 3 lines added to `CRMPage.tsx` (onSave guard + prop)
-- ~10 lines in `ProspectFormDialog.tsx` (new prop, conditional UI)
-- No database changes needed
+3. **Línea 271** — Agregar `caja_chica: 0` al inicializador de `yearTotals.expenses`.
+
+Con esto, "Caja Chica" aparecerá como línea de gasto operativo después del margen bruto, junto con Renta, Nómina, Software, Depreciación y Otro, y se incluirá correctamente en los totales y la utilidad neta.
+
+### Archivos a modificar
+- `src/components/reports/IncomeStatementReport.tsx` (3 ediciones menores)
 
