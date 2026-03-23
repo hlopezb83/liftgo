@@ -13,20 +13,21 @@ import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { DamageActions } from "@/components/damage/DamageActions";
-import { DamagePhotosSection } from "@/components/damage/DamagePhotosSection";
+import { DamageDetailSheet } from "@/components/damage/DamageDetailSheet";
 import { ReportDamageDialog } from "@/components/damage/ReportDamageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { Camera, ChevronDown, ChevronRight } from "lucide-react";
+import { Camera } from "lucide-react";
 import { format } from "date-fns";
+import type { DamageRecordWithJoins } from "@/types/rental";
 
 
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<DamageRecordWithJoins | null>(null);
 
   // Fetch photo counts per damage record
   const { data: photoCounts } = useQuery({
