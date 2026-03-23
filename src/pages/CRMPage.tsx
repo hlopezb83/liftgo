@@ -176,7 +176,7 @@ export default function CRMPage() {
                                     {...prov.draggableProps}
                                     {...prov.dragHandleProps}
                                     className={`mb-2 p-3 cursor-grab active:cursor-grabbing border hover:shadow-md transition-shadow ${snap.isDragging ? "shadow-lg rotate-1" : ""}`}
-                                    onClick={() => openEdit(prospect)}
+                                    onClick={() => setDetailProspect(prospect)}
                                   >
                                     <div className="flex items-start gap-2">
                                       <Building2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
