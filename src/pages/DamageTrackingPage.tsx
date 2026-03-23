@@ -83,7 +83,7 @@ export default function DamageTrackingPage() {
       keyExtractor={(r) => r.id}
       emptyMessage="No se encontraron registros de daños"
       renderCard={(r) => (
-        <Card>
+        <Card className="cursor-pointer" onClick={() => setSelectedRecord(r as DamageRecordWithJoins)}>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -99,23 +99,7 @@ export default function DamageTrackingPage() {
             <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
             <p className="text-sm text-muted-foreground">{r.customers?.name || "—"}</p>
             <p className="text-sm text-muted-foreground truncate">{r.description}</p>
-            <div className="flex items-center justify-between pt-1">
-              <span className="font-mono text-sm">{formatCurrency(r.estimated_cost)}</span>
-              <DamageActions record={r} />
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleExpand(r.id)}
-              className="w-full text-xs text-primary flex items-center gap-1 pt-1"
-            >
-              {expandedId === r.id ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-              {expandedId === r.id ? "Ocultar fotos" : "Ver / subir fotos"}
-            </button>
-            {expandedId === r.id && (
-              <div className="pt-2">
-                <DamagePhotosSection entityType="damage_record" entityId={r.id} title="Fotos" />
-              </div>
-            )}
+            <span className="font-mono text-sm">{formatCurrency(r.estimated_cost)}</span>
           </CardContent>
         </Card>
       )}
