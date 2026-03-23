@@ -62,6 +62,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         amount: data.amount,
         expense_date: format(data.expense_date, "yyyy-MM-dd"),
         is_recurring: false,
+        supplier_id: supplierId || null,
       },
       { onSuccess: () => onOpenChange(false) },
     );
