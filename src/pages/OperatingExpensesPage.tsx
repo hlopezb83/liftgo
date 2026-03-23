@@ -181,6 +181,13 @@ export default function OperatingExpensesPage() {
 
         <ExpenseFormDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
 
+        <ExpenseDetailSheet
+          expense={selectedExpense}
+          open={!!selectedExpense}
+          onOpenChange={(open) => { if (!open) setSelectedExpense(null); }}
+          onEdit={(e) => { openEdit(e); }}
+        />
+
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader><DialogTitle>Editar Gasto</DialogTitle></DialogHeader>
