@@ -40,6 +40,7 @@ export default function CRMPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
+  const [detailProspect, setDetailProspect] = useState<Prospect | null>(null);
   const [defaultStage, setDefaultStage] = useState("nuevo_prospecto");
   const [overrideStage, setOverrideStage] = useState<string | undefined>(undefined);
   const [creatorFilter, setCreatorFilter] = useState<string>("all");
