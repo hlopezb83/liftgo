@@ -1,37 +1,24 @@
 
 
-## Editar, borrar y drill-down en Mantenimiento
+## Drill-down en Gastos Operativos
 
-### Resumen
-
-Agregar funcionalidad de drill-down al hacer clic en una fila de la tabla de mantenimiento, abriendo un panel lateral (Sheet) con los detalles completos, botones de editar y eliminar.
+Crear un panel lateral (Sheet) que se abra al hacer clic en una fila de la tabla, mostrando todos los detalles del gasto con opciones de editar y eliminar. Sigue el mismo patrón ya implementado en `MaintenanceDetailSheet`.
 
 ### Cambios
 
-**1. `src/hooks/useMaintenanceLogs.ts`**
-- Agregar hook `useDeleteMaintenanceLog` con mutación DELETE + invalidación de queries + toast de error.
+**1. Nuevo componente `src/components/expenses/ExpenseDetailSheet.tsx`**
+- Panel lateral (Sheet) que muestra: categoría (Badge), monto, fecha, descripción, proveedor, si es recurrente, fechas de creación/actualización.
+- Botones de "Editar" y "Eliminar" (con confirmación AlertDialog), protegidos con `RoleGuard`.
+- Al presionar "Editar", cierra el sheet y abre el diálogo de edición existente.
+- Al eliminar, ejecuta `deleteExpense` y cierra el sheet.
 
-**2. `src/pages/MaintenancePage.tsx`**
-- Agregar estado `selectedLog` para controlar el panel de detalle.
-- Agregar estado `editingLog` para el diálogo de edición (reutiliza el diálogo existente con campos pre-llenados).
-- Hacer las filas de la tabla clickeables (`onClick → setSelectedLog`), también las cards móviles.
-- Importar y renderizar un nuevo componente `MaintenanceDetailSheet`.
-- Refactorizar el diálogo de formulario para soportar modo edición (submit llama `updateLog` en vez de `createLog`, título cambia a "Editar Mantenimiento").
+**2. `src/pages/OperatingExpensesPage.tsx`**
+- Agregar estado `selectedExpense` para controlar el sheet de detalle.
+- Hacer las filas de la tabla clickeables con `onClick={() => setSelectedExpense(e)}` y clase `cursor-pointer hover:bg-muted/50`.
+- Mover los botones de editar/eliminar de las filas al sheet de detalle (limpiar la columna de acciones de la tabla).
+- Renderizar `ExpenseDetailSheet` pasando el gasto seleccionado, y callbacks para editar/eliminar.
 
-**3. `src/components/maintenance/MaintenanceDetailSheet.tsx`** (nuevo)
-- Panel lateral (Sheet) que muestra:
-  - Tipo de servicio, montacargas, fecha, realizado por, costo, descripción, proveedor, próximo servicio, estado de trabajo.
-  - Sección de refacciones (`MaintenancePartsSection`).
-  - Botón "Editar" → abre diálogo de edición con datos pre-llenados.
-  - Botón "Eliminar" → confirmación con AlertDialog → ejecuta delete → cierra sheet.
-- Protegido con `RoleGuard` para editar/borrar (módulo "Mantenimiento", acceso "full").
-
-### Archivos a modificar
-- `src/hooks/useMaintenanceLogs.ts` — agregar `useDeleteMaintenanceLog`
-- `src/pages/MaintenancePage.tsx` — estado de selección, filas clickeables, modo edición en diálogo
-- `src/components/maintenance/MaintenanceDetailSheet.tsx` — nuevo componente de detalle
-
-### Detalles técnicos
-
-El Sheet de detalle sigue el mismo patrón que el Kanban (`MaintenanceKanban.tsx`) pero se usa desde la vista de lista. El diálogo de formulario existente se reutiliza para edición pre-llenando los campos y cambiando el submit a `useUpdateMaintenanceLog`.
+### Archivos
+- `src/components/expenses/ExpenseDetailSheet.tsx` (nuevo)
+- `src/pages/OperatingExpensesPage.tsx` (edición)
 
