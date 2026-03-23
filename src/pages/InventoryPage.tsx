@@ -133,7 +133,6 @@ export default function InventoryPage() {
                     <TableHead>Categoría</TableHead>
                     <TableHead className="text-right">Costo Unitario</TableHead>
                     <TableHead className="text-center">Stock</TableHead>
-                    <TableHead className="w-24" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
