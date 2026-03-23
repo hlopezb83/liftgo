@@ -53,6 +53,7 @@ export default function OperatingExpensesPage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterMonth, setFilterMonth] = useState<string>(format(new Date(), "yyyy-MM"));
   const [search, setSearch] = useState("");
+  const [selectedExpense, setSelectedExpense] = useState<OperatingExpense | null>(null);
 
   const availableMonths = useMemo(() => {
     const set = new Set<string>();
