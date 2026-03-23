@@ -13,20 +13,21 @@ import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { DamageActions } from "@/components/damage/DamageActions";
-import { DamagePhotosSection } from "@/components/damage/DamagePhotosSection";
+import { DamageDetailSheet } from "@/components/damage/DamageDetailSheet";
 import { ReportDamageDialog } from "@/components/damage/ReportDamageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { Camera, ChevronDown, ChevronRight } from "lucide-react";
+import { Camera } from "lucide-react";
 import { format } from "date-fns";
+import type { DamageRecordWithJoins } from "@/types/rental";
 
 
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<DamageRecordWithJoins | null>(null);
 
   // Fetch photo counts per damage record
   const { data: photoCounts } = useQuery({
@@ -76,15 +77,13 @@ export default function DamageTrackingPage() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
-  const toggleExpand = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
-
   const mobileContent = isMobile ? (
     <MobileCardList
       items={paginatedItems}
       keyExtractor={(r) => r.id}
       emptyMessage="No se encontraron registros de daños"
       renderCard={(r) => (
-        <Card>
+        <Card className="cursor-pointer" onClick={() => setSelectedRecord(r as DamageRecordWithJoins)}>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -100,23 +99,7 @@ export default function DamageTrackingPage() {
             <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
             <p className="text-sm text-muted-foreground">{r.customers?.name || "—"}</p>
             <p className="text-sm text-muted-foreground truncate">{r.description}</p>
-            <div className="flex items-center justify-between pt-1">
-              <span className="font-mono text-sm">{formatCurrency(r.estimated_cost)}</span>
-              <DamageActions record={r} />
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleExpand(r.id)}
-              className="w-full text-xs text-primary flex items-center gap-1 pt-1"
-            >
-              {expandedId === r.id ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-              {expandedId === r.id ? "Ocultar fotos" : "Ver / subir fotos"}
-            </button>
-            {expandedId === r.id && (
-              <div className="pt-2">
-                <DamagePhotosSection entityType="damage_record" entityId={r.id} title="Fotos" />
-              </div>
-            )}
+            <span className="font-mono text-sm">{formatCurrency(r.estimated_cost)}</span>
           </CardContent>
         </Card>
       )}
@@ -124,6 +107,7 @@ export default function DamageTrackingPage() {
   ) : undefined;
 
   return (
+    <>
     <ListPageLayout
       title="Seguimiento de Daños"
       subtitle="Rastrea daños desde inspecciones hasta reparación y facturación"
@@ -151,7 +135,6 @@ export default function DamageTrackingPage() {
       customContent={mobileContent}
       tableHeader={
         <TableRow>
-          <TableHead className="w-8" />
           <SortableTableHead sortKey="created_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
           <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
           <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
@@ -159,21 +142,14 @@ export default function DamageTrackingPage() {
           <TableHead className="w-16 text-center">Fotos</TableHead>
           <SortableTableHead sortKey="estimated_cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Costo Est.</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <TableHead>Acciones</TableHead>
         </TableRow>
       }
       renderRow={(r) => (
-        <>
           <TableRow
             key={r.id}
-            className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors cursor-pointer"
-            onClick={() => toggleExpand(r.id)}
+            className="hover:bg-muted/50 cursor-pointer"
+            onClick={() => setSelectedRecord(r as DamageRecordWithJoins)}
           >
-            <TableCell className="w-8 px-2">
-              {expandedId === r.id
-                ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-            </TableCell>
             <TableCell className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</TableCell>
             <TableCell className="font-medium">{r.forklifts?.name || "—"}</TableCell>
             <TableCell>{r.customers?.name || "—"}</TableCell>
@@ -189,17 +165,15 @@ export default function DamageTrackingPage() {
             </TableCell>
             <TableCell className="font-mono">{formatCurrency(r.estimated_cost)}</TableCell>
             <TableCell><StatusBadge status={r.status} /></TableCell>
-            <TableCell onClick={(e) => e.stopPropagation()}><DamageActions record={r} /></TableCell>
           </TableRow>
-          {expandedId === r.id && (
-            <TableRow key={`${r.id}-photos`}>
-              <TableCell colSpan={9} className="p-4 bg-muted/20">
-                <DamagePhotosSection entityType="damage_record" entityId={r.id} title="Fotos de Daño" />
-              </TableCell>
-            </TableRow>
-          )}
-        </>
       )}
     />
+
+    <DamageDetailSheet
+      record={selectedRecord}
+      open={!!selectedRecord}
+      onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
+    />
+    </>
   );
 }

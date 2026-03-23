@@ -11,9 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Pencil, Trash2, Package } from "lucide-react";
+import { Plus, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { usePartsInventory, useCreatePart, useUpdatePart, useDeletePart } from "@/hooks/usePartsInventory";
+import { usePartsInventory, useCreatePart, useUpdatePart, useDeletePart, type PartInventory } from "@/hooks/usePartsInventory";
+import { PartDetailSheet } from "@/components/inventory/PartDetailSheet";
 import { partFormSchema, type PartFormData } from "@/lib/formSchemas";
 import { SearchBar } from "@/components/SearchBar";
 import { EmptyRow } from "@/components/EmptyRow";
@@ -31,6 +32,7 @@ export default function InventoryPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const [selectedPart, setSelectedPart] = useState<PartInventory | null>(null);
 
   const form = useForm<PartFormData>({
     resolver: zodResolver(partFormSchema),
@@ -131,7 +133,6 @@ export default function InventoryPage() {
                     <TableHead>Categoría</TableHead>
                     <TableHead className="text-right">Costo Unitario</TableHead>
                     <TableHead className="text-center">Stock</TableHead>
-                    <TableHead className="w-24" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -141,7 +142,7 @@ export default function InventoryPage() {
                     filtered.map((p) => {
                       const isLow = p.stock_quantity <= p.min_stock_level;
                       return (
-                        <TableRow key={p.id}>
+                        <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedPart(p)}>
                           <TableCell className="font-mono text-muted-foreground">{p.sku || "—"}</TableCell>
                           <TableCell className="font-medium">{p.name}</TableCell>
                           <TableCell><Badge variant="outline">{p.category}</Badge></TableCell>
@@ -150,12 +151,6 @@ export default function InventoryPage() {
                             <Badge variant={isLow ? "destructive" : "secondary"}>
                               {isLow ? `${p.stock_quantity} - Reabastecer` : p.stock_quantity}
                             </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1 justify-end">
-                              <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => deletePart.mutate(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -166,6 +161,13 @@ export default function InventoryPage() {
             )}
           </CardContent>
         </Card>
+
+        <PartDetailSheet
+          part={selectedPart}
+          open={!!selectedPart}
+          onOpenChange={(open) => { if (!open) setSelectedPart(null); }}
+          onEdit={(p) => openEdit(p)}
+        />
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>

@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageTransition } from "@/components/PageTransition";
 import { ProspectFormDialog } from "@/components/crm/ProspectFormDialog";
+import { ProspectDetailSheet } from "@/components/crm/ProspectDetailSheet";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -39,6 +40,7 @@ export default function CRMPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
+  const [detailProspect, setDetailProspect] = useState<Prospect | null>(null);
   const [defaultStage, setDefaultStage] = useState("nuevo_prospecto");
   const [overrideStage, setOverrideStage] = useState<string | undefined>(undefined);
   const [creatorFilter, setCreatorFilter] = useState<string>("all");
@@ -174,7 +176,7 @@ export default function CRMPage() {
                                     {...prov.draggableProps}
                                     {...prov.dragHandleProps}
                                     className={`mb-2 p-3 cursor-grab active:cursor-grabbing border hover:shadow-md transition-shadow ${snap.isDragging ? "shadow-lg rotate-1" : ""}`}
-                                    onClick={() => openEdit(prospect)}
+                                    onClick={() => setDetailProspect(prospect)}
                                   >
                                     <div className="flex items-start gap-2">
                                       <Building2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -243,6 +245,17 @@ export default function CRMPage() {
           )}
         </div>
       </div>
+
+      <ProspectDetailSheet
+        prospect={detailProspect}
+        open={!!detailProspect}
+        onOpenChange={(open) => { if (!open) setDetailProspect(null); }}
+        onEdit={(p) => {
+          setDetailProspect(null);
+          openEdit(p);
+        }}
+        quoteNumber={detailProspect?.quote_id ? quoteMap.get(detailProspect.quote_id) : undefined}
+      />
 
       <ProspectFormDialog
         open={dialogOpen}
