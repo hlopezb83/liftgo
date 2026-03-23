@@ -146,14 +146,13 @@ export default function OperatingExpensesPage() {
 
             {isLoading ? <TableSkeleton columnCount={6} rows={5} /> : (
               <Table>
-                <TableHeader>
+                 <TableHeader>
                   <TableRow>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Categoría</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
                     <TableHead>Proveedor</TableHead>
-                    <TableHead className="w-24" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
