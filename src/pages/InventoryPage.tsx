@@ -11,9 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Pencil, Trash2, Package } from "lucide-react";
+import { Plus, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { usePartsInventory, useCreatePart, useUpdatePart, useDeletePart } from "@/hooks/usePartsInventory";
+import { usePartsInventory, useCreatePart, useUpdatePart, useDeletePart, type PartInventory } from "@/hooks/usePartsInventory";
+import { PartDetailSheet } from "@/components/inventory/PartDetailSheet";
 import { partFormSchema, type PartFormData } from "@/lib/formSchemas";
 import { SearchBar } from "@/components/SearchBar";
 import { EmptyRow } from "@/components/EmptyRow";
