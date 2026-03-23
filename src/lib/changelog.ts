@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.8.1",
+    date: "2026-03-23",
+    type: "patch",
+    title: "Corrección: proveedor no se guardaba en gastos",
+    description: "Se corrigió un bug donde el proveedor seleccionado al registrar un gasto operativo no se persistía en la base de datos.",
+    changes: [
+      "Se incluyó supplier_id en la mutación de creación de gastos",
+      "Se actualizó el tipo TypeScript del hook useCreateExpense para aceptar supplier_id",
+    ],
+  },
+  {
     version: "5.8.0",
     date: "2026-03-23",
     type: "minor",
