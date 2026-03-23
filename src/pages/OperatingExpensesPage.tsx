@@ -24,6 +24,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { EmptyRow } from "@/components/EmptyRow";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { ExpenseFormDialog } from "@/components/expenses/ExpenseFormDialog";
+import { ExpenseDetailSheet } from "@/components/expenses/ExpenseDetailSheet";
 import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
 
 const CATEGORIES = Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, string][];
@@ -52,6 +53,7 @@ export default function OperatingExpensesPage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterMonth, setFilterMonth] = useState<string>(format(new Date(), "yyyy-MM"));
   const [search, setSearch] = useState("");
+  const [selectedExpense, setSelectedExpense] = useState<OperatingExpense | null>(null);
 
   const availableMonths = useMemo(() => {
     const set = new Set<string>();
@@ -144,22 +146,21 @@ export default function OperatingExpensesPage() {
 
             {isLoading ? <TableSkeleton columnCount={6} rows={5} /> : (
               <Table>
-                <TableHeader>
+                 <TableHeader>
                   <TableRow>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Categoría</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
                     <TableHead>Proveedor</TableHead>
-                    <TableHead className="w-24" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.length === 0 ? (
-                    <EmptyRow colSpan={6} message="Sin gastos registrados" />
+                 {filtered.length === 0 ? (
+                    <EmptyRow colSpan={5} message="Sin gastos registrados" />
                   ) : (
                     filtered.map((e) => (
-                      <TableRow key={e.id}>
+                      <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedExpense(e)}>
                         <TableCell>{format(parseDateLocal(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
                         <TableCell>
                           <Badge variant={e.category === "costo_venta" ? "secondary" : "outline"}>
@@ -169,12 +170,6 @@ export default function OperatingExpensesPage() {
                         <TableCell className="text-muted-foreground">{e.description || "—"}</TableCell>
                         <TableCell className="text-right font-mono">{formatCurrency(e.amount)}</TableCell>
                         <TableCell className="text-muted-foreground">{e.suppliers?.name || "—"}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-1 justify-end">
-                            <Button variant="ghost" size="icon" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteExpense.mutate(e.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                          </div>
-                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -185,6 +180,13 @@ export default function OperatingExpensesPage() {
         </Card>
 
         <ExpenseFormDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+
+        <ExpenseDetailSheet
+          expense={selectedExpense}
+          open={!!selectedExpense}
+          onOpenChange={(open) => { if (!open) setSelectedExpense(null); }}
+          onEdit={(e) => { openEdit(e); }}
+        />
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>

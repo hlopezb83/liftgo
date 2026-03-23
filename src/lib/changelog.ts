@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.7.0",
+    date: "2026-03-23",
+    type: "minor",
+    title: "Drill-down en Gastos Operativos",
+    description: "Panel lateral de detalle al hacer clic en una fila de gastos operativos con información completa y acciones de editar/eliminar.",
+    changes: [
+      "Clic en fila de gasto abre panel lateral con todos los detalles",
+      "Botones de editar y eliminar protegidos por permisos de rol",
+      "Confirmación antes de eliminar un gasto",
+      "Se limpia la columna de acciones de la tabla para una interfaz más limpia",
+    ],
+  },
+  {
     version: "5.6.0",
     date: "2026-03-20",
     type: "minor",
