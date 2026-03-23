@@ -246,6 +246,17 @@ export default function CRMPage() {
         </div>
       </div>
 
+      <ProspectDetailSheet
+        prospect={detailProspect}
+        open={!!detailProspect}
+        onOpenChange={(open) => { if (!open) setDetailProspect(null); }}
+        onEdit={(p) => {
+          setDetailProspect(null);
+          openEdit(p);
+        }}
+        quoteNumber={detailProspect?.quote_id ? quoteMap.get(detailProspect.quote_id) : undefined}
+      />
+
       <ProspectFormDialog
         open={dialogOpen}
         onOpenChange={(open) => {
