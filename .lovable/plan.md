@@ -1,48 +1,40 @@
 
 
-## Análisis de drill-down en la aplicación
+## Bug: Proveedor no se guarda al registrar gasto
 
-### Estado actual
+### Causa raíz
 
-Páginas que **ya tienen** drill-down (navegan a detalle o abren panel lateral):
-- **Flotilla** → navega a `/fleet/:id`
-- **Reservas** → navega a `/bookings/:id`
-- **Cotizaciones** → navega a `/quotes/:id`
-- **Facturas** → navega a `/invoices/:id`
-- **Contratos** → navega a `/contracts/:id`
-- **Clientes** → navega a `/customers/:id`
-- **Proveedores** → navega a `/suppliers/:id`
-- **Entregas** → navega a `/deliveries/:id`
-- **Inspecciones de Retorno** → navega a `/return-inspections/:id`
-- **Mantenimiento** → `MaintenanceDetailSheet` (panel lateral)
-- **Gastos Operativos** → `ExpenseDetailSheet` (panel lateral)
-- **Daños** → expand inline con fotos
-- **Auditoría** → expand inline con detalles del log
-- **CRM** → tarjetas Kanban con diálogo de edición
+El componente `ExpenseFormDialog` tiene un estado `supplierId` conectado al `SupplierSelector`, pero en la función `onSubmit` **nunca se incluye `supplier_id`** en el objeto que se pasa a `createExpense.mutate()`. El valor se descarta silenciosamente.
 
-### Páginas donde se puede implementar drill-down
+Además, el tipo del parámetro en `useCreateExpense` no incluye `supplier_id`, por lo que el campo está bloqueado a nivel de TypeScript.
 
-**1. Inventario de Refacciones (`InventoryPage.tsx`)**
-- Actualmente las filas no son clickeables; los botones de editar/eliminar están en cada fila.
-- **Propuesta**: Panel lateral (`PartDetailSheet`) que muestre nombre, SKU, categoría, costo unitario, stock actual, nivel mínimo, proveedor, y acciones de editar/eliminar. Limpiar la columna de acciones de la tabla.
+### Corrección
 
-**2. CRM / Prospectos (`CRMPage.tsx`)**
-- Las tarjetas del Kanban abren un diálogo de edición, pero no hay vista de detalle con información resumida antes de editar.
-- **Propuesta**: Panel lateral (`ProspectDetailSheet`) al hacer clic en una tarjeta, mostrando datos de contacto, empresa, valor estimado, cotizaciones vinculadas, historial de etapas, y desde ahí las acciones de editar/eliminar.
+**1. `src/hooks/useOperatingExpenses.ts` (línea 50)**
+- Agregar `supplier_id?: string | null` al tipo del parámetro de `useCreateExpense`.
 
-**3. Seguimiento de Daños (`DamageTrackingPage.tsx`)**
-- Tiene un expand inline básico con fotos, pero no un drill-down completo.
-- **Propuesta**: Panel lateral (`DamageDetailSheet`) con toda la información del daño: montacargas, cliente, descripción completa, galería de fotos, costo estimado, estado, historial de cambios de estado, y acciones de editar estado/costo.
+**2. `src/components/expenses/ExpenseFormDialog.tsx` (líneas 57-67)**
+- Incluir `supplier_id: supplierId || null` en el objeto pasado a `createExpense.mutate()`.
 
-### Resumen de prioridad
+### Cambios exactos
 
-| Página | Beneficio | Complejidad |
-|---|---|---|
-| Inventario de Refacciones | Alto — misma lógica que gastos, filas con acciones inline que ensucian la tabla | Baja |
-| CRM Prospectos | Medio — mejora la experiencia del pipeline de ventas | Media |
-| Daños | Medio — el expand inline es limitado para fotos y acciones | Media |
+En `useOperatingExpenses.ts`, el tipo del mutation pasa de:
+```typescript
+{ category; description?; amount; expense_date; is_recurring? }
+```
+a:
+```typescript
+{ category; description?; amount; expense_date; is_recurring?; supplier_id?: string | null }
+```
 
-### Recomendación
+En `ExpenseFormDialog.tsx`, el objeto del mutate pasa de:
+```typescript
+{ category, description, amount, expense_date, is_recurring: false }
+```
+a:
+```typescript
+{ category, description, amount, expense_date, is_recurring: false, supplier_id: supplierId || null }
+```
 
-Empezar por **Inventario de Refacciones** ya que es el caso más directo (mismo patrón que gastos operativos), seguido de **CRM** y **Daños** si deseas continuar.
+Dos líneas cambiadas en total. Sin cambios de base de datos requeridos (la columna `supplier_id` ya existe en la tabla).
 
