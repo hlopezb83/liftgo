@@ -32,6 +32,7 @@ export default function InventoryPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const [selectedPart, setSelectedPart] = useState<PartInventory | null>(null);
 
   const form = useForm<PartFormData>({
     resolver: zodResolver(partFormSchema),
