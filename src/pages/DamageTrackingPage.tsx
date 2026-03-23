@@ -77,8 +77,6 @@ export default function DamageTrackingPage() {
   const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
   const isMobile = useIsMobile();
 
-  const toggleExpand = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
-
   const mobileContent = isMobile ? (
     <MobileCardList
       items={paginatedItems}
