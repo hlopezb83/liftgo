@@ -162,6 +162,13 @@ export default function InventoryPage() {
           </CardContent>
         </Card>
 
+        <PartDetailSheet
+          part={selectedPart}
+          open={!!selectedPart}
+          onOpenChange={(open) => { if (!open) setSelectedPart(null); }}
+          onEdit={(p) => openEdit(p)}
+        />
+
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader>
