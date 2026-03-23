@@ -134,7 +134,6 @@ export default function DamageTrackingPage() {
       customContent={mobileContent}
       tableHeader={
         <TableRow>
-          <TableHead className="w-8" />
           <SortableTableHead sortKey="created_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
           <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
           <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
@@ -142,7 +141,6 @@ export default function DamageTrackingPage() {
           <TableHead className="w-16 text-center">Fotos</TableHead>
           <SortableTableHead sortKey="estimated_cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Costo Est.</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <TableHead>Acciones</TableHead>
         </TableRow>
       }
       renderRow={(r) => (
