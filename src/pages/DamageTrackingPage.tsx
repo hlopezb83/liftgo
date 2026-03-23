@@ -107,6 +107,7 @@ export default function DamageTrackingPage() {
   ) : undefined;
 
   return (
+    <>
     <ListPageLayout
       title="Seguimiento de Daños"
       subtitle="Rastrea daños desde inspecciones hasta reparación y facturación"
@@ -173,5 +174,6 @@ export default function DamageTrackingPage() {
       open={!!selectedRecord}
       onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
     />
+    </>
   );
 }
