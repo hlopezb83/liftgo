@@ -144,17 +144,11 @@ export default function DamageTrackingPage() {
         </TableRow>
       }
       renderRow={(r) => (
-        <>
           <TableRow
             key={r.id}
-            className="hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors cursor-pointer"
-            onClick={() => toggleExpand(r.id)}
+            className="hover:bg-muted/50 cursor-pointer"
+            onClick={() => setSelectedRecord(r as DamageRecordWithJoins)}
           >
-            <TableCell className="w-8 px-2">
-              {expandedId === r.id
-                ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-            </TableCell>
             <TableCell className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</TableCell>
             <TableCell className="font-medium">{r.forklifts?.name || "—"}</TableCell>
             <TableCell>{r.customers?.name || "—"}</TableCell>
@@ -170,17 +164,14 @@ export default function DamageTrackingPage() {
             </TableCell>
             <TableCell className="font-mono">{formatCurrency(r.estimated_cost)}</TableCell>
             <TableCell><StatusBadge status={r.status} /></TableCell>
-            <TableCell onClick={(e) => e.stopPropagation()}><DamageActions record={r} /></TableCell>
           </TableRow>
-          {expandedId === r.id && (
-            <TableRow key={`${r.id}-photos`}>
-              <TableCell colSpan={9} className="p-4 bg-muted/20">
-                <DamagePhotosSection entityType="damage_record" entityId={r.id} title="Fotos de Daño" />
-              </TableCell>
-            </TableRow>
-          )}
-        </>
       )}
+    />
+
+    <DamageDetailSheet
+      record={selectedRecord}
+      open={!!selectedRecord}
+      onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
     />
   );
 }
