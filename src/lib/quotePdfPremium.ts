@@ -256,7 +256,8 @@ export function drawPremiumTable(
     doc.text(String(item.description || ""), colDesc, rowTextY);
     doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
     doc.text(String(item.quantity), colQty, rowTextY, { align: "right" });
-    doc.text(formatCurrency(Number(item.unit_price)), colUnit + 14, rowTextY, { align: "right" });
+    const fmtC = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
+    doc.text(fmtC(Number(item.unit_price)), colUnit + 14, rowTextY, { align: "right" });
 
     if (hasDiscount) {
       if (item.discount && item.discount > 0) {
