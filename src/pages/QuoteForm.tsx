@@ -132,7 +132,7 @@ export default function QuoteForm() {
           </CardContent>
         </Card>
 
-        <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} />
+        <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} currency={currency} />
         <NotesCard value={notes} onChange={setNotes} />
         <FormActions submitLabel={id ? "Actualizar Cotización" : "Crear Cotización"} isPending={isPending} onCancel={() => navigate(-1)} />
       </form>

@@ -231,6 +231,8 @@ export function useQuoteFormLogic() {
     setNotes,
     validUntil,
     setValidUntil,
+    currency,
+    setCurrency,
     includeLogistics,
     setIncludeLogistics,
     logisticsCost,
