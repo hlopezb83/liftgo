@@ -377,6 +377,7 @@ export function drawTermsSection(
   startY: number,
   validUntil: string | null,
   isRental: boolean = false,
+  currency?: string,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   let y = startY + 2;
