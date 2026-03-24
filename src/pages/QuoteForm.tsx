@@ -21,8 +21,8 @@ export default function QuoteForm() {
   const {
     id, quoteType, rentalLines, setRentalLines, saleLines, setSaleLines,
     customerId, setCustomerId, customerName, setCustomerName,
-    dateRange, setDateRange, taxRate, setTaxRate, notes, setNotes,
-    validUntil, setValidUntil, includeLogistics, setIncludeLogistics,
+    dateRange, setDateRange, taxRate, setTaxRate, currency, setCurrency,
+    notes, setNotes, validUntil, setValidUntil, includeLogistics, setIncludeLogistics,
     logisticsCost, setLogisticsCost, customers, equipmentModels,
     lineItems, subtotal, taxAmount, total, startDate, endDate,
     isPending, handleTypeChange, handleSubmit, navigate,
