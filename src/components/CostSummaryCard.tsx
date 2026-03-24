@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { applyDiscount } from "@/lib/invoiceUtils";
 import type { LineItem } from "@/lib/invoiceUtils";
 
@@ -9,14 +10,17 @@ interface CostSummaryCardProps {
   taxRate: string | number;
   taxAmount: number;
   total: number;
+  currency?: string;
 }
 
-function discountLabel(item: LineItem): string {
+function discountLabel(item: LineItem, currency?: string): string {
   if (!item.discount || item.discount <= 0) return "";
-  return item.discount_type === "$" ? ` (-${formatCurrency(item.discount)})` : ` (-${item.discount}%)`;
+  const fmt = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
+  return item.discount_type === "$" ? ` (-${fmt(item.discount)})` : ` (-${item.discount}%)`;
 }
 
-export function CostSummaryCard({ lineItems, subtotal, taxRate, taxAmount, total }: CostSummaryCardProps) {
+export function CostSummaryCard({ lineItems, subtotal, taxRate, taxAmount, total, currency }: CostSummaryCardProps) {
+  const fmt = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
   if (lineItems.length === 0) return null;
   return (
     <Card>
