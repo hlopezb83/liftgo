@@ -261,7 +261,7 @@ export function drawPremiumTable(
 
     if (hasDiscount) {
       if (item.discount && item.discount > 0) {
-        const discLabel = item.discount_type === "$" ? `-${formatCurrency(item.discount)}` : `-${item.discount}%`;
+        const discLabel = item.discount_type === "$" ? `-${fmtC(item.discount)}` : `-${item.discount}%`;
         doc.text(discLabel, colDisc + 6, rowTextY, { align: "right" });
       } else {
         doc.text("—", colDisc + 6, rowTextY, { align: "right" });
