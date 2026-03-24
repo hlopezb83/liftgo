@@ -313,7 +313,7 @@ export function drawPremiumTotals(
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
   doc.text(`IVA (${taxRate}%):`, labelCol, y, { align: "right" });
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(formatCurrency(taxAmount), rightCol, y, { align: "right" });
+  doc.text(fmtC(taxAmount), rightCol, y, { align: "right" });
 
   y += 5;
   // Separator
