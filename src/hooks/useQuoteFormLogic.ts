@@ -31,6 +31,7 @@ export function useQuoteFormLogic() {
   const [customerName, setCustomerName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [taxRate, setTaxRate] = useState("16");
+  const [currency, setCurrency] = useState("MXN");
   const [notes, setNotes] = useState("");
   const [validUntil, setValidUntil] = useState<Date>();
   const [includeLogistics, setIncludeLogistics] = useState(false);
