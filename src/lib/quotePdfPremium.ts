@@ -271,7 +271,7 @@ export function drawPremiumTable(
     doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
     doc.setFont("helvetica", "bold");
     const netTotal = applyDiscount(item);
-    doc.text(formatCurrency(netTotal), colTotal, rowTextY, { align: "right" });
+    doc.text(fmtC(netTotal), colTotal, rowTextY, { align: "right" });
     doc.setFont("helvetica", "normal");
 
     y += rowH;
