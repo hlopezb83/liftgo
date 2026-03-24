@@ -20,7 +20,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-4 text-sm">
             <span className="text-muted-foreground">Subtotal</span>
-            <span className="font-mono w-28 text-right">{formatCurrency(subtotal)}</span>
+            <span className="font-mono w-28 text-right">{fmt(subtotal)}</span>
           </div>
           <div className="flex items-center gap-4 text-sm">
             {onTaxRateChange ? (
