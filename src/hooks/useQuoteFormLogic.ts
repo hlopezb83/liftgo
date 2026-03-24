@@ -201,6 +201,7 @@ export function useQuoteFormLogic() {
       valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
       notes: notes || null,
       quote_type: quoteType,
+      currency,
       rental_meta: quoteType === "rental" ? (rentalLines as unknown as import("@/integrations/supabase/types").Json) : null,
     };
 
