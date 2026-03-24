@@ -337,7 +337,8 @@ export function drawPremiumTotals(
 
   doc.setFontSize(12);
   doc.setTextColor(GOLD.r, GOLD.g, GOLD.b);
-  doc.text(`${formatCurrency(total)} MXN`, pw - MARGIN - 4, y + 8, { align: "right" });
+  const currencyLabel = currency || "MXN";
+  doc.text(`${fmtC(total)} ${currencyLabel}`, pw - MARGIN - 4, y + 8, { align: "right" });
 
   return y + boxH + 4;
 }
