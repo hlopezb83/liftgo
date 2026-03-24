@@ -205,6 +205,7 @@ export function drawPremiumTable(
   doc: jsPDF,
   lineItems: PdfLineItem[],
   startY: number,
+  currency?: string,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   const tableWidth = pw - MARGIN * 2;
