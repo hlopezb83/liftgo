@@ -293,7 +293,9 @@ export function drawPremiumTotals(
   taxRate: number,
   taxAmount: number,
   total: number,
+  currency?: string,
 ): number {
+  const fmtC = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
   const pw = doc.internal.pageSize.getWidth();
   let y = startY;
   const rightCol = pw - MARGIN - 4;
