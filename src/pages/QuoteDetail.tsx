@@ -57,6 +57,9 @@ export default function QuoteDetail() {
           <div className="flex gap-2 items-center">
             <StatusBadge status={quote.status} />
             <Badge variant={isSale ? "default" : "secondary"}>{STATUS_LABELS[quoteType] || quoteType}</Badge>
+            {(quote as unknown as { currency?: string }).currency && (quote as unknown as { currency?: string }).currency !== "MXN" && (
+              <Badge variant="outline">{(quote as unknown as { currency?: string }).currency}</Badge>
+            )}
           </div>
         }
         actions={
