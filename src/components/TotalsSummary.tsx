@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { APP_CONFIG } from "@/lib/config";
 
 interface TotalsSummaryProps {
@@ -9,9 +9,11 @@ interface TotalsSummaryProps {
   taxAmount: number;
   total: number;
   onTaxRateChange?: (rate: number) => void;
+  currency?: string;
 }
 
-export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateChange }: TotalsSummaryProps) {
+export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateChange, currency }: TotalsSummaryProps) {
+  const fmt = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
   return (
     <Card>
       <CardContent className="pt-6">
