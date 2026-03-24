@@ -48,6 +48,7 @@ export function useQuoteFormLogic() {
         setDateRange({ from: parseDateLocal(existingQuote.start_date), to: parseDateLocal(existingQuote.end_date) });
       }
       setTaxRate(String(existingQuote.tax_rate));
+      setCurrency((existingQuote as unknown as { currency?: string }).currency || "MXN");
       setNotes(existingQuote.notes || "");
       setValidUntil(existingQuote.valid_until ? parseDateLocal(existingQuote.valid_until) : undefined);
 
