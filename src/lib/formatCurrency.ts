@@ -12,3 +12,16 @@ export function formatCurrency(amount: number): string {
     maximumFractionDigits: 2,
   }).format(amount);
 }
+
+/**
+ * Format a number as currency using a dynamic currency code.
+ * Example: formatCurrencyWithCode(1234.5, "USD") → "$1,234.50"
+ */
+export function formatCurrencyWithCode(amount: number, currencyCode: string = "MXN"): string {
+  return new Intl.NumberFormat(APP_CONFIG.LOCALE, {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}

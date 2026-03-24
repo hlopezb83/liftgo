@@ -16,4 +16,9 @@ export const APP_CONFIG = {
     { value: 11, label: "11% (Frontera)" },
     { value: 0, label: "0% (Exento)" },
   ],
+  /** Available currency options */
+  CURRENCY_OPTIONS: [
+    { value: "MXN", label: "MXN (Peso Mexicano)" },
+    { value: "USD", label: "USD (Dólar)" },
+  ],
 } as const;

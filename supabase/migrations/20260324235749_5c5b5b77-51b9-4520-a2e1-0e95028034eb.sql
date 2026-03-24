@@ -1,0 +1,1 @@
+ALTER TABLE public.quotes ADD COLUMN currency TEXT NOT NULL DEFAULT 'MXN';
