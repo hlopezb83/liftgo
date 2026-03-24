@@ -307,7 +307,7 @@ export function drawPremiumTotals(
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
   doc.text("Subtotal:", labelCol, y, { align: "right" });
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(formatCurrency(subtotal), rightCol, y, { align: "right" });
+  doc.text(fmtC(subtotal), rightCol, y, { align: "right" });
 
   y += 7;
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
