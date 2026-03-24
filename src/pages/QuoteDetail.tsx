@@ -18,7 +18,6 @@ import {
 import { QuotePDFButton } from "@/components/quotes/QuotePDFButton";
 import { CustomerSelector } from "@/components/customers/CustomerSelector";
 import { STATUS_LABELS } from "@/lib/constants";
-import { Badge } from "@/components/ui/badge";
 import { AssignForkliftsCard } from "@/components/quotes/AssignForkliftsCard";
 import { EquipmentAssignmentDialog } from "@/components/quotes/EquipmentAssignmentDialog";
 import { formatDateDisplay } from "@/lib/utils";

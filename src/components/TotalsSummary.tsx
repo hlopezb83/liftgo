@@ -46,7 +46,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
           </div>
           <div className="flex items-center gap-4 text-base font-bold border-t pt-2">
             <span>Total</span>
-            <span className="font-mono w-28 text-right">{formatCurrency(total)}</span>
+            <span className="font-mono w-28 text-right">{fmt(total)}</span>
           </div>
         </div>
       </CardContent>
