@@ -141,6 +141,7 @@ export default function QuoteDetail() {
         taxRate={quote.tax_rate}
         taxAmount={quote.tax_amount}
         total={quote.total}
+        currency={(quote as unknown as { currency?: string }).currency}
       />
 
       {quote.notes && <NotesCard value={quote.notes} readOnly />}

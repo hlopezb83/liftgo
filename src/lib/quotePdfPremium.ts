@@ -395,8 +395,9 @@ export function drawTermsSection(
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
+  const currencyLabel = currency || "MXN";
   const terms = [
-    "• Precios expresados en MXN antes de IVA salvo que se indique lo contrario.",
+    `• Precios expresados en ${currencyLabel} antes de IVA salvo que se indique lo contrario.`,
     `• Esta cotización es válida hasta el ${fmtDate(validUntil)}.`,
     "• Condiciones de pago sujetas a negociación al momento de la contratación.",
     "• Los tiempos de entrega se confirman al aceptar la cotización.",
