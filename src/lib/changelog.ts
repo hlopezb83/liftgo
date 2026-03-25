@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.9.0",
+    date: "2026-03-24",
+    type: "minor",
+    title: "Soporte multi-moneda en Cotizaciones",
+    description: "Ahora es posible crear cotizaciones en MXN o USD. La moneda seleccionada se refleja en la interfaz, resumen de costos y PDF generado.",
+    changes: [
+      "Nuevo selector de moneda (MXN / USD) en el formulario de cotización",
+      "Columna 'currency' agregada a la tabla de cotizaciones con valor default 'MXN'",
+      "PDF de cotización muestra montos en la moneda seleccionada",
+      "Vista de detalle muestra badge de moneda cuando no es MXN",
+      "Nueva función utilitaria formatCurrencyWithCode para formateo dinámico",
+    ],
+  },
+  {
     version: "5.8.1",
     date: "2026-03-23",
     type: "patch",

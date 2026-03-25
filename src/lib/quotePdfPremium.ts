@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { applyDiscount } from "@/lib/invoiceUtils";
 import type { CompanyData, PdfLineItem } from "@/lib/pdfHelpers";
 import { format, parseISO } from "date-fns";
@@ -204,6 +205,7 @@ export function drawPremiumTable(
   doc: jsPDF,
   lineItems: PdfLineItem[],
   startY: number,
+  currency?: string,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   const tableWidth = pw - MARGIN * 2;
@@ -254,11 +256,12 @@ export function drawPremiumTable(
     doc.text(String(item.description || ""), colDesc, rowTextY);
     doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
     doc.text(String(item.quantity), colQty, rowTextY, { align: "right" });
-    doc.text(formatCurrency(Number(item.unit_price)), colUnit + 14, rowTextY, { align: "right" });
+    const fmtC = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
+    doc.text(fmtC(Number(item.unit_price)), colUnit + 14, rowTextY, { align: "right" });
 
     if (hasDiscount) {
       if (item.discount && item.discount > 0) {
-        const discLabel = item.discount_type === "$" ? `-${formatCurrency(item.discount)}` : `-${item.discount}%`;
+        const discLabel = item.discount_type === "$" ? `-${fmtC(item.discount)}` : `-${item.discount}%`;
         doc.text(discLabel, colDisc + 6, rowTextY, { align: "right" });
       } else {
         doc.text("—", colDisc + 6, rowTextY, { align: "right" });
@@ -268,7 +271,7 @@ export function drawPremiumTable(
     doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
     doc.setFont("helvetica", "bold");
     const netTotal = applyDiscount(item);
-    doc.text(formatCurrency(netTotal), colTotal, rowTextY, { align: "right" });
+    doc.text(fmtC(netTotal), colTotal, rowTextY, { align: "right" });
     doc.setFont("helvetica", "normal");
 
     y += rowH;
@@ -290,7 +293,9 @@ export function drawPremiumTotals(
   taxRate: number,
   taxAmount: number,
   total: number,
+  currency?: string,
 ): number {
+  const fmtC = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
   const pw = doc.internal.pageSize.getWidth();
   let y = startY;
   const rightCol = pw - MARGIN - 4;
@@ -302,13 +307,13 @@ export function drawPremiumTotals(
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
   doc.text("Subtotal:", labelCol, y, { align: "right" });
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(formatCurrency(subtotal), rightCol, y, { align: "right" });
+  doc.text(fmtC(subtotal), rightCol, y, { align: "right" });
 
   y += 7;
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
   doc.text(`IVA (${taxRate}%):`, labelCol, y, { align: "right" });
   doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-  doc.text(formatCurrency(taxAmount), rightCol, y, { align: "right" });
+  doc.text(fmtC(taxAmount), rightCol, y, { align: "right" });
 
   y += 5;
   // Separator
@@ -332,7 +337,8 @@ export function drawPremiumTotals(
 
   doc.setFontSize(12);
   doc.setTextColor(GOLD.r, GOLD.g, GOLD.b);
-  doc.text(`${formatCurrency(total)} MXN`, pw - MARGIN - 4, y + 8, { align: "right" });
+  const currencyLabel = currency || "MXN";
+  doc.text(`${fmtC(total)} ${currencyLabel}`, pw - MARGIN - 4, y + 8, { align: "right" });
 
   return y + boxH + 4;
 }
@@ -371,6 +377,7 @@ export function drawTermsSection(
   startY: number,
   validUntil: string | null,
   isRental: boolean = false,
+  currency?: string,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
   let y = startY + 2;
@@ -388,8 +395,9 @@ export function drawTermsSection(
 
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
+  const currencyLabel = currency || "MXN";
   const terms = [
-    "• Precios expresados en MXN antes de IVA salvo que se indique lo contrario.",
+    `• Precios expresados en ${currencyLabel} antes de IVA salvo que se indique lo contrario.`,
     `• Esta cotización es válida hasta el ${fmtDate(validUntil)}.`,
     "• Condiciones de pago sujetas a negociación al momento de la contratación.",
     "• Los tiempos de entrega se confirman al aceptar la cotización.",

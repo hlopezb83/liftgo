@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,6 @@ import {
 import { QuotePDFButton } from "@/components/quotes/QuotePDFButton";
 import { CustomerSelector } from "@/components/customers/CustomerSelector";
 import { STATUS_LABELS } from "@/lib/constants";
-import { Badge } from "@/components/ui/badge";
 import { AssignForkliftsCard } from "@/components/quotes/AssignForkliftsCard";
 import { EquipmentAssignmentDialog } from "@/components/quotes/EquipmentAssignmentDialog";
 import { formatDateDisplay } from "@/lib/utils";
@@ -56,6 +56,9 @@ export default function QuoteDetail() {
           <div className="flex gap-2 items-center">
             <StatusBadge status={quote.status} />
             <Badge variant={isSale ? "default" : "secondary"}>{STATUS_LABELS[quoteType] || quoteType}</Badge>
+            {(quote as unknown as { currency?: string }).currency && (quote as unknown as { currency?: string }).currency !== "MXN" && (
+              <Badge variant="outline">{(quote as unknown as { currency?: string }).currency}</Badge>
+            )}
           </div>
         }
         actions={
@@ -137,6 +140,7 @@ export default function QuoteDetail() {
         taxRate={quote.tax_rate}
         taxAmount={quote.tax_amount}
         total={quote.total}
+        currency={(quote as unknown as { currency?: string }).currency}
       />
 
       {quote.notes && <NotesCard value={quote.notes} readOnly />}

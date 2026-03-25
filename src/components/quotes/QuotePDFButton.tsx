@@ -61,10 +61,11 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
 
       // 4. Line items table
       const lineItems = (quote.line_items as unknown as PdfLineItem[]) || [];
-      y = drawPremiumTable(doc, lineItems, y);
+      const quoteCurrency = (quote as unknown as { currency?: string }).currency || "MXN";
+      y = drawPremiumTable(doc, lineItems, y, quoteCurrency);
 
       // 5. Totals
-      y = drawPremiumTotals(doc, y, Number(quote.subtotal), Number(quote.tax_rate), Number(quote.tax_amount), Number(quote.total));
+      y = drawPremiumTotals(doc, y, Number(quote.subtotal), Number(quote.tax_rate), Number(quote.tax_amount), Number(quote.total), quoteCurrency);
 
       // 6. Notes (optional)
       if (quote.notes) {
@@ -72,7 +73,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       }
 
       // 7. Terms
-      drawTermsSection(doc, y, quote.valid_until, !isSale);
+      drawTermsSection(doc, y, quote.valid_until, !isSale, quoteCurrency);
 
       // 8. Footer
       drawFooter(doc, company);

@@ -21,8 +21,8 @@ export default function QuoteForm() {
   const {
     id, quoteType, rentalLines, setRentalLines, saleLines, setSaleLines,
     customerId, setCustomerId, customerName, setCustomerName,
-    dateRange, setDateRange, taxRate, setTaxRate, notes, setNotes,
-    validUntil, setValidUntil, includeLogistics, setIncludeLogistics,
+    dateRange, setDateRange, taxRate, setTaxRate, currency, setCurrency,
+    notes, setNotes, validUntil, setValidUntil, includeLogistics, setIncludeLogistics,
     logisticsCost, setLogisticsCost, customers, equipmentModels,
     lineItems, subtotal, taxAmount, total, startDate, endDate,
     isPending, handleTypeChange, handleSubmit, navigate,
@@ -61,7 +61,18 @@ export default function QuoteForm() {
             {quoteType === "rental" && (
               <DateRangePickerField label="Periodo de Renta *" dateRange={dateRange} onSelect={setDateRange} required />
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label>Moneda</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {APP_CONFIG.CURRENCY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1.5">
                 <Label>IVA</Label>
                 <Select value={taxRate} onValueChange={setTaxRate}>
@@ -121,7 +132,7 @@ export default function QuoteForm() {
           </CardContent>
         </Card>
 
-        <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} />
+        <CostSummaryCard lineItems={lineItems} subtotal={subtotal} taxRate={taxRate} taxAmount={taxAmount} total={total} currency={currency} />
         <NotesCard value={notes} onChange={setNotes} />
         <FormActions submitLabel={id ? "Actualizar Cotización" : "Crear Cotización"} isPending={isPending} onCancel={() => navigate(-1)} />
       </form>

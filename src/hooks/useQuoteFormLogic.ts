@@ -31,6 +31,7 @@ export function useQuoteFormLogic() {
   const [customerName, setCustomerName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [taxRate, setTaxRate] = useState("16");
+  const [currency, setCurrency] = useState("MXN");
   const [notes, setNotes] = useState("");
   const [validUntil, setValidUntil] = useState<Date>();
   const [includeLogistics, setIncludeLogistics] = useState(false);
@@ -47,6 +48,7 @@ export function useQuoteFormLogic() {
         setDateRange({ from: parseDateLocal(existingQuote.start_date), to: parseDateLocal(existingQuote.end_date) });
       }
       setTaxRate(String(existingQuote.tax_rate));
+      setCurrency((existingQuote as unknown as { currency?: string }).currency || "MXN");
       setNotes(existingQuote.notes || "");
       setValidUntil(existingQuote.valid_until ? parseDateLocal(existingQuote.valid_until) : undefined);
 
@@ -199,6 +201,7 @@ export function useQuoteFormLogic() {
       valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
       notes: notes || null,
       quote_type: quoteType,
+      currency,
       rental_meta: quoteType === "rental" ? (rentalLines as unknown as import("@/integrations/supabase/types").Json) : null,
     };
 
@@ -228,6 +231,8 @@ export function useQuoteFormLogic() {
     setNotes,
     validUntil,
     setValidUntil,
+    currency,
+    setCurrency,
     includeLogistics,
     setIncludeLogistics,
     logisticsCost,
