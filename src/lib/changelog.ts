@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.9.1",
+    date: "2026-03-26",
+    type: "patch",
+    title: "Tarjetas KPI del Dashboard clicables",
+    description: "Las 4 tarjetas financieras del dashboard ahora navegan a la página relevante al hacer clic.",
+    changes: [
+      "Ingreso Mensual Recurrente navega a Estado de Resultados",
+      "Utilización de Flota navega al reporte de utilización",
+      "DSO navega al reporte de antigüedad de cartera",
+      "Cartera Vencida navega a facturas filtradas por vencidas",
+      "Reportes aceptan query param para preseleccionar tipo",
+    ],
+  },
+  {
     version: "5.9.0",
     date: "2026-03-24",
     type: "minor",

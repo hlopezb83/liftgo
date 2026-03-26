@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +26,11 @@ const REPORT_TYPES = [
 ];
 
 export default function ReportsPage() {
-  const [reportType, setReportType] = useState("utilization");
+  const [searchParams] = useSearchParams();
+  const initialType = REPORT_TYPES.some((t) => t.value === searchParams.get("type"))
+    ? searchParams.get("type")!
+    : "utilization";
+  const [reportType, setReportType] = useState(initialType);
   const [dateRange, setDateRange] = useState<DateRange>({ from: subMonths(new Date(), 3), to: new Date() });
   const startDate = dateRange?.from ?? subMonths(new Date(), 3);
   const endDate = dateRange?.to ?? new Date();
