@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.10.1",
+    date: "2026-03-31",
+    type: "patch",
+    title: "Fix MRR: excluir equipos sin reserva activa",
+    description: "Corregido el detalle de MRR para mostrar solo montacargas con una reserva confirmada vigente.",
+    changes: [
+      "Cambiado LEFT JOIN a INNER JOIN en la función get_mrr_detail",
+      "Equipos con status 'rented' pero sin booking activo ya no aparecen",
+    ],
+  },
+  {
     version: "5.10.0",
     date: "2026-03-31",
     type: "minor",
