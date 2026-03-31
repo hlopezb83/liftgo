@@ -1,47 +1,26 @@
 
 
-## Página de Detalle MRR — Montacargas Rentados
+## Fix: MRR muestra montacargas sin reserva activa
 
-### Objetivo
-Crear una nueva página `/mrr` que muestre una tabla con todos los montacargas actualmente rentados, su tarifa mensual, el cliente al que están asignados, y el total (MRR).
+### Causa raíz
 
-### Origen de datos
-El MRR se calcula de `forklifts WHERE status = 'rented'` sumando `monthly_rate`. Para mostrar el cliente, se cruza con la tabla `bookings` (reserva activa/confirmada) y de ahí con `customers`.
+La RPC `get_mrr_detail` usa `LEFT JOIN LATERAL` para buscar la reserva activa. Esto provoca que montacargas con `status = 'rented'` aparezcan en la lista aunque no tengan un booking confirmado que cubra la fecha de hoy.
 
-### Cambios
+### Solución
 
-**1. Nueva RPC `get_mrr_detail`** — migración SQL
-Función que retorna los montacargas rentados con su cliente actual:
-- Consulta `forklifts` con `status = 'rented'`
-- JOIN con `bookings` (status `confirmed`, fecha actual entre `start_date` y `end_date`) para obtener el `customer_id`
-- JOIN con `customers` para obtener el nombre del cliente
-- Retorna: `forklift_id`, `forklift_name`, `model`, `manufacturer`, `serial_number`, `monthly_rate`, `daily_rate`, `weekly_rate`, `customer_name`, `customer_id`, `booking_number`, `start_date`, `end_date`
-- Incluye el total MRR como suma
+Cambiar `LEFT JOIN LATERAL` a `JOIN LATERAL` (INNER JOIN) en la función RPC. Esto filtra automáticamente los montacargas que no tienen una reserva activa vigente.
 
-**2. `src/hooks/useMrrDetail.ts`** — nuevo hook
-Hook con `useQuery` que llama a `supabase.rpc("get_mrr_detail")`.
+### Cambio
 
-**3. `src/pages/MrrDetailPage.tsx`** — nueva página
-- Header con título "Ingreso Mensual Recurrente" y subtítulo con el total MRR
-- Tabla con columnas: Equipo, Modelo, Cliente, Reserva, Periodo, Tarifa Mensual
-- Cada fila enlaza al detalle del montacargas (`/fleet/:id`)
-- Fila de totales al final
-- Botón de regreso al dashboard
+**1. Migración SQL** — actualizar función `get_mrr_detail`
+- Línea 29: `LEFT JOIN LATERAL` → `JOIN LATERAL`  
+- Línea 37: `LEFT JOIN` en customers se mantiene (el customer siempre debería existir si hay booking, pero por seguridad)
 
-**4. `src/routes.tsx`**
-- Agregar ruta `/mrr` con `module: "Reportes"`
+Resultado: solo aparecen montacargas que tienen un booking `confirmed` con `CURRENT_DATE BETWEEN start_date AND end_date`.
 
-**5. `src/components/dashboard/FinancialKpiCards.tsx`**
-- Cambiar el `href` de "Ingreso Mensual Recurrente" de `/income-statement` a `/mrr`
-
-**6. `src/lib/changelog.ts`**
-- Registrar nueva versión
+**2. `src/lib/changelog.ts`** — registrar fix
 
 ### Archivos
-- 1 migración SQL (nueva función RPC)
-- `src/hooks/useMrrDetail.ts` (nuevo)
-- `src/pages/MrrDetailPage.tsx` (nuevo)
-- `src/routes.tsx`
-- `src/components/dashboard/FinancialKpiCards.tsx`
+- 1 migración SQL
 - `src/lib/changelog.ts`
 
