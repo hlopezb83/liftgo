@@ -1,46 +1,38 @@
 
 
-## Fix: MRR inconsistente entre tarjeta KPI y página de detalle
+## Fix: Consistencia en conteo de "Rentados" y "Utilización"
 
-### Causa raíz
+### Problema
 
-Las dos funciones RPC calculan el MRR de forma diferente:
-
-| Función | Lógica |
-|---|---|
-| `get_financial_kpis` (tarjeta KPI) | `SUM(monthly_rate) FROM forklifts WHERE status = 'rented'` — incluye TODOS los montacargas con status "rented", tengan o no reserva activa |
-| `get_mrr_detail` (página detalle) | `JOIN LATERAL` con bookings confirmados vigentes — solo incluye los que tienen reserva activa hoy |
-
-La página de detalle tiene la lógica correcta (solo montacargas con reserva activa). La tarjeta KPI tiene la lógica incorrecta.
+`get_dashboard_stats` calcula `fleet_counts.rented` como `COUNT(*) FILTER (WHERE status = 'rented')`, lo cual incluye montacargas sin reserva activa. La utilización usa este mismo número, resultando en un % inflado.
 
 ### Solución
 
-Actualizar `get_financial_kpis` para que calcule el MRR con la misma lógica que `get_mrr_detail`: sumando `monthly_rate` solo de montacargas que tengan un booking `confirmed` vigente (`CURRENT_DATE BETWEEN start_date AND end_date`).
+Actualizar `get_dashboard_stats` para calcular `rented` con la misma lógica que el MRR: solo contar montacargas con `status = 'rented'` Y que tengan un booking `confirmed` vigente.
 
 ### Cambio
 
-**1. Migración SQL** — actualizar la sección MRR de `get_financial_kpis`
+**1. Migración SQL** — actualizar `fleet_counts.rented` en `get_dashboard_stats`
 
 Reemplazar:
 ```sql
-SELECT COALESCE(SUM(monthly_rate), 0) INTO v_mrr
-FROM forklifts WHERE status = 'rented';
+'rented', COUNT(*) FILTER (WHERE status = 'rented'),
 ```
 
 Por:
 ```sql
-SELECT COALESCE(SUM(f.monthly_rate), 0) INTO v_mrr
-FROM forklifts f
-WHERE f.status = 'rented'
+'rented', COUNT(*) FILTER (WHERE status = 'rented'
   AND EXISTS (
     SELECT 1 FROM bookings b
-    WHERE b.forklift_id = f.id
+    WHERE b.forklift_id = forklifts.id
       AND b.status = 'confirmed'
       AND CURRENT_DATE BETWEEN b.start_date AND b.end_date
-  );
+  )),
 ```
 
-**2. `src/lib/changelog.ts`** — registrar fix
+La utilización en el frontend (`Dashboard.tsx`) no necesita cambios — ya usa `counts.rented`, que ahora será correcto.
+
+**2. `src/lib/changelog.ts`** — registrar fix v5.10.3
 
 ### Archivos
 - 1 migración SQL
