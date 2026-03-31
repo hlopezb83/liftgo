@@ -54,7 +54,7 @@ export default function MrrDetailPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <TableSkeleton columns={6} rows={5} />
+            <TableSkeleton columnCount={6} rows={5} />
           ) : !data?.items.length ? (
             <div className="p-8">
               <EmptyState
