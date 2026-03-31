@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.10.3",
+    date: "2026-03-31",
+    type: "patch",
+    title: "Consistencia en conteo de Rentados y Utilización",
+    description: "La tarjeta de Rentados y el % de Utilización en el dashboard ahora solo cuentan montacargas con reserva confirmada vigente.",
+    changes: [
+      "Actualizada función get_dashboard_stats para filtrar 'rented' por booking activo",
+      "El conteo de Rentados y Utilización ahora coinciden con el MRR",
+    ],
+  },
+  {
     version: "5.10.2",
     date: "2026-03-31",
     type: "patch",
