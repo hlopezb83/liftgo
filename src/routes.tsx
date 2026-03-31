@@ -41,6 +41,7 @@ const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const CRMPage = lazy(() => import("./pages/CRMPage"));
 const SuppliersPage = lazy(() => import("./pages/SuppliersPage"));
 const SupplierDetailPage = lazy(() => import("./pages/SupplierDetailPage"));
+const MrrDetailPage = lazy(() => import("./pages/MrrDetailPage"));
 
 // Shared fallback
 export const PageFallback = () => (
