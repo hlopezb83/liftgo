@@ -1823,6 +1823,7 @@ export type Database = {
         Args: { p_forklift_id: string }
         Returns: Json
       }
+      get_mrr_detail: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
