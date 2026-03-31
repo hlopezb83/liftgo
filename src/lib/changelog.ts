@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.10.2",
+    date: "2026-03-31",
+    type: "patch",
+    title: "Sincronizar MRR entre tarjeta KPI y detalle",
+    description: "La tarjeta KPI de MRR en el dashboard ahora usa la misma lógica que la página de detalle: solo suma montacargas con reserva confirmada vigente.",
+    changes: [
+      "Actualizada función get_financial_kpis para filtrar por booking activo",
+      "El monto de MRR en dashboard y detalle ahora coinciden",
+    ],
+  },
+  {
     version: "5.10.1",
     date: "2026-03-31",
     type: "patch",
