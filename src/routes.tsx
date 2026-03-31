@@ -93,6 +93,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/damage", component: DamageTrackingPage, module: "Daños" },
   { path: "/expenses", component: OperatingExpensesPage, module: "Gastos" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
+  { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },
   { path: "/crm", component: CRMPage, module: "CRM / Prospectos" },
   { path: "/suppliers", component: SuppliersPage, module: "Proveedores" },

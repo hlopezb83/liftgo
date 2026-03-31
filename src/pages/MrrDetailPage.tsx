@@ -60,7 +60,7 @@ export default function MrrDetailPage() {
               <EmptyState
                 icon={DollarSign}
                 title="Sin montacargas rentados"
-                description="Actualmente no hay equipos con status 'rentado'."
+                subtitle="Actualmente no hay equipos con status 'rentado'."
               />
             </div>
           ) : (
