@@ -41,6 +41,7 @@ const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const CRMPage = lazy(() => import("./pages/CRMPage"));
 const SuppliersPage = lazy(() => import("./pages/SuppliersPage"));
 const SupplierDetailPage = lazy(() => import("./pages/SupplierDetailPage"));
+const MrrDetailPage = lazy(() => import("./pages/MrrDetailPage"));
 
 // Shared fallback
 export const PageFallback = () => (
@@ -92,6 +93,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/damage", component: DamageTrackingPage, module: "Daños" },
   { path: "/expenses", component: OperatingExpensesPage, module: "Gastos" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
+  { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },
   { path: "/crm", component: CRMPage, module: "CRM / Prospectos" },
   { path: "/suppliers", component: SuppliersPage, module: "Proveedores" },

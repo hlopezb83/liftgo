@@ -18,7 +18,7 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
       icon: DollarSign,
       color: "text-emerald-600 dark:text-emerald-400",
       bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
-      href: "/income-statement",
+      href: "/mrr",
     },
     {
       label: "Utilización de Flota",

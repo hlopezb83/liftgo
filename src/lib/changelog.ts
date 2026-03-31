@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.10.0",
+    date: "2026-03-31",
+    type: "minor",
+    title: "Página de Detalle MRR",
+    description: "Nueva página que muestra el desglose de montacargas rentados, su tarifa mensual y el cliente asignado.",
+    changes: [
+      "Nueva página /mrr con tabla de equipos rentados y sus tarifas",
+      "Se muestra cliente, reserva y periodo para cada equipo",
+      "Total MRR calculado automáticamente",
+      "Tarjeta KPI 'Ingreso Mensual Recurrente' ahora navega a esta nueva página",
+    ],
+  },
+  {
     version: "5.9.1",
     date: "2026-03-26",
     type: "patch",
