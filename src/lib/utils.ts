@@ -26,3 +26,8 @@ export function formatDateDisplay(dateStr: string | null | undefined): string {
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+/** Returns the current date/time in the configured timezone (America/Monterrey). */
+export function nowMty(): Date {
+  return toZonedTime(new Date(), APP_CONFIG.TIMEZONE);
+}

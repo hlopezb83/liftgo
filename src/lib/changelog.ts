@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.10.4",
+    date: "2026-04-01",
+    type: "patch",
+    title: "Zona horaria configurada a Monterrey",
+    description: "Se configuró la zona horaria America/Monterrey para garantizar consistencia en fechas y horas en toda la aplicación.",
+    changes: [
+      "Agregada constante TIMEZONE en config.ts",
+      "Creado helper nowMty() en utils.ts usando date-fns-tz",
+      "PDFs de contratos y cotizaciones ahora usan hora de Monterrey",
+    ],
+  },
+  {
     version: "5.10.3",
     date: "2026-03-31",
     type: "patch",

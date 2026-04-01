@@ -349,7 +349,7 @@ export function generatePagarePage(doc: jsPDF, contract: ContractData, company: 
   cursorY += 6;
   doc.setFont("helvetica", "bold"); doc.text("Fecha:", margin, cursorY);
   doc.setFont("helvetica", "normal");
-  const now = new Date();
+  const now = nowMty();
   doc.text(format(now, "dd/MM/yyyy"), margin + 25, cursorY);
   cursorY += 12;
 
