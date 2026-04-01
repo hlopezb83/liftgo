@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { APP_CONFIG } from "@/lib/config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -23,4 +25,9 @@ export function formatDateDisplay(dateStr: string | null | undefined): string {
 
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/** Returns the current date/time in the configured timezone (America/Monterrey). */
+export function nowMty(): Date {
+  return toZonedTime(new Date(), APP_CONFIG.TIMEZONE);
 }

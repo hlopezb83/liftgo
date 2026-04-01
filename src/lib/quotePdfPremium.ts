@@ -4,6 +4,7 @@ import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { applyDiscount } from "@/lib/invoiceUtils";
 import type { CompanyData, PdfLineItem } from "@/lib/pdfHelpers";
 import { format, parseISO } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 // ─── Brand Colors ─────────────────────────────────────
 const NAVY = { r: 15, g: 23, b: 42 };       // slate-900
@@ -92,7 +93,7 @@ export function drawPremiumHeader(
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
-  doc.text(`Fecha: ${format(new Date(), "dd/MM/yyyy")}`, pw - MARGIN, y + 15, { align: "right" });
+  doc.text(`Fecha: ${format(nowMty(), "dd/MM/yyyy")}`, pw - MARGIN, y + 15, { align: "right" });
 
   y += 28;
 

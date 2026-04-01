@@ -2,6 +2,7 @@ import { jsPDF } from "jspdf";
 import { format, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { supabase } from "@/integrations/supabase/client";
+import { nowMty } from "@/lib/utils";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
 import { replacePlaceholders } from "@/lib/templateUtils";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
@@ -212,7 +213,7 @@ export function generateContractPages(doc: jsPDF, contract: ContractData, compan
   cursorY = checkPage(doc, cursorY, 45);
   cursorY += 5;
   const city = vars.ciudad;
-  const now = new Date();
+  const now = nowMty();
   doc.setFontSize(9);
   cursorY = addWrappedText(doc, `Leído el presente contrato, lo firman en ${city}, el día ${format(now, "dd/MM/yyyy")}.`, margin, cursorY, pageWidth - margin * 2, 4.5);
   cursorY += 12;
@@ -348,7 +349,7 @@ export function generatePagarePage(doc: jsPDF, contract: ContractData, company: 
   cursorY += 6;
   doc.setFont("helvetica", "bold"); doc.text("Fecha:", margin, cursorY);
   doc.setFont("helvetica", "normal");
-  const now = new Date();
+  const now = nowMty();
   doc.text(format(now, "dd/MM/yyyy"), margin + 25, cursorY);
   cursorY += 12;
 
