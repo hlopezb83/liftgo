@@ -8,6 +8,8 @@ export const APP_CONFIG = {
   CURRENCY_SYMBOL: "$",
   /** Number of items per page in data tables */
   PAGE_SIZE: 25,
+  /** Timezone for the application (Monterrey, Mexico) */
+  TIMEZONE: "America/Monterrey",
   /** Locale for number formatting */
   LOCALE: "es-MX",
   /** Available tax rate options (Mexico IVA) */

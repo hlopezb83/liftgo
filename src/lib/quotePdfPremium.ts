@@ -4,6 +4,7 @@ import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { applyDiscount } from "@/lib/invoiceUtils";
 import type { CompanyData, PdfLineItem } from "@/lib/pdfHelpers";
 import { format, parseISO } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 // ─── Brand Colors ─────────────────────────────────────
 const NAVY = { r: 15, g: 23, b: 42 };       // slate-900

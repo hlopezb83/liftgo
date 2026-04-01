@@ -2,6 +2,7 @@ import { jsPDF } from "jspdf";
 import { format, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { supabase } from "@/integrations/supabase/client";
+import { nowMty } from "@/lib/utils";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
 import { replacePlaceholders } from "@/lib/templateUtils";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
