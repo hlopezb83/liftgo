@@ -1,40 +1,42 @@
 
 
-## Fix: Consistencia en conteo de "Rentados" y "Utilización"
+## Configurar zona horaria de Monterrey (America/Monterrey)
 
 ### Problema
-
-`get_dashboard_stats` calcula `fleet_counts.rented` como `COUNT(*) FILTER (WHERE status = 'rented')`, lo cual incluye montacargas sin reserva activa. La utilización usa este mismo número, resultando en un % inflado.
+La app no tiene una zona horaria configurada explícitamente. Las fechas usan `new Date()` que toma la zona del navegador/servidor, lo cual puede ser inconsistente.
 
 ### Solución
 
-Actualizar `get_dashboard_stats` para calcular `rented` con la misma lógica que el MRR: solo contar montacargas con `status = 'rented'` Y que tengan un booking `confirmed` vigente.
-
-### Cambio
-
-**1. Migración SQL** — actualizar `fleet_counts.rented` en `get_dashboard_stats`
-
-Reemplazar:
-```sql
-'rented', COUNT(*) FILTER (WHERE status = 'rented'),
+**1. `src/lib/config.ts`** — Agregar constante de timezone:
+```ts
+TIMEZONE: "America/Monterrey",
 ```
 
-Por:
-```sql
-'rented', COUNT(*) FILTER (WHERE status = 'rented'
-  AND EXISTS (
-    SELECT 1 FROM bookings b
-    WHERE b.forklift_id = forklifts.id
-      AND b.status = 'confirmed'
-      AND CURRENT_DATE BETWEEN b.start_date AND b.end_date
-  )),
+**2. `src/lib/utils.ts`** — Crear helper `nowLocal()` que retorne la fecha/hora en zona Monterrey usando `date-fns-tz`:
+```ts
+import { toZonedTime } from "date-fns-tz";
+export function nowMty(): Date {
+  return toZonedTime(new Date(), APP_CONFIG.TIMEZONE);
+}
 ```
+Y actualizar `formatDateDisplay` para usar la zona configurada.
 
-La utilización en el frontend (`Dashboard.tsx`) no necesita cambios — ya usa `counts.rented`, que ahora será correcto.
+**3. Archivos que usan `new Date()` para mostrar fechas** — Reemplazar con `nowMty()`:
+- `src/lib/contractPdfGenerator.ts` (2 ocurrencias)
+- `src/lib/quotePdfPremium.ts` (1 ocurrencia)
+- Componentes de actividad reciente y timestamps que formatean fechas
 
-**2. `src/lib/changelog.ts`** — registrar fix v5.10.3
+**4. `src/components/ui/calendar.tsx`** — Ya usa locale `es`, no requiere cambios.
 
-### Archivos
-- 1 migración SQL
+**5. `src/lib/changelog.ts`** — Agregar entrada v5.10.4 con el fix de timezone.
+
+### Dependencia
+- Instalar `date-fns-tz` (complemento de `date-fns` ya instalado).
+
+### Archivos modificados
+- `src/lib/config.ts`
+- `src/lib/utils.ts`
+- `src/lib/contractPdfGenerator.ts`
+- `src/lib/quotePdfPremium.ts`
 - `src/lib/changelog.ts`
 
