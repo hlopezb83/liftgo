@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.10.5",
+    date: "2026-04-01",
+    type: "patch",
+    title: "Corrección de carga del preview",
+    description: "Se corrigió un error de CSS que impedía cargar los módulos dinámicos del dashboard y otras páginas en el preview.",
+    changes: [
+      "Movido @import de fuentes al inicio de src/index.css para cumplir con Vite/PostCSS",
+      "Restaurada la carga correcta de módulos lazy como Dashboard y CRMPage",
+    ],
+  },
+  {
     version: "5.10.4",
     date: "2026-04-01",
     type: "patch",
