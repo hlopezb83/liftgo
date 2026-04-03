@@ -9,12 +9,12 @@ export function useBookingExtensions(bookingId?: string) {
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("booking_extensions" as any)
+        .from("booking_extensions")
         .select("*")
         .eq("booking_id", bookingId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data;
     },
   });
 }
