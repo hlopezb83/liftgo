@@ -47,7 +47,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
     if (open) {
       setSupplierId("");
       form.reset({
-        expense_date: new Date(),
+        expense_date: nowMty(),
         amount: undefined as unknown as number,
         category: "",
         description: "",
