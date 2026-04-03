@@ -11,7 +11,7 @@ import { es } from "date-fns/locale";
 import { nowMty } from "@/lib/utils";
 
 function generateMonthOptions(count: number) {
-  const now = new Date();
+  const now = nowMty();
   const options: { value: string; label: string }[] = [];
   for (let i = 0; i < count; i++) {
     const d = subMonths(now, i);
