@@ -18,6 +18,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useFinancialKpis } from "@/hooks/useFinancialKpis";
 import { useForklifts } from "@/hooks/useForklifts";
 import { differenceInDays, parseISO } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 const STATUS_COLORS = {
   available: "hsl(var(--status-available))",
