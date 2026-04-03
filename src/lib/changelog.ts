@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.11.1",
+    date: "2026-04-03",
+    type: "patch",
+    title: "Paginación de changelog y tipado de catch blocks",
+    description: "Mejoras de calidad de código: paginación del historial de cambios y tipado estricto de bloques catch en toda la aplicación.",
+    changes: [
+      "Paginación del historial de cambios (25 entradas por página) usando usePagination y TablePagination",
+      "Tipado estricto de bloques catch: 'catch (err: unknown)' en InvoicesPage, MaintenancePage, useQuoteDetailLogic e IncomeStatementReport",
+      "Eliminados console.error innecesarios en CustomerFormDialog e IncomeStatementReport",
+      "Eliminado cast 'as any' en CustomerFormDialog para constancia fiscal",
+    ],
+  },
+  {
     version: "5.11.0",
     date: "2026-04-03",
     type: "minor",

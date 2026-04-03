@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { changelog, CURRENT_VERSION, type ChangelogEntry } from "@/lib/changelog";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/TablePagination";
 
 type FilterType = "all" | "major" | "minor" | "patch";
 
@@ -31,6 +33,11 @@ export default function ChangelogPage() {
   const [filter, setFilter] = useState<FilterType>("all");
 
   const filtered = filter === "all" ? changelog : changelog.filter((e) => e.type === filter);
+
+  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => { setPage(1); }, [filter]);
 
   const filters: { value: FilterType; label: string }[] = [
     { value: "all", label: "Todos" },
@@ -64,7 +71,7 @@ export default function ChangelogPage() {
         <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
 
         <div className="space-y-6">
-          {filtered.map((entry) => (
+          {paginatedItems.map((entry) => (
             <div key={entry.version} className="relative pl-10">
               {/* Timeline dot */}
               <div className={`absolute left-2.5 top-6 h-3 w-3 rounded-full ring-2 ring-background ${DOT_COLORS[entry.type]}`} />
@@ -100,6 +107,8 @@ export default function ChangelogPage() {
           ))}
         </div>
       </div>
+
+      <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
