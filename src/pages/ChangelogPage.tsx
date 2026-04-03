@@ -71,7 +71,7 @@ export default function ChangelogPage() {
         <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
 
         <div className="space-y-6">
-          {filtered.map((entry) => (
+          {paginatedItems.map((entry) => (
             <div key={entry.version} className="relative pl-10">
               {/* Timeline dot */}
               <div className={`absolute left-2.5 top-6 h-3 w-3 rounded-full ring-2 ring-background ${DOT_COLORS[entry.type]}`} />
