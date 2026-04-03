@@ -87,9 +87,8 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       }));
       setParsed(true);
       toast.success("Datos fiscales extraídos. Revisa y completa la información.");
-    } catch (e: any) {
-      console.error("CSF parse error:", e);
-      toast.error(e.message || "Error al procesar la constancia");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Error al procesar la constancia");
     } finally {
       setParsing(false);
     }

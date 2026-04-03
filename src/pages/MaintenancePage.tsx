@@ -74,7 +74,7 @@ export default function MaintenancePage() {
       } else {
         toast.info("No hay pólizas pendientes de generar para este mes");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Error al generar mantenimiento recurrente");
     } finally {
       setGeneratingRecurring(false);

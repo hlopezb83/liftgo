@@ -107,6 +107,8 @@ export default function ChangelogPage() {
           ))}
         </div>
       </div>
+
+      <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
