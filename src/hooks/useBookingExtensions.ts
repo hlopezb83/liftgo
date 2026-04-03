@@ -32,8 +32,8 @@ export function useCreateBookingExtension() {
 
       // Record extension
       const { data, error } = await supabase
-        .from("booking_extensions" as any)
-        .insert(ext as any)
+        .from("booking_extensions")
+        .insert(ext)
         .select()
         .single();
       if (error) throw error;

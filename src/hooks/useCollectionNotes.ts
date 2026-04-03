@@ -25,8 +25,8 @@ export function useCreateCollectionNote() {
     mutationFn: async (note: { invoice_id: string; note: string; next_followup_date?: string | null }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
-        .from("collection_notes" as any)
-        .insert({ ...note, created_by: user?.id } as any)
+        .from("collection_notes")
+        .insert({ ...note, created_by: user?.id })
         .select()
         .single();
       if (error) throw error;
