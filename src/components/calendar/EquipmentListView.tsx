@@ -3,6 +3,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { StatusBadge } from "@/components/StatusBadge";
 import { ChevronRight } from "lucide-react";
 import { format, parseISO, differenceInDays, isWithinInterval } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
