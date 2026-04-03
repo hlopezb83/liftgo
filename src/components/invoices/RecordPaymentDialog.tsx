@@ -10,6 +10,7 @@ import { useCreatePayment } from "@/hooks/usePayments";
 import { toast } from "sonner";
 import { DatePickerField } from "@/components/DatePickerField";
 import { format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 const METHODS = [
   { value: "transfer", label: "Transferencia" },
