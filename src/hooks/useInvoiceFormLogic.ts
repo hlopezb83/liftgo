@@ -60,7 +60,7 @@ export function useInvoiceFormLogic() {
   const [lineItems, setLineItems] = useState<CfdiLineItem[]>([]);
   const [taxRate, setTaxRate] = useState(16);
   const [dueDate, setDueDate] = useState<Date>();
-  const [issueDate, setIssueDate] = useState<Date>(new Date());
+  const [issueDate, setIssueDate] = useState<Date>(nowMty());
   const [notes, setNotes] = useState("");
   const { form: cfdi, set: setCfdi, setForm: setCfdiForm } = useFormState(INITIAL_CFDI);
 
