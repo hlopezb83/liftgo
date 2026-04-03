@@ -41,7 +41,7 @@ export default function InvoicesPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
     } catch (err) {
-      toast.error("Error al generar facturas", { description: err instanceof Error ? err.message : "Intenta de nuevo." });
+      toast.error("Error al generar facturas", { description: err instanceof Error ? err.message : "Intenta de nuevo." } as { description: string });
     } finally {
       setIsGenerating(false);
     }
