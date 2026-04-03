@@ -7,7 +7,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
-import { parseDateLocal } from "@/lib/utils";
+import { parseDateLocal, nowMty } from "@/lib/utils";
 import { useFormState } from "@/hooks/useFormState";
 import type { CfdiLineItem } from "@/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
