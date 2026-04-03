@@ -36,7 +36,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: {
-      expense_date: new Date(),
+      expense_date: nowMty(),
       amount: undefined as unknown as number,
       category: "",
       description: "",
