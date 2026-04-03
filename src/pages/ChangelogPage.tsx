@@ -34,6 +34,11 @@ export default function ChangelogPage() {
 
   const filtered = filter === "all" ? changelog : changelog.filter((e) => e.type === filter);
 
+  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => { setPage(1); }, [filter]);
+
   const filters: { value: FilterType; label: string }[] = [
     { value: "all", label: "Todos" },
     { value: "major", label: "Mayor" },
