@@ -37,7 +37,7 @@ export default function CalendarPage() {
   const navigateForward = () => {
     setCurrentDate(ganttRange === "month" ? addMonths(currentDate, 1) : addWeeks(currentDate, 1));
   };
-  const navigateToday = () => setCurrentDate(new Date());
+  const navigateToday = () => setCurrentDate(nowMty());
 
   const rangeLabel = ganttRange === "month"
     ? format(currentDate, "MMMM yyyy", { locale: es })
