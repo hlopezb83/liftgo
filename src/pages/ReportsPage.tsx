@@ -14,6 +14,7 @@ import { UtilizationByModelReport } from "@/components/reports/UtilizationByMode
 import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
 import { AgingReport } from "@/components/reports/AgingReport";
 import { subMonths } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 const REPORT_TYPES = [
   { value: "utilization", label: "Utilización de Flota" },
