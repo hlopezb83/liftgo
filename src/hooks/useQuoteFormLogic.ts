@@ -110,7 +110,7 @@ export function useQuoteFormLogic() {
         }
       }
     } else if (!validUntil) {
-      setValidUntil(addDays(new Date(), 30));
+      setValidUntil(addDays(nowMty(), 30));
     }
   }, [existingQuote, equipmentModels]);
 
