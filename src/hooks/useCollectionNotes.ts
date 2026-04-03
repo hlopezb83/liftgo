@@ -9,12 +9,12 @@ export function useCollectionNotes(invoiceId?: string) {
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("collection_notes" as any)
+        .from("collection_notes")
         .select("*")
         .eq("invoice_id", invoiceId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data;
     },
   });
 }
