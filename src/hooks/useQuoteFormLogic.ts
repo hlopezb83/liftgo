@@ -6,6 +6,7 @@ import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/
 import { generateLineItemsFromModel, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
+import { nowMty } from "@/lib/utils";
 import { parseDateLocal } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import type { SaleLine } from "@/components/quotes/SaleLineItems";
