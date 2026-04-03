@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, Truck, MapPin, CheckCircle, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
-import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
+import { formatDateDisplay, parseDateLocal, nowMty } from "@/lib/utils";
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -71,7 +71,7 @@ export default function DeliveryDetail() {
   const markComplete = (signatureBase64?: string) => {
     const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
     updateDelivery.mutate(
-      { id: delivery.id, status: "completed", completed_at: new Date().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}), ...(hrs !== undefined ? { hours_reading: hrs } : {}) },
+      { id: delivery.id, status: "completed", completed_at: nowMty().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}), ...(hrs !== undefined ? { hours_reading: hrs } : {}) },
       {
         onSuccess: () => {
           toast.success("Marcado como completado");

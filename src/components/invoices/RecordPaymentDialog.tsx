@@ -10,6 +10,7 @@ import { useCreatePayment } from "@/hooks/usePayments";
 import { toast } from "sonner";
 import { DatePickerField } from "@/components/DatePickerField";
 import { format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 const METHODS = [
   { value: "transfer", label: "Transferencia" },
@@ -27,7 +28,7 @@ interface Props {
 
 export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance }: Props) {
   const [amount, setAmount] = useState(balance.toFixed(2));
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date>(nowMty());
   const [method, setMethod] = useState("transfer");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");

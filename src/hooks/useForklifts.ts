@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { nowMty } from "@/lib/utils";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 export type { Forklift, StatusLog } from "@/types/rental";
 import type { Forklift } from "@/types/rental";
@@ -128,7 +129,7 @@ export function useUpdateStatus() {
             category: "costo_venta",
             description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
             amount: cost,
-            expense_date: new Date().toISOString().slice(0, 10),
+            expense_date: nowMty().toISOString().slice(0, 10),
             is_recurring: false,
           });
           if (expError) {

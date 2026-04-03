@@ -14,6 +14,7 @@ import { UtilizationByModelReport } from "@/components/reports/UtilizationByMode
 import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
 import { AgingReport } from "@/components/reports/AgingReport";
 import { subMonths } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 const REPORT_TYPES = [
   { value: "utilization", label: "Utilización de Flota" },
@@ -31,9 +32,9 @@ export default function ReportsPage() {
     ? searchParams.get("type")!
     : "utilization";
   const [reportType, setReportType] = useState(initialType);
-  const [dateRange, setDateRange] = useState<DateRange>({ from: subMonths(new Date(), 3), to: new Date() });
-  const startDate = dateRange?.from ?? subMonths(new Date(), 3);
-  const endDate = dateRange?.to ?? new Date();
+  const [dateRange, setDateRange] = useState<DateRange>({ from: subMonths(nowMty(), 3), to: nowMty() });
+  const startDate = dateRange?.from ?? subMonths(nowMty(), 3);
+  const endDate = dateRange?.to ?? nowMty();
 
   return (
     <PageTransition>

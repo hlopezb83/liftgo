@@ -6,6 +6,7 @@ import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/
 import { generateLineItemsFromModel, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
+import { nowMty } from "@/lib/utils";
 import { parseDateLocal } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import type { SaleLine } from "@/components/quotes/SaleLineItems";
@@ -109,7 +110,7 @@ export function useQuoteFormLogic() {
         }
       }
     } else if (!validUntil) {
-      setValidUntil(addDays(new Date(), 30));
+      setValidUntil(addDays(nowMty(), 30));
     }
   }, [existingQuote, equipmentModels]);
 
@@ -182,7 +183,7 @@ export function useQuoteFormLogic() {
       if (validLines.length === 0) { toast.error("Agrega al menos un modelo con cantidad y precio"); return; }
     }
 
-    const today = format(new Date(), "yyyy-MM-dd");
+    const today = format(nowMty(), "yyyy-MM-dd");
     const firstModelId = quoteType === "sale"
       ? (saleLines.find((l) => l.modelId)?.modelId || null)
       : (rentalLines.find((l) => l.modelId)?.modelId || null);

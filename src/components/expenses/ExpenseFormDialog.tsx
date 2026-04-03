@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: {
-      expense_date: new Date(),
+      expense_date: nowMty(),
       amount: undefined as unknown as number,
       category: "",
       description: "",
@@ -46,7 +47,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
     if (open) {
       setSupplierId("");
       form.reset({
-        expense_date: new Date(),
+        expense_date: nowMty(),
         amount: undefined as unknown as number,
         category: "",
         description: "",
@@ -85,7 +86,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                 <DatePickerField
                   label="Fecha"
                   date={field.value}
-                  onSelect={(d) => field.onChange(d ?? new Date())}
+                  onSelect={(d) => field.onChange(d ?? nowMty())}
                   required
                 />
               )}

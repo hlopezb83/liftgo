@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.11.0",
+    date: "2026-04-03",
+    type: "minor",
+    title: "Auditoría y optimización arquitectónica",
+    description: "Mejoras de calidad de código, consistencia de timezone, seguridad de tipos y buenas prácticas de React en toda la aplicación.",
+    changes: [
+      "Migración completa de new Date() a nowMty() en 20+ archivos para consistencia de zona horaria",
+      "Eliminados casts 'as any' en useBookingExtensions y useCollectionNotes usando tipos nativos de Supabase",
+      "Agregado React.StrictMode en main.tsx para detectar efectos secundarios en desarrollo",
+      "Tipado correcto de bloques catch en MaintenancePage, InvoicesPage y useQuoteDetailLogic",
+    ],
+  },
+  {
     version: "5.10.5",
     date: "2026-04-01",
     type: "patch",

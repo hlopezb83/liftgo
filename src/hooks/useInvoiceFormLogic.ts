@@ -7,7 +7,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
-import { parseDateLocal } from "@/lib/utils";
+import { parseDateLocal, nowMty } from "@/lib/utils";
 import { useFormState } from "@/hooks/useFormState";
 import type { CfdiLineItem } from "@/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
@@ -60,7 +60,7 @@ export function useInvoiceFormLogic() {
   const [lineItems, setLineItems] = useState<CfdiLineItem[]>([]);
   const [taxRate, setTaxRate] = useState(16);
   const [dueDate, setDueDate] = useState<Date>();
-  const [issueDate, setIssueDate] = useState<Date>(new Date());
+  const [issueDate, setIssueDate] = useState<Date>(nowMty());
   const [notes, setNotes] = useState("");
   const { form: cfdi, set: setCfdi, setForm: setCfdiForm } = useFormState(INITIAL_CFDI);
 
@@ -82,7 +82,7 @@ export function useInvoiceFormLogic() {
     setLineItems((existing.line_items as unknown as CfdiLineItem[]) || []);
     setTaxRate(Number(existing.tax_rate) || 0);
     setDueDate(existing.due_date ? parseDateLocal(existing.due_date) : undefined);
-    setIssueDate(existing.issued_at ? parseDateLocal(existing.issued_at) : new Date());
+    setIssueDate(existing.issued_at ? parseDateLocal(existing.issued_at) : nowMty());
     setNotes(existing.notes || "");
     setCfdiForm({
       serie: existing.serie || "",

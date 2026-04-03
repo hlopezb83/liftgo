@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { nowMty } from "@/lib/utils";
 
 export interface ContractClause {
   title: string;
@@ -58,7 +59,7 @@ export function useUpdateContractTemplate() {
         .from("contract_templates")
         .update({
           ...rest,
-          updated_at: new Date().toISOString(),
+          updated_at: nowMty().toISOString(),
         } as Record<string, unknown>)
         .eq("id", id);
       if (error) throw error;

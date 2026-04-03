@@ -18,6 +18,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useFinancialKpis } from "@/hooks/useFinancialKpis";
 import { useForklifts } from "@/hooks/useForklifts";
 import { differenceInDays, parseISO } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 const STATUS_COLORS = {
   available: "hsl(var(--status-available))",
@@ -57,7 +58,7 @@ export default function Dashboard() {
   const agingBuckets = useMemo(() => {
     const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
     overdueInvoices.forEach((inv) => {
-      const days = differenceInDays(new Date(), parseISO(inv.due_date));
+      const days = differenceInDays(nowMty(), parseISO(inv.due_date));
       if (days <= 30) buckets["0-30"] += Number(inv.total);
       else if (days <= 60) buckets["31-60"] += Number(inv.total);
       else if (days <= 90) buckets["61-90"] += Number(inv.total);

@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { IncomeStatementReport } from "@/components/reports/IncomeStatementReport";
 import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
 import { es } from "date-fns/locale";
+import { nowMty } from "@/lib/utils";
 
 function generateMonthOptions(count: number) {
-  const now = new Date();
+  const now = nowMty();
   const options: { value: string; label: string }[] = [];
   for (let i = 0; i < count; i++) {
     const d = subMonths(now, i);
@@ -24,8 +25,8 @@ function generateMonthOptions(count: number) {
 export default function IncomeStatementPage() {
   const monthOptions = useMemo(() => generateMonthOptions(24), []);
 
-  const [startMonth, setStartMonth] = useState(() => format(subMonths(new Date(), 3), "yyyy-MM"));
-  const [endMonth, setEndMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const [startMonth, setStartMonth] = useState(() => format(subMonths(nowMty(), 3), "yyyy-MM"));
+  const [endMonth, setEndMonth] = useState(() => format(nowMty(), "yyyy-MM"));
   const [accountingBasis, setAccountingBasis] = useState<"accrual" | "cash">("accrual");
 
   const [sy, sm] = startMonth.split("-").map(Number);

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
+import { nowMty } from "@/lib/utils";
 import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import { EquipmentListView } from "@/components/calendar/EquipmentListView";
 export default function CalendarPage() {
   const { data: bookings, isLoading: bLoading } = useBookings();
   const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(nowMty());
   
   const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
@@ -36,7 +37,7 @@ export default function CalendarPage() {
   const navigateForward = () => {
     setCurrentDate(ganttRange === "month" ? addMonths(currentDate, 1) : addWeeks(currentDate, 1));
   };
-  const navigateToday = () => setCurrentDate(new Date());
+  const navigateToday = () => setCurrentDate(nowMty());
 
   const rangeLabel = ganttRange === "month"
     ? format(currentDate, "MMMM yyyy", { locale: es })
@@ -46,7 +47,7 @@ export default function CalendarPage() {
     if (!bookings) return [];
     return bookings.filter((b) => {
       const endDate = parseISO(b.end_date);
-      const daysLeft = differenceInDays(endDate, new Date());
+      const daysLeft = differenceInDays(endDate, nowMty());
       return b.status === "confirmed" && daysLeft >= 0 && daysLeft <= 3;
     });
   }, [bookings]);

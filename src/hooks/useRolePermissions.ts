@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { nowMty } from "@/lib/utils";
 import { useAuth } from "./useAuth";
 import type { AppRole } from "./useUserRole";
 
@@ -69,7 +70,7 @@ export function useUpdatePermission() {
     mutationFn: async ({ role, module, access_level }: { role: AppRole; module: string; access_level: AccessLevel }) => {
       const { error } = await supabase
         .from("role_permissions")
-        .update({ access_level, updated_at: new Date().toISOString() })
+        .update({ access_level, updated_at: nowMty().toISOString() })
         .eq("role", role)
         .eq("module", module);
       if (error) throw error;

@@ -4,6 +4,7 @@ import { Truck, CheckCircle, Wrench, BarChart3 } from "lucide-react";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
 
@@ -16,7 +17,7 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
   const stats = useMemo(() => {
     if (!forklifts) return { available: 0, rented: 0, maintenance: 0, utilization: "0%" };
 
-    const today = new Date();
+    const today = nowMty();
     const activeBookingForkliftIds = new Set<string>();
     bookings?.forEach((b) => {
       if (b.status === "confirmed") {
