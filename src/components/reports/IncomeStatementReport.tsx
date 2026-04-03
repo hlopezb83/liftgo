@@ -528,7 +528,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
       doc.save(`estado-resultados${selectedYear !== "all" ? `-${selectedYear}` : ""}.pdf`);
       toast.success("PDF descargado");
-    } catch (err: unknown) {
+    } catch (_err: unknown) {
       toast.error("Error al generar PDF");
     } finally {
       setPdfLoading(false);
