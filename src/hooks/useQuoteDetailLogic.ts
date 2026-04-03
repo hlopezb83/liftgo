@@ -223,8 +223,8 @@ export function useQuoteDetailLogic(id: string | undefined) {
       toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
       setCurrentDeliveryIndex(0);
       setPendingDeliveries(createDeliveryInfos(forkliftIds, createdBookingIds));
-    } catch (err: any) {
-      toast.error(`Error al crear reserva: ${err.message}`);
+    } catch (err) {
+      toast.error(`Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}`);
     } finally {
       setIsConverting(false);
     }

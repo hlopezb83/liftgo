@@ -40,8 +40,8 @@ export default function InvoicesPage() {
         description: count > 0 ? "Se crearon borradores de facturas recurrentes." : "No hay reservas con facturación recurrente pendiente.",
       });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    } catch (err: any) {
-      toast.error("Error al generar facturas", { description: err.message || "Intenta de nuevo." });
+    } catch (err) {
+      toast.error("Error al generar facturas", { description: err instanceof Error ? err.message : "Intenta de nuevo." });
     } finally {
       setIsGenerating(false);
     }
