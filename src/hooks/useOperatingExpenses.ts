@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { startOfMonth, format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 export type ExpenseCategory = "renta" | "nomina" | "software" | "depreciacion" | "otro" | "costo_venta" | "caja_chica" | "publicidad";
 
