@@ -6,7 +6,7 @@ import { useUpdateInvoice } from "@/hooks/useInvoices";
 import { useUpdateBooking } from "@/hooks/useBookings";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { toast } from "sonner";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, nowMty } from "@/lib/utils";
 
 interface OverdueInvoice {
   id: string;
