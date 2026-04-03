@@ -28,11 +28,11 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   const overdueInvoices = useMemo(() => {
     if (!invoices) return [];
     return invoices
-      .filter((i) => ["sent", "overdue", "partial"].includes(i.status) && i.due_date && parseISO(i.due_date) < new Date())
+      .filter((i) => ["sent", "overdue", "partial"].includes(i.status) && i.due_date && parseISO(i.due_date) < nowMty())
       .map((i) => ({
         ...i,
-        days_overdue: differenceInDays(new Date(), parseISO(i.due_date!)),
-        bucket: getAgingBucket(differenceInDays(new Date(), parseISO(i.due_date!))),
+        days_overdue: differenceInDays(nowMty(), parseISO(i.due_date!)),
+        bucket: getAgingBucket(differenceInDays(nowMty(), parseISO(i.due_date!))),
       }))
       .sort((a, b) => b.days_overdue - a.days_overdue);
   }, [invoices]);

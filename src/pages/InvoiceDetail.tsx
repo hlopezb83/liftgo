@@ -44,7 +44,7 @@ export default function InvoiceDetail() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [paidDate, setPaidDate] = useState<Date>(new Date());
+  const [paidDate, setPaidDate] = useState<Date>(nowMty());
   const [paidPopoverOpen, setPaidPopoverOpen] = useState(false);
   const { data: payments } = usePayments(id);
   const { data: userRole } = useUserRole();

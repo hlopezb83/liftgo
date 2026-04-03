@@ -58,7 +58,7 @@ export function useUpdateContractTemplate() {
         .from("contract_templates")
         .update({
           ...rest,
-          updated_at: new Date().toISOString(),
+          updated_at: nowMty().toISOString(),
         } as Record<string, unknown>)
         .eq("id", id);
       if (error) throw error;

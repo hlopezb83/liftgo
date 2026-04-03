@@ -47,7 +47,7 @@ export default function CalendarPage() {
     if (!bookings) return [];
     return bookings.filter((b) => {
       const endDate = parseISO(b.end_date);
-      const daysLeft = differenceInDays(endDate, new Date());
+      const daysLeft = differenceInDays(endDate, nowMty());
       return b.status === "confirmed" && daysLeft >= 0 && daysLeft <= 3;
     });
   }, [bookings]);

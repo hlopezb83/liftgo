@@ -25,8 +25,8 @@ function generateMonthOptions(count: number) {
 export default function IncomeStatementPage() {
   const monthOptions = useMemo(() => generateMonthOptions(24), []);
 
-  const [startMonth, setStartMonth] = useState(() => format(subMonths(new Date(), 3), "yyyy-MM"));
-  const [endMonth, setEndMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const [startMonth, setStartMonth] = useState(() => format(subMonths(nowMty(), 3), "yyyy-MM"));
+  const [endMonth, setEndMonth] = useState(() => format(nowMty(), "yyyy-MM"));
   const [accountingBasis, setAccountingBasis] = useState<"accrual" | "cash">("accrual");
 
   const [sy, sm] = startMonth.split("-").map(Number);

@@ -128,7 +128,7 @@ export function useUpdateStatus() {
             category: "costo_venta",
             description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
             amount: cost,
-            expense_date: new Date().toISOString().slice(0, 10),
+            expense_date: nowMty().toISOString().slice(0, 10),
             is_recurring: false,
           });
           if (expError) {

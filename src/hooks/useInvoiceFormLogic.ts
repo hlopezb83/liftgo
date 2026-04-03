@@ -82,7 +82,7 @@ export function useInvoiceFormLogic() {
     setLineItems((existing.line_items as unknown as CfdiLineItem[]) || []);
     setTaxRate(Number(existing.tax_rate) || 0);
     setDueDate(existing.due_date ? parseDateLocal(existing.due_date) : undefined);
-    setIssueDate(existing.issued_at ? parseDateLocal(existing.issued_at) : new Date());
+    setIssueDate(existing.issued_at ? parseDateLocal(existing.issued_at) : nowMty());
     setNotes(existing.notes || "");
     setCfdiForm({
       serie: existing.serie || "",

@@ -54,7 +54,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
   const handleMarkPaid = (inv: OverdueInvoice, e: React.MouseEvent) => {
     e.stopPropagation();
     updateInvoice.mutate(
-      { id: inv.id, status: "paid", paid_at: new Date().toISOString().split("T")[0] },
+      { id: inv.id, status: "paid", paid_at: nowMty().toISOString().split("T")[0] },
       {
         onSuccess: (data) => {
           toast.success(`${inv.invoice_number} marcada como pagada`);

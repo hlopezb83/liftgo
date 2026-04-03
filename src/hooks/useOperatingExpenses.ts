@@ -104,8 +104,8 @@ export function useGenerateRecurring() {
         return 0;
       }
 
-      const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
-      const monthKey = format(new Date(), "yyyy-MM");
+      const monthStart = format(startOfMonth(nowMty()), "yyyy-MM-dd");
+      const monthKey = format(nowMty(), "yyyy-MM");
 
       const { data: existing, error: existErr } = await supabase
         .from("operating_expenses")

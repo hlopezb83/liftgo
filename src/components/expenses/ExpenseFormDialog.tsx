@@ -86,7 +86,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                 <DatePickerField
                   label="Fecha"
                   date={field.value}
-                  onSelect={(d) => field.onChange(d ?? new Date())}
+                  onSelect={(d) => field.onChange(d ?? nowMty())}
                   required
                 />
               )}

@@ -28,7 +28,7 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
     return map;
   }, [bookings]);
 
-  const today = new Date();
+  const today = nowMty();
 
   return (
     <div className="space-y-1">

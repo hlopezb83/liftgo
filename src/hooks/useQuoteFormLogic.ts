@@ -183,7 +183,7 @@ export function useQuoteFormLogic() {
       if (validLines.length === 0) { toast.error("Agrega al menos un modelo con cantidad y precio"); return; }
     }
 
-    const today = format(new Date(), "yyyy-MM-dd");
+    const today = format(nowMty(), "yyyy-MM-dd");
     const firstModelId = quoteType === "sale"
       ? (saleLines.find((l) => l.modelId)?.modelId || null)
       : (rentalLines.find((l) => l.modelId)?.modelId || null);
