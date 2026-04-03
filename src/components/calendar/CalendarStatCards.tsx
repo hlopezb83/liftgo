@@ -4,6 +4,7 @@ import { Truck, CheckCircle, Wrench, BarChart3 } from "lucide-react";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
 
