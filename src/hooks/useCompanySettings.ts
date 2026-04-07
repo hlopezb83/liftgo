@@ -28,6 +28,8 @@ export function useUpsertCompanySettings() {
       lugar_expedicion: string;
       logo_url?: string | null;
       facturapi_mode?: string | null;
+      facturapi_test_key?: string | null;
+      facturapi_live_key?: string | null;
     }) => {
       if (settings.id) {
         const { data, error } = await supabase

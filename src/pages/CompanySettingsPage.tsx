@@ -11,10 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFormState } from "@/hooks/useFormState";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Save, Upload, Trash2, ImageIcon, ShieldCheck } from "lucide-react";
+import { Building2, Save, Upload, Trash2, ImageIcon, ShieldCheck, Eye, EyeOff, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
-const empty = { rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "", logo_url: "", facturapi_mode: "test" };
+const empty = {
+  rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "",
+  logo_url: "", facturapi_mode: "test", facturapi_test_key: "", facturapi_live_key: "",
+};
 
 export default function CompanySettingsPage() {
   const { data: settings, isLoading } = useCompanySettings();
@@ -22,6 +25,8 @@ export default function CompanySettingsPage() {
   const { form, set, setForm } = useFormState(empty);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [showTestKey, setShowTestKey] = useState(false);
+  const [showLiveKey, setShowLiveKey] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -32,6 +37,8 @@ export default function CompanySettingsPage() {
         lugar_expedicion: settings.lugar_expedicion || "",
         logo_url: settings.logo_url || "",
         facturapi_mode: (settings as Record<string, unknown>).facturapi_mode as string || "test",
+        facturapi_test_key: (settings as Record<string, unknown>).facturapi_test_key as string || "",
+        facturapi_live_key: (settings as Record<string, unknown>).facturapi_live_key as string || "",
       });
     }
   }, [settings]);
@@ -86,6 +93,8 @@ export default function CompanySettingsPage() {
         lugar_expedicion: form.lugar_expedicion,
         logo_url: form.logo_url || null,
         facturapi_mode: form.facturapi_mode || "test",
+        facturapi_test_key: form.facturapi_test_key || null,
+        facturapi_live_key: form.facturapi_live_key || null,
       },
       { onSuccess: () => toast.success("Datos fiscales guardados") }
     );
@@ -182,45 +191,108 @@ export default function CompanySettingsPage() {
             </div>
           </CardContent>
         </Card>
-      </form>
 
-      {/* PAC Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4" /> Configuración PAC (Facturapi)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Modo de operación</p>
-              <p className="text-xs text-muted-foreground">
-                {form.facturapi_mode === "live"
-                  ? "Producción — Las facturas se timbran ante el SAT"
-                  : "Prueba — Las facturas se timbran en sandbox de Facturapi"}
-              </p>
+        {/* PAC Configuration */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" /> Configuración PAC (Facturapi)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Modo de operación</p>
+                <p className="text-xs text-muted-foreground">
+                  {form.facturapi_mode === "live"
+                    ? "Producción — Las facturas se timbran ante el SAT"
+                    : "Prueba — Las facturas se timbran en sandbox de Facturapi"}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Test</span>
+                <Switch
+                  checked={form.facturapi_mode === "live"}
+                  onCheckedChange={(checked) => set("facturapi_mode", checked ? "live" : "test")}
+                />
+                <span className="text-xs text-muted-foreground">Live</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Test</span>
-              <Switch
-                checked={form.facturapi_mode === "live"}
-                onCheckedChange={(checked) => set("facturapi_mode", checked ? "live" : "test")}
-              />
-              <span className="text-xs text-muted-foreground">Live</span>
+
+            {/* API Key fields */}
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5">
+                  API Key Test (Sandbox)
+                  {form.facturapi_test_key ? (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                  ) : (
+                    <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showTestKey ? "text" : "password"}
+                    value={form.facturapi_test_key}
+                    onChange={(e) => set("facturapi_test_key", e.target.value)}
+                    placeholder="sk_test_..."
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowTestKey(!showTestKey)}
+                  >
+                    {showTestKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5">
+                  API Key Live (Producción)
+                  {form.facturapi_live_key ? (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                  ) : (
+                    <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />
+                  )}
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showLiveKey ? "text" : "password"}
+                    value={form.facturapi_live_key}
+                    onChange={(e) => set("facturapi_live_key", e.target.value)}
+                    placeholder="sk_live_..."
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowLiveKey(!showLiveKey)}
+                  >
+                    {showLiveKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="rounded-md bg-muted/50 p-3 space-y-1">
-            <p className="text-xs font-medium">API Keys</p>
+
             <p className="text-xs text-muted-foreground">
-              Se requieren dos secrets en el backend: <code className="bg-muted px-1 rounded text-[11px]">FACTURAPI_TEST_KEY</code> (sandbox) y <code className="bg-muted px-1 rounded text-[11px]">FACTURAPI_LIVE_KEY</code> (producción). Si no están configurados, el sistema opera en modo stub (sin conexión al SAT).
+              Obtén tus API keys en <a href="https://dashboard.facturapi.io" target="_blank" rel="noopener noreferrer" className="underline">dashboard.facturapi.io</a>. Si no se configuran, el sistema opera en modo stub (sin conexión al SAT).
             </p>
-            <p className="text-xs text-muted-foreground">
-              El modo seleccionado arriba determina cuál key se utiliza al timbrar o cancelar facturas.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+
+            <div className="pt-2">
+              <Button type="submit" disabled={upsert.isPending}>
+                <Save className="h-4 w-4 mr-1" />
+                {upsert.isPending ? "Guardando..." : "Guardar Configuración"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </form>
     </div>
   );
 }

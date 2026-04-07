@@ -51,23 +51,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Read facturapi_mode to select the right key
+    // Read company settings for API key
     const { data: company } = await supabase
       .from("company_settings")
-      .select("facturapi_mode")
+      .select("facturapi_mode, facturapi_test_key, facturapi_live_key")
       .limit(1)
       .maybeSingle();
 
     const mode = (company as Record<string, unknown>)?.facturapi_mode as string || "test";
+    const dbTestKey = (company as Record<string, unknown>)?.facturapi_test_key as string | null;
+    const dbLiveKey = (company as Record<string, unknown>)?.facturapi_live_key as string | null;
     const apiKey = mode === "live"
-      ? Deno.env.get("FACTURAPI_LIVE_KEY")
-      : Deno.env.get("FACTURAPI_TEST_KEY");
+      ? (dbLiveKey || Deno.env.get("FACTURAPI_LIVE_KEY"))
+      : (dbTestKey || Deno.env.get("FACTURAPI_TEST_KEY"));
     const facturApiId = invoice.facturapi_invoice_id;
 
     // If we have a real Facturapi ID and API key, cancel via API
     if (apiKey && facturApiId) {
-      // Map cancellation reason to SAT motive code
-      // "02" = Comprobantes emitidos con errores con relación (most common)
       const cancelRes = await fetch(`${FACTURAPI_BASE}/invoices/${facturApiId}`, {
         method: "DELETE",
         headers: {
@@ -86,10 +86,10 @@ Deno.serve(async (req) => {
         );
       }
 
-      await cancelRes.text(); // consume body
+      await cancelRes.text();
     }
 
-    // Update DB regardless (stub or real)
+    // Update DB
     const { error: updateErr } = await supabase
       .from("invoices")
       .update({

@@ -49,11 +49,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Select API key based on facturapi_mode
+    // Select API key: DB first, env var fallback
     const mode = (company as Record<string, unknown>).facturapi_mode as string || "test";
+    const dbTestKey = (company as Record<string, unknown>).facturapi_test_key as string | null;
+    const dbLiveKey = (company as Record<string, unknown>).facturapi_live_key as string | null;
     const apiKey = mode === "live"
-      ? Deno.env.get("FACTURAPI_LIVE_KEY")
-      : Deno.env.get("FACTURAPI_TEST_KEY");
+      ? (dbLiveKey || Deno.env.get("FACTURAPI_LIVE_KEY"))
+      : (dbTestKey || Deno.env.get("FACTURAPI_TEST_KEY"));
 
     if (!apiKey) {
       // Fallback: stub mode (original mock behaviour)
@@ -83,7 +85,6 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
     };
 
-    // Build line items for Facturapi
     const items = Array.isArray(invoice.line_items)
       ? (invoice.line_items as Array<{ description?: string; quantity?: number; unit_price?: number; }>).map((li) => ({
           product: {
@@ -97,7 +98,7 @@ Deno.serve(async (req) => {
       : [];
 
     const payload: Record<string, unknown> = {
-      type: "I", // Ingreso
+      type: "I",
       customer: {
         legal_name: invoice.receptor_razon_social || invoice.customer_name || "Público General",
         tax_id: invoice.receptor_rfc || "XAXX010101000",
@@ -133,7 +134,6 @@ Deno.serve(async (req) => {
     const facturApiId = facturApiInvoice.id;
     const cfdiUuid = facturApiInvoice.uuid;
 
-    // Download XML
     let cfdiXml: string | null = null;
     try {
       const xmlRes = await fetch(`${FACTURAPI_BASE}/invoices/${facturApiId}/xml`, {
@@ -143,10 +143,9 @@ Deno.serve(async (req) => {
         cfdiXml = await xmlRes.text();
       }
     } catch (_xmlErr) {
-      // XML download is optional; continue without it
+      // XML download is optional
     }
 
-    // Update invoice in DB
     const { error: updateErr } = await supabase
       .from("invoices")
       .update({

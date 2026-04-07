@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.13.0",
+    date: "2026-04-07",
+    type: "minor",
+    title: "API Keys de Facturapi configurables por empresa",
+    description: "Las API keys de Facturapi se almacenan directamente en la configuración de la empresa, permitiendo que cada organización introduzca sus propias credenciales desde la UI.",
+    changes: [
+      "Nuevos campos en Datos Fiscales para capturar API Key Test y API Key Live de Facturapi",
+      "Campos enmascarados con botón mostrar/ocultar e indicador visual de estado",
+      "Edge Functions stamp-cfdi y cancel-cfdi leen keys de la base de datos con fallback a variables de entorno",
+      "El modo test/producción y las keys se guardan junto con los datos fiscales",
+    ],
+  },
+  {
     version: "5.12.1",
     date: "2026-04-07",
     type: "patch",
