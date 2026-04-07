@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.12.1",
+    date: "2026-04-07",
+    type: "patch",
+    title: "Soporte dual de API keys Facturapi (test/live)",
+    description: "Las Edge Functions de timbrado y cancelación seleccionan automáticamente el API key correcto según el modo configurado en Datos Fiscales.",
+    changes: [
+      "Edge Functions stamp-cfdi y cancel-cfdi usan FACTURAPI_TEST_KEY o FACTURAPI_LIVE_KEY según facturapi_mode",
+      "Toggle test/producción se persiste correctamente al guardar datos fiscales",
+      "Texto informativo en sección PAC sobre configuración de API keys",
+    ],
+  },
+  {
     version: "5.12.0",
     date: "2026-04-07",
     type: "minor",

@@ -49,8 +49,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if Facturapi API key is configured
-    const apiKey = Deno.env.get("FACTURAPI_API_KEY");
+    // Select API key based on facturapi_mode
+    const mode = (company as Record<string, unknown>).facturapi_mode as string || "test";
+    const apiKey = mode === "live"
+      ? Deno.env.get("FACTURAPI_LIVE_KEY")
+      : Deno.env.get("FACTURAPI_TEST_KEY");
 
     if (!apiKey) {
       // Fallback: stub mode (original mock behaviour)
