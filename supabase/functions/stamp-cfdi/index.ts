@@ -2,10 +2,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 
+const FACTURAPI_BASE = "https://www.facturapi.io/v2";
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
   const corsHeaders = getCorsHeaders(req);
+  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
     const body = await req.json();
@@ -13,8 +16,7 @@ Deno.serve(async (req) => {
 
     if (!isUUID(invoice_id)) {
       return new Response(JSON.stringify({ error: "invoice_id must be a valid UUID" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: jsonHeaders,
       });
     }
 
@@ -31,8 +33,7 @@ Deno.serve(async (req) => {
 
     if (invErr || !invoice) {
       return new Response(JSON.stringify({ error: "Invoice not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404, headers: jsonHeaders,
       });
     }
 
@@ -44,54 +45,129 @@ Deno.serve(async (req) => {
 
     if (!company) {
       return new Response(JSON.stringify({ error: "Company settings not configured" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: jsonHeaders,
       });
     }
 
-    const mockUuid = crypto.randomUUID();
-    const mockXml = `<?xml version="1.0" encoding="utf-8"?>
+    // Check if Facturapi API key is configured
+    const apiKey = Deno.env.get("FACTURAPI_API_KEY");
+
+    if (!apiKey) {
+      // Fallback: stub mode (original mock behaviour)
+      const mockUuid = crypto.randomUUID();
+      const mockXml = `<?xml version="1.0" encoding="utf-8"?>
 <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0"
   Serie="${invoice.serie || ""}" Folio="${invoice.folio || ""}"
   Fecha="${new Date().toISOString()}"
-  FormaPago="${invoice.forma_pago || "99"}"
-  MetodoPago="${invoice.metodo_pago || "PUE"}"
-  Moneda="${invoice.moneda || "MXN"}"
-  TipoCambio="${invoice.tipo_cambio || 1}"
   SubTotal="${invoice.subtotal}" Total="${invoice.total}">
-  <cfdi:Emisor Rfc="${company.rfc}" Nombre="${company.razon_social}" RegimenFiscal="${company.regimen_fiscal}" />
-  <cfdi:Receptor Rfc="${invoice.receptor_rfc || ""}" Nombre="${invoice.receptor_razon_social || ""}"
-    RegimenFiscalReceptor="${invoice.receptor_regimen_fiscal || ""}"
-    DomicilioFiscalReceptor="${invoice.receptor_domicilio_fiscal_cp || ""}"
-    UsoCFDI="${invoice.uso_cfdi || "G03"}" />
-  <!-- STUB: This is a mock XML. Replace with real PAC-stamped XML -->
   <tfd:TimbreFiscalDigital UUID="${mockUuid}" />
 </cfdi:Comprobante>`;
 
+      await supabase
+        .from("invoices")
+        .update({ cfdi_uuid: mockUuid, cfdi_xml: mockXml, cfdi_status: "stamped" })
+        .eq("id", invoice_id);
+
+      return new Response(
+        JSON.stringify({ success: true, cfdi_uuid: mockUuid, stub: true }),
+        { headers: jsonHeaders }
+      );
+    }
+
+    // --- Real Facturapi timbrado ---
+    const facturApiHeaders = {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    };
+
+    // Build line items for Facturapi
+    const items = Array.isArray(invoice.line_items)
+      ? (invoice.line_items as Array<{ description?: string; quantity?: number; unit_price?: number; }>).map((li) => ({
+          product: {
+            description: li.description || "Servicio de renta",
+            price: li.unit_price || 0,
+            tax_included: false,
+            taxes: [{ type: "IVA", rate: invoice.tax_rate > 0 ? invoice.tax_rate / 100 : 0.16 }],
+          },
+          quantity: li.quantity || 1,
+        }))
+      : [];
+
+    const payload: Record<string, unknown> = {
+      type: "I", // Ingreso
+      customer: {
+        legal_name: invoice.receptor_razon_social || invoice.customer_name || "Público General",
+        tax_id: invoice.receptor_rfc || "XAXX010101000",
+        tax_system: invoice.receptor_regimen_fiscal || "616",
+        address: { zip: invoice.receptor_domicilio_fiscal_cp || "06600" },
+      },
+      items,
+      payment_form: invoice.forma_pago || "99",
+      payment_method: invoice.metodo_pago || "PUE",
+      use: invoice.uso_cfdi || "G03",
+      currency: invoice.moneda || "MXN",
+      exchange: invoice.tipo_cambio || 1,
+      series: invoice.serie || undefined,
+      folio_number: invoice.folio ? Number(invoice.folio) : undefined,
+    };
+
+    const createRes = await fetch(`${FACTURAPI_BASE}/invoices`, {
+      method: "POST",
+      headers: facturApiHeaders,
+      body: JSON.stringify(payload),
+    });
+
+    if (!createRes.ok) {
+      const errBody = await createRes.text();
+      console.error("Facturapi create error:", errBody);
+      return new Response(
+        JSON.stringify({ error: `Facturapi error: ${createRes.status}`, detail: errBody }),
+        { status: 502, headers: jsonHeaders }
+      );
+    }
+
+    const facturApiInvoice = await createRes.json();
+    const facturApiId = facturApiInvoice.id;
+    const cfdiUuid = facturApiInvoice.uuid;
+
+    // Download XML
+    let cfdiXml: string | null = null;
+    try {
+      const xmlRes = await fetch(`${FACTURAPI_BASE}/invoices/${facturApiId}/xml`, {
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      });
+      if (xmlRes.ok) {
+        cfdiXml = await xmlRes.text();
+      }
+    } catch (_xmlErr) {
+      // XML download is optional; continue without it
+    }
+
+    // Update invoice in DB
     const { error: updateErr } = await supabase
       .from("invoices")
       .update({
-        cfdi_uuid: mockUuid,
-        cfdi_xml: mockXml,
+        cfdi_uuid: cfdiUuid,
+        cfdi_xml: cfdiXml,
         cfdi_status: "stamped",
+        facturapi_invoice_id: facturApiId,
       })
       .eq("id", invoice_id);
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: "Failed to stamp invoice" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      console.error("DB update error after stamp:", updateErr);
+      return new Response(JSON.stringify({ error: "Stamped but failed to save to DB" }), {
+        status: 500, headers: jsonHeaders,
       });
     }
 
     return new Response(
-      JSON.stringify({ success: true, cfdi_uuid: mockUuid, stub: true }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, cfdi_uuid: cfdiUuid, facturapi_invoice_id: facturApiId, stub: false }),
+      { headers: jsonHeaders }
     );
   } catch (_err) {
     return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

@@ -79,7 +79,7 @@ export default function InvoiceDetail() {
       const { data, error } = await supabase.functions.invoke("stamp-cfdi", { body: { invoice_id: id } });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(`CFDI timbrado${data.stub ? " (modo prueba)" : ""} — UUID: ${data.cfdi_uuid}`);
+      toast.success(`CFDI timbrado${data.stub ? " (modo prueba)" : " exitosamente"} — UUID: ${data.cfdi_uuid}`);
       refetch();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Error al timbrar");
