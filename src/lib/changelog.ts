@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.12.0",
+    date: "2026-04-07",
+    type: "minor",
+    title: "Integración con Facturapi para timbrado CFDI 4.0",
+    description: "Conexión con el proveedor PAC Facturapi para timbrar y cancelar facturas reales ante el SAT, con fallback a modo stub cuando no hay API key configurado.",
+    changes: [
+      "Edge Function stamp-cfdi conectada a la API REST de Facturapi para timbrado real de CFDI 4.0",
+      "Edge Function cancel-cfdi conectada a Facturapi para cancelación ante el SAT",
+      "Nueva columna facturapi_invoice_id en la tabla de facturas para rastrear el ID de Facturapi",
+      "Nueva sección de configuración PAC en Datos Fiscales con toggle test/producción",
+      "Fallback automático a modo stub si no hay API key configurado",
+    ],
+  },
+  {
     version: "5.11.1",
     date: "2026-04-03",
     type: "patch",

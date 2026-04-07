@@ -11,9 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFormState } from "@/hooks/useFormState";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Save, Upload, Trash2, ImageIcon } from "lucide-react";
+import { Building2, Save, Upload, Trash2, ImageIcon, ShieldCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
-const empty = { rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "", logo_url: "" };
+const empty = { rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "", logo_url: "", facturapi_mode: "test" };
 
 export default function CompanySettingsPage() {
   const { data: settings, isLoading } = useCompanySettings();
@@ -30,6 +31,7 @@ export default function CompanySettingsPage() {
         regimen_fiscal: settings.regimen_fiscal || "",
         lugar_expedicion: settings.lugar_expedicion || "",
         logo_url: settings.logo_url || "",
+        facturapi_mode: (settings as Record<string, unknown>).facturapi_mode as string || "test",
       });
     }
   }, [settings]);
@@ -83,6 +85,7 @@ export default function CompanySettingsPage() {
         regimen_fiscal: form.regimen_fiscal,
         lugar_expedicion: form.lugar_expedicion,
         logo_url: form.logo_url || null,
+        facturapi_mode: form.facturapi_mode || "test",
       },
       { onSuccess: () => toast.success("Datos fiscales guardados") }
     );
@@ -180,6 +183,38 @@ export default function CompanySettingsPage() {
           </CardContent>
         </Card>
       </form>
+
+      {/* PAC Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" /> Configuración PAC (Facturapi)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Modo de operación</p>
+              <p className="text-xs text-muted-foreground">
+                {form.facturapi_mode === "live"
+                  ? "Producción — Las facturas se timbran ante el SAT"
+                  : "Prueba — Las facturas se timbran en sandbox de Facturapi"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Test</span>
+              <Switch
+                checked={form.facturapi_mode === "live"}
+                onCheckedChange={(checked) => set("facturapi_mode", checked ? "live" : "test")}
+              />
+              <span className="text-xs text-muted-foreground">Live</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Configura tu API Key de Facturapi en los ajustes del backend. Si no hay API Key configurado, el sistema opera en modo stub (sin conexión al SAT).
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
