@@ -27,6 +27,7 @@ export function useUpsertCompanySettings() {
       regimen_fiscal: string;
       lugar_expedicion: string;
       logo_url?: string | null;
+      facturapi_mode?: string | null;
     }) => {
       if (settings.id) {
         const { data, error } = await supabase

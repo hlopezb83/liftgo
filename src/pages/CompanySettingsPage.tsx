@@ -86,7 +86,7 @@ export default function CompanySettingsPage() {
         lugar_expedicion: form.lugar_expedicion,
         logo_url: form.logo_url || null,
         facturapi_mode: form.facturapi_mode || "test",
-      } as Record<string, unknown>,
+      },
       { onSuccess: () => toast.success("Datos fiscales guardados") }
     );
   };
