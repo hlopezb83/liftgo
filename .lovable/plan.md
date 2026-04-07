@@ -1,60 +1,59 @@
 
 
-## Integración con Facturapi — Plan de Implementación
+## Agregar campo de API Key de Facturapi en Company Settings
 
-### Resumen
+### Contexto actual
 
-Conectar las Edge Functions existentes (`stamp-cfdi` y `cancel-cfdi`) con la API REST de Facturapi para timbrar y cancelar CFDI 4.0 reales ante el SAT. También agregar configuración del API key en Company Settings y guardar el ID de Facturapi en la tabla `invoices`.
+- La sección PAC ya existe en `CompanySettingsPage.tsx` con el toggle test/live, pero el toggle **no se persiste** al guardar (no está incluido en el `handleSubmit`).
+- El API key actualmente se espera como secret del backend (`FACTURAPI_API_KEY`), pero no existe aún.
+- La edge function `stamp-cfdi` ya lee `Deno.env.get("FACTURAPI_API_KEY")`.
 
----
+### Enfoque
 
-### Prerrequisitos
-
-El usuario debe crear una cuenta en [facturapi.io](https://www.facturapi.io) y obtener su API key (test o live). Se almacenará como secret en el backend.
-
----
+El API key de Facturapi es un secreto sensible. Se necesitan **dos** API keys (test y live). Se guardarán como secrets del backend, no en la base de datos. El toggle test/live ya existe en el form pero necesita persistirse correctamente.
 
 ### Cambios
 
-**1. Secret: `FACTURAPI_API_KEY`**
-- Solicitar al usuario que ingrese su API key de Facturapi mediante la herramienta `add_secret`
-- Se usará en ambas Edge Functions
+**1. Agregar dos secrets: `FACTURAPI_TEST_KEY` y `FACTURAPI_LIVE_KEY`**
+- Solicitar al usuario ambas keys mediante `add_secret`
+- La edge function seleccionará cuál usar según `facturapi_mode` de `company_settings`
 
-**2. Migración de base de datos**
-- Agregar columna `facturapi_invoice_id` (text, nullable) a la tabla `invoices` para almacenar el ID del objeto factura en Facturapi
-- Agregar columna `facturapi_mode` (text, nullable, default `'test'`) a `company_settings` para distinguir modo test/live
+**2. `src/pages/CompanySettingsPage.tsx`**
+- Agregar campos de texto (enmascarados) para capturar las API keys de test y live
+- Agregar un botón "Guardar API Keys" que llame a una nueva edge function para almacenar los secrets
+- Corregir el `handleSubmit` para que el toggle test/live se persista junto con los datos fiscales
+- Mostrar indicador visual de si cada key está configurada (checkmark verde o advertencia)
 
-**3. `supabase/functions/stamp-cfdi/index.ts`** — Reemplazar mock con llamada real:
-- Construir payload de Facturapi con datos del emisor (`company_settings`) y receptor (campos `receptor_*` de la factura)
-- `POST https://www.facturapi.io/v2/invoices` con el API key en header `Authorization: Bearer sk_...`
-- Guardar respuesta: `cfdi_uuid` (UUID fiscal), `cfdi_xml` (descargar XML), `facturapi_invoice_id`
-- Actualizar `cfdi_status = 'stamped'`
-- Mantener fallback stub si `FACTURAPI_API_KEY` no está configurado
+**3. Nueva edge function `supabase/functions/save-facturapi-keys/index.ts`**
+- Recibe `{ test_key, live_key }` del frontend
+- Valida que las keys tengan el formato correcto (`sk_test_*` / `sk_live_*`)
+- No es posible guardar secrets desde edge functions directamente — cambio de enfoque
 
-**4. `supabase/functions/cancel-cfdi/index.ts`** — Reemplazar mock con llamada real:
-- `DELETE https://www.facturapi.io/v2/invoices/{facturapi_invoice_id}` con motivo de cancelación
-- Actualizar `cfdi_status = 'cancelled'`
-- Mantener fallback stub si no hay API key
+### Enfoque revisado
 
-**5. `src/pages/CompanySettingsPage.tsx`** — Agregar sección de configuración PAC:
-- Toggle para modo test/producción (`facturapi_mode`)
-- Indicador visual del estado de conexión (si el secret existe)
+Dado que los secrets solo pueden configurarse desde las herramientas de Lovable (no programáticamente desde edge functions), el enfoque será:
 
-**6. `src/pages/InvoiceDetail.tsx`** — Ajuste menor:
-- Eliminar el sufijo "(modo prueba)" cuando `stub` sea `false` en la respuesta
+**1. Persistir el toggle test/live correctamente**
+- Corregir `handleSubmit` para incluir `facturapi_mode` al guardar
 
-**7. `src/lib/changelog.ts`** — Nueva entrada v5.12.0 (minor)
+**2. Solicitar ambas API keys como secrets del backend**
+- `FACTURAPI_TEST_KEY` — key de sandbox
+- `FACTURAPI_LIVE_KEY` — key de producción
+- Usar `add_secret` para que el usuario las ingrese
+
+**3. Actualizar `stamp-cfdi` y `cancel-cfdi`**
+- Leer `facturapi_mode` de `company_settings`
+- Usar `FACTURAPI_TEST_KEY` o `FACTURAPI_LIVE_KEY` según el modo
+
+**4. Actualizar la UI de la sección PAC**
+- Mostrar texto informativo sobre dónde se configuran las keys
+- El toggle persiste el modo al guardar los datos fiscales
+
+**5. `src/lib/changelog.ts`** — Nueva entrada v5.12.1
 
 ### Archivos modificados
-- `supabase/functions/stamp-cfdi/index.ts`
-- `supabase/functions/cancel-cfdi/index.ts`
-- `src/pages/CompanySettingsPage.tsx`
-- `src/pages/InvoiceDetail.tsx`
-- `src/lib/changelog.ts`
-- Migración SQL (nueva columna `facturapi_invoice_id` en `invoices`, `facturapi_mode` en `company_settings`)
-
-### Notas técnicas
-- Facturapi se llama vía `fetch()` desde Deno — no requiere SDK, solo REST con `Authorization: Bearer`
-- El XML timbrado se descarga con `GET /v2/invoices/{id}/xml` después de crear la factura
-- Si el secret no existe, las funciones siguen operando en modo stub (comportamiento actual)
+- `src/pages/CompanySettingsPage.tsx` — Incluir `facturapi_mode` en submit, mejorar UI del card PAC
+- `supabase/functions/stamp-cfdi/index.ts` — Leer modo y seleccionar key correcta
+- `supabase/functions/cancel-cfdi/index.ts` — Leer modo y seleccionar key correcta
+- `src/lib/changelog.ts` — Entrada v5.12.1
 
