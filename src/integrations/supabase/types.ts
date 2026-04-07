@@ -235,6 +235,7 @@ export type Database = {
       company_settings: {
         Row: {
           created_at: string
+          facturapi_mode: string | null
           id: string
           logo_url: string | null
           lugar_expedicion: string
@@ -245,6 +246,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          facturapi_mode?: string | null
           id?: string
           logo_url?: string | null
           lugar_expedicion: string
@@ -255,6 +257,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          facturapi_mode?: string | null
           id?: string
           logo_url?: string | null
           lugar_expedicion?: string
@@ -858,6 +861,7 @@ export type Database = {
           customer_id: string | null
           customer_name: string | null
           due_date: string | null
+          facturapi_invoice_id: string | null
           folio: string | null
           forma_pago: string | null
           id: string
@@ -894,6 +898,7 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           due_date?: string | null
+          facturapi_invoice_id?: string | null
           folio?: string | null
           forma_pago?: string | null
           id?: string
@@ -930,6 +935,7 @@ export type Database = {
           customer_id?: string | null
           customer_name?: string | null
           due_date?: string | null
+          facturapi_invoice_id?: string | null
           folio?: string | null
           forma_pago?: string | null
           id?: string
