@@ -51,7 +51,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get("FACTURAPI_API_KEY");
+    // Read facturapi_mode to select the right key
+    const { data: company } = await supabase
+      .from("company_settings")
+      .select("facturapi_mode")
+      .limit(1)
+      .maybeSingle();
+
+    const mode = (company as Record<string, unknown>)?.facturapi_mode as string || "test";
+    const apiKey = mode === "live"
+      ? Deno.env.get("FACTURAPI_LIVE_KEY")
+      : Deno.env.get("FACTURAPI_TEST_KEY");
     const facturApiId = invoice.facturapi_invoice_id;
 
     // If we have a real Facturapi ID and API key, cancel via API

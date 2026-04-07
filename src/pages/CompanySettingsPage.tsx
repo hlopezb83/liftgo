@@ -210,9 +210,15 @@ export default function CompanySettingsPage() {
               <span className="text-xs text-muted-foreground">Live</span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Configura tu API Key de Facturapi en los ajustes del backend. Si no hay API Key configurado, el sistema opera en modo stub (sin conexión al SAT).
-          </p>
+          <div className="rounded-md bg-muted/50 p-3 space-y-1">
+            <p className="text-xs font-medium">API Keys</p>
+            <p className="text-xs text-muted-foreground">
+              Se requieren dos secrets en el backend: <code className="bg-muted px-1 rounded text-[11px]">FACTURAPI_TEST_KEY</code> (sandbox) y <code className="bg-muted px-1 rounded text-[11px]">FACTURAPI_LIVE_KEY</code> (producción). Si no están configurados, el sistema opera en modo stub (sin conexión al SAT).
+            </p>
+            <p className="text-xs text-muted-foreground">
+              El modo seleccionado arriba determina cuál key se utiliza al timbrar o cancelar facturas.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
