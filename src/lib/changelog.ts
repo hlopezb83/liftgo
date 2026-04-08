@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.13.1",
+    date: "2026-04-08",
+    type: "patch",
+    title: "Seguridad de contraseñas mejorada",
+    description: "Las contraseñas temporales se generan con crypto.getRandomValues() y ya no se devuelven al frontend. El sistema confía en el correo electrónico para entregar credenciales de acceso.",
+    changes: [
+      "Generación de contraseñas con Web Crypto API (crypto.getRandomValues) en invite-user y reset-user-password",
+      "Eliminada la contraseña en texto plano del JSON de respuesta de ambas Edge Functions",
+      "Simplificado el diálogo de credenciales: muestra confirmación de envío por correo en vez de contraseña",
+      "Eliminado el campo de contraseña manual del formulario de invitación",
+    ],
+  },
+  {
     version: "5.13.0",
     date: "2026-04-07",
     type: "minor",

@@ -10,14 +10,13 @@ import { useInviteUser } from "@/hooks/useUserManagement";
 import type { AppRole } from "@/hooks/useUserRole";
 
 interface InviteUserDialogProps {
-  onCreated: (credentials: { email: string; password: string }) => void;
+  onCreated: () => void;
 }
 
 export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<string>("dispatcher");
   const inviteUser = useInviteUser();
 
@@ -28,14 +27,13 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
   );
 
   const handleInvite = async () => {
-    if (!fullName.trim() || !email.trim() || password.length < 6) return;
-    const result = await inviteUser.mutateAsync({ email: email.trim(), full_name: fullName.trim(), role, password });
+    if (!fullName.trim() || !email.trim()) return;
+    await inviteUser.mutateAsync({ email: email.trim(), full_name: fullName.trim(), role });
     setOpen(false);
     setFullName("");
     setEmail("");
-    setPassword("");
     setRole("dispatcher");
-    onCreated({ email: result.email, password: result.password });
+    onCreated();
   };
 
   return (
@@ -46,7 +44,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Crear Nuevo Usuario</DialogTitle>
-          <DialogDescription>Crea una nueva cuenta de personal. Podrá iniciar sesión de inmediato.</DialogDescription>
+          <DialogDescription>Crea una nueva cuenta de personal. El usuario recibirá instrucciones de acceso por correo electrónico.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
@@ -56,13 +54,6 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
           <div className="space-y-2">
             <Label htmlFor="inv-email">Correo Electrónico</Label>
             <Input id="inv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="juan@empresa.com" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="inv-password">Contraseña</Label>
-            <Input id="inv-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
-            {password.length > 0 && password.length < 6 && (
-              <p className="text-sm text-destructive">La contraseña debe tener al menos 6 caracteres</p>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-role">Rol</Label>
@@ -80,7 +71,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim() || password.length < 6}>
+          <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
             {inviteUser.isPending ? "Creando…" : "Crear Usuario"}
           </Button>
         </DialogFooter>

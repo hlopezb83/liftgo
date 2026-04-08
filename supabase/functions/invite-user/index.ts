@@ -2,6 +2,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
 
+function generateSecurePassword(length = 20): string {
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
+  const values = new Uint8Array(length);
+  crypto.getRandomValues(values);
+  return Array.from(values, (v) => charset[v % charset.length]).join("");
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -20,10 +27,10 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    const token = authHeader.replace("Bearer ", "");
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+    const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -75,7 +82,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const finalPassword = password || (crypto.randomUUID() + "Aa1!");
+    const finalPassword = password || generateSecurePassword();
     const { data: newUser, error: createErr } =
       await adminClient.auth.admin.createUser({
         email,
@@ -106,7 +113,7 @@ Deno.serve(async (req) => {
       .eq("user_id", userId);
 
     return new Response(
-      JSON.stringify({ success: true, user_id: userId, email, password: finalPassword }),
+      JSON.stringify({ success: true, user_id: userId, email }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

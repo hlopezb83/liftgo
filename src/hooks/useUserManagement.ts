@@ -79,7 +79,7 @@ export function useInviteUser() {
       const { data, error } = await supabase.functions.invoke("invite-user", { body: payload });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      return data;
+      return data as { success: boolean; user_id: string; email: string };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
@@ -112,7 +112,12 @@ export function useResetPassword() {
       const { data, error } = await supabase.functions.invoke("reset-user-password", { body: { user_id: userId } });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      return data as { email: string; password: string };
+      return data as { email: string };
+    },
+    onSuccess: (data) => {
+      toast.success("Contraseña restablecida", {
+        description: `Se enviarán instrucciones de acceso a ${data.email}`,
+      });
     },
     onError: (err: Error) => toast.error("Error al resetear contraseña", { description: err.message }),
   });
