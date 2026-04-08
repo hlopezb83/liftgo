@@ -43,7 +43,7 @@ export default function UserManagementPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [editTarget, setEditTarget] = useState<UserRow | null>(null);
-  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [createdEmail, setCreatedEmail] = useState<string | null>(null);
   const [roleChangeTarget, setRoleChangeTarget] = useState<{ user: UserRow; newRole: AppRole } | null>(null);
 
   const [search, setSearch] = useState("");
@@ -63,8 +63,7 @@ export default function UserManagementPage() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleResetPassword = async (userId: string) => {
-    const result = await resetPassword.mutateAsync(userId);
-    setCreatedCredentials({ email: result.email, password: result.password });
+    await resetPassword.mutateAsync(userId);
   };
 
   const handleToggleStatus = (userId: string, currentActive: boolean) => {
@@ -86,7 +85,7 @@ export default function UserManagementPage() {
               <Button variant="outline" onClick={() => navigate("/users/permissions")}>
                 <ShieldCheck className="mr-2 h-4 w-4" />Ver permisos
               </Button>
-              <InviteUserDialog onCreated={setCreatedCredentials} />
+              <InviteUserDialog onCreated={() => {}} />
             </div>
           }
         />
@@ -238,7 +237,7 @@ export default function UserManagementPage() {
       <DeleteUserDialog user={deleteTarget} onClose={() => setDeleteTarget(null)} />
       <RoleChangeDialog target={roleChangeTarget} onClose={() => setRoleChangeTarget(null)} />
       <EditNameDialog user={editTarget} onClose={() => setEditTarget(null)} />
-      <CredentialsDialog credentials={createdCredentials} onClose={() => setCreatedCredentials(null)} />
+      <CredentialsDialog email={createdEmail} onClose={() => setCreatedEmail(null)} />
     </PageTransition>
   );
 }

@@ -2,6 +2,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 
+function generateSecurePassword(length = 20): string {
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
+  const values = new Uint8Array(length);
+  crypto.getRandomValues(values);
+  return Array.from(values, (v) => charset[v % charset.length]).join("");
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -57,7 +64,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get user email
     const { data: userData, error: getUserErr } = await adminClient.auth.admin.getUserById(user_id);
     if (getUserErr || !userData?.user) {
       return new Response(
@@ -66,7 +72,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const newPassword = crypto.randomUUID().slice(0, 12) + "Aa1!";
+    const newPassword = generateSecurePassword();
 
     const { error: updateErr } = await adminClient.auth.admin.updateUserById(user_id, {
       password: newPassword,
@@ -80,7 +86,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, email: userData.user.email, password: newPassword }),
+      JSON.stringify({ success: true, email: userData.user.email }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (_err) {
