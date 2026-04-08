@@ -9,6 +9,19 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.13.2",
+    date: "2026-04-08",
+    type: "patch",
+    title: "Refuerzo de seguridad RLS",
+    description: "Corregidas políticas de acceso permisivas en booking_extensions y collection_notes, agregado permiso de actualización para dispatchers en forklifts, y aseguradas 6 funciones internas contra hijacking de search_path.",
+    changes: [
+      "booking_extensions: reemplazada política ALL true/true con políticas granulares por rol",
+      "collection_notes: reemplazada política ALL true/true con acceso restringido por rol",
+      "forklifts: dispatchers ahora pueden actualizar estado de montacargas",
+      "6 funciones internas aseguradas con SET search_path = public",
+    ],
+  },
+  {
     version: "5.13.1",
     date: "2026-04-08",
     type: "patch",
