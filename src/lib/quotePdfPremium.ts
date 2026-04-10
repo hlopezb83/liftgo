@@ -25,6 +25,12 @@ const GRAY_BORDER = GRAY_200;
 const GRAY_TEXT = GRAY_500;
 const DARK_TEXT = GRAY_900;
 
+// ─── Typography — 4 sizes only (quotes) ──────────────
+const FONT_XL = 14;   // Total final, número de cotización
+const FONT_LG = 10;   // Nombre empresa/cliente, título documento
+const FONT_MD = 8;    // Cuerpo: datos, filas tabla, subtotales
+const FONT_SM = 6.5;  // Etiquetas, bullets, footer, términos
+
 const MARGIN = 20;
 
 function fmtDate(d: string | null): string {
@@ -69,27 +75,27 @@ export function drawPremiumHeader(
   }
 
   const companyName = company?.razon_social || "LIFT GO MONTACARGAS";
-  doc.setFontSize(15);
+  doc.setFontSize(FONT_LG);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
   const maxNameW = pw / 2 - MARGIN - 4;
   const nameLines = doc.splitTextToSize(companyName, maxNameW);
   doc.text(nameLines, textStartX, y + 4);
 
-  // Right: Document title in gray
-  doc.setFontSize(12);
+  // Right: Document title
+  doc.setFontSize(FONT_LG);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
   doc.text(title, pw - MARGIN, y, { align: "right" });
 
-  // Document number — bold, dark
-  doc.setFontSize(14);
+  // Document number — bold, dark, larger
+  doc.setFontSize(FONT_XL);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
   doc.text(documentNumber, pw - MARGIN, y + 8, { align: "right" });
 
   // Date + validity
-  doc.setFontSize(8);
+  doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
   doc.text(`Fecha: ${format(nowMty(), "dd/MM/yyyy")}`, pw - MARGIN, y + 14, { align: "right" });
@@ -133,19 +139,22 @@ export function drawInfoCardsAt(
   let y = startY;
 
   // ── Left: Emisor data ──
-  doc.setFontSize(7);
+  doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
   doc.text("EMISOR", MARGIN, y + 4);
 
-  doc.setFontSize(9);
+  doc.setFontSize(FONT_MD);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
   let ey = y + 10;
   if (company) {
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
     doc.text(company.razon_social, MARGIN, ey);
     ey += 5;
-    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
     doc.text(`RFC: ${company.rfc}`, MARGIN, ey);
     ey += 4;
     doc.text(`C.P. ${company.lugar_expedicion}`, MARGIN, ey);
@@ -155,17 +164,17 @@ export function drawInfoCardsAt(
 
   // ── Right: Client data ──
   const midX = pw / 2 + 4;
-  doc.setFontSize(7);
+  doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
   doc.text("CLIENTE", midX, y + 4);
 
-  doc.setFontSize(10);
+  doc.setFontSize(FONT_LG);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
   doc.text(customerName || "—", midX, y + 11);
 
-  doc.setFontSize(8);
+  doc.setFontSize(FONT_MD);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
   let cy = y + 17;
@@ -217,7 +226,7 @@ export function drawPremiumTable(
   doc.rect(MARGIN, y, tableWidth, headerH, "F");
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.5);
+  doc.setFontSize(FONT_SM);
   doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
   const headerY = y + 6;
   doc.text("DESCRIPCIÓN", colDesc, headerY);
@@ -268,7 +277,7 @@ export function drawPremiumTable(
     // Main description — bold
     const rowTextY = y + 5;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(FONT_MD);
     doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
 
     // Truncate main desc to fit column
@@ -279,7 +288,7 @@ export function drawPremiumTable(
     // Spec bullets
     if (specs.length > 0) {
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
+      doc.setFontSize(FONT_SM);
       doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
       let specY = rowTextY + 5;
       for (const spec of specs) {
@@ -293,7 +302,7 @@ export function drawPremiumTable(
 
     // Quantity
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(FONT_MD);
     doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
     doc.text(String(item.quantity), colQty, rowTextY, { align: "center" });
 
@@ -327,7 +336,7 @@ export function drawPremiumTable(
   return y + 4;
 }
 
-// ─── Bottom Section: 2-col (Terms left, Totals right) ─
+// ─── Bottom Section: Totals right, then Terms full-width ─
 export function drawBottomSection(
   doc: jsPDF,
   startY: number,
@@ -345,12 +354,43 @@ export function drawBottomSection(
   const currencyLabel = currency || "MXN";
   let y = startY;
 
-  const leftColW = pw / 2 - MARGIN - 4;
-  const rightColStart = pw / 2 + 4;
+  const rightEdge = pw - MARGIN;
+  const labelX = rightEdge - 52;
 
-  // ── LEFT: Terms, Conditions & Notes box ──
+  // ── Totals (right-aligned) ──
+  doc.setFontSize(FONT_MD);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
+  doc.text("Subtotal:", labelX, y, { align: "right" });
+  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+  doc.text(fmtC(subtotal), rightEdge, y, { align: "right" });
+
+  y += 7;
+  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
+  doc.text(`IVA (${taxRate}%):`, labelX, y, { align: "right" });
+  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+  doc.text(fmtC(taxAmount), rightEdge, y, { align: "right" });
+
+  // Separator
+  y += 5;
+  doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
+  doc.setLineWidth(0.5);
+  doc.line(labelX - 10, y, rightEdge, y);
+
+  // Total
+  y += 8;
+  doc.setFontSize(FONT_LG);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+  doc.text("TOTAL:", labelX, y, { align: "right" });
+  doc.setFontSize(FONT_XL);
+  doc.text(`${fmtC(total)} ${currencyLabel}`, rightEdge, y, { align: "right" });
+
+  y += 12;
+
+  // ── Terms & Notes — full-width box ──
   const termsBoxX = MARGIN;
-  const termsBoxW = leftColW;
+  const termsBoxW = pw - MARGIN * 2;
 
   // Build terms content
   const terms: string[] = [
@@ -365,19 +405,26 @@ export function drawBottomSection(
   }
 
   // Calculate box height
-  doc.setFontSize(7);
-  const termLineH = 4;
-  let termsContentH = 10 + terms.length * termLineH; // header + terms
-  
+  doc.setFontSize(FONT_SM);
+  const termLineH = 3.5;
+  let termsContentH = 10 + terms.length * termLineH;
+
   // Notes lines
   let noteLines: string[] = [];
   if (notes) {
-    doc.setFontSize(7);
     noteLines = doc.splitTextToSize(notes, termsBoxW - 12);
     termsContentH += 6 + noteLines.length * 3.5;
   }
 
-  const boxH = Math.max(termsContentH + 8, 50);
+  const boxH = Math.max(termsContentH + 8, 30);
+
+  // Check page break
+  const ph = doc.internal.pageSize.getHeight();
+  if (y + boxH > ph - 20) {
+    doc.addPage();
+    drawAccentBar(doc);
+    y = 16;
+  }
 
   // Draw bg box
   doc.setFillColor(GRAY_50.r, GRAY_50.g, GRAY_50.b);
@@ -385,14 +432,13 @@ export function drawBottomSection(
 
   // Title
   let ty = y + 8;
-  doc.setFontSize(7);
+  doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
   doc.text("TÉRMINOS, CONDICIONES Y NOTAS", termsBoxX + 6, ty);
   ty += 6;
 
   // Terms bullets
-  doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
   for (const t of terms) {
@@ -414,40 +460,6 @@ export function drawBottomSection(
       ty += 3.5;
     }
   }
-
-  // ── RIGHT: Totals ──
-  let ry = y + 8;
-  const rightEdge = pw - MARGIN;
-  const labelX = rightEdge - 52;
-
-  // Subtotal
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text("Subtotal:", labelX, ry, { align: "right" });
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(fmtC(subtotal), rightEdge, ry, { align: "right" });
-
-  ry += 7;
-  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text(`IVA (${taxRate}%):`, labelX, ry, { align: "right" });
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(fmtC(taxAmount), rightEdge, ry, { align: "right" });
-
-  // Separator
-  ry += 5;
-  doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
-  doc.setLineWidth(0.5);
-  doc.line(rightColStart, ry, rightEdge, ry);
-
-  // Total
-  ry += 8;
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text("TOTAL:", labelX, ry, { align: "right" });
-  doc.setFontSize(14);
-  doc.text(`${fmtC(total)} ${currencyLabel}`, rightEdge, ry, { align: "right" });
 
   return y + boxH + 4;
 }
@@ -534,8 +546,6 @@ export function drawTermsSection(
   isRental: boolean = false,
   currency?: string,
 ): number {
-  // This is now handled by drawBottomSection for quotes.
-  // Kept for any standalone usage.
   const pw = doc.internal.pageSize.getWidth();
   let y = startY + 2;
 
@@ -586,7 +596,7 @@ export function drawFooter(
   doc.setLineWidth(0.3);
   doc.line(MARGIN, y, pw - MARGIN, y);
 
-  doc.setFontSize(7);
+  doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_400.r, GRAY_400.g, GRAY_400.b);
 

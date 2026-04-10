@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.14.1",
+    date: "2026-04-10",
+    type: "patch",
+    title: "PDF cotizaciones — Términos a ancho completo y tipografía estandarizada",
+    description: "La caja de términos y condiciones ahora ocupa todo el ancho debajo de los totales. Se estandarizaron los tamaños de fuente a solo 4 constantes (XL, LG, MD, SM) para mayor consistencia visual.",
+    changes: [
+      "Términos y condiciones: caja a ancho completo debajo de totales en vez de columna izquierda",
+      "Tipografía: 4 tamaños estandarizados (14, 10, 8, 6.5) reemplazando 9 tamaños anteriores",
+      "Funciones de backward-compat para facturas sin cambios",
+    ],
+  },
+  {
     version: "5.14.0",
     date: "2026-04-10",
     type: "minor",
