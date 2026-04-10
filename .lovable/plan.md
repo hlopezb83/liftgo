@@ -1,52 +1,31 @@
 
 
-## Rediseño del PDF de Cotizaciones — Layout industrial y simétrico
+## Ajustes al PDF de Cotizaciones — Términos a ancho completo + 4 tamaños de texto
 
-### Problema actual
-El PDF actual tiene un diseño funcional pero carece de la estructura simétrica y el aspecto industrial-minimalista que se busca. Las notas aparecen como un bloque grande debajo de la tabla en vez de estar al lado de los totales, y la descripción de los equipos no muestra las especificaciones como viñetas dentro de la fila de la tabla.
+### Cambios
 
-### Cambios en `src/lib/quotePdfPremium.ts`
+**1. Términos y condiciones a ancho completo**
+- Mover la caja de "TÉRMINOS, CONDICIONES Y NOTAS" debajo de los totales, ocupando todo el ancho (`pw - MARGIN * 2`)
+- Layout del `drawBottomSection`: primero totales (alineados a la derecha, sin caja), luego debajo la caja de términos a todo el ancho
 
-**1. Encabezado rediseñado** — `drawPremiumHeader`
-- Izquierda: Nombre de empresa en texto grande bold sans-serif (simulando logotipo), con logo pequeño si existe
-- Derecha: "COTIZACIÓN DE VENTA" en gris oscuro, número de cotización resaltado, fecha y vigencia
-- Separador `<hr>` elegante debajo
+**2. Estandarizar a 4 tamaños de fuente**
+Actualmente se usan 9 tamaños distintos (7, 7.5, 8, 9, 10, 11, 12, 14, 15). Se reducen a 4:
 
-**2. Sección de datos en 2 columnas** — `drawInfoCardsAt`
-- Izquierda: Datos del emisor (razón social, RFC, C.P., dirección de la empresa)
-- Derecha: Datos del cliente con etiqueta "CLIENTE", nombre en negrita, RFC, C.P.
-- Sin fondo gris en las cards — diseño más limpio con solo tipografía
+| Constante | Tamaño | Uso |
+|-----------|--------|-----|
+| `FONT_XL` | 14 | Total final, número de cotización |
+| `FONT_LG` | 10 | Nombre empresa, nombre cliente, título documento |
+| `FONT_MD` | 8 | Cuerpo: datos emisor/cliente, filas de tabla, subtotales |
+| `FONT_SM` | 6.5 | Etiquetas (EMISOR, CLIENTE), bullets specs, footer, términos |
 
-**3. Tabla con descripciones multi-línea** — `drawPremiumTable`
-- Las notas de la cotización se parsean buscando especificaciones del equipo (viñetas) y se integran como sub-texto debajo de la descripción en cada fila
-- Texto de specs en font más pequeño y color gris
-- Sin líneas verticales, solo separadores horizontales sutiles
-- Encabezado con fondo `bg-gray-100` claro en vez de navy oscuro
+**3. Archivo `src/lib/quotePdfPremium.ts`**
+- Definir 4 constantes de tamaño al inicio del archivo
+- Actualizar todas las funciones (`drawPremiumHeader`, `drawInfoCardsAt`, `drawPremiumTable`, `drawBottomSection`, `drawFooter`) para usar solo esas 4 constantes
+- Las funciones de backward-compat (`drawPremiumTotals`, `drawPremiumNotes`, `drawTermsSection`) se mantienen con sus tamaños actuales para no afectar facturas
 
-**4. Sección inferior en 2 columnas** — `drawTermsSection` + `drawPremiumTotals`
-- Izquierda: Bloque de "TÉRMINOS, CONDICIONES Y NOTAS" con fondo gris claro y border radius, incluyendo las notas del usuario
-- Derecha: Subtotal, IVA y TOTAL alineados a la derecha, total en texto grande bold
-- Eliminar el box navy del total — usar solo tipografía grande con "$692,932.96 MXN"
-
-**5. Pie de página simplificado** — `drawFooter`
-- Texto centrado: "Documento generado electrónicamente - LIFT GO"
-
-**6. Nuevo flujo de composición** — `QuotePDFButton.tsx`
-- Pasar las notas a la sección de términos (columna izquierda) en vez de bloque separado
-- Llamar una nueva función `drawBottomSection` que dibuje términos+notas a la izquierda y totales a la derecha en paralelo
-
-### Paleta de colores
-- Header de tabla: `rgb(243,244,246)` (gray-100) con texto oscuro
-- Textos secundarios: `rgb(107,114,128)` (gray-500)
-- Texto principal: `rgb(17,24,39)` (gray-900)
-- Fondo términos: `rgb(249,250,251)` (gray-50)
-- Sin dorado, sin navy — minimalismo industrial
+**4. `src/lib/changelog.ts`** — Entrada v5.14.1
 
 ### Archivos modificados
-- `src/lib/quotePdfPremium.ts` — Rediseño completo de todas las funciones de dibujo
-- `src/components/quotes/QuotePDFButton.tsx` — Ajustar flujo de composición para el nuevo layout de 2 columnas inferior
-- `src/lib/changelog.ts` — Entrada v5.14.0
-
-### Nota
-Los cambios en `quotePdfPremium.ts` se mantienen retrocompatibles con `InvoicePDFButton.tsx` que también usa algunas de estas funciones. Las funciones que cambian de firma recibirán parámetros opcionales para no romper el PDF de facturas.
+- `src/lib/quotePdfPremium.ts`
+- `src/lib/changelog.ts`
 
