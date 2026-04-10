@@ -87,8 +87,8 @@ export function drawPremiumHeader(
 
   // Left: Company logo — preserve original aspect ratio
   if (logoBase64) {
-    const maxH = 22;
-    const maxW = 32;
+    const maxH = 24;
+    const maxW = 40;
     const { w: natW, h: natH } = getPngDimensions(logoBase64);
     const ratio = natW / natH;
     let logoW: number;
@@ -100,7 +100,8 @@ export function drawPremiumHeader(
       logoH = maxH;
       logoW = maxH * ratio;
     }
-    doc.addImage(logoBase64, "PNG", MARGIN, y - 2, logoW, logoH);
+    const logoY = y - 2 + (24 - logoH) / 2;
+    doc.addImage(logoBase64, "PNG", MARGIN, logoY, logoW, logoH);
   }
 
   // Right: Document title
