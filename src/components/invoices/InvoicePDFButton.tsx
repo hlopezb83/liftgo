@@ -6,13 +6,10 @@ import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdfHelpers";
 
-// ─── Brand Colors ─────────────────────────────────────
-const NAVY = { r: 15, g: 23, b: 42 };
-const GRAY_BG = { r: 248, g: 250, b: 252 };
-const GRAY_TEXT = { r: 100, g: 116, b: 139 };
-const GRAY_BORDER = { r: 226, g: 232, b: 240 };
-const DARK_TEXT = { r: 15, g: 23, b: 42 };
 const GREEN = { r: 22, g: 163, b: 74 };
+const GRAY_500 = { r: 107, g: 114, b: 128 };
+const GRAY_200 = { r: 229, g: 231, b: 235 };
+const GRAY_900 = { r: 17, g: 24, b: 39 };
 const MARGIN = 20;
 
 function fmtDate(d: string | null): string {
@@ -40,10 +37,27 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
 
       const { company, logoBase64 } = await fetchCompanyDataAndLogo();
 
+      // Fetch customer RFC & C.P.
+      let customerRfc: string | null = null;
+      let customerCp: string | null = null;
+      if (invoice.customer_id) {
+        const { data: cust } = await supabase
+          .from("customers")
+          .select("rfc, domicilio_fiscal_cp")
+          .eq("id", invoice.customer_id)
+          .single();
+        if (cust) {
+          customerRfc = cust.rfc;
+          customerCp = cust.domicilio_fiscal_cp;
+        }
+      }
+      // Fallback to invoice-level RFC if customer not found
+      if (!customerRfc && invoice.receptor_rfc) customerRfc = invoice.receptor_rfc;
+
       const { jsPDF } = await import("jspdf");
       const {
-        drawAccentBar, drawPremiumHeader, drawPremiumTable,
-        drawPremiumTotals, drawPremiumNotes, drawFooter,
+        drawAccentBar, drawPremiumHeader, drawInfoCardsAt,
+        drawPremiumTable, drawBottomSection, drawFooter,
       } = await import("@/lib/quotePdfPremium");
 
       const doc = new jsPDF();
@@ -52,7 +66,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       // 1. Accent bar
       drawAccentBar(doc);
 
-      // 2. Custom invoice header
+      // 2. Header — same as quotes
       const invoiceLabel = invoice.serie && invoice.folio
         ? `${invoice.serie}-${invoice.folio}`
         : invoice.invoice_number;
@@ -68,112 +82,98 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
         doc.setTextColor(255, 255, 255);
         doc.text("TIMBRADO SAT", pw - MARGIN - 35, y - 1, { align: "center" });
         y += 4;
-        
+
         doc.setFontSize(6);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
+        doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
         doc.text(`UUID: ${invoice.cfdi_uuid}`, pw - MARGIN, y, { align: "right" });
-        y += 8;
+        y += 6;
       }
 
-      // 4. Info cards (Receptor + Detalles)
-      const cardWidth = (pw - MARGIN * 2 - 8) / 2;
+      // 4. Info section — EMISOR / CLIENTE (same layout as quotes)
+      y = drawInfoCardsAt(
+        doc, y,
+        invoice.customer_name,
+        null, null, null, // no start/end/validUntil
+        true, // isSale=true to skip período
+        customerRfc, customerCp, company,
+      );
 
-      // ── Receptor Card ──
-      doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-      doc.roundedRect(MARGIN, y, cardWidth, 32, 2, 2, "F");
-
+      // 5. Compact invoice details row
+      const detailY = y;
       doc.setFontSize(7);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
-      doc.text("RECEPTOR", MARGIN + 6, y + 7);
+      doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
 
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-      doc.text(invoice.customer_name || "—", MARGIN + 6, y + 15);
-
-      doc.setFontSize(8);
+      doc.text("Emitida:", MARGIN, detailY);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
-      if (invoice.receptor_rfc) {
-        doc.text(`RFC: ${invoice.receptor_rfc}`, MARGIN + 6, y + 22);
-      }
-      if (invoice.receptor_regimen_fiscal) {
-        doc.text(`Régimen: ${invoice.receptor_regimen_fiscal}`, MARGIN + 6, y + 28);
-      }
+      doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+      doc.text(fmtDate(invoice.issued_at), MARGIN + 16, detailY);
 
-      // ── Details Card ──
-      const cardX = MARGIN + cardWidth + 8;
-      doc.setFillColor(GRAY_BG.r, GRAY_BG.g, GRAY_BG.b);
-      doc.roundedRect(cardX, y, cardWidth, 32, 2, 2, "F");
-
-      doc.setFontSize(7);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
-      doc.text("DETALLES", cardX + 6, y + 7);
-
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
-      doc.text("Emitida:", cardX + 6, y + 14);
+      doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
+      doc.text("Vence:", MARGIN + 42, detailY);
       doc.setFont("helvetica", "normal");
-      doc.text(fmtDate(invoice.issued_at), cardX + 24, y + 14);
+      doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+      doc.text(fmtDate(invoice.due_date), MARGIN + 54, detailY);
 
-      doc.setFont("helvetica", "bold");
-      doc.text("Vence:", cardX + 6, y + 20);
-      doc.setFont("helvetica", "normal");
-      doc.text(fmtDate(invoice.due_date), cardX + 22, y + 20);
-      
       // Status badge
       const statusLabel = invoice.status === "paid" ? "PAGADA" : invoice.status === "cancelled" ? "CANCELADA" : "PENDIENTE";
       const statusColor = invoice.status === "paid" ? GREEN : invoice.status === "cancelled" ? { r: 220, g: 38, b: 38 } : { r: 234, g: 179, b: 8 };
       doc.setFillColor(statusColor.r, statusColor.g, statusColor.b);
-      doc.roundedRect(cardX + 6, y + 24, 30, 6, 1, 1, "F");
-      doc.setFontSize(6);
+      doc.roundedRect(MARGIN + 80, detailY - 3.5, 22, 5, 1, 1, "F");
+      doc.setFontSize(5.5);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(255, 255, 255);
-      doc.text(statusLabel, cardX + 21, y + 28.5, { align: "center" });
+      doc.text(statusLabel, MARGIN + 91, detailY, { align: "center" });
 
       // Payment method info
       if (invoice.forma_pago || invoice.metodo_pago) {
+        const paymentInfo = [invoice.forma_pago, invoice.metodo_pago].filter(Boolean).join(" • ");
         doc.setFontSize(7);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
-        const paymentInfo = [invoice.forma_pago, invoice.metodo_pago].filter(Boolean).join(" • ");
-        doc.text(paymentInfo, cardX + cardWidth - 6, y + 28, { align: "right" });
+        doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
+        doc.text(paymentInfo, pw - MARGIN, detailY, { align: "right" });
       }
 
-      y += 40;
+      y = detailY + 8;
 
-      // 5. Line items table
+      // 6. Line items table
       const lineItems = (invoice.line_items as unknown as PdfLineItem[]) || [];
-      y = drawPremiumTable(doc, lineItems, y);
+      const invoiceCurrency = invoice.moneda || "MXN";
+      y = drawPremiumTable(doc, lineItems, y, invoiceCurrency);
 
-      // 6. Totals
-      y = drawPremiumTotals(doc, y, Number(invoice.subtotal), Number(invoice.tax_rate), Number(invoice.tax_amount), Number(invoice.total));
+      // 7. Bottom section — totals + notes
+      y = drawBottomSection(
+        doc, y,
+        Number(invoice.subtotal), Number(invoice.tax_rate),
+        Number(invoice.tax_amount), Number(invoice.total),
+        invoiceCurrency,
+        invoice.notes ? String(invoice.notes) : null,
+        null, // no validUntil
+        false, // not rental
+      );
 
-      // 7. QR placeholder for CFDI
+      // 8. QR placeholder for CFDI
       if (invoice.cfdi_uuid) {
-        y += 10;
-        doc.setDrawColor(GRAY_BORDER.r, GRAY_BORDER.g, GRAY_BORDER.b);
+        // Check page break
+        const ph = doc.internal.pageSize.getHeight();
+        if (y + 34 > ph - 20) {
+          doc.addPage();
+          drawAccentBar(doc);
+          y = 16;
+        }
+
+        doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
         doc.setLineWidth(0.5);
         doc.roundedRect(MARGIN, y, 28, 28, 2, 2, "S");
         doc.setFontSize(6);
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(GRAY_TEXT.r, GRAY_TEXT.g, GRAY_TEXT.b);
+        doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
         doc.text("QR CFDI", MARGIN + 14, y + 16, { align: "center" });
 
-        // Cadena original placeholder
-        doc.setFontSize(6);
         doc.text("Este documento es una representación impresa de un CFDI", MARGIN + 34, y + 10);
         doc.text("Verificar en: https://verificacfdi.facturaelectronica.sat.gob.mx", MARGIN + 34, y + 16);
-      }
-
-      // 8. Notes
-      if (invoice.notes) {
-        const notesStartY = invoice.cfdi_uuid ? y + 34 : y;
-        y = drawPremiumNotes(doc, String(invoice.notes), notesStartY);
       }
 
       // 9. Footer

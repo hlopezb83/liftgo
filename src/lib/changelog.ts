@@ -9,6 +9,20 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.15.0",
+    date: "2026-04-10",
+    type: "minor",
+    title: "PDF facturas — Homologado al formato de cotizaciones",
+    description: "El PDF de facturas ahora usa el mismo diseño premium que las cotizaciones: encabezado con logo proporcional, sección EMISOR/CLIENTE simétrica, tabla unificada y bloque de totales+notas integrado.",
+    changes: [
+      "Encabezado con logo proporcional y título FACTURA usando drawPremiumHeader",
+      "Sección EMISOR/CLIENTE simétrica reemplaza tarjetas Receptor/Detalles",
+      "Fila compacta de detalles: fecha emisión, vencimiento, status y método de pago",
+      "Totales y notas unificados con drawBottomSection",
+      "Conserva badge TIMBRADO SAT, UUID y QR CFDI para facturas timbradas",
+    ],
+  },
+  {
     version: "5.14.5",
     date: "2026-04-10",
     type: "patch",
