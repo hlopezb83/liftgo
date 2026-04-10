@@ -136,68 +136,56 @@ export function drawInfoCardsAt(
   company?: CompanyData | null,
 ): number {
   const pw = doc.internal.pageSize.getWidth();
-  let y = startY;
+  const col1 = MARGIN;
+  const col2 = pw / 2 + 4;
 
-  // ── Left: Emisor data ──
+  // Row 1: Labels — EMISOR / CLIENTE
+  const r1 = startY + 4;
   doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text("EMISOR", MARGIN, y + 4);
+  doc.text("EMISOR", col1, r1);
+  doc.text("CLIENTE", col2, r1);
 
+  // Row 2: Names — bold, same size
+  const r2 = startY + 10;
   doc.setFontSize(FONT_MD);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
-  let ey = y + 10;
-  if (company) {
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-    doc.text(company.razon_social, MARGIN, ey);
-    ey += 5;
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
-    doc.text(`RFC: ${company.rfc}`, MARGIN, ey);
-    ey += 4;
-    doc.text(`C.P. ${company.lugar_expedicion}`, MARGIN, ey);
-    ey += 4;
-    doc.text(`Régimen: ${company.regimen_fiscal}`, MARGIN, ey);
-  }
-
-  // ── Right: Client data ──
-  const midX = pw / 2 + 4;
-  doc.setFontSize(FONT_SM);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text("CLIENTE", midX, y + 4);
-
-  doc.setFontSize(FONT_LG);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(customerName || "—", midX, y + 11);
+  doc.text(company?.razon_social || "—", col1, r2);
+  doc.text(customerName || "—", col2, r2);
 
+  // Row 3: RFC
+  const r3 = r2 + 5;
   doc.setFontSize(FONT_MD);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
-  let cy = y + 17;
-  if (customerRfc) {
-    doc.text(`RFC: ${customerRfc}`, midX, cy);
-    cy += 4;
-  }
-  if (customerCp) {
-    doc.text(`C.P. ${customerCp}`, midX, cy);
-    cy += 4;
-  }
+  doc.text(company ? `RFC: ${company.rfc}` : "", col1, r3);
+  doc.text(customerRfc ? `RFC: ${customerRfc}` : "", col2, r3);
 
-  // Dates for rental
+  // Row 4: C.P.
+  const r4 = r3 + 4;
+  doc.text(company ? `C.P. ${company.lugar_expedicion}` : "", col1, r4);
+  doc.text(customerCp ? `C.P. ${customerCp}` : "", col2, r4);
+
+  // Row 5: Régimen / Período or Vigencia
+  const r5 = r4 + 4;
+  doc.text(company ? `Régimen: ${company.regimen_fiscal}` : "", col1, r5);
   if (!isSale && startDate && endDate) {
-    doc.text(`Período: ${fmtDate(startDate)} — ${fmtDate(endDate)}`, midX, cy);
-    cy += 4;
-  }
-  if (validUntil) {
-    doc.text(`Vigencia hasta: ${fmtDate(validUntil)}`, midX, cy);
+    doc.text(`Período: ${fmtDate(startDate)} — ${fmtDate(endDate)}`, col2, r5);
+  } else if (validUntil) {
+    doc.text(`Vigencia hasta: ${fmtDate(validUntil)}`, col2, r5);
   }
 
-  const maxY = Math.max(ey, cy);
-  return maxY + 8;
+  // Row 6 (optional): Vigencia if rental already used row 5 for período
+  let lastRow = r5;
+  if (!isSale && startDate && endDate && validUntil) {
+    const r6 = r5 + 4;
+    doc.text(`Vigencia hasta: ${fmtDate(validUntil)}`, col2, r6);
+    lastRow = r6;
+  }
+
+  return lastRow + 8;
 }
 
 // ─── Premium Table ────────────────────────────────────
