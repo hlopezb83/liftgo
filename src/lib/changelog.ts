@@ -9,6 +9,21 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.14.0",
+    date: "2026-04-10",
+    type: "minor",
+    title: "Rediseño PDF de cotizaciones — Layout industrial minimalista",
+    description: "Rediseño completo del PDF de cotizaciones con estructura simétrica de 2 columnas, paleta gris industrial sin colores decorativos, descripciones con viñetas de especificaciones, y sección inferior con términos a la izquierda y totales a la derecha.",
+    changes: [
+      "Encabezado: nombre de empresa como logotipo a la izquierda, título y número a la derecha",
+      "Sección de datos: emisor a la izquierda, cliente a la derecha sin fondos de color",
+      "Tabla: encabezado gris claro, soporte para descripciones multi-línea con viñetas",
+      "Sección inferior en 2 columnas: términos y notas a la izquierda, totales a la derecha",
+      "Pie de página simplificado centrado",
+      "Retrocompatible con PDF de facturas",
+    ],
+  },
+  {
     version: "5.13.2",
     date: "2026-04-08",
     type: "patch",
