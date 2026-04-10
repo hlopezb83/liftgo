@@ -85,12 +85,24 @@ export function drawPremiumHeader(
     title = "COTIZACIÓN";
   }
 
-  // Left: Company name as logotype
-  const logoSize = 16;
+  // Left: Company logo — preserve original aspect ratio
   let textStartX = MARGIN;
   if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", MARGIN, y - 2, logoSize, logoSize);
-    textStartX = MARGIN + logoSize + 4;
+    const maxH = 16;
+    const maxW = 24;
+    const { w: natW, h: natH } = getPngDimensions(logoBase64);
+    const ratio = natW / natH;
+    let logoW: number;
+    let logoH: number;
+    if (ratio >= 1) {
+      logoW = Math.min(maxW, maxH * ratio);
+      logoH = logoW / ratio;
+    } else {
+      logoH = maxH;
+      logoW = maxH * ratio;
+    }
+    doc.addImage(logoBase64, "PNG", MARGIN, y - 2, logoW, logoH);
+    textStartX = MARGIN + logoW + 4;
   }
 
   const companyName = company?.razon_social || "LIFT GO MONTACARGAS";

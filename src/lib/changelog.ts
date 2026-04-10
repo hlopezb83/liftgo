@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.14.3",
+    date: "2026-04-10",
+    type: "patch",
+    title: "PDF cotizaciones — Logo con proporciones originales",
+    description: "El logo del encabezado ahora respeta su aspect ratio original en lugar de forzar un cuadrado 16×16mm.",
+    changes: [
+      "Nuevo helper getPngDimensions para detectar ancho/alto reales del PNG",
+      "Logo se escala proporcionalmente con altura máxima 16mm y ancho máximo 24mm",
+    ],
+  },
+  {
     version: "5.14.2",
     date: "2026-04-10",
     type: "patch",
