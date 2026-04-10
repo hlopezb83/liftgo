@@ -86,10 +86,9 @@ export function drawPremiumHeader(
   }
 
   // Left: Company logo — preserve original aspect ratio
-  let textStartX = MARGIN;
   if (logoBase64) {
-    const maxH = 16;
-    const maxW = 24;
+    const maxH = 22;
+    const maxW = 32;
     const { w: natW, h: natH } = getPngDimensions(logoBase64);
     const ratio = natW / natH;
     let logoW: number;
@@ -102,16 +101,7 @@ export function drawPremiumHeader(
       logoW = maxH * ratio;
     }
     doc.addImage(logoBase64, "PNG", MARGIN, y - 2, logoW, logoH);
-    textStartX = MARGIN + logoW + 4;
   }
-
-  const companyName = company?.razon_social || "LIFT GO MONTACARGAS";
-  doc.setFontSize(FONT_LG);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  const maxNameW = pw / 2 - MARGIN - 4;
-  const nameLines = doc.splitTextToSize(companyName, maxNameW);
-  doc.text(nameLines, textStartX, y + 4);
 
   // Right: Document title
   doc.setFontSize(FONT_LG);

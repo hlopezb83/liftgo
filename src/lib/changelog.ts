@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.14.4",
+    date: "2026-04-10",
+    type: "patch",
+    title: "PDF cotizaciones — Logo más grande y sin nombre duplicado",
+    description: "Se eliminó el nombre de empresa al lado del logo y se aumentó el tamaño máximo del logo de 16×24mm a 22×32mm.",
+    changes: [
+      "Eliminado texto de razón social junto al logo en el encabezado del PDF",
+      "Aumentado tamaño máximo del logo manteniendo proporciones originales",
+    ],
+  },
+  {
     version: "5.14.3",
     date: "2026-04-10",
     type: "patch",
