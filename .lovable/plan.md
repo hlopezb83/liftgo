@@ -1,31 +1,26 @@
 
 
-## Ajustes al PDF de Cotizaciones — Términos a ancho completo + 4 tamaños de texto
+## Simetría en sección Emisor / Cliente del PDF
 
-### Cambios
+### Problema
+La sección de datos usa tamaños de fuente distintos entre emisor y cliente. El nombre del cliente usa `FONT_LG` (10) mientras el emisor usa `FONT_MD` (8). Las posiciones Y de cada campo (nombre, RFC, C.P.) no están alineadas — cada columna calcula su propia posición independientemente.
 
-**1. Términos y condiciones a ancho completo**
-- Mover la caja de "TÉRMINOS, CONDICIONES Y NOTAS" debajo de los totales, ocupando todo el ancho (`pw - MARGIN * 2`)
-- Layout del `drawBottomSection`: primero totales (alineados a la derecha, sin caja), luego debajo la caja de términos a todo el ancho
+### Solución
+Refactorizar `drawInfoCardsAt` para usar posiciones Y absolutas compartidas entre ambas columnas, y el mismo tamaño/peso de fuente para campos equivalentes:
 
-**2. Estandarizar a 4 tamaños de fuente**
-Actualmente se usan 9 tamaños distintos (7, 7.5, 8, 9, 10, 11, 12, 14, 15). Se reducen a 4:
+```text
+Y+4   EMISOR (FONT_SM, gray-500)          CLIENTE (FONT_SM, gray-500)
+Y+10  Razón Social (FONT_MD, bold, 900)   Nombre Cliente (FONT_MD, bold, 900)
+Y+15  RFC: xxx (FONT_MD, normal, 700)     RFC: xxx (FONT_MD, normal, 700)
+Y+19  C.P. xxx (FONT_MD, normal, 700)     C.P. xxx (FONT_MD, normal, 700)
+Y+23  Régimen: xxx (FONT_MD, normal, 700) Período/Vigencia (FONT_MD, normal, 700)
+```
 
-| Constante | Tamaño | Uso |
-|-----------|--------|-----|
-| `FONT_XL` | 14 | Total final, número de cotización |
-| `FONT_LG` | 10 | Nombre empresa, nombre cliente, título documento |
-| `FONT_MD` | 8 | Cuerpo: datos emisor/cliente, filas de tabla, subtotales |
-| `FONT_SM` | 6.5 | Etiquetas (EMISOR, CLIENTE), bullets specs, footer, términos |
-
-**3. Archivo `src/lib/quotePdfPremium.ts`**
-- Definir 4 constantes de tamaño al inicio del archivo
-- Actualizar todas las funciones (`drawPremiumHeader`, `drawInfoCardsAt`, `drawPremiumTable`, `drawBottomSection`, `drawFooter`) para usar solo esas 4 constantes
-- Las funciones de backward-compat (`drawPremiumTotals`, `drawPremiumNotes`, `drawTermsSection`) se mantienen con sus tamaños actuales para no afectar facturas
-
-**4. `src/lib/changelog.ts`** — Entrada v5.14.1
+- Ambas columnas comparten las mismas coordenadas Y para cada fila
+- Nombre del cliente baja de `FONT_LG` a `FONT_MD` bold (igual que emisor)
+- Se elimina el cálculo independiente de `ey` y `cy` — se usa una sola variable `rowY` con incrementos fijos
 
 ### Archivos modificados
-- `src/lib/quotePdfPremium.ts`
-- `src/lib/changelog.ts`
+- `src/lib/quotePdfPremium.ts` — función `drawInfoCardsAt`
+- `src/lib/changelog.ts` — entrada v5.14.2
 
