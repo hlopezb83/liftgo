@@ -33,6 +33,25 @@ const FONT_SM = 6.5;  // Etiquetas, bullets, footer, términos
 
 const MARGIN = 20;
 
+// ─── PNG dimension helper ─────────────────────────────
+function getPngDimensions(b64: string): { w: number; h: number } {
+  try {
+    const bin = atob(b64.replace(/^data:image\/\w+;base64,/, ""));
+    const w =
+      (bin.charCodeAt(16) << 24) |
+      (bin.charCodeAt(17) << 16) |
+      (bin.charCodeAt(18) << 8) |
+      bin.charCodeAt(19);
+    const h =
+      (bin.charCodeAt(20) << 24) |
+      (bin.charCodeAt(21) << 16) |
+      (bin.charCodeAt(22) << 8) |
+      bin.charCodeAt(23);
+    if (w > 0 && h > 0) return { w, h };
+  } catch { /* fall through */ }
+  return { w: 1, h: 1 };
+}
+
 function fmtDate(d: string | null): string {
   if (!d) return "—";
   try { return format(parseISO(d), "dd/MM/yyyy"); } catch { return "—"; }
@@ -66,12 +85,24 @@ export function drawPremiumHeader(
     title = "COTIZACIÓN";
   }
 
-  // Left: Company name as logotype
-  const logoSize = 16;
+  // Left: Company logo — preserve original aspect ratio
   let textStartX = MARGIN;
   if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", MARGIN, y - 2, logoSize, logoSize);
-    textStartX = MARGIN + logoSize + 4;
+    const maxH = 16;
+    const maxW = 24;
+    const { w: natW, h: natH } = getPngDimensions(logoBase64);
+    const ratio = natW / natH;
+    let logoW: number;
+    let logoH: number;
+    if (ratio >= 1) {
+      logoW = Math.min(maxW, maxH * ratio);
+      logoH = logoW / ratio;
+    } else {
+      logoH = maxH;
+      logoW = maxH * ratio;
+    }
+    doc.addImage(logoBase64, "PNG", MARGIN, y - 2, logoW, logoH);
+    textStartX = MARGIN + logoW + 4;
   }
 
   const companyName = company?.razon_social || "LIFT GO MONTACARGAS";
