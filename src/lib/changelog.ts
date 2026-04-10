@@ -9,6 +9,17 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.14.5",
+    date: "2026-04-10",
+    type: "patch",
+    title: "PDF cotizaciones — Logo simétrico con texto del encabezado",
+    description: "Se aumentó el tamaño máximo del logo a 24×40mm y se centra verticalmente para que su altura coincida con el bloque de texto del encabezado.",
+    changes: [
+      "Logo aumentado a 24×40mm máximo para igualar altura del texto",
+      "Centrado vertical del logo respecto al bloque título/número/fecha",
+    ],
+  },
+  {
     version: "5.14.4",
     date: "2026-04-10",
     type: "patch",
