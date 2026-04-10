@@ -9,6 +9,18 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.14.2",
+    date: "2026-04-10",
+    type: "patch",
+    title: "PDF cotizaciones — Simetría emisor/cliente",
+    description: "Sección de datos Emisor y Cliente ahora usa coordenadas Y compartidas y el mismo tamaño/peso de fuente para lograr alineación perfecta.",
+    changes: [
+      "Nombres, RFC y C.P. alineados a la misma altura entre ambas columnas",
+      "Nombre del cliente estandarizado a FONT_MD bold (igual que emisor)",
+      "Eliminado cálculo independiente de alturas por columna",
+    ],
+  },
+  {
     version: "5.14.1",
     date: "2026-04-10",
     type: "patch",
