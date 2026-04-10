@@ -1,49 +1,52 @@
 
 
-## Refuerzo de RLS — Corregir políticas permisivas y funciones inseguras
+## Rediseño del PDF de Cotizaciones — Layout industrial y simétrico
 
-### Estado actual
+### Problema actual
+El PDF actual tiene un diseño funcional pero carece de la estructura simétrica y el aspecto industrial-minimalista que se busca. Las notas aparecen como un bloque grande debajo de la tabla en vez de estar al lado de los totales, y la descripción de los equipos no muestra las especificaciones como viñetas dentro de la fila de la tabla.
 
-Las 33 tablas ya tienen RLS habilitado y políticas basadas en `has_role()`. Sin embargo, el linter detectó problemas específicos que necesitan corrección.
+### Cambios en `src/lib/quotePdfPremium.ts`
 
-### Problemas encontrados
+**1. Encabezado rediseñado** — `drawPremiumHeader`
+- Izquierda: Nombre de empresa en texto grande bold sans-serif (simulando logotipo), con logo pequeño si existe
+- Derecha: "COTIZACIÓN DE VENTA" en gris oscuro, número de cotización resaltado, fecha y vigencia
+- Separador `<hr>` elegante debajo
 
-**1. Políticas demasiado permisivas (USING true / WITH CHECK true en escritura)**
-- `booking_extensions` — política ALL con `true`: cualquier usuario autenticado puede crear, modificar y eliminar extensiones de reserva
-- `collection_notes` — política ALL con `true`: cualquier usuario autenticado puede manipular notas de cobranza
+**2. Sección de datos en 2 columnas** — `drawInfoCardsAt`
+- Izquierda: Datos del emisor (razón social, RFC, C.P., dirección de la empresa)
+- Derecha: Datos del cliente con etiqueta "CLIENTE", nombre en negrita, RFC, C.P.
+- Sin fondo gris en las cards — diseño más limpio con solo tipografía
 
-**2. Funciones sin `search_path` configurado (6 funciones)**
-- `next_booking_number`, `next_delivery_number`, `next_inspection_number`, `set_delivery_number`, `set_inspection_number`, `set_prospect_created_by`
-- Riesgo: un atacante podría crear objetos en otro schema para interceptar las llamadas
+**3. Tabla con descripciones multi-línea** — `drawPremiumTable`
+- Las notas de la cotización se parsean buscando especificaciones del equipo (viñetas) y se integran como sub-texto debajo de la descripción en cada fila
+- Texto de specs en font más pequeño y color gris
+- Sin líneas verticales, solo separadores horizontales sutiles
+- Encabezado con fondo `bg-gray-100` claro en vez de navy oscuro
 
-**3. Dispatchers no pueden actualizar estado de montacargas**
-- `useUpdateStatus()` hace `UPDATE` directo a `forklifts`, pero dispatchers solo tienen SELECT
-- Los cambios de estado desde dispatcher fallan silenciosamente — bug funcional
+**4. Sección inferior en 2 columnas** — `drawTermsSection` + `drawPremiumTotals`
+- Izquierda: Bloque de "TÉRMINOS, CONDICIONES Y NOTAS" con fondo gris claro y border radius, incluyendo las notas del usuario
+- Derecha: Subtotal, IVA y TOTAL alineados a la derecha, total en texto grande bold
+- Eliminar el box navy del total — usar solo tipografía grande con "$692,932.96 MXN"
 
-### Cambios propuestos
+**5. Pie de página simplificado** — `drawFooter`
+- Texto centrado: "Documento generado electrónicamente - LIFT GO"
 
-**Migración SQL única:**
+**6. Nuevo flujo de composición** — `QuotePDFButton.tsx`
+- Pasar las notas a la sección de términos (columna izquierda) en vez de bloque separado
+- Llamar una nueva función `drawBottomSection` que dibuje términos+notas a la izquierda y totales a la derecha en paralelo
 
-1. **`booking_extensions`** — Reemplazar política `true/true` con políticas por rol:
-   - Admin, Administrativo, Dispatcher: ALL
-   - Auditor, Mechanic, Ventas: SELECT
-   - Customer: SELECT donde `booking_id` sea de su propia reserva
-
-2. **`collection_notes`** — Reemplazar política `true/true` con políticas por rol:
-   - Admin, Administrativo, Dispatcher: ALL
-   - Auditor: SELECT
-
-3. **Forklifts** — Agregar política de escritura para Dispatcher:
-   - Dispatcher: UPDATE (para permitir cambios de estado)
-
-4. **Funciones** — Agregar `SET search_path = public` a las 6 funciones que les falta
-
-**`src/lib/changelog.ts`** — Entrada v5.13.2
+### Paleta de colores
+- Header de tabla: `rgb(243,244,246)` (gray-100) con texto oscuro
+- Textos secundarios: `rgb(107,114,128)` (gray-500)
+- Texto principal: `rgb(17,24,39)` (gray-900)
+- Fondo términos: `rgb(249,250,251)` (gray-50)
+- Sin dorado, sin navy — minimalismo industrial
 
 ### Archivos modificados
-- Migración SQL (una)
-- `src/lib/changelog.ts`
+- `src/lib/quotePdfPremium.ts` — Rediseño completo de todas las funciones de dibujo
+- `src/components/quotes/QuotePDFButton.tsx` — Ajustar flujo de composición para el nuevo layout de 2 columnas inferior
+- `src/lib/changelog.ts` — Entrada v5.14.0
 
-### Notas
-- No se requieren cambios en el frontend — las políticas existentes ya son compatibles con el código actual
-- El código que usa `RoleGuard` en el frontend seguirá funcionando igual, ahora con respaldo real en la base de datos
+### Nota
+Los cambios en `quotePdfPremium.ts` se mantienen retrocompatibles con `InvoicePDFButton.tsx` que también usa algunas de estas funciones. Las funciones que cambian de firma recibirán parámetros opcionales para no romper el PDF de facturas.
+
