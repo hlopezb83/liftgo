@@ -1,23 +1,33 @@
 
 
-## Logo simétrico con texto del encabezado — v5.14.5
+## Homologar PDF de Facturas al formato de Cotizaciones — v5.15.0
 
 ### Problema
-El logo tiene un `maxH` fijo de 22mm, pero el texto a la derecha (título + número + fecha) ocupa desde `y` hasta `y + 14`, es decir ~16mm de altura total. El logo y el texto no se ven simétricos.
+El PDF de facturas usa un diseño propio con tarjetas "Receptor" y "Detalles", colores locales, y funciones legacy (`drawPremiumTotals`, `drawPremiumNotes`). El resultado es visualmente distinto al PDF de cotizaciones que ya tiene el diseño simétrico EMISOR/CLIENTE, logo proporcional, y totales+términos unificados.
 
 ### Solución
-En `drawPremiumHeader`, el bloque de texto a la derecha va de `y` a `y + 14` → 14mm de contenido, más ~2mm de padding visual = ~18mm. El separador está en `y + 24`.
+Reescribir `InvoicePDFButton.tsx` para reutilizar las mismas funciones del PDF de cotizaciones:
 
-Calcular la altura del logo para que coincida con la altura total del bloque de texto (desde el borde superior del título hasta la línea de fecha): **fijar `maxH` al mismo rango vertical que ocupa el texto** = `24mm` (desde `y - 2` hasta `y + 22`, cubriendo todo el espacio antes del separador). Aumentar `maxW` proporcionalmente a 40mm.
+1. **Encabezado**: Usar `drawPremiumHeader(doc, company, logo, invoiceLabel, "FACTURA")` — mismo logo proporcional y layout
+2. **CFDI badge**: Mantener el badge verde "TIMBRADO SAT" y UUID como sección adicional después del header (es específico de facturas)
+3. **Sección info**: Reemplazar las tarjetas Receptor/Detalles por `drawInfoCardsAt()` con las dos columnas simétricas EMISOR/CLIENTE. Se necesita hacer fetch del RFC y C.P. del cliente, igual que en cotizaciones
+4. **Datos adicionales de factura**: Agregar una fila compacta debajo de la info section con: fecha emisión, fecha vencimiento, status badge, forma/método de pago
+5. **Tabla**: Ya usa `drawPremiumTable` — sin cambios
+6. **Totales + Notas**: Reemplazar `drawPremiumTotals` + `drawPremiumNotes` por `drawBottomSection` que integra totales a la derecha y notas en caja full-width
+7. **CFDI/QR**: Mantener la sección de QR placeholder y texto de verificación SAT al final
+8. **Footer**: Ya usa `drawFooter` — sin cambios
+9. **Eliminar constantes locales** (NAVY, GRAY_BG, etc.) del componente — todo viene de quotePdfPremium
 
-Centrar verticalmente el logo en ese espacio para que quede alineado con el bloque de texto.
+### Detalle técnico
 
-### Cambios en `src/lib/quotePdfPremium.ts`
-- Línea 90: `maxH = 22` → `maxH = 24`
-- Línea 91: `maxW = 32` → `maxW = 40`
-- Centrar logo verticalmente: calcular `logoY = y - 2 + (24 - logoH) / 2` en vez de fijar `y - 2`
+**`src/components/invoices/InvoicePDFButton.tsx`** — Reescritura del `handleDownload`:
+- Importar `drawInfoCardsAt` y `drawBottomSection` en lugar de `drawPremiumTotals`/`drawPremiumNotes`
+- Fetch customer RFC/CP (como hace QuotePDFButton)
+- Flujo: `drawAccentBar` → `drawPremiumHeader("FACTURA")` → CFDI badge (si aplica) → `drawInfoCardsAt(emisor/cliente)` → fila de detalles factura (emitida, vence, status, pago) → `drawPremiumTable` → `drawBottomSection` → QR CFDI → `drawFooter`
 
-### Archivos
-- `src/lib/quotePdfPremium.ts` — ajustar dimensiones y centrado del logo
-- `src/lib/changelog.ts` — entrada v5.14.5
+**`src/lib/changelog.ts`** — Entrada v5.15.0
+
+### Archivos modificados
+- `src/components/invoices/InvoicePDFButton.tsx`
+- `src/lib/changelog.ts`
 
