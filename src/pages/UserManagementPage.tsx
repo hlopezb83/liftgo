@@ -13,7 +13,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Trash2, Pencil, KeyRound, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { TablePagination } from "@/components/TablePagination";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";

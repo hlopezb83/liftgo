@@ -1,41 +1,25 @@
-import { jsPDF } from "jspdf";
 import { format, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { nowMty } from "@/lib/utils";
 import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
 import { replacePlaceholders } from "@/lib/templateUtils";
+import { addWrappedText, checkPage } from "@/lib/pdfShared";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
   DEFAULT_CLAUSES, DEFAULT_CHECKLIST, DEFAULT_PAGARE,
 } from "@/lib/contractPdfData";
+import type { ContractViewModel } from "@/types/rental";
 
 // --- Types ---
-export interface ContractData {
-  contract_number: string;
-  customer_id?: string | null;
-  forklift_id?: string | null;
-  customer_name?: string | null;
-  start_date?: string | null;
-  end_date?: string | null;
-  daily_rate?: number | null;
-  weekly_rate?: number | null;
-  monthly_rate?: number | null;
-  deposit_amount?: number | null;
-  terms_text?: string | null;
-  status: string;
-  signed_at?: string | null;
-  signed_by?: string | null;
-  usage_location?: string | null;
-  max_hours_per_month?: number | null;
-  extra_hour_rate?: number | null;
-  payment_frequency?: string | null;
-  late_interest_rate?: number | null;
-  contract_city?: string | null;
-  witness_1?: string | null;
-  witness_2?: string | null;
-}
+export type ContractData = Pick<ContractViewModel,
+  | "contract_number" | "customer_id" | "forklift_id" | "start_date" | "end_date"
+  | "daily_rate" | "weekly_rate" | "monthly_rate" | "deposit_amount" | "terms_text"
+  | "status" | "signed_at" | "signed_by" | "usage_location" | "max_hours_per_month"
+  | "extra_hour_rate" | "payment_frequency" | "late_interest_rate" | "contract_city"
+  | "witness_1" | "witness_2"
+> & { customer_name?: string | null };
 
 export type PDFMode = "full" | "contract" | "checklist" | "pagare";
 
@@ -121,25 +105,10 @@ export async function fetchLogoBase64(logoUrl: string | null | undefined): Promi
   return loadImageAsBase64(logoUrl);
 }
 
-// --- PDF text helpers ---
-function addWrappedText(doc: jsPDF, text: string, x: number, cursorY: number, maxWidth: number, lineHeight: number): number {
-  const lines = doc.splitTextToSize(text, maxWidth);
-  let y = cursorY;
-  for (const line of lines) {
-    if (y > doc.internal.pageSize.getHeight() - 25) { doc.addPage(); y = 20; }
-    doc.text(line, x, y);
-    y += lineHeight;
-  }
-  return y;
-}
-
-function checkPage(doc: jsPDF, cursorY: number, needed: number = 15): number {
-  if (cursorY + needed > doc.internal.pageSize.getHeight() - 20) { doc.addPage(); return 20; }
-  return cursorY;
-}
+// addWrappedText and checkPage are now imported from pdfShared
 
 // --- Page generators ---
-export function generateContractPages(doc: jsPDF, contract: ContractData, company: any, customer: any, forklift: any, logoBase64: string | null, tpl: TemplateData, vars: Record<string, string>) {
+export function generateContractPages(doc: any, contract: ContractData, company: any, customer: any, forklift: any, logoBase64: string | null, tpl: TemplateData, vars: Record<string, string>) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   let cursorY = 20;
@@ -246,7 +215,7 @@ export function generateContractPages(doc: jsPDF, contract: ContractData, compan
   doc.text(contract.witness_2 || "", col2, cursorY);
 }
 
-export function generateChecklistPage(doc: jsPDF, contract: ContractData, _company: any, _customer: any, forklift: any, tpl: TemplateData) {
+export function generateChecklistPage(doc: any, contract: ContractData, _company: any, _customer: any, forklift: any, tpl: TemplateData) {
   doc.addPage();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
@@ -320,7 +289,7 @@ export function generateChecklistPage(doc: jsPDF, contract: ContractData, _compa
   doc.text("Recibido por (Cliente)", col2, cursorY);
 }
 
-export function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, customer: any, tpl: TemplateData, vars: Record<string, string>) {
+export function generatePagarePage(doc: any, contract: ContractData, company: any, customer: any, tpl: TemplateData, vars: Record<string, string>) {
   doc.addPage();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;

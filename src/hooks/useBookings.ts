@@ -78,3 +78,38 @@ export function useUpdateBooking() {
     },
   });
 }
+
+export function useDeleteBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { error } = await supabase.from("bookings").delete().eq("id", bookingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+    },
+    onError: (err: Error) => {
+      toast.error("Error al eliminar reserva", { description: err.message });
+    },
+  });
+}
+
+export function useCancelBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { error } = await supabase.rpc("cancel_booking", { p_booking_id: bookingId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
+    },
+    onError: (err: Error) => {
+      toast.error("Error al cancelar reserva", { description: err.message });
+    },
+  });
+}

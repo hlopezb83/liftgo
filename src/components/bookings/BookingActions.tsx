@@ -7,9 +7,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useForklifts } from "@/hooks/useForklifts";
-import { useUpdateBooking, type BookingWithForklift } from "@/hooks/useBookings";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateBooking, useDeleteBooking, useCancelBooking, type BookingWithForklift } from "@/hooks/useBookings";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
 import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -20,30 +18,62 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 
+function ConfirmActionDialog({
+  trigger,
+  title,
+  description,
+  confirmLabel,
+  onConfirm,
+}: {
+  trigger: React.ReactNode;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            {confirmLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 export function BookingActions({ booking }: BookingActionsProps) {
   const [extendOpen, setExtendOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<string>("");
   const [newEndDate, setNewEndDate] = useState<Date>();
-  
+
   const { data: forklifts } = useForklifts();
   const updateBooking = useUpdateBooking();
-  const queryClient = useQueryClient();
+  const deleteBooking = useDeleteBooking();
+  const cancelBooking = useCancelBooking();
   const navigate = useNavigate();
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
 
-  const handleDelete = async () => {
-    try {
-      const { error } = await supabase.from("bookings").delete().eq("id", booking.id);
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      toast.success("Reserva eliminada");
-      navigate("/bookings");
-    } catch (err: unknown) {
-      toast.error("Error al eliminar: " + (err instanceof Error ? err.message : "Error desconocido"));
-    }
+  const handleDelete = () => {
+    deleteBooking.mutate(booking.id, {
+      onSuccess: () => { toast.success("Reserva eliminada"); navigate("/bookings"); },
+    });
+  };
+
+  const handleCancel = () => {
+    cancelBooking.mutate(booking.id, {
+      onSuccess: () => toast.success("Reserva cancelada"),
+    });
   };
 
   const statusLabels: Record<string, string> = {
@@ -65,8 +95,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
     if (!newStatus || newStatus === booking.status) return;
     try {
       if (newStatus === "cancelled") {
-        const { error } = await supabase.rpc("cancel_booking", { p_booking_id: booking.id });
-        if (error) throw error;
+        cancelBooking.mutate(booking.id);
       } else {
         await new Promise<void>((resolve, reject) => {
           updateBooking.mutate(
@@ -75,9 +104,6 @@ export function BookingActions({ booking }: BookingActionsProps) {
           );
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
       toast.success(`Estatus cambiado a ${statusLabels[newStatus] || newStatus}`);
       setStatusDialogOpen(false);
     } catch (err: unknown) {
@@ -118,6 +144,20 @@ export function BookingActions({ booking }: BookingActionsProps) {
     </Dialog>
   );
 
+  const deleteButton = (
+    <ConfirmActionDialog
+      trigger={
+        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+          <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
+        </Button>
+      }
+      title="¿Eliminar esta reserva?"
+      description={`Se eliminará permanentemente la reserva de ${booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.`}
+      confirmLabel="Eliminar"
+      onConfirm={handleDelete}
+    />
+  );
+
   if (booking.status !== "confirmed") {
     if (!isAdmin) return null;
     return (
@@ -125,27 +165,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
         <Button variant="ghost" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
           <RefreshCw className="h-3.5 w-3.5 mr-1" />Cambiar Estatus
         </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-              <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Eliminar esta reserva?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Se eliminará permanentemente la reserva de {booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {deleteButton}
         {statusChangeDialog}
       </div>
     );
@@ -158,7 +178,6 @@ export function BookingActions({ booking }: BookingActionsProps) {
     return computeTotals(items, 21);
   };
   const extendPreview = getPreview(booking.start_date, newEndDate);
-  
 
   const handleExtend = () => {
     if (!newEndDate) return;
@@ -166,21 +185,6 @@ export function BookingActions({ booking }: BookingActionsProps) {
       { id: booking.id, end_date: format(newEndDate, "yyyy-MM-dd") },
       { onSuccess: () => { toast.success("Reserva extendida"); setExtendOpen(false); } }
     );
-  };
-
-
-
-  const handleCancel = async () => {
-    try {
-      const { error } = await supabase.rpc('cancel_booking', { p_booking_id: booking.id });
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-      toast.success("Reserva cancelada");
-    } catch (err: unknown) {
-      toast.error("Error al cancelar: " + (err instanceof Error ? err.message : "Error desconocido"));
-    }
   };
 
   return (
@@ -200,51 +204,21 @@ export function BookingActions({ booking }: BookingActionsProps) {
           <Button variant="ghost" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
             <RefreshCw className="h-3.5 w-3.5 mr-1" />Cambiar Estatus
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>¿Eliminar esta reserva?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Se eliminará permanentemente la reserva de {booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {deleteButton}
         </>
       )}
 
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
+      <ConfirmActionDialog
+        trigger={
           <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
             <XCircle className="h-3.5 w-3.5 mr-1" />Cancelar
           </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Cancelar esta reserva?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateDisplay(booking.start_date)} → {formatDateDisplay(booking.end_date)}). Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Mantener Reserva</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Cancelar Reserva
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        }
+        title="¿Cancelar esta reserva?"
+        description={`Se cancelará la reserva de ${booking.customer_name || "este cliente"} (${formatDateDisplay(booking.start_date)} → ${formatDateDisplay(booking.end_date)}). Esta acción no se puede deshacer.`}
+        confirmLabel="Cancelar Reserva"
+        onConfirm={handleCancel}
+      />
 
       <Dialog open={extendOpen} onOpenChange={setExtendOpen}>
         <DialogContent>
