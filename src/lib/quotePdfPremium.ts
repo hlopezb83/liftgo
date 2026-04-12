@@ -2,36 +2,27 @@ import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { applyDiscount } from "@/lib/invoiceUtils";
-import type { CompanyData, PdfLineItem } from "@/lib/pdfHelpers";
-import { format, parseISO } from "date-fns";
+import type { CompanyData, PdfLineItem } from "@/lib/pdfShared";
+import { fmtDate } from "@/lib/pdfShared";
+import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 
 // ─── Color Palette — Industrial Minimalist ────────────
-const GRAY_900 = { r: 17, g: 24, b: 39 };
+export const GRAY_900 = { r: 17, g: 24, b: 39 };
 const GRAY_700 = { r: 55, g: 65, b: 81 };
-const GRAY_500 = { r: 107, g: 114, b: 128 };
+export const GRAY_500 = { r: 107, g: 114, b: 128 };
 const GRAY_400 = { r: 156, g: 163, b: 175 };
-const GRAY_200 = { r: 229, g: 231, b: 235 };
+export const GRAY_200 = { r: 229, g: 231, b: 235 };
 const GRAY_100 = { r: 243, g: 244, b: 246 };
 const GRAY_50 = { r: 249, g: 250, b: 251 };
-const WHITE = { r: 255, g: 255, b: 255 };
-
-// Legacy aliases for backward compat (InvoicePDFButton)
-const NAVY = GRAY_900;
-const NAVY_LIGHT = GRAY_700;
-const GOLD = { r: 217, g: 165, b: 72 };
-const GRAY_BG = GRAY_50;
-const GRAY_BORDER = GRAY_200;
-const GRAY_TEXT = GRAY_500;
-const DARK_TEXT = GRAY_900;
 
 // ─── Typography — 4 sizes only (quotes) ──────────────
-const FONT_XL = 14;   // Total final, número de cotización
-const FONT_LG = 10;   // Nombre empresa/cliente, título documento
-const FONT_MD = 8;    // Cuerpo: datos, filas tabla, subtotales
-const FONT_SM = 6.5;  // Etiquetas, bullets, footer, términos
+const FONT_XL = 14;
+const FONT_LG = 10;
+const FONT_MD = 8;
+const FONT_SM = 6.5;
 
-const MARGIN = 20;
+export const MARGIN = 20;
 
 // ─── PNG dimension helper ─────────────────────────────
 function getPngDimensions(b64: string): { w: number; h: number } {
@@ -52,10 +43,7 @@ function getPngDimensions(b64: string): { w: number; h: number } {
   return { w: 1, h: 1 };
 }
 
-function fmtDate(d: string | null): string {
-  if (!d) return "—";
-  try { return format(parseISO(d), "dd/MM/yyyy"); } catch { return "—"; }
-}
+// fmtDate is now imported from @/lib/pdfShared
 
 // ─── Accent Bar (kept for InvoicePDFButton compat) ────
 export function drawAccentBar(doc: jsPDF): void {
@@ -130,18 +118,6 @@ export function drawPremiumHeader(
   doc.line(MARGIN, y, pw - MARGIN, y);
 
   return y + 6;
-}
-
-// ─── Info Cards (kept for backward compat) ────────────
-export function drawInfoCards(
-  doc: jsPDF,
-  customerName: string | null,
-  startDate: string | null,
-  endDate: string | null,
-  validUntil: string | null,
-  isSale: boolean,
-): number {
-  return 0;
 }
 
 // ─── Info Section — 2 columns: Emisor + Cliente ───────
@@ -474,124 +450,6 @@ export function drawBottomSection(
   return y + boxH + 4;
 }
 
-// ─── Premium Totals (backward compat for InvoicePDF) ──
-export function drawPremiumTotals(
-  doc: jsPDF,
-  startY: number,
-  subtotal: number,
-  taxRate: number,
-  taxAmount: number,
-  total: number,
-  currency?: string,
-): number {
-  const fmtC = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
-  const pw = doc.internal.pageSize.getWidth();
-  let y = startY;
-  const rightCol = pw - MARGIN - 4;
-  const labelCol = rightCol - 55;
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text("Subtotal:", labelCol, y, { align: "right" });
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(fmtC(subtotal), rightCol, y, { align: "right" });
-
-  y += 7;
-  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text(`IVA (${taxRate}%):`, labelCol, y, { align: "right" });
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(fmtC(taxAmount), rightCol, y, { align: "right" });
-
-  y += 5;
-  doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
-  doc.setLineWidth(0.3);
-  doc.line(labelCol - 10, y, pw - MARGIN, y);
-
-  y += 6;
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  const currencyLabel = currency || "MXN";
-  doc.text("TOTAL:", labelCol, y, { align: "right" });
-  doc.setFontSize(14);
-  doc.text(`${fmtC(total)} ${currencyLabel}`, rightCol, y, { align: "right" });
-
-  return y + 8;
-}
-
-// ─── Notes Block (backward compat for InvoicePDF) ─────
-export function drawPremiumNotes(
-  doc: jsPDF,
-  notes: string,
-  startY: number,
-): number {
-  const pw = doc.internal.pageSize.getWidth();
-  let y = startY + 4;
-
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text("NOTAS", MARGIN, y);
-  y += 4;
-
-  doc.setFillColor(GRAY_50.r, GRAY_50.g, GRAY_50.b);
-  const textLines = doc.splitTextToSize(notes, pw - MARGIN * 2 - 12);
-  const boxH = Math.max(14, textLines.length * 4.5 + 8);
-  doc.roundedRect(MARGIN, y - 2, pw - MARGIN * 2, boxH, 2, 2, "F");
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(textLines, MARGIN + 6, y + 5);
-
-  return y + boxH + 4;
-}
-
-// ─── Terms Section (kept for backward compat) ─────────
-export function drawTermsSection(
-  doc: jsPDF,
-  startY: number,
-  validUntil: string | null,
-  isRental: boolean = false,
-  currency?: string,
-): number {
-  const pw = doc.internal.pageSize.getWidth();
-  let y = startY + 2;
-
-  doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
-  doc.setLineWidth(0.3);
-  doc.line(MARGIN, y, pw - MARGIN, y);
-  y += 7;
-
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text("TÉRMINOS Y CONDICIONES", MARGIN, y);
-  y += 5;
-
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "normal");
-  const currencyLabel = currency || "MXN";
-  const terms = [
-    `• Precios expresados en ${currencyLabel} antes de IVA salvo que se indique lo contrario.`,
-    `• Esta cotización es válida hasta el ${fmtDate(validUntil)}.`,
-    "• Condiciones de pago sujetas a negociación al momento de la contratación.",
-    "• Los tiempos de entrega se confirman al aceptar la cotización.",
-  ];
-
-  if (isRental) {
-    terms.push("• Equipo sujeto a 200 horas de uso mensual.");
-    terms.push("• El uso de horas extras lleva un costo adicional.");
-  }
-
-  for (const t of terms) {
-    doc.text(t, MARGIN, y);
-    y += 4;
-  }
-
-  return y + 2;
-}
 
 // ─── Footer ──────────────────────────────────────────
 export function drawFooter(

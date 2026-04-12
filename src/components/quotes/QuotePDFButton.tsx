@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdfHelpers";
+import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdfShared";
 
 interface QuotePDFButtonProps {
   quoteId: string;
@@ -49,21 +49,16 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       const doc = new jsPDF();
       const isSale = quote.quote_type === "sale";
 
-      // 1. Accent bar (thin top line)
       drawAccentBar(doc);
 
-      // 2. Header — company left, title+number right
       let y = drawPremiumHeader(doc, company, logoBase64, quote.quote_number, isSale);
 
-      // 3. Info section — emisor left, client right
       y = drawInfoCardsAt(doc, y, quote.customer_name, quote.start_date, quote.end_date, quote.valid_until, isSale, customerRfc, customerCp, company);
 
-      // 4. Line items table
       const lineItems = (quote.line_items as unknown as PdfLineItem[]) || [];
       const quoteCurrency = (quote as unknown as { currency?: string }).currency || "MXN";
       y = drawPremiumTable(doc, lineItems, y, quoteCurrency);
 
-      // 5. Bottom section — terms+notes left, totals right
       y = drawBottomSection(
         doc, y,
         Number(quote.subtotal), Number(quote.tax_rate),
@@ -74,7 +69,6 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
         !isSale,
       );
 
-      // 6. Footer
       drawFooter(doc, company);
 
       doc.save(`${quote.quote_number}.pdf`);

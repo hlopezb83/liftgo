@@ -3,19 +3,9 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
-import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdfHelpers";
+import { fetchCompanyDataAndLogo, fmtDate, type PdfLineItem } from "@/lib/pdfShared";
 
 const GREEN = { r: 22, g: 163, b: 74 };
-const GRAY_500 = { r: 107, g: 114, b: 128 };
-const GRAY_200 = { r: 229, g: 231, b: 235 };
-const GRAY_900 = { r: 17, g: 24, b: 39 };
-const MARGIN = 20;
-
-function fmtDate(d: string | null): string {
-  if (!d) return "—";
-  try { return format(parseISO(d), "dd/MM/yyyy"); } catch { return "—"; }
-}
 
 interface InvoicePDFButtonProps {
   invoiceId: string;
@@ -58,6 +48,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       const {
         drawAccentBar, drawPremiumHeader, drawInfoCardsAt,
         drawPremiumTable, drawBottomSection, drawFooter,
+        GRAY_500, GRAY_200, GRAY_900, MARGIN,
       } = await import("@/lib/quotePdfPremium");
 
       const doc = new jsPDF();

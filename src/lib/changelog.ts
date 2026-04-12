@@ -9,6 +9,23 @@ export interface ChangelogEntry {
 
 export const changelog: ChangelogEntry[] = [
   {
+    version: "5.16.0",
+    date: "2026-04-12",
+    type: "minor",
+    title: "Auditoría de arquitectura — Limpieza y refactorización",
+    description: "Eliminación de código muerto, deduplicación de utilidades, y separación de responsabilidades en el módulo de reportes financieros.",
+    changes: [
+      "Eliminado pdfHelpers.ts — tipos y funciones compartidas movidos a pdfShared.ts",
+      "Eliminadas funciones muertas de quotePdfPremium: drawInfoCards, drawPremiumTotals, drawPremiumNotes, drawTermsSection",
+      "Eliminados 7 legacy color aliases sin uso (NAVY, GOLD, etc.) de quotePdfPremium",
+      "fmtDate centralizado en pdfShared.ts — eliminadas 2 copias duplicadas",
+      "Constantes GRAY_500, GRAY_200, GRAY_900, MARGIN exportadas desde quotePdfPremium en vez de re-declararse",
+      "IncomeStatementReport refactorizado: lógica extraída a useIncomeStatementData hook y incomeStatementPdf.ts",
+      "jsPDF ahora se importa dinámicamente en Estado de Resultados (~200KB menos en chunk inicial)",
+      "Eliminado import no usado de AppRole en useQuoteDetailLogic",
+    ],
+  },
+  {
     version: "5.15.0",
     date: "2026-04-10",
     type: "minor",
