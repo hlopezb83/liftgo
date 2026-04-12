@@ -2,36 +2,27 @@ import { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { applyDiscount } from "@/lib/invoiceUtils";
-import type { CompanyData, PdfLineItem } from "@/lib/pdfHelpers";
-import { format, parseISO } from "date-fns";
+import type { CompanyData, PdfLineItem } from "@/lib/pdfShared";
+import { fmtDate } from "@/lib/pdfShared";
+import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 
 // ─── Color Palette — Industrial Minimalist ────────────
-const GRAY_900 = { r: 17, g: 24, b: 39 };
+export const GRAY_900 = { r: 17, g: 24, b: 39 };
 const GRAY_700 = { r: 55, g: 65, b: 81 };
-const GRAY_500 = { r: 107, g: 114, b: 128 };
+export const GRAY_500 = { r: 107, g: 114, b: 128 };
 const GRAY_400 = { r: 156, g: 163, b: 175 };
-const GRAY_200 = { r: 229, g: 231, b: 235 };
+export const GRAY_200 = { r: 229, g: 231, b: 235 };
 const GRAY_100 = { r: 243, g: 244, b: 246 };
 const GRAY_50 = { r: 249, g: 250, b: 251 };
-const WHITE = { r: 255, g: 255, b: 255 };
-
-// Legacy aliases for backward compat (InvoicePDFButton)
-const NAVY = GRAY_900;
-const NAVY_LIGHT = GRAY_700;
-const GOLD = { r: 217, g: 165, b: 72 };
-const GRAY_BG = GRAY_50;
-const GRAY_BORDER = GRAY_200;
-const GRAY_TEXT = GRAY_500;
-const DARK_TEXT = GRAY_900;
 
 // ─── Typography — 4 sizes only (quotes) ──────────────
-const FONT_XL = 14;   // Total final, número de cotización
-const FONT_LG = 10;   // Nombre empresa/cliente, título documento
-const FONT_MD = 8;    // Cuerpo: datos, filas tabla, subtotales
-const FONT_SM = 6.5;  // Etiquetas, bullets, footer, términos
+const FONT_XL = 14;
+const FONT_LG = 10;
+const FONT_MD = 8;
+const FONT_SM = 6.5;
 
-const MARGIN = 20;
+export const MARGIN = 20;
 
 // ─── PNG dimension helper ─────────────────────────────
 function getPngDimensions(b64: string): { w: number; h: number } {
@@ -52,10 +43,7 @@ function getPngDimensions(b64: string): { w: number; h: number } {
   return { w: 1, h: 1 };
 }
 
-function fmtDate(d: string | null): string {
-  if (!d) return "—";
-  try { return format(parseISO(d), "dd/MM/yyyy"); } catch { return "—"; }
-}
+// fmtDate is now imported from @/lib/pdfShared
 
 // ─── Accent Bar (kept for InvoicePDFButton compat) ────
 export function drawAccentBar(doc: jsPDF): void {

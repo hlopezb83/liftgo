@@ -8,7 +8,7 @@ import { useOperatingExpenses, EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperat
 import type { ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { useBookings } from "@/hooks/useBookings";
 import { useForklifts } from "@/hooks/useForklifts";
-import { formatCurrency } from "@/lib/formatCurrency";
+
 
 const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
 const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];
