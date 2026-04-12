@@ -108,7 +108,7 @@ export async function fetchLogoBase64(logoUrl: string | null | undefined): Promi
 // addWrappedText and checkPage are now imported from pdfShared
 
 // --- Page generators ---
-export function generateContractPages(doc: jsPDF, contract: ContractData, company: any, customer: any, forklift: any, logoBase64: string | null, tpl: TemplateData, vars: Record<string, string>) {
+export function generateContractPages(doc: any, contract: ContractData, company: any, customer: any, forklift: any, logoBase64: string | null, tpl: TemplateData, vars: Record<string, string>) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   let cursorY = 20;
@@ -215,7 +215,7 @@ export function generateContractPages(doc: jsPDF, contract: ContractData, compan
   doc.text(contract.witness_2 || "", col2, cursorY);
 }
 
-export function generateChecklistPage(doc: jsPDF, contract: ContractData, _company: any, _customer: any, forklift: any, tpl: TemplateData) {
+export function generateChecklistPage(doc: any, contract: ContractData, _company: any, _customer: any, forklift: any, tpl: TemplateData) {
   doc.addPage();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
@@ -289,7 +289,7 @@ export function generateChecklistPage(doc: jsPDF, contract: ContractData, _compa
   doc.text("Recibido por (Cliente)", col2, cursorY);
 }
 
-export function generatePagarePage(doc: jsPDF, contract: ContractData, company: any, customer: any, tpl: TemplateData, vars: Record<string, string>) {
+export function generatePagarePage(doc: any, contract: ContractData, company: any, customer: any, tpl: TemplateData, vars: Record<string, string>) {
   doc.addPage();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
