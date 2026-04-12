@@ -10,7 +10,7 @@ import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
-import type { AppRole } from "@/hooks/useUserRole";
+
 
 export interface DeliveryInfo {
   bookingId: string;

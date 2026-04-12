@@ -120,18 +120,6 @@ export function drawPremiumHeader(
   return y + 6;
 }
 
-// ─── Info Cards (kept for backward compat) ────────────
-export function drawInfoCards(
-  doc: jsPDF,
-  customerName: string | null,
-  startDate: string | null,
-  endDate: string | null,
-  validUntil: string | null,
-  isSale: boolean,
-): number {
-  return 0;
-}
-
 // ─── Info Section — 2 columns: Emisor + Cliente ───────
 export function drawInfoCardsAt(
   doc: jsPDF,
