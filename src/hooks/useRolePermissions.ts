@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { nowMty } from "@/lib/utils";
-import { useAuth } from "./useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import type { AppRole } from "./useUserRole";
 
 export type AccessLevel = "full" | "read" | "none";
