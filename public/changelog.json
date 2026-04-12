@@ -1,5 +1,20 @@
 [
   {
+    "version": "5.17.0",
+    "date": "2026-04-12",
+    "type": "minor",
+    "title": "Auditoría de arquitectura v2 — Optimización y limpieza",
+    "description": "Lazy-loading de jsPDF en contratos, refactorización de BookingActions, eliminación del shim useAuth, y carga dinámica del changelog.",
+    "changes": [
+      "contractPdfGenerator: eliminada importación estática de jsPDF (~200KB menos en chunk), helpers addWrappedText/checkPage movidos a pdfShared.ts",
+      "ContractData ahora derivado de ContractViewModel via Pick<> — elimina tipo duplicado",
+      "BookingActions refactorizado: extraídas mutaciones useDeleteBooking y useCancelBooking a useBookings.ts",
+      "BookingActions: JSX duplicado de AlertDialog reemplazado por componente ConfirmActionDialog reutilizable (~80 líneas menos)",
+      "Eliminado shim useAuth.ts — 10 archivos actualizados para importar directamente de AuthContext",
+      "Changelog movido a public/changelog.json con carga dinámica via fetch() (~2,400 líneas fuera del bundle principal)"
+    ]
+  },
+  {
     "version": "5.16.0",
     "date": "2026-04-12",
     "type": "minor",
