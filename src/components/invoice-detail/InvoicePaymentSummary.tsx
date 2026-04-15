@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
+import { EditPaymentDialog } from "./EditPaymentDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface InvoicePaymentSummaryProps {
@@ -11,6 +15,8 @@ interface InvoicePaymentSummaryProps {
 }
 
 export function InvoicePaymentSummary({ totalPaid, balance, payments }: InvoicePaymentSummaryProps) {
+  const [editingPayment, setEditingPayment] = useState<Tables<"payments"> | null>(null);
+
   return (
     <>
       {totalPaid > 0 && (
@@ -41,6 +47,7 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments }: InvoiceP
                   <TableHead>Método</TableHead>
                   <TableHead>Referencia</TableHead>
                   <TableHead className="text-right">Monto</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -50,12 +57,25 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments }: InvoiceP
                     <TableCell className="text-sm capitalize">{p.payment_method || "—"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{p.reference_number || "—"}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(p)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
+      )}
+
+      {editingPayment && (
+        <EditPaymentDialog
+          open={!!editingPayment}
+          onOpenChange={(open) => { if (!open) setEditingPayment(null); }}
+          payment={editingPayment}
+        />
       )}
     </>
   );

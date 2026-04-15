@@ -67,3 +67,47 @@ export function useCreatePayment() {
     },
   });
 }
+
+export function useUpdatePayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, invoice_id, ...fields }: { id: string; invoice_id: string } & Partial<Omit<Payment, "id" | "created_at" | "invoice_id">>) => {
+      const { data, error } = await supabase
+        .from("payments")
+        .update(fields)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+
+      const { data: allPayments } = await supabase
+        .from("payments")
+        .select("amount")
+        .eq("invoice_id", invoice_id);
+      const totalPaid = (allPayments || []).reduce((s: number, p) => s + Number(p.amount), 0);
+
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("total, status")
+        .eq("id", invoice_id)
+        .single();
+
+      if (invoice) {
+        const balance = Number(invoice.total) - totalPaid;
+        if (balance <= 0 && invoice.status !== "paid") {
+          await supabase.from("invoices").update({ status: "paid" }).eq("id", invoice_id);
+        } else if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
+          await supabase.from("invoices").update({ status: "partial" }).eq("id", invoice_id);
+        } else if (totalPaid === 0 && invoice.status !== "sent") {
+          await supabase.from("invoices").update({ status: "sent" }).eq("id", invoice_id);
+        }
+      }
+
+      return data;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["payments", vars.invoice_id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    },
+  });
+}
