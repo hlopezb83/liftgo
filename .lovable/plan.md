@@ -1,39 +1,30 @@
 
 
-## Editar fecha de pago en FAC-0035 — v5.17.1
+## Fix: Sincronizar `paid_at` al editar pagos — v5.17.2
 
 ### Problema
-El historial de pagos en la vista de detalle de factura es solo lectura. No hay forma de modificar la fecha (ni otros datos) de un pago ya registrado.
+`useUpdatePayment` actualiza el status de la factura (paid/partial/sent) pero nunca toca `paid_at`. Al editar la fecha de un pago, el card de "Fechas" no refleja el cambio.
 
 ### Solución
-Agregar un botón de edición (icono lápiz) en cada fila del historial de pagos que abra un diálogo para modificar los datos del pago.
+Modificar `useUpdatePayment` en `src/hooks/usePayments.ts` para:
+
+1. Cuando el balance ≤ 0 → marcar `status: "paid"` **y** `paid_at` = fecha del pago más reciente (de todos los pagos de esa factura).
+2. Cuando el balance > 0 → marcar `status: "partial"` **y** `paid_at: null` (ya no está completamente pagada).
+3. Cuando no hay pagos → `status: "sent"` **y** `paid_at: null`.
+
+Esto replica el mismo comportamiento que ya tiene `useCreatePayment` (que sí pasa `paid_at`).
 
 ### Cambios
-
-**`src/hooks/usePayments.ts`**
-- Agregar `useUpdatePayment()` — mutación UPDATE sobre la tabla `payments`, recalcula status de factura (paid/partial/sent).
-
-**`src/components/invoice-detail/EditPaymentDialog.tsx`** (nuevo)
-- Diálogo con campos pre-poblados: fecha, monto, método, referencia, notas.
-- Reutiliza el mismo diseño que `RecordPaymentDialog`.
-
-**`src/components/invoice-detail/InvoicePaymentSummary.tsx`**
-- Agregar columna "Acciones" con botón lápiz en cada fila.
-- Estado local para pago seleccionado → abre `EditPaymentDialog`.
-- Recibe `invoiceId` como prop nueva.
-
-**`src/pages/InvoiceDetail.tsx`**
-- Pasar `invoiceId` a `InvoicePaymentSummary`.
-
-**`public/changelog.json`**
-- Entrada v5.17.1: "Editar pagos registrados en facturas".
-
-### Archivos
-| Archivo | Acción |
+| Archivo | Cambio |
 |---------|--------|
-| `src/hooks/usePayments.ts` | Agregar hook `useUpdatePayment` |
-| `src/components/invoice-detail/EditPaymentDialog.tsx` | Crear |
-| `src/components/invoice-detail/InvoicePaymentSummary.tsx` | Agregar columna acciones |
-| `src/pages/InvoiceDetail.tsx` | Pasar prop `invoiceId` |
-| `public/changelog.json` | Nueva entrada |
+| `src/hooks/usePayments.ts` | En `useUpdatePayment`, consultar fecha más reciente de pagos y actualizar `paid_at` junto con `status` |
+| `public/changelog.json` | Entrada v5.17.2 |
+
+### Detalle técnico
+En el bloque que recalcula status (líneas 95-105), cambiar:
+- `{ status: "paid" }` → `{ status: "paid", paid_at: latestPaymentDate }`
+- `{ status: "partial" }` → `{ status: "partial", paid_at: null }`
+- `{ status: "sent" }` → `{ status: "sent", paid_at: null }`
+
+Donde `latestPaymentDate` se obtiene consultando `MAX(payment_date)` de los pagos de esa factura.
 
