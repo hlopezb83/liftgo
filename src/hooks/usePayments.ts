@@ -82,7 +82,7 @@ export function useUpdatePayment() {
 
       const { data: allPayments } = await supabase
         .from("payments")
-        .select("amount")
+        .select("amount, payment_date")
         .eq("invoice_id", invoice_id);
       const totalPaid = (allPayments || []).reduce((s: number, p) => s + Number(p.amount), 0);
 
@@ -95,11 +95,13 @@ export function useUpdatePayment() {
       if (invoice) {
         const balance = Number(invoice.total) - totalPaid;
         if (balance <= 0 && invoice.status !== "paid") {
-          await supabase.from("invoices").update({ status: "paid" }).eq("id", invoice_id);
+          const latestDate = (allPayments || []).reduce((latest, p) =>
+            p.payment_date > latest ? p.payment_date : latest, allPayments![0].payment_date);
+          await supabase.from("invoices").update({ status: "paid", paid_at: latestDate }).eq("id", invoice_id);
         } else if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
-          await supabase.from("invoices").update({ status: "partial" }).eq("id", invoice_id);
+          await supabase.from("invoices").update({ status: "partial", paid_at: null }).eq("id", invoice_id);
         } else if (totalPaid === 0 && invoice.status !== "sent") {
-          await supabase.from("invoices").update({ status: "sent" }).eq("id", invoice_id);
+          await supabase.from("invoices").update({ status: "sent", paid_at: null }).eq("id", invoice_id);
         }
       }
 

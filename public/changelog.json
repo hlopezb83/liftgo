@@ -1,5 +1,15 @@
 [
   {
+    "version": "5.17.2",
+    "date": "2026-04-16",
+    "type": "patch",
+    "title": "Sincronizar fecha de pago al editar pagos",
+    "description": "Al editar un pago registrado, la fecha 'Pagada' en el card de fechas de la factura se actualiza automáticamente con la fecha del pago más reciente.",
+    "changes": [
+      "paid_at se sincroniza al editar pagos (fecha más reciente cuando está pagada, null cuando es parcial o sin pagos)"
+    ]
+  },
+  {
     "version": "5.17.1",
     "date": "2026-04-15",
     "type": "patch",
