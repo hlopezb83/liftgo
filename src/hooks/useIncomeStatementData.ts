@@ -130,11 +130,14 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
         const dateStr = isCash ? inv.paid_at! : inv.issued_at;
         const key = ensureMonth(parseISO(dateStr));
         const subtotal = Number(inv.subtotal);
+        const customerName = inv.customer_name || "Sin cliente";
         months[key].revenue += subtotal;
         if (inv.booking_id) {
           months[key].revenueRental += subtotal;
+          months[key].rentalByCustomer[customerName] = (months[key].rentalByCustomer[customerName] ?? 0) + subtotal;
         } else {
           months[key].revenueSales += subtotal;
+          months[key].salesByCustomer[customerName] = (months[key].salesByCustomer[customerName] ?? 0) + subtotal;
         }
       });
 
