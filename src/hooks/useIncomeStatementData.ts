@@ -23,6 +23,8 @@ export interface MonthData {
   damageCost: number;
   depreciation: number;
   depreciationByForklift: Record<string, number>;
+  rentalByCustomer: Record<string, number>;
+  salesByCustomer: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
@@ -98,7 +100,7 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
   }, [forklifts]);
 
   const data = useMemo(() => {
-    const months: Record<string, { month: string; revenue: number; revenueRental: number; revenueSales: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
+    const months: Record<string, { month: string; revenue: number; revenueRental: number; revenueSales: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number>; rentalByCustomer: Record<string, number>; salesByCustomer: Record<string, number> }> = {};
 
     const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0, caja_chica: 0, publicidad: 0 });
 
@@ -109,6 +111,7 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
           month: format(startOfMonth(date), "MMM yyyy", { locale: es }),
           revenue: 0, revenueRental: 0, revenueSales: 0,
           maintenanceCost: 0, damageCost: 0, expenses: emptyExpenses(),
+          rentalByCustomer: {}, salesByCustomer: {},
         };
       }
       return key;
@@ -129,11 +132,14 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
         const dateStr = isCash ? inv.paid_at! : inv.issued_at;
         const key = ensureMonth(parseISO(dateStr));
         const subtotal = Number(inv.subtotal);
+        const customerName = inv.customer_name || "Sin cliente";
         months[key].revenue += subtotal;
         if (inv.booking_id) {
           months[key].revenueRental += subtotal;
+          months[key].rentalByCustomer[customerName] = (months[key].rentalByCustomer[customerName] ?? 0) + subtotal;
         } else {
           months[key].revenueSales += subtotal;
+          months[key].salesByCustomer[customerName] = (months[key].salesByCustomer[customerName] ?? 0) + subtotal;
         }
       });
 
@@ -342,6 +348,30 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
     }));
   }, [filteredData]);
 
+  const rentalBreakdownRows = useMemo((): StatementRow[] => {
+    const allNames = new Set<string>();
+    filteredData.forEach((r) => {
+      Object.keys(r.rentalByCustomer).forEach((n) => allNames.add(n));
+    });
+    return [...allNames].sort().map((name): StatementRow => ({
+      label: `      ${name}`,
+      values: filteredData.map((r) => r.rentalByCustomer[name] ?? 0),
+      total: filteredData.reduce((s, r) => s + (r.rentalByCustomer[name] ?? 0), 0),
+    }));
+  }, [filteredData]);
+
+  const salesBreakdownRows = useMemo((): StatementRow[] => {
+    const allNames = new Set<string>();
+    filteredData.forEach((r) => {
+      Object.keys(r.salesByCustomer).forEach((n) => allNames.add(n));
+    });
+    return [...allNames].sort().map((name): StatementRow => ({
+      label: `      ${name}`,
+      values: filteredData.map((r) => r.salesByCustomer[name] ?? 0),
+      total: filteredData.reduce((s, r) => s + (r.salesByCustomer[name] ?? 0), 0),
+    }));
+  }, [filteredData]);
+
   const rentedWithoutCost = useMemo(() => {
     const activeBookings = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");
     const rentedIds = new Set<string>();
@@ -364,6 +394,8 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
     yearTotals,
     csvRows,
     depreciationBreakdownRows,
+    rentalBreakdownRows,
+    salesBreakdownRows,
     rentedWithoutCost,
     availableYears,
     selectedYear,

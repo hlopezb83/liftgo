@@ -21,11 +21,14 @@ interface Props {
 export function IncomeStatementReport({ startDate, endDate, accountingBasis = "accrual" }: Props) {
   const {
     filteredData, totals, statementRows, comparisonRows, yearTotals,
-    csvRows, depreciationBreakdownRows, rentedWithoutCost,
+    csvRows, depreciationBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
+    rentedWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
   } = useIncomeStatementData({ startDate, endDate, accountingBasis });
 
   const [showDepBreakdown, setShowDepBreakdown] = useState(false);
+  const [showRentalBreakdown, setShowRentalBreakdown] = useState(false);
+  const [showSalesBreakdown, setShowSalesBreakdown] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   const kpis = [
@@ -172,17 +175,30 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
               <TableBody>
                 {statementRows.map((row) => {
                   const isDepRow = row.label === "(-) Depreciación (Equipos Rentados)";
+                  const isRentalRow = row.label === "  Ingresos por Rentas";
+                  const isSalesRow = row.label === "  Ingresos por Ventas";
+                  const isExpandable = isDepRow || isRentalRow || isSalesRow;
+                  const isOpen = (isDepRow && showDepBreakdown) || (isRentalRow && showRentalBreakdown) || (isSalesRow && showSalesBreakdown);
+                  const toggle = () => {
+                    if (isDepRow) setShowDepBreakdown((v) => !v);
+                    else if (isRentalRow) setShowRentalBreakdown((v) => !v);
+                    else if (isSalesRow) setShowSalesBreakdown((v) => !v);
+                  };
+                  const breakdownRows = isDepRow ? depreciationBreakdownRows
+                    : isRentalRow ? rentalBreakdownRows
+                    : isSalesRow ? salesBreakdownRows
+                    : [];
                   return (
                     <>
                       <TableRow
                         key={row.label}
-                        className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""} ${isDepRow ? "cursor-pointer hover:bg-muted/30" : ""}`}
-                        onClick={isDepRow ? () => setShowDepBreakdown(!showDepBreakdown) : undefined}
+                        className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""} ${isExpandable ? "cursor-pointer hover:bg-muted/30" : ""}`}
+                        onClick={isExpandable ? toggle : undefined}
                       >
                         <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
                           <span className="flex items-center gap-1">
-                            {isDepRow && (
-                              showDepBreakdown
+                            {isExpandable && (
+                              isOpen
                                 ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                                 : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                             )}
@@ -203,7 +219,14 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
                           {formatCell(row, row.total)}
                         </TableCell>
                       </TableRow>
-                      {isDepRow && showDepBreakdown && depreciationBreakdownRows.map((bRow) => (
+                      {isExpandable && isOpen && breakdownRows.length === 0 && (
+                        <TableRow className="bg-muted/10">
+                          <TableCell colSpan={filteredData.length + 2} className="text-center text-xs text-muted-foreground italic py-2">
+                            Sin desglose disponible
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {isExpandable && isOpen && breakdownRows.map((bRow) => (
                         <TableRow key={bRow.label} className="bg-muted/10">
                           <TableCell className="sticky left-0 bg-muted/10 z-10 text-muted-foreground text-xs">
                             {bRow.label}

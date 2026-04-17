@@ -1,5 +1,17 @@
 [
   {
+    "version": "5.18.0",
+    "date": "2026-04-17",
+    "type": "minor",
+    "title": "Desglose por cliente en Estado de Resultados",
+    "description": "Las filas 'Ingresos por Rentas' e 'Ingresos por Ventas' ahora son expandibles para mostrar el desglose mensual por cliente, igual que la fila de Depreciación.",
+    "changes": [
+      "Click en 'Ingresos por Rentas' muestra el desglose por cliente",
+      "Click en 'Ingresos por Ventas' muestra el desglose por cliente",
+      "Indicador de chevron en filas expandibles"
+    ]
+  },
+  {
     "version": "5.17.2",
     "date": "2026-04-16",
     "type": "patch",
