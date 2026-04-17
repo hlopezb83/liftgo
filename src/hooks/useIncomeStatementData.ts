@@ -23,6 +23,8 @@ export interface MonthData {
   damageCost: number;
   depreciation: number;
   depreciationByForklift: Record<string, number>;
+  rentalByCustomer: Record<string, number>;
+  salesByCustomer: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
