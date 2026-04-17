@@ -1,5 +1,16 @@
 [
   {
+    "version": "5.18.1",
+    "date": "2026-04-17",
+    "type": "patch",
+    "title": "Clasificación correcta de facturas de renta sin reserva",
+    "description": "Las facturas generadas desde una cotización tipo renta ahora se clasifican como 'Ingresos por Rentas' aunque no tengan reserva vinculada. Antes caían erróneamente en 'Ingresos por Ventas'.",
+    "changes": [
+      "Estado de Resultados: facturas con quote_id de tipo rental se cuentan como renta",
+      "Corrige caso reportado: Ring Lock de México (FAC-0028) ahora aparece en rentas"
+    ]
+  },
+  {
     "version": "5.18.0",
     "date": "2026-04-17",
     "type": "minor",
