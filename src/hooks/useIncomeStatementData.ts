@@ -210,7 +210,7 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
         return { ...m, monthKey: key, depreciation, depreciationByForklift, grossProfit, grossMargin, totalExpenses, netProfit, margin };
       });
-  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, forkliftNameMap, startDate, endDate, accountingBasis]);
+  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, forkliftNameMap, startDate, endDate, accountingBasis, rentalQuoteIds]);
 
   const availableYears = useMemo(() => {
     return [...new Set(data.map((d) => d.monthKey.substring(0, 4)))].sort();
