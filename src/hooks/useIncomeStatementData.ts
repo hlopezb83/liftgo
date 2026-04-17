@@ -98,7 +98,7 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
   }, [forklifts]);
 
   const data = useMemo(() => {
-    const months: Record<string, { month: string; revenue: number; revenueRental: number; revenueSales: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number> }> = {};
+    const months: Record<string, { month: string; revenue: number; revenueRental: number; revenueSales: number; maintenanceCost: number; damageCost: number; expenses: Record<ExpenseCategory, number>; rentalByCustomer: Record<string, number>; salesByCustomer: Record<string, number> }> = {};
 
     const emptyExpenses = (): Record<ExpenseCategory, number> => ({ renta: 0, nomina: 0, software: 0, depreciacion: 0, otro: 0, costo_venta: 0, caja_chica: 0, publicidad: 0 });
 
@@ -109,6 +109,7 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
           month: format(startOfMonth(date), "MMM yyyy", { locale: es }),
           revenue: 0, revenueRental: 0, revenueSales: 0,
           maintenanceCost: 0, damageCost: 0, expenses: emptyExpenses(),
+          rentalByCustomer: {}, salesByCustomer: {},
         };
       }
       return key;
