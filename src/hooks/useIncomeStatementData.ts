@@ -84,6 +84,13 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
   const { data: operatingExpenses = [] } = useOperatingExpenses();
   const { data: bookings = [] } = useBookings();
   const { data: forklifts = [] } = useForklifts();
+  const { data: quotes = [] } = useQuotes();
+
+  const rentalQuoteIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const q of quotes) if (q.quote_type === "rental") set.add(q.id);
+    return set;
+  }, [quotes]);
 
   const forkliftNameMap = useMemo(() => {
     const map = new Map<string, string>();
