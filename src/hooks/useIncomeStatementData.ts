@@ -142,7 +142,8 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
         const subtotal = Number(inv.subtotal);
         const customerName = inv.customer_name || "Sin cliente";
         months[key].revenue += subtotal;
-        if (inv.booking_id) {
+        const isRental = !!inv.booking_id || (!!inv.quote_id && rentalQuoteIds.has(inv.quote_id));
+        if (isRental) {
           months[key].revenueRental += subtotal;
           months[key].rentalByCustomer[customerName] = (months[key].rentalByCustomer[customerName] ?? 0) + subtotal;
         } else {
