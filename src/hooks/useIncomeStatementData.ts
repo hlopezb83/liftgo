@@ -8,6 +8,7 @@ import { useOperatingExpenses, EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperat
 import type { ExpenseCategory } from "@/hooks/useOperatingExpenses";
 import { useBookings } from "@/hooks/useBookings";
 import { useForklifts } from "@/hooks/useForklifts";
+import { useQuotes } from "@/hooks/useQuotes";
 
 
 const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
@@ -83,6 +84,13 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
   const { data: operatingExpenses = [] } = useOperatingExpenses();
   const { data: bookings = [] } = useBookings();
   const { data: forklifts = [] } = useForklifts();
+  const { data: quotes = [] } = useQuotes();
+
+  const rentalQuoteIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const q of quotes) if (q.quote_type === "rental") set.add(q.id);
+    return set;
+  }, [quotes]);
 
   const forkliftNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -134,7 +142,8 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
         const subtotal = Number(inv.subtotal);
         const customerName = inv.customer_name || "Sin cliente";
         months[key].revenue += subtotal;
-        if (inv.booking_id) {
+        const isRental = !!inv.booking_id || (!!inv.quote_id && rentalQuoteIds.has(inv.quote_id));
+        if (isRental) {
           months[key].revenueRental += subtotal;
           months[key].rentalByCustomer[customerName] = (months[key].rentalByCustomer[customerName] ?? 0) + subtotal;
         } else {
@@ -201,7 +210,7 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
         const margin = m.revenue > 0 ? (netProfit / m.revenue) * 100 : 0;
         return { ...m, monthKey: key, depreciation, depreciationByForklift, grossProfit, grossMargin, totalExpenses, netProfit, margin };
       });
-  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, forkliftNameMap, startDate, endDate, accountingBasis]);
+  }, [invoices, maintenanceLogs, damageRecords, operatingExpenses, bookings, forkliftDepreciationMap, forkliftNameMap, startDate, endDate, accountingBasis, rentalQuoteIds]);
 
   const availableYears = useMemo(() => {
     return [...new Set(data.map((d) => d.monthKey.substring(0, 4)))].sort();
