@@ -348,6 +348,30 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
     }));
   }, [filteredData]);
 
+  const rentalBreakdownRows = useMemo((): StatementRow[] => {
+    const allNames = new Set<string>();
+    filteredData.forEach((r) => {
+      Object.keys(r.rentalByCustomer).forEach((n) => allNames.add(n));
+    });
+    return [...allNames].sort().map((name): StatementRow => ({
+      label: `      ${name}`,
+      values: filteredData.map((r) => r.rentalByCustomer[name] ?? 0),
+      total: filteredData.reduce((s, r) => s + (r.rentalByCustomer[name] ?? 0), 0),
+    }));
+  }, [filteredData]);
+
+  const salesBreakdownRows = useMemo((): StatementRow[] => {
+    const allNames = new Set<string>();
+    filteredData.forEach((r) => {
+      Object.keys(r.salesByCustomer).forEach((n) => allNames.add(n));
+    });
+    return [...allNames].sort().map((name): StatementRow => ({
+      label: `      ${name}`,
+      values: filteredData.map((r) => r.salesByCustomer[name] ?? 0),
+      total: filteredData.reduce((s, r) => s + (r.salesByCustomer[name] ?? 0), 0),
+    }));
+  }, [filteredData]);
+
   const rentedWithoutCost = useMemo(() => {
     const activeBookings = bookings.filter((b) => b.status === "confirmed" || b.status === "completed");
     const rentedIds = new Set<string>();
@@ -370,6 +394,8 @@ export function useIncomeStatementData({ startDate, endDate, accountingBasis = "
     yearTotals,
     csvRows,
     depreciationBreakdownRows,
+    rentalBreakdownRows,
+    salesBreakdownRows,
     rentedWithoutCost,
     availableYears,
     selectedYear,
