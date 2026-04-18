@@ -1,5 +1,19 @@
 [
   {
+    "version": "5.20.0",
+    "date": "2026-04-18",
+    "type": "minor",
+    "title": "Hooks pre-commit con Husky y lint-staged",
+    "description": "Se agrega validación automática antes de cada commit local: ESLint --fix sobre archivos staged y verificación de tipos con tsc --noEmit en todo el proyecto. Previene que código con warnings o errores de tipo entre al repositorio.",
+    "changes": [
+      "Husky 9 y lint-staged 15 instalados como devDependencies",
+      ".husky/pre-commit ejecuta lint-staged + tsc --noEmit",
+      ".lintstagedrc.json corre eslint --fix --max-warnings=0 en .ts/.tsx staged",
+      "Documentación de activación local en docs/pre-commit-setup.md",
+      "Nota: los hooks solo aplican en entornos locales, no dentro de Lovable"
+    ]
+  },
+  {
     "version": "5.19.0",
     "date": "2026-04-18",
     "type": "minor",
