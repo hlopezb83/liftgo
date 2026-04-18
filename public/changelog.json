@@ -1,5 +1,16 @@
 [
   {
+    "version": "5.27.0",
+    "date": "2026-04-18",
+    "type": "minor",
+    "title": "Sincronización de costo de venta vía trigger DB",
+    "description": "Se mueve la lógica de sincronización de costo_venta del hook useUpdateForklift a un trigger en la base de datos, eliminando 2 round-trips por edición de montacargas vendido.",
+    "changes": [
+      "Nuevo trigger sync_costo_venta_on_forklift_update sobre forklifts mantiene operating_expenses.costo_venta alineado con acquisition_cost",
+      "useUpdateForklift simplificado: una sola operación de update sin fetches adicionales"
+    ]
+  },
+  {
     "version": "5.26.0",
     "date": "2026-04-18",
     "type": "minor",
