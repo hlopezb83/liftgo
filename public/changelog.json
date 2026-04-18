@@ -1,5 +1,18 @@
 [
   {
+    "version": "5.22.0",
+    "date": "2026-04-18",
+    "type": "minor",
+    "title": "Modularización de hooks de formularios",
+    "description": "Los hooks useQuoteFormLogic y useInvoiceFormLogic se descomponen en sub-módulos: estado del formulario y prefill desde fuente, dejando el composer enfocado en computed values y submit.",
+    "changes": [
+      "Nuevo directorio src/hooks/quoteForm/ con useQuoteFormState y useQuotePrefill",
+      "Nuevo directorio src/hooks/invoiceForm/ con useInvoiceFormState y useInvoicePrefill",
+      "Helper applyCustomerCfdi reutilizable y tipado",
+      "API pública de los hooks composer sin cambios"
+    ]
+  },
+  {
     "version": "5.21.0",
     "date": "2026-04-18",
     "type": "minor",
