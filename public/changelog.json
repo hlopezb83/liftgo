@@ -1,5 +1,17 @@
 [
   {
+    "version": "5.25.0",
+    "date": "2026-04-18",
+    "type": "minor",
+    "title": "Refactor de ForkliftForm bajo el límite de 300 LOC",
+    "description": "ForkliftForm (330 LOC) se descompone en un hook de lógica (useForkliftFormLogic) y tres subcomponentes de sección (Detalles, Tarifas, Seguro). La página queda como composer de ~67 LOC.",
+    "changes": [
+      "Nuevo src/hooks/useForkliftFormLogic.ts centraliza estado, validación y submit",
+      "Nuevos componentes en src/components/forklift-form/ para cada sección del formulario",
+      "ForkliftForm pasa de 330 a 67 LOC sin cambios funcionales"
+    ]
+  },
+  {
     "version": "5.24.0",
     "date": "2026-04-18",
     "type": "minor",
