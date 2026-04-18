@@ -1,19 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
 import { generateLineItemsFromModel, computeTotals, type LineItem } from "@/lib/invoiceUtils";
 import { toast } from "sonner";
-import { format, addDays } from "date-fns";
+import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
-import { parseDateLocal } from "@/lib/utils";
-import type { DateRange } from "react-day-picker";
-import type { SaleLine } from "@/components/quotes/SaleLineItems";
-import type { RentalLine } from "@/components/quotes/RentalLineItems";
-
-const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0, discount: 0, discountType: "%" };
-const EMPTY_RENTAL_LINE: RentalLine = { modelId: "", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 0, discount: 0, discountType: "%" };
+import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
+import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
 
 export function useQuoteFormLogic() {
   const { id } = useParams();
@@ -25,94 +20,14 @@ export function useQuoteFormLogic() {
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
 
-  const [quoteType, setQuoteType] = useState<"rental" | "sale">("rental");
-  const [rentalLines, setRentalLines] = useState<RentalLine[]>([{ ...EMPTY_RENTAL_LINE }]);
-  const [saleLines, setSaleLines] = useState<SaleLine[]>([{ ...EMPTY_SALE_LINE }]);
-  const [customerId, setCustomerId] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [taxRate, setTaxRate] = useState("16");
-  const [currency, setCurrency] = useState("MXN");
-  const [notes, setNotes] = useState("");
-  const [validUntil, setValidUntil] = useState<Date>();
-  const [includeLogistics, setIncludeLogistics] = useState(false);
-  const [logisticsCost, setLogisticsCost] = useState(0);
+  const state = useQuoteFormState();
+  useQuotePrefill({ existingQuote, equipmentModels, state });
 
-  // Restore form state from existing quote
-  useEffect(() => {
-    if (existingQuote) {
-      const isSale = existingQuote.quote_type === "sale";
-      setQuoteType(isSale ? "sale" : "rental");
-      setCustomerId(existingQuote.customer_id || "");
-      setCustomerName(existingQuote.customer_name || "");
-      if (existingQuote.start_date && existingQuote.end_date) {
-        setDateRange({ from: parseDateLocal(existingQuote.start_date), to: parseDateLocal(existingQuote.end_date) });
-      }
-      setTaxRate(String(existingQuote.tax_rate));
-      setCurrency((existingQuote as unknown as { currency?: string }).currency || "MXN");
-      setNotes(existingQuote.notes || "");
-      setValidUntil(existingQuote.valid_until ? parseDateLocal(existingQuote.valid_until) : undefined);
-
-      const allItems = (existingQuote.line_items as unknown as LineItem[]) || [];
-      const logisticsItem = allItems.find((item) => item.description?.includes("Logística"));
-      if (logisticsItem) {
-        setIncludeLogistics(true);
-        setLogisticsCost(logisticsItem.unit_price || logisticsItem.total || 0);
-      }
-
-      if (isSale && equipmentModels) {
-        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
-        if (nonLogisticsItems.length > 0) {
-          const rebuilt = nonLogisticsItems.map((item) => {
-            const found = equipmentModels.find(
-              (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
-            );
-            return {
-              modelId: found?.id || "",
-              quantity: item.quantity || 1,
-              unitPrice: item.unit_price || 0,
-              discount: item.discount || 0,
-              discountType: (item.discount_type || "%") as "%" | "$",
-            };
-          });
-          setSaleLines(rebuilt);
-        }
-      }
-
-      if (!isSale && equipmentModels) {
-        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
-        // Read rental_meta from dedicated column first, fallback to legacy _rentalMeta in line_items
-        const meta = (existingQuote.rental_meta as unknown as RentalLine[] | undefined)
-          || ((allItems as unknown as Array<LineItem & { _rentalMeta?: RentalLine[] }>)?.[0]?._rentalMeta);
-        if (meta && meta.length > 0) {
-          setRentalLines(meta);
-        } else if (nonLogisticsItems.length > 0) {
-          const matchedModels = new Map<string, RentalLine>();
-          for (const item of nonLogisticsItems) {
-            const found = equipmentModels.find(
-              (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
-            );
-            if (found && !matchedModels.has(found.id)) {
-              matchedModels.set(found.id, {
-                modelId: found.id,
-                quantity: 1,
-                dailyRate: found.default_daily_rate ?? 0,
-                weeklyRate: found.default_weekly_rate ?? 0,
-                monthlyRate: found.default_monthly_rate ?? 0,
-                discount: item.discount || 0,
-                discountType: (item.discount_type || "%") as "%" | "$",
-              });
-            }
-          }
-          if (matchedModels.size > 0) {
-            setRentalLines(Array.from(matchedModels.values()));
-          }
-        }
-      }
-    } else if (!validUntil) {
-      setValidUntil(addDays(nowMty(), 30));
-    }
-  }, [existingQuote, equipmentModels]);
+  const {
+    quoteType, rentalLines, saleLines, customerId, customerName,
+    dateRange, taxRate, currency, notes, validUntil,
+    includeLogistics, logisticsCost,
+  } = state;
 
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
@@ -161,15 +76,6 @@ export function useQuoteFormLogic() {
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
-  const handleTypeChange = (type: string) => {
-    setQuoteType(type as "rental" | "sale");
-    setRentalLines([{ ...EMPTY_RENTAL_LINE }]);
-    setSaleLines([{ ...EMPTY_SALE_LINE }]);
-    setDateRange(undefined);
-    setIncludeLogistics(false);
-    setLogisticsCost(0);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerId) { toast.error("Selecciona un cliente"); return; }
@@ -215,29 +121,7 @@ export function useQuoteFormLogic() {
 
   return {
     id,
-    quoteType,
-    rentalLines,
-    setRentalLines,
-    saleLines,
-    setSaleLines,
-    customerId,
-    setCustomerId,
-    customerName,
-    setCustomerName,
-    dateRange,
-    setDateRange,
-    taxRate,
-    setTaxRate,
-    notes,
-    setNotes,
-    validUntil,
-    setValidUntil,
-    currency,
-    setCurrency,
-    includeLogistics,
-    setIncludeLogistics,
-    logisticsCost,
-    setLogisticsCost,
+    ...state,
     customers,
     equipmentModels,
     lineItems,
@@ -247,7 +131,6 @@ export function useQuoteFormLogic() {
     startDate,
     endDate,
     isPending: createQuote.isPending || updateQuote.isPending,
-    handleTypeChange,
     handleSubmit,
     navigate,
   };
