@@ -136,6 +136,7 @@ export function useStatusLogs(forkliftId: string | undefined) {
   return useQuery({
     queryKey: ["status_logs", forkliftId],
     enabled: !!forkliftId,
+    staleTime: 60_000,
     queryFn: async () => {
       if (!forkliftId) throw new Error("Forklift ID is required for status logs");
       const { data, error } = await supabase

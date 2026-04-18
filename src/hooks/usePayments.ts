@@ -9,6 +9,7 @@ export function usePayments(invoiceId: string | undefined) {
   return useQuery({
     queryKey: ["payments", invoiceId],
     enabled: !!invoiceId,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
