@@ -6,107 +6,25 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableHeader, TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowUpCircle, PlusCircle, Trash2, Clock, AlertTriangle, Undo2 } from "lucide-react";
-import { format } from "date-fns";
+import { TableRow, TableHead } from "@/components/ui/table";
 import type { AuditLog } from "@/hooks/useAuditLogs";
-
-const TABLES = [
-  { value: "all", label: "Todas las Tablas" },
-  { value: "bookings", label: "Reservas" },
-  { value: "invoices", label: "Facturas" },
-  { value: "forklifts", label: "Montacargas" },
-  { value: "customers", label: "Clientes" },
-  { value: "contracts", label: "Contratos" },
-  { value: "payments", label: "Pagos" },
-  { value: "deliveries", label: "Entregas" },
-  { value: "maintenance_logs", label: "Mantenimiento" },
-  { value: "damage_records", label: "Registros de Daños" },
-  { value: "quotes", label: "Cotizaciones" },
-  { value: "return_inspections", label: "Inspecciones de Devolución" },
-];
-
-const ACTION_LABELS: Record<string, string> = {
-  INSERT: "Creación",
-  UPDATE: "Actualización",
-  DELETE: "Eliminación",
-};
-
-const TABLE_LABELS: Record<string, string> = Object.fromEntries(
-  TABLES.filter((t) => t.value !== "all").map((t) => [t.value, t.label])
-);
-
-const FIELD_LABELS: Record<string, string> = {
-  status: "Estado", start_date: "Fecha Inicio", end_date: "Fecha Fin", customer_name: "Nombre del Cliente",
-  customer_id: "Cliente", customer_contact: "Contacto del Cliente", forklift_id: "Montacargas",
-  booking_id: "Reserva", contract_number: "Número de Contrato", invoice_number: "Número de Factura",
-  quote_number: "Número de Cotización", total: "Total", subtotal: "Subtotal", tax_amount: "Impuesto",
-  tax_rate: "Tasa de Impuesto", description: "Descripción", notes: "Notas", daily_rate: "Tarifa Diaria",
-  weekly_rate: "Tarifa Semanal", monthly_rate: "Tarifa Mensual", created_at: "Fecha de Creación",
-  updated_at: "Fecha de Actualización", due_date: "Fecha de Vencimiento", paid_at: "Fecha de Pago",
-  issued_at: "Fecha de Emisión", scheduled_date: "Fecha Programada", performed_at: "Fecha de Realización",
-  name: "Nombre", model: "Modelo", manufacturer: "Fabricante", serial_number: "Número de Serie",
-  fuel_type: "Tipo de Combustible", capacity_kg: "Capacidad (kg)", mast_height_m: "Altura de Mástil (m)",
-  year: "Año", address: "Dirección", phone: "Teléfono", email: "Correo Electrónico", company: "Empresa",
-  rfc: "RFC", driver_name: "Nombre del Operador", driver_phone: "Teléfono del Operador",
-  service_type: "Tipo de Servicio", performed_by: "Realizado por", cost: "Costo",
-  estimated_cost: "Costo Estimado", actual_cost: "Costo Real", condition: "Condición",
-  fuel_level: "Nivel de Combustible", hours_used: "Horas Usadas", damage_notes: "Notas de Daño",
-  damage_cost: "Costo de Daño", recurring_billing: "Facturación Recurrente", deposit_amount: "Monto de Depósito",
-  terms_text: "Términos", signed_at: "Fecha de Firma", signed_by: "Firmado por", amount: "Monto",
-  payment_method: "Método de Pago", payment_date: "Fecha de Pago", reference_number: "Número de Referencia",
-  type: "Tipo", completed_at: "Fecha de Completado", image_url: "Imagen", return_status: "Estado de Devolución",
-  last_billed_date: "Última Fecha de Facturación", line_items: "Partidas", valid_until: "Válido Hasta",
-};
-
-const translateField = (field: string) => FIELD_LABELS[field] || field.replace(/_/g, " ");
-const translateAction = (action: string) => ACTION_LABELS[action] || action;
-const translateTable = (table: string) => TABLE_LABELS[table] || table.replace(/_/g, " ");
-
-const actionIcon = (action: string) => {
-  switch (action) {
-    case "INSERT": return <PlusCircle className="h-4 w-4 text-green-600" />;
-    case "UPDATE": return <ArrowUpCircle className="h-4 w-4 text-blue-600" />;
-    case "DELETE": return <Trash2 className="h-4 w-4 text-destructive" />;
-    default: return <Clock className="h-4 w-4 text-muted-foreground" />;
-  }
-};
-
-const actionBadgeVariant = (action: string) => {
-  switch (action) {
-    case "INSERT": return "default" as const;
-    case "UPDATE": return "secondary" as const;
-    case "DELETE": return "destructive" as const;
-    default: return "outline" as const;
-  }
-};
-
-function formatTimestamp(ts: string) {
-  return format(new Date(ts), "dd/MM/yyyy HH:mm");
-}
-
-function getRecordLabel(log: AuditLog): string {
-  const data = log.new_data || log.old_data;
-  if (!data) return log.record_id.slice(0, 8);
-  return data.name || data.booking_number || data.contract_number || data.invoice_number || data.quote_number || data.description?.slice(0, 30) || log.record_id.slice(0, 8);
-}
+import { TABLES, getRecordLabel } from "@/components/auditTrail/auditTrailConstants";
+import { AuditLogDetailDialog } from "@/components/auditTrail/AuditLogDetailDialog";
+import { DeleteAuditLogDialog } from "@/components/auditTrail/DeleteAuditLogDialog";
+import { AuditLogMobileCard } from "@/components/auditTrail/AuditLogMobileCard";
+import { AuditLogTableRow } from "@/components/auditTrail/AuditLogTableRow";
 
 export default function AuditTrailPage() {
   const [tableFilter, setTableFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-
   const [logToDelete, setLogToDelete] = useState<AuditLog | null>(null);
+
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
   const { mutate: deleteAuditLog, isPending: isDeleting } = useDeleteAuditLog();
   const { mutate: revertAuditLog, isPending: isReverting } = useRevertAuditLog();
-  const isPendingAction = isDeleting || isReverting;
 
   const { data: logs, isLoading } = useAuditLogs(
     tableFilter !== "all" ? { table_name: tableFilter } : undefined
@@ -132,30 +50,12 @@ export default function AuditTrailPage() {
       keyExtractor={(log) => log.id}
       emptyMessage="No se encontraron registros"
       renderCard={(log) => (
-        <Card className="cursor-pointer" onClick={() => setSelectedLog(log)}>
-          <CardContent className="p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {actionIcon(log.action)}
-                <Badge variant={actionBadgeVariant(log.action)}>{translateAction(log.action)}</Badge>
-              </div>
-              {isAdmin && (
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setLogToDelete(log); }}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <p className="text-sm"><span className="text-muted-foreground">Tabla:</span> {translateTable(log.table_name)}</p>
-            <p className="text-sm font-medium truncate">{getRecordLabel(log)}</p>
-            {log.changed_fields && (
-              <p className="text-xs text-muted-foreground truncate">{log.changed_fields.map(translateField).join(", ")}</p>
-            )}
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-              <span>{log.user_email || "Sistema"}</span>
-              <span>{formatTimestamp(log.created_at)}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <AuditLogMobileCard
+          log={log}
+          isAdmin={isAdmin}
+          onSelect={setSelectedLog}
+          onDeleteRequest={setLogToDelete}
+        />
       )}
     />
   ) : undefined;
@@ -196,165 +96,29 @@ export default function AuditTrailPage() {
           </TableRow>
         }
         renderRow={(log) => (
-          <TableRow key={log.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => setSelectedLog(log)}>
-            <TableCell>{actionIcon(log.action)}</TableCell>
-            <TableCell><Badge variant={actionBadgeVariant(log.action)}>{translateAction(log.action)}</Badge></TableCell>
-            <TableCell className="text-sm">{translateTable(log.table_name)}</TableCell>
-            <TableCell className="text-sm font-medium max-w-[160px] truncate">{getRecordLabel(log)}</TableCell>
-            <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{log.changed_fields?.map(translateField).join(", ") || "—"}</TableCell>
-            <TableCell className="text-sm text-muted-foreground">{log.user_email || "Sistema"}</TableCell>
-            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{formatTimestamp(log.created_at)}</TableCell>
-            {isAdmin && (
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={(e) => { e.stopPropagation(); setLogToDelete(log); }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            )}
-          </TableRow>
+          <AuditLogTableRow
+            key={log.id}
+            log={log}
+            isAdmin={isAdmin}
+            onSelect={setSelectedLog}
+            onDeleteRequest={setLogToDelete}
+          />
         )}
       />
 
-      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {selectedLog && actionIcon(selectedLog.action)}
-              {selectedLog && translateAction(selectedLog.action)} — {selectedLog && translateTable(selectedLog.table_name)}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedLog && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-muted-foreground block">ID del Registro</span><span className="font-mono text-xs">{selectedLog.record_id}</span></div>
-                <div><span className="text-muted-foreground block">Usuario</span>{selectedLog.user_email || "Sistema"}</div>
-                <div><span className="text-muted-foreground block">Fecha y Hora</span>{formatTimestamp(selectedLog.created_at)}</div>
-                {selectedLog.changed_fields && (
-                  <div><span className="text-muted-foreground block">Campos Modificados</span>{selectedLog.changed_fields.map(translateField).join(", ")}</div>
-                )}
-              </div>
+      <AuditLogDetailDialog log={selectedLog} onClose={() => setSelectedLog(null)} />
 
-              {selectedLog.action === "UPDATE" && selectedLog.changed_fields && selectedLog.old_data && selectedLog.new_data && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">Cambios en Campos</h4>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Campo</TableHead>
-                        <TableHead>Valor Anterior</TableHead>
-                        <TableHead>Valor Nuevo</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedLog.changed_fields.map((field) => (
-                        <TableRow key={field}>
-                          <TableCell className="font-medium text-sm">{translateField(field)}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground font-mono max-w-[200px] truncate">
-                            {JSON.stringify(selectedLog.old_data?.[field]) ?? "—"}
-                          </TableCell>
-                          <TableCell className="text-sm font-mono max-w-[200px] truncate">
-                            {JSON.stringify(selectedLog.new_data?.[field]) ?? "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {selectedLog.action === "INSERT" && selectedLog.new_data && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">Datos Creados</h4>
-                  <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-60">
-                    {JSON.stringify(selectedLog.new_data, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {selectedLog.action === "DELETE" && selectedLog.old_data && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">Datos Eliminados</h4>
-                  <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-60">
-                    {JSON.stringify(selectedLog.old_data, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!logToDelete} onOpenChange={(open) => !open && !isPendingAction && setLogToDelete(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-destructive" />
-              Eliminar registro de bitácora
-            </DialogTitle>
-          </DialogHeader>
-          {logToDelete && (
-            <div className="space-y-4">
-              <div className="text-sm space-y-1">
-                <p><span className="text-muted-foreground">Tabla:</span> {translateTable(logToDelete.table_name)}</p>
-                <p><span className="text-muted-foreground">Acción:</span> {translateAction(logToDelete.action)}</p>
-                <p><span className="text-muted-foreground">Fecha:</span> {formatTimestamp(logToDelete.created_at)}</p>
-                <p><span className="text-muted-foreground">Registro:</span> {getRecordLabel(logToDelete)}</p>
-              </div>
-
-              <div className="border rounded-lg p-3 space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  disabled={isPendingAction}
-                  onClick={() => {
-                    deleteAuditLog(logToDelete.id, { onSettled: () => setLogToDelete(null) });
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {isDeleting ? "Eliminando…" : "Solo borrar de bitácora"}
-                </Button>
-
-                <div className="relative">
-                  <Button
-                    variant="destructive"
-                    className="w-full justify-start"
-                    disabled={isPendingAction || (logToDelete.action === 'DELETE' && !logToDelete.old_data) || (logToDelete.action === 'UPDATE' && !logToDelete.old_data)}
-                    onClick={() => {
-                      revertAuditLog(
-                        { id: logToDelete.id, tableName: logToDelete.table_name },
-                        { onSettled: () => setLogToDelete(null) }
-                      );
-                    }}
-                  >
-                    <Undo2 className="h-4 w-4 mr-2" />
-                    {isReverting ? "Revirtiendo…" : "Revertir acción original"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
-                    <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-amber-500" />
-                    {logToDelete.action === 'INSERT' && "Esto eliminará el registro creado de la tabla original."}
-                    {logToDelete.action === 'UPDATE' && "Esto restaurará los valores anteriores en la base de datos."}
-                    {logToDelete.action === 'DELETE' && (logToDelete.old_data
-                      ? "Esto re-creará el registro eliminado en la base de datos."
-                      : "No se puede revertir: no hay datos anteriores disponibles."
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <Button variant="ghost" disabled={isPendingAction} onClick={() => setLogToDelete(null)}>
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <DeleteAuditLogDialog
+        log={logToDelete}
+        isDeleting={isDeleting}
+        isReverting={isReverting}
+        onClose={() => setLogToDelete(null)}
+        onDelete={(log) => deleteAuditLog(log.id, { onSettled: () => setLogToDelete(null) })}
+        onRevert={(log) => revertAuditLog(
+          { id: log.id, tableName: log.table_name },
+          { onSettled: () => setLogToDelete(null) }
+        )}
+      />
     </>
   );
 }
