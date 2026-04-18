@@ -1836,6 +1836,10 @@ export type Database = {
         Args: { p_forklift_id: string }
         Returns: Json
       }
+      get_income_statement: {
+        Args: { p_basis?: string; p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
       get_mrr_detail: { Args: never; Returns: Json }
       has_role: {
         Args: {
