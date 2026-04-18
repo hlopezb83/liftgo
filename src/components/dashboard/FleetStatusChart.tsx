@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -11,7 +12,7 @@ interface FleetStatusChartProps {
   data: PieDataItem[];
 }
 
-export function FleetStatusChart({ data }: FleetStatusChartProps) {
+export const FleetStatusChart = memo(function FleetStatusChart({ data }: FleetStatusChartProps) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Estado de la Flota</CardTitle></CardHeader>
@@ -39,4 +40,4 @@ export function FleetStatusChart({ data }: FleetStatusChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

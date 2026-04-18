@@ -1829,6 +1829,7 @@ export type Database = {
         Args: { p_customer_id: string }
         Returns: Json
       }
+      get_customer_summary: { Args: { p_customer_id: string }; Returns: Json }
       get_dashboard_stats: { Args: never; Returns: Json }
       get_financial_kpis: { Args: never; Returns: Json }
       get_forklift_financials: {
