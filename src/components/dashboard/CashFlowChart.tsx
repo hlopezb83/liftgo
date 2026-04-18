@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -12,7 +13,7 @@ interface CashFlowChartProps {
   data: CashFlowItem[];
 }
 
-export function CashFlowChart({ data }: CashFlowChartProps) {
+export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Flujo de Efectivo</CardTitle></CardHeader>
@@ -38,4 +39,4 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

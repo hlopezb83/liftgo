@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUp, Receipt } from "lucide-react";
@@ -18,7 +19,7 @@ interface UtilizationChartsProps {
   revenuePerUnit: RevenueItem[];
 }
 
-export function UtilizationCharts({ weeklyUtilization, revenuePerUnit }: UtilizationChartsProps) {
+export const UtilizationCharts = memo(function UtilizationCharts({ weeklyUtilization, revenuePerUnit }: UtilizationChartsProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -64,4 +65,4 @@ export function UtilizationCharts({ weeklyUtilization, revenuePerUnit }: Utiliza
       </Card>
     </div>
   );
-}
+});

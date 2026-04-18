@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +17,7 @@ interface InvoiceBreakdownProps {
   outstandingRevenue: number;
 }
 
-export function InvoiceBreakdown({ data, outstandingRevenue }: InvoiceBreakdownProps) {
+export const InvoiceBreakdown = memo(function InvoiceBreakdown({ data, outstandingRevenue }: InvoiceBreakdownProps) {
   const navigate = useNavigate();
 
   return (
@@ -53,4 +54,4 @@ export function InvoiceBreakdown({ data, outstandingRevenue }: InvoiceBreakdownP
       </CardContent>
     </Card>
   );
-}
+});
