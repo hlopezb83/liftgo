@@ -1,0 +1,8 @@
+{
+  "*.{ts,tsx}": [
+    "eslint --fix --max-warnings=0"
+  ],
+  "*.{js,jsx,json,css,md}": [
+    "eslint --fix --no-error-on-unmatched-pattern"
+  ]
+}
