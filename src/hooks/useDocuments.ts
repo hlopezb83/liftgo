@@ -5,6 +5,7 @@ export function useDocuments(entityType: string, entityId: string | undefined) {
   return useQuery({
     queryKey: ["documents", entityType, entityId],
     enabled: !!entityId,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")

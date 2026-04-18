@@ -18,6 +18,30 @@ export function useBookings(forkliftId?: string) {
   });
 }
 
+/**
+ * Variante de useBookings con filtro server-side por rango de fechas.
+ * Útil para Calendario / Dashboard donde solo importan reservas que se traslapan con un periodo.
+ * Trae reservas donde end_date >= from AND start_date <= to.
+ */
+export function useBookingsRange(from: string | Date, to: string | Date) {
+  const fromStr = typeof from === "string" ? from : from.toISOString().slice(0, 10);
+  const toStr = typeof to === "string" ? to : to.toISOString().slice(0, 10);
+  return useQuery({
+    queryKey: ["bookings", "range", fromStr, toStr],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*, forklifts(name, model)")
+        .gte("end_date", fromStr)
+        .lte("start_date", toStr)
+        .order("start_date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useBooking(bookingId?: string) {
   return useQuery({
     queryKey: ["booking", bookingId],

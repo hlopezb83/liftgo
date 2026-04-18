@@ -11,12 +11,12 @@ import { InvoiceBreakdown } from "@/components/dashboard/InvoiceBreakdown";
 import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { formatCurrency } from "@/lib/formatCurrency";
+
 import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useFinancialKpis } from "@/hooks/useFinancialKpis";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useInsuranceAlerts } from "@/hooks/useInsuranceAlerts";
 import { differenceInDays, parseISO } from "date-fns";
 import { nowMty } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ const INVOICE_STATUS_COLORS: Record<string, string> = {
 export default function Dashboard() {
   const { data: stats, isLoading } = useDashboardStats();
   const { data: kpis } = useFinancialKpis();
-  const { data: allForklifts } = useForklifts();
+  const { data: insuranceData } = useInsuranceAlerts();
 
   const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 };
   const activeFleet = counts.total - counts.retired - counts.sold;
@@ -132,7 +132,7 @@ export default function Dashboard() {
       />
       <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
       <ExpiringContractsAlert contracts={kpis?.expiring_contracts ?? []} />
-      <InsuranceAlert forklifts={(allForklifts || []) as any} />
+      <InsuranceAlert data={insuranceData} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />

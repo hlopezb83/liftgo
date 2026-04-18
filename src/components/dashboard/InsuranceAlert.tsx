@@ -1,33 +1,26 @@
+import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDateDisplay } from "@/lib/utils";
+import type { InsuranceAlertsData } from "@/hooks/useInsuranceAlerts";
 
 interface InsuranceAlertProps {
-  forklifts: Array<{ id: string; name: string; insurance_expiry: string | null; insurance_provider: string | null }>;
+  data: InsuranceAlertsData | undefined;
 }
 
-export function InsuranceAlert({ forklifts }: InsuranceAlertProps) {
+export const InsuranceAlert = memo(function InsuranceAlert({ data }: InsuranceAlertProps) {
   const navigate = useNavigate();
+  const expiring = data?.expiring ?? [];
+  const noInsuranceCount = data?.no_insurance_count ?? 0;
 
-  const expiring = forklifts.filter((f) => {
-    if (!f.insurance_expiry) return false;
-    const daysLeft = Math.ceil((new Date(f.insurance_expiry).getTime() - Date.now()) / 86400000);
-    return daysLeft <= 30;
-  }).map((f) => ({
-    ...f,
-    daysLeft: Math.ceil((new Date(f.insurance_expiry!).getTime() - Date.now()) / 86400000),
-  })).sort((a, b) => a.daysLeft - b.daysLeft);
-
-  const noInsurance = forklifts.filter((f) => !f.insurance_expiry && !["sold", "retired"].includes((f as any).status));
-
-  if (expiring.length === 0 && noInsurance.length === 0) return null;
+  if (expiring.length === 0 && noInsuranceCount === 0) return null;
 
   return (
     <Card className="border-amber-500/30 bg-amber-500/5">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2 text-amber-600">
-          <ShieldAlert className="h-4 w-4" /> Seguros ({expiring.length + noInsurance.length})
+          <ShieldAlert className="h-4 w-4" /> Seguros ({expiring.length + noInsuranceCount})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -39,19 +32,19 @@ export function InsuranceAlert({ forklifts }: InsuranceAlertProps) {
           >
             <span className="font-medium">{f.name}</span>
             <div className="text-right">
-              <span className={`font-mono font-semibold ${f.daysLeft <= 0 ? "text-destructive" : "text-amber-600"}`}>
-                {f.daysLeft <= 0 ? "Vencida" : `${f.daysLeft} días`}
+              <span className={`font-mono font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-amber-600"}`}>
+                {f.days_left <= 0 ? "Vencida" : `${f.days_left} días`}
               </span>
               <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(f.insurance_expiry)}</p>
             </div>
           </div>
         ))}
-        {noInsurance.length > 0 && (
+        {noInsuranceCount > 0 && (
           <p className="text-xs text-muted-foreground pt-1 border-t">
-            {noInsurance.length} equipo(s) sin seguro registrado
+            {noInsuranceCount} equipo(s) sin seguro registrado
           </p>
         )}
       </CardContent>
     </Card>
   );
-}
+});

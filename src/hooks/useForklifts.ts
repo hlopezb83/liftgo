@@ -63,9 +63,15 @@ export function useUpdateForklift() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts", data.id] });
+      // Optimistic local update: evita refetch completo de la lista de forklifts.
+      queryClient.setQueryData<Forklift[]>(["forklifts"], (old) =>
+        old ? old.map((f) => (f.id === data.id ? { ...f, ...data } : f)) : old
+      );
+      queryClient.setQueryData(["forklifts", data.id], data);
+      // Invalidar opciones ligeras y gastos (por si el trigger de costo_venta corrió).
+      queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
       queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["insurance-alerts"] });
     },
     onError: (err: Error) => {
       toast.error("Error al actualizar montacargas", { description: err.message });
@@ -136,6 +142,7 @@ export function useStatusLogs(forkliftId: string | undefined) {
   return useQuery({
     queryKey: ["status_logs", forkliftId],
     enabled: !!forkliftId,
+    staleTime: 60_000,
     queryFn: async () => {
       if (!forkliftId) throw new Error("Forklift ID is required for status logs");
       const { data, error } = await supabase

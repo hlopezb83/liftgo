@@ -1840,6 +1840,7 @@ export type Database = {
         Args: { p_basis?: string; p_end_date: string; p_start_date: string }
         Returns: Json
       }
+      get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
       has_role: {
         Args: {

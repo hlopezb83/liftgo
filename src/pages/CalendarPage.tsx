@@ -1,4 +1,4 @@
-import { useBookings } from "@/hooks/useBookings";
+import { useBookingsRange } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { PageTransition } from "@/components/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,9 +18,12 @@ import { GanttChart } from "@/components/calendar/GanttChart";
 import { EquipmentListView } from "@/components/calendar/EquipmentListView";
 
 export default function CalendarPage() {
-  const { data: bookings, isLoading: bLoading } = useBookings();
-  const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
   const [currentDate, setCurrentDate] = useState(nowMty());
+  // Rango ampliado +/- 7 días para cubrir el "ending soon" sin re-fetch al navegar.
+  const fetchFrom = useMemo(() => subMonths(currentDate, 1), [currentDate]);
+  const fetchTo = useMemo(() => addMonths(currentDate, 1), [currentDate]);
+  const { data: bookings, isLoading: bLoading } = useBookingsRange(fetchFrom, fetchTo);
+  const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
   
   const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
