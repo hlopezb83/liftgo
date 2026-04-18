@@ -9,7 +9,7 @@ export function useMaintenanceLogs(forkliftId?: string) {
     queryKey: ["maintenance_logs", forkliftId],
     staleTime: 60_000,
     queryFn: async () => {
-      let query = supabase.from("maintenance_logs").select("*").order("performed_at", { ascending: false });
+      let query = supabase.from("maintenance_logs").select("*").order("performed_at", { ascending: false }).limit(500);
       if (forkliftId) query = query.eq("forklift_id", forkliftId);
       const { data, error } = await query;
       if (error) throw error;

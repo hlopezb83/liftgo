@@ -9,7 +9,7 @@ export function useBookings(forkliftId?: string) {
     queryKey: ["bookings", forkliftId],
     staleTime: 60_000,
     queryFn: async () => {
-      let query = supabase.from("bookings").select("*, forklifts(name, model)").order("start_date");
+      let query = supabase.from("bookings").select("*, forklifts(name, model)").order("start_date", { ascending: false }).limit(500);
       if (forkliftId) query = query.eq("forklift_id", forkliftId);
       const { data, error } = await query;
       if (error) throw error;
