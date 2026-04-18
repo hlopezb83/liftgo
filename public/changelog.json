@@ -1,5 +1,18 @@
 [
   {
+    "version": "5.21.0",
+    "date": "2026-04-18",
+    "type": "minor",
+    "title": "Modularización del Estado de Resultados",
+    "description": "El hook monolítico useIncomeStatementData (414 LOC) se descompone en sub-módulos especializados por responsabilidad: agregación mensual, totales/comparativos y construcción de filas de presentación.",
+    "changes": [
+      "Nuevo directorio src/hooks/incomeStatement/ con types, useMonthlyData, useStatementTotals y useStatementRows",
+      "useIncomeStatementData ahora es un composer delgado que orquesta los sub-hooks",
+      "Lógica de cálculo de utilidad/margen centralizada en computeDerivedTotals (DRY)",
+      "Sin cambios funcionales: misma API pública del hook, totales idénticos"
+    ]
+  },
+  {
     "version": "5.20.0",
     "date": "2026-04-18",
     "type": "minor",
