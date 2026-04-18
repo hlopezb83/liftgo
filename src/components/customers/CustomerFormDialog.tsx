@@ -12,7 +12,7 @@ import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
 import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useParseCsf } from "@/hooks/useParseCsf";
 
 const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
@@ -32,7 +32,8 @@ interface CustomerFormDialogProps {
 
 export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, isPending, onSubmit }: CustomerFormDialogProps) {
   const { form, set, setForm, reset } = useFormState(emptyCustomer);
-  const [parsing, setParsing] = useState(false);
+  const parseCsf = useParseCsf();
+  const parsing = parseCsf.isPending;
   const [parsed, setParsed] = useState(false);
   const [tab, setTab] = useState("manual");
 
@@ -58,41 +59,26 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       return;
     }
 
-    setParsing(true);
     setParsed(false);
-    try {
-      const buffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      let binary = "";
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      const base64 = btoa(binary);
-
-      const { data, error } = await supabase.functions.invoke("parse-csf", {
-        body: { pdf_base64: base64 },
-      });
-
-      if (error) throw new Error(error.message || "Error al procesar CSF");
-      if (data?.error) throw new Error(data.error);
-
-      setForm((prev) => ({
-        ...prev,
-        name: data.name || prev.name,
-        rfc: data.rfc || prev.rfc,
-        domicilio_fiscal_cp: data.domicilio_fiscal_cp || prev.domicilio_fiscal_cp,
-        address: data.address || prev.address,
-        regimen_fiscal: data.regimen_fiscal || prev.regimen_fiscal,
-        representante_legal: data.representante_legal || prev.representante_legal,
-      }));
-      setParsed(true);
-      toast.success("Datos fiscales extraídos. Revisa y completa la información.");
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Error al procesar la constancia");
-    } finally {
-      setParsing(false);
-    }
-  }, [setForm]);
+    parseCsf.mutate(file, {
+      onSuccess: (data) => {
+        setForm((prev) => ({
+          ...prev,
+          name: data.name || prev.name,
+          rfc: data.rfc || prev.rfc,
+          domicilio_fiscal_cp: data.domicilio_fiscal_cp || prev.domicilio_fiscal_cp,
+          address: data.address || prev.address,
+          regimen_fiscal: data.regimen_fiscal || prev.regimen_fiscal,
+          representante_legal: data.representante_legal || prev.representante_legal,
+        }));
+        setParsed(true);
+        toast.success("Datos fiscales extraídos. Revisa y completa la información.");
+      },
+      onError: (e: unknown) => {
+        toast.error(e instanceof Error ? e.message : "Error al procesar la constancia");
+      },
+    });
+  }, [parseCsf, setForm]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

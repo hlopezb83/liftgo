@@ -3,8 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CANCELLATION_REASONS } from "@/lib/satCatalogs";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useCancelCfdi } from "@/hooks/useCancelCfdi";
 
 interface CancelCfdiDialogProps {
   open: boolean;
@@ -16,25 +15,18 @@ interface CancelCfdiDialogProps {
 
 export function CancelCfdiDialog({ open, onOpenChange, invoiceId, invoiceTotal, onSuccess }: CancelCfdiDialogProps) {
   const [cancelReason, setCancelReason] = useState("02");
-  const [cancelLoading, setCancelLoading] = useState(false);
+  const cancelCfdi = useCancelCfdi();
 
-  const handleCancel = async () => {
-    setCancelLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("cancel-cfdi", {
-        body: { invoice_id: invoiceId, cancellation_reason: cancelReason },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success("CFDI cancelado");
-      if (data?.warning) toast.warning(data.warning);
-      onOpenChange(false);
-      onSuccess();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al cancelar");
-    } finally {
-      setCancelLoading(false);
-    }
+  const handleCancel = () => {
+    cancelCfdi.mutate(
+      { invoiceId, cancellationReason: cancelReason },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          onSuccess();
+        },
+      },
+    );
   };
 
   return (
@@ -63,8 +55,8 @@ export function CancelCfdiDialog({ open, onOpenChange, invoiceId, invoiceTotal, 
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
-          <Button variant="destructive" onClick={handleCancel} disabled={cancelLoading}>
-            {cancelLoading ? "Cancelando..." : "Confirmar Cancelación"}
+          <Button variant="destructive" onClick={handleCancel} disabled={cancelCfdi.isPending}>
+            {cancelCfdi.isPending ? "Cancelando..." : "Confirmar Cancelación"}
           </Button>
         </DialogFooter>
       </DialogContent>

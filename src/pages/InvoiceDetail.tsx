@@ -24,7 +24,7 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn, formatDateDisplay, nowMty } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { useStampCfdi } from "@/hooks/useStampCfdi";
 import { toast } from "sonner";
 import type { LineItem } from "@/lib/invoiceUtils";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -40,7 +40,7 @@ export default function InvoiceDetail() {
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
   const updateBooking = useUpdateBooking();
-  const [stampLoading, setStampLoading] = useState(false);
+  const stampCfdi = useStampCfdi();
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -72,20 +72,9 @@ export default function InvoiceDetail() {
     );
   };
 
-  const handleStamp = async () => {
+  const handleStamp = () => {
     if (!id) return;
-    setStampLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("stamp-cfdi", { body: { invoice_id: id } });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast.success(`CFDI timbrado${data.stub ? " (modo prueba)" : " exitosamente"} — UUID: ${data.cfdi_uuid}`);
-      refetch();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al timbrar");
-    } finally {
-      setStampLoading(false);
-    }
+    stampCfdi.mutate(id, { onSuccess: () => refetch() });
   };
 
   const handleDownloadXml = () => {
@@ -153,8 +142,8 @@ export default function InvoiceDetail() {
                   <DropdownMenuItem onClick={() => navigate(`/invoices/${id}/edit`)}><Edit className="h-4 w-4 mr-2" /> Editar</DropdownMenuItem>
                 )}
                 {cfdiStatus === "pending" && invoice.status !== "draft" && (
-                  <DropdownMenuItem onClick={handleStamp} disabled={stampLoading}>
-                    <Stamp className="h-4 w-4 mr-2" /> {stampLoading ? "Timbrando..." : "Timbrar CFDI"}
+                  <DropdownMenuItem onClick={handleStamp} disabled={stampCfdi.isPending}>
+                    <Stamp className="h-4 w-4 mr-2" /> {stampCfdi.isPending ? "Timbrando..." : "Timbrar CFDI"}
                   </DropdownMenuItem>
                 )}
                 {cfdiStatus === "stamped" && (
