@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useCustomers";
-import { useBookings } from "@/hooks/useBookings";
-import { useInvoices } from "@/hooks/useInvoices";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,14 +21,14 @@ import { CustomerContactCard } from "@/components/customer-detail/CustomerContac
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
 import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
 import { useCustomerProfitability } from "@/hooks/useCustomerProfitability";
+import { useCustomerSummary } from "@/hooks/useCustomerSummary";
 import type { CustomerFormData } from "@/lib/formSchemas";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: customers, isLoading } = useCustomers();
-  const { data: allBookings } = useBookings();
-  const { data: allInvoices } = useInvoices();
+  const { data: summary } = useCustomerSummary(id);
   const { data: role } = useUserRole();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
@@ -42,11 +40,11 @@ export default function CustomerDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const customer = customers?.find((c) => c.id === id);
-  const bookings = allBookings?.filter((b) => b.customer_id === id);
-  const invoices = allInvoices?.filter((i) => i.customer_id === id);
+  const bookings = summary?.bookings ?? [];
+  const invoices = summary?.invoices ?? [];
 
-  const totalInvoiced = invoices?.reduce((sum, i) => sum + Number(i.total), 0) || 0;
-  const totalPaid = invoices?.filter((i) => i.status === "paid").reduce((sum, i) => sum + Number(i.total), 0) || 0;
+  const totalInvoiced = Number(summary?.totals.total_invoiced ?? 0);
+  const totalPaid = Number(summary?.totals.total_paid ?? 0);
   const outstanding = totalInvoiced - totalPaid;
 
   const hasPortalAccess = !!customer?.user_id;
