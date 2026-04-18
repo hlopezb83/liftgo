@@ -161,7 +161,7 @@ export default function CustomerDetailPage() {
               {bookings.map((b) => (
                 <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
                   <div>
-                    <p className="font-medium">{b.forklifts?.name || "—"} — {b.forklifts?.model || ""}</p>
+                    <p className="font-medium">{b.forklift?.name || "—"} — {b.forklift?.model || ""}</p>
                     <p className="text-xs text-muted-foreground">{formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)}</p>
                   </div>
                   <StatusBadge status={b.status} />
