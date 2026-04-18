@@ -11,6 +11,48 @@ Deno.serve(async (req) => {
   const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
+    // --- AuthN: require valid JWT ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: jsonHeaders,
+      });
+    }
+    const token = authHeader.replace("Bearer ", "");
+
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: jsonHeaders,
+      });
+    }
+    const userId = claimsData.claims.sub as string;
+
+    // --- AuthZ: must be admin or administrativo ---
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+    const { data: roles, error: rolesErr } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    if (rolesErr) {
+      return new Response(JSON.stringify({ error: "Authorization check failed" }), {
+        status: 500, headers: jsonHeaders,
+      });
+    }
+    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: jsonHeaders,
+      });
+    }
+
     const body = await req.json();
     const { invoice_id } = body;
 
@@ -19,11 +61,6 @@ Deno.serve(async (req) => {
         status: 400, headers: jsonHeaders,
       });
     }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
