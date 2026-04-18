@@ -19,7 +19,7 @@ type EquipmentModelInput = {
 export function useEquipmentModels() {
   return useQuery({
     queryKey: ["equipment_models"],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("equipment_models")

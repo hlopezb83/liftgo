@@ -17,7 +17,7 @@ type DriverInput = {
 export function useDrivers() {
   return useQuery({
     queryKey: ["drivers"],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("drivers")
@@ -32,7 +32,7 @@ export function useDrivers() {
 export function useActiveDrivers() {
   return useQuery({
     queryKey: ["drivers", "active"],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("drivers")

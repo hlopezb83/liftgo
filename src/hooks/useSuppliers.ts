@@ -29,7 +29,7 @@ export const SUPPLIER_CATEGORIES: Record<string, string> = {
 export function useSuppliers() {
   return useQuery({
     queryKey: ["suppliers"],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("suppliers")

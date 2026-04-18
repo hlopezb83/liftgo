@@ -49,7 +49,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttChartProps) {
-  const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
+  const days = useMemo(
+    () => eachDayOfInterval({ start: rangeStart, end: rangeEnd }),
+    [rangeStart, rangeEnd]
+  );
   const totalDays = days.length;
 
   const bookingsByForklift = useMemo(() => {
