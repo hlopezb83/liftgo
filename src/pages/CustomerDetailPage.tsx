@@ -16,9 +16,8 @@ import { formatDateDisplay } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { useInviteCustomer } from "@/hooks/useInviteCustomer";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import { useUserRole } from "@/hooks/useUserRole";
 import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
@@ -33,13 +32,12 @@ export default function CustomerDetailPage() {
   const { data: allBookings } = useBookings();
   const { data: allInvoices } = useInvoices();
   const { data: role } = useUserRole();
-  const queryClient = useQueryClient();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
+  const inviteCustomer = useInviteCustomer();
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviting, setInviting] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -54,22 +52,17 @@ export default function CustomerDetailPage() {
   const hasPortalAccess = !!customer?.user_id;
   const { data: profitability } = useCustomerProfitability(id);
 
-  const handleInvite = async () => {
+  const handleInvite = () => {
     if (!inviteEmail || !id) return;
-    setInviting(true);
-    try {
-      const res = await supabase.functions.invoke("invite-customer", { body: { customer_id: id, email: inviteEmail } });
-      if (res.error) throw new Error(res.error.message);
-      if (res.data?.error) throw new Error(res.data.error);
-      toast.success("Invitación enviada", { description: `Acceso al portal creado para ${inviteEmail}` });
-      setInviteOpen(false);
-      setInviteEmail("");
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-    } catch (err: unknown) {
-      toast.error("Error", { description: err instanceof Error ? err.message : "Error desconocido" });
-    } finally {
-      setInviting(false);
-    }
+    inviteCustomer.mutate(
+      { customerId: id, email: inviteEmail },
+      {
+        onSuccess: () => {
+          setInviteOpen(false);
+          setInviteEmail("");
+        },
+      },
+    );
   };
 
   const handleEditSubmit = (form: CustomerFormData) => {
@@ -266,8 +259,8 @@ export default function CustomerDetailPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancelar</Button>
-            <Button onClick={handleInvite} disabled={inviting || !inviteEmail}>
-              {inviting ? "Enviando..." : "Enviar Invitación"}
+            <Button onClick={handleInvite} disabled={inviteCustomer.isPending || !inviteEmail}>
+              {inviteCustomer.isPending ? "Enviando..." : "Enviar Invitación"}
             </Button>
           </DialogFooter>
         </DialogContent>

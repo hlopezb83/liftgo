@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useGenerateRecurringInvoices } from "@/hooks/useGenerateRecurringInvoices";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";
@@ -18,34 +18,13 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { RoleGuard } from "@/components/RoleGuard";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
 export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleGenerateRecurring = async () => {
-    setIsGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-recurring-invoices");
-      if (error) throw error;
-      const count = data?.invoicesCreated ?? 0;
-      toast.success(count > 0 ? `${count} factura(s) generada(s)` : "Sin facturas pendientes", {
-        description: count > 0 ? "Se crearon borradores de facturas recurrentes." : "No hay reservas con facturación recurrente pendiente.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    } catch (err: unknown) {
-      toast.error("Error al generar facturas", { description: err instanceof Error ? err.message : "Intenta de nuevo." } as { description: string });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  const generateRecurring = useGenerateRecurringInvoices();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(invoices, {
     searchFields: ["invoice_number", "customer_name"],
@@ -101,8 +80,8 @@ export default function InvoicesPage() {
       actions={
         <div className="flex gap-2">
           <RoleGuard module="Facturas" minAccess="full">
-            <Button variant="outline" size="sm" onClick={handleGenerateRecurring} disabled={isGenerating}>
-              <RefreshCw className={`h-4 w-4 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
+            <Button variant="outline" size="sm" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />
               Generar Recurrentes
             </Button>
           </RoleGuard>

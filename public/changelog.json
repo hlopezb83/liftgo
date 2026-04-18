@@ -1,5 +1,18 @@
 [
   {
+    "version": "5.20.0",
+    "date": "2026-04-18",
+    "type": "minor",
+    "title": "Capa de datos: hooks dedicados para edge functions",
+    "description": "Refactor arquitectónico que mueve todas las llamadas directas a Supabase fuera de páginas y componentes, encapsulándolas en hooks de mutación reutilizables con manejo unificado de errores y caché.",
+    "changes": [
+      "Nuevos hooks: useGenerateRecurringInvoices, useGenerateRecurringMaintenance, useStampCfdi, useCancelCfdi, useInviteCustomer, useParseCsf",
+      "InvoicesPage, InvoiceDetail, CustomerDetailPage, MaintenancePage ya no importan supabase directamente",
+      "CustomerFormDialog y CancelCfdiDialog migrados a la nueva capa de hooks",
+      "Mejor invalidación automática de caché de React Query al disparar acciones"
+    ]
+  },
+  {
     "version": "5.19.0",
     "date": "2026-04-18",
     "type": "minor",

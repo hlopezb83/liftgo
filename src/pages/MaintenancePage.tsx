@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useMaintenanceLogs, useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import { useGenerateRecurringMaintenance } from "@/hooks/useGenerateRecurringMaintenance";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -32,7 +32,6 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
 
 const initialForm = {
@@ -47,12 +46,12 @@ const initialForm = {
 };
 
 export default function MaintenancePage() {
-  const queryClient = useQueryClient();
   const { forkliftMap, forklifts } = useForkliftMap();
   const { data: logs, isLoading } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
   const createLog = useCreateMaintenanceLog();
   const updateLog = useUpdateMaintenanceLog();
+  const generateRecurring = useGenerateRecurringMaintenance();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<MaintenanceLog | null>(null);
@@ -60,26 +59,6 @@ export default function MaintenancePage() {
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
   const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
-  const [generatingRecurring, setGeneratingRecurring] = useState(false);
-
-  const handleGenerateRecurring = async () => {
-    setGeneratingRecurring(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-recurring-maintenance");
-      if (error) throw error;
-      const result = data as { generated: number; skipped: number; month: string; details?: string[] };
-      if (result.generated > 0) {
-        toast.success(`${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`);
-        queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
-      } else {
-        toast.info("No hay pólizas pendientes de generar para este mes");
-      }
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al generar mantenimiento recurrente");
-    } finally {
-      setGeneratingRecurring(false);
-    }
-  };
 
   const enrichedLogs = logs?.map((log) => ({
     ...log,
@@ -198,8 +177,8 @@ export default function MaintenancePage() {
             </ToggleGroup>
             <Button variant="outline" size="sm" onClick={() => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({ Fecha: l.performed_at, Montacargas: forkliftMap.get(l.forklift_id)?.name || "", Servicio: l.service_type, "Realizado Por": l.performed_by || "", Costo: l.cost || 0, "Próximo Servicio": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
             <RoleGuard module="Mantenimiento" minAccess="full">
-              <Button variant="outline" size="sm" onClick={handleGenerateRecurring} disabled={generatingRecurring}>
-                <RefreshCw className={`h-4 w-4 mr-1 ${generatingRecurring ? "animate-spin" : ""}`} />
+              <Button variant="outline" size="sm" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
+                <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />
                 Generar Recurrente
               </Button>
             </RoleGuard>
