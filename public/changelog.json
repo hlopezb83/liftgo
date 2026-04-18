@@ -1,5 +1,16 @@
 [
   {
+    "version": "5.28.2",
+    "date": "2026-04-18",
+    "type": "patch",
+    "title": "Límite de 500 filas en listas globales",
+    "description": "Se aplica un límite explícito de 500 registros (los más recientes) en facturas, cotizaciones, reservas y mantenimientos. Acota el payload sin romper tipos ni componentes y prepara el terreno para paginación server-side futura.",
+    "changes": [
+      "useInvoices, useQuotes, useBookings y useMaintenanceLogs limitan a 500 filas más recientes",
+      "Bookings ahora ordena por start_date descendente para mostrar primero las más nuevas"
+    ]
+  },
+  {
     "version": "5.28.1",
     "date": "2026-04-18",
     "type": "patch",

@@ -8,7 +8,7 @@ export function useInvoices() {
     queryKey: ["invoices"],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false }).limit(500);
       if (error) throw error;
       return data;
     },
