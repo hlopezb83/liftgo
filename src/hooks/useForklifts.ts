@@ -63,9 +63,15 @@ export function useUpdateForklift() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts", data.id] });
+      // Optimistic local update: evita refetch completo de la lista de forklifts.
+      queryClient.setQueryData<Forklift[]>(["forklifts"], (old) =>
+        old ? old.map((f) => (f.id === data.id ? { ...f, ...data } : f)) : old
+      );
+      queryClient.setQueryData(["forklifts", data.id], data);
+      // Invalidar opciones ligeras y gastos (por si el trigger de costo_venta corrió).
+      queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
       queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["insurance-alerts"] });
     },
     onError: (err: Error) => {
       toast.error("Error al actualizar montacargas", { description: err.message });
