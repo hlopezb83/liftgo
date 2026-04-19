@@ -1,105 +1,187 @@
 
 
-# Auditoría de Rendimiento — LiftGo
+Voy a hacer una auditoría UX/funcional desde la perspectiva de los usuarios finales del ERP (Admin, Ventas, Despachador, Mecánico, Administrativo). Primero exploro áreas clave que aún no he revisado a fondo.
 
-He revisado el bundle, las queries, los hooks de datos y los patrones de re-render. La app **funciona bien arquitectónicamente** (lazy routes, React Query con `staleTime`, RPCs agregadas para Dashboard), pero hay varios puntos donde estamos pagando costos innecesarios.
-
----
-
-## A. Llamadas a base de datos / red
-
-### A1. **`select("*")` en todas las tablas grandes** (CRÍTICO)
-23 hooks usan `select("*")` sin filtros ni paginación: `useInvoices`, `useBookings`, `useForklifts`, `useCustomers`, `useQuotes`, `useMaintenanceLogs`, `useOperatingExpenses`, etc. A medida que crezcan los datos, cada visita a Dashboard / Calendario / Reportes descarga **todas las filas históricas**.
-- **Impacto:** transferencia de KB/MB innecesarios + parseo JSON lento + memoria React Query.
-- **Fix:** seleccionar solo las columnas usadas + filtrar por rango (ej. facturas últimos 12 meses) + paginar server-side cuando supere ~500 filas.
-
-### A2. **N+1 implícito vía hooks múltiples en una misma página**
-Páginas que disparan 3-6 queries grandes en paralelo:
-- `Dashboard`: `useDashboardStats` (RPC) + `useFinancialKpis` (RPC) + `useForklifts` (lista completa solo para el `InsuranceAlert`).
-- `CustomerDetailPage`: `useCustomers` + `useBookings` + `useInvoices` (todas globales) solo para filtrar por un cliente.
-- `IncomeStatementPage / Reportes`: aglutina `useInvoices + useMaintenanceLogs + useDamageRecords + useOperatingExpenses + useBookings + useForklifts + useQuotes`.
-- **Fix:** crear RPCs agregadas (`get_customer_summary(id)`, `get_income_statement(start,end)`) que devuelvan solo lo necesario, igual que ya hicimos con `get_dashboard_stats`.
-
-### A3. **`useUpdateForklift` hace fetch extra dentro de la mutación**
-Lee `operating_expenses` con `ilike` y luego hace update — son 2 round-trips adicionales por cada edición. Debería ser un trigger SQL o estar dentro de un RPC.
-
-### A4. **`AuthProvider` dispara `getSession()` y `onAuthStateChange` en paralelo**
-El `onAuthStateChange` ya emite el `INITIAL_SESSION`; el `getSession()` extra es redundante y causa un re-render adicional al arranque.
-
-### A5. **`staleTime` inconsistente**
-Algunos hooks tienen `60_000`, otros nada (default `0` → refetch en cada mount). Hooks sin `staleTime`: `useInvoice(id)`, `useForklift(id)`, `useDashboardStats` (30s OK), `useFinancialKpis`. Estandarizar a 60s en lectura, 5min en catálogos (`useEquipmentModels`, `useDrivers`, `useMechanics`, `useSuppliers`, `useCompanySettings`).
+## Perfiles de usuario a considerar
+1. **Despachador** — coordina entregas/recolecciones diarias
+2. **Ventas** — cotiza, convierte prospectos, cierra reservas
+3. **Mecánico** — ejecuta y registra mantenimientos
+4. **Administrativo** — factura, cobra, concilia
+5. **Admin/Director** — toma decisiones con KPIs
 
 ---
 
-## B. Re-renders y trabajo en el main thread
+# Mejoras propuestas — LiftGo
 
-### B1. **Dashboard recalcula 7 `useMemo` en cascada**
-Aunque están memoizados, todos dependen de `stats?.x.y` (referencia nueva en cada fetch). Aceptable, pero los **subcomponentes hijos no están memoizados** (`StatCards`, `FleetStatusChart`, `CashFlowChart`, etc.) → cada refetch de stats vuelve a renderizar las charts de Recharts (caro).
-- **Fix:** envolver los componentes de `src/components/dashboard/*` con `React.memo`.
+## A. Productividad diaria (alto impacto)
 
-### B2. **`GanttChart` / `EquipmentListView` recalculan `eachDayOfInterval` en cada render**
-`days` y `totalDays` se calculan fuera del `useMemo` (líneas 52-53). Si el padre re-renderiza por cualquier estado (toggle de tabs), se recrea el array de 30 días.
+### A1. **Vista "Mi día" para Despachador**
+Hoy el despachador debe abrir Calendario + Entregas + Devoluciones por separado. Crear `/today` con: entregas de hoy, recolecciones de hoy, mantenimientos programados, alertas de seguros — todo en una pantalla con acciones rápidas (marcar entregado, asignar chofer).
 
-### B3. **`InsuranceAlert` recibe **toda** la flota** solo para filtrar pólizas próximas a vencer — debería ser parte del RPC de stats.
+### A2. **Notificaciones in-app y por email**
+No existe sistema de notificaciones. Casos críticos:
+- Factura vencida → Administrativo
+- Mantenimiento próximo (cada X horas) → Mecánico
+- Reserva por vencer (3 días) → Ventas
+- Seguro por expirar → Admin
+- Pago recibido → Ventas (cliente que cerró)
 
-### B4. **`useIncomeStatementData` itera 4 colecciones grandes con `filter().forEach()`**
-Para periodos amplios procesa N facturas × M meses en cada cambio de filtro. `useMemo` ayuda, pero si los datos vienen sin filtrar de A1, el costo escala mal. La solución real es pre-filtrar en el RPC.
+Implementar tabla `notifications` + bell icon en header + edge function para emails.
 
-### B5. **Falta de virtualización en listas largas**
-`MobileCardList` y tablas usan paginación cliente de 25, lo cual está bien, **pero** `GanttChart` renderiza un `<div>` por día × por montacargas (ej. 30 × 50 = 1,500 nodos) sin virtualización. Aceptable hoy, riesgo a futuro.
+### A3. **Búsqueda global mejorada (Ctrl+K)**
+Existe el atajo pero conviene auditar cobertura: ¿busca en folios FAC-, COT-, RSV-, CTR-, ENT-, DEV-, clientes, equipos por serie? Agregar resultados agrupados con preview.
 
----
-
-## C. Bundle y assets
-
-### C1. **`recharts` está cargado en cada chunk de página que usa charts**
-Recharts pesa ~110KB gzip. Cada `Reports/Dashboard/UtilizationCharts/CashFlowChart/FleetStatusChart` lo importa estático. Se está duplicando vía code-splitting de rutas (cada página lazy lo incluye).
-- **Fix:** mover gráficas a sub-componentes `lazy()` o configurar `manualChunks` en Vite para extraer `recharts` y `jspdf` a un chunk compartido.
-
-### C2. **`jspdf` ya está dynamic-imported** ✅ — bien hecho en `*PDFButton.tsx`.
-
-### C3. **`vite.config.ts` no define `build.rollupOptions.manualChunks`**
-Vendor chunk único enorme. Recomendado:
-```ts
-manualChunks: {
-  recharts: ['recharts'],
-  radix: [/* todos los @radix-ui */],
-  vendor: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-}
-```
-
-### C4. **`lucide-react` importa por named export (✅ tree-shakeable)** — pero `AppSidebar.tsx` importa **30+ iconos en un solo import**. Está bien para tree-shaking, no es problema.
-
-### C5. **Sin compresión / formatos de imagen modernos para `public/placeholder.svg`** — no es un problema serio (es SVG).
-
-### C6. **`@hello-pangea/dnd`** — solo se usa en CRM Kanban y Maintenance Kanban; verificar que esté en chunks lazy (parece estarlo por las rutas lazy).
+### A4. **Acciones masivas (bulk actions)**
+En tablas grandes (Facturas, Clientes, Reservas) no se pueden seleccionar múltiples filas. Casos: enviar recordatorio masivo de cobro, exportar CSV de selección, cancelar varias cotizaciones expiradas.
 
 ---
 
-## D. React Query / cache
+## B. Comercial / Ventas
 
-### D1. **`QueryClient` tiene `retry: 1` y `staleTime: 30s` global** ✅ correcto.
-Falta `gcTime` explícito (default 5min está OK) y **no se usa `refetchOnWindowFocus: false`** → cada vez que el usuario regresa a la pestaña, todas las queries `stale` se refetchean. Para una app interna esto es ruido.
+### B1. **Pipeline visual de cotizaciones**
+Hoy son tabla. Agregar vista Kanban (Borrador → Enviada → Aceptada → Convertida/Rechazada) similar al CRM, con drag-and-drop para cambiar estado.
 
-### D2. **Invalidaciones agresivas**
-`useUpdateForklift` invalida `forklifts` + `forklifts/:id` + `operating_expenses`. Considerar usar `setQueryData` para actualizar localmente sin refetch completo.
+### B2. **Plantillas de cotización rápida**
+Para clientes recurrentes que rentan el mismo equipo: botón "Duplicar última cotización" desde ficha del cliente.
+
+### B3. **Recordatorios automáticos de seguimiento**
+Cotización enviada hace 3 días sin respuesta → tarea automática para vendedor.
+
+### B4. **Firma electrónica en contratos** ✅ ya existe (SignaturePad) — verificar que esté en flujo cliente, no solo interno.
+
+### B5. **Link público de cotización**
+Token único para enviar al cliente sin que tenga que crear cuenta. Cliente acepta con un click → cotización pasa a "Aceptada" automáticamente.
 
 ---
 
-## Plan de acción priorizado
+## C. Operaciones / Flota
 
-| # | Acción | Impacto | Esfuerzo |
-|---|---|---|---|
-| **1** | Crear RPC agregada `get_income_statement(start,end)` y RPC `get_customer_summary(id)` para evitar descargar todas las facturas/bookings/forklifts | Alto | Medio |
-| **2** | Reemplazar `select("*")` por listas explícitas de columnas en los 6 hooks más usados (`useInvoices`, `useBookings`, `useForklifts`, `useCustomers`, `useQuotes`, `useMaintenanceLogs`) | Alto | Bajo |
-| **3** | Configurar `manualChunks` en `vite.config.ts` para separar `recharts`, `radix-ui` y `vendor` | Alto | Bajo |
-| **4** | Añadir `refetchOnWindowFocus: false` y subir `staleTime` a 5min en hooks de catálogos estáticos | Medio | Bajo |
-| **5** | Mover lógica de `useUpdateForklift` (sync de `costo_venta`) a un trigger DB | Medio | Medio |
-| **6** | Eliminar el `getSession()` extra en `AuthProvider` (usar solo `onAuthStateChange`) | Bajo | Trivial |
-| **7** | Envolver componentes pesados de Dashboard (`FleetStatusChart`, `CashFlowChart`, `UtilizationCharts`, `InvoiceBreakdown`) con `React.memo` | Medio | Bajo |
-| **8** | Memoizar `days`/`totalDays` en `GanttChart` y `EquipmentListView` | Bajo | Trivial |
-| **9** | Añadir paginación server-side a `useInvoices` y `useBookings` cuando superen 500 filas | Alto (a futuro) | Medio |
-| **10** | Considerar virtualización (`@tanstack/react-virtual`) para `GanttChart` cuando la flota crezca >100 unidades | Bajo (hoy) | Medio |
+### C1. **Mapa de ubicación de equipos**
+Existe `useForkliftMap` pero no veo página dedicada. Vista de mapa con pines de equipos rentados (dirección del cliente) — útil para logística y recolecciones.
 
-**Recomendación:** ejecutar pasos **1-4 ahora** (mayor ROI con bajo riesgo). Pasos 5-8 son pulido. 9-10 son preventivos para escala futura.
+### C2. **Checklist digital de entrega/devolución en móvil**
+El despachador debería poder completar la inspección desde tablet/celular en sitio: fotos, horómetro, daños, firma del cliente. Verificar que `ReturnInspection` esté optimizado para móvil táctil.
+
+### C3. **Lectura de horómetro con foto/OCR**
+En vez de capturar a mano, foto del display con campo numérico al lado. Podría usar Lovable AI para OCR.
+
+### C4. **Alertas predictivas de mantenimiento**
+Combinar horómetro actual + política de mantenimiento + horas/día promedio = "este equipo necesitará servicio en ~7 días". Notificar a Mecánico con anticipación.
+
+### C5. **Códigos QR en equipos**
+Cada forklift con QR físico que abre su ficha. Mecánico escanea → registra mantenimiento sin buscar.
+
+---
+
+## D. Cobranza / Finanzas
+
+### D1. **Recordatorios automáticos de cobranza**
+Factura vencida +3, +7, +15 días → email automático al cliente con link a portal y PDF adjunto. Hoy `CollectionNotesCard` es manual.
+
+### D2. **Estado de cuenta por cliente**
+PDF descargable con todas las facturas pendientes, pagos aplicados, saldo total. Botón en `CustomerDetailPage`.
+
+### D3. **Conciliación bancaria simplificada**
+Importar CSV/XML de banco → matching automático contra pagos pendientes por monto + fecha aproximada.
+
+### D4. **Forecast de cobranza**
+Widget en Dashboard: "Esperado cobrar esta semana: $X" basado en facturas con vencimiento próximo y comportamiento histórico del cliente.
+
+### D5. **Complemento de pago CFDI**
+Verificar si está implementado. Es obligatorio en México para pagos en parcialidades.
+
+---
+
+## E. UX / UI específicas
+
+### E1. **Estados de carga más granulares**
+Hoy se usa `Skeleton` global. Para mutaciones (guardar, eliminar) agregar feedback inline en el botón mismo además del toast.
+
+### E2. **Confirmaciones más inteligentes**
+"¿Eliminar cliente?" debería mostrar: "Tiene 3 reservas activas y $45,000 en facturas pendientes. ¿Continuar?" — no solo confirmación genérica.
+
+### E3. **Vista compacta vs cómoda**
+Toggle global de densidad de tablas (ya son compactas, pero algunos usuarios prefieren más aire). Persistir en localStorage por usuario.
+
+### E4. **Dark mode**
+Ya existe la infraestructura de tokens. Agregar toggle. Útil para uso prolongado.
+
+### E5. **Atajos de teclado en formularios**
+`Ctrl+S` guardar, `Esc` cancelar, `Ctrl+Enter` guardar y nuevo. Hoy todo es click.
+
+### E6. **Onboarding interactivo**
+Para nuevos usuarios: tour guiado de primer login (5 pasos clave). Reducir curva de aprendizaje.
+
+### E7. **Empty states accionables**
+Verificar que cada lista vacía tenga CTA claro: "No hay reservas → [Crear primera reserva]".
+
+---
+
+## F. Reportes y BI
+
+### F1. **Exportación a Excel además de CSV**
+Con formato (colores, totales en negrita, fórmulas) usando `xlsx`. Más útil para contadores.
+
+### F2. **Reporte de rentabilidad por cliente**
+Existe `useCustomerProfitability` — verificar que esté expuesto en UI con drill-down.
+
+### F3. **Comparativos período a período**
+"Ingresos este mes vs mes anterior vs mismo mes año pasado" en KPIs del Dashboard.
+
+### F4. **Reportes programados por email**
+Admin recibe Estado de Resultados cada lunes automáticamente.
+
+---
+
+## G. Portal del Cliente (mejoras)
+
+### G1. **Cliente puede solicitar extensión de renta** desde el portal → genera tarea para Ventas.
+### G2. **Cliente puede reportar incidencia/daño** con fotos desde portal.
+### G3. **Cliente paga en línea** (Stripe/Mercado Pago) → genera pago automáticamente.
+### G4. **Descarga de XML CFDI** desde el portal (hoy solo PDF).
+
+---
+
+## H. Móvil / Campo
+
+### H1. **PWA instalable**
+Configurar manifest + service worker básico para que despachadores y mecánicos lo instalen como app en su celular. Funciona offline para consultas.
+
+### H2. **Modo offline para inspecciones**
+Captura de inspección sin conexión, sincroniza al recuperar señal. Crítico para choferes en zonas sin cobertura.
+
+---
+
+## Plan priorizado
+
+| # | Mejora | Impacto | Esfuerzo | Prioridad |
+|---|---|---|---|---|
+| 1 | Notificaciones in-app + email (A2) | Muy alto | Alto | 🔥 |
+| 2 | Vista "Mi día" para Despachador (A1) | Alto | Medio | 🔥 |
+| 3 | Recordatorios automáticos de cobranza (D1) | Alto | Medio | 🔥 |
+| 4 | Estado de cuenta por cliente PDF (D2) | Alto | Bajo | 🔥 |
+| 5 | Acciones masivas en tablas (A4) | Alto | Medio | ⭐ |
+| 6 | Pipeline Kanban de cotizaciones (B1) | Medio | Medio | ⭐ |
+| 7 | Confirmaciones inteligentes (E2) | Medio | Bajo | ⭐ |
+| 8 | Atajos de teclado en formularios (E5) | Medio | Bajo | ⭐ |
+| 9 | Forecast de cobranza en Dashboard (D4) | Medio | Bajo | ⭐ |
+| 10 | Link público de cotización con aceptación (B5) | Alto | Medio | ⭐ |
+| 11 | Exportación a Excel formateado (F1) | Medio | Bajo | 💡 |
+| 12 | Comparativos período a período (F3) | Medio | Bajo | 💡 |
+| 13 | Mapa de equipos rentados (C1) | Medio | Medio | 💡 |
+| 14 | Dark mode (E4) | Bajo | Bajo | 💡 |
+| 15 | Cliente paga en línea desde portal (G3) | Alto | Alto | 💡 |
+| 16 | PWA instalable (H1) | Medio | Bajo | 💡 |
+| 17 | Códigos QR en equipos (C5) | Medio | Bajo | 💡 |
+| 18 | Alertas predictivas de mantenimiento (C4) | Medio | Medio | 💡 |
+| 19 | Conciliación bancaria CSV (D3) | Alto | Alto | 🔮 |
+| 20 | Modo offline para inspecciones (H2) | Medio | Alto | 🔮 |
+
+**Recomendación de fases:**
+- **Fase 1 (impacto inmediato):** #1-4 — resuelven dolores diarios de cobranza y operación
+- **Fase 2 (productividad):** #5-10 — pulen flujos comerciales y de tablas
+- **Fase 3 (diferenciadores):** #11-18 — features que elevan percepción del producto
+- **Fase 4 (escala):** #19-20 — proyectos grandes para versión futura
+
+¿Quieres que implemente la **Fase 1** completa, o prefieres elegir items específicos del listado?
 
