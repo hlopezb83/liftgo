@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface FinancialKpis {
   mrr: number;
+  mrr_prev: number;
   dso: number;
+  dso_prev: number;
   overdue_total: number;
+  overdue_total_prev: number;
   expiring_contracts: Array<{
     id: string;
     contract_number: string;

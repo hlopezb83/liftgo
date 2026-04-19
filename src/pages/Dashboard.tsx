@@ -129,9 +129,12 @@ export default function Dashboard() {
       <StatCards cards={statCards} />
       <FinancialKpiCards
         mrr={kpis?.mrr ?? 0}
+        mrrPrev={kpis?.mrr_prev}
         utilizationPercent={utilizationPercent}
         dso={kpis?.dso ?? 0}
+        dsoPrev={kpis?.dso_prev}
         overdueTotal={kpis?.overdue_total ?? 0}
+        overdueTotalPrev={kpis?.overdue_total_prev}
       />
       <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
       <CollectionForecast overdueInvoices={overdueInvoices} upcomingInvoices={upcomingInvoices ?? []} />
