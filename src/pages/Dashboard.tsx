@@ -144,7 +144,7 @@ export default function Dashboard() {
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />
       </div>
-      <UtilizationCharts weeklyUtilization={weeklyUtilization} revenuePerUnit={revenuePerUnit} />
+      <UtilizationCharts weeklyUtilization={weeklyUtilization} />
       <CashFlowChart data={cashFlowData} />
       <RecentActivity />
     </div>
