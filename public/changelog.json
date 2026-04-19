@@ -1,5 +1,16 @@
 [
   {
+    "version": "5.31.3",
+    "date": "2026-04-19",
+    "type": "patch",
+    "title": "Fix: Ingreso Mensual Recurrente actual en el panel",
+    "description": "El KPI de MRR mostraba $0 porque exigía bookings con estado 'active', pero las reservas vigentes usan el estado 'confirmed'. Ahora se calcula igual que el desglose detallado: forklifts con reserva recurrente vigente a la fecha de hoy.",
+    "changes": [
+      "MRR actual basado en vigencia de fechas (start_date <= hoy <= end_date)",
+      "Lógica homologada con get_mrr_detail para evitar discrepancias"
+    ]
+  },
+  {
     "version": "5.31.2",
     "date": "2026-04-19",
     "type": "patch",
