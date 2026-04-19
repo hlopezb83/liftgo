@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { UserPlus, CalendarDays, Receipt, Pencil, Trash2 } from "lucide-react";
+import { UserPlus, CalendarDays, Receipt, Pencil, Trash2, FileDown } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -107,6 +107,23 @@ export default function CustomerDetailPage() {
         backTo="/customers"
         actions={
           <>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!summary}
+              onClick={async () => {
+                if (!summary || !customer) return;
+                try {
+                  const { exportCustomerStatementPdf } = await import("@/lib/customerStatementPdf");
+                  await exportCustomerStatementPdf({ customer, summary });
+                  toast.success("Estado de cuenta generado");
+                } catch (e) {
+                  toast.error("No se pudo generar el PDF");
+                }
+              }}
+            >
+              <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" /> Editar
             </Button>
