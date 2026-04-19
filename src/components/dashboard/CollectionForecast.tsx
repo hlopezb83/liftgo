@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, ArrowRight, Calendar } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { differenceInDays, parseISO, addDays } from "date-fns";
+import { parseISO, addDays } from "date-fns";
 import { nowMty } from "@/lib/utils";
 
 interface OverdueInvoice {
