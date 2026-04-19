@@ -1,5 +1,16 @@
 [
   {
+    "version": "5.31.1",
+    "date": "2026-04-19",
+    "type": "patch",
+    "title": "Panel: se elimina chart 'Ingresos por Unidad'",
+    "description": "Se removió la gráfica 'Ingresos por Unidad' del Panel para simplificar la vista. La gráfica de Utilización de Flota ahora ocupa el ancho completo.",
+    "changes": [
+      "Eliminada gráfica 'Ingresos por Unidad' del dashboard",
+      "Gráfica de Utilización de Flota expandida a ancho completo"
+    ]
+  },
+  {
     "version": "5.31.0",
     "date": "2026-04-19",
     "type": "minor",
