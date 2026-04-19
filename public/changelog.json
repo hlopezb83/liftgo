@@ -1,5 +1,17 @@
 [
   {
+    "version": "5.29.1",
+    "date": "2026-04-19",
+    "type": "patch",
+    "title": "Cierre de auditoría de rendimiento",
+    "description": "Se completa la revisión de los puntos pendientes del plan: tras auditar 16 consumidores de useForklifts() y todos los <img> del proyecto, se confirma que reemplazar la lista completa por useForkliftOptions en formularios/reportes rompería tipos sin ganancia real, y que las imágenes de la flota no se renderizan en listas (solo logos y firmas únicas). El plan de rendimiento queda formalmente cerrado.",
+    "changes": [
+      "Auditoría: useForklifts() se mantiene en formularios y reportes que requieren todos los campos",
+      "Auditoría: las únicas imágenes a granel son las de daños, que ya usan loading=\"lazy\"",
+      "useForkliftOptions queda disponible para futuros selectors ligeros que solo necesiten id/nombre/estado"
+    ]
+  },
+  {
     "version": "5.29.0",
     "date": "2026-04-18",
     "type": "minor",
