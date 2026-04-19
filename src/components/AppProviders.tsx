@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="forklift-theme">
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { UserPlus, CalendarDays, Receipt, Pencil, Trash2 } from "lucide-react";
+import { UserPlus, CalendarDays, Receipt, Pencil, Trash2, FileDown } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -107,6 +107,23 @@ export default function CustomerDetailPage() {
         backTo="/customers"
         actions={
           <>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!summary}
+              onClick={async () => {
+                if (!summary || !customer) return;
+                try {
+                  const { exportCustomerStatementPdf } = await import("@/lib/customerStatementPdf");
+                  await exportCustomerStatementPdf({ customer, summary });
+                  toast.success("Estado de cuenta generado");
+                } catch (e) {
+                  toast.error("No se pudo generar el PDF");
+                }
+              }}
+            >
+              <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" /> Editar
             </Button>
@@ -215,15 +232,43 @@ export default function CustomerDetailPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {(bookings && bookings.length > 0) || (invoices && invoices.length > 0)
-                ? "Este cliente tiene reservas o facturas asociadas y no puede ser eliminado. Elimina primero las dependencias."
-                : "Esta acción no se puede deshacer. Se eliminará permanentemente el cliente del sistema."}
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                {(bookings.length > 0 || invoices.length > 0) ? (
+                  <>
+                    <p className="font-medium text-destructive">
+                      No se puede eliminar a {customer.name}.
+                    </p>
+                    <p>Este cliente tiene:</p>
+                    <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+                      {bookings.length > 0 && (
+                        <li>{bookings.length} reserva{bookings.length === 1 ? "" : "s"} registrada{bookings.length === 1 ? "" : "s"}</li>
+                      )}
+                      {invoices.length > 0 && (
+                        <li>{invoices.length} factura{invoices.length === 1 ? "" : "s"} emitida{invoices.length === 1 ? "" : "s"}</li>
+                      )}
+                      {outstanding > 0 && (
+                        <li className="text-destructive font-medium">
+                          Saldo pendiente: {formatCurrency(outstanding)}
+                        </li>
+                      )}
+                    </ul>
+                    <p className="text-xs text-muted-foreground pt-2">
+                      Elimina o cancela primero las dependencias.
+                    </p>
+                  </>
+                ) : (
+                  <p>
+                    Esta acción no se puede deshacer. Se eliminará permanentemente
+                    a <strong>{customer.name}</strong> del sistema.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            {!((bookings && bookings.length > 0) || (invoices && invoices.length > 0)) && (
+            {!(bookings.length > 0 || invoices.length > 0) && (
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => {

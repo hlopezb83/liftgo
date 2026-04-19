@@ -1,5 +1,19 @@
 [
   {
+    "version": "5.30.0",
+    "date": "2026-04-19",
+    "type": "minor",
+    "title": "Quick wins de UX: Estado de cuenta, Forecast, Confirmaciones y Dark mode",
+    "description": "Cuatro mejoras de alto valor visible y bajo esfuerzo: PDF de Estado de Cuenta por cliente, widget de Pronóstico de Cobranza en el Panel, confirmaciones de eliminación con detalle de dependencias y monto en mora, y activación del Dark mode automático según preferencia del sistema.",
+    "changes": [
+      "Botón 'Estado de Cuenta' en la ficha de cliente: PDF profesional con facturas pendientes, días vencidos, totales y desglose pagado/saldo",
+      "Widget 'Pronóstico de Cobranza' en el Panel: monto vencido + cobranza esperada en 7 y 30 días",
+      "Nuevo hook useUpcomingInvoices para listar facturas próximas a vencer",
+      "Confirmación de eliminación de cliente ahora muestra # de reservas, # de facturas y saldo pendiente exacto",
+      "Dark mode: el toggle del sidebar ahora respeta la preferencia del sistema operativo (enableSystem)"
+    ]
+  },
+  {
     "version": "5.29.1",
     "date": "2026-04-19",
     "type": "patch",
