@@ -82,9 +82,6 @@ export default function Dashboard() {
     (stats?.weekly_utilization ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization }))
   , [stats?.weekly_utilization]);
 
-  const revenuePerUnit = useMemo(() =>
-    (stats?.utilization ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue }))
-  , [stats?.utilization]);
 
   const invoiceBreakdown = useMemo(() =>
     (stats?.invoice_stats?.breakdown ?? []).map((b) => ({
@@ -144,7 +141,7 @@ export default function Dashboard() {
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />
       </div>
-      <UtilizationCharts weeklyUtilization={weeklyUtilization} revenuePerUnit={revenuePerUnit} />
+      <UtilizationCharts weeklyUtilization={weeklyUtilization} />
       <CashFlowChart data={cashFlowData} />
       <RecentActivity />
     </div>
