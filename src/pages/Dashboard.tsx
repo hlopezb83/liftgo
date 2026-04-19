@@ -82,6 +82,9 @@ export default function Dashboard() {
     (stats?.weekly_utilization ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization }))
   , [stats?.weekly_utilization]);
 
+  const revenuePerUnit = useMemo(() =>
+    (stats?.utilization ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue }))
+  , [stats?.utilization]);
 
   const invoiceBreakdown = useMemo(() =>
     (stats?.invoice_stats?.breakdown ?? []).map((b) => ({
@@ -126,12 +129,9 @@ export default function Dashboard() {
       <StatCards cards={statCards} />
       <FinancialKpiCards
         mrr={kpis?.mrr ?? 0}
-        mrrPrev={kpis?.mrr_prev}
         utilizationPercent={utilizationPercent}
         dso={kpis?.dso ?? 0}
-        dsoPrev={kpis?.dso_prev}
         overdueTotal={kpis?.overdue_total ?? 0}
-        overdueTotalPrev={kpis?.overdue_total_prev}
       />
       <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
       <CollectionForecast overdueInvoices={overdueInvoices} upcomingInvoices={upcomingInvoices ?? []} />
@@ -141,7 +141,7 @@ export default function Dashboard() {
         <FleetStatusChart data={pieData} />
         <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />
       </div>
-      <UtilizationCharts weeklyUtilization={weeklyUtilization} />
+      <UtilizationCharts weeklyUtilization={weeklyUtilization} revenuePerUnit={revenuePerUnit} />
       <CashFlowChart data={cashFlowData} />
       <RecentActivity />
     </div>

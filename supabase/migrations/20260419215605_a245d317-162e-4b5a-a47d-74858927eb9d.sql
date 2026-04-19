@@ -1,10 +1,9 @@
 CREATE OR REPLACE FUNCTION public.get_financial_kpis()
-RETURNS jsonb
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
 DECLARE
   v_mrr NUMERIC := 0;
   v_mrr_prev NUMERIC := 0;
@@ -18,7 +17,6 @@ DECLARE
   v_first_prev_month DATE := (date_trunc('month', v_today) - INTERVAL '1 month')::date;
   v_last_prev_month DATE := (date_trunc('month', v_today) - INTERVAL '1 day')::date;
 BEGIN
-  -- MRR actual: suma de monthly_rate de forklifts rentados con bookings activas
   SELECT COALESCE(SUM(f.monthly_rate), 0) INTO v_mrr
   FROM forklifts f
   WHERE f.status = 'rented'
@@ -29,7 +27,6 @@ BEGIN
         AND b.recurring_billing = true
     );
 
-  -- MRR mes anterior: usar bookings que estaban activas el último día del mes anterior
   SELECT COALESCE(SUM(f.monthly_rate), 0) INTO v_mrr_prev
   FROM forklifts f
   WHERE EXISTS (
@@ -40,28 +37,26 @@ BEGIN
       AND (b.end_date IS NULL OR b.end_date >= v_last_prev_month)
   );
 
-  -- DSO actual: promedio de días entre emisión y pago en últimos 90 días
-  SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (i.paid_at - i.issued_at)) / 86400.0), 0) INTO v_dso
+  -- DSO actual: date - date returns integer days directly
+  SELECT COALESCE(AVG((i.paid_at - i.issued_at::date))::numeric, 0) INTO v_dso
   FROM invoices i
   WHERE i.status = 'paid'
     AND i.paid_at IS NOT NULL
     AND i.paid_at >= (v_today - INTERVAL '90 days');
 
-  -- DSO mes anterior: ventana de 90 días terminada al cierre del mes anterior
-  SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (i.paid_at - i.issued_at)) / 86400.0), 0) INTO v_dso_prev
+  -- DSO mes anterior
+  SELECT COALESCE(AVG((i.paid_at - i.issued_at::date))::numeric, 0) INTO v_dso_prev
   FROM invoices i
   WHERE i.status = 'paid'
     AND i.paid_at IS NOT NULL
     AND i.paid_at >= (v_last_prev_month - INTERVAL '90 days')
     AND i.paid_at <= v_last_prev_month;
 
-  -- Cartera vencida actual
   SELECT COALESCE(SUM(i.total), 0) INTO v_overdue_total
   FROM invoices i
   WHERE i.status IN ('sent', 'partial')
     AND i.due_date < v_today;
 
-  -- Cartera vencida al cierre del mes anterior
   SELECT COALESCE(SUM(i.total), 0) INTO v_overdue_total_prev
   FROM invoices i
   WHERE i.status IN ('sent', 'partial', 'paid')
@@ -69,7 +64,6 @@ BEGIN
     AND i.due_date < v_last_prev_month
     AND (i.paid_at IS NULL OR i.paid_at > v_last_prev_month);
 
-  -- Contratos por vencer en próximos 30 días
   SELECT COALESCE(jsonb_agg(jsonb_build_object(
     'id', c.id,
     'contract_number', c.contract_number,
@@ -95,4 +89,4 @@ BEGIN
     'expiring_contracts', v_expiring
   );
 END;
-$$;
+$function$;
