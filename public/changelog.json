@@ -1,5 +1,15 @@
 [
   {
+    "version": "5.31.4",
+    "date": "2026-04-19",
+    "type": "patch",
+    "title": "Fix: Topar utilización por unidad en 100%",
+    "description": "El campo 'Utilización' del Resumen Financiero del montacargas usa created_at del sistema (no la fecha real de compra), lo que inflaba el porcentaje en equipos cargados tarde al ERP. Ahora se topa en 100% para evitar valores irreales.",
+    "changes": [
+      "Utilización por unidad limitada a 100% máximo en get_forklift_financials"
+    ]
+  },
+  {
     "version": "5.31.3",
     "date": "2026-04-19",
     "type": "patch",
