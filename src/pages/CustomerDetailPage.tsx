@@ -232,15 +232,43 @@ export default function CustomerDetailPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {(bookings && bookings.length > 0) || (invoices && invoices.length > 0)
-                ? "Este cliente tiene reservas o facturas asociadas y no puede ser eliminado. Elimina primero las dependencias."
-                : "Esta acción no se puede deshacer. Se eliminará permanentemente el cliente del sistema."}
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                {(bookings.length > 0 || invoices.length > 0) ? (
+                  <>
+                    <p className="font-medium text-destructive">
+                      No se puede eliminar a {customer.name}.
+                    </p>
+                    <p>Este cliente tiene:</p>
+                    <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+                      {bookings.length > 0 && (
+                        <li>{bookings.length} reserva{bookings.length === 1 ? "" : "s"} registrada{bookings.length === 1 ? "" : "s"}</li>
+                      )}
+                      {invoices.length > 0 && (
+                        <li>{invoices.length} factura{invoices.length === 1 ? "" : "s"} emitida{invoices.length === 1 ? "" : "s"}</li>
+                      )}
+                      {outstanding > 0 && (
+                        <li className="text-destructive font-medium">
+                          Saldo pendiente: {formatCurrency(outstanding)}
+                        </li>
+                      )}
+                    </ul>
+                    <p className="text-xs text-muted-foreground pt-2">
+                      Elimina o cancela primero las dependencias.
+                    </p>
+                  </>
+                ) : (
+                  <p>
+                    Esta acción no se puede deshacer. Se eliminará permanentemente
+                    a <strong>{customer.name}</strong> del sistema.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            {!((bookings && bookings.length > 0) || (invoices && invoices.length > 0)) && (
+            {!(bookings.length > 0 || invoices.length > 0) && (
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => {
