@@ -232,6 +232,44 @@ export type Database = {
           },
         ]
       }
+      collection_reminders_log: {
+        Row: {
+          email_status: string | null
+          error_message: string | null
+          id: string
+          invoice_id: string
+          recipient_email: string
+          reminder_type: string
+          sent_at: string
+        }
+        Insert: {
+          email_status?: string | null
+          error_message?: string | null
+          id?: string
+          invoice_id: string
+          recipient_email: string
+          reminder_type: string
+          sent_at?: string
+        }
+        Update: {
+          email_status?: string | null
+          error_message?: string | null
+          id?: string
+          invoice_id?: string
+          recipient_email?: string
+          reminder_type?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_reminders_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           created_at: string
@@ -1176,6 +1214,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          link: string | null
+          message: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          link?: string | null
+          message?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          link?: string | null
+          message?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       operating_expenses: {
         Row: {
           amount: number
@@ -1790,6 +1867,18 @@ export type Database = {
         }
         Returns: string
       }
+      create_notification: {
+        Args: {
+          p_entity_id?: string
+          p_entity_type?: string
+          p_link?: string
+          p_message?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       get_available_forklifts: {
         Args: { p_end_date: string; p_start_date: string }
@@ -1855,6 +1944,17 @@ export type Database = {
       next_inspection_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
+      notify_admins: {
+        Args: {
+          p_entity_id?: string
+          p_entity_type?: string
+          p_link?: string
+          p_message?: string
+          p_title: string
+          p_type: string
+        }
+        Returns: number
+      }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
     }
     Enums: {
