@@ -1,65 +1,73 @@
 
 
-Reviso el PDF de cotizaciones (template maestro) y el actual de estado de cuenta para igualarlos.
+# Estado de mejoras del ERP
 
-El template maestro vive en `src/lib/pdf/quote/` con helpers reutilizables expuestos vía `src/lib/quotePdfPremium.ts`:
-- `drawAccentBar` — barra naranja superior
-- `drawPremiumHeader` — logo + razón social + RFC + título grande gris
-- `drawInfoCardsAt` — tarjetas EMISOR / CLIENTE
-- `drawPremiumTable` — tabla zebra con headers oscuros
-- `drawBottomSection` — totales premium
-- `drawFooter` — pie de página
-- Paleta GRAY_900/700/500/400/200/100/50, MARGIN=20
+## ✅ Ya implementado (Quick Wins — v5.30.x)
 
-El actual `customerStatementPdf.ts` usa estilo viejo: header naranja simple, tablas autoTable con fillColor naranja sólido, sin tarjetas emisor/cliente, sin barra de acento, sin tipografía premium.
+| # | Mejora | Versión |
+|---|---|---|
+| #4 | Estado de cuenta PDF por cliente (+ rediseño premium) | 5.30.0 / 5.30.1 |
+| #7 | Confirmaciones inteligentes al eliminar cliente | 5.30.0 |
+| #9 | Forecast de cobranza en el Panel | 5.30.0 |
+| #14 | Dark mode automático según sistema | 5.30.0 |
 
-# Plan: Rediseñar Estado de Cuenta con look premium
+Adicional reciente (rondas anteriores): auditoría de rendimiento completa (v5.28-5.29), límite 500 filas en listas, RPCs para alertas de seguros, debounce en búsquedas, memoización de sidebar.
 
-## Objetivo
-Reemplazar `src/lib/customerStatementPdf.ts` para que use los mismos helpers del template maestro de cotizaciones.
+---
 
-## Cambios
+## 🔥 Pendientes del plan original (sin tocar)
 
-### 1. Estructura nueva del PDF
-1. **Barra de acento** (`drawAccentBar`) — naranja superior
-2. **Header premium** (`drawPremiumHeader`) — logo + datos empresa + título "ESTADO DE CUENTA" + folio dinámico tipo `EC-{yyyyMMdd}`
-3. **Tarjetas EMISOR / CLIENTE** (`drawInfoCardsAt`) — reutilizar pasando `isSale=true` para omitir período de renta
-4. **Fila de detalles compacta** — Fecha de emisión + Periodo cubierto (rango de facturas) + badge de estado de saldo (PAGADO / CON SALDO / VENCIDO)
-5. **Tres tarjetas de resumen** (estilo industrial minimalista, no naranja sólido):
-   - Total Facturado
-   - Total Pagado
-   - Saldo Pendiente (color condicional: rojo si > 0, gris si = 0)
-   - Fondo `GRAY_50`, borde `GRAY_200`, números grandes en `GRAY_900`
-6. **Tabla "Facturas Pendientes"** con `drawPremiumTable` adaptada o autoTable con paleta gris (header `GRAY_900`, zebra `GRAY_50`):
-   - Folio, Emisión, Vencimiento, Días vencidos, Estado, Total
-   - Badge de estado con colores semánticos
-7. **Tabla "Facturas Pagadas"** misma estética, header gris claro
-8. **Sección de totales** estilo `drawBottomSection` minimalista al final
-9. **Footer premium** (`drawFooter`) — uniforme con cotizaciones
+**Fase 1 (alto impacto operativo):**
+- #1 Notificaciones in-app + email (campanita en header, tabla `notifications`, edge function de envío)
+- #2 Vista "Mi Día" para Despachador (`/today` con entregas, recolecciones y mantenimientos del día)
+- #3 Recordatorios automáticos de cobranza (+3, +7, +15 días vía email al cliente)
 
-### 2. Detalles visuales (tomados del maestro)
-- Tipografía: `helvetica` con jerarquía FONT_XL/LG/MD/SM (14/10/8/6.5)
-- Paleta exclusivamente gris + acento naranja en barra superior
-- Sin colores planos saturados en tablas (eliminar `[232, 89, 12]` de headers)
-- Espaciado consistente con MARGIN=20
-- Badges con esquinas redondeadas (`roundedRect`)
+**Fase 2 (productividad comercial):**
+- #5 Acciones masivas en tablas (selección múltiple + bulk actions)
+- #6 Pipeline Kanban de cotizaciones
+- #8 Atajos de teclado en formularios (Ctrl+S, Esc, Ctrl+Enter)
+- #10 Link público de cotización con aceptación de un click
 
-### 3. Fecha y localización
-- Mantener `nowMty()` y formato DD/MM/YYYY (memoria de localización MX)
-- Mantener `formatCurrency` con MXN
+**Fase 3 (diferenciadores):**
+- #11 Exportación Excel formateada · #12 Comparativos período a período · #13 Mapa de equipos rentados · #15 Pago en línea desde portal · #16 PWA instalable · #17 QR en equipos · #18 Alertas predictivas de mantenimiento
 
-### 4. Archivos a modificar
-- `src/lib/customerStatementPdf.ts` → reescritura completa usando helpers premium
-- `public/changelog.json` → nueva entrada **v5.30.1 (patch)**: "Estado de cuenta PDF rediseñado con estilo premium del template maestro"
+**Fase 4 (escala):**
+- #19 Conciliación bancaria CSV · #20 Modo offline para inspecciones
 
-### 5. QA visual
-Tras implementar, generar un PDF de prueba mentalmente revisando:
-- Que los helpers acepten los datos sin romper (algunos esperan estructura de cotización)
-- Si `drawInfoCardsAt` no encaja 100%, replicar inline el patrón visual con misma paleta
-- Que tabla de facturas pagadas no se solape con footer (control de salto de página)
+---
 
-## Notas técnicas
-- `drawPremiumTable` está diseñada para line items de cotización (description/quantity/unit_price). Para tablas de facturas usaré `autoTable` directamente pero con la **paleta gris del maestro** (header `[17,24,39]`, alternateRow `[249,250,251]`, fontSize 8, sin naranja).
-- `drawBottomSection` es para totales de venta; para estado de cuenta replicaré el patrón visual de tarjetas resumen alineadas a la derecha.
-- Mantener compatibilidad con la firma actual `exportCustomerStatementPdf({ customer, summary })` — sin cambios en el llamador.
+## 🎯 Mi recomendación: siguientes 3 a implementar
+
+### **Recomendación A — Combo "Cobranza autónoma" (alto ROI inmediato)**
+1. **#3 Recordatorios automáticos de cobranza** por email (+3/+7/+15 días vencida)
+2. **#1 Notificaciones in-app** (al menos la campanita con eventos de cobranza, pagos recibidos y reservas por vencer)
+3. **#9-bis Comparativos período a período** en KPIs del Dashboard
+
+**Por qué:** Capitaliza el PDF de Estado de Cuenta y el Forecast recién entregados. La cobranza pasa de manual a semi-automática. Esfuerzo medio, ahorro de tiempo enorme para Administrativo.
+
+### **Recomendación B — Combo "Productividad diaria"**
+1. **#2 Vista Mi Día** para Despachador (concentra entregas/recolecciones/mantenimientos)
+2. **#5 Acciones masivas** en tablas (envío masivo de recordatorios, exports parciales)
+3. **#8 Atajos de teclado** en formularios (Ctrl+S, Esc, Ctrl+Enter)
+
+**Por qué:** Pulen los flujos del día a día de los usuarios más activos (Despachador y Administrativo). Esfuerzo bajo-medio, percepción de fluidez muy alta.
+
+### **Recomendación C — Combo "Cierre comercial moderno"**
+1. **#10 Link público de cotización** con aceptación de un click (token público + página `/q/{token}`)
+2. **#6 Pipeline Kanban de cotizaciones** con drag-and-drop
+3. **#11 Exportación a Excel formateada** para reportes contables
+
+**Por qué:** Acelera el cierre comercial y moderniza la experiencia que ve el cliente. Diferencia el producto frente a competencia.
+
+---
+
+## Mi voto
+
+Recomiendo arrancar con la **Recomendación A — Cobranza autónoma**. Razones:
+- Continúa la línea natural de los quick wins que acabamos de cerrar (Estado de Cuenta + Forecast)
+- Ataca el dolor más caro del negocio: cuentas por cobrar olvidadas
+- Los recordatorios automáticos por email aprovechan Lovable Emails que ya elegimos como proveedor
+- Las notificaciones in-app sientan la base reutilizable para futuras alertas (mantenimiento, seguros, reservas)
+
+¿Procedo con la **Recomendación A**, eliges otra, o armas tu propio combo de 2-3 items del listado?
 
