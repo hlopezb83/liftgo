@@ -1,5 +1,15 @@
 [
   {
+    "version": "5.31.5",
+    "date": "2026-04-20",
+    "type": "patch",
+    "title": "Panel: Eliminada tarjeta 'Ingresos por Unidad'",
+    "description": "Se removió la gráfica 'Ingresos por Unidad' del panel principal por aportar poco valor analítico. La tarjeta de 'Utilización de Flota' ahora ocupa el ancho completo.",
+    "changes": [
+      "UtilizationCharts simplificado a una sola gráfica de utilización"
+    ]
+  },
+  {
     "version": "5.31.4",
     "date": "2026-04-19",
     "type": "patch",
