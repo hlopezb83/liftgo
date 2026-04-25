@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdfShared";
+import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 
 interface QuotePDFButtonProps {
   quoteId: string;
@@ -44,7 +44,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       const {
         drawAccentBar, drawPremiumHeader, drawInfoCardsAt,
         drawPremiumTable, drawBottomSection, drawFooter,
-      } = await import("@/lib/quotePdfPremium");
+      } = await import("@/lib/pdf/quoteGenerator");
 
       const doc = new jsPDF();
       const isSale = quote.quote_type === "sale";

@@ -9,7 +9,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { Download, TrendingUp, TrendingDown, DollarSign, Percent, FileDown, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useIncomeStatementData } from "@/hooks/useIncomeStatementData";
-import { exportIncomeStatementPdf } from "@/lib/incomeStatementPdf";
+import { exportIncomeStatementPdf } from "@/lib/pdf/incomeStatement";
 import type { StatementRow, ComparisonRow } from "@/hooks/useIncomeStatementData";
 
 interface Props {

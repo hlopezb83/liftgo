@@ -1,4 +1,4 @@
-import { checkPage } from "@/lib/pdfShared";
+import { checkPage } from "@/lib/pdf/shared";
 import type { ContractData, TemplateData } from "./data";
 
 export function generateChecklistPage(doc: any, contract: ContractData, _company: any, _customer: any, forklift: any, tpl: TemplateData) {

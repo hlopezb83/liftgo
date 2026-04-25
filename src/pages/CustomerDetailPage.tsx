@@ -1,143 +1,63 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useCustomers";
+import { useParams } from "react-router-dom";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
-import { StatusBadge } from "@/components/StatusBadge";
-import { UserPlus, CalendarDays, Receipt, Pencil, Trash2, FileDown } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { formatCurrency } from "@/lib/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useInviteCustomer } from "@/hooks/useInviteCustomer";
+import { UserPlus, Pencil, Trash2, FileDown } from "lucide-react";
 import { toast } from "sonner";
-import { useUserRole } from "@/hooks/useUserRole";
 import { CustomerContactCard } from "@/components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "@/components/customer-detail/CustomerFinancialSummary";
+import { CustomerProfitabilityCard } from "@/components/customer-detail/CustomerProfitabilityCard";
+import { CustomerBookingsHistory } from "@/components/customer-detail/CustomerBookingsHistory";
+import { CustomerInvoicesList } from "@/components/customer-detail/CustomerInvoicesList";
+import { CustomerDeleteDialog } from "@/components/customer-detail/CustomerDeleteDialog";
+import { CustomerInviteDialog } from "@/components/customer-detail/CustomerInviteDialog";
 import { CustomerFormDialog } from "@/components/customers/CustomerFormDialog";
-import { useCustomerProfitability } from "@/hooks/useCustomerProfitability";
-import { useCustomerSummary } from "@/hooks/useCustomerSummary";
-import type { CustomerFormData } from "@/lib/formSchemas";
+import { useCustomerDetailPage } from "@/hooks/useCustomerDetailPage";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { data: customers, isLoading } = useCustomers();
-  const { data: summary } = useCustomerSummary(id);
-  const { data: role } = useUserRole();
-  const updateCustomer = useUpdateCustomer();
-  const deleteCustomer = useDeleteCustomer();
-  const inviteCustomer = useInviteCustomer();
+  const s = useCustomerDetailPage(id);
 
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-
-  const customer = customers?.find((c) => c.id === id);
-  const bookings = summary?.bookings ?? [];
-  const invoices = summary?.invoices ?? [];
-
-  const totalInvoiced = Number(summary?.totals.total_invoiced ?? 0);
-  const totalPaid = Number(summary?.totals.total_paid ?? 0);
-  const outstanding = totalInvoiced - totalPaid;
-
-  const hasPortalAccess = !!customer?.user_id;
-  const { data: profitability } = useCustomerProfitability(id);
-
-  const handleInvite = () => {
-    if (!inviteEmail || !id) return;
-    inviteCustomer.mutate(
-      { customerId: id, email: inviteEmail },
-      {
-        onSuccess: () => {
-          setInviteOpen(false);
-          setInviteEmail("");
-        },
-      },
-    );
+  const handleExportStatement = async () => {
+    if (!s.summary || !s.customer) return;
+    try {
+      const { exportCustomerStatementPdf } = await import("@/lib/pdf/customerStatement");
+      await exportCustomerStatementPdf({ customer: s.customer, summary: s.summary });
+      toast.success("Estado de cuenta generado");
+    } catch {
+      toast.error("No se pudo generar el PDF");
+    }
   };
 
-  const handleEditSubmit = (form: CustomerFormData) => {
-    if (!id) return;
-    const payload = {
-      id,
-      name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
-      address: form.address || null, notes: form.notes || null,
-      website: form.website || null,
-      contact_person: form.contact_person || null,
-      rfc: form.rfc || null, regimen_fiscal: form.regimen_fiscal || null,
-      uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
-      representante_legal: form.representante_legal || null,
-    };
-    updateCustomer.mutate(payload, {
-      onSuccess: () => { toast.success("Cliente actualizado"); setEditOpen(false); },
-    });
-  };
-
-  const editInitialData = customer ? {
-    name: customer.name || "",
-    email: customer.email || "",
-    phone: customer.phone || "",
-    address: customer.address || "",
-    notes: customer.notes || "",
-    website: customer.website || "",
-    contact_person: customer.contact_person || "",
-    
-    rfc: customer.rfc || "",
-    regimen_fiscal: customer.regimen_fiscal || "",
-    uso_cfdi: customer.uso_cfdi || "",
-    domicilio_fiscal_cp: customer.domicilio_fiscal_cp || "",
-    representante_legal: customer.representante_legal || "",
-  } : undefined;
-
-  if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
-  if (!customer) return <div className="p-6 text-muted-foreground">Cliente no encontrado</div>;
+  if (s.isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
+  if (!s.customer) return <div className="p-6 text-muted-foreground">Cliente no encontrado</div>;
 
   return (
     <div className="p-6 space-y-6 max-w-5xl">
       <DetailPageHeader
-        title={customer.name}
-        subtitle={customer.company || undefined}
+        title={s.customer.name}
+        subtitle={s.customer.company || undefined}
         backTo="/customers"
         actions={
           <>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!summary}
-              onClick={async () => {
-                if (!summary || !customer) return;
-                try {
-                  const { exportCustomerStatementPdf } = await import("@/lib/customerStatementPdf");
-                  await exportCustomerStatementPdf({ customer, summary });
-                  toast.success("Estado de cuenta generado");
-                } catch (e) {
-                  toast.error("No se pudo generar el PDF");
-                }
-              }}
-            >
+            <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>
               <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" /> Editar
             </Button>
-            {role === "admin" && (
-              <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+            {s.role === "admin" && (
+              <Button variant="destructive" size="sm" onClick={() => s.setDeleteOpen(true)}>
                 <Trash2 className="h-4 w-4 mr-2" /> Eliminar
               </Button>
             )}
-            {role === "admin" && !hasPortalAccess && (
-              <Button variant="outline" onClick={() => { setInviteEmail(customer.email || ""); setInviteOpen(true); }}>
+            {s.role === "admin" && !s.hasPortalAccess && (
+              <Button variant="outline" onClick={() => { s.setInviteEmail(s.customer?.email || ""); s.setInviteOpen(true); }}>
                 <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
               </Button>
             )}
-            {hasPortalAccess && (
+            {s.hasPortalAccess && (
               <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Acceso al portal activo</span>
             )}
           </>
@@ -145,169 +65,52 @@ export default function CustomerDetailPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <CustomerContactCard customer={customer} />
-        <CustomerFinancialSummary totalInvoiced={totalInvoiced} totalPaid={totalPaid} outstanding={outstanding} />
-        {profitability && (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Rentabilidad</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Ingresos</span>
-                <span className="font-mono font-semibold">{formatCurrency(profitability.revenue)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Costos Mant.</span>
-                <span className="font-mono font-semibold">{formatCurrency(profitability.maintenance_cost)}</span>
-              </div>
-              <div className="flex justify-between text-sm border-t pt-2">
-                <span className="font-medium">Margen Bruto</span>
-                <span className={`font-mono font-bold ${profitability.gross_margin >= 0 ? "text-status-available" : "text-destructive"}`}>
-                  {formatCurrency(profitability.gross_margin)} ({profitability.margin_percent}%)
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+        <CustomerContactCard customer={s.customer} />
+        <CustomerFinancialSummary totalInvoiced={s.totalInvoiced} totalPaid={s.totalPaid} outstanding={s.outstanding} />
+        {s.profitability && (
+          <CustomerProfitabilityCard
+            revenue={s.profitability.revenue}
+            maintenance_cost={s.profitability.maintenance_cost}
+            gross_margin={s.profitability.gross_margin}
+            margin_percent={s.profitability.margin_percent}
+          />
         )}
       </div>
 
-      <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Historial de Reservas</CardTitle></CardHeader>
-        <CardContent>
-          {bookings && bookings.length > 0 ? (
-            <div className="space-y-2">
-              {bookings.map((b) => (
-                <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
-                  <div>
-                    <p className="font-medium">{b.forklift?.name || "—"} — {b.forklift?.model || ""}</p>
-                    <p className="text-xs text-muted-foreground">{formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)}</p>
-                  </div>
-                  <StatusBadge status={b.status} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-6">Sin reservas aún</p>
-          )}
-        </CardContent>
-      </Card>
+      <CustomerBookingsHistory bookings={s.bookings} />
+      <CustomerInvoicesList invoices={s.invoices} />
 
-      <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4" /> Facturas</CardTitle></CardHeader>
-        <CardContent>
-          {invoices && invoices.length > 0 ? (
-            <div className="space-y-2">
-              {invoices.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/invoices/${inv.id}`)}>
-                  <div>
-                    <p className="font-medium">{inv.invoice_number}</p>
-                    <p className="text-xs text-muted-foreground">{formatDateDisplay(inv.issued_at)}{inv.due_date ? ` — Vence: ${formatDateDisplay(inv.due_date)}` : ""}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-semibold">{formatCurrency(Number(inv.total))}</span>
-                    <StatusBadge status={inv.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-6">Sin facturas aún</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {customer.notes && (
-        <NotesCard value={customer.notes} readOnly />
-      )}
+      {s.customer.notes && <NotesCard value={s.customer.notes} readOnly />}
 
       <CustomerFormDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        initialData={editInitialData}
+        open={s.editOpen}
+        onOpenChange={s.setEditOpen}
+        initialData={s.editInitialData}
         isEdit
-        isPending={updateCustomer.isPending}
-        onSubmit={handleEditSubmit}
+        isPending={s.updateCustomer.isPending}
+        onSubmit={s.handleEditSubmit}
       />
 
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2">
-                {(bookings.length > 0 || invoices.length > 0) ? (
-                  <>
-                    <p className="font-medium text-destructive">
-                      No se puede eliminar a {customer.name}.
-                    </p>
-                    <p>Este cliente tiene:</p>
-                    <ul className="list-disc list-inside text-sm space-y-1 ml-2">
-                      {bookings.length > 0 && (
-                        <li>{bookings.length} reserva{bookings.length === 1 ? "" : "s"} registrada{bookings.length === 1 ? "" : "s"}</li>
-                      )}
-                      {invoices.length > 0 && (
-                        <li>{invoices.length} factura{invoices.length === 1 ? "" : "s"} emitida{invoices.length === 1 ? "" : "s"}</li>
-                      )}
-                      {outstanding > 0 && (
-                        <li className="text-destructive font-medium">
-                          Saldo pendiente: {formatCurrency(outstanding)}
-                        </li>
-                      )}
-                    </ul>
-                    <p className="text-xs text-muted-foreground pt-2">
-                      Elimina o cancela primero las dependencias.
-                    </p>
-                  </>
-                ) : (
-                  <p>
-                    Esta acción no se puede deshacer. Se eliminará permanentemente
-                    a <strong>{customer.name}</strong> del sistema.
-                  </p>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            {!(bookings.length > 0 || invoices.length > 0) && (
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => {
-                  if (!id) return;
-                  deleteCustomer.mutate(id, {
-                    onSuccess: () => {
-                      toast.success("Cliente eliminado");
-                      navigate("/customers");
-                    },
-                  });
-                }}
-              >
-                {deleteCustomer.isPending ? "Eliminando..." : "Eliminar"}
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CustomerDeleteDialog
+        open={s.deleteOpen}
+        onOpenChange={s.setDeleteOpen}
+        customerName={s.customer.name}
+        bookingsCount={s.bookings.length}
+        invoicesCount={s.invoices.length}
+        outstanding={s.outstanding}
+        isPending={s.deleteCustomer.isPending}
+        onDelete={s.handleDelete}
+      />
 
-      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invitar al Portal de Clientes</DialogTitle>
-            <DialogDescription>Crear una cuenta de portal para {customer.name}.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label htmlFor="invite-email">Correo Electrónico</Label>
-              <Input id="invite-email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="cliente@ejemplo.com" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancelar</Button>
-            <Button onClick={handleInvite} disabled={inviteCustomer.isPending || !inviteEmail}>
-              {inviteCustomer.isPending ? "Enviando..." : "Enviar Invitación"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CustomerInviteDialog
+        open={s.inviteOpen}
+        onOpenChange={s.setInviteOpen}
+        customerName={s.customer.name}
+        email={s.inviteEmail}
+        setEmail={s.setInviteEmail}
+        isPending={s.inviteCustomer.isPending}
+        onInvite={s.handleInvite}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { fetchCompanyDataAndLogo, fmtDate, type PdfLineItem } from "@/lib/pdfShared";
+import { fetchCompanyDataAndLogo, fmtDate, type PdfLineItem } from "@/lib/pdf/shared";
 
 const GREEN = { r: 22, g: 163, b: 74 };
 
@@ -49,7 +49,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
         drawAccentBar, drawPremiumHeader, drawInfoCardsAt,
         drawPremiumTable, drawBottomSection, drawFooter,
         GRAY_500, GRAY_200, GRAY_900, MARGIN,
-      } = await import("@/lib/quotePdfPremium");
+      } = await import("@/lib/pdf/quoteGenerator");
 
       const doc = new jsPDF();
       const pw = doc.internal.pageSize.getWidth();

@@ -1,5 +1,20 @@
 [
   {
+    "version": "5.32.0",
+    "date": "2026-04-25",
+    "type": "minor",
+    "title": "Refactor arquitectónico: separación de responsabilidades",
+    "description": "Mejoras estructurales sin cambios funcionales. CustomerDetailPage redujo su complejidad ciclomática de 52 a <15 extrayendo un hook orquestador y 5 subcomponentes. Los hooks de lógica más grandes (useQuoteDetailLogic, useContractFormLogic) se dividieron en módulos data/state/actions siguiendo el patrón ya establecido en quoteForm/. Todos los generadores PDF se consolidaron bajo lib/pdf/ para mejor descubribilidad.",
+    "changes": [
+      "Nuevo hook useCustomerDetailPage que encapsula data, estado y acciones del detalle de cliente",
+      "Nuevos componentes: CustomerProfitabilityCard, CustomerBookingsHistory, CustomerInvoicesList, CustomerDeleteDialog, CustomerInviteDialog",
+      "useQuoteDetailLogic dividido en useQuoteDetailData + useQuoteConversionState + useQuoteConversionActions",
+      "useContractFormLogic dividido en useContractFormState + useContractFormPrefill + defaults",
+      "Reorganización lib/pdf/: shared.ts, customerStatement.ts, incomeStatement.ts, contractGenerator.ts, quoteGenerator.ts, loadImageAsBase64.ts agrupados",
+      "Eliminado uso de any en useContractFormLogic mediante tipos Database"
+    ]
+  },
+  {
     "version": "5.31.5",
     "date": "2026-04-20",
     "type": "patch",

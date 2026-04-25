@@ -1,12 +1,12 @@
 import { format, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { supabase } from "@/integrations/supabase/client";
-import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
   DEFAULT_CLAUSES, DEFAULT_CHECKLIST, DEFAULT_PAGARE,
-} from "@/lib/contractPdfData";
+} from "@/lib/pdf/contract/data-templates";
 import type { ContractViewModel } from "@/types/rental";
 
 // --- Types ---

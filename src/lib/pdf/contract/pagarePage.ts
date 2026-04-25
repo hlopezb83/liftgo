@@ -1,8 +1,8 @@
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { replacePlaceholders } from "@/lib/templateUtils";
-import { addWrappedText, checkPage } from "@/lib/pdfShared";
-import { DEFAULT_PAGARE } from "@/lib/contractPdfData";
+import { addWrappedText, checkPage } from "@/lib/pdf/shared";
+import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import type { ContractData, TemplateData } from "./data";
 
 export function generatePagarePage(doc: any, contract: ContractData, _company: any, customer: any, tpl: TemplateData, vars: Record<string, string>) {
