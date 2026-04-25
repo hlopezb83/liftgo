@@ -9,7 +9,7 @@ import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
 import { Wrench } from "lucide-react";
 import { SERVICE_TYPES } from "@/lib/constants";
 
-export interface MaintenanceFormShape {
+export type MaintenanceFormShape = {
   forkliftId: string;
   serviceType: string;
   description: string;
@@ -18,7 +18,7 @@ export interface MaintenanceFormShape {
   performedAt: Date;
   nextServiceDate: Date | undefined;
   supplierId: string;
-}
+};
 
 interface ForkliftOption { id: string; name: string; model: string }
 interface MechanicOption { id: string; name: string; specialization?: string | null }
