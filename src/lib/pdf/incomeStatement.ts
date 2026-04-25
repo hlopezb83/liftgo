@@ -1,6 +1,6 @@
 import type { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { fetchCompanyDataAndLogo } from "@/lib/pdfShared";
+import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import type { StatementRow, ComparisonRow, YearTotals, MonthData } from "@/hooks/useIncomeStatementData";
 
 interface ExportPdfParams {

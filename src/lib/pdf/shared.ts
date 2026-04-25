@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { loadImageAsBase64 } from "@/lib/loadImageAsBase64";
+import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
 import { format, parseISO } from "date-fns";
 
 // ─── Types ────────────────────────────────────────────

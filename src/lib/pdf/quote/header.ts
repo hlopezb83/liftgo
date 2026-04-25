@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
-import { fmtDate, type CompanyData } from "@/lib/pdfShared";
+import { fmtDate, type CompanyData } from "@/lib/pdf/shared";
 import {
   GRAY_900, GRAY_700, GRAY_500, GRAY_200,
   FONT_XL, FONT_LG, FONT_MD, FONT_SM, MARGIN,

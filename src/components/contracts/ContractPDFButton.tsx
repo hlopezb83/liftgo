@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FileDown, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import type { ContractData, PDFMode } from "@/lib/contractPdfGenerator";
+import type { ContractData, PDFMode } from "@/lib/pdf/contractGenerator";
 
-export type { ContractData } from "@/lib/contractPdfGenerator";
+export type { ContractData } from "@/lib/pdf/contractGenerator";
 
 export function ContractPDFButton({ contract }: { contract: ContractData }) {
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
         fetchRelatedData, fetchTemplate, fetchLogoBase64,
         buildPlaceholderVars,
         generateContractPages, generateChecklistPage, generatePagarePage,
-      } = await import("@/lib/contractPdfGenerator");
+      } = await import("@/lib/pdf/contractGenerator");
 
       const [{ company, customer, forklift }, tpl] = await Promise.all([
         fetchRelatedData(contract),

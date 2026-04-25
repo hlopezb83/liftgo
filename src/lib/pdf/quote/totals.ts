@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/formatCurrency";
-import { fmtDate } from "@/lib/pdfShared";
+import { fmtDate } from "@/lib/pdf/shared";
 import {
   GRAY_900, GRAY_700, GRAY_500, GRAY_200, GRAY_50,
   FONT_XL, FONT_LG, FONT_MD, FONT_SM, MARGIN,

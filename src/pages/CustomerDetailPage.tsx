@@ -22,7 +22,7 @@ export default function CustomerDetailPage() {
   const handleExportStatement = async () => {
     if (!s.summary || !s.customer) return;
     try {
-      const { exportCustomerStatementPdf } = await import("@/lib/customerStatementPdf");
+      const { exportCustomerStatementPdf } = await import("@/lib/pdf/customerStatement");
       await exportCustomerStatementPdf({ customer: s.customer, summary: s.summary });
       toast.success("Estado de cuenta generado");
     } catch {

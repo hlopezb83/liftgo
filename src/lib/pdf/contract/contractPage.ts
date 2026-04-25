@@ -1,8 +1,8 @@
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { replacePlaceholders } from "@/lib/templateUtils";
-import { addWrappedText, checkPage } from "@/lib/pdfShared";
-import { DEFAULT_INTRO } from "@/lib/contractPdfData";
+import { addWrappedText, checkPage } from "@/lib/pdf/shared";
+import { DEFAULT_INTRO } from "@/lib/pdf/contract/data-templates";
 import type { ContractData, TemplateData } from "./data";
 
 export function generateContractPages(doc: any, contract: ContractData, company: any, customer: any, forklift: any, logoBase64: string | null, tpl: TemplateData, vars: Record<string, string>) {

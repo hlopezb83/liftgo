@@ -1,5 +1,5 @@
 import { formatCurrency } from "@/lib/formatCurrency";
-import { fetchCompanyDataAndLogo } from "@/lib/pdfShared";
+import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import type { CustomerSummary } from "@/hooks/useCustomerSummary";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInDays, parseISO } from "date-fns";
