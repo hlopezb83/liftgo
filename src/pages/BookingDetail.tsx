@@ -1,21 +1,25 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { format, differenceInDays, parseISO } from "date-fns";
 
 import { useBooking } from "@/hooks/useBookings";
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { useBookingExtensions } from "@/hooks/useBookingExtensions";
+import { useBookingHourometer } from "@/hooks/bookingDetail/useBookingHourometer";
+
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { BookingActions } from "@/components/bookings/BookingActions";
 import { BookingStatusHistory } from "@/components/bookings/BookingStatusHistory";
-import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
 import { ExtendBookingDialog } from "@/components/bookings/ExtendBookingDialog";
+import { BookingEquipmentCard } from "@/components/booking-detail/BookingEquipmentCard";
+import { BookingCustomerCard } from "@/components/booking-detail/BookingCustomerCard";
+import { BookingPeriodCard } from "@/components/booking-detail/BookingPeriodCard";
+import { BookingBillingCard } from "@/components/booking-detail/BookingBillingCard";
+import { BookingHourometerCard } from "@/components/booking-detail/BookingHourometerCard";
+import { BookingExtensionsCard } from "@/components/booking-detail/BookingExtensionsCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, User, Truck, Clock, Gauge, CalendarPlus, History, Phone } from "lucide-react";
-import { formatDateDisplay } from "@/lib/utils";
+import { CalendarPlus } from "lucide-react";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +27,8 @@ export default function BookingDetail() {
   const { data: deliveries } = useDeliveries(id);
   const { data: extensions } = useBookingExtensions(id);
   const [extendOpen, setExtendOpen] = useState(false);
+
+  const hourometer = useBookingHourometer(deliveries);
 
   if (isLoading) {
     return (
@@ -44,15 +50,6 @@ export default function BookingDetail() {
     );
   }
 
-  const duration = differenceInDays(parseISO(booking.end_date), parseISO(booking.start_date));
-  const formatDate = (d: string) => format(parseISO(d), "dd/MM/yyyy");
-
-  const deliveryReading = deliveries?.find((d) => d.type === "delivery" && d.hours_reading != null);
-  const pickupReading = deliveries?.find((d) => d.type === "pickup" && d.hours_reading != null);
-  const hoursUsed = (deliveryReading?.hours_reading != null && pickupReading?.hours_reading != null)
-    ? Math.round((pickupReading.hours_reading - deliveryReading.hours_reading) * 10) / 10
-    : null;
-
   return (
     <div className="space-y-6">
       <DetailPageHeader
@@ -73,127 +70,22 @@ export default function BookingDetail() {
       />
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Datos del equipo */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Truck className="h-4 w-4 text-muted-foreground" />
-              Equipo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <InfoRow label="Nombre" value={booking.forklifts?.name || "—"} />
-            <InfoRow label="Modelo" value={booking.forklifts?.model || "—"} />
-          </CardContent>
-        </Card>
-
-        {/* Datos del cliente */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              Cliente
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <InfoRow label="Nombre" value={booking.customer_name || "—"} />
-            <InfoRow label="Contacto" value={booking.customer_contact || "—"} />
-            {(booking as any).site_contact_name && (
-              <InfoRow label="Contacto en sitio" value={(booking as any).site_contact_name} />
-            )}
-            {(booking as any).site_contact_phone && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" /> Tel. sitio</span>
-                <span className="text-sm font-medium">{(booking as any).site_contact_phone}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Fechas y duración */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              Periodo de Renta
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <InfoRow label="Fecha de inicio" value={formatDate(booking.start_date)} />
-            <InfoRow label="Fecha de fin" value={formatDate(booking.end_date)} />
-            <InfoRow label="Duración" value={`${duration} día${duration !== 1 ? "s" : ""}`} />
-          </CardContent>
-        </Card>
-
-        {/* Facturación y estado */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              Facturación
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Facturación recurrente</span>
-              <RecurringBillingBadge booking={booking} />
-            </div>
-            {booking.last_billed_date && (
-              <InfoRow label="Última facturación" value={formatDate(booking.last_billed_date)} />
-            )}
-            {booking.return_status && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Estado de devolución</span>
-                <StatusBadge status={booking.return_status} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <BookingEquipmentCard
+          name={booking.forklifts?.name || ""}
+          model={booking.forklifts?.model || ""}
+        />
+        <BookingCustomerCard
+          customerName={booking.customer_name}
+          customerContact={booking.customer_contact}
+          siteContactName={booking.site_contact_name}
+          siteContactPhone={booking.site_contact_phone}
+        />
+        <BookingPeriodCard startDate={booking.start_date} endDate={booking.end_date} />
+        <BookingBillingCard booking={booking} />
       </div>
 
-      {(deliveryReading || pickupReading) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Gauge className="h-4 w-4 text-muted-foreground" />
-              Horómetro
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {deliveryReading && <InfoRow label="Al entregar" value={`${deliveryReading.hours_reading} hrs`} />}
-            {pickupReading && <InfoRow label="Al recoger" value={`${pickupReading.hours_reading} hrs`} />}
-            {hoursUsed != null && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Horas Usadas</span>
-                <span className="text-sm font-semibold text-primary">{hoursUsed} hrs</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {extensions && extensions.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <History className="h-4 w-4 text-muted-foreground" /> Extensiones
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {extensions.map((ext: any) => (
-              <div key={ext.id} className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    {formatDateDisplay(ext.original_end_date)} → {formatDateDisplay(ext.new_end_date)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{formatDateDisplay(ext.created_at)}</span>
-                </div>
-                {ext.reason && <p className="text-xs">{ext.reason}</p>}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      <BookingHourometerCard {...hourometer} />
+      <BookingExtensionsCard extensions={extensions || []} />
 
       <BookingStatusHistory bookingId={booking.id} />
 
@@ -205,15 +97,6 @@ export default function BookingDetail() {
           currentEndDate={booking.end_date}
         />
       )}
-    </div>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium">{value}</span>
     </div>
   );
 }
