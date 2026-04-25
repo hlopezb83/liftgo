@@ -7,42 +7,28 @@ import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
-import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DatePickerField } from "@/components/DatePickerField";
-import { FormActions } from "@/components/FormActions";
 import { MarkAvailableDialog } from "@/components/fleet/MarkAvailableDialog";
 import { RoleGuard } from "@/components/RoleGuard";
 import { MaintenanceDetailSheet } from "@/components/maintenance/MaintenanceDetailSheet";
+import { MaintenanceFormDialog, type MaintenanceFormShape } from "@/components/maintenance/MaintenanceFormDialog";
+import { MaintenanceFiltersBar } from "@/components/maintenance/MaintenanceFiltersBar";
 import { useFormState } from "@/hooks/useFormState";
 import { useActiveMechanics } from "@/hooks/useMechanics";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { SERVICE_TYPES } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, Wrench, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
+import { PlusCircle, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MaintenanceKanban } from "@/components/maintenance/MaintenanceKanban";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { formatDateDisplay } from "@/lib/utils";
-import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
 
-const initialForm = {
-  forkliftId: "" as string,
-  serviceType: "" as string,
-  description: "" as string,
-  cost: "" as string,
-  performedBy: "" as string,
-  performedAt: new Date() as Date,
-  nextServiceDate: undefined as Date | undefined,
-  supplierId: "" as string,
+const initialForm: MaintenanceFormShape = {
+  forkliftId: "", serviceType: "", description: "", cost: "",
+  performedBy: "", performedAt: new Date(), nextServiceDate: undefined, supplierId: "",
 };
 
 export default function MaintenancePage() {
@@ -127,11 +113,17 @@ export default function MaintenancePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.forkliftId || !form.serviceType) { toast.error("Montacargas y tipo de servicio son requeridos"); return; }
+    if (!form.forkliftId || !form.serviceType) {
+      toast.error("Montacargas y tipo de servicio son requeridos");
+      return;
+    }
 
     const payload = {
-      forklift_id: form.forkliftId, service_type: form.serviceType, description: form.description || null,
-      cost: form.cost ? parseFloat(form.cost) : 0, performed_by: form.performedBy || null,
+      forklift_id: form.forkliftId,
+      service_type: form.serviceType,
+      description: form.description || null,
+      cost: form.cost ? parseFloat(form.cost) : 0,
+      performed_by: form.performedBy || null,
       performed_at: format(form.performedAt, "yyyy-MM-dd"),
       next_service_date: form.nextServiceDate ? format(form.nextServiceDate, "yyyy-MM-dd") : null,
       supplier_id: form.supplierId || null,
@@ -164,6 +156,15 @@ export default function MaintenancePage() {
   const totalCost = logs?.reduce((sum, l) => sum + (l.cost || 0), 0) || 0;
   const isPending = editingLogId ? updateLog.isPending : createLog.isPending;
 
+  const exportCsv = () => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({
+    Fecha: l.performed_at,
+    Montacargas: forkliftMap.get(l.forklift_id)?.name || "",
+    Servicio: l.service_type,
+    "Realizado Por": l.performed_by || "",
+    Costo: l.cost || 0,
+    "Próximo Servicio": l.next_service_date || "",
+  })));
+
   return (
     <>
       <ListPageLayout
@@ -175,31 +176,28 @@ export default function MaintenancePage() {
               <ToggleGroupItem value="list" aria-label="Vista de lista"><List className="h-4 w-4" /></ToggleGroupItem>
               <ToggleGroupItem value="board" aria-label="Vista de tablero"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
             </ToggleGroup>
-            <Button variant="outline" size="sm" onClick={() => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({ Fecha: l.performed_at, Montacargas: forkliftMap.get(l.forklift_id)?.name || "", Servicio: l.service_type, "Realizado Por": l.performed_by || "", Costo: l.cost || 0, "Próximo Servicio": l.next_service_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+            <Button variant="outline" size="sm" onClick={exportCsv}>
+              <Download className="h-4 w-4 mr-1" />Exportar CSV
+            </Button>
             <RoleGuard module="Mantenimiento" minAccess="full">
               <Button variant="outline" size="sm" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
                 <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />
                 Generar Recurrente
               </Button>
             </RoleGuard>
-            <Button onClick={() => { reset(); setEditingLogId(null); setDialogOpen(true); }} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio</Button>
+            <Button onClick={() => { reset(); setEditingLogId(null); setDialogOpen(true); }} size="sm">
+              <PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio
+            </Button>
           </div>
         }
         filters={
-          <div className="flex flex-col sm:flex-row gap-3">
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar por servicio, técnico..." />
-            <Select value={forkliftFilter} onValueChange={setForkliftFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Todos los montacargas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los montacargas</SelectItem>
-                {forklifts?.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <MaintenanceFiltersBar
+            search={search}
+            onSearchChange={setSearch}
+            forkliftFilter={forkliftFilter}
+            onForkliftFilterChange={setForkliftFilter}
+            forklifts={forklifts}
+          />
         }
         isLoading={isLoading}
         items={paginatedItems}
@@ -238,49 +236,17 @@ export default function MaintenancePage() {
         onEdit={openEditDialog}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingLogId(null); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><Wrench className="h-4 w-4" /> {editingLogId ? "Editar Mantenimiento" : "Registrar Mantenimiento"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Montacargas *</Label>
-              <Select value={form.forkliftId} onValueChange={(v) => set("forkliftId", v)}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar montacargas" /></SelectTrigger>
-                <SelectContent>{forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Tipo de Servicio *</Label>
-              <Select value={form.serviceType} onValueChange={(v) => set("serviceType", v)}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar tipo de servicio" /></SelectTrigger>
-                <SelectContent>{SERVICE_TYPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Descripción</Label>
-              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="Detalles del servicio..." rows={3} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Costo ($)</Label><Input type="number" value={form.cost} onChange={(e) => set("cost", e.target.value)} placeholder="0" /></div>
-              <div className="space-y-1.5">
-                <Label>Realizado Por</Label>
-                <Select value={form.performedBy} onValueChange={(v) => set("performedBy", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar mecánico" /></SelectTrigger>
-                  <SelectContent>
-                    {activeMechanics?.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}{m.specialization ? ` (${m.specialization})` : ""}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <DatePickerField label="Fecha de Servicio" date={form.performedAt} onSelect={(d) => d && set("performedAt", d)} />
-              <DatePickerField label="Próximo Servicio" date={form.nextServiceDate} onSelect={(d) => set("nextServiceDate", d)} placeholder="Opcional" />
-            </div>
-            <SupplierSelector value={form.supplierId} onChange={(v) => set("supplierId", v)} />
-            <FormActions submitLabel={editingLogId ? "Guardar Cambios" : "Agregar Registro"} isPending={isPending} onCancel={() => setDialogOpen(false)} />
-          </form>
-        </DialogContent>
-      </Dialog>
+      <MaintenanceFormDialog
+        open={dialogOpen}
+        onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingLogId(null); }}
+        isEdit={!!editingLogId}
+        isPending={isPending}
+        form={form}
+        set={set}
+        onSubmit={handleSubmit}
+        forklifts={forklifts}
+        mechanics={activeMechanics}
+      />
 
       {availablePrompt && (
         <MarkAvailableDialog
