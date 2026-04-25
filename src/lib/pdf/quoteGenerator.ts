@@ -3,7 +3,7 @@
 export {
   GRAY_900, GRAY_700, GRAY_500, GRAY_400, GRAY_200, GRAY_100, GRAY_50,
   MARGIN,
-} from "./pdf/quote/constants";
-export { drawAccentBar, drawPremiumHeader, drawInfoCardsAt } from "./pdf/quote/header";
-export { drawPremiumTable } from "./pdf/quote/table";
-export { drawBottomSection, drawFooter } from "./pdf/quote/totals";
+} from "./quote/constants";
+export { drawAccentBar, drawPremiumHeader, drawInfoCardsAt } from "./quote/header";
+export { drawPremiumTable } from "./quote/table";
+export { drawBottomSection, drawFooter } from "./quote/totals";
