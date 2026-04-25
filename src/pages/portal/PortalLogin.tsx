@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Building2 } from "lucide-react";
+import { lovable } from "@/integrations/lovable";
 
 type Mode = "sign-in" | "forgot";
 
