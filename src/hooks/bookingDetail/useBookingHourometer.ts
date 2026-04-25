@@ -1,4 +1,7 @@
-import type { Delivery } from "@/hooks/useDeliveries";
+interface DeliveryReading {
+  type: string;
+  hours_reading: number | null;
+}
 
 export interface HourometerData {
   deliveryHours: number | null;
@@ -6,7 +9,7 @@ export interface HourometerData {
   hoursUsed: number | null;
 }
 
-export function useBookingHourometer(deliveries: Delivery[] | undefined): HourometerData {
+export function useBookingHourometer(deliveries: DeliveryReading[] | undefined): HourometerData {
   const delivery = deliveries?.find((d) => d.type === "delivery" && d.hours_reading != null);
   const pickup = deliveries?.find((d) => d.type === "pickup" && d.hours_reading != null);
   const deliveryHours = delivery?.hours_reading ?? null;
