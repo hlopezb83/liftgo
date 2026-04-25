@@ -173,7 +173,7 @@ export default function SupplierDetailPage() {
               {linkedMaintenance.length === 0 ? (
                 <EmptyRow colSpan={4} message="Sin mantenimiento vinculado" />
               ) : (
-                linkedMaintenance.map((m: any) => (
+                linkedMaintenance.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono text-sm">{formatDateDisplay(m.performed_at)}</TableCell>
                     <TableCell>{forkliftMap.get(m.forklift_id)?.name || "—"}</TableCell>
