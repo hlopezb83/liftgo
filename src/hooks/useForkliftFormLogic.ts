@@ -10,6 +10,11 @@ import {
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { useFormState } from "@/hooks/useFormState";
 import { forkliftFormSchema, type ForkliftFormData } from "@/lib/formSchemas";
+import {
+  buildForkliftPayload,
+  validateForkliftUniqueness,
+  mapForkliftMutationError,
+} from "@/lib/forms/forkliftPayload";
 
 const emptyForm: ForkliftFormData = {
   name: "", model: "", manufacturer: "", year: "", capacity_kg: "",
@@ -103,45 +108,14 @@ export function useForkliftFormLogic() {
     }
 
     const others = allForklifts?.filter((f) => f.id !== id) ?? [];
-    if (others.some((f) => f.name === form.name)) {
-      toast.error("Ya existe un montacargas con este nombre");
-      return;
-    }
-    if (form.serial_number && others.some((f) => f.serial_number === form.serial_number)) {
-      toast.error("Ya existe un montacargas con este número de serie");
+    const uniquenessError = validateForkliftUniqueness({ form, others });
+    if (uniquenessError) {
+      toast.error(uniquenessError);
       return;
     }
 
-    const payload = {
-      name: form.name,
-      model: form.model,
-      manufacturer: form.manufacturer || null,
-      year: form.year ? parseInt(form.year) : null,
-      capacity_kg: form.capacity_kg ? parseFloat(form.capacity_kg) : null,
-      mast_height_m: form.mast_height_m ? parseFloat(form.mast_height_m) : null,
-      fuel_type: form.fuel_type,
-      serial_number: form.serial_number || null,
-      status: form.status,
-      daily_rate: form.daily_rate ? parseFloat(form.daily_rate) : 0,
-      weekly_rate: form.weekly_rate ? parseFloat(form.weekly_rate) : 0,
-      monthly_rate: form.monthly_rate ? parseFloat(form.monthly_rate) : 0,
-      acquisition_cost: form.acquisition_cost ? parseFloat(form.acquisition_cost) : 0,
-      notes: form.notes || null,
-      insurance_provider: form.insurance_provider || null,
-      insurance_policy_number: form.insurance_policy_number || null,
-      insurance_expiry: form.insurance_expiry || null,
-      insurance_cost: form.insurance_cost ? parseFloat(form.insurance_cost) : null,
-    };
-
-    const onError = (err: Error) => {
-      if (err.message?.includes("forklifts_name_unique")) {
-        toast.error("Ya existe un montacargas con este nombre");
-      } else if (err.message?.includes("forklifts_serial_number_unique")) {
-        toast.error("Ya existe un montacargas con este número de serie");
-      } else {
-        toast.error(err.message);
-      }
-    };
+    const payload = buildForkliftPayload(form);
+    const onError = (err: Error) => toast.error(mapForkliftMutationError(err.message));
 
     if (isEdit) {
       update.mutate({ id, ...payload }, {
