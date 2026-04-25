@@ -1,5 +1,20 @@
 [
   {
+    "version": "5.35.0",
+    "date": "2026-04-25",
+    "type": "minor",
+    "title": "Refactor arquitectónico: BookingDetail, PDF de contratos y form payloads",
+    "description": "Segunda iteración del plan de modularización (Críticos 1-3 del audit post-v5.34). BookingDetail.tsx se descompuso en 6 cards de dominio (Equipment, Customer, Period, Billing, Hourometer, Extensions) más el hook useBookingHourometer y el componente compartido InfoRow. lib/pdf/contract/data.ts (complejidad 34) se dividió en placeholders.ts (con builders por dominio: party/usage/pricing/equipment) y fetchers.ts. Los hooks useForkliftFormLogic y useContractFormLogic delegan ahora la construcción de payloads y validaciones de unicidad a funciones puras en src/lib/forms/, mejorando testabilidad y separación de concerns.",
+    "changes": [
+      "Nuevo componente compartido src/components/InfoRow.tsx (label/value reutilizable)",
+      "Nuevo directorio booking-detail/ con 6 cards modulares",
+      "Nuevo hook useBookingHourometer que aísla el cálculo de horas usadas",
+      "lib/pdf/contract/placeholders.ts y fetchers.ts reemplazan al monolítico data.ts (mantiene barrel para compatibilidad)",
+      "Nuevo módulo src/lib/forms/ con buildForkliftPayload, validateForkliftUniqueness, mapForkliftMutationError y buildContractPayload",
+      "BookingDetail.tsx reducido a ~95 LOC (antes 219)"
+    ]
+  },
+  {
     "version": "5.34.0",
     "date": "2026-04-25",
     "type": "minor",
