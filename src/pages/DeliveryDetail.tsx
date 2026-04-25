@@ -170,10 +170,10 @@ export default function DeliveryDetail() {
               <InfoRow label="Dirección" value={delivery.address || "—"} />
               <InfoRow label="Operador" value={delivery.driver_name || "—"} />
               <InfoRow label="Teléfono" value={delivery.driver_phone || "—"} />
-              {(delivery as any).transport_cost > 0 && (
-                <InfoRow label="Costo de flete" value={`$${Number((delivery as any).transport_cost).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`} />
+              {(delivery.transport_cost ?? 0) > 0 && (
+                <InfoRow label="Costo de flete" value={`$${Number(delivery.transport_cost).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`} />
               )}
-              {(delivery as any).charged_to_customer && (
+              {delivery.charged_to_customer && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Cobrado al cliente</span>
                   <span className="text-sm font-medium text-status-available">Sí</span>

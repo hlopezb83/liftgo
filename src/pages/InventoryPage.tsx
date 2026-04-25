@@ -45,7 +45,7 @@ export default function InventoryPage() {
     setDialogOpen(true);
   };
 
-  const openEdit = (p: any) => {
+  const openEdit = (p: PartInventory) => {
     setEditingId(p.id);
     form.reset({
       name: p.name,

@@ -23,8 +23,8 @@ export default function SupplierDetailPage() {
 
   const supplier = suppliers?.find((s) => s.id === id);
 
-  const linkedExpenses = (expenses || []).filter((e: any) => e.supplier_id === id);
-  const linkedMaintenance = (maintenanceLogs || []).filter((m: any) => m.supplier_id === id);
+  const linkedExpenses = (expenses || []).filter((e) => e.supplier_id === id);
+  const linkedMaintenance = (maintenanceLogs || []).filter((m) => m.supplier_id === id);
 
   const totalExpenses = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
@@ -173,7 +173,7 @@ export default function SupplierDetailPage() {
               {linkedMaintenance.length === 0 ? (
                 <EmptyRow colSpan={4} message="Sin mantenimiento vinculado" />
               ) : (
-                linkedMaintenance.map((m: any) => (
+                linkedMaintenance.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="font-mono text-sm">{formatDateDisplay(m.performed_at)}</TableCell>
                     <TableCell>{forkliftMap.get(m.forklift_id)?.name || "—"}</TableCell>
