@@ -1,17 +1,5 @@
 [
   {
-    "version": "5.32.0",
-    "date": "2026-04-25",
-    "type": "minor",
-    "title": "Autenticación: Inicio de sesión con Google",
-    "description": "Se agregó inicio de sesión con Google (OAuth) en la pantalla de acceso de empleados y en el portal de clientes, manteniendo intacto el flujo existente de correo y contraseña.",
-    "changes": [
-      "Botón 'Continuar con Google' en AuthPage y PortalLogin",
-      "Integración con Lovable Cloud Managed Social Login (@lovable.dev/cloud-auth-js)",
-      "Email/contraseña sigue funcionando sin cambios"
-    ]
-  },
-  {
     "version": "5.31.5",
     "date": "2026-04-20",
     "type": "patch",
