@@ -1,5 +1,20 @@
 [
   {
+    "version": "5.33.0",
+    "date": "2026-04-25",
+    "type": "minor",
+    "title": "Refactor críticos: complejidad reducida en formularios, hooks y PDFs",
+    "description": "Cuatro refactors críticos sin cambios funcionales. ProspectFormDialog (complejidad 31) se dividió en useProspectForm + 3 subcomponentes. useCustomerDetailPage (complejidad 25) se separó en dialogs + actions. useStatementRows (complejidad 35) se simplificó extrayendo factories puras. customerStatement.ts (211 LOC) e incomeStatement.ts se modularizaron en submódulos parts/tables/header/rows.",
+    "changes": [
+      "Nuevo hook useProspectForm que encapsula estado, validación y matching de cotizaciones",
+      "Nuevos subcomponentes: ProspectStageBadge, ProspectQuoteSelector, ProspectCloseDealActions",
+      "useCustomerDetailPage dividido en useCustomerDetailDialogs + useCustomerDetailActions",
+      "useStatementRows refactorizado con factories puras en statementRowFactories.ts",
+      "lib/pdf/customerStatement/ con submódulos parts.ts (badges, cards) y tables.ts",
+      "lib/pdf/incomeStatement/ con submódulos header.ts y rows.ts (drawing helpers)"
+    ]
+  },
+  {
     "version": "5.32.0",
     "date": "2026-04-25",
     "type": "minor",
