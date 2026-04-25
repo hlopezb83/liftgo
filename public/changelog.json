@@ -1,5 +1,20 @@
 [
   {
+    "version": "5.36.0",
+    "date": "2026-04-25",
+    "type": "minor",
+    "title": "Refactor arquitectónico: páginas grandes modularizadas (CompanySettings, Maintenance)",
+    "description": "Tercera iteración del plan de modularización (Alto Impacto 4-6 del audit). CompanySettingsPage (298 LOC) se descompuso en CompanyFiscalForm, PacConfigForm con sub-componente reutilizable ApiKeyField, y LogoUploader autónomo con manejo propio de carga a storage. MaintenancePage (295 LOC) extrajo MaintenanceFormDialog y MaintenanceFiltersBar como componentes presentacionales aislados. La separación de concerns mejora testabilidad y permite reutilizar piezas como LogoUploader en futuros módulos.",
+    "changes": [
+      "Nuevo directorio company-settings/ con CompanyFiscalForm, PacConfigForm y LogoUploader",
+      "Componente interno ApiKeyField encapsula el patrón de campo password con toggle de visibilidad e indicador de estado",
+      "Nuevo MaintenanceFormDialog que centraliza el formulario de alta/edición de servicios",
+      "Nuevo MaintenanceFiltersBar para la barra de búsqueda + filtro de equipo",
+      "CompanySettingsPage reducido a 70 LOC (antes 298)",
+      "MaintenancePage reducido a 230 LOC con dialog y filtros desacoplados"
+    ]
+  },
+  {
     "version": "5.35.0",
     "date": "2026-04-25",
     "type": "minor",
