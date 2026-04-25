@@ -9,22 +9,14 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/StatusBadge";
-import { FormActions } from "@/components/FormActions";
+import { ReturnInspectionDialog } from "@/components/return-inspection/ReturnInspectionDialog";
 
 import { useFormState } from "@/hooks/useFormState";
-import { formatDateDisplay } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, ClipboardCheck } from "lucide-react";
-import { DragDropImageUploader } from "@/components/DragDropImageUploader";
+import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
@@ -194,91 +186,16 @@ export default function ReturnInspectionPage() {
         customContent={mobileContent}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-4 w-4" /> Inspección de Devolución
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Reserva a Devolver *</Label>
-              <Select value={form.bookingId} onValueChange={(v) => set("bookingId", v)}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar reserva activa" /></SelectTrigger>
-                <SelectContent>
-                  {activeBookings?.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Desconocido"} ({formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Solo se muestran reservas cuyo periodo de renta ha finalizado. Si no encuentras la reserva, verifica que la fecha de fin ya haya pasado o{" "}
-                <a href="/bookings" className="underline text-primary hover:text-primary/80 transition-colors">
-                  edita la reserva
-                </a>{" "}
-                para ajustar las fechas antes de registrar la devolución.
-              </p>
-            </div>
-            <DatePickerField label="Fecha de Inspección" date={form.inspectedAt} onSelect={(d) => set("inspectedAt", d || new Date())} required />
-            <div className="space-y-1.5">
-              <Label>Condición *</Label>
-              <Select value={form.condition} onValueChange={(v) => set("condition", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {INSPECTION_CONDITIONS.map((c) => (
-                    <SelectItem key={c} value={c} className="capitalize">{STATUS_LABELS[c] || c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Notas de Daños</Label>
-              <Textarea value={form.damageNotes} onChange={(e) => set("damageNotes", e.target.value)} placeholder="Describe cualquier daño..." rows={3} />
-            </div>
-            {form.bookingId && (() => {
-              const selectedBooking = bookings?.find((b) => b.id === form.bookingId);
-              if (!selectedBooking) return null;
-              return (
-                <div className="space-y-1.5">
-                  <Label>Fotos de Inspección</Label>
-                  <DragDropImageUploader entityType="return_inspection" entityId={selectedBooking.forklift_id} maxFiles={8} />
-                </div>
-              );
-            })()}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Costo por Daños ($)</Label>
-                <Input type="number" step="0.01" value={form.damageCost} onChange={(e) => set("damageCost", e.target.value)} placeholder="0" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Horas de Uso</Label>
-                <Input type="number" step="0.1" value={form.hoursUsed} onChange={(e) => set("hoursUsed", e.target.value)} placeholder="0" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Nivel de Combustible</Label>
-                <Select value={form.fuelLevel} onValueChange={(v) => set("fuelLevel", v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>
-                    {FUEL_LEVELS.map((l) => (
-                      <SelectItem key={l} value={l}>{FUEL_LEVEL_LABELS[l] || l}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Inspeccionado Por</Label>
-                <Input value={form.inspectedBy} onChange={(e) => set("inspectedBy", e.target.value)} placeholder="Nombre del inspector" />
-              </div>
-            </div>
-            <FormActions submitLabel="Completar Devolución" isPending={createInspection.isPending} onCancel={() => setDialogOpen(false)} />
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ReturnInspectionDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        form={form}
+        set={set}
+        activeBookings={activeBookings}
+        forkliftMap={forkliftMap}
+        isPending={createInspection.isPending}
+        onSubmit={handleSubmit}
+      />
 
     </>
   );
