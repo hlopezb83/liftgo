@@ -1,6 +1,4 @@
 import { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,71 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Plus, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { usePartsInventory, useCreatePart, useUpdatePart, useDeletePart, type PartInventory } from "@/hooks/usePartsInventory";
+import { usePartsInventory, type PartInventory } from "@/hooks/usePartsInventory";
 import { PartDetailSheet } from "@/components/inventory/PartDetailSheet";
-import { partFormSchema, type PartFormData } from "@/lib/formSchemas";
+import { PartFormDialog, PART_CATEGORIES } from "@/components/inventory/PartFormDialog";
 import { SearchBar } from "@/components/SearchBar";
 import { EmptyRow } from "@/components/EmptyRow";
 import { TableSkeleton } from "@/components/TableSkeleton";
 
-const PART_CATEGORIES = ["Filtros", "Llantas", "Aceites", "Baterías", "Otros"] as const;
-
 export default function InventoryPage() {
   const { data: parts, isLoading } = usePartsInventory();
-  const createPart = useCreatePart();
-  const updatePart = useUpdatePart();
-  const deletePart = useDeletePart();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<PartInventory | null>(null);
   const [filterCategory, setFilterCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedPart, setSelectedPart] = useState<PartInventory | null>(null);
 
-  const form = useForm<PartFormData>({
-    resolver: zodResolver(partFormSchema),
-    defaultValues: { name: "", sku: "", category: "Otros", stock_quantity: 0, min_stock_level: 5, unit_cost: 0 },
-  });
-
-  const openCreate = () => {
-    setEditingId(null);
-    form.reset({ name: "", sku: "", category: "Otros", stock_quantity: 0, min_stock_level: 5, unit_cost: 0 });
-    setDialogOpen(true);
-  };
-
-  const openEdit = (p: PartInventory) => {
-    setEditingId(p.id);
-    form.reset({
-      name: p.name,
-      sku: p.sku || "",
-      category: p.category,
-      stock_quantity: p.stock_quantity,
-      min_stock_level: p.min_stock_level,
-      unit_cost: p.unit_cost,
-    });
-    setDialogOpen(true);
-  };
-
-  const onSubmit = (data: PartFormData) => {
-    const payload = {
-      name: data.name,
-      sku: data.sku || null,
-      category: data.category,
-      stock_quantity: data.stock_quantity,
-      min_stock_level: data.min_stock_level,
-      unit_cost: data.unit_cost,
-    };
-    if (editingId) {
-      updatePart.mutate({ id: editingId, ...payload }, { onSuccess: () => setDialogOpen(false) });
-    } else {
-      createPart.mutate(payload, { onSuccess: () => setDialogOpen(false) });
-    }
-  };
+  const openCreate = () => { setEditing(null); setDialogOpen(true); };
+  const openEdit = (p: PartInventory) => { setEditing(p); setDialogOpen(true); };
 
   const filtered = useMemo(() => {
     return (parts || []).filter((p) => {
@@ -86,7 +39,6 @@ export default function InventoryPage() {
   }, [parts, filterCategory, search]);
 
   const lowStockCount = useMemo(() => (parts || []).filter((p) => p.stock_quantity <= p.min_stock_level).length, [parts]);
-  const isPending = createPart.isPending || updatePart.isPending;
 
   return (
     <PageTransition>
@@ -169,77 +121,7 @@ export default function InventoryPage() {
           onEdit={(p) => openEdit(p)}
         />
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingId ? "Editar Refacción" : "Nueva Refacción"}</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre *</FormLabel>
-                    <FormControl><Input {...field} placeholder="Ej. Filtro de aceite" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="sku" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SKU</FormLabel>
-                    <FormControl><Input {...field} placeholder="Ej. FLT-001" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={form.control} name="category" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoría *</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {PART_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <div className="grid grid-cols-3 gap-3">
-                  <FormField control={form.control} name="stock_quantity" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Stock Inicial</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} onChange={(e) => field.onChange(Number(e.target.value))} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="min_stock_level" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Stock Mínimo</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} onChange={(e) => field.onChange(Number(e.target.value))} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                  <FormField control={form.control} name="unit_cost" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Costo Unitario</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                          <Input type="number" min="0" step="0.01" className="pl-7" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                  <Button type="submit" disabled={isPending}>
-                    {isPending ? "Guardando…" : "Guardar"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <PartFormDialog open={dialogOpen} onOpenChange={setDialogOpen} part={editing} />
       </div>
     </PageTransition>
   );
