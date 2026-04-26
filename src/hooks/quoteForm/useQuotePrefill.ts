@@ -9,7 +9,7 @@ type State = ReturnType<typeof useQuoteFormState>;
 type EquipmentModel = { id: string; manufacturer: string; model: string; default_daily_rate?: number | null; default_weekly_rate?: number | null; default_monthly_rate?: number | null };
 
 interface Props {
-  existingQuote: any;
+  existingQuote: Record<string, unknown> | null | undefined;
   equipmentModels: EquipmentModel[] | undefined;
   state: State;
 }

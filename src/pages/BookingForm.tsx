@@ -103,9 +103,12 @@ export default function BookingForm() {
   };
   const selectedForklift = forklifts?.find((f) => f.id === postBooking?.forkliftId);
 
-  const dateRangeError = form.formState.errors.date_range?.message
-    ?? (form.formState.errors.date_range as any)?.from?.message
-    ?? (form.formState.errors.date_range as any)?.to?.message;
+  const dateRangeErrorObj = form.formState.errors.date_range as
+    | { message?: string; from?: { message?: string }; to?: { message?: string } }
+    | undefined;
+  const dateRangeError = dateRangeErrorObj?.message
+    ?? dateRangeErrorObj?.from?.message
+    ?? dateRangeErrorObj?.to?.message;
 
   return (
     <div className="p-6 max-w-3xl">

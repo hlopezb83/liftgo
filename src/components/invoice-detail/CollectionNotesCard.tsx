@@ -71,7 +71,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
         {notes && notes.length === 0 && !showForm && (
           <p className="text-sm text-muted-foreground text-center py-4">Sin gestiones registradas</p>
         )}
-        {notes && notes.map((n: any) => (
+        {notes && notes.map((n) => (
           <div key={n.id} className="p-3 rounded-lg bg-muted/40 space-y-1">
             <p className="text-sm">{n.note}</p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">

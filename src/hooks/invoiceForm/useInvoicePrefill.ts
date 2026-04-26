@@ -15,8 +15,8 @@ export function applyCustomerCfdi(customer: Customer, setCfdi: State["setCfdi"])
 }
 
 interface Props {
-  existing: any;
-  sourceQuote: any;
+  existing: Record<string, unknown> | null | undefined;
+  sourceQuote: Record<string, unknown> | null | undefined;
   assignments: Array<{ line_index: number; forklift_id: string }> | undefined;
   forklifts: Array<{ id: string; name: string; manufacturer?: string | null; model: string; serial_number?: string | null }> | undefined;
   customers: Customer[] | undefined;
