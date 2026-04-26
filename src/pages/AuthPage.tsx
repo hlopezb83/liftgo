@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 type Mode = "sign-in" | "forgot" | "reset";
 
 export default function AuthPage() {
   const { signIn, resetPassword, updatePassword } = useAuth();
+  const { data: company } = useCompanySettings();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,7 +58,15 @@ export default function AuthPage() {
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center pt-8 pb-2">
           <div className="flex justify-center mb-5">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
+            {company?.logo_url ? (
+              <img
+                src={company.logo_url}
+                alt={`Logo ${company.razon_social ?? "LiftGo"}`}
+                className="h-14 w-auto max-w-[200px] object-contain"
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
+            )}
           </div>
           <CardTitle>{titles[mode].title}</CardTitle>
           <CardDescription>{titles[mode].desc}</CardDescription>

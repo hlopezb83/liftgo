@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.38.1",
+    "date": "2026-04-26",
+    "type": "patch",
+    "title": "Logo de empresa en página de autenticación",
+    "description": "La página de inicio de sesión (AuthPage) ahora muestra el logo configurado en Configuración Fiscal en lugar del monograma 'LG'. Si no hay logo cargado, se mantiene el monograma como fallback."
+  },
+  {
     "version": "5.38.0",
     "date": "2026-04-26",
     "type": "minor",
