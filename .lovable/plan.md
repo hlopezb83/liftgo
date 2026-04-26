@@ -1,58 +1,97 @@
-# 📋 Auditoría Arquitectónica — v5.40.1
+# 📐 Plan: Crear `architecture.md`
 
-## Estado actual
+## Objetivo
+Crear un único archivo **`architecture.md`** en la raíz del repositorio que documente la arquitectura de LiftGo ERP siguiendo las mejores prácticas (estructura tipo C4 ligero + ADR-friendly, en **español mexicano**).
 
-✅ **0 errores TypeScript**
-✅ **0 usos de `any`** (auditado en mensajes anteriores)
-⚠️ **1 error ESLint** + **49 warnings** (complejidad/longitud — ningún issue de seguridad o tipos)
+## Ubicación
+- `architecture.md` (raíz del proyecto, junto a `README.md`)
 
-La arquitectura está **limpia y modular**. No hay misplaced logic crítica ni acoplamientos peligrosos. Las mejoras restantes son **refinamiento de modularización** en componentes que excedieron 150 líneas o complejidad ciclomática 15.
+## Estructura del documento
 
----
+1. **Introducción**
+   - Propósito del sistema (ERP interno LiftGo: flota, reservas, facturación, mantenimiento, CRM).
+   - Audiencia del documento (desarrolladores, nuevos integrantes del equipo).
+   - Cómo mantener este archivo vivo.
 
-## 🎯 Top 5 mejoras (ejecutables en 1 paso)
+2. **Stack tecnológico**
+   - Frontend: React 18 + Vite 5 + TypeScript 5 + Tailwind v3 + shadcn/Radix.
+   - Estado servidor: TanStack Query v5.
+   - Formularios: react-hook-form + Zod.
+   - Backend: Lovable Cloud (Supabase) — Postgres + Auth + Storage + Edge Functions (Deno).
+   - PDFs: jsPDF 4.x + jspdf-autotable (lazy loaded).
+   - Tests: Vitest + Testing Library + mocks de Supabase.
 
-### 1. **Corregir único error de ESLint** — `tailwind.config.ts:118`
-Reemplazar `require("tailwindcss-animate")` por `import` ESM al inicio del archivo. Es el único error bloqueante.
+3. **Diagrama de alto nivel** (ASCII)
+   - Cliente (SPA) ↔ Supabase Auth ↔ Postgres (RLS) ↔ Edge Functions ↔ Servicios externos (Facturapi, Lovable AI Gateway).
 
-### 2. **Modularizar `BookingActions.tsx` (243 líneas)**
-Extraer los handlers de transición de estado (confirm/start/complete/cancel) a un hook `useBookingActions.ts` y dejar el componente como UI pura con `<DropdownMenu>`. Reduce ~100 líneas y elimina warning de complejidad.
+4. **Estructura de carpetas** (`src/`)
+   - `pages/` — orquestadores de ruta (thin containers).
+   - `components/` — UI agrupada por dominio (`bookings/`, `invoice-detail/`, `ui/` shadcn, etc.).
+   - `hooks/` — hooks de dominio granulares (TanStack Query + lógica).
+   - `lib/` — utilidades puras (`pdf/`, `forms/`, `formatCurrency`, `constants`, `routes`, `utils`).
+   - `contexts/` — `AuthContext` global.
+   - `layouts/` — `MainLayout`, `CustomerPortalLayout`.
+   - `integrations/supabase/` — cliente y types **autogenerados** (no editar).
+   - `types/` — tipos de dominio compartidos.
+   - `test/` — pruebas e2e ligeras + helpers/mocks.
+   - `routes.tsx` — registro central de rutas con `lazy()` y mapeo a módulos de permisos.
 
-### 3. **Modularizar `ReportDamageDialog.tsx` (228 líneas, complejidad 24)**
-Extraer:
-- `useReportDamageForm.ts` — estado del formulario y submit handler
-- `DamageEvidenceSection.tsx` — bloque de fotos/dropzone
+5. **Patrones arquitectónicos clave**
+   - **Separación de responsabilidades**: Página (orquestador) → Hook de dominio (datos/estado) → Componente (UI pura).
+   - **Hooks de dominio granulares** (`useBookings`, `useInvoices`, `usePortalInvoices`...).
+   - **`useListPage` / `useListFilters` / `useDialogState`** como patrón estándar de páginas de listado.
+   - **Optimistic UI** en eliminaciones (navegación inmediata + rollback).
+   - **Transactional integrity** vía RPCs de Postgres para flujos multi-tabla.
+   - **Manejo de errores** centralizado con `sonner`.
+   - **Type-safety estricto**: sin `any`, sin `!`, `unknown` en `catch`, validaciones con Zod.
 
-Deja el dialog como contenedor (~80 líneas).
+6. **Capa de datos y seguridad**
+   - RLS en todas las tablas; función `has_role(user_id, role)` `SECURITY DEFINER` con `SET search_path = public`.
+   - `user_roles` separada de `profiles` (anti escalada de privilegios).
+   - Jerarquía de roles: Admin, Administrativo, Ventas, Despachador, Mecánico, Auditor.
+   - Permisos dinámicos en `role_permissions` (módulo × rol × access_level), expuestos por `useRolePermissions` y `RoleGuard`.
+   - Edge Functions validan identidad con `getClaims()` y CORS restringido.
 
-### 4. **Modularizar `IncomeStatementReport.tsx` (254 líneas)**
-Extraer:
-- `IncomeStatementTable.tsx` — render de filas + totales
-- `IncomeStatementToolbar.tsx` — selector de mes y export PDF
+7. **Enrutamiento y autorización**
+   - `routes.tsx` define `appRoutes` con `module` por ruta.
+   - `MainLayout` estático + `Suspense` por ruta + `AuthGuard` + `RoleGuard`.
+   - Portal de cliente aislado en `/portal/*` con `CustomerPortalLayout`.
 
-El componente padre queda como orquestador.
+8. **Generación de documentos (PDFs)**
+   - Arquitectura modular en `src/lib/pdf/` con sub-carpetas por documento (`contract/`, `quote/`, `customerStatement/`, `incomeStatement/`).
+   - `placeholderRegistry.ts` como única fuente de verdad para tokens de plantillas de contrato.
+   - `loadImageAsBase64`, `pdfHelpers` y `shared.ts` reutilizados.
 
-### 5. **Dividir `MaintenancePartsSection.tsx` (238 líneas)**
-Separar en:
-- `MaintenancePartsTable.tsx` — tabla read-only de partes consumidas
-- `AddMaintenancePartDialog.tsx` — diálogo de selección/cantidad
+9. **Convenciones de UI/UX**
+   - Desktop-first (99% intent), alta densidad, atajo Ctrl+K.
+   - Tablas zebra compactas con headers sticky; drill-down side panels en lugar de columnas de acción.
+   - `MobileCardList` reemplaza tablas en mobile.
+   - Componentes estandarizados: `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`.
 
----
+10. **Localización**
+    - Zona horaria `America/Monterrey` (`nowMty()`); fechas DD/MM/YYYY.
+    - Moneda MXN por defecto, formato `es-MX` vía `formatCurrency`.
+    - UI 100% en español mexicano.
 
-## 🛠 Verificación post-cambio
+11. **Testing**
+    - Vitest + jsdom, mocks de Supabase en `src/test/helpers/mockSupabase.ts`.
+    - Cobertura de flujos críticos: bookings, invoices, payments, exportCsv.
 
-- `tsc --noEmit` → 0 errores (mantener)
-- `eslint .` → **0 errores**, warnings ≤ 35 (de 50 actuales)
-- `public/changelog.json` → bump a **v5.41.0** (minor, refactor estructural)
+12. **Versionado y changelog**
+    - Versionado semántico mantenido en `public/changelog.json`.
+    - Política mandatoria: actualizar changelog tras cada cambio.
 
----
+13. **Lineamientos para evolucionar la arquitectura**
+    - Cuándo extraer un hook vs un componente.
+    - Cuándo crear una RPC vs lógica en cliente.
+    - Cuándo añadir una Edge Function.
+    - Cómo añadir un nuevo módulo (ruta + permiso + hook + página + tests).
 
-## ⏭ Mejoras opcionales (NO incluidas, baja prioridad)
+14. **Referencias**
+    - `README.md`, `public/changelog.json`, `src/lib/constants.ts`, `src/lib/config.ts`, memoria del proyecto en `.lovable/memory/`.
 
-- `MaintenancePage.tsx` (261 líneas) — ya usa hooks, solo necesita extraer Kanban toolbar.
-- `GanttChart.tsx` (236 líneas) — complejidad inherente al render SVG, refactor riesgoso.
-- `ContractDetail.tsx` (complejidad 27) — composición ya buena, dividir en tabs sería cosmético.
+## Verificación post-cambio
+- Archivo `architecture.md` creado en raíz, ~250–350 líneas, formateado con encabezados Markdown nivel `##`/`###`, bloques de código y un diagrama ASCII.
+- Sin cambios en código ni en `changelog.json` (es solo documentación interna; no requiere bump de versión).
 
----
-
-**¿Procedo con las 5 mejoras?** Al aprobar, ejecutaré todo en una sola pasada y actualizaré `changelog.json` a v5.41.0.
+¿Procedo a crearlo?
