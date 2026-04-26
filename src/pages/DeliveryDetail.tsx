@@ -7,23 +7,22 @@ import { useBookings } from "@/hooks/useBookings";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
-import { RoleGuard } from "@/components/RoleGuard";
 import { NotesCard } from "@/components/NotesCard";
 import { SignaturePad } from "@/components/contracts/SignaturePad";
 import { PostDeliveryPickupDialog } from "@/components/deliveries/PostDeliveryPickupDialog";
+import {
+  DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
+} from "@/components/deliveries/DeliveryInfoCards";
+import { DeliveryActions } from "@/components/deliveries/DeliveryActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CalendarDays, Truck, MapPin, CheckCircle, Trash2, User } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { formatDateDisplay, parseDateLocal, nowMty } from "@/lib/utils";
+import { nowMty } from "@/lib/utils";
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -56,8 +55,8 @@ export default function DeliveryDetail() {
   }
 
   const forklift = forkliftMap.get(delivery.forklift_id);
+  const linkedBooking = delivery.booking_id ? bookings?.find((b) => b.id === delivery.booking_id) : null;
 
-  // Calculate hours used when both delivery and pickup have readings
   const hoursUsed = (() => {
     if (!delivery.booking_id || !siblingDeliveries) return null;
     const deliveryRecord = siblingDeliveries.find((d) => d.type === "delivery" && d.hours_reading != null);
@@ -76,14 +75,11 @@ export default function DeliveryDetail() {
         onSuccess: () => {
           toast.success("Marcado como completado");
           setSignatureOpen(false);
-          if (delivery.type === "delivery" && delivery.booking_id) {
-            const booking = bookings?.find((b) => b.id === delivery.booking_id);
-            if (booking && forklift) {
-              setPickupPrompt({
-                delivery: { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, address: delivery.address, driver_name: delivery.driver_name, driver_phone: delivery.driver_phone },
-                bookingEndDate: booking.end_date, forkliftName: forklift.name,
-              });
-            }
+          if (delivery.type === "delivery" && delivery.booking_id && linkedBooking && forklift) {
+            setPickupPrompt({
+              delivery: { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, address: delivery.address, driver_name: delivery.driver_name, driver_phone: delivery.driver_phone },
+              bookingEndDate: linkedBooking.end_date, forkliftName: forklift.name,
+            });
           }
         },
       }
@@ -105,99 +101,42 @@ export default function DeliveryDetail() {
           badges={<StatusBadge status={delivery.status} />}
           backTo="/deliveries"
           actions={
-            <div className="flex gap-2">
-              {delivery.status !== "completed" && (
-                <Button size="sm" onClick={() => setSignatureOpen(true)}>
-                  <CheckCircle className="h-4 w-4 mr-1" /> Completar
-                </Button>
-              )}
-              <RoleGuard module="Entregas" minAccess="full">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-destructive"><Trash2 className="h-4 w-4 mr-1" /> Eliminar</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar esta entrega?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDelete}>Eliminar</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </RoleGuard>
-            </div>
+            <DeliveryActions
+              status={delivery.status}
+              onComplete={() => setSignatureOpen(true)}
+              onDelete={handleDelete}
+            />
           }
         />
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><CalendarDays className="h-4 w-4 text-muted-foreground" />Tipo y Fecha</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <InfoRow label="Tipo" value={delivery.type === "delivery" ? "Entrega" : "Recolección"} />
-              <InfoRow label="Fecha programada" value={formatDateDisplay(delivery.scheduled_date)} />
-              {delivery.scheduled_time && <InfoRow label="Hora" value={delivery.scheduled_time} />}
-              {delivery.completed_at && <InfoRow label="Completado" value={format(parseDateLocal(delivery.completed_at), "dd/MM/yyyy HH:mm")} />}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4 text-muted-foreground" />Equipo</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <InfoRow label="Nombre" value={forklift?.name || "—"} />
-              <InfoRow label="Modelo" value={forklift?.model || "—"} />
-              {delivery.hours_reading != null && <InfoRow label="Horómetro" value={`${delivery.hours_reading} hrs`} />}
-              {hoursUsed != null && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Horas Usadas</span>
-                  <span className="text-sm font-semibold text-primary">{hoursUsed} hrs</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" />Logística</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <InfoRow label="Dirección" value={delivery.address || "—"} />
-              <InfoRow label="Operador" value={delivery.driver_name || "—"} />
-              <InfoRow label="Teléfono" value={delivery.driver_phone || "—"} />
-              {(delivery.transport_cost ?? 0) > 0 && (
-                <InfoRow label="Costo de flete" value={`$${Number(delivery.transport_cost).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`} />
-              )}
-              {delivery.charged_to_customer && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Cobrado al cliente</span>
-                  <span className="text-sm font-medium text-status-available">Sí</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {delivery.booking_id && (() => {
-            const booking = bookings?.find((b) => b.id === delivery.booking_id);
-            if (!booking) return null;
-            return (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" />Reserva Vinculada</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <InfoRow label="Número" value={booking.booking_number} />
-                  <InfoRow label="Cliente" value={booking.customer_name || "—"} />
-                  <InfoRow label="Periodo" value={`${formatDateDisplay(booking.start_date)} → ${formatDateDisplay(booking.end_date)}`} />
-                </CardContent>
-              </Card>
-            );
-          })()}
+          <DeliveryStatusCard
+            type={delivery.type}
+            scheduledDate={delivery.scheduled_date}
+            scheduledTime={delivery.scheduled_time}
+            completedAt={delivery.completed_at}
+          />
+          <DeliveryEquipmentCard
+            forkliftName={forklift?.name}
+            forkliftModel={forklift?.model}
+            hoursReading={delivery.hours_reading}
+            hoursUsed={hoursUsed}
+          />
+          <DeliveryLogisticsCard
+            address={delivery.address}
+            driverName={delivery.driver_name}
+            driverPhone={delivery.driver_phone}
+            transportCost={delivery.transport_cost}
+            chargedToCustomer={delivery.charged_to_customer}
+          />
+          {linkedBooking && (
+            <DeliveryBookingCard
+              bookingNumber={linkedBooking.booking_number}
+              customerName={linkedBooking.customer_name}
+              startDate={linkedBooking.start_date}
+              endDate={linkedBooking.end_date}
+            />
+          )}
         </div>
 
         {delivery.notes && <NotesCard value={delivery.notes} readOnly title="Notas" />}
@@ -237,14 +176,5 @@ export default function DeliveryDetail() {
         />
       )}
     </>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-right max-w-[60%]">{value}</span>
-    </div>
   );
 }

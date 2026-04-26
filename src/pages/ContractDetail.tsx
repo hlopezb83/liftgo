@@ -3,24 +3,22 @@ import { useContract, useUpdateContract } from "@/hooks/useContracts";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Send, CheckCircle, XCircle, Edit } from "lucide-react";
 import { format } from "date-fns";
-import { parseDateLocal } from "@/lib/utils";
-import { formatDateDisplay } from "@/lib/utils";
-import { ContractPDFButton } from "@/components/contracts/ContractPDFButton";
+import { parseDateLocal, formatDateDisplay } from "@/lib/utils";
+import { ContractDetailActions } from "@/components/contracts/ContractDetailActions";
 import { RentalFinancialSummary } from "@/components/contracts/RentalFinancialSummary";
 import { toast } from "sonner";
 
 export default function ContractDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  void navigate;
   const { data: contract, isLoading } = useContract(id);
   const updateContract = useUpdateContract();
 
-  const setStatus = (status: string, extra?: Record<string, any>) => {
+  const setStatus = (status: string, extra?: Record<string, unknown>) => {
     if (!id) return;
     updateContract.mutate(
       { id, status, ...extra },
@@ -38,25 +36,14 @@ export default function ContractDetail() {
         backTo="/contracts"
         badges={<StatusBadge status={contract.status} />}
         actions={
-          <>
-            {contract.status === "draft" && (
-              <>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/contracts/${id}/edit`)}><Edit className="h-4 w-4 mr-1" />Editar</Button>
-                <Button size="sm" onClick={() => setStatus("sent")}><Send className="h-4 w-4 mr-1" />Marcar Enviado</Button>
-              </>
-            )}
-            {contract.status === "sent" && (
-              <Button size="sm" onClick={() => setStatus("signed", { signed_at: new Date().toISOString() })}>
-                <CheckCircle className="h-4 w-4 mr-1" />Marcar Firmado
-              </Button>
-            )}
-            {(contract.status === "draft" || contract.status === "sent") && (
-              <Button variant="destructive" size="sm" onClick={() => setStatus("cancelled")}>
-                <XCircle className="h-4 w-4 mr-1" />Cancelar
-              </Button>
-            )}
-            {id && <ContractPDFButton contract={contract} />}
-          </>
+          id ? (
+            <ContractDetailActions
+              id={id}
+              status={contract.status}
+              contract={contract}
+              onSetStatus={setStatus}
+            />
+          ) : null
         }
       />
 
