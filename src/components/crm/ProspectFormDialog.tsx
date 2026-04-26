@@ -1,9 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useProspectForm, type ProspectFormPayload } from "@/hooks/crm/useProspectForm";
 import { ProspectStageBadge } from "./prospect-form/ProspectStageBadge";
 import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActions";
