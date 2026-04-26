@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { parseDateLocal, formatDateDisplay } from "@/lib/utils";
 import { ContractDetailActions } from "@/components/contracts/ContractDetailActions";
 import { RentalFinancialSummary } from "@/components/contracts/RentalFinancialSummary";
+import { ContractConditionsCard } from "@/components/contracts/ContractConditionsCard";
 import { useContractDetailLogic } from "@/hooks/contractDetail/useContractDetailLogic";
 
 export default function ContractDetail() {
