@@ -1,3 +1,4 @@
+import type jsPDF from "jspdf";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { replacePlaceholders } from "@/lib/templateUtils";
@@ -5,7 +6,24 @@ import { addWrappedText, checkPage } from "@/lib/pdf/shared";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import type { ContractData, TemplateData } from "./data";
 
-export function generatePagarePage(doc: any, contract: ContractData, _company: any, customer: any, tpl: TemplateData, vars: Record<string, string>) {
+interface CompanyRef { razon_social?: string | null }
+interface CustomerRef {
+  name?: string | null;
+  representante_legal?: string | null;
+  contact_person?: string | null;
+  address?: string | null;
+  rfc?: string | null;
+}
+
+export function generatePagarePage(
+  doc: jsPDF,
+  contract: ContractData,
+  _company: CompanyRef | null,
+  customer: CustomerRef | null,
+  tpl: TemplateData,
+  vars: Record<string, string>,
+) {
+  void _company;
   doc.addPage();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
@@ -21,7 +39,6 @@ export function generatePagarePage(doc: any, contract: ContractData, _company: a
 
   doc.setFontSize(9); doc.setTextColor(51, 51, 51);
 
-  // Header info
   doc.setFont("helvetica", "bold"); doc.text("Número:", margin, cursorY);
   doc.setFont("helvetica", "normal"); doc.text("1/1", margin + 25, cursorY);
   doc.setFont("helvetica", "bold"); doc.text("Bueno por:", pageWidth / 2, cursorY);
@@ -38,7 +55,6 @@ export function generatePagarePage(doc: any, contract: ContractData, _company: a
   doc.text(format(now, "dd/MM/yyyy"), margin + 25, cursorY);
   cursorY += 12;
 
-  // Body text from template
   doc.setFont("helvetica", "bold"); doc.setFontSize(10);
   doc.text("TEXTO DEL PAGARÉ", margin, cursorY); cursorY += 7;
 
@@ -47,7 +63,6 @@ export function generatePagarePage(doc: any, contract: ContractData, _company: a
   cursorY = addWrappedText(doc, pagareText, margin, cursorY, pageWidth - margin * 2, 4.5);
   cursorY += 15;
 
-  // Suscriptor
   doc.setFont("helvetica", "bold"); doc.setFontSize(10);
   cursorY = checkPage(doc, cursorY, 40);
   doc.text("1. DATOS DEL SUSCRIPTOR", margin, cursorY); cursorY += 7;
