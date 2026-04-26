@@ -5,8 +5,8 @@ const fromMock = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    rpc: (...args: any[]) => rpcMock(...args),
-    from: (...args: any[]) => fromMock(...args),
+    rpc: (...args: unknown[]) => rpcMock(...args),
+    from: (...args: unknown[]) => fromMock(...args),
   },
 }));
 
@@ -18,9 +18,6 @@ describe("useCreateBooking mutationFn logic", () => {
   it("calls create_booking RPC with correct parameters", async () => {
     rpcMock.mockResolvedValue({ data: "new-booking-id", error: null });
 
-    const { useCreateBooking } = await import("@/hooks/useBookings");
-
-    // We test the mutation function directly by extracting it
     const booking = {
       forklift_id: "fork-1",
       customer_id: "cust-1",
@@ -31,7 +28,6 @@ describe("useCreateBooking mutationFn logic", () => {
       recurring_billing: true,
     };
 
-    // Call the RPC directly as the hook would
     const { data, error } = await rpcMock("create_booking", {
       p_forklift_id: booking.forklift_id,
       p_customer_id: booking.customer_id,
