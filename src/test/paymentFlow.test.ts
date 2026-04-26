@@ -14,8 +14,8 @@ interface InvoiceRow { total: number; status: string }
 interface PaymentRow { amount: number }
 
 const insertMock = vi.fn();
-const selectPaymentsMock: ReturnType<typeof vi.fn> = vi.fn();
-const selectInvoiceMock: ReturnType<typeof vi.fn> = vi.fn();
+const selectPaymentsMock = vi.fn<(...args: unknown[]) => Promise<SupabaseResponse<PaymentRow[]>>>();
+const selectInvoiceMock = vi.fn<(...args: unknown[]) => Promise<SupabaseResponse<InvoiceRow>>>();
 const updateMock = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
