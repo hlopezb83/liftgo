@@ -1,3 +1,4 @@
+import type jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
 import { format, parseISO } from "date-fns";
@@ -45,8 +46,8 @@ export async function fetchCompanyDataAndLogo(): Promise<{
 
 // ─── PDF text helpers (shared across contract/quote/invoice PDFs) ──
 
-export function addWrappedText(doc: any, text: string, x: number, cursorY: number, maxWidth: number, lineHeight: number): number {
-  const lines = doc.splitTextToSize(text, maxWidth);
+export function addWrappedText(doc: jsPDF, text: string, x: number, cursorY: number, maxWidth: number, lineHeight: number): number {
+  const lines = doc.splitTextToSize(text, maxWidth) as string[];
   let y = cursorY;
   for (const line of lines) {
     if (y > doc.internal.pageSize.getHeight() - 25) { doc.addPage(); y = 20; }
@@ -56,7 +57,7 @@ export function addWrappedText(doc: any, text: string, x: number, cursorY: numbe
   return y;
 }
 
-export function checkPage(doc: any, cursorY: number, needed: number = 15): number {
+export function checkPage(doc: jsPDF, cursorY: number, needed: number = 15): number {
   if (cursorY + needed > doc.internal.pageSize.getHeight() - 20) { doc.addPage(); return 20; }
   return cursorY;
 }
