@@ -3,15 +3,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { FinancialKpiCards } from "@/components/dashboard/FinancialKpiCards";
-import { AlertsRow } from "@/components/dashboard/AlertsRow";
-import { ExpiringContractsAlert } from "@/components/dashboard/ExpiringContractsAlert";
-import { InsuranceAlert } from "@/components/dashboard/InsuranceAlert";
-import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
-import { InvoiceBreakdown } from "@/components/dashboard/InvoiceBreakdown";
-import { UtilizationCharts } from "@/components/dashboard/UtilizationCharts";
-import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
+import { DashboardAlertsSection } from "@/components/dashboard/DashboardAlertsSection";
+import { DashboardChartsSection } from "@/components/dashboard/DashboardChartsSection";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { CollectionForecast } from "@/components/dashboard/CollectionForecast";
 import { useUpcomingInvoices } from "@/hooks/useUpcomingInvoices";
 
 import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
@@ -43,7 +37,10 @@ export default function Dashboard() {
   const { data: insuranceData } = useInsuranceAlerts();
   const { data: upcomingInvoices } = useUpcomingInvoices();
 
-  const counts = stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 };
+  const counts = useMemo(
+    () => stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 },
+    [stats?.fleet_counts]
+  );
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = activeFleet > 0 ? Math.round((counts.rented / activeFleet) * 100) : 0;
 
@@ -55,8 +52,7 @@ export default function Dashboard() {
   ].filter((d) => d.value > 0), [counts]);
 
   const outstandingRevenue = stats?.invoice_stats?.outstanding_revenue ?? 0;
-
-  const overdueInvoices = stats?.overdue_invoices ?? [];
+  const overdueInvoices = useMemo(() => stats?.overdue_invoices ?? [], [stats?.overdue_invoices]);
 
   const agingBuckets = useMemo(() => {
     const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
@@ -96,11 +92,7 @@ export default function Dashboard() {
   , [stats?.invoice_stats?.breakdown]);
 
   const cashFlowData = useMemo(() =>
-    (stats?.cash_flow ?? []).map((cf) => ({
-      month: cf.month,
-      invoiced: cf.invoiced,
-      paid: cf.paid,
-    }))
+    (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid }))
   , [stats?.cash_flow]);
 
   const statCards = useMemo(() => [
@@ -124,27 +116,34 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-    <div className="p-6 space-y-6">
-      <PageHeader title="Panel" subtitle="Vista general de la flota" />
-      <StatCards cards={statCards} />
-      <FinancialKpiCards
-        mrr={kpis?.mrr ?? 0}
-        utilizationPercent={utilizationPercent}
-        dso={kpis?.dso ?? 0}
-        overdueTotal={kpis?.overdue_total ?? 0}
-      />
-      <AlertsRow overdueInvoices={overdueInvoices} maintenanceAlerts={maintenanceAlerts} agingBuckets={agingBuckets} overdueBookings={stats?.overdue_bookings ?? []} />
-      <CollectionForecast overdueInvoices={overdueInvoices} upcomingInvoices={upcomingInvoices ?? []} />
-      <ExpiringContractsAlert contracts={kpis?.expiring_contracts ?? []} />
-      <InsuranceAlert data={insuranceData} />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <FleetStatusChart data={pieData} />
-        <InvoiceBreakdown data={invoiceBreakdown} outstandingRevenue={outstandingRevenue} />
+      <div className="p-6 space-y-6">
+        <PageHeader title="Panel" subtitle="Vista general de la flota" />
+        <StatCards cards={statCards} />
+        <FinancialKpiCards
+          mrr={kpis?.mrr ?? 0}
+          utilizationPercent={utilizationPercent}
+          dso={kpis?.dso ?? 0}
+          overdueTotal={kpis?.overdue_total ?? 0}
+        />
+        <DashboardAlertsSection
+          overdueInvoices={overdueInvoices}
+          maintenanceAlerts={maintenanceAlerts}
+          agingBuckets={agingBuckets}
+          overdueBookings={stats?.overdue_bookings ?? []}
+          upcomingInvoices={upcomingInvoices ?? []}
+          expiringContracts={kpis?.expiring_contracts ?? []}
+          insuranceData={insuranceData}
+        />
+        <DashboardChartsSection
+          pieData={pieData}
+          invoiceBreakdown={invoiceBreakdown}
+          outstandingRevenue={outstandingRevenue}
+          weeklyUtilization={weeklyUtilization}
+          revenuePerUnit={revenuePerUnit}
+          cashFlowData={cashFlowData}
+        />
+        <RecentActivity />
       </div>
-      <UtilizationCharts weeklyUtilization={weeklyUtilization} revenuePerUnit={revenuePerUnit} />
-      <CashFlowChart data={cashFlowData} />
-      <RecentActivity />
-    </div>
     </PageTransition>
   );
 }

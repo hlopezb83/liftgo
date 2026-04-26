@@ -14,7 +14,7 @@ export function drawIncomeStatementHeader(
 ): number {
   const margin = 14;
   const pageWidth = doc.internal.pageSize.getWidth();
-  let y = startY;
+  const y = startY;
   const textStartX = logoBase64 ? margin + 22 : margin;
 
   if (logoBase64) {
@@ -63,7 +63,7 @@ export function drawTableHeader(
     doc.text(h, margin + labelColW + colW * i + colW - 2, startY, { align: "right" });
   });
 
-  let y = startY + 6;
+  const y = startY + 6;
   doc.setDrawColor(200, 200, 200);
   doc.setLineWidth(0.3);
   doc.line(margin, y, pageWidth - margin, y);

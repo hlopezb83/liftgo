@@ -13,7 +13,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 /** Simple Markdown → HTML renderer (no deps) */
 function renderMarkdown(md: string): string {
-  let html = md
+  const html = md
     .replace(/^#### (.+)$/gm, '<h4 class="text-sm font-semibold mt-4 mb-1">$1</h4>')
     .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-5 mb-2">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mt-6 mb-2">$1</h2>')

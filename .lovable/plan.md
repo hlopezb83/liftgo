@@ -1,39 +1,70 @@
-## Plan: Refactor Crítico de Páginas Detail (Pasos 1-3)
+## Plan: 5 Mejoras Arquitectónicas Críticas — v5.38.0
 
-Objetivo: reducir complejidad ciclomática <15 en `InvoiceDetail.tsx` (44), `QuoteDetail.tsx` (33) y `ReturnInspectionDetail.tsx` (27) extrayendo lógica a hooks orquestadores y componentes modulares.
+Ejecutar todas las mejoras en un solo paso, verificar con `tsc --noEmit` y actualizar changelog (minor).
 
-### Paso 1 — InvoiceDetail.tsx (Complexity 44 → <15)
-**Crear:**
-- `src/hooks/invoiceDetail/useInvoiceDetailActions.ts` — orquestador que agrupa acciones (pago, cancelación CFDI, timbrado, edición, eliminación).
-- `src/components/invoice-detail/InvoiceDetailActions.tsx` — botones del header (timbrar, cancelar, descargar PDF, eliminar).
-- `src/components/invoice-detail/InvoiceSourceLinks.tsx` — links a documentos origen (booking/contract/quote).
+---
 
-**Modificar:** `src/pages/InvoiceDetail.tsx` para consumir el hook y los nuevos componentes.
+### 🔴 Mejora 1: Refactor `ContractDetail.tsx` (Complejidad 31 → ~8)
+**Problema**: Página monolítica que mezcla fetching, generación de PDF, firma electrónica y renderizado.
 
-### Paso 2 — QuoteDetail.tsx (Complexity 33 → <15)
-**Crear:**
-- `src/components/quotes/QuoteDetailActions.tsx` — acciones del header (PDF, convertir, editar, eliminar).
-- `src/components/quotes/QuoteConversionDialogs.tsx` — agrupador de los 3 diálogos de conversión (recurring, customer reassign, equipment assignment).
+**Acciones**:
+- Crear `src/hooks/contractDetail/useContractDetailActions.ts` — Centraliza acciones (regenerar PDF, firmar, eliminar).
+- Crear `src/components/contracts/ContractPDFButton.tsx` — Encapsula generación + descarga PDF.
+- Crear `src/components/contracts/SignaturePad.tsx` — Aísla la lógica de firma electrónica.
+- Eliminar el `any` en línea 23 (tipar correctamente con tipos de Supabase).
 
-**Modificar:** `src/pages/QuoteDetail.tsx` para usar componentes agrupados (ya existe `useQuoteDetailLogic`).
+---
 
-### Paso 3 — ReturnInspectionDetail.tsx (Complexity 27 → <15)
-**Crear:**
-- `src/components/return-inspection/InfoRow.tsx` — fila reutilizable label/value.
-- `src/components/return-inspection/EquipmentCard.tsx`
-- `src/components/return-inspection/BookingCard.tsx`
-- `src/components/return-inspection/InspectionCard.tsx`
-- `src/components/return-inspection/UsageFuelCard.tsx`
-- `src/components/return-inspection/DamagesCard.tsx`
+### 🔴 Mejora 2: Refactor `DeliveryDetail.tsx` (Complejidad 28, 197 LOC → ~80 LOC)
+**Problema**: Mezcla mutaciones, fetching y cards inline.
 
-**Modificar:** `src/pages/ReturnInspectionDetail.tsx` para componer las cards.
+**Acciones**:
+- Extraer secciones a `src/components/deliveries/`:
+  - `DeliveryStatusCard.tsx`
+  - `DeliveryEquipmentCard.tsx`
+  - `DeliveryRouteCard.tsx`
+- Crear `src/hooks/deliveryDetail/useDeliveryActions.ts` para mutaciones (completar, cancelar).
 
-### Verificación
-- `bunx tsc --noEmit` — confirmar 0 errores.
-- Smoke check de los archivos modificados.
+---
 
-### Changelog
-Agregar entrada **v5.34.0 (minor)** en `public/changelog.json`: "Refactor arquitectónico: reducción de complejidad en páginas Detail de Factura, Cotización e Inspección de Devolución mediante extracción a hooks orquestadores y componentes modulares".
+### 🔴 Mejora 3: Modularizar `Dashboard.tsx` (Complejidad 27)
+**Problema**: Orquestación de KPIs, alertas y charts sin extracción.
 
-### Fuera de alcance
-Pasos 4-13 del audit (sub-tabs CompanySettings/CRM, BookingDetail, reorganización de 65 hooks flat, eliminación de `any`, CI). Quedan para iteraciones futuras.
+**Acciones**:
+- Verificar y consolidar secciones en `src/components/dashboard/`:
+  - `DashboardKpiSection.tsx` (agrupa StatCards + FinancialKpiCards)
+  - `DashboardAlertsSection.tsx` (agrupa AlertsRow + ExpiringContractsAlert + InsuranceAlert)
+  - `DashboardChartsSection.tsx` (agrupa CashFlowChart + UtilizationCharts + FleetStatusChart)
+- Resultado: Dashboard.tsx queda como orquestador de 3 secciones (~50 LOC).
+
+---
+
+### 🟡 Mejora 4: Tipar `src/lib/pdf/shared.ts` y eliminar `any` críticos
+**Problema**: `any` en helpers PDF compartidos propaga falta de tipos a todos los generadores.
+
+**Acciones**:
+- Reemplazar `any` en `shared.ts` (líneas 48, 59) con tipos explícitos basados en `jsPDF` y opciones reales usadas.
+- Corregir `any` en `BookingForm.tsx` (líneas 107-108), `PortalInvoiceDetail.tsx` (línea 86) y `ContractDetail.tsx` (línea 23).
+- Corregir 3 errores `prefer-const` (`incomeStatement/header.ts` × 2, `HelpPage.tsx` × 1).
+
+---
+
+### 🟡 Mejora 5: Refactor `generateContractPages` (Complejidad 24)
+**Problema**: Función monolítica genera todas las páginas del contrato (legal + Anexo A + Anexo B).
+
+**Acciones**:
+- Dividir `src/lib/pdf/contract/contractPage.ts` en funciones por sección:
+  - `drawContractHeader()`
+  - `drawClauses()` (cláusulas legales)
+  - `drawSignatures()`
+- Mantener `generateContractPages` como orquestador delgado (<50 LOC, complejidad <10).
+
+---
+
+## ✅ Verificación
+1. `bunx tsc --noEmit` → 0 errores
+2. `bunx eslint src --quiet` → reducir de 58 a ≤30 errores
+3. Probar visualmente: Dashboard, ContractDetail (regenerar PDF + firmar), DeliveryDetail.
+
+## 📝 Changelog
+Agregar entrada **v5.38.0 (minor)** — "Refactor arquitectónico: reducción de complejidad en páginas de detalle, modularización de Dashboard y tipado estricto en generadores PDF."

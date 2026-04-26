@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.38.0",
+    "date": "2026-04-26",
+    "type": "minor",
+    "title": "Refactor arquitectónico: modularización de Dashboard, DeliveryDetail y generador de contratos PDF",
+    "description": "Dashboard reorganizado en secciones (Alerts, Charts). DeliveryDetail dividido en cards reutilizables (Status, Equipment, Logistics, Booking) y acciones extraídas. ContractDetail con header de acciones aislado. Generador PDF de contratos modularizado en header/declarations/clauses/signatures. Tipado estricto con jsPDF en helpers compartidos."
+  },
+  {
     "version": "5.37.0",
     "date": "2026-04-25",
     "type": "minor",
