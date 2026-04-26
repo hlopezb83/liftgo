@@ -13,6 +13,7 @@ type Mode = "sign-in" | "forgot" | "reset";
 
 export default function AuthPage() {
   const { signIn, resetPassword, updatePassword } = useAuth();
+  const { data: company } = useCompanySettings();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
