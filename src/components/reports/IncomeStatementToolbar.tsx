@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, FileDown } from "lucide-react";
-import type { CsvRow } from "@/lib/exportCsv";
 import { exportToCsv } from "@/lib/exportCsv";
+
+type CsvRow = Record<string, unknown>;
 
 interface Props {
   availableYears: string[];
