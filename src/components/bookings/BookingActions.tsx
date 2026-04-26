@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -6,24 +5,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerField } from "@/components/DatePickerField";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useUpdateBooking, useDeleteBooking, useCancelBooking, type BookingWithForklift } from "@/hooks/useBookings";
-import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
+import { type BookingWithForklift } from "@/hooks/useBookings";
 import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
 import { formatDateDisplay } from "@/lib/utils";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useBookingActionsLogic, STATUS_LABELS, getValidTransitions } from "@/hooks/useBookingActionsLogic";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 
 function ConfirmActionDialog({
-  trigger,
-  title,
-  description,
-  confirmLabel,
-  onConfirm,
+  trigger, title, description, confirmLabel, onConfirm,
 }: {
   trigger: React.ReactNode;
   title: string;
@@ -51,65 +41,16 @@ function ConfirmActionDialog({
 }
 
 export function BookingActions({ booking }: BookingActionsProps) {
-  const [extendOpen, setExtendOpen] = useState(false);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<string>("");
-  const [newEndDate, setNewEndDate] = useState<Date>();
-
-  const { data: forklifts } = useForklifts();
-  const updateBooking = useUpdateBooking();
-  const deleteBooking = useDeleteBooking();
-  const cancelBooking = useCancelBooking();
-  const navigate = useNavigate();
-  const { data: role } = useUserRole();
-  const isAdmin = role === "admin";
-
-  const handleDelete = () => {
-    deleteBooking.mutate(booking.id, {
-      onSuccess: () => { toast.success("Reserva eliminada"); navigate("/bookings"); },
-    });
-  };
-
-  const handleCancel = () => {
-    cancelBooking.mutate(booking.id, {
-      onSuccess: () => toast.success("Reserva cancelada"),
-    });
-  };
-
-  const statusLabels: Record<string, string> = {
-    confirmed: "Confirmada",
-    completed: "Completada",
-    cancelled: "Cancelada",
-  };
-
-  const getValidTransitions = (current: string): string[] => {
-    switch (current) {
-      case "confirmed": return ["completed", "cancelled"];
-      case "completed": return ["confirmed"];
-      case "cancelled": return ["confirmed"];
-      default: return [];
-    }
-  };
-
-  const handleStatusChange = async () => {
-    if (!newStatus || newStatus === booking.status) return;
-    try {
-      if (newStatus === "cancelled") {
-        cancelBooking.mutate(booking.id);
-      } else {
-        await new Promise<void>((resolve, reject) => {
-          updateBooking.mutate(
-            { id: booking.id, status: newStatus },
-            { onSuccess: () => resolve(), onError: (err) => reject(err) }
-          );
-        });
-      }
-      toast.success(`Estatus cambiado a ${statusLabels[newStatus] || newStatus}`);
-      setStatusDialogOpen(false);
-    } catch (err: unknown) {
-      toast.error("Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido"));
-    }
-  };
+  const {
+    isAdmin, navigate,
+    extendOpen, setExtendOpen,
+    statusDialogOpen, setStatusDialogOpen,
+    newStatus, setNewStatus,
+    newEndDate, setNewEndDate,
+    extendPreview,
+    handleDelete, handleCancel, handleStatusChange, handleExtend,
+    updateBookingPending,
+  } = useBookingActionsLogic(booking);
 
   const statusChangeDialog = (
     <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
@@ -123,12 +64,10 @@ export function BookingActions({ booking }: BookingActionsProps) {
           <div>
             <p className="text-sm text-muted-foreground mb-1">Nuevo estatus</p>
             <Select value={newStatus} onValueChange={setNewStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar estatus" />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Seleccionar estatus" /></SelectTrigger>
               <SelectContent>
                 {getValidTransitions(booking.status).map((s) => (
-                  <SelectItem key={s} value={s}>{statusLabels[s] || s}</SelectItem>
+                  <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -170,22 +109,6 @@ export function BookingActions({ booking }: BookingActionsProps) {
       </div>
     );
   }
-
-  const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
-  const getPreview = (start: string, end: Date | undefined) => {
-    if (!forklift || !end) return null;
-    const items = generateLineItems(forklift, start, format(end, "yyyy-MM-dd"));
-    return computeTotals(items, 21);
-  };
-  const extendPreview = getPreview(booking.start_date, newEndDate);
-
-  const handleExtend = () => {
-    if (!newEndDate) return;
-    updateBooking.mutate(
-      { id: booking.id, end_date: format(newEndDate, "yyyy-MM-dd") },
-      { onSuccess: () => { toast.success("Reserva extendida"); setExtendOpen(false); } }
-    );
-  };
 
   return (
     <div className="flex gap-1">
@@ -231,7 +154,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
             </div>
           )}
           <div className="flex gap-3">
-            <Button onClick={handleExtend} disabled={updateBooking.isPending}>Extender</Button>
+            <Button onClick={() => handleExtend(() => setExtendOpen(false))} disabled={updateBookingPending}>Extender</Button>
             <Button variant="outline" onClick={() => setExtendOpen(false)}>Cancelar</Button>
           </div>
         </DialogContent>
