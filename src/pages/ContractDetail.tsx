@@ -1,5 +1,3 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useContract, useUpdateContract } from "@/hooks/useContracts";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,25 +7,22 @@ import { format } from "date-fns";
 import { parseDateLocal, formatDateDisplay } from "@/lib/utils";
 import { ContractDetailActions } from "@/components/contracts/ContractDetailActions";
 import { RentalFinancialSummary } from "@/components/contracts/RentalFinancialSummary";
-import { toast } from "sonner";
+import { useContractDetailLogic } from "@/hooks/contractDetail/useContractDetailLogic";
 
 export default function ContractDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  void navigate;
-  const { data: contract, isLoading } = useContract(id);
-  const updateContract = useUpdateContract();
+  const { id, contract, isLoading, setStatus } = useContractDetailLogic();
 
-  const setStatus = (status: string, extra?: Record<string, unknown>) => {
-    if (!id) return;
-    updateContract.mutate(
-      { id, status, ...extra },
-      { onSuccess: () => toast.success(`Contrato marcado como ${status}`) }
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64" />
+      </div>
     );
-  };
-
-  if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
+  }
   if (!contract) return <div className="p-6 text-muted-foreground">Contrato no encontrado</div>;
+
+  const showConditions = contract.usage_location || contract.max_hours_per_month || contract.payment_frequency;
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -78,7 +73,7 @@ export default function ContractDetail() {
         </CardContent>
       </Card>
 
-      {(contract.usage_location || contract.max_hours_per_month || contract.payment_frequency) && (
+      {showConditions && (
         <Card>
           <CardHeader><CardTitle className="text-base">Condiciones de Uso</CardTitle></CardHeader>
           <CardContent>

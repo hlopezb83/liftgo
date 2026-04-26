@@ -1,9 +1,3 @@
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useCreateBooking } from "@/hooks/useBookings";
-import { useAvailableForklifts } from "@/hooks/useAvailableForklifts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { CustomerSelector } from "@/components/customers/CustomerSelector";
@@ -13,102 +7,25 @@ import { FormPageHeader } from "@/components/FormPageHeader";
 import { ForkliftSelector } from "@/components/fleet/ForkliftSelector";
 import { PostBookingDeliveryDialog } from "@/components/bookings/PostBookingDeliveryDialog";
 import { PostBookingPolicyDialog } from "@/components/bookings/PostBookingPolicyDialog";
-import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { format, differenceInDays } from "date-fns";
-import { bookingFormSchema, type BookingFormData } from "@/lib/formSchemas";
-import type { DateRange } from "react-day-picker";
-
-interface PostBookingState { bookingId: string; forkliftId: string; startDate: string; customerAddress: string | null; }
+import { differenceInDays } from "date-fns";
+import { useBookingFormLogic } from "@/hooks/bookingForm/useBookingFormLogic";
 
 export default function BookingForm() {
-  const navigate = useNavigate();
-  const { data: customers } = useCustomers();
-  const { data: policies } = useMaintenancePolicies();
-  const createBooking = useCreateBooking();
-  const [postBooking, setPostBooking] = useState<PostBookingState | null>(null);
-  const [showPolicyDialog, setShowPolicyDialog] = useState(false);
+  const {
+    form, customers, createBooking,
+    dateRange, forkliftId,
+    availableForklifts, datesSelected,
+    onSubmit,
+    postBooking, showPolicyDialog,
+    handleDeliveryDone, handlePolicyDone,
+    selectedForklift,
+    dateRangeError,
+    navigate,
+  } = useBookingFormLogic();
 
-  const form = useForm<BookingFormData>({
-    resolver: zodResolver(bookingFormSchema),
-    defaultValues: {
-      forklift_id: "",
-      date_range: { from: undefined, to: undefined },
-      customer_id: "",
-      customer_name: "",
-      customer_contact: "",
-      recurring_billing: false,
-    },
-  });
-
-  const dateRange = form.watch("date_range") as DateRange | undefined;
-  const forkliftId = form.watch("forklift_id");
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
-
-  const { availableForklifts, forklifts, datesSelected } = useAvailableForklifts(dateRange);
-
-  useEffect(() => {
-    if (forkliftId && datesSelected && !availableForklifts.some((f) => f.id === forkliftId)) {
-      form.setValue("forklift_id", "");
-    }
-  }, [availableForklifts, forkliftId, datesSelected, form]);
-
-  const onSubmit = (data: BookingFormData) => {
-    const selectedCustomer = customers?.find((c) => c.id === data.customer_id);
-    createBooking.mutate(
-      {
-        forklift_id: data.forklift_id,
-        start_date: format(data.date_range.from!, "yyyy-MM-dd"),
-        end_date: format(data.date_range.to!, "yyyy-MM-dd"),
-        customer_name: selectedCustomer?.name || data.customer_name || null,
-        customer_contact: selectedCustomer?.email || data.customer_contact || null,
-        customer_id: data.customer_id || null,
-        status: "confirmed",
-        recurring_billing: data.recurring_billing,
-      },
-      {
-        onSuccess: (bookingId: string) => {
-          const cust = customers?.find((c) => c.id === data.customer_id);
-          setPostBooking({
-            bookingId,
-            forkliftId: data.forklift_id,
-            startDate: format(data.date_range.from!, "yyyy-MM-dd"),
-            customerAddress: cust?.address || null,
-          });
-        },
-      }
-    );
-  };
-
-  const handleDeliveryDone = () => {
-    // After delivery dialog, check if policy is needed
-    const hasPolicy = policies?.some(
-      (p) => p.forklift_id === postBooking?.forkliftId && p.is_active
-    );
-    if (!hasPolicy && postBooking) {
-      setShowPolicyDialog(true);
-    } else {
-      setPostBooking(null);
-      toast.success("Reserva creada");
-      navigate("/calendar");
-    }
-  };
-  const handlePolicyDone = () => {
-    setShowPolicyDialog(false);
-    setPostBooking(null);
-    toast.success("Reserva creada");
-    navigate("/calendar");
-  };
-  const selectedForklift = forklifts?.find((f) => f.id === postBooking?.forkliftId);
-
-  const dateRangeErrorObj = form.formState.errors.date_range as
-    | { message?: string; from?: { message?: string }; to?: { message?: string } }
-    | undefined;
-  const dateRangeError = dateRangeErrorObj?.message
-    ?? dateRangeErrorObj?.from?.message
-    ?? dateRangeErrorObj?.to?.message;
+  const showRecurring = startDate && endDate && differenceInDays(endDate, startDate) >= 30;
 
   return (
     <div className="p-6 max-w-3xl">
@@ -132,7 +49,7 @@ export default function BookingForm() {
               showStatus
               error={form.formState.errors.forklift_id?.message}
             />
-            {startDate && endDate && differenceInDays(endDate, startDate) >= 30 && (
+            {showRecurring && (
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                 <div>
                   <p className="text-sm font-medium">Habilitar Facturación Recurrente</p>
@@ -162,10 +79,25 @@ export default function BookingForm() {
         <FormActions submitLabel="Crear Reserva" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
       </form>
       {postBooking && !showPolicyDialog && (
-        <PostBookingDeliveryDialog open={!!postBooking && !showPolicyDialog} onOpenChange={(open) => { if (!open) handleDeliveryDone(); }} bookingId={postBooking.bookingId} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} startDate={postBooking.startDate} customerAddress={postBooking.customerAddress} onSkip={handleDeliveryDone} />
+        <PostBookingDeliveryDialog
+          open={!!postBooking && !showPolicyDialog}
+          onOpenChange={(open) => { if (!open) handleDeliveryDone(); }}
+          bookingId={postBooking.bookingId}
+          forkliftId={postBooking.forkliftId}
+          forkliftName={selectedForklift?.name || ""}
+          startDate={postBooking.startDate}
+          customerAddress={postBooking.customerAddress}
+          onSkip={handleDeliveryDone}
+        />
       )}
       {showPolicyDialog && postBooking && (
-        <PostBookingPolicyDialog open={showPolicyDialog} onOpenChange={(open) => { if (!open) handlePolicyDone(); }} forkliftId={postBooking.forkliftId} forkliftName={selectedForklift?.name || ""} onSkip={handlePolicyDone} />
+        <PostBookingPolicyDialog
+          open={showPolicyDialog}
+          onOpenChange={(open) => { if (!open) handlePolicyDone(); }}
+          forkliftId={postBooking.forkliftId}
+          forkliftName={selectedForklift?.name || ""}
+          onSkip={handlePolicyDone}
+        />
       )}
     </div>
   );
