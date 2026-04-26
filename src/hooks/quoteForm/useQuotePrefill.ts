@@ -8,8 +8,14 @@ import type { useQuoteFormState } from "./useQuoteFormState";
 type State = ReturnType<typeof useQuoteFormState>;
 type EquipmentModel = { id: string; manufacturer: string; model: string; default_daily_rate?: number | null; default_weekly_rate?: number | null; default_monthly_rate?: number | null };
 
+type ExistingQuote = {
+  quote_type?: string; customer_id?: string | null; customer_name?: string | null;
+  start_date?: string | null; end_date?: string | null;
+  tax_rate: number | string; currency?: string; notes?: string | null;
+  valid_until?: string | null; line_items?: unknown; rental_meta?: unknown;
+};
 interface Props {
-  existingQuote: any;
+  existingQuote: ExistingQuote | null | undefined;
   equipmentModels: EquipmentModel[] | undefined;
   state: State;
 }

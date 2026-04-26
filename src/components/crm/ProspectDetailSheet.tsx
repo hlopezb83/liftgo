@@ -72,7 +72,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
         </SheetHeader>
 
         <div className="mt-4 space-y-4">
-          <Badge variant={STAGE_COLORS[prospect.stage] as any || "outline"}>
+          <Badge variant={(STAGE_COLORS[prospect.stage] as "default" | "secondary" | "outline" | "destructive") || "outline"}>
             {STAGE_LABELS[prospect.stage] || prospect.stage}
           </Badge>
 

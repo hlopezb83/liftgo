@@ -83,7 +83,7 @@ export default function PortalInvoiceDetail() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lineItems.map((item: any, idx: number) => (
+                {(lineItems as Array<{ description?: string; quantity?: number; unit_price?: number; amount?: number }>).map((item, idx) => (
                   <TableRow key={idx}>
                     <TableCell>{item.description || "—"}</TableCell>
                     <TableCell className="text-right">{item.quantity || 1}</TableCell>
