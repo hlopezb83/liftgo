@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 type Mode = "sign-in" | "forgot" | "reset";
 
