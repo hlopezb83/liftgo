@@ -23,7 +23,7 @@ export default function ContractDetail() {
   }
   if (!contract) return <div className="p-6 text-muted-foreground">Contrato no encontrado</div>;
 
-  const showConditions = contract.usage_location || contract.max_hours_per_month || contract.payment_frequency;
+  
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -74,22 +74,7 @@ export default function ContractDetail() {
         </CardContent>
       </Card>
 
-      {showConditions && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Condiciones de Uso</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-              {contract.usage_location && <div className="col-span-2 sm:col-span-3"><span className="text-muted-foreground block">Ubicación de Uso</span>{contract.usage_location}</div>}
-              {contract.max_hours_per_month && <div><span className="text-muted-foreground block">Horas Máx/Mes</span>{contract.max_hours_per_month}</div>}
-              {contract.extra_hour_rate && <div><span className="text-muted-foreground block">Tarifa Hora Extra</span>{formatCurrency(Number(contract.extra_hour_rate))}</div>}
-              {contract.payment_frequency && <div><span className="text-muted-foreground block">Frecuencia de Pago</span>{contract.payment_frequency}</div>}
-              {contract.late_interest_rate && <div><span className="text-muted-foreground block">Interés Moratorio</span>{contract.late_interest_rate}%</div>}
-              {contract.witness_1 && <div><span className="text-muted-foreground block">Testigo 1</span>{contract.witness_1}</div>}
-              {contract.witness_2 && <div><span className="text-muted-foreground block">Testigo 2</span>{contract.witness_2}</div>}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ContractConditionsCard contract={contract} />
 
       {contract.booking_id && contract.start_date && contract.end_date && (
         <RentalFinancialSummary
