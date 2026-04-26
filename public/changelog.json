@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.41.0",
+    "date": "2026-04-26",
+    "type": "minor",
+    "title": "Refactor de modularización: 5 componentes divididos",
+    "description": "Eliminado último error ESLint (require → import en tailwind.config). Extraídos hooks y subcomponentes: useBookingActionsLogic (BookingActions), useReportDamageForm + DamageEvidenceSection (ReportDamageDialog), IncomeStatementTable + IncomeStatementToolbar (IncomeStatementReport), AddMaintenancePartForm (MaintenancePartsSection). Resultado: 0 errores ESLint, warnings reducidos de 50 a 45."
+  },
+  {
     "version": "5.40.1",
     "date": "2026-04-26",
     "type": "patch",
