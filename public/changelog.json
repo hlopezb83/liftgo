@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.42.0",
+    "date": "2026-04-26",
+    "type": "minor",
+    "title": "Auditoría: 5 refactors de alto impacto en páginas y rutas",
+    "description": "Extraídos hooks/sub-componentes para reducir complejidad ciclomática en hotspots: useDashboardSections (Dashboard 25→0), useContractDetailLogic + ContractConditionsCard (ContractDetail 27→17), useBookingFormLogic (BookingForm 24→16), ProspectFormFields (ProspectFormDialog 20→16). Configuración de rutas migrada de routes.tsx a lib/routes-config.tsx para eliminar el warning de fast-refresh. Sin cambios funcionales ni de UI."
+  },
+  {
     "version": "5.41.0",
     "date": "2026-04-26",
     "type": "minor",
