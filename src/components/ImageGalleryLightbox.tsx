@@ -40,7 +40,7 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
     const diff = e.changedTouches[0].clientX - touchStart;
-    if (Math.abs(diff) > 60) { diff > 0 ? prev() : next(); }
+    if (Math.abs(diff) > 60) { if (diff > 0) prev(); else next(); }
     setTouchStart(null);
   };
 
