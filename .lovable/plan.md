@@ -1,59 +1,64 @@
-## Plan: 5 Mejoras Arquitectónicas — v5.39.0
+# Auditoría v5.39.0 → v5.40.0: 5 mejoras finales
 
-Ejecutables en un solo paso. Objetivo: reducir errores ESLint de **48 → ≤20**, eliminar `any` en tests y modularizar las páginas restantes >240 LOC.
+## Estado actual
 
----
+La arquitectura está **muy limpia** tras los refactors recientes. No hay violaciones graves de separación de concerns ni archivos monolíticos. Los hallazgos restantes son **puntuales** y se ejecutan en un solo paso.
 
-### 🔴 Mejora 1: Tipar mocks de Supabase en tests (elimina ~13 errores `any`)
-**Problema**: `src/test/paymentFlow.test.ts`, `invoiceFlow.test.ts`, `bookingFlow.test.ts`, `exportCsv.test.ts` y `pages/__tests__/InvoicesPage.test.tsx` usan `any` para los mocks del cliente Supabase.
-
-**Acciones**:
-- Crear `src/test/helpers/mockSupabase.ts` con un tipo `MockSupabaseQuery<T>` reutilizable (basado en `PostgrestQueryBuilder`) y un factory `createSupabaseMock()`.
-- Reemplazar todos los `any` en archivos de tests por el tipo helper.
+**Métrica objetivo**: 19 errores ESLint → **0 errores**.
 
 ---
 
-### 🔴 Mejora 2: Modularizar `SuppliersPage.tsx` (264 LOC) e `InventoryPage.tsx` (246 LOC)
-**Problema**: Ambas páginas mezclan tabla + diálogo de creación/edición + filtros + acciones de eliminación inline.
+### 🔴 Mejora 1: Eliminar los 4 `any` en `useForkliftFormLogic.ts`
+**Problema**: El hook castea `existing as any` para acceder a campos de seguro (`insurance_provider`, `insurance_policy_number`, `insurance_expiry`, `insurance_cost`) que **sí existen** en el tipo `Forklift` generado por Supabase.
 
-**Acciones**:
-- Crear `src/components/suppliers/SupplierFormDialog.tsx` y `src/components/suppliers/SupplierDeleteDialog.tsx`.
-- Crear `src/components/inventory/PartFormDialog.tsx` y `src/components/inventory/PartDeleteDialog.tsx` (PartDetailSheet ya existe).
-- Las páginas quedan como orquestadores (~120 LOC) enfocados en data fetching + composición.
+**Acción**: Eliminar los 4 casts `as any` y usar acceso directo tipado.
 
 ---
 
-### 🟡 Mejora 3: Dividir `contractSections.ts` (159 LOC) por sección
-**Problema**: Después del refactor v5.38.0, este archivo agrupa 4 funciones de dibujo independientes que cumplen propósitos distintos (header, declaraciones, cláusulas, firmas).
+### 🔴 Mejora 2: Tipar `(form.formState.errors.date_range as any)` en `BookingForm.tsx`
+**Problema**: Los errores de `react-hook-form` para campos compuestos (`{from, to}`) requieren tipado explícito de `FieldError` con sub-objetos.
 
-**Acciones**:
-- Crear `src/lib/pdf/contract/sections/` con: `header.ts`, `declarations.ts`, `clauses.ts`, `signatures.ts`.
-- Mantener `contractSections.ts` como barrel export para no romper imports.
+**Acción**: Crear un tipo local `DateRangeFieldError` o usar `FieldErrors<{from: Date; to: Date}>` de RHF para acceder a `.from?.message` y `.to?.message` con type-safety.
 
 ---
 
-### 🟡 Mejora 4: Tipar `checklistPage.ts` y `pagarePage.ts`
-**Problema**: Los anexos del contrato (Anexo A: Checklist, Pagaré) quedaron sin el mismo tratamiento de tipado estricto que recibió `shared.ts` y `contractSections.ts`.
+### 🔴 Mejora 3: Eliminar `any` residuales en hooks de prefill y componentes detalle
+**Archivos afectados** (8 errores):
+- `src/hooks/invoiceForm/useInvoicePrefill.ts` (2)
+- `src/hooks/quoteForm/useQuotePrefill.ts` (1)
+- `src/components/ImageGalleryLightbox.tsx` (1)
+- `src/components/crm/ProspectDetailSheet.tsx` (1)
+- `src/components/forklift-detail/ForkliftSpecsCard.tsx` (1)
+- `src/components/invoice-detail/CollectionNotesCard.tsx` (1)
+- `src/pages/portal/PortalInvoiceDetail.tsx` (1)
 
-**Acciones**:
-- Reemplazar `any` por tipos `jsPDF` y por las interfaces ya disponibles en `fetchers.ts` (`ContractData`, etc.).
-- Definir tipo `ChecklistItem` y `PagareData` explícitos.
+**Acción**: Reemplazar cada `any` por el tipo correcto importado de `Tables<>` de Supabase o por `unknown` con narrowing.
 
 ---
 
-### 🟢 Mejora 5: Tipar hooks genéricos (`useListPage`, `useListFilters`, `useSort`, `useAuditLogs`)
-**Problema**: Hooks reutilizables en toda la app usan `any` en sus parámetros genéricos, propagando pérdida de tipos a cada consumidor.
+### 🟡 Mejora 4: Tipar `exportToCsv` con generics
+**Problema**: `src/lib/exportCsv.ts` recibe `any[]` como input, eliminando el type-checking de las columnas exportadas.
 
-**Acciones**:
-- Reemplazar `any` por `unknown` o por generics restringidos (`<T extends Record<string, unknown>>`).
-- Revisar consumidores y ajustar firmas según necesidad (cambio invisible en runtime).
+**Acción**: Convertir a `exportToCsv<T extends Record<string, unknown>>(data: T[], columns: Array<{key: keyof T; label: string}>)`.
+
+---
+
+### 🟡 Mejora 5: Extraer constante `CONTRACT_PLACEHOLDERS` de `ContractTemplateTab.tsx`
+**Problema**: El array `PLACEHOLDERS` (24 entradas, líneas 15-38) está duplicado conceptualmente con `src/lib/pdf/contract/placeholders.ts` (`buildPlaceholderVars`). Riesgo de divergencia silenciosa al agregar nuevas variables.
+
+**Acción**: Mover `PLACEHOLDERS` a `src/lib/pdf/contract/placeholderRegistry.ts` como **única fuente de verdad**. Tanto el editor de templates como el generador PDF lo consumen.
 
 ---
 
 ## ✅ Verificación
 1. `bunx tsc --noEmit` → 0 errores
-2. `bunx eslint src --quiet` → reducir de **48 → ≤20** errores
-3. Probar visualmente: SuppliersPage, InventoryPage (CRUD), generación de PDF de contrato (con anexos).
+2. `bunx eslint src --quiet` → **0 errores** (down from 19)
+3. Probar visualmente: form de Forklift (carga de seguro), form de Booking (validación de fechas), editor de Template de Contrato.
 
 ## 📝 Changelog
-Agregar entrada **v5.39.0 (minor)** — "Tipado estricto en tests y hooks genéricos, modularización de Suppliers/Inventory, división del módulo PDF de contratos por sección."
+**v5.40.0 (minor)** — "Type-safety completo: eliminados todos los `any` residuales, generics estrictos en `exportToCsv`, registro único de placeholders de contrato."
+
+## Lo que NO se incluye
+- Páginas de 240-263 LOC: cohesionadas y dentro del umbral aceptable.
+- Reorganización de hooks en subcarpetas: alto costo / bajo valor.
+- `src/components/ui/sidebar.tsx` (637 LOC): código vendor de shadcn, no se modifica.
