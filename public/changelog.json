@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.39.0",
+    "date": "2026-04-26",
+    "type": "minor",
+    "title": "Tipado estricto en tests, hooks genéricos y modularización de Suppliers/Inventory",
+    "description": "Eliminación de 'any' en tests (paymentFlow, invoiceFlow, bookingFlow, exportCsv, InvoicesPage) y en hooks genéricos (useListPage, useListFilters, useSort, useAuditLogs). Anexos PDF de contrato (Checklist y Pagaré) ahora usan tipos jsPDF estrictos. División de contractSections.ts en sub-módulos por sección (header/declarations/clauses/signatures). SuppliersPage e InventoryPage modularizadas extrayendo SupplierFormDialog y PartFormDialog. Errores ESLint reducidos de 48 a 19."
+  },
+  {
     "version": "5.38.1",
     "date": "2026-04-26",
     "type": "patch",
