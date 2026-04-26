@@ -14,9 +14,24 @@ export function applyCustomerCfdi(customer: Customer, setCfdi: State["setCfdi"])
   if (customer.uso_cfdi) setCfdi("usoCfdi", customer.uso_cfdi);
 }
 
+type ExistingInvoice = {
+  customer_name?: string | null; customer_id: string; booking_id?: string | null;
+  line_items?: unknown; tax_rate?: number | string; due_date?: string | null;
+  issued_at?: string | null; notes?: string | null;
+  serie?: string | null; folio?: string | null; forma_pago?: string | null;
+  metodo_pago?: string | null; uso_cfdi?: string | null; moneda?: string | null;
+  tipo_cambio?: number | string | null; receptor_rfc?: string | null;
+  receptor_razon_social?: string | null; receptor_regimen_fiscal?: string | null;
+  receptor_domicilio_fiscal_cp?: string | null;
+};
+type SourceQuote = {
+  customer_name?: string | null; customer_id: string;
+  line_items?: unknown; tax_rate?: number | string; notes?: string | null;
+  quote_type?: string;
+};
 interface Props {
-  existing: Record<string, unknown> | null | undefined;
-  sourceQuote: Record<string, unknown> | null | undefined;
+  existing: ExistingInvoice | null | undefined;
+  sourceQuote: SourceQuote | null | undefined;
   assignments: Array<{ line_index: number; forklift_id: string }> | undefined;
   forklifts: Array<{ id: string; name: string; manufacturer?: string | null; model: string; serial_number?: string | null }> | undefined;
   customers: Customer[] | undefined;
