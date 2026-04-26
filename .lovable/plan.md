@@ -1,64 +1,58 @@
-# Auditoría v5.39.0 → v5.40.0: 5 mejoras finales
+# 📋 Auditoría Arquitectónica — v5.40.1
 
 ## Estado actual
 
-La arquitectura está **muy limpia** tras los refactors recientes. No hay violaciones graves de separación de concerns ni archivos monolíticos. Los hallazgos restantes son **puntuales** y se ejecutan en un solo paso.
+✅ **0 errores TypeScript**
+✅ **0 usos de `any`** (auditado en mensajes anteriores)
+⚠️ **1 error ESLint** + **49 warnings** (complejidad/longitud — ningún issue de seguridad o tipos)
 
-**Métrica objetivo**: 19 errores ESLint → **0 errores**.
-
----
-
-### 🔴 Mejora 1: Eliminar los 4 `any` en `useForkliftFormLogic.ts`
-**Problema**: El hook castea `existing as any` para acceder a campos de seguro (`insurance_provider`, `insurance_policy_number`, `insurance_expiry`, `insurance_cost`) que **sí existen** en el tipo `Forklift` generado por Supabase.
-
-**Acción**: Eliminar los 4 casts `as any` y usar acceso directo tipado.
+La arquitectura está **limpia y modular**. No hay misplaced logic crítica ni acoplamientos peligrosos. Las mejoras restantes son **refinamiento de modularización** en componentes que excedieron 150 líneas o complejidad ciclomática 15.
 
 ---
 
-### 🔴 Mejora 2: Tipar `(form.formState.errors.date_range as any)` en `BookingForm.tsx`
-**Problema**: Los errores de `react-hook-form` para campos compuestos (`{from, to}`) requieren tipado explícito de `FieldError` con sub-objetos.
+## 🎯 Top 5 mejoras (ejecutables en 1 paso)
 
-**Acción**: Crear un tipo local `DateRangeFieldError` o usar `FieldErrors<{from: Date; to: Date}>` de RHF para acceder a `.from?.message` y `.to?.message` con type-safety.
+### 1. **Corregir único error de ESLint** — `tailwind.config.ts:118`
+Reemplazar `require("tailwindcss-animate")` por `import` ESM al inicio del archivo. Es el único error bloqueante.
 
----
+### 2. **Modularizar `BookingActions.tsx` (243 líneas)**
+Extraer los handlers de transición de estado (confirm/start/complete/cancel) a un hook `useBookingActions.ts` y dejar el componente como UI pura con `<DropdownMenu>`. Reduce ~100 líneas y elimina warning de complejidad.
 
-### 🔴 Mejora 3: Eliminar `any` residuales en hooks de prefill y componentes detalle
-**Archivos afectados** (8 errores):
-- `src/hooks/invoiceForm/useInvoicePrefill.ts` (2)
-- `src/hooks/quoteForm/useQuotePrefill.ts` (1)
-- `src/components/ImageGalleryLightbox.tsx` (1)
-- `src/components/crm/ProspectDetailSheet.tsx` (1)
-- `src/components/forklift-detail/ForkliftSpecsCard.tsx` (1)
-- `src/components/invoice-detail/CollectionNotesCard.tsx` (1)
-- `src/pages/portal/PortalInvoiceDetail.tsx` (1)
+### 3. **Modularizar `ReportDamageDialog.tsx` (228 líneas, complejidad 24)**
+Extraer:
+- `useReportDamageForm.ts` — estado del formulario y submit handler
+- `DamageEvidenceSection.tsx` — bloque de fotos/dropzone
 
-**Acción**: Reemplazar cada `any` por el tipo correcto importado de `Tables<>` de Supabase o por `unknown` con narrowing.
+Deja el dialog como contenedor (~80 líneas).
 
----
+### 4. **Modularizar `IncomeStatementReport.tsx` (254 líneas)**
+Extraer:
+- `IncomeStatementTable.tsx` — render de filas + totales
+- `IncomeStatementToolbar.tsx` — selector de mes y export PDF
 
-### 🟡 Mejora 4: Tipar `exportToCsv` con generics
-**Problema**: `src/lib/exportCsv.ts` recibe `any[]` como input, eliminando el type-checking de las columnas exportadas.
+El componente padre queda como orquestador.
 
-**Acción**: Convertir a `exportToCsv<T extends Record<string, unknown>>(data: T[], columns: Array<{key: keyof T; label: string}>)`.
-
----
-
-### 🟡 Mejora 5: Extraer constante `CONTRACT_PLACEHOLDERS` de `ContractTemplateTab.tsx`
-**Problema**: El array `PLACEHOLDERS` (24 entradas, líneas 15-38) está duplicado conceptualmente con `src/lib/pdf/contract/placeholders.ts` (`buildPlaceholderVars`). Riesgo de divergencia silenciosa al agregar nuevas variables.
-
-**Acción**: Mover `PLACEHOLDERS` a `src/lib/pdf/contract/placeholderRegistry.ts` como **única fuente de verdad**. Tanto el editor de templates como el generador PDF lo consumen.
+### 5. **Dividir `MaintenancePartsSection.tsx` (238 líneas)**
+Separar en:
+- `MaintenancePartsTable.tsx` — tabla read-only de partes consumidas
+- `AddMaintenancePartDialog.tsx` — diálogo de selección/cantidad
 
 ---
 
-## ✅ Verificación
-1. `bunx tsc --noEmit` → 0 errores
-2. `bunx eslint src --quiet` → **0 errores** (down from 19)
-3. Probar visualmente: form de Forklift (carga de seguro), form de Booking (validación de fechas), editor de Template de Contrato.
+## 🛠 Verificación post-cambio
 
-## 📝 Changelog
-**v5.40.0 (minor)** — "Type-safety completo: eliminados todos los `any` residuales, generics estrictos en `exportToCsv`, registro único de placeholders de contrato."
+- `tsc --noEmit` → 0 errores (mantener)
+- `eslint .` → **0 errores**, warnings ≤ 35 (de 50 actuales)
+- `public/changelog.json` → bump a **v5.41.0** (minor, refactor estructural)
 
-## Lo que NO se incluye
-- Páginas de 240-263 LOC: cohesionadas y dentro del umbral aceptable.
-- Reorganización de hooks en subcarpetas: alto costo / bajo valor.
-- `src/components/ui/sidebar.tsx` (637 LOC): código vendor de shadcn, no se modifica.
+---
+
+## ⏭ Mejoras opcionales (NO incluidas, baja prioridad)
+
+- `MaintenancePage.tsx` (261 líneas) — ya usa hooks, solo necesita extraer Kanban toolbar.
+- `GanttChart.tsx` (236 líneas) — complejidad inherente al render SVG, refactor riesgoso.
+- `ContractDetail.tsx` (complejidad 27) — composición ya buena, dividir en tabs sería cosmético.
+
+---
+
+**¿Procedo con las 5 mejoras?** Al aprobar, ejecutaré todo en una sola pasada y actualizaré `changelog.json` a v5.41.0.
