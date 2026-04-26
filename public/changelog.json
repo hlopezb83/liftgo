@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.40.1",
+    "date": "2026-04-26",
+    "type": "patch",
+    "title": "Logo visible en pantalla de inicio de sesión",
+    "description": "Se agregó política RLS de lectura pública para company_settings. El logo y razón social ahora cargan correctamente en /auth y /portal/login antes de iniciar sesión."
+  },
+  {
     "version": "5.40.0",
     "date": "2026-04-26",
     "type": "minor",
