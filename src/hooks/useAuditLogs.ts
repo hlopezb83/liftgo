@@ -7,8 +7,8 @@ export interface AuditLog {
   table_name: string;
   record_id: string;
   action: string;
-  old_data: Record<string, any> | null;
-  new_data: Record<string, any> | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
   changed_fields: string[] | null;
   user_id: string | null;
   created_at: string;
@@ -84,7 +84,7 @@ export function useRevertAuditLog() {
       queryClient.invalidateQueries({ queryKey: [variables.tableName] });
       toast.success("Acción revertida y registro eliminado correctamente");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error?.message || "Error al revertir la acción");
     },
   });

@@ -77,7 +77,9 @@ export function formatTimestamp(ts: string) {
 }
 
 export function getRecordLabel(log: AuditLog): string {
-  const data = log.new_data || log.old_data;
+  const data = (log.new_data || log.old_data) as Record<string, unknown> | null;
   if (!data) return log.record_id.slice(0, 8);
-  return data.name || data.booking_number || data.contract_number || data.invoice_number || data.quote_number || data.description?.slice(0, 30) || log.record_id.slice(0, 8);
+  const pick = (k: string) => (typeof data[k] === "string" ? (data[k] as string) : undefined);
+  const desc = pick("description");
+  return pick("name") || pick("booking_number") || pick("contract_number") || pick("invoice_number") || pick("quote_number") || desc?.slice(0, 30) || log.record_id.slice(0, 8);
 }

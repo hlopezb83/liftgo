@@ -5,7 +5,7 @@ type SortDirection = "asc" | "desc";
 interface UseSortOptions<T> {
   defaultKey?: string;
   defaultDirection?: SortDirection;
-  accessors?: Record<string, (item: T) => any>;
+  accessors?: Record<string, (item: T) => unknown>;
 }
 
 export function useSort<T>(
@@ -28,7 +28,7 @@ export function useSort<T>(
     if (!items || !sortKey) return items;
 
     const accessor = options.accessors?.[sortKey];
-    const getValue = accessor ?? ((item: T) => (item as any)[sortKey]);
+    const getValue = accessor ?? ((item: T) => (item as Record<string, unknown>)[sortKey]);
 
     return [...items].sort((a, b) => {
       const valA = getValue(a);

@@ -8,7 +8,7 @@ interface UseListFiltersOptions<T> {
   statusParam?: string;
 }
 
-export function useListFilters<T extends Record<string, any>>(
+export function useListFilters<T extends Record<string, unknown>>(
   items: T[] | undefined,
   options: UseListFiltersOptions<T>
 ) {

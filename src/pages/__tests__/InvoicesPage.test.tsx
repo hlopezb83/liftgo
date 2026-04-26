@@ -44,7 +44,7 @@ function renderPage() {
 
 describe("InvoicesPage smoke tests", () => {
   beforeEach(() => {
-    vi.mocked(hooks.useInvoices).mockReturnValue({ data: mockInvoices, isLoading: false } as any);
+    vi.mocked(hooks.useInvoices).mockReturnValue({ data: mockInvoices, isLoading: false } as ReturnType<typeof hooks.useInvoices>);
   });
 
   it("renders all invoices with correct statuses", () => {
@@ -58,10 +58,10 @@ describe("InvoicesPage smoke tests", () => {
   it("paid status persists and is displayed correctly", () => {
     const container = renderPage();
     const rows = container.querySelectorAll("tbody tr") as NodeListOf<HTMLElement>;
-    const paidRow = Array.from(rows).find((r: HTMLElement) => r.textContent?.includes("FAC-0002"));
+    const paidRow = Array.from(rows).find((r) => r.textContent?.includes("FAC-0002"));
     expect(paidRow).toBeTruthy();
-    expect((paidRow as HTMLElement).textContent).toContain("Paid");
-    expect((paidRow as HTMLElement).textContent).toContain("€2000.00");
+    expect(paidRow!.textContent).toContain("Paid");
+    expect(paidRow!.textContent).toContain("€2000.00");
   });
 
   it("displays correct totals", () => {
@@ -71,7 +71,7 @@ describe("InvoicesPage smoke tests", () => {
   });
 
   it("shows empty state when no invoices match", () => {
-    vi.mocked(hooks.useInvoices).mockReturnValue({ data: [], isLoading: false } as any);
+    vi.mocked(hooks.useInvoices).mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof hooks.useInvoices>);
     const container = renderPage();
     expect(container.textContent).toContain("No se encontraron facturas");
   });

@@ -1,7 +1,25 @@
+import type jsPDF from "jspdf";
 import { checkPage } from "@/lib/pdf/shared";
 import type { ContractData, TemplateData } from "./data";
 
-export function generateChecklistPage(doc: any, contract: ContractData, _company: any, _customer: any, forklift: any, tpl: TemplateData) {
+interface CompanyRef { razon_social?: string | null }
+interface CustomerRef { name?: string | null }
+interface ForkliftRef {
+  manufacturer?: string | null;
+  model?: string | null;
+  serial_number?: string | null;
+  fuel_type?: string | null;
+}
+
+export function generateChecklistPage(
+  doc: jsPDF,
+  contract: ContractData,
+  _company: CompanyRef | null,
+  _customer: CustomerRef | null,
+  forklift: ForkliftRef | null,
+  tpl: TemplateData,
+) {
+  void _company; void _customer;
   doc.addPage();
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
@@ -15,12 +33,11 @@ export function generateChecklistPage(doc: any, contract: ContractData, _company
   doc.text(`Parte integral del ${contract.contract_number}`, pageWidth / 2, cursorY, { align: "center" });
   cursorY += 10;
 
-  // General data
   doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(51, 51, 51);
   doc.text("I. Datos Generales", margin, cursorY); cursorY += 6;
 
   doc.setFontSize(9); doc.setFont("helvetica", "normal");
-  const generalInfo = [
+  const generalInfo: Array<[string, string]> = [
     ["Fecha y Hora de Entrega:", "______________________"],
     ["Lugar de Entrega:", contract.usage_location || "______________________"],
     ["Marca y Modelo:", `${forklift?.manufacturer || ""} ${forklift?.model || ""}`],
@@ -36,7 +53,6 @@ export function generateChecklistPage(doc: any, contract: ContractData, _company
   }
   cursorY += 3;
 
-  // Checklist sections from template
   for (const section of tpl.checklist_sections) {
     cursorY = checkPage(doc, cursorY, 15);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10);
@@ -60,7 +76,6 @@ export function generateChecklistPage(doc: any, contract: ContractData, _company
     cursorY += 2;
   }
 
-  // Signatures
   cursorY = checkPage(doc, cursorY, 35);
   cursorY += 8;
   const col1 = margin;

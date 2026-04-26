@@ -5,7 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface UseListPageOptions<T> {
   defaultSortKey?: string;
   defaultSortDirection?: "asc" | "desc";
-  accessors?: Record<string, (item: T) => any>;
+  accessors?: Record<string, (item: T) => unknown>;
 }
 
 /**
