@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Building2 } from "lucide-react";
+import { usePublicBranding } from "@/hooks/usePublicBranding";
 
 type Mode = "sign-in" | "forgot";
 
 export default function PortalLogin() {
   const { user, signIn, resetPassword } = useAuth();
+  const { data: company } = usePublicBranding();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
@@ -42,7 +44,15 @@ export default function PortalLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-lg">CP</div>
+            {company?.logo_url ? (
+              <img
+                src={company.logo_url}
+                alt={`Logo ${company.razon_social ?? "LiftGo"}`}
+                className="h-14 w-auto max-w-[200px] object-contain"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-lg">CP</div>
+            )}
           </div>
           <CardTitle>{mode === "forgot" ? "Restablecer Contraseña" : "Portal de Clientes"}</CardTitle>
           <CardDescription>

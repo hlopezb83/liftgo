@@ -1931,6 +1931,13 @@ export type Database = {
       }
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
+      get_public_branding: {
+        Args: never
+        Returns: {
+          logo_url: string
+          razon_social: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
