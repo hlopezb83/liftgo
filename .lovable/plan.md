@@ -1,37 +1,34 @@
-# 5 mejoras arquitectónicas de alto impacto (v5.42.0)
+## Problema
 
-## Diagnóstico
+El logo de Lift Go no aparece en la página de inicio (`/` AuthPage) ni en `/portal/login` porque el hook `useCompanySettings` consulta la tabla `company_settings`, cuyas políticas RLS solo permiten lectura a usuarios **autenticados** con un rol válido. En la pantalla de login el usuario aún no tiene sesión, por lo que la consulta devuelve `null` y se muestra el fallback "LG".
 
-Estado actual: **0 errores TS, 0 errores ESLint, 45 warnings**. La arquitectura base es sólida (Page → Hook → UI, RLS, RPCs, PDF modular). Los warnings restantes se concentran en **páginas-detalle con lógica de acciones inline** y **diálogos-formulario monolíticos**, lo que rompe el patrón ya establecido en el resto del código.
+Esta regresión ocurrió al endurecer las políticas RLS de `company_settings` (que contiene datos sensibles como RFC y llaves de Facturapi), las cuales no deben exponerse públicamente.
 
-## Top 5 mejoras (ejecutables en 1 paso)
+## Solución
 
-### 1. `ContractDetail.tsx` — complejidad 27 (la más alta del proyecto)
-- **Problema:** mezcla fetch, estados de firma, generación PDF, eliminación y navegación en una sola función.
-- **Acción:** extraer a `src/hooks/contractDetail/useContractDetailLogic.ts` (estados + handlers de firma/PDF/delete). La página queda como contenedor puro.
+Crear una **vista pública** `public_branding` que exponga **únicamente** los campos no sensibles necesarios para el branding en pantallas de login: `logo_url` y `razon_social`. Los datos fiscales y llaves de PAC permanecen protegidos.
 
-### 2. `Dashboard.tsx` — complejidad 25
-- **Problema:** orquesta KPIs, alertas, charts y navegación condicional por rol con lógica inline.
-- **Acción:** extraer la composición de secciones y el filtrado por permisos a `src/hooks/dashboard/useDashboardSections.ts`. La página renderiza una lista declarativa.
+### Cambios
 
-### 3. `BookingForm.tsx` — complejidad 24
-- **Problema:** existe `useBookingFormLogic` parcial, pero la página retiene cálculos de fechas/costos y manejo de errores de rangos.
-- **Acción:** consolidar estado derivado (validaciones de rango, cálculo de costo, prefill) en el hook existente. Extraer `BookingPeriodSection.tsx` para fechas + costo.
+1. **Migración SQL**
+   - Crear vista `public.public_branding` con `SELECT logo_url, razon_social FROM company_settings LIMIT 1`.
+   - `GRANT SELECT ON public.public_branding TO anon, authenticated`.
+   - Vista marcada con `security_invoker = false` para que ignore las RLS de la tabla base (solo expone 2 columnas seguras).
 
-### 4. `ProspectFormDialog.tsx` — complejidad 20
-- **Problema:** el diálogo combina formulario CRM + acciones de cierre de deal + creación de cotización vinculada.
-- **Acción:** completar migración a `ProspectCloseDealActions.tsx` (ya existe parcial) y mover validaciones a `useProspectForm.ts`.
+2. **Hook nuevo**: `src/hooks/usePublicBranding.ts`
+   - Query ligera con `staleTime` largo (10 min) que lee de `public_branding`.
+   - No requiere sesión.
 
-### 5. `routes.tsx` — warning de fast-refresh
-- **Problema:** exporta componentes lazy y la constante `appRoutes` en el mismo archivo, rompiendo HMR.
-- **Acción:** mover `appRoutes` y `PageFallback` a `src/lib/routes-config.ts`. `routes.tsx` re-exporta para compatibilidad.
+3. **Reemplazar `useCompanySettings` por `usePublicBranding`** en:
+   - `src/pages/AuthPage.tsx` (logo + razón social en header del card)
+   - `src/layouts/CustomerPortalLayout.tsx` (header del portal — usado pre y post login del cliente)
+   - `src/pages/portal/PortalLogin.tsx` (si aplica)
 
-## Verificación final
-- `npx tsc --noEmit` → 0 errores
-- `npx eslint` → 0 errores, ≤ 38 warnings (reducción de ~7)
-- Actualizar `public/changelog.json` a **v5.42.0** (minor)
-- Sin cambios de UI ni de comportamiento visible al usuario
+4. **Changelog**: agregar entrada **patch** v5.42.1 — "Restaurar logo en pantalla de inicio".
 
-## Fuera de alcance (futuro)
-- `GanttChart` (176 líneas) y `MaintenancePage` (212 líneas) — requieren rediseño de UI.
-- `drawPremiumTable` y `calculateRentalCost` — lógica matemática estable; refactor con riesgo > beneficio.
+## Verificación
+
+- Logo visible en `/` sin sesión iniciada.
+- Logo visible en `/portal/login`.
+- Datos sensibles (`rfc`, `facturapi_*_key`, `regimen_fiscal`) **siguen protegidos** por RLS para usuarios anónimos.
+- 0 errores TS / ESLint.

@@ -1823,7 +1823,13 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_branding: {
+        Row: {
+          logo_url: string | null
+          razon_social: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
