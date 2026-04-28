@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { usePublicBranding } from "@/hooks/usePublicBranding";
 import { LogOut, LayoutDashboard, CalendarDays, Receipt, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ const tabs = [
 
 export default function CustomerPortalLayout() {
   const { user } = useAuth();
-  const { data: company } = useCompanySettings();
+  const { data: company } = usePublicBranding();
   const location = useLocation();
   const navigate = useNavigate();
 

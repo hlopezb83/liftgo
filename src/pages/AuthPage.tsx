@@ -7,13 +7,13 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
-import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { usePublicBranding } from "@/hooks/usePublicBranding";
 
 type Mode = "sign-in" | "forgot" | "reset";
 
 export default function AuthPage() {
   const { signIn, resetPassword, updatePassword } = useAuth();
-  const { data: company } = useCompanySettings();
+  const { data: company } = usePublicBranding();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
