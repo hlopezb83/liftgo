@@ -1823,13 +1823,7 @@ export type Database = {
       }
     }
     Views: {
-      public_branding: {
-        Row: {
-          logo_url: string | null
-          razon_social: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
@@ -1937,6 +1931,13 @@ export type Database = {
       }
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
+      get_public_branding: {
+        Args: never
+        Returns: {
+          logo_url: string
+          razon_social: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
