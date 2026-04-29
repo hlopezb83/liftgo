@@ -1,5 +1,16 @@
 [
   {
+    "version": "5.42.2",
+    "date": "2026-04-29",
+    "type": "patch",
+    "title": "Corrección Estado de Resultados",
+    "description": "Se corrige el RPC get_income_statement que fallaba con error 'column expense_date does not exist' al referenciar una columna inexistente en el SELECT externo del CTE expenses_by_month. El reporte ahora vuelve a mostrar los meses con sus ingresos, costos y gastos.",
+    "changes": [
+      "Fix CTE expenses_by_month en get_income_statement",
+      "Estado de Resultados vuelve a cargar datos por mes"
+    ]
+  },
+  {
     "version": "5.42.1",
     "date": "2026-04-28",
     "type": "patch",
