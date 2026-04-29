@@ -1,5 +1,18 @@
 [
   {
+    "version": "5.43.1",
+    "date": "2026-04-29",
+    "type": "patch",
+    "title": "Corrección de sobreposición en header del PDF de Estado de Resultados",
+    "description": "El logo de la empresa se sobreponía con la razón social y el RFC en el encabezado del PDF. Ahora el logo se ubica en la esquina superior izquierda con altura controlada (16mm) y los datos fiscales se renderizan debajo, evitando colisiones. El separador horizontal se calcula dinámicamente respetando la altura del bloque más alto entre logo+datos y título+periodo.",
+    "changes": [
+      "Logo del emisor con altura máxima reducida a 16mm para layout compacto",
+      "Datos fiscales (razón social y RFC) ahora se dibujan debajo del logo",
+      "Razón social destacada en negrita para jerarquía visual",
+      "Separador horizontal dinámico según altura de bloques izquierdo y derecho"
+    ]
+  },
+  {
     "version": "5.43.0",
     "date": "2026-04-29",
     "type": "minor",

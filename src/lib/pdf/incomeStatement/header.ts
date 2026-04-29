@@ -22,33 +22,38 @@ export function drawIncomeStatementHeader(
   const pw = doc.internal.pageSize.getWidth();
   const y = startY;
 
-  // ─── Logo (left) ─────────────────────────────────
+  // ─── Logo (top-left, fixed reserved block) ───────
+  const LOGO_MAX_H = 16;
+  const LOGO_MAX_W = 40;
+  let logoBottom = y; // tracks where the logo block ends vertically
   if (logoBase64) {
-    const maxH = 24;
-    const maxW = 40;
     const { w: natW, h: natH } = getPngDimensions(logoBase64);
     const ratio = natW / natH;
     let logoW: number;
     let logoH: number;
     if (ratio >= 1) {
-      logoW = Math.min(maxW, maxH * ratio);
+      logoW = Math.min(LOGO_MAX_W, LOGO_MAX_H * ratio);
       logoH = logoW / ratio;
     } else {
-      logoH = maxH;
-      logoW = maxH * ratio;
+      logoH = LOGO_MAX_H;
+      logoW = LOGO_MAX_H * ratio;
     }
-    const logoY = y - 2 + (24 - logoH) / 2;
-    doc.addImage(logoBase64, "PNG", MARGIN, logoY, logoW, logoH);
+    doc.addImage(logoBase64, "PNG", MARGIN, y, logoW, logoH);
+    logoBottom = y + logoH;
   }
 
-  // ─── Company info (left, below/next to logo) ─────
+  // ─── Company info (left, BELOW logo to avoid overlap) ─
   const infoX = MARGIN;
-  const infoY = y + 14;
+  const infoY = (logoBase64 ? logoBottom + 5 : y + 4);
   if (company) {
+    doc.setFontSize(FONT_MD);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+    doc.text(`${company.razon_social}`, infoX, infoY);
+
     doc.setFontSize(FONT_SM);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-    doc.text(`${company.razon_social}`, infoX, infoY);
     doc.text(
       `RFC: ${company.rfc}  ·  Régimen: ${company.regimen_fiscal}  ·  C.P. ${company.lugar_expedicion}`,
       infoX,
@@ -60,7 +65,7 @@ export function drawIncomeStatementHeader(
   doc.setFontSize(FONT_LG);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
-  doc.text("ESTADO DE RESULTADOS", pw - MARGIN, y, { align: "right" });
+  doc.text("ESTADO DE RESULTADOS", pw - MARGIN, y + 4, { align: "right" });
 
   const periodLabel = selectedYear === "all"
     ? `${format(startDate, "dd/MM/yyyy")} — ${format(endDate, "dd/MM/yyyy")}`
@@ -71,15 +76,18 @@ export function drawIncomeStatementHeader(
   doc.setFontSize(FONT_XL);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(periodLabel, pw - MARGIN, y + 8, { align: "right" });
+  doc.text(periodLabel, pw - MARGIN, y + 12, { align: "right" });
 
   doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text(`Emitido: ${format(nowMty(), "dd/MM/yyyy")}`, pw - MARGIN, y + 14, { align: "right" });
+  doc.text(`Emitido: ${format(nowMty(), "dd/MM/yyyy")}`, pw - MARGIN, y + 18, { align: "right" });
 
-  // ─── Separator ───────────────────────────────────
-  const sepY = y + 24;
+  // ─── Separator (below the tallest of: logo+info block, right title block) ─
+  const leftBottom = company ? infoY + 6 : logoBottom;
+  const rightBottom = y + 20;
+  const sepY = Math.max(leftBottom, rightBottom) + 3;
+
   doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
   doc.setLineWidth(0.5);
   doc.line(MARGIN, sepY, pw - MARGIN, sepY);
