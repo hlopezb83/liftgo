@@ -1,7 +1,14 @@
 import type { jsPDF } from "jspdf";
 import { format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 import type { CompanyData } from "@/lib/pdf/shared";
+import {
+  GRAY_900, GRAY_700, GRAY_500, GRAY_200, GRAY_100,
+  FONT_XL, FONT_LG, FONT_MD, FONT_SM, MARGIN,
+  getPngDimensions,
+} from "@/lib/pdf/quote/constants";
 
+// ─── Document header (matches premium quote layout) ───
 export function drawIncomeStatementHeader(
   doc: jsPDF,
   startY: number,
@@ -12,37 +19,75 @@ export function drawIncomeStatementHeader(
   startDate: Date,
   endDate: Date,
 ): number {
-  const margin = 14;
-  const pageWidth = doc.internal.pageSize.getWidth();
+  const pw = doc.internal.pageSize.getWidth();
   const y = startY;
-  const textStartX = logoBase64 ? margin + 22 : margin;
 
+  // ─── Logo (left) ─────────────────────────────────
   if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", margin, y - 4, 18, 18);
-  }
-  doc.setFontSize(16);
-  doc.setTextColor(232, 89, 12);
-  doc.text(company?.razon_social || "LiftGo", textStartX, y);
-  doc.setFontSize(8);
-  doc.setTextColor(102, 102, 102);
-  if (company) {
-    doc.text(`RFC: ${company.rfc} | ${company.regimen_fiscal} | C.P.: ${company.lugar_expedicion}`, textStartX, y + 5);
+    const maxH = 24;
+    const maxW = 40;
+    const { w: natW, h: natH } = getPngDimensions(logoBase64);
+    const ratio = natW / natH;
+    let logoW: number;
+    let logoH: number;
+    if (ratio >= 1) {
+      logoW = Math.min(maxW, maxH * ratio);
+      logoH = logoW / ratio;
+    } else {
+      logoH = maxH;
+      logoW = maxH * ratio;
+    }
+    const logoY = y - 2 + (24 - logoH) / 2;
+    doc.addImage(logoBase64, "PNG", MARGIN, logoY, logoW, logoH);
   }
 
-  doc.setFontSize(14);
-  doc.setTextColor(51, 51, 51);
-  doc.text("Estado de Resultados", pageWidth - margin, y, { align: "right" });
-  doc.setFontSize(9);
+  // ─── Company info (left, below/next to logo) ─────
+  const infoX = MARGIN;
+  const infoY = y + 14;
+  if (company) {
+    doc.setFontSize(FONT_SM);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
+    doc.text(`${company.razon_social}`, infoX, infoY);
+    doc.text(
+      `RFC: ${company.rfc}  ·  Régimen: ${company.regimen_fiscal}  ·  C.P. ${company.lugar_expedicion}`,
+      infoX,
+      infoY + 4,
+    );
+  }
+
+  // ─── Document title (right) ──────────────────────
+  doc.setFontSize(FONT_LG);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
+  doc.text("ESTADO DE RESULTADOS", pw - MARGIN, y, { align: "right" });
+
   const periodLabel = selectedYear === "all"
     ? `${format(startDate, "dd/MM/yyyy")} — ${format(endDate, "dd/MM/yyyy")}`
     : selectedYear === "compare"
       ? `Comparativo: ${availableYears.join(" vs ")}`
       : `Año ${selectedYear}`;
-  doc.text(periodLabel, pageWidth - margin, y + 6, { align: "right" });
 
-  return y + 22;
+  doc.setFontSize(FONT_XL);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+  doc.text(periodLabel, pw - MARGIN, y + 8, { align: "right" });
+
+  doc.setFontSize(FONT_SM);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
+  doc.text(`Emitido: ${format(nowMty(), "dd/MM/yyyy")}`, pw - MARGIN, y + 14, { align: "right" });
+
+  // ─── Separator ───────────────────────────────────
+  const sepY = y + 24;
+  doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
+  doc.setLineWidth(0.5);
+  doc.line(MARGIN, sepY, pw - MARGIN, sepY);
+
+  return sepY + 6;
 }
 
+// ─── Premium table header ─────────────────────────
 export function drawTableHeader(
   doc: jsPDF,
   startY: number,
@@ -50,22 +95,59 @@ export function drawTableHeader(
   labelColW: number,
   colW: number,
 ): number {
-  const margin = 14;
-  const pageWidth = doc.internal.pageSize.getWidth();
+  const pw = doc.internal.pageSize.getWidth();
+  const tableWidth = pw - MARGIN * 2;
+  const headerH = 9;
 
-  doc.setFillColor(240, 240, 240);
-  doc.rect(margin, startY - 4, pageWidth - margin * 2, 8, "F");
-  doc.setFontSize(7);
+  doc.setFillColor(GRAY_100.r, GRAY_100.g, GRAY_100.b);
+  doc.rect(MARGIN, startY, tableWidth, headerH, "F");
+
+  doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(51, 51, 51);
-  doc.text("Concepto", margin + 2, startY);
+  doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
+
+  const textY = startY + 6;
+  doc.text("CONCEPTO", MARGIN + 3, textY);
   colHeaders.forEach((h, i) => {
-    doc.text(h, margin + labelColW + colW * i + colW - 2, startY, { align: "right" });
+    doc.text(
+      h.toUpperCase(),
+      MARGIN + labelColW + colW * i + colW - 3,
+      textY,
+      { align: "right" },
+    );
   });
 
-  const y = startY + 6;
-  doc.setDrawColor(200, 200, 200);
+  const lineY = startY + headerH;
+  doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
   doc.setLineWidth(0.3);
-  doc.line(margin, y, pageWidth - margin, y);
-  return y + 4;
+  doc.line(MARGIN, lineY, pw - MARGIN, lineY);
+
+  doc.setFont("helvetica", "normal");
+  return lineY + 3;
+}
+
+// ─── Footer (consistent with quote PDF) ───────────
+export function drawIncomeStatementFooter(
+  doc: jsPDF,
+  company: CompanyData | null,
+): void {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  const y = ph - 12;
+
+  doc.setDrawColor(GRAY_200.r, GRAY_200.g, GRAY_200.b);
+  doc.setLineWidth(0.3);
+  doc.line(MARGIN, y, pw - MARGIN, y);
+
+  doc.setFontSize(FONT_SM);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(156, 163, 175); // GRAY_400 inline
+
+  const companyName = company?.razon_social || "LIFT GO";
+  doc.text(
+    `Estado de Resultados generado electrónicamente — ${companyName}`,
+    pw / 2,
+    y + 5,
+    { align: "center" },
+  );
 }
