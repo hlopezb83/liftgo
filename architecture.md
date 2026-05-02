@@ -175,12 +175,12 @@ Página (orquestador)
 
 ## 7. Enrutamiento y autorización
 
-- `src/routes.tsx` exporta `appRoutes: RouteConfig[]` con `path`, `component` (lazy) y `module` opcional.
+- `src/lib/routes-config.tsx` exporta `appRoutes: RouteConfig[]` con `path`, `component` (lazy) y `module` opcional.
 - `src/App.tsx` compone:
   ```text
   AppProviders
     └─ BrowserRouter
-         ├─ /portal/login            (público)
+         ├─ /portal/*                (público / portal cliente)
          └─ AuthGuard → MainLayout
               └─ appRoutes.map → Suspense → RoleGuard? → Page
   ```
