@@ -85,11 +85,11 @@ src/
 │   ├── constants.ts    Etiquetas, colores, estados de dominio
 │   ├── config.ts       Configuración global (tasas IVA, etc.)
 │   ├── routes.ts       Constantes de rutas (`ROUTES.invoices.detail(id)`)
-│   ├── formatCurrency.ts · activityTranslations.ts · utils.ts
+│   ├── routes-config.tsx  Registro central de rutas + módulo (lazy)
+│   ├── formatCurrency.ts · activityTranslations.ts · utils.ts · changelog.ts
 ├── integrations/supabase/   Cliente y types AUTOGENERADOS — no editar
 ├── types/              Tipos de dominio compartidos (rental.ts, ...)
 ├── test/               Tests + helpers/mocks de Supabase
-├── routes.tsx          Registro central de rutas + permisos
 ├── App.tsx             Composición de providers, guards y router
 └── main.tsx
 supabase/
@@ -175,12 +175,12 @@ Página (orquestador)
 
 ## 7. Enrutamiento y autorización
 
-- `src/routes.tsx` exporta `appRoutes: RouteConfig[]` con `path`, `component` (lazy) y `module` opcional.
+- `src/lib/routes-config.tsx` exporta `appRoutes: RouteConfig[]` con `path`, `component` (lazy) y `module` opcional.
 - `src/App.tsx` compone:
   ```text
   AppProviders
     └─ BrowserRouter
-         ├─ /portal/login            (público)
+         ├─ /portal/*                (público / portal cliente)
          └─ AuthGuard → MainLayout
               └─ appRoutes.map → Suspense → RoleGuard? → Page
   ```
@@ -193,11 +193,12 @@ Página (orquestador)
 
 - Carpeta `src/lib/pdf/` con un sub-módulo por tipo de documento:
   - `contract/` — `contractPage.ts`, `checklistPage.ts`, `pagarePage.ts`, `sections/{header,declarations,clauses,signatures}.ts`, `placeholders.ts`, `placeholderRegistry.ts`, `data-templates.ts`, `fetchers.ts`.
-  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts`.
-  - `customerStatement/`, `incomeStatement/`.
+  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts` (tokens compartidos: `GRAY_*`, `FONT_*`, `MARGIN`).
+  - `customerStatement/` — `parts.ts`, `tables.ts`.
+  - `incomeStatement/` — `header.ts`, `rows.ts` (reutiliza tokens de `quote/constants.ts` para mantener consistencia visual).
 - `placeholderRegistry.ts` es la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
 - Helpers compartidos en `shared.ts` y `loadImageAsBase64.ts`.
-- jsPDF se carga de forma diferida desde el botón que dispara la descarga.
+- jsPDF se carga de forma diferida desde el botón que dispara la descarga (locked at 4.0.0 max).
 
 ---
 
@@ -244,11 +245,11 @@ Página (orquestador)
 1. Crear página en `src/pages/MyModulePage.tsx` (orquestador).
 2. Crear hook(s) de dominio en `src/hooks/useMyModule.ts` con TanStack Query.
 3. Componentes UI en `src/components/myModule/`.
-4. Registrar ruta en `src/routes.tsx` con `module: "Mi Módulo"`.
+4. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"`.
 5. Agregar la URL a `src/lib/routes.ts`.
 6. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`.
 7. Agregar test mínimo en `src/test/`.
-8. Bump al `changelog.json`.
+8. Agregar entrada al inicio de `src/lib/changelog.ts` (versión semántica).
 
 **Cuándo extraer**:
 - **Hook** si hay estado/efectos compartidos o lógica > 30 líneas en un componente.
@@ -269,9 +270,9 @@ Página (orquestador)
 ## 14. Referencias
 
 - `README.md` — instrucciones de desarrollo.
-- `public/changelog.json` — historial de versiones.
+- `src/lib/changelog.ts` y `public/changelog.json` — historial de versiones.
 - `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
 - `src/lib/config.ts` — configuración global (IVA, etc.).
-- `src/routes.tsx` y `src/lib/routes.ts` — rutas y permisos.
+- `src/lib/routes-config.tsx` y `src/lib/routes.ts` — rutas y permisos.
 - `supabase/functions/` — backend serverless.
 - `.lovable/plan.md` — última auditoría arquitectónica.
