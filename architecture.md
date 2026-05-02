@@ -245,11 +245,11 @@ Página (orquestador)
 1. Crear página en `src/pages/MyModulePage.tsx` (orquestador).
 2. Crear hook(s) de dominio en `src/hooks/useMyModule.ts` con TanStack Query.
 3. Componentes UI en `src/components/myModule/`.
-4. Registrar ruta en `src/routes.tsx` con `module: "Mi Módulo"`.
+4. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"`.
 5. Agregar la URL a `src/lib/routes.ts`.
 6. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`.
 7. Agregar test mínimo en `src/test/`.
-8. Bump al `changelog.json`.
+8. Agregar entrada al inicio de `src/lib/changelog.ts` (versión semántica).
 
 **Cuándo extraer**:
 - **Hook** si hay estado/efectos compartidos o lógica > 30 líneas en un componente.
