@@ -193,11 +193,12 @@ Página (orquestador)
 
 - Carpeta `src/lib/pdf/` con un sub-módulo por tipo de documento:
   - `contract/` — `contractPage.ts`, `checklistPage.ts`, `pagarePage.ts`, `sections/{header,declarations,clauses,signatures}.ts`, `placeholders.ts`, `placeholderRegistry.ts`, `data-templates.ts`, `fetchers.ts`.
-  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts`.
-  - `customerStatement/`, `incomeStatement/`.
+  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts` (tokens compartidos: `GRAY_*`, `FONT_*`, `MARGIN`).
+  - `customerStatement/` — `parts.ts`, `tables.ts`.
+  - `incomeStatement/` — `header.ts`, `rows.ts` (reutiliza tokens de `quote/constants.ts` para mantener consistencia visual).
 - `placeholderRegistry.ts` es la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
 - Helpers compartidos en `shared.ts` y `loadImageAsBase64.ts`.
-- jsPDF se carga de forma diferida desde el botón que dispara la descarga.
+- jsPDF se carga de forma diferida desde el botón que dispara la descarga (locked at 4.0.0 max).
 
 ---
 
