@@ -270,9 +270,9 @@ Página (orquestador)
 ## 14. Referencias
 
 - `README.md` — instrucciones de desarrollo.
-- `public/changelog.json` — historial de versiones.
+- `src/lib/changelog.ts` y `public/changelog.json` — historial de versiones.
 - `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
 - `src/lib/config.ts` — configuración global (IVA, etc.).
-- `src/routes.tsx` y `src/lib/routes.ts` — rutas y permisos.
+- `src/lib/routes-config.tsx` y `src/lib/routes.ts` — rutas y permisos.
 - `supabase/functions/` — backend serverless.
 - `.lovable/plan.md` — última auditoría arquitectónica.
