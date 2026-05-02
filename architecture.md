@@ -1,6 +1,6 @@
 # Arquitectura — LiftGo ERP
 
-> Documento vivo. Actualízalo cuando cambien decisiones estructurales (rutas, capas, integraciones, modelo de seguridad). Para cambios funcionales, usa `public/changelog.json`.
+> Documento vivo. Actualízalo cuando cambien decisiones estructurales (rutas, capas, integraciones, modelo de seguridad, reglas de negocio invariantes). Los cambios funcionales se registran en el changelog (ver §12).
 
 ---
 
@@ -28,7 +28,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 | Formularios | react-hook-form + Zod |
 | Routing | react-router-dom v6 con `lazy()` + `Suspense` |
 | Backend | Lovable Cloud (Supabase): Postgres + Auth + Storage + Edge Functions (Deno) |
-| Documentos | jsPDF 4.x + jspdf-autotable (carga diferida) |
+| Documentos | jsPDF 4.x (locked ≤ 4.0.0) + jspdf-autotable (carga diferida) |
 | Notificaciones | sonner |
 | Tests | Vitest + @testing-library/react + jsdom |
 | Integraciones externas | Facturapi (CFDI 4.0), Lovable AI Gateway |
@@ -83,7 +83,7 @@ src/
 │   ├── pdf/            Generación modular de documentos
 │   ├── forms/          Mapeo de formularios → payloads de DB
 │   ├── constants.ts    Etiquetas, colores, estados de dominio
-│   ├── config.ts       Configuración global (tasas IVA, etc.)
+│   ├── config.ts       Configuración global (tasas IVA, monedas)
 │   ├── routes.ts       Constantes de rutas (`ROUTES.invoices.detail(id)`)
 │   ├── routes-config.tsx  Registro central de rutas + módulo (lazy)
 │   ├── formatCurrency.ts · activityTranslations.ts · utils.ts · changelog.ts
@@ -94,7 +94,10 @@ src/
 └── main.tsx
 supabase/
 ├── functions/          Edge Functions (CFDI, invitaciones, jobs)
+├── migrations/         Migraciones SQL (timestamp + slug)
 └── config.toml         Configuración de funciones (verify_jwt, etc.)
+public/
+└── changelog.json      Historial funcional (ver §12)
 ```
 
 **Reglas de ubicación**:
@@ -123,8 +126,10 @@ Página (orquestador)
 ### 5.2 Patrones reutilizables de UI
 
 - `useListPage` consolida filtros + orden + paginación + búsqueda para todas las páginas de listado.
-- `useListFilters`, `useDebouncedValue`, `useFormState`, `useSort`, `usePagination` como bloques composables.
-- `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`, `MobileCardList`, `ReadOnlyLineItemsTable` como componentes estándar.
+- Bloques composables: `useListFilters`, `useDebouncedValue`, `useFormState`, `useSort`, `usePagination`, `useDialogState`.
+- Componentes estándar: `ListPageLayout`, `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`, `MobileCardList`, `ReadOnlyLineItemsTable`, `SortableTableHead`, `TablePagination`.
+- Multimedia: `DragDropImageUploader` + `ImageGalleryLightbox`, indexados por `entityType`/`entityId`.
+- Restauración de filtros al volver a un listado mediante `sessionStorage`.
 
 ### 5.3 Mutaciones y caché
 
@@ -134,7 +139,7 @@ Página (orquestador)
 
 ### 5.4 Integridad transaccional
 
-- Flujos multi-tabla (crear reserva, completar inspección, cancelar reserva) viven como **RPCs de Postgres** (`SECURITY DEFINER`) para garantizar atomicidad.
+- Flujos multi-tabla (crear reserva, completar inspección, cancelar reserva, conversión cotización→reserva) viven como **RPCs de Postgres** (`SECURITY DEFINER`, `SET search_path = public`) para garantizar atomicidad.
 - Restricciones críticas (solapamiento de reservas) se hacen a nivel BD con índices/exclusión GiST, no en cliente.
 - Validaciones temporales se implementan como **triggers** (no `CHECK` con `now()`, que rompe restores).
 
@@ -152,23 +157,37 @@ Página (orquestador)
 ### 6.1 RLS y roles
 
 - **Toda tabla** tiene RLS habilitada.
-- Roles internos en enum `app_role`: `admin`, `administrativo`, `ventas`, `despachador`, `mecanico`, `auditor`.
+- Roles internos en enum `app_role`:
+  - `admin` — control total, único que puede revertir auditoría y marcar oportunidades como Closed Won.
+  - `administrativo` — operación administrativa amplia (facturación, pagos, clientes).
+  - `ventas` — CRM, cotizaciones, clientes.
+  - `despachador` — reservas, calendario, entregas, devoluciones.
+  - `mecanico` — mantenimiento, daños, refacciones.
+  - `auditor` — solo lectura transversal + bitácora.
 - Tabla `user_roles` **separada** de `profiles` para evitar escalada de privilegios.
-- Función `public.has_role(_user_id uuid, _role app_role)` `SECURITY DEFINER STABLE SET search_path = public` se usa en todas las policies.
+- Función `public.has_role(_user_id uuid, _role app_role)` `SECURITY DEFINER STABLE SET search_path = public` se usa en todas las policies. Ejemplo:
+
+  ```sql
+  create policy "Admins manage invoices"
+    on public.invoices for all to authenticated
+    using (public.has_role(auth.uid(), 'admin'))
+    with check (public.has_role(auth.uid(), 'admin'));
+  ```
 
 ### 6.2 Permisos por módulo
 
-- Tabla `role_permissions` (rol × módulo × `access_level`: `none|read|full`).
+- Tabla `role_permissions` (`role` × `module` × `access_level`: `none|read|full`).
+- Constante `MODULES` y mapa `ROUTE_TO_MODULE` definidos en `src/hooks/useRolePermissions.ts` — única fuente de verdad para nombrar módulos en UI y BD.
 - Hook `useRolePermissions` carga el mapa con `staleTime: 5 min`.
-- Componente `<RoleGuard module="..." minAccess="read">` envuelve cada ruta protegida en `App.tsx`.
-- Mapeo ruta → módulo definido en `routes.tsx` (`appRoutes[].module`) y en `ROUTE_TO_MODULE`.
+- Componente `<RoleGuard module="..." minAccess="read">` envuelve cada ruta protegida.
+- Cada `appRoute` declara `module` opcional; `App.tsx` lo enlaza a `RoleGuard`.
 
 ### 6.3 Edge Functions
 
 - Validan identidad con `getClaims()` (compatible con tokens nuevos y legacy).
-- CORS centralizado en `supabase/functions/_shared/cors.ts`.
-- Validación de inputs en `_shared/validate.ts`.
-- Casos de uso: timbrado/cancelación CFDI, invitar/eliminar usuarios, generación recurrente de facturas y mantenimientos, parseo de CSF, generación de manual.
+- CORS restringido y centralizado en `supabase/functions/_shared/cors.ts`.
+- Validación de inputs en `supabase/functions/_shared/validate.ts`.
+- Casos de uso: timbrado/cancelación CFDI (`stamp-cfdi`, `cancel-cfdi`), invitaciones (`invite-user`, `invite-customer`, `delete-user`, `reset-user-password`, `toggle-user-status`), generación recurrente (`generate-recurring-invoices`, `generate-recurring-maintenance`), parseo de CSF (`parse-csf`), generación del manual (`generate-manual`), generación de PDF de factura server-side (`generate-invoice-pdf`).
 - `verify_jwt` se configura por función en `supabase/config.toml` cuando aplica.
 
 ---
@@ -177,52 +196,105 @@ Página (orquestador)
 
 - `src/lib/routes-config.tsx` exporta `appRoutes: RouteConfig[]` con `path`, `component` (lazy) y `module` opcional.
 - `src/App.tsx` compone:
+
   ```text
   AppProviders
     └─ BrowserRouter
-         ├─ /portal/*                (público / portal cliente)
+         ├─ /portal/*                (portal cliente, layout propio)
          └─ AuthGuard → MainLayout
               └─ appRoutes.map → Suspense → RoleGuard? → Page
   ```
+
+- **Sin nested wildcards**: `MainLayout` se monta una sola vez, `Suspense` envuelve cada ruta individual (ver `mem://arch/routing-architecture`).
 - Constantes de URL en `src/lib/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
-- Portal de cliente totalmente aislado bajo `/portal/*` con su propio layout y hooks (`usePortalInvoices`, `usePortalBookings`).
+- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/role-permissions`, `/operations-setup`, `/changelog`, `/help`.
 
 ---
 
-## 8. Generación de documentos (PDFs)
+## 8. Portal de cliente
+
+- Aislado bajo `/portal/*` con `CustomerPortalLayout` y autenticación independiente (`/portal/login`).
+- Páginas: `PortalDashboard`, `PortalRentals`, `PortalInvoices`, `PortalInvoiceDetail`, `PortalContracts`.
+- Hooks dedicados (`useCustomerPortal`, `usePortalInvoices`, `usePortalBookings`) que **nunca** comparten queries con el backoffice.
+- Modelo de seguridad: usuarios invitados desde la edge function `invite-customer` quedan vinculados a un `customer_id`. Las policies RLS filtran por `customer_id = (auth claims)`. Acceso **solo lectura**.
+- Sin acceso a módulos internos (gastos, P&L, mantenimiento, etc.).
+
+---
+
+## 9. Generación de documentos (PDFs)
 
 - Carpeta `src/lib/pdf/` con un sub-módulo por tipo de documento:
   - `contract/` — `contractPage.ts`, `checklistPage.ts`, `pagarePage.ts`, `sections/{header,declarations,clauses,signatures}.ts`, `placeholders.ts`, `placeholderRegistry.ts`, `data-templates.ts`, `fetchers.ts`.
-  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts` (tokens compartidos: `GRAY_*`, `FONT_*`, `MARGIN`).
+  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts` (**fuente de tokens compartidos**: `GRAY_*`, `FONT_*`, `MARGIN`).
   - `customerStatement/` — `parts.ts`, `tables.ts`.
-  - `incomeStatement/` — `header.ts`, `rows.ts` (reutiliza tokens de `quote/constants.ts` para mantener consistencia visual).
+  - `incomeStatement/` — `header.ts`, `rows.ts` (consume tokens de `quote/constants.ts`).
 - `placeholderRegistry.ts` es la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
-- Helpers compartidos en `shared.ts` y `loadImageAsBase64.ts`.
-- jsPDF se carga de forma diferida desde el botón que dispara la descarga (locked at 4.0.0 max).
+- Helpers compartidos en `shared.ts` (fetch de datos de empresa + logo, wrappers de texto, paginación) y `loadImageAsBase64.ts`.
+- jsPDF se carga de forma diferida desde el botón que dispara la descarga; bloqueado en versión ≤ 4.0.0 por compatibilidad (`mem://tech/security/vulnerabilities`).
+- Logo escalado a 24×40 mm máx. para mantener layout (`mem://style/branding/logo`).
 
 ---
 
-## 9. Convenciones de UI/UX
+## 10. Integraciones externas
+
+- **Facturapi (CFDI 4.0)**: timbrado y cancelación de comprobantes. Multi-tenant: cada empresa configura sus API keys (test y live) en `company_settings` / `pac_config`. Edge functions: `stamp-cfdi`, `cancel-cfdi`. PDFs e XML se persisten como adjuntos.
+- **Lovable AI Gateway**: usado por funciones que requieren modelos LLM (p. ej. `generate-manual`). Sin API key del usuario; consumo manejado por la plataforma.
+- **Parseo de CSF (SAT)**: `parse-csf` extrae RFC, razón social, régimen y código postal de la Constancia de Situación Fiscal para precargar formularios de cliente.
+
+---
+
+## 11. Convenciones de UI/UX
 
 - **Desktop-first**: alta densidad, atajo global `Ctrl+K`, drill-down en side panels en lugar de columnas de acciones.
-- Tablas estandarizadas: compactas, filas zebra, headers sticky, sort/paginación cliente (límite 25).
+- Tablas estandarizadas: compactas, filas zebra, headers sticky, sort/paginación cliente (límite 25, vía `usePagination`).
 - Mobile: `MobileCardList` reemplaza tablas complejas.
 - Diseño visual “Premium / Industrial Minimalista” para documentos operativos.
 - **Tokens semánticos**: nunca colores literales (`text-white`, `bg-black`). Todo color en HSL en `index.css` y `tailwind.config.ts`. Componentes usan tokens (`bg-primary`, `text-muted-foreground`, etc.).
 
 ---
 
-## 10. Localización
+## 12. Localización
 
 - Zona horaria fija `America/Monterrey` mediante `nowMty()` en `lib/utils.ts`.
 - Fechas: formato DD/MM/YYYY; manipulación con `date-fns` + `date-fns-tz`.
 - Moneda MXN por defecto, formato `es-MX` vía `formatCurrency()`.
 - Soporte multi-moneda (MXN/USD) en cotizaciones.
-- UI 100% en **español mexicano**. Identificadores de documentos con prefijos en español: `FAC-`, `COT-`, `CTR-`, `RSV-`, `ENT-`, `DEV-`.
+- UI 100% en **español mexicano**. Identificadores de documentos con prefijos en español: `FAC-`, `COT-`, `CTR-`, `RSV-`, `ENT-`, `DEV-` (generados por RPCs de numeración).
 
 ---
 
-## 11. Testing
+## 13. Reglas de negocio críticas (invariantes)
+
+Documentar aquí cualquier regla que NO sea evidente del código y que, si se viola, rompe el dominio.
+
+- **Renta calculada por meses calendario exactos**, no por bloques de 30 días (`mem://logic/rental-calculation`).
+- **Numeración de documentos** generada por RPCs (`generate_*_number`) para evitar colisiones; prefijos en español por tipo.
+- **MRR y ocupación** se computan estrictamente sobre reservas activas confirmadas hoy; la página `/mrr` es la fuente de verdad para los KPIs del dashboard (`mem://logic/kpi-calculation-rules`, `mem://features/mrr-detail-page`).
+- **Estado del montacargas** (`available`, `rented`, `maintenance`, ...) se cambia solo por eventos explícitos (entrega, devolución, mantenimiento), nunca derivado en queries (`mem://logic/forklift-status-persistence`).
+- **Buffer de mantenimiento** de 3 días para reservas activas, aplicado vía exclusión GiST (`mem://logic/booking-constraints`).
+- **Cotizaciones multi-equipo**: ID primario en `forklift_id`, lista completa en `line_items` JSONB; mapeo de unidades vendidas en `quote_assigned_forklifts` (`mem://logic/multi-equipment-rental-storage`, `mem://logic/quote-assignment-mapping`).
+- **Subscripciones recurrentes** leen el `monthly_rate` actual del montacargas al momento de generación (`mem://logic/recurring-billing-pricing`).
+- **Cancelación de reserva**: si no quedan reservas activas para el equipo, su estado vuelve a `available` en la misma transacción (`mem://logic/booking-cancellation`).
+- **Cliente genérico “Público en General”** debe reasignarse antes de convertir una cotización (`mem://logic/quote-conversion-constraints`).
+- **Gastos de software y depreciación** se excluyen de UI de gastos operativos y del P&L (`mem://features/operating-expenses`).
+
+---
+
+## 14. Migraciones de base de datos
+
+- Ubicación: `supabase/migrations/` con formato `<timestamp>_<slug>.sql`.
+- Política:
+  - **Una migración por cambio funcional**, atómica.
+  - **Nunca editar** migraciones ya aplicadas; corregir con una nueva.
+  - **Nunca tocar** schemas reservados: `auth`, `storage`, `realtime`, `supabase_functions`, `vault`.
+  - Validaciones temporales → **triggers**, no `CHECK` con funciones no inmutables.
+  - RPCs siempre con `SECURITY DEFINER` y `SET search_path = public`.
+  - RLS habilitada para toda tabla nueva, con policies basadas en `has_role()`.
+- Los tipos de TS se regeneran automáticamente en `src/integrations/supabase/types.ts` — no editar a mano.
+
+---
+
+## 15. Testing
 
 - Vitest + jsdom + @testing-library/react.
 - Mocks de Supabase reutilizables en `src/test/helpers/mockSupabase.ts`.
@@ -231,15 +303,16 @@ Página (orquestador)
 
 ---
 
-## 12. Versionado y changelog
+## 16. Versionado y changelog
 
-- Versionado semántico (MAJOR.MINOR.PATCH) en `public/changelog.json`.
-- **Política mandatoria**: cada cambio funcional agrega una entrada al inicio del array (versión, fecha, título, descripción). Selecciona major/minor/patch según magnitud.
-- Página `/changelog` consume el JSON.
+- Versionado semántico (MAJOR.MINOR.PATCH).
+- **Fuente consumida en runtime**: `public/changelog.json` — lo lee `ChangelogPage` vía `fetchChangelog()` en `src/lib/changelog.ts`.
+- **Política mandatoria**: cada cambio funcional agrega una entrada al **inicio** del array (versión, fecha, tipo, título, descripción, lista de cambios). Selecciona major/minor/patch según magnitud.
+- La página `/changelog` permite filtrar por tipo.
 
 ---
 
-## 13. Cómo evolucionar la arquitectura
+## 17. Cómo evolucionar la arquitectura
 
 **Añadir un nuevo módulo**:
 1. Crear página en `src/pages/MyModulePage.tsx` (orquestador).
@@ -247,9 +320,9 @@ Página (orquestador)
 3. Componentes UI en `src/components/myModule/`.
 4. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"`.
 5. Agregar la URL a `src/lib/routes.ts`.
-6. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`.
+6. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
 7. Agregar test mínimo en `src/test/`.
-8. Agregar entrada al inicio de `src/lib/changelog.ts` (versión semántica).
+8. Agregar entrada al inicio de `public/changelog.json` (versión semántica).
 
 **Cuándo extraer**:
 - **Hook** si hay estado/efectos compartidos o lógica > 30 líneas en un componente.
@@ -264,15 +337,23 @@ Página (orquestador)
 - Colores literales fuera de los tokens del design system.
 - `CHECK` constraints con `now()` u otras funciones no inmutables.
 - `any`, `!`, `as` casuales.
+- `alert()` o `confirm()` nativos — usar diálogos shadcn (`AlertDialog`, `Dialog`).
+- `console.log` en código de producción — usar `sonner` para feedback al usuario.
+- FK directa a `auth.users` — referenciar `user_id` y modelar perfiles en `profiles`.
+- Nested wildcards en rutas o re-montar `MainLayout` por ruta — usar `Suspense` por ruta.
+- Mostrar al usuario términos como “Supabase dashboard” — referirse a **Lovable Cloud**.
 
 ---
 
-## 14. Referencias
+## 18. Referencias
 
 - `README.md` — instrucciones de desarrollo.
-- `src/lib/changelog.ts` y `public/changelog.json` — historial de versiones.
+- `public/changelog.json` — historial funcional consumido por la app.
+- `src/lib/changelog.ts` — fetcher + tipos del changelog.
 - `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
-- `src/lib/config.ts` — configuración global (IVA, etc.).
+- `src/lib/config.ts` — configuración global (IVA, monedas).
 - `src/lib/routes-config.tsx` y `src/lib/routes.ts` — rutas y permisos.
+- `src/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
 - `supabase/functions/` — backend serverless.
+- `supabase/migrations/` — historial SQL.
 - `.lovable/plan.md` — última auditoría arquitectónica.
