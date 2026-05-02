@@ -85,11 +85,11 @@ src/
 │   ├── constants.ts    Etiquetas, colores, estados de dominio
 │   ├── config.ts       Configuración global (tasas IVA, etc.)
 │   ├── routes.ts       Constantes de rutas (`ROUTES.invoices.detail(id)`)
-│   ├── formatCurrency.ts · activityTranslations.ts · utils.ts
+│   ├── routes-config.tsx  Registro central de rutas + módulo (lazy)
+│   ├── formatCurrency.ts · activityTranslations.ts · utils.ts · changelog.ts
 ├── integrations/supabase/   Cliente y types AUTOGENERADOS — no editar
 ├── types/              Tipos de dominio compartidos (rental.ts, ...)
 ├── test/               Tests + helpers/mocks de Supabase
-├── routes.tsx          Registro central de rutas + permisos
 ├── App.tsx             Composición de providers, guards y router
 └── main.tsx
 supabase/
