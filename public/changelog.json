@@ -1,5 +1,21 @@
 [
   {
+    "version": "5.43.2",
+    "date": "2026-05-02",
+    "type": "patch",
+    "title": "Ampliación de architecture.md",
+    "description": "Documentación de arquitectura ampliada: nuevas secciones para Portal de Cliente, Integraciones externas (Facturapi, Lovable AI Gateway, parseo CSF), Migraciones de base de datos y Reglas de negocio críticas (invariantes). Se aclaró que public/changelog.json es la fuente consumida en runtime, se documentaron los 6 roles del enum app_role con un ejemplo real de policy basada en has_role(), y se expandió la lista de anti-patrones (alert/confirm nativos, console.log, FK a auth.users, nested wildcards, terminología hacia el usuario).",
+    "changes": [
+      "Nueva sección §8 Portal de Cliente con modelo de seguridad por customer_id",
+      "Nueva sección §10 Integraciones externas (Facturapi, Lovable AI, CSF)",
+      "Nueva sección §13 Reglas de negocio críticas (invariantes de dominio)",
+      "Nueva sección §14 Migraciones de base de datos con políticas y schemas reservados",
+      "Sección §6 expandida: roles del enum app_role, role_permissions, ejemplo de policy con has_role()",
+      "Sección §11 expandida: catálogo de componentes y hooks UI estándar",
+      "Anti-patrones expandidos: alert/confirm, console.log, FK a auth.users, nested wildcards, terminología Lovable Cloud"
+    ]
+  },
+  {
     "version": "5.43.1",
     "date": "2026-04-29",
     "type": "patch",
