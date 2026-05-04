@@ -8,14 +8,16 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 export function useUserRole() {
   const { user } = useAuth();
 
+  const userId = user?.id;
   return useQuery({
-    queryKey: ["user_role", user?.id],
-    enabled: !!user,
+    queryKey: ["user_role", userId],
+    enabled: !!userId,
     queryFn: async () => {
+      if (!userId) return "dispatcher" as AppRole;
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user!.id);
+        .eq("user_id", userId);
       if (error || !data || data.length === 0) return "dispatcher" as AppRole;
       // Priority: admin > customer > mechanic > dispatcher
       const priority: AppRole[] = ["admin", "customer", "administrativo", "auditor", "ventas", "mechanic", "dispatcher"];
