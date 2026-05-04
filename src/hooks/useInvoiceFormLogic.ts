@@ -104,7 +104,7 @@ export function useInvoiceFormLogic() {
     customer_id: customerId,
     customer_name: customerName || null,
     quote_id: fromQuoteId || (isEdit ? existing?.quote_id : null) || null,
-    line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
+    line_items: toJsonArray(lineItems),
     subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
     due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
     issued_at: format(issueDate, "yyyy-MM-dd"),

@@ -7,6 +7,7 @@ import { generateLineItemsFromModel, computeTotals, type LineItem } from "@/lib/
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
+import { toJsonArray } from "@/lib/lineItems";
 import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
 import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
 
