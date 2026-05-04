@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
-import { useMaintenanceLogs, useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import { useMaintenanceLogs, type MaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { useGenerateRecurringMaintenance } from "@/hooks/useGenerateRecurringMaintenance";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";
@@ -8,43 +8,31 @@ import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
-import { TableRow, TableCell } from "@/components/ui/table";
+import { TableRow } from "@/components/ui/table";
 import { MarkAvailableDialog } from "@/components/fleet/MarkAvailableDialog";
 import { RoleGuard } from "@/components/RoleGuard";
 import { MaintenanceDetailSheet } from "@/components/maintenance/MaintenanceDetailSheet";
-import { MaintenanceFormDialog, type MaintenanceFormShape } from "@/components/maintenance/MaintenanceFormDialog";
+import { MaintenanceFormDialog } from "@/components/maintenance/MaintenanceFormDialog";
 import { MaintenanceFiltersBar } from "@/components/maintenance/MaintenanceFiltersBar";
-import { useFormState } from "@/hooks/useFormState";
+import { MaintenanceKanban } from "@/components/maintenance/MaintenanceKanban";
+import { MaintenanceTableRow, MaintenanceMobileCard } from "@/components/maintenance/MaintenanceRow";
 import { useActiveMechanics } from "@/hooks/useMechanics";
+import { useMaintenanceForm } from "@/hooks/maintenance/useMaintenanceForm";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { Card, CardContent } from "@/components/ui/card";
+import { exportToCsv } from "@/lib/exportCsv";
 import { PlusCircle, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { MaintenanceKanban } from "@/components/maintenance/MaintenanceKanban";
-import { exportToCsv } from "@/lib/exportCsv";
-import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
-import { formatDateDisplay } from "@/lib/utils";
-
-const initialForm: MaintenanceFormShape = {
-  forkliftId: "", serviceType: "", description: "", cost: "",
-  performedBy: "", performedAt: new Date(), nextServiceDate: undefined, supplierId: "",
-};
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
   const { data: logs, isLoading } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
-  const createLog = useCreateMaintenanceLog();
-  const updateLog = useUpdateMaintenanceLog();
   const generateRecurring = useGenerateRecurringMaintenance();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<MaintenanceLog | null>(null);
-  const { form, set, reset } = useFormState(initialForm);
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
-  const [availablePrompt, setAvailablePrompt] = useState<{ forkliftId: string; forkliftName: string } | null>(null);
+
+  const formCtl = useMaintenanceForm(forkliftMap);
 
   const enrichedLogs = logs?.map((log) => ({
     ...log,
@@ -80,81 +68,12 @@ export default function MaintenancePage() {
       keyExtractor={(log) => log.id}
       emptyMessage="No se encontraron registros"
       renderCard={(log) => (
-        <Card className="cursor-pointer" onClick={() => setSelectedLog(log)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold">{log.service_type}</span>
-              <span className="text-sm font-mono font-medium">{formatCurrency(log.cost || 0)}</span>
-            </div>
-            <p className="text-sm font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</p>
-            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-              <span className="font-mono">{formatDateDisplay(log.performed_at)}</span>
-              {log.performed_by && <span>por {log.performed_by}</span>}
-            </div>
-            {log.next_service_date && <p className="text-xs text-muted-foreground mt-1">Próx: {formatDateDisplay(log.next_service_date)}</p>}
-          </CardContent>
-        </Card>
+        <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => setSelectedLog(log)} />
       )}
     />
   ) : undefined;
 
-  const openEditDialog = (log: MaintenanceLog) => {
-    setEditingLogId(log.id);
-    set("forkliftId", log.forklift_id);
-    set("serviceType", log.service_type);
-    set("description", log.description || "");
-    set("cost", log.cost?.toString() || "");
-    set("performedBy", log.performed_by || "");
-    set("performedAt", log.performed_at ? parseISO(log.performed_at) : new Date());
-    set("nextServiceDate", log.next_service_date ? parseISO(log.next_service_date) : undefined);
-    set("supplierId", log.supplier_id || "");
-    setDialogOpen(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.forkliftId || !form.serviceType) {
-      toast.error("Montacargas y tipo de servicio son requeridos");
-      return;
-    }
-
-    const payload = {
-      forklift_id: form.forkliftId,
-      service_type: form.serviceType,
-      description: form.description || null,
-      cost: form.cost ? parseFloat(form.cost) : 0,
-      performed_by: form.performedBy || null,
-      performed_at: format(form.performedAt, "yyyy-MM-dd"),
-      next_service_date: form.nextServiceDate ? format(form.nextServiceDate, "yyyy-MM-dd") : null,
-      supplier_id: form.supplierId || null,
-    };
-
-    if (editingLogId) {
-      updateLog.mutate({ id: editingLogId, ...payload }, {
-        onSuccess: () => {
-          toast.success("Registro de mantenimiento actualizado");
-          setDialogOpen(false);
-          setEditingLogId(null);
-          reset();
-        },
-      });
-    } else {
-      const selectedForklift = forkliftMap.get(form.forkliftId);
-      createLog.mutate(payload, {
-        onSuccess: () => {
-          toast.success("Registro de mantenimiento agregado");
-          setDialogOpen(false);
-          if (selectedForklift && selectedForklift.status === "maintenance") {
-            setAvailablePrompt({ forkliftId: selectedForklift.id, forkliftName: selectedForklift.name });
-          }
-          reset();
-        },
-      });
-    }
-  };
-
   const totalCost = logs?.reduce((sum, l) => sum + (l.cost || 0), 0) || 0;
-  const isPending = editingLogId ? updateLog.isPending : createLog.isPending;
 
   const exportCsv = () => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({
     Fecha: l.performed_at,
@@ -185,7 +104,7 @@ export default function MaintenancePage() {
                 Generar Recurrente
               </Button>
             </RoleGuard>
-            <Button onClick={() => { reset(); setEditingLogId(null); setDialogOpen(true); }} size="sm">
+            <Button onClick={formCtl.openCreate} size="sm">
               <PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio
             </Button>
           </div>
@@ -216,14 +135,7 @@ export default function MaintenancePage() {
           </TableRow>
         }
         renderRow={(log) => (
-          <TableRow key={log.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => setSelectedLog(log)}>
-            <TableCell className="font-mono text-sm">{formatDateDisplay(log.performed_at)}</TableCell>
-            <TableCell className="font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</TableCell>
-            <TableCell>{log.service_type}</TableCell>
-            <TableCell>{log.performed_by || "—"}</TableCell>
-            <TableCell className="text-right font-medium">{formatCurrency(log.cost || 0)}</TableCell>
-            <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(log.next_service_date)}</TableCell>
-          </TableRow>
+          <MaintenanceTableRow key={log.id} log={log} forkliftMap={forkliftMap} onClick={() => setSelectedLog(log)} />
         )}
         customContent={kanbanContent || mobileContent}
       />
@@ -233,27 +145,27 @@ export default function MaintenancePage() {
         open={!!selectedLog}
         onOpenChange={(open) => { if (!open) setSelectedLog(null); }}
         forkliftName={selectedLog ? (forkliftMap.get(selectedLog.forklift_id)?.name || "—") : ""}
-        onEdit={openEditDialog}
+        onEdit={formCtl.openEdit}
       />
 
       <MaintenanceFormDialog
-        open={dialogOpen}
-        onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingLogId(null); }}
-        isEdit={!!editingLogId}
-        isPending={isPending}
-        form={form}
-        set={set}
-        onSubmit={handleSubmit}
+        open={formCtl.dialogOpen}
+        onOpenChange={formCtl.setDialogOpen}
+        isEdit={!!formCtl.editingLogId}
+        isPending={formCtl.isPending}
+        form={formCtl.form}
+        set={formCtl.set}
+        onSubmit={formCtl.handleSubmit}
         forklifts={forklifts}
         mechanics={activeMechanics}
       />
 
-      {availablePrompt && (
+      {formCtl.availablePrompt && (
         <MarkAvailableDialog
-          open={!!availablePrompt}
-          onOpenChange={(open) => { if (!open) setAvailablePrompt(null); }}
-          forkliftId={availablePrompt.forkliftId}
-          forkliftName={availablePrompt.forkliftName}
+          open={!!formCtl.availablePrompt}
+          onOpenChange={(open) => { if (!open) formCtl.closeAvailablePrompt(); }}
+          forkliftId={formCtl.availablePrompt.forkliftId}
+          forkliftName={formCtl.availablePrompt.forkliftName}
         />
       )}
     </>

@@ -1,13 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Plus, RefreshCw, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -15,82 +10,27 @@ import { capitalize, parseDateLocal } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  useOperatingExpenses, useUpdateExpense, useDeleteExpense, useGenerateRecurring,
-  EXPENSE_CATEGORY_LABELS, type ExpenseCategory, type OperatingExpense,
+  useOperatingExpenses, useGenerateRecurring,
+  EXPENSE_CATEGORY_LABELS, type OperatingExpense,
 } from "@/hooks/useOperatingExpenses";
 import { SearchBar } from "@/components/SearchBar";
 import { ExpenseFormDialog } from "@/components/expenses/ExpenseFormDialog";
 import { ExpenseDetailSheet } from "@/components/expenses/ExpenseDetailSheet";
-import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
+import { ExpenseEditDialog } from "@/components/expenses/ExpenseEditDialog";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { usePagination } from "@/hooks/usePagination";
-
-const CATEGORIES = Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, string][];
-
-interface FormData {
-  category: ExpenseCategory;
-  description: string;
-  amount: string;
-  expense_date: string;
-  is_recurring: boolean;
-  supplier_id: string;
-}
-
-const emptyForm: FormData = { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), is_recurring: false, supplier_id: "" };
+import { useExpenseFilters } from "@/hooks/expenses/useExpenseFilters";
 
 export default function OperatingExpensesPage() {
   const { data: expenses, isLoading } = useOperatingExpenses();
-  const updateExpense = useUpdateExpense();
-  const deleteExpense = useDeleteExpense();
   const generateRecurring = useGenerateRecurring();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<FormData>(emptyForm);
-  const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterMonth, setFilterMonth] = useState<string>(format(new Date(), "yyyy-MM"));
-  const [search, setSearch] = useState("");
+  const [editTarget, setEditTarget] = useState<OperatingExpense | null>(null);
   const [selectedExpense, setSelectedExpense] = useState<OperatingExpense | null>(null);
 
-  const availableMonths = useMemo(() => {
-    const set = new Set<string>();
-    (expenses || []).forEach((e) => set.add(e.expense_date.slice(0, 7)));
-    set.add(format(new Date(), "yyyy-MM"));
-    return Array.from(set).sort().reverse();
-  }, [expenses]);
-
-  const openEdit = (e: OperatingExpense) => {
-    setEditingId(e.id);
-    setForm({ category: e.category, description: e.description || "", amount: String(e.amount), expense_date: e.expense_date, is_recurring: e.is_recurring ?? false, supplier_id: e.supplier_id || "" });
-    setDialogOpen(true);
-  };
-
-  const handleSave = () => {
-    const payload = { category: form.category as ExpenseCategory, description: form.description || undefined, amount: parseFloat(form.amount), expense_date: form.expense_date, is_recurring: form.is_recurring, supplier_id: form.supplier_id || null };
-    if (!payload.amount || isNaN(payload.amount)) return;
-    if (editingId) {
-      updateExpense.mutate({ id: editingId, ...payload }, { onSuccess: () => setDialogOpen(false) });
-    }
-  };
-
-  const availableCategories = useMemo(() => {
-    const set = new Set<ExpenseCategory>();
-    (expenses || []).forEach((e) => set.add(e.category));
-    return CATEGORIES.filter(([v]) => set.has(v));
-  }, [expenses]);
-
-  const filtered = useMemo(() => {
-    return (expenses || []).filter((e) => {
-      if (filterCategory !== "all" && e.category !== filterCategory) return false;
-      if (filterMonth !== "all" && !e.expense_date.startsWith(filterMonth)) return false;
-      if (search && !(e.description || "").toLowerCase().includes(search.toLowerCase())) return false;
-      return true;
-    });
-  }, [expenses, filterCategory, filterMonth, search]);
-
-  const total = useMemo(() => filtered.reduce((sum, e) => sum + e.amount, 0), [filtered]);
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const f = useExpenseFilters(expenses);
+  const { page, setPage, totalPages, paginatedItems } = usePagination(f.filtered);
 
   const renderRow = (e: OperatingExpense) => (
     <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedExpense(e)}>
@@ -129,7 +69,7 @@ export default function OperatingExpensesPage() {
       <ListPageLayout<OperatingExpense>
         title="Gastos Operativos"
         subtitle="Registra gastos fijos y variables del negocio"
-        totalCount={filtered.length}
+        totalCount={f.filtered.length}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
@@ -147,28 +87,28 @@ export default function OperatingExpensesPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total de Gastos</p>
-                  <p className="text-2xl font-bold font-mono">{formatCurrency(total)}</p>
+                  <p className="text-2xl font-bold font-mono">{formatCurrency(f.total)}</p>
                 </div>
               </CardContent>
             </Card>
             <div className="flex flex-col sm:flex-row gap-3">
-              <SearchBar value={search} onChange={setSearch} placeholder="Buscar por descripción…" className="sm:max-w-xs" />
-              <Select value={filterMonth} onValueChange={setFilterMonth}>
+              <SearchBar value={f.search} onChange={f.setSearch} placeholder="Buscar por descripción…" className="sm:max-w-xs" />
+              <Select value={f.filterMonth} onValueChange={f.setFilterMonth}>
                 <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los meses</SelectItem>
-                  {availableMonths.map((m) => (
+                  {f.availableMonths.map((m) => (
                     <SelectItem key={m} value={m}>
                       {capitalize(format(new Date(m + "-15"), "MMM yyyy", { locale: es }))}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <Select value={f.filterCategory} onValueChange={f.setFilterCategory}>
                 <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas las categorías</SelectItem>
-                  {availableCategories.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+                  {f.availableCategories.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -203,54 +143,14 @@ export default function OperatingExpensesPage() {
         expense={selectedExpense}
         open={!!selectedExpense}
         onOpenChange={(open) => { if (!open) setSelectedExpense(null); }}
-        onEdit={(e) => { openEdit(e); }}
+        onEdit={(e) => setEditTarget(e)}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Editar Gasto</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Categoría</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as ExpenseCategory })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Monto</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input type="number" min="0" step="0.01" className="pl-7" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0.00" />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Fecha</Label>
-              <Input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Descripción (opcional)</Label>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
-            </div>
-            <SupplierSelector value={form.supplier_id} onChange={(v) => setForm({ ...form, supplier_id: v })} />
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="space-y-0.5">
-                <Label>Gasto recurrente mensual</Label>
-                <p className="text-xs text-muted-foreground">Se podrá generar automáticamente cada mes</p>
-              </div>
-              <Switch checked={form.is_recurring} onCheckedChange={(v) => setForm({ ...form, is_recurring: v })} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={!form.amount || updateExpense.isPending}>
-              Guardar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ExpenseEditDialog
+        expense={editTarget}
+        open={!!editTarget}
+        onOpenChange={(open) => { if (!open) setEditTarget(null); }}
+      />
     </>
   );
 }

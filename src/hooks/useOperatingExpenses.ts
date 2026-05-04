@@ -63,7 +63,7 @@ export function useCreateExpense() {
 export function useUpdateExpense() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; category?: ExpenseCategory; description?: string; amount?: number; expense_date?: string; is_recurring?: boolean }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; category?: ExpenseCategory; description?: string; amount?: number; expense_date?: string; is_recurring?: boolean; supplier_id?: string | null }) => {
       const { error } = await supabase.from("operating_expenses").update(updates).eq("id", id);
       if (error) throw error;
     },
