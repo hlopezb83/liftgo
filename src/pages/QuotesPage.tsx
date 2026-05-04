@@ -113,7 +113,7 @@ export default function QuotesPage() {
             </Badge>
           </TableCell>
           <TableCell>{q.customer_name || "—"}</TableCell>
-          <TableCell className="text-sm">{formatDateRange(q.start_date, q.end_date)}</TableCell>
+          <TableCell className="text-sm whitespace-nowrap">{formatDateRange(q.start_date, q.end_date)}</TableCell>
           <TableCell className="font-mono">{formatCurrency(q.total)}</TableCell>
           <TableCell><StatusBadge status={q.status} label={quoteLabel(q.status)} /></TableCell>
           <TableCell>{formatDateDisplay(q.valid_until)}</TableCell>
