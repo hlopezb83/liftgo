@@ -1,0 +1,13 @@
+{
+  "version": "5.54.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Migración completa de páginas a useListPage",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "refactor",
+      "description": "DamageTrackingPage, ChangelogPage, UserManagementPage y OperatingExpensesPage ahora usan el hook unificado useListPage, eliminando llamadas dispersas a usePagination, useSort y useIsMobile."
+    }
+  ]
+}
