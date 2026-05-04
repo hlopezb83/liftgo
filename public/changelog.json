@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.49.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Modularización de componentes >200 líneas",
+    "category": "refactor"
+  },
+  {
     "version": "5.48.0",
     "date": "2026-05-04",
     "type": "minor",
