@@ -9,7 +9,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { DragDropImageUploader } from "@/components/DragDropImageUploader";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import type { Booking } from "@/hooks/useBookings";
 import type { Forklift } from "@/hooks/useForklifts";
 
@@ -54,7 +54,7 @@ export function ReturnInspectionDialog({
               <SelectContent>
                 {activeBookings?.map((b) => (
                   <SelectItem key={b.id} value={b.id}>
-                    {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Desconocido"} ({formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)})
+                    {forkliftMap.get(b.forklift_id)?.name} — {b.customer_name || "Desconocido"} ({formatDateRange(b.start_date, b.end_date)})
                   </SelectItem>
                 ))}
               </SelectContent>

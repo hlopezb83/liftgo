@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { History } from "lucide-react";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 interface Extension {
   id: string;
@@ -24,7 +24,7 @@ export function BookingExtensionsCard({ extensions }: { extensions: Extension[] 
           <div key={ext.id} className="p-3 rounded-lg bg-muted/40 text-sm space-y-1">
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                {formatDateDisplay(ext.original_end_date)} → {formatDateDisplay(ext.new_end_date)}
+                {formatDateRange(ext.original_end_date, ext.new_end_date)}
               </span>
               <span className="text-xs text-muted-foreground">{formatDateDisplay(ext.created_at)}</span>
             </div>

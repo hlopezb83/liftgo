@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { type BookingWithForklift } from "@/hooks/useBookings";
 import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "lucide-react";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useBookingActionsLogic, STATUS_LABELS, getValidTransitions } from "@/hooks/useBookingActionsLogic";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
@@ -138,7 +138,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
           </Button>
         }
         title="¿Cancelar esta reserva?"
-        description={`Se cancelará la reserva de ${booking.customer_name || "este cliente"} (${formatDateDisplay(booking.start_date)} → ${formatDateDisplay(booking.end_date)}). Esta acción no se puede deshacer.`}
+        description={`Se cancelará la reserva de ${booking.customer_name || "este cliente"} (${formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.`}
         confirmLabel="Cancelar Reserva"
         onConfirm={handleCancel}
       />

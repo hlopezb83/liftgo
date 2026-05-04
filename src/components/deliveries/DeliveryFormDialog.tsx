@@ -15,7 +15,7 @@ import { useBookings } from "@/hooks/useBookings";
 import { TruckIcon, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 const initialForm = {
   forkliftId: "",
@@ -99,7 +99,7 @@ export function DeliveryFormDialog() {
                 <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
                 <SelectContent>
                   {bookings?.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.customer_name || "Desconocido"} ({formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)})</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>{b.customer_name || "Desconocido"} ({formatDateRange(b.start_date, b.end_date)})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

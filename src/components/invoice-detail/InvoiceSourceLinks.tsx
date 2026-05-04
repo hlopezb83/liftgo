@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, CalendarIcon } from "lucide-react";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -43,7 +43,7 @@ export function InvoiceSourceLinks({ sourceQuote, sourceBooking }: Props) {
               </Link>
             </div>
             <p className="text-xs text-muted-foreground ml-6">
-              {sourceBooking.forklifts?.name} — {formatDateDisplay(sourceBooking.start_date)} → {formatDateDisplay(sourceBooking.end_date)}
+              {sourceBooking.forklifts?.name} — {formatDateRange(sourceBooking.start_date, sourceBooking.end_date)}
             </p>
           </CardContent>
         </Card>

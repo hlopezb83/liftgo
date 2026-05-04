@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CalendarDays } from "lucide-react";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 interface BookingRow {
   id: string;
@@ -27,7 +27,7 @@ export function CustomerBookingsHistory({ bookings }: { bookings: BookingRow[] }
                 <div>
                   <p className="font-medium">{b.forklift?.name || "—"} — {b.forklift?.model || ""}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)}
+                    {formatDateRange(b.start_date, b.end_date)}
                   </p>
                 </div>
                 <StatusBadge status={b.status} />

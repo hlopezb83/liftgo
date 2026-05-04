@@ -11,7 +11,7 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { AssignForkliftsCard } from "@/components/quotes/AssignForkliftsCard";
 import { QuoteDetailActions } from "@/components/quotes/QuoteDetailActions";
 import { QuoteConversionDialogs } from "@/components/quotes/QuoteConversionDialogs";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useQuoteDetailLogic } from "@/hooks/useQuoteDetailLogic";
 
 export default function QuoteDetail() {
@@ -67,7 +67,7 @@ export default function QuoteDetail() {
           <Card>
             <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
             <CardContent className="space-y-1 text-sm">
-              <p><span className="text-muted-foreground">Periodo:</span> {formatDateDisplay(quote.start_date)} → {formatDateDisplay(quote.end_date)}</p>
+              <p><span className="text-muted-foreground">Periodo:</span> {formatDateRange(quote.start_date, quote.end_date)}</p>
               <p><span className="text-muted-foreground">Válida Hasta:</span> {formatDateDisplay(quote.valid_until)}</p>
             </CardContent>
           </Card>
