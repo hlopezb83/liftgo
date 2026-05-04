@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 import { format } from "date-fns";
 import {
   type MonthData, type AccountingBasis, type ExpenseCategory,
@@ -39,15 +39,12 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const { data: rpc } = useQuery({
     queryKey: ["income_statement", startStr, endStr, accountingBasis],
     staleTime: 60_000,
-    queryFn: async (): Promise<RpcResult> => {
-      const { data, error } = await supabase.rpc("get_income_statement", {
+    queryFn: () =>
+      callRpc<RpcResult>("get_income_statement", {
         p_start_date: startStr,
         p_end_date: endStr,
         p_basis: accountingBasis,
-      });
-      if (error) throw error;
-      return data as unknown as RpcResult;
-    },
+      }),
   });
 
   const data: MonthData[] = (rpc?.months ?? []).map((m): MonthData => {

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
 export interface CustomerSummaryBooking {
   id: string;
@@ -30,12 +30,7 @@ export function useCustomerSummary(customerId: string | undefined) {
     queryKey: ["customer_summary", customerId],
     enabled: !!customerId,
     staleTime: 60_000,
-    queryFn: async (): Promise<CustomerSummary> => {
-      const { data, error } = await supabase.rpc("get_customer_summary", {
-        p_customer_id: customerId!,
-      });
-      if (error) throw error;
-      return data as unknown as CustomerSummary;
-    },
+    queryFn: () =>
+      callRpc<CustomerSummary>("get_customer_summary", { p_customer_id: customerId }),
   });
 }

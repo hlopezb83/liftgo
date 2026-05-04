@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
 export interface MrrItem {
   forklift_id: string;
@@ -26,12 +26,10 @@ export function useMrrDetail() {
   return useQuery({
     queryKey: ["mrr-detail"],
     queryFn: async (): Promise<MrrDetail> => {
-      const { data, error } = await supabase.rpc("get_mrr_detail");
-      if (error) throw error;
-      const result = data as unknown as MrrDetail;
+      const result = await callRpc<MrrDetail>("get_mrr_detail");
       return {
-        items: result.items ?? [],
-        total_mrr: result.total_mrr ?? 0,
+        items: result?.items ?? [],
+        total_mrr: result?.total_mrr ?? 0,
       };
     },
   });
