@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import type { DateRange } from "react-day-picker";
+import { callRpc } from "@/lib/rpc";
 
 type Forklift = Tables<"forklifts">;
 
@@ -18,12 +18,11 @@ export function useAvailableForklifts(dateRange: DateRange | undefined) {
     enabled: datesSelected,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_available_forklifts", {
-        p_start_date: startStr!,
-        p_end_date: endStr!,
+      if (!startStr || !endStr) return [];
+      return await callRpc<Forklift[]>("get_available_forklifts", {
+        p_start_date: startStr,
+        p_end_date: endStr,
       });
-      if (error) throw error;
-      return (data ?? []) as unknown as Forklift[];
     },
   });
 
