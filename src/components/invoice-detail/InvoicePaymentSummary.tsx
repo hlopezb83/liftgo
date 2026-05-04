@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { EditPaymentDialog } from "./EditPaymentDialog";
 import type { Tables } from "@/integrations/supabase/types";
+import { DataTable } from "@/components/DataTable";
 
 interface InvoicePaymentSummaryProps {
   totalPaid: number;
@@ -40,32 +40,24 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments }: InvoiceP
         <Card>
           <CardHeader><CardTitle className="text-base">Historial de Pagos</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Referencia</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
-                  <TableHead className="w-10" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="text-sm">{formatDateDisplay(p.payment_date)}</TableCell>
-                    <TableCell className="text-sm capitalize">{p.payment_method || "—"}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{p.reference_number || "—"}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(p)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable
+              data={payments}
+              keyExtractor={(p) => p.id}
+              emptyMessage="Sin pagos registrados"
+              defaultSortKey="payment_date"
+              defaultSortDirection="desc"
+              columns={[
+                { key: "payment_date", label: "Fecha", sortable: true, render: (p) => <span className="text-sm">{formatDateDisplay(p.payment_date)}</span> },
+                { key: "payment_method", label: "Método", sortable: true, render: (p) => <span className="text-sm capitalize">{p.payment_method || "—"}</span> },
+                { key: "reference_number", label: "Referencia", sortable: true, render: (p) => <span className="text-sm text-muted-foreground">{p.reference_number || "—"}</span> },
+                { key: "amount", label: "Monto", align: "right", sortable: true, accessor: (p) => Number(p.amount), render: (p) => <span className="font-mono">{formatCurrency(Number(p.amount))}</span> },
+                { key: "actions", label: "", render: (p) => (
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(p)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                ) },
+              ]}
+            />
           </CardContent>
         </Card>
       )}

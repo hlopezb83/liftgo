@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.46.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Migración masiva de tablas embebidas a DataTable",
+    "category": "refactor"
+  },
+  {
     "version": "5.45.1",
     "date": "2026-05-04",
     "type": "patch",

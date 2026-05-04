@@ -12,12 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyRow } from "@/components/EmptyRow";
+import { DataTable } from "@/components/DataTable";
 
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Plus, Pencil, Trash2 } from "lucide-react";
@@ -42,11 +40,9 @@ export function MaintenancePoliciesTab() {
   const [form, setForm] = useState(emptyForm);
   const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
 
-  // Filter forklifts: show rented ones + any already assigned to a policy being edited
   const rentedForklifts = forklifts?.filter(
     (f) => f.status === "rented" || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)
   );
-
   const existingForkliftIds = policies?.map((p) => p.forklift_id) ?? [];
   const availableForSelect = rentedForklifts?.filter(
     (f) => !existingForkliftIds.includes(f.id) || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)
@@ -98,55 +94,41 @@ export function MaintenancePoliciesTab() {
       </div>
 
       <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Montacargas</TableHead>
-              <TableHead>Proveedor</TableHead>
-              <TableHead>Tipo de Servicio</TableHead>
-              <TableHead className="text-right">Costo Mensual</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Último Mes Generado</TableHead>
-              <TableHead className="w-[100px]" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? <TableSkeleton columnCount={7} /> : !policies?.length ? (
-              <EmptyRow colSpan={7} message="No hay pólizas de mantenimiento configuradas" />
-            ) : policies.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell className="font-medium">{p.forklift_name}</TableCell>
-                <TableCell>{p.provider_name}</TableCell>
-                <TableCell>{p.service_type}</TableCell>
-                <TableCell className="text-right font-mono">{formatCurrency(p.monthly_cost)}</TableCell>
-                <TableCell>
-                  <Switch checked={p.is_active} onCheckedChange={() => toggleActive(p)} />
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{p.last_generated_month ?? "—"}</TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar póliza?</AlertDialogTitle>
-                          <AlertDialogDescription>Se eliminará la póliza de {p.forklift_name}. Los registros de mantenimiento ya generados no se afectarán.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => del.mutate(p.id)}>Eliminar</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          data={policies}
+          isLoading={isLoading}
+          keyExtractor={(p) => p.id}
+          emptyMessage="No hay pólizas de mantenimiento configuradas"
+          defaultSortKey="forklift_name"
+          columns={[
+            { key: "forklift_name", label: "Montacargas", sortable: true, render: (p) => <span className="font-medium">{p.forklift_name}</span> },
+            { key: "provider_name", label: "Proveedor", sortable: true, render: (p) => p.provider_name },
+            { key: "service_type", label: "Tipo de Servicio", sortable: true, render: (p) => p.service_type },
+            { key: "monthly_cost", label: "Costo Mensual", align: "right", sortable: true, render: (p) => <span className="font-mono">{formatCurrency(p.monthly_cost)}</span> },
+            { key: "is_active", label: "Estado", render: (p) => <Switch checked={p.is_active} onCheckedChange={() => toggleActive(p)} /> },
+            { key: "last_generated_month", label: "Último Mes Generado", sortable: true, render: (p) => <span className="text-sm text-muted-foreground">{p.last_generated_month ?? "—"}</span> },
+            { key: "actions", label: "", render: (p) => (
+              <div className="flex gap-1">
+                <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar póliza?</AlertDialogTitle>
+                      <AlertDialogDescription>Se eliminará la póliza de {p.forklift_name}. Los registros de mantenimiento ya generados no se afectarán.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => del.mutate(p.id)}>Eliminar</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            ) },
+          ]}
+        />
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

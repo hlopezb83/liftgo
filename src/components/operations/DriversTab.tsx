@@ -4,12 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyRow } from "@/components/EmptyRow";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DataTable } from "@/components/DataTable";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,38 +48,32 @@ export function DriversTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Operador</Button>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nombre</TableHead><TableHead>Teléfono</TableHead><TableHead>Correo</TableHead><TableHead>Licencia</TableHead><TableHead>Estado</TableHead><TableHead className="w-24" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading && <TableRow><TableCell colSpan={6}><TableSkeleton /></TableCell></TableRow>}
-          {!isLoading && (!drivers || drivers.length === 0) && <EmptyRow colSpan={6} message="No hay operadores registrados" />}
-          {drivers?.map((d) => (
-            <TableRow key={d.id}>
-              <TableCell className="font-medium">{d.name}</TableCell>
-              <TableCell>{d.phone || "—"}</TableCell>
-              <TableCell>{d.email || "—"}</TableCell>
-              <TableCell>{d.license_number || "—"}</TableCell>
-              <TableCell><StatusBadge status={d.is_active ? "active" : "inactive"} /></TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader><AlertDialogTitle>¿Eliminar {d.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
-                      <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(d.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DataTable
+        data={drivers}
+        isLoading={isLoading}
+        keyExtractor={(d) => d.id}
+        emptyMessage="No hay operadores registrados"
+        defaultSortKey="name"
+        columns={[
+          { key: "name", label: "Nombre", sortable: true, render: (d) => <span className="font-medium">{d.name}</span> },
+          { key: "phone", label: "Teléfono", render: (d) => d.phone || "—" },
+          { key: "email", label: "Correo", render: (d) => d.email || "—" },
+          { key: "license_number", label: "Licencia", sortable: true, render: (d) => d.license_number || "—" },
+          { key: "is_active", label: "Estado", sortable: true, render: (d) => <StatusBadge status={d.is_active ? "active" : "inactive"} /> },
+          { key: "actions", label: "", render: (d) => (
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader><AlertDialogTitle>¿Eliminar {d.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
+                  <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(d.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          ) },
+        ]}
+      />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Operador</DialogTitle><DialogDescription>Administrar datos del operador para programación de entregas.</DialogDescription></DialogHeader>

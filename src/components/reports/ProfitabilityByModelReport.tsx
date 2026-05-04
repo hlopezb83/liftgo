@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -13,6 +12,8 @@ import { useBookings } from "@/hooks/useBookings";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
+import { DataTable } from "@/components/DataTable";
+import { cn } from "@/lib/utils";
 
 interface Props {
   startDate: Date;
@@ -45,21 +46,17 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
   const { data: maintenanceLogs = [] } = useMaintenanceLogs();
   const { data: damageRecords = [] } = useDamageRecords();
   const rows = useMemo<ModelRow[]>(() => {
-    // Map forklift_id -> model key
     const forkliftModel = new Map<string, string>();
     const modelUnits = new Map<string, Set<string>>();
     for (const f of forklifts) {
       const key = [f.manufacturer, f.model].filter(Boolean).join(" ") || f.name;
       forkliftModel.set(f.id, key);
       if (!modelUnits.has(key)) modelUnits.set(key, new Set());
-      modelUnits.get(key)!.add(f.id);
+      const set = modelUnits.get(key);
+      if (set) set.add(f.id);
     }
-
-    // Booking -> forklift map
     const bookingForklift = new Map<string, string>();
     for (const b of bookings) bookingForklift.set(b.id, b.forklift_id);
-
-    // Revenue per forklift from paid invoices in range
     const revenueByForklift = new Map<string, number>();
     for (const inv of invoices) {
       if (inv.status !== "paid" || !inRange(inv.paid_at, startDate, endDate)) continue;
@@ -67,22 +64,16 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
       if (!fId) continue;
       revenueByForklift.set(fId, (revenueByForklift.get(fId) || 0) + Number(inv.total));
     }
-
-    // Maintenance costs per forklift in range
     const maintByForklift = new Map<string, number>();
     for (const log of maintenanceLogs) {
       if (!inRange(log.performed_at, startDate, endDate)) continue;
       maintByForklift.set(log.forklift_id, (maintByForklift.get(log.forklift_id) || 0) + Number(log.cost || 0));
     }
-
-    // Damage costs per forklift in range
     const dmgByForklift = new Map<string, number>();
     for (const d of damageRecords) {
       if (!inRange(d.created_at, startDate, endDate)) continue;
       dmgByForklift.set(d.forklift_id, (dmgByForklift.get(d.forklift_id) || 0) + Number(d.actual_cost || 0));
     }
-
-    // Aggregate by model
     const result: ModelRow[] = [];
     for (const [model, ids] of modelUnits) {
       let revenue = 0, maintenance = 0, damages = 0;
@@ -95,13 +86,10 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
       const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
       result.push({ model, units: ids.size, revenue, maintenance, damages, profit, margin });
     }
-
     return result.sort((a, b) => b.profit - a.profit);
   }, [forklifts, invoices, bookings, maintenanceLogs, damageRecords, startDate, endDate]);
 
-  const chartConfig = {
-    profit: { label: "Ganancia Neta" },
-  };
+  const chartConfig = { profit: { label: "Ganancia Neta" } };
 
   const handleExport = () => {
     exportToCsv("rentabilidad_por_modelo.csv", rows.map(r => ({
@@ -117,7 +105,6 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Chart */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Ganancia Neta por Modelo</CardTitle>
@@ -149,40 +136,27 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
         </CardContent>
       </Card>
 
-      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle>Detalle por Modelo</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Modelo</TableHead>
-                <TableHead className="text-right">Unidades</TableHead>
-                <TableHead className="text-right">Ingresos</TableHead>
-                <TableHead className="text-right">Mantenimiento</TableHead>
-                <TableHead className="text-right">Daños</TableHead>
-                <TableHead className="text-right">Ganancia Neta</TableHead>
-                <TableHead className="text-right">Margen %</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.model}>
-                  <TableCell className="font-medium">{r.model}</TableCell>
-                  <TableCell className="text-right">{r.units}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(r.revenue)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(r.maintenance)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(r.damages)}</TableCell>
-                  <TableCell className={`text-right font-semibold ${r.profit >= 0 ? "text-chart-2" : "text-destructive"}`}>
-                    {formatCurrency(r.profit)}
-                  </TableCell>
-                  <TableCell className="text-right">{r.margin.toFixed(1)}%</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            data={rows}
+            keyExtractor={(r) => r.model}
+            emptyMessage="No hay datos para el rango seleccionado."
+            defaultSortKey="profit"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "model", label: "Modelo", sortable: true, render: (r) => <span className="font-medium">{r.model}</span> },
+              { key: "units", label: "Unidades", align: "right", sortable: true, render: (r) => r.units },
+              { key: "revenue", label: "Ingresos", align: "right", sortable: true, render: (r) => formatCurrency(r.revenue) },
+              { key: "maintenance", label: "Mantenimiento", align: "right", sortable: true, render: (r) => formatCurrency(r.maintenance) },
+              { key: "damages", label: "Daños", align: "right", sortable: true, render: (r) => formatCurrency(r.damages) },
+              { key: "profit", label: "Ganancia Neta", align: "right", sortable: true, render: (r) => <span className={cn("font-semibold", r.profit >= 0 ? "text-chart-2" : "text-destructive")}>{formatCurrency(r.profit)}</span> },
+              { key: "margin", label: "Margen %", align: "right", sortable: true, render: (r) => `${r.margin.toFixed(1)}%` },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>

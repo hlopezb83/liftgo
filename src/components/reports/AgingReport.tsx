@@ -1,6 +1,5 @@
 import { useInvoices } from "@/hooks/useInvoices";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -9,6 +8,7 @@ import { differenceInDays, parseISO } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useMemo } from "react";
+import { DataTable } from "@/components/DataTable";
 
 interface AgingReportProps {
   startDate: Date;
@@ -31,8 +31,8 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
       .filter((i) => ["sent", "overdue", "partial"].includes(i.status) && i.due_date && parseISO(i.due_date) < nowMty())
       .map((i) => ({
         ...i,
-        days_overdue: differenceInDays(nowMty(), parseISO(i.due_date!)),
-        bucket: getAgingBucket(differenceInDays(nowMty(), parseISO(i.due_date!))),
+        days_overdue: differenceInDays(nowMty(), parseISO(i.due_date as string)),
+        bucket: getAgingBucket(differenceInDays(nowMty(), parseISO(i.due_date as string))),
       }))
       .sort((a, b) => b.days_overdue - a.days_overdue);
   }, [invoices]);
@@ -59,7 +59,6 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
 
   return (
     <div className="space-y-4">
-      {/* Bucket Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Object.entries(bucketTotals).map(([range, total]) => (
           <Card key={range}>
@@ -83,34 +82,21 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
           </div>
         </CardHeader>
         <CardContent>
-          {overdueInvoices.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No hay facturas vencidas</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Factura</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
-                  <TableHead>Vencimiento</TableHead>
-                  <TableHead className="text-right">Días</TableHead>
-                  <TableHead>Bucket</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {overdueInvoices.map((i) => (
-                  <TableRow key={i.id}>
-                    <TableCell className="font-mono font-medium">{i.invoice_number}</TableCell>
-                    <TableCell>{i.customer_name || "—"}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(i.total))}</TableCell>
-                    <TableCell>{formatDateDisplay(i.due_date)}</TableCell>
-                    <TableCell className="text-right font-mono font-semibold text-destructive">{i.days_overdue}</TableCell>
-                    <TableCell>{i.bucket}d</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <DataTable
+            data={overdueInvoices}
+            keyExtractor={(i) => i.id}
+            emptyMessage="No hay facturas vencidas"
+            defaultSortKey="days_overdue"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "invoice_number", label: "Factura", sortable: true, render: (i) => <span className="font-mono font-medium">{i.invoice_number}</span> },
+              { key: "customer_name", label: "Cliente", sortable: true, render: (i) => i.customer_name || "—" },
+              { key: "total", label: "Monto", align: "right", sortable: true, accessor: (i) => Number(i.total), render: (i) => <span className="font-mono">{formatCurrency(Number(i.total))}</span> },
+              { key: "due_date", label: "Vencimiento", sortable: true, render: (i) => formatDateDisplay(i.due_date) },
+              { key: "days_overdue", label: "Días", align: "right", sortable: true, render: (i) => <span className="font-mono font-semibold text-destructive">{i.days_overdue}</span> },
+              { key: "bucket", label: "Bucket", sortable: true, render: (i) => `${i.bucket}d` },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>
