@@ -98,6 +98,7 @@ export function AppSidebar() {
   const { data: company } = useCompanySettings();
   const { data: perms } = useRolePermissions();
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
+  const currentVersion = useCurrentVersion();
 
   // Memoizar el árbol de navegación filtrado: solo se recalcula cuando cambia rol o permisos.
   const visibleNavGroups = useMemo(() => {
