@@ -1,0 +1,13 @@
+{
+  "description": "Se ejecuta el plan completo de la segunda auditoría: alertas de seguros vía RPC, debounce en búsquedas, hook ligero para selectors de equipos, rango server-side en calendario, optimistic update de equipos y memoización del sidebar.",
+  "changes": [
+    "Nueva RPC get_insurance_alerts y hook useInsuranceAlerts (Dashboard ya no descarga toda la flota)",
+    "useBookingsRange con filtro server-side por rango de fechas para Calendario",
+    "useForkliftOptions ligero (5 columnas, cache 5min) para selectors",
+    "SearchBar con debounce de 200ms (filtros instantáneos sin recalcular en cada tecla)",
+    "useUpdateForklift usa setQueryData en lugar de invalidar 3 queries grandes",
+    "staleTime 60s en useDocuments, usePayments y useStatusLogs",
+    "Memoización del árbol de navegación en AppSidebar (solo se recalcula al cambiar rol)",
+    "InsuranceAlert envuelto con React.memo"
+  ]
+}

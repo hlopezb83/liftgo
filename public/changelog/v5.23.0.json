@@ -1,0 +1,8 @@
+{
+  "description": "AuditTrailPage (360 LOC) se descompone en componentes enfocados: constantes/traducciones, diálogo de detalle, diálogo de eliminar/revertir, card móvil y fila de tabla. La página queda como composer de ~110 LOC.",
+  "changes": [
+    "Nuevo directorio src/components/auditTrail/ con auditTrailConstants, AuditLogDetailDialog, DeleteAuditLogDialog, AuditLogMobileCard, AuditLogTableRow",
+    "AuditTrailPage reducida a orquestación de estado y filtros",
+    "Sin cambios funcionales: misma UX, mismas acciones admin"
+  ]
+}

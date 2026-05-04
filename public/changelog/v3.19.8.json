@@ -1,0 +1,7 @@
+{
+  "description": "El formulario de nueva devolución ahora solo muestra reservas cuyo periodo de renta ya finalizó, con mensaje informativo para el usuario.",
+  "changes": [
+    "Filtro de activeBookings validando que end_date <= hoy",
+    "Mensaje informativo debajo del selector de reserva"
+  ]
+}

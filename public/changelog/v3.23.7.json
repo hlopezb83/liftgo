@@ -1,0 +1,7 @@
+{
+  "description": "El botón de retroceso en páginas de detalle ahora usa el historial del navegador para conservar los filtros activos al regresar.",
+  "changes": [
+    "DetailPageHeader usa navigate(-1) en lugar de ruta fija para preservar query params",
+    "Fallback a ruta fija (backTo) cuando no hay historial previo"
+  ]
+}

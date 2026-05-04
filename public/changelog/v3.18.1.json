@@ -1,0 +1,9 @@
+{
+  "description": "Reestructuración de la navegación lateral en 5 grupos lógicos siguiendo el flujo del negocio.",
+  "changes": [
+    "Nuevo grupo 'Comercial': CRM, Clientes, Cotizaciones, Reservas",
+    "Grupo 'Operaciones' enfocado: Contratos, Entregas, Devoluciones, Facturas",
+    "Refacciones absorbido en 'Flota y Mantenimiento'",
+    "Administración reordenada: Gastos y Reportes priorizados"
+  ]
+}

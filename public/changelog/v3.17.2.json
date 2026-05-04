@@ -1,0 +1,9 @@
+{
+  "description": "Tarjeta de total, barra de búsqueda, badges de categoría y empty state mejorado en la página de gastos.",
+  "changes": [
+    "Tarjeta resumen 'Total de Gastos' con formatCurrency",
+    "SearchBar para filtrar por descripción",
+    "Badge con variante secondary para costo_venta y outline para el resto",
+    "EmptyRow en lugar de EmptyState para tabla vacía con headers visibles"
+  ]
+}

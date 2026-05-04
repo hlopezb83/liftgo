@@ -1,0 +1,8 @@
+{
+  "description": "Nuevo rol 'administrativo' con permisos completos de operación, similar al dispatcher pero con acceso a configuración.",
+  "changes": [
+    "Rol 'administrativo' con acceso completo a operaciones",
+    "Acceso a configuración de empresa y operaciones",
+    "Puede gestionar reservas, contratos, facturas y entregas"
+  ]
+}

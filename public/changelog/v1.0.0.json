@@ -1,0 +1,9 @@
+{
+  "description": "Primera versión del sistema con los módulos básicos para gestionar una flota de montacargas en renta.",
+  "changes": [
+    "Catálogo de equipos (montacargas) con estado y especificaciones",
+    "Reservas con fechas de inicio y fin",
+    "Calendario visual de disponibilidad",
+    "Panel principal con estadísticas generales"
+  ]
+}

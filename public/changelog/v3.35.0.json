@@ -1,0 +1,8 @@
+{
+  "description": "El Estado de Resultados ahora distingue entre ingresos por rentas y ventas de equipo.",
+  "changes": [
+    "Ingresos separados en 'Ingresos por Rentas' e 'Ingresos por Ventas' con subtotal",
+    "Gráfico de barras actualizado con barras apiladas para ambos tipos de ingreso",
+    "Comparativo YoY incluye el desglose de ingresos"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Se agregó la funcionalidad de eliminar registros de entregas y recolecciones, disponible para los roles Admin y Administrativo.",
+  "changes": [
+    "Botón de eliminar entrega en tabla y vista móvil",
+    "Confirmación con diálogo antes de eliminar",
+    "Restringido a roles admin y administrativo"
+  ]
+}

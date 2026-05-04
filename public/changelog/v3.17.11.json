@@ -1,0 +1,8 @@
+{
+  "description": "Al crear una reserva, si el montacargas no tiene póliza de mantenimiento activa, se ofrece crearla inmediatamente.",
+  "changes": [
+    "Nuevo diálogo PostBookingPolicyDialog para crear póliza post-reserva",
+    "Detección automática de póliza faltante al confirmar reserva",
+    "Flujo encadenado: Entrega → Póliza → Calendario"
+  ]
+}

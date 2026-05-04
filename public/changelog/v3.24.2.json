@@ -1,0 +1,6 @@
+{
+  "description": "El selector de cotización vinculada en el diálogo de prospecto ahora muestra todas las cotizaciones, priorizando las que coinciden con el nombre de empresa.",
+  "changes": [
+    "Se reemplazó el filtro excluyente por un ordenamiento por relevancia"
+  ]
+}

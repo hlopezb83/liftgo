@@ -1,0 +1,8 @@
+{
+  "description": "Ahora se pueden cancelar reservas activas, y se validó que no haya equipos con nombres o series duplicadas.",
+  "changes": [
+    "Botón de cancelar reserva con confirmación",
+    "Validación de nombres únicos en equipos",
+    "Validación de números de serie únicos"
+  ]
+}

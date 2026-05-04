@@ -1,0 +1,8 @@
+{
+  "description": "Se agregó el favicon con el ícono LG y se actualizaron los meta tags de título y descripción del sitio.",
+  "changes": [
+    "Favicon personalizado con las iniciales LG en naranja",
+    "Título del sitio actualizado a 'LiftGo — Gestión de Montacargas'",
+    "Meta descripción y Open Graph tags actualizados"
+  ]
+}

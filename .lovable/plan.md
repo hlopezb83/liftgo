@@ -1,75 +1,89 @@
-# Plan: Mejorar architecture.md con todas las propuestas
+# Plan: Mejoras integrales al sistema de Changelog
 
-Reescritura de `architecture.md` incorporando las mejoras revisadas previamente. Es un cambio de **documentación únicamente** (no toca código ni BD).
+Implementar todas las mejoras identificadas (P0–P3) al módulo de Changelog para alinearlo con los estándares del proyecto (TanStack Query, Zod, sonner, accesibilidad) y mejorar UX (búsqueda, deep-linking, versión visible en sidebar).
 
-## Cambios al documento
+## Alcance
 
-### 1. Aclarar fuente de verdad de versionado (sección 12)
-- `src/lib/changelog.ts` queda documentado como **fuente primaria** (importado por `ChangelogPage`).
-- `public/changelog.json` se documenta como copia legacy/estática (si aplica) o se elimina la referencia si ya no se consume.
-- Verificar antes de escribir cuál de los dos consume realmente `/changelog`.
+### P0 — Correcciones críticas
 
-### 2. Nueva sección "Portal de Cliente"
-- Rutas bajo `/portal/*`, layout `CustomerPortalLayout`.
-- Hooks aislados: `usePortalInvoices`, `usePortalBookings`, `useCustomerPortal`.
-- Modelo de seguridad: RLS por `customer_id` vinculado al usuario invitado vía `useInviteCustomer` / edge function `invite-customer`.
-- Acceso solo lectura.
+1. **Sincronizar fuente de verdad**
+   - Confirmar que `ChangelogPage` consume `public/changelog.json` (vía `fetchChangelog`).
+   - Actualizar `mem://index.md` y `architecture.md` para reflejar que `public/changelog.json` es la fuente runtime y `src/lib/changelog.ts` es solo el módulo de acceso (eliminar la regla "ALWAYS update src/lib/changelog.ts" si el array vive en el JSON).
+   - Decisión técnica: mantener `public/changelog.json` como única fuente (servida estática, cacheable por CDN).
 
-### 3. Nueva sección "Integraciones externas"
-- **Facturapi** (CFDI 4.0): edge functions `stamp-cfdi`, `cancel-cfdi`. Multi-tenant (API keys test/live por empresa).
-- **Lovable AI Gateway**: usado por `generate-manual` y otras funciones que requieran modelos LLM. Sin API key del usuario.
-- **CSF parsing**: `parse-csf`.
+2. **Validación con Zod**
+   - Definir `ChangelogEntrySchema` en `src/lib/changelog.ts` (version, date ISO, type enum, title, description, changes[]).
+   - `fetchChangelog` valida con `z.array(ChangelogEntrySchema).parse()` y lanza error tipado si el JSON está corrupto.
 
-### 4. Nueva sección "Migraciones de base de datos"
-- Ubicación: `supabase/migrations/` (timestamp + slug).
-- Política: una migración por cambio funcional; nunca editar migraciones aplicadas; nunca tocar `auth/storage/realtime/supabase_functions/vault`.
-- Validaciones temporales con triggers (no `CHECK` con `now()`).
-- RPCs con `SECURITY DEFINER` y `SET search_path = public`.
+3. **Manejo de errores**
+   - Reemplazar `useState/useEffect` por `useQuery` (ver P1) para que un fallo de red no deje la UI colgada en "loading".
+   - Toast de error con `sonner` y estado de error visible en la página.
 
-### 5. Expandir sección 6 (Seguridad)
-- Documentar tabla `role_permissions` (rol × módulo × `access_level`).
-- Constante `MODULES` y mapa `ROUTE_TO_MODULE` en `useRolePermissions.ts`.
-- Ejemplo de uso de `has_role(_user_id, _role)` en una policy real del proyecto.
-- Listar las 6 roles del enum `app_role` con su intención.
+### P1 — Estandarización
 
-### 6. Nueva sección "Reglas de negocio críticas"
-- Renta calculada por **meses calendario exactos** (no 30 días fijos).
-- Numeración de documentos vía RPC con prefijos en español (`FAC-`, `COT-`, `CTR-`, `RSV-`, `ENT-`, `DEV-`).
-- MRR/ocupación basados estrictamente en reservas activas confirmadas hoy (la página `/mrr` es la fuente de verdad).
-- Estado del montacargas se actualiza solo por eventos explícitos.
-- Buffer de 3 días de mantenimiento para reservas activas (exclusión GiST).
-- Subscripciones recurrentes leen `monthly_rate` al momento de generación.
+4. **Migrar a TanStack Query**
+   - Crear `src/hooks/useChangelog.ts` con `useQuery({ queryKey: ['changelog'], queryFn: fetchChangelog, staleTime: Infinity })`.
+   - `ChangelogPage` consume el hook (loading/error/data).
+   - Eliminar el caché manual `_cache` en `changelog.ts`.
 
-### 7. Expandir sección 9 (UI/UX)
-- Componentes estándar documentados: `ListPageLayout`, `SortableTableHead`, `TablePagination`, `MobileCardList`, `DetailPageHeader`, `FormPageHeader`, `EmptyState`, `StatusBadge`, `TotalsSummary`, `ReadOnlyLineItemsTable`.
-- Hooks UI: `useDialogState`, `useListPage`, `useListFilters`, `useSort`, `usePagination`, `useDebouncedValue`, `useFormState`.
-- Tokens compartidos de PDF en `src/lib/pdf/quote/constants.ts` reutilizados por todos los documentos para consistencia visual.
-- Multimedia: `DragDropImageUploader` + `ImageGalleryLightbox` por `entityType/entityId`.
-- Restauración de filtros al volver a un listado (sessionStorage).
+5. **Búsqueda**
+   - Agregar `<SearchBar>` en `ChangelogPage` que filtra por `version`, `title`, `description` y `changes[]` (case-insensitive).
+   - Combinar con el filtro existente de tipo (major/minor/patch).
 
-### 8. Expandir Anti-patrones (sección 13)
-Añadir:
-- No usar `alert()` ni `confirm()` nativos (usar diálogos shadcn).
-- No `console.log` en producción (usar `sonner` para feedback al usuario).
-- No `CHECK` constraints con funciones no inmutables (`now()`, etc.) — usar triggers.
-- No FK a `auth.users` (usar `profiles` y referenciar por `user_id`).
-- No nested wildcards en rutas (Suspense por ruta, MainLayout estático).
-- No mostrar al usuario términos como "Supabase dashboard"; usar "Lovable Cloud".
+6. **Deep-linking por versión**
+   - Soportar `/changelog#v5.43.2`: al cargar, hacer scroll a la entrada y resaltarla brevemente (anillo `ring-2 ring-primary` 2s).
+   - Botón "Copiar enlace" en cada entrada (icono `Link`) que copia `window.location.origin + /changelog#vX.Y.Z` y muestra toast.
 
-### 9. Pequeños arreglos
-- Confirmar que la sección 7 menciona `appRoutes` desde `src/lib/routes-config.tsx` (ya correcto) y eliminar cualquier referencia residual a `routes.tsx` simple si quedara.
-- Añadir `OperatingExpensesPage` y `MrrDetailPage` a las rutas notables si procede.
-- Mencionar `getClaims` y CORS restringido en sección 6.3 con referencia explícita a `_shared/cors.ts` y `_shared/validate.ts` (ya parcialmente documentado, ampliar).
+7. **Versión visible en `AppSidebar`**
+   - En `SidebarFooter`, mostrar `v{currentVersion}` debajo del email del usuario, como `<NavLink>` a `/changelog`.
+   - Reusar `useChangelog` + `getCurrentVersion` (sin fetch duplicado gracias a la queryKey compartida).
 
-## Detalles técnicos / archivos
+8. **Ordenamiento robusto**
+   - `getCurrentVersion` ordena por `date` descendente con desempate por semver, no por orden de array.
 
-- **Único archivo editado**: `architecture.md` (reescritura completa preservando tono y estructura existente).
-- **Changelog**: agregar entrada **patch** en `src/lib/changelog.ts` describiendo "Documentación: ampliación de architecture.md (portal, integraciones, migraciones, reglas de negocio, anti-patrones)".
-- Antes de reescribir voy a verificar:
-  - Cómo se consume el changelog (`ChangelogPage` lee `changelog.ts` o `changelog.json`).
-  - Roles exactos en el enum (consulta rápida a la memoria/constantes).
-  - Confirmar `supabase/migrations/` existe y su patrón.
+### P2 — Optimización de payload
+
+9. **División del JSON**
+   - `public/changelog.json` queda como índice ligero (solo metadatos: version, date, type, title) — payload reducido (~10 KB).
+   - Detalles (`description`, `changes[]`) se mueven a `public/changelog/v{X.Y.Z}.json` por entrada.
+   - `useChangelog` carga el índice; `useChangelogEntry(version)` (lazy, `enabled` cuando se expande/abre) carga el detalle bajo demanda.
+   - Las entradas se renderizan colapsadas mostrando solo el título; expandir dispara la carga del detalle.
+   - Script de migración one-shot: `scripts/split-changelog.ts` (Node) que divide el JSON actual y genera los archivos por versión.
+
+### P3 — Organización y accesibilidad
+
+10. **Categorías secundarias**
+    - Extender `ChangelogEntrySchema` con `category?: 'feature' | 'fix' | 'docs' | 'refactor' | 'security'` (opcional, retro-compatible).
+    - Badge adicional cuando esté presente.
+    - Filtro extra por categoría.
+
+11. **Semántica y a11y**
+    - Reemplazar `<div>` de la línea de tiempo por `<ol>` con `<li>` por entrada.
+    - `aria-label` en filtros, `aria-current` en versión actual, contraste WCAG AA en badges.
+
+### Final
+- Agregar entrada **minor** al changelog: "Mejoras integrales al historial de cambios: validación Zod, TanStack Query, búsqueda, deep-linking, versión en sidebar, payload optimizado, categorías y accesibilidad."
+
+## Detalles técnicos
+
+**Archivos nuevos**
+- `src/hooks/useChangelog.ts` — hooks `useChangelog()` e `useChangelogEntry(version)`.
+- `scripts/split-changelog.ts` — script one-shot para dividir JSON.
+- `public/changelog/v*.json` — generados por el script.
+
+**Archivos modificados**
+- `src/lib/changelog.ts` — Zod schema, sin caché manual, ordenamiento por date+semver.
+- `src/pages/ChangelogPage.tsx` — `useChangelog`, búsqueda, deep-linking, lazy-load de detalle, `<ol>`, categorías.
+- `src/components/AppSidebar.tsx` — footer con versión actual + link.
+- `public/changelog.json` — reducido al índice (post-script).
+- `architecture.md` y `mem://index.md` — fuente de verdad documentada.
+
+**Consideraciones**
+- `staleTime: Infinity` en el índice (se invalida al deploy por hash del bundle/SW).
+- Mantener compatibilidad: si `changelog.json` aún tiene el formato completo, el código debe funcionar (fallback al `description/changes` inline si no existe el archivo por versión).
+- Sin cambios en BD ni edge functions.
 
 ## Fuera de alcance
-- Cambios de código de aplicación, BD, RLS o UI.
-- Renombrado de archivos.
+- CMS/UI para editar el changelog (sigue siendo edición manual del JSON).
+- i18n del changelog (queda en español).
+- RSS/Atom feed.

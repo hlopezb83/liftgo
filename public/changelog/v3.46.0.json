@@ -1,0 +1,11 @@
+{
+  "description": "UserManagementPage refactorizado: 7 hooks extraídos a useUserManagement.ts y 4 diálogos a componentes independientes.",
+  "changes": [
+    "useUserManagement.ts creado — consolida useUsersWithRoles, useUpdateRole, useUpdateName, useInviteUser, useDeleteUser, useResetPassword y useToggleStatus",
+    "InviteUserDialog.tsx extraído — formulario de creación de usuario autocontenido",
+    "EditNameDialog.tsx extraído — diálogo de edición de nombre con estado propio",
+    "DeleteUserDialog.tsx extraído — confirmación de eliminación desacoplada",
+    "RoleChangeDialog.tsx extraído — confirmación de cambio de rol independiente",
+    "UserManagementPage.tsx reducido de ~530 a ~230 líneas — solo orquestación y renderizado"
+  ]
+}

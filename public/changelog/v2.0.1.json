@@ -1,0 +1,8 @@
+{
+  "description": "Las operaciones críticas ahora se ejecutan como transacciones atómicas para evitar datos inconsistentes.",
+  "changes": [
+    "Crear reserva: valida disponibilidad y cambia estado del equipo en una sola transacción",
+    "Eliminar equipo: limpia dependencias automáticamente",
+    "Completar inspección: cierra reserva y libera equipo de forma atómica"
+  ]
+}

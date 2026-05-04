@@ -1,0 +1,6 @@
+{
+  "description": "Se redujo el ancho de las columnas del pipeline Kanban de 288px a 256px para mejor aprovechamiento del espacio.",
+  "changes": [
+    "Columnas Kanban reducidas de w-72 a w-64"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "description": "Paquete de 8 mejoras estratégicas para control operativo y financiero completo.",
+  "changes": [
+    "Seguimiento de cobranza estructurado con notas y fechas de próximo seguimiento en facturas",
+    "Reporte de Antigüedad de Cartera con buckets, detalle por factura y exportación CSV",
+    "Campos de seguro en equipos: aseguradora, póliza, vigencia y costo con alerta en dashboard",
+    "Costos de transporte en entregas: flete y si se cobra al cliente",
+    "Extensión de reservas con trazabilidad: fecha original, nueva fecha y motivo",
+    "Rentabilidad por cliente: ingresos vs. costos de mantenimiento con margen bruto",
+    "Columna de ubicación actual en la lista de flota (desde contratos o entregas)",
+    "Contacto de emergencia en sitio para reservas (nombre y teléfono)",
+    "Nuevas tablas: collection_notes, booking_extensions",
+    "Nuevos campos: forklifts.insurance_*, deliveries.transport_cost, bookings.site_contact_*",
+    "Nueva RPC: get_customer_profitability"
+  ]
+}

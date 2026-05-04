@@ -1,0 +1,9 @@
+{
+  "description": "Al arrastrar un prospecto a otra etapa del pipeline, se abre automáticamente el formulario de edición para validar o actualizar campos como el valor del trato.",
+  "changes": [
+    "Diálogo de edición se abre al cambiar etapa por drag-and-drop",
+    "Indicador visual de etapa origen → destino en el diálogo",
+    "Cancelar el diálogo deja el prospecto en su etapa original",
+    "Reordenar dentro de la misma columna no abre diálogo"
+  ]
+}

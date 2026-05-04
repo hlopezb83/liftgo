@@ -1,0 +1,8 @@
+{
+  "description": "Se agregó un selector de fecha para filtrar inspecciones por día en la tabla de devoluciones.",
+  "changes": [
+    "Nuevo filtro DatePickerField en la página de Devoluciones",
+    "Filtrado client-side por fecha de inspección",
+    "Botón para limpiar el filtro"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Nuevos catálogos de choferes y mecánicos, más integración con datos fiscales del SAT para facturación.",
+  "changes": [
+    "Catálogo de choferes con licencia y datos de contacto",
+    "Catálogo de mecánicos con especialización",
+    "Configuración de datos fiscales de la empresa (RFC, razón social, régimen)",
+    "Campos de CFDI en facturas (uso CFDI, forma de pago, método de pago)"
+  ]
+}

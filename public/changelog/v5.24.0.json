@@ -1,0 +1,9 @@
+{
+  "description": "quotePdfPremium.ts (473 LOC) y contractPdfGenerator.ts (360 LOC) se descomponen en sub-módulos enfocados bajo src/lib/pdf/. Los archivos originales quedan como barrels finos que re-exportan la API pública sin cambios.",
+  "changes": [
+    "Nuevo src/lib/pdf/quote/ con constants, header, table y totals",
+    "Nuevo src/lib/pdf/contract/ con data, contractPage, checklistPage y pagarePage",
+    "quotePdfPremium.ts y contractPdfGenerator.ts ahora son barrels (~10 LOC)",
+    "Sin cambios en la salida visual ni en la API consumida por los botones de PDF"
+  ]
+}

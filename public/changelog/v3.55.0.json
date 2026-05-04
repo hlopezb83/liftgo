@@ -1,0 +1,10 @@
+{
+  "description": "Las entregas y devoluciones ahora tienen páginas de detalle con drill-down desde las listas, centralizando acciones e información.",
+  "changes": [
+    "Nueva página DeliveryDetail con información de logística, firma, acciones de completar y eliminar",
+    "Nueva página ReturnInspectionDetail con datos de inspección, equipo, reserva y daños",
+    "Filas clickeables en las tablas de entregas y devoluciones",
+    "Acciones inline eliminadas de las listas — centralizadas en las páginas de detalle",
+    "Hooks useDelivery(id) y useReturnInspection(id) para consultas individuales"
+  ]
+}

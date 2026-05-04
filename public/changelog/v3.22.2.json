@@ -1,0 +1,6 @@
+{
+  "description": "Se corrigió un bug donde el mes seleccionado en 'Hasta' no se incluía completamente debido a interpretación UTC de fechas.",
+  "changes": [
+    "Construcción de fechas con parámetros locales en lugar de cadenas ISO para evitar desfase por zona horaria"
+  ]
+}

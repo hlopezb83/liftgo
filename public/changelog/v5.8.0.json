@@ -1,0 +1,9 @@
+{
+  "description": "Paneles laterales de detalle en tres módulos adicionales: Inventario de Refacciones, CRM Prospectos y Seguimiento de Daños.",
+  "changes": [
+    "Inventario: clic en fila abre panel con SKU, stock, costo y acciones de editar/eliminar",
+    "CRM: clic en tarjeta Kanban abre panel de detalle antes de editar, con datos de contacto y cotización vinculada",
+    "Daños: panel lateral reemplaza expand inline, incluye galería de fotos, costos y acciones de reparar/cobrar",
+    "Tablas limpiadas: se eliminan columnas de acciones redundantes"
+  ]
+}

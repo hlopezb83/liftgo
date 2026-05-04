@@ -1,0 +1,8 @@
+{
+  "description": "El selector de fechas del Estado de Resultados ahora permite elegir meses completos en lugar de días individuales, alineándose con la naturaleza mensual de los estados financieros.",
+  "changes": [
+    "Reemplazo de selector de rango por día con dos selectores de mes (Desde / Hasta)",
+    "Opciones dinámicas de los últimos 24 meses en español",
+    "Cálculo automático del primer y último día del mes seleccionado"
+  ]
+}

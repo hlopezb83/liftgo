@@ -1,0 +1,7 @@
+{
+  "description": "Se corrigió un error en el cálculo de DSO que rompía la función get_financial_kpis y dejaba en blanco las tarjetas de Ingreso Mensual Recurrente, DSO y Cartera Vencida en el panel principal.",
+  "changes": [
+    "Cálculo de DSO simplificado usando resta directa de fechas (date - date = días)",
+    "MRR, DSO y Cartera Vencida ahora se muestran correctamente con sus tendencias"
+  ]
+}

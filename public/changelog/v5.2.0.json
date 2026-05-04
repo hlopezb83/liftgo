@@ -1,0 +1,7 @@
+{
+  "description": "Los usuarios autenticados pueden cambiar su contraseña directamente desde el sidebar sin necesidad del flujo de reset por email.",
+  "changes": [
+    "Nuevo botón de llave en el footer del sidebar para cambiar contraseña",
+    "Diálogo de cambio de contraseña con validación de mínimo 6 caracteres y confirmación"
+  ]
+}

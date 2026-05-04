@@ -1,0 +1,7 @@
+{
+  "description": "Corregido el detalle de MRR para mostrar solo montacargas con una reserva confirmada vigente.",
+  "changes": [
+    "Cambiado LEFT JOIN a INNER JOIN en la función get_mrr_detail",
+    "Equipos con status 'rented' pero sin booking activo ya no aparecen"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Se aplicaron las mismas mejoras de jerarquía visual (etiquetas bold/normal) a la tarjeta de Detalles del PDF de facturas.",
+  "changes": [
+    "Etiquetas 'Emitida' y 'Vence' en negrita con valores en texto normal",
+    "Consistencia visual con el PDF de cotizaciones"
+  ]
+}

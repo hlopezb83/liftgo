@@ -1,0 +1,9 @@
+{
+  "description": "Permite marcar gastos operativos como recurrentes mensuales y generarlos automáticamente con un solo clic.",
+  "changes": [
+    "Switch 'Gasto recurrente mensual' en el formulario de crear/editar gastos",
+    "Badge visual 'Mensual' en la tabla para identificar gastos recurrentes",
+    "Botón 'Generar Recurrentes' que crea automáticamente los gastos del mes actual evitando duplicados",
+    "Nueva columna 'is_recurring' en la base de datos"
+  ]
+}

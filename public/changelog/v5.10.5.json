@@ -1,0 +1,7 @@
+{
+  "description": "Se corrigió un error de CSS que impedía cargar los módulos dinámicos del dashboard y otras páginas en el preview.",
+  "changes": [
+    "Movido @import de fuentes al inicio de src/index.css para cumplir con Vite/PostCSS",
+    "Restaurada la carga correcta de módulos lazy como Dashboard y CRMPage"
+  ]
+}

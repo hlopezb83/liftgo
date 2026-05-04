@@ -1,0 +1,7 @@
+{
+  "description": "El botón de regreso en páginas de detalle ahora siempre navega a la lista correspondiente en lugar de usar el historial del navegador.",
+  "changes": [
+    "Botón atrás usa ruta fija (backTo) en vez de navigate(-1)",
+    "Comportamiento consistente en todas las páginas de detalle"
+  ]
+}

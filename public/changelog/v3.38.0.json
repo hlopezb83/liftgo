@@ -1,0 +1,7 @@
+{
+  "description": "Se agrega un switch para alternar entre base devengada (por fecha de emisión) y flujo de efectivo (por fecha de cobro) en el reporte de Estado de Resultados.",
+  "changes": [
+    "Toggle Devengado / Flujo de efectivo en la página de Estado de Resultados",
+    "Filtrado condicional de facturas según la base contable seleccionada"
+  ]
+}

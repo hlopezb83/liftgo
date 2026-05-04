@@ -1,0 +1,7 @@
+{
+  "description": "Se aumentó el tamaño máximo del logo a 24×40mm y se centra verticalmente para que su altura coincida con el bloque de texto del encabezado.",
+  "changes": [
+    "Logo aumentado a 24×40mm máximo para igualar altura del texto",
+    "Centrado vertical del logo respecto al bloque título/número/fecha"
+  ]
+}

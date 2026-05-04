@@ -1,0 +1,7 @@
+{
+  "description": "Se removió el diálogo automático que preguntaba si generar factura al completar una inspección de devolución.",
+  "changes": [
+    "Eliminado el diálogo PostInspectionInvoiceDialog del flujo de devoluciones",
+    "El flujo ahora es: completar devolución → toast de éxito → cerrar"
+  ]
+}

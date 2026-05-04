@@ -1,0 +1,8 @@
+{
+  "description": "Eliminación de componentes y hooks que ya no se utilizan en la aplicación.",
+  "changes": [
+    "Eliminado EquipmentModelSelector (sin referencias)",
+    "Eliminado PostInspectionInvoiceDialog (deprecado desde v2.17.0)",
+    "Eliminado useDialogState hook (nunca adoptado)"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Los filtros de búsqueda y estado se conservan en la URL al navegar a un detalle y volver con el botón atrás.",
+  "changes": [
+    "Filtros de búsqueda y estado sincronizados con query params de la URL",
+    "Al volver con el botón atrás, los filtros se restauran automáticamente"
+  ]
+}

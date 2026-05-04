@@ -1,0 +1,10 @@
+{
+  "description": "Los clientes ahora pueden iniciar sesión en su propio portal para ver sus rentas, facturas y contratos.",
+  "changes": [
+    "Nuevo rol 'customer' para clientes con cuenta",
+    "Pantalla de login dedicada para clientes en /portal/login",
+    "Dashboard del portal con resumen de cuenta",
+    "Vista de facturas y contratos desde la perspectiva del cliente",
+    "Invitación de clientes por correo electrónico"
+  ]
+}

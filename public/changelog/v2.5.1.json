@@ -1,0 +1,7 @@
+{
+  "description": "El feed de actividad ahora muestra todos los eventos traducidos al español en lugar de inglés.",
+  "changes": [
+    "Traducciones completas del feed de actividad al español",
+    "Tipos de evento y descripciones en lenguaje natural"
+  ]
+}

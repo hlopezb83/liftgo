@@ -1,0 +1,8 @@
+{
+  "description": "Las filas 'Ingresos por Rentas' e 'Ingresos por Ventas' ahora son expandibles para mostrar el desglose mensual por cliente, igual que la fila de Depreciación.",
+  "changes": [
+    "Click en 'Ingresos por Rentas' muestra el desglose por cliente",
+    "Click en 'Ingresos por Ventas' muestra el desglose por cliente",
+    "Indicador de chevron en filas expandibles"
+  ]
+}

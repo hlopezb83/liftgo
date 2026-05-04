@@ -1,0 +1,11 @@
+{
+  "description": "Rediseño completo del módulo de contratos con un machote profesional que incluye cláusulas legales, checklist de entrega y pagaré.",
+  "changes": [
+    "8 cláusulas legales profesionales (objeto, vigencia, renta, obligaciones, etc.)",
+    "Anexo A: Checklist de condiciones del equipo al momento de entrega",
+    "Anexo B: Pagaré con datos del cliente y montos del contrato",
+    "PDF multi-página generado con jsPDF",
+    "Plantillas de contrato editables desde Configuración",
+    "Testigos configurables por contrato"
+  ]
+}

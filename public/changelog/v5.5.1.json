@@ -1,0 +1,6 @@
+{
+  "description": "Se eliminan las líneas de Software y Depreciación de la sección de gastos operativos del estado de resultados ya que no son categorías de gasto.",
+  "changes": [
+    "Removidas las líneas '(-) Software' y '(-) Depreciación' del reporte"
+  ]
+}

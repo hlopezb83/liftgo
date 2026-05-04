@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { useCurrentVersion } from "@/hooks/useChangelog";
 
 type NavItem = { title: string; url: string; icon: React.ElementType };
 type NavGroup = { label: string; items: NavItem[] };
@@ -97,6 +98,7 @@ export function AppSidebar() {
   const { data: company } = useCompanySettings();
   const { data: perms } = useRolePermissions();
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
+  const currentVersion = useCurrentVersion();
 
   // Memoizar el árbol de navegación filtrado: solo se recalcula cuando cambia rol o permisos.
   const visibleNavGroups = useMemo(() => {
@@ -164,6 +166,11 @@ export function AppSidebar() {
             </Button>
           </div>
         </div>
+        {currentVersion && (
+          <NavLink to="/changelog" className="text-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono">
+            v{currentVersion}
+          </NavLink>
+        )}
         <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
       </SidebarFooter>
     </Sidebar>

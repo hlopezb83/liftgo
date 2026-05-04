@@ -1,0 +1,10 @@
+{
+  "description": "Nuevo reporte que agrupa la utilización de la flota por modelo de equipo, facilitando decisiones de compra al identificar qué modelos tienen alta demanda.",
+  "changes": [
+    "Nuevo reporte 'Utilización por Modelo' en la página de Reportes",
+    "Gráfica de barras horizontales con colores por nivel de utilización (verde/amarillo/rojo)",
+    "Tabla detallada con unidades, disponibles, rentados, días reservados y % de utilización",
+    "Exportación a CSV del reporte",
+    "Equipos vendidos o retirados se excluyen automáticamente del cálculo"
+  ]
+}

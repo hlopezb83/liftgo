@@ -1,0 +1,8 @@
+{
+  "description": "Se cierran tres vulnerabilidades detectadas por el escáner de seguridad: timbrado de CFDI sin autenticación, exposición de datos personales de choferes y falta de regla restrictiva en asignación de roles.",
+  "changes": [
+    "stamp-cfdi: ahora exige sesión activa y rol admin/administrativo antes de timbrar",
+    "Choferes: solo roles internos pueden ver nombre, teléfono, correo y licencia (clientes del portal ya no tienen acceso)",
+    "user_roles: regla restrictiva explícita garantiza que solo administradores puedan asignar o cambiar roles"
+  ]
+}

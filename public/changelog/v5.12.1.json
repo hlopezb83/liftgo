@@ -1,0 +1,8 @@
+{
+  "description": "Las Edge Functions de timbrado y cancelación seleccionan automáticamente el API key correcto según el modo configurado en Datos Fiscales.",
+  "changes": [
+    "Edge Functions stamp-cfdi y cancel-cfdi usan FACTURAPI_TEST_KEY o FACTURAPI_LIVE_KEY según facturapi_mode",
+    "Toggle test/producción se persiste correctamente al guardar datos fiscales",
+    "Texto informativo en sección PAC sobre configuración de API keys"
+  ]
+}

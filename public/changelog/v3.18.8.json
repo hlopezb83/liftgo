@@ -1,0 +1,7 @@
+{
+  "description": "Al hacer clic en cualquier parte de la fila de un cliente se navega a su detalle.",
+  "changes": [
+    "Filas de la tabla de clientes ahora son clickeables para abrir el detalle",
+    "Botones de acción mantienen su comportamiento independiente"
+  ]
+}

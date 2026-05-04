@@ -1,0 +1,7 @@
+{
+  "description": "Los usuarios con rol admin ahora pueden editar facturas independientemente de su estado (enviada, vencida, pagada, parcial).",
+  "changes": [
+    "Botón 'Editar' visible para admins en todos los estados de factura",
+    "Usuarios no-admin mantienen la restricción de solo editar borradores"
+  ]
+}

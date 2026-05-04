@@ -1,0 +1,8 @@
+{
+  "description": "Se cierran brechas de seguridad en la restricción de Cerrado Ganado del CRM.",
+  "changes": [
+    "Guardia en onSave para bloquear guardado en Cerrado Ganado sin permisos",
+    "Botón Convertir a Cliente oculto para usuarios no autorizados",
+    "Botón Guardar deshabilitado al editar prospectos en Cerrado Ganado sin rol admin/administrativo"
+  ]
+}

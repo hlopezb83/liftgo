@@ -1,0 +1,8 @@
+{
+  "description": "Selector de año en el reporte de Estado de Resultados para separar datos por período anual.",
+  "changes": [
+    "Selector de año (Todos / 2025 / 2026 / etc.) en el encabezado del reporte",
+    "KPIs, gráfica, tabla y CSV se filtran según el año seleccionado",
+    "Años disponibles se detectan dinámicamente de los datos"
+  ]
+}

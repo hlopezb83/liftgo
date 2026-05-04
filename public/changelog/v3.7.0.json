@@ -1,0 +1,10 @@
+{
+  "description": "Correcciones de formato de moneda y fechas para garantizar consistencia en toda la aplicación.",
+  "changes": [
+    "Meses en español (Ene, Feb…) en reporte de Ingresos vía locale es de date-fns",
+    "Contratos PDF usan formatCurrency en lugar de .toFixed(2) para tarifas y depósito",
+    "Eliminada función duplicada fmtMXN en pdfHelpers.ts, reemplazada por formatCurrency centralizado",
+    "Limpieza de imports no usados en QuotePDFButton e InvoicePDFButton",
+    "Spinner de carga con marca 'Cargando LiftGo…' en App.tsx"
+  ]
+}

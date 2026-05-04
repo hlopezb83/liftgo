@@ -1,0 +1,3 @@
+{
+  "description": "Eliminación de 'any' en tests (paymentFlow, invoiceFlow, bookingFlow, exportCsv, InvoicesPage) y en hooks genéricos (useListPage, useListFilters, useSort, useAuditLogs). Anexos PDF de contrato (Checklist y Pagaré) ahora usan tipos jsPDF estrictos. División de contractSections.ts en sub-módulos por sección (header/declarations/clauses/signatures). SuppliersPage e InventoryPage modularizadas extrayendo SupplierFormDialog y PartFormDialog. Errores ESLint reducidos de 48 a 19."
+}

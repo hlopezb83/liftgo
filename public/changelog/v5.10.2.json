@@ -1,0 +1,7 @@
+{
+  "description": "La tarjeta KPI de MRR en el dashboard ahora usa la misma lógica que la página de detalle: solo suma montacargas con reserva confirmada vigente.",
+  "changes": [
+    "Actualizada función get_financial_kpis para filtrar por booking activo",
+    "El monto de MRR en dashboard y detalle ahora coinciden"
+  ]
+}

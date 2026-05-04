@@ -1,0 +1,7 @@
+{
+  "description": "La primera factura recurrente ahora cubre correctamente el mes de inicio de la reserva.",
+  "changes": [
+    "Primera factura ahora cubre el mes de inicio de la reserva en lugar de saltarlo",
+    "Corrección en la lógica de last_billed_date para facturación automática"
+  ]
+}

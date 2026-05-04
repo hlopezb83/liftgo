@@ -1,0 +1,6 @@
+{
+  "description": "El campo 'Utilización' del Resumen Financiero del montacargas usa created_at del sistema (no la fecha real de compra), lo que inflaba el porcentaje en equipos cargados tarde al ERP. Ahora se topa en 100% para evitar valores irreales.",
+  "changes": [
+    "Utilización por unidad limitada a 100% máximo en get_forklift_financials"
+  ]
+}

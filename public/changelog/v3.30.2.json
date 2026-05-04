@@ -1,0 +1,8 @@
+{
+  "description": "Se agregó la funcionalidad de eliminar facturas desde el detalle, disponible para los roles Admin y Administrativo.",
+  "changes": [
+    "Opción de eliminar en el menú de acciones del detalle de factura",
+    "Confirmación con diálogo antes de eliminar",
+    "Restringido a roles admin y administrativo"
+  ]
+}

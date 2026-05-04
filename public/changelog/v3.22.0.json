@@ -1,0 +1,9 @@
+{
+  "description": "El Estado de Resultados ahora tiene su propia entrada en el sidebar para acceso directo, manteniendo también su disponibilidad dentro del módulo de Reportes.",
+  "changes": [
+    "Nueva página standalone de Estado de Resultados con selector de fechas propio",
+    "Entrada dedicada en sidebar bajo sección Administración",
+    "Acceso restringido a roles admin, administrativo y auditor",
+    "Se mantiene disponible también dentro del módulo de Reportes"
+  ]
+}

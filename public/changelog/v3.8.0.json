@@ -1,0 +1,10 @@
+{
+  "description": "Mejoras de UX en formularios, estados vacíos rediseñados y correcciones de localización en moneda y fechas.",
+  "changes": [
+    "Nuevo componente EmptyState con icono, título, subtítulo y botón de acción",
+    "Empty states aplicados automáticamente en Reservas, Flota y Facturas vía ListPageLayout",
+    "Spinner de carga y texto 'Guardando…' en botones de envío de Reservas, Facturas y Contratos",
+    "ContractForm migrado al componente compartido FormActions",
+    "Botón Cancelar deshabilitado durante envío para prevenir navegación accidental"
+  ]
+}

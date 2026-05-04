@@ -1,0 +1,8 @@
+{
+  "description": "Los operadores ahora pueden reportar daños encontrados en almacén sin necesidad de una inspección de devolución.",
+  "changes": [
+    "Nuevo diálogo 'Reportar Daño' en la página de Seguimiento de Daños",
+    "Selección de montacargas de todo el inventario, cliente opcional, descripción y costo estimado",
+    "Disponible para roles admin, administrativo, despachador y mecánico"
+  ]
+}
