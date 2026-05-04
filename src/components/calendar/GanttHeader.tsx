@@ -1,4 +1,4 @@
-import { format, getDay, isToday } from "date-fns";
+import { format, getDay, isToday, startOfWeek, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 
 export function GanttHeader({ days }: { days: Date[] }) {
@@ -11,10 +11,11 @@ export function GanttHeader({ days }: { days: Date[] }) {
           {days.map((day) => {
             const wd = getDay(day);
             const isWeekend = wd === 0 || wd === 6;
+            const weekStart = isSameDay(day, startOfWeek(day, { weekStartsOn: 1 }));
             return (
               <div
                 key={`wd-${day.toISOString()}`}
-                className={`flex-1 text-center text-[9px] font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"}`}
+                className={`flex-1 text-center text-[9px] font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"} ${weekStart ? "border-l border-border/60" : ""}`}
               >
                 {format(day, "EEE", { locale: es })}
               </div>
@@ -30,10 +31,11 @@ export function GanttHeader({ days }: { days: Date[] }) {
             const wd = getDay(day);
             const isWeekend = wd === 0 || wd === 6;
             const today = isToday(day);
+            const weekStart = isSameDay(day, startOfWeek(day, { weekStartsOn: 1 }));
             return (
               <div
                 key={day.toISOString()}
-                className={`flex-1 text-center text-[10px] ${today ? "font-bold text-primary" : isWeekend ? "text-destructive/60" : "text-muted-foreground"}`}
+                className={`flex-1 text-center text-[10px] ${today ? "font-bold text-primary" : isWeekend ? "text-destructive/60" : "text-muted-foreground"} ${weekStart ? "border-l border-border/60" : ""}`}
               >
                 {today ? (
                   <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px]">
