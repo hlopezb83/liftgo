@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.48.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Refactor de páginas grandes (>250 líneas)",
+    "category": "refactor"
+  },
+  {
     "version": "5.47.0",
     "date": "2026-05-04",
     "type": "minor",
