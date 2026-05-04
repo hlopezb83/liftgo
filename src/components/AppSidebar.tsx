@@ -126,17 +126,22 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {company?.logo_url ? (
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white p-1">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white p-1">
               <img src={company.logo_url} alt="Logo" className="h-full w-full rounded object-contain" />
             </div>
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">LG</div>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">LG</div>
           )}
-          <div>
-            <h2 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight">{company?.razon_social || "Lift Go"}</h2>
-            <p className="text-xs text-sidebar-foreground/60">Montacargas</p>
+          <div className="min-w-0 flex-1">
+            <h2
+              className="text-sm font-bold text-sidebar-primary-foreground tracking-tight truncate"
+              title={company?.razon_social || "Lift Go"}
+            >
+              {company?.razon_social || "Lift Go"}
+            </h2>
+            <p className="text-xs text-sidebar-foreground/60 truncate">Montacargas</p>
           </div>
         </div>
       </SidebarHeader>
