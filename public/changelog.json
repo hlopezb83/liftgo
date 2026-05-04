@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.44.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Mejoras integrales al historial de cambios",
+    "category": "feature"
+  },
+  {
     "version": "5.43.2",
     "date": "2026-05-02",
     "type": "patch",
