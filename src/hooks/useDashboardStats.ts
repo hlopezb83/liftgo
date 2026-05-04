@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
 export interface DashboardStats {
   fleet_counts: {
@@ -65,11 +65,7 @@ export interface DashboardStats {
 export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard-stats"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_dashboard_stats");
-      if (error) throw error;
-      return data as unknown as DashboardStats;
-    },
+    queryFn: () => callRpc<DashboardStats>("get_dashboard_stats"),
     staleTime: 30_000,
   });
 }

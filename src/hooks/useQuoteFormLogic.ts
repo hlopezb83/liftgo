@@ -7,6 +7,7 @@ import { generateLineItemsFromModel, computeTotals, type LineItem } from "@/lib/
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
+import { toJsonArray } from "@/lib/lineItems";
 import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
 import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
 
@@ -102,14 +103,14 @@ export function useQuoteFormLogic() {
       equipment_model_id: firstModelId,
       start_date: quoteType === "rental" ? format(startDate!, "yyyy-MM-dd") : today,
       end_date: quoteType === "rental" ? format(endDate!, "yyyy-MM-dd") : today,
-      line_items: lineItems as unknown as import("@/integrations/supabase/types").Json,
+      line_items: toJsonArray(lineItems),
       subtotal, tax_rate: Number(taxRate), tax_amount: taxAmount, total,
       status: existingQuote?.status || "draft",
       valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
       notes: notes || null,
       quote_type: quoteType,
       currency,
-      rental_meta: quoteType === "rental" ? (rentalLines as unknown as import("@/integrations/supabase/types").Json) : null,
+      rental_meta: quoteType === "rental" ? toJsonArray(rentalLines) : null,
     };
 
     if (id) {

@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
+import { useDamagePhotoCounts } from "@/hooks/useDamagePhotoCounts";
 import { useListFilters } from "@/hooks/useListFilters";
 import { usePagination } from "@/hooks/usePagination";
 import { useSort } from "@/hooks/useSort";
@@ -12,7 +11,6 @@ import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { DamageActions } from "@/components/damage/DamageActions";
 import { DamageDetailSheet } from "@/components/damage/DamageDetailSheet";
 import { ReportDamageDialog } from "@/components/damage/ReportDamageDialog";
 import { Badge } from "@/components/ui/badge";
@@ -27,25 +25,8 @@ import type { DamageRecordWithJoins } from "@/types/rental";
 
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
+  const { data: photoCounts } = useDamagePhotoCounts();
   const [selectedRecord, setSelectedRecord] = useState<DamageRecordWithJoins | null>(null);
-
-  // Fetch photo counts per damage record
-  const { data: photoCounts } = useQuery({
-    queryKey: ["damage_photo_counts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("entity_id")
-        .eq("entity_type", "damage_record")
-        .like("mime_type", "image/%");
-      if (error) throw error;
-      const counts: Record<string, number> = {};
-      data?.forEach((d) => {
-        counts[d.entity_id] = (counts[d.entity_id] || 0) + 1;
-      });
-      return counts;
-    },
-  });
 
   const getPhotoCount = (id: string) => photoCounts?.[id] || 0;
 

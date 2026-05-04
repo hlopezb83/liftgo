@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
 export interface FinancialKpis {
   mrr: number;
@@ -18,11 +18,7 @@ export interface FinancialKpis {
 export function useFinancialKpis() {
   return useQuery({
     queryKey: ["financial-kpis"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_financial_kpis");
-      if (error) throw error;
-      return data as unknown as FinancialKpis;
-    },
+    queryFn: () => callRpc<FinancialKpis>("get_financial_kpis"),
     staleTime: 30_000,
   });
 }

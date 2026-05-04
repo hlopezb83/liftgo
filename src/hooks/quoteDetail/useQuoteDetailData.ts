@@ -7,6 +7,7 @@ import { useForklifts } from "@/hooks/useForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/invoiceUtils";
+import { parseLineItems, parseRentalMeta } from "@/lib/lineItems";
 
 export const isPublicoGeneral = (name?: string | null) =>
   !!name && (name.trim().toLowerCase().includes("público en general") || name.trim().toLowerCase().includes("publico en general"));
@@ -34,7 +35,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const quoteType = quote?.quote_type || "rental";
   const isSale = quoteType === "sale";
   const lineItems = useMemo(
-    () => (quote?.line_items as unknown as LineItem[]) || [],
+    () => parseLineItems<LineItem>(quote?.line_items),
     [quote?.line_items],
   );
 
@@ -45,11 +46,10 @@ export function useQuoteDetailData(id: string | undefined) {
 
   const rentalMeta = useMemo(() => {
     if (!quote || isSale) return [];
-    const fromColumn = quote.rental_meta as unknown as { modelId: string; quantity: number }[] | undefined;
-    if (fromColumn && fromColumn.length > 0) return fromColumn;
-    const allItems = (quote.line_items as unknown as LineItem[]) || [];
-    const legacy = (allItems as unknown as Array<LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }>)?.[0]?._rentalMeta;
-    return legacy || [];
+    const fromColumn = parseRentalMeta(quote.rental_meta);
+    if (fromColumn.length > 0) return fromColumn;
+    const allItems = parseLineItems<LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }>(quote.line_items);
+    return allItems[0]?._rentalMeta ?? [];
   }, [quote, isSale]);
 
   const isModelBasedQuote = rentalMeta.length > 0;

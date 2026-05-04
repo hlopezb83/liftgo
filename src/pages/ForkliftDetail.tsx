@@ -3,8 +3,7 @@ import { useForklift, useDeleteForklift, useStatusLogs } from "@/hooks/useForkli
 import { useBookings } from "@/hooks/useBookings";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
 import { useForkliftFinancials } from "@/hooks/useForkliftFinancials";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useForkliftLocation } from "@/hooks/useForkliftLocation";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -32,32 +31,7 @@ export default function ForkliftDetail() {
   const { data: bookings } = useBookings(id);
   const { data: maintenanceLogs } = useMaintenanceLogs(id);
   const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
-  const { data: locationData } = useQuery({
-    queryKey: ["forklift-location", id],
-    enabled: !!id,
-    queryFn: async () => {
-      // Try contract usage_location first
-      const { data: contract } = await supabase
-        .from("contracts")
-        .select("usage_location")
-        .eq("forklift_id", id!)
-        .in("status", ["active", "signed"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (contract?.usage_location) return contract.usage_location;
-      // Fallback to latest delivery address
-      const { data: delivery } = await supabase
-        .from("deliveries")
-        .select("address")
-        .eq("forklift_id", id!)
-        .eq("status", "completed")
-        .order("completed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return delivery?.address || null;
-    },
-  });
+  const { data: locationData } = useForkliftLocation(id);
   const deleteForklift = useDeleteForklift();
 
   if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;

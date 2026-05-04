@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
 export interface ForkliftFinancials {
   revenue: number;
@@ -24,13 +24,9 @@ export function useForkliftFinancials(forkliftId: string | undefined) {
   return useQuery({
     queryKey: ["forklift-financials", forkliftId],
     enabled: !!forkliftId,
-    queryFn: async () => {
+    queryFn: () => {
       if (!forkliftId) throw new Error("ID requerido");
-      const { data, error } = await supabase.rpc("get_forklift_financials", {
-        p_forklift_id: forkliftId,
-      });
-      if (error) throw error;
-      return data as unknown as ForkliftFinancials;
+      return callRpc<ForkliftFinancials>("get_forklift_financials", { p_forklift_id: forkliftId });
     },
     staleTime: 60_000,
   });
