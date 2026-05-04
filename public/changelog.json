@@ -368,6 +368,7 @@
       "GanttChart memoiza el array de días para evitar recrearlo en cada render"
     ]
   },
+  {
     "version": "5.25.0",
     "date": "2026-04-18",
     "type": "minor",
