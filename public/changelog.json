@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.52.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Modularización de MaintenanceKanban en columnas, tarjetas y detalle",
+    "category": "refactor"
+  },
+  {
     "version": "5.51.0",
     "date": "2026-05-04",
     "type": "minor",
