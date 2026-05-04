@@ -1,0 +1,13 @@
+{
+  "version": "5.52.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Modularización de MaintenanceKanban",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "refactor",
+      "description": "MaintenanceKanban dividido en MaintenanceKanbanColumn, MaintenanceKanbanCard y MaintenanceDetailSheet bajo src/components/maintenance/kanban/, dejando el componente principal como orquestador puro."
+    }
+  ]
+}
