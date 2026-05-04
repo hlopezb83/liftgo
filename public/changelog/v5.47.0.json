@@ -1,0 +1,11 @@
+{
+  "description": "Auditoría arquitectónica + correcciones críticas: se eliminan las non-null assertions prohibidas, se mueven queries Supabase de páginas a hooks dedicados, se centraliza el guard de permisos del CRM y se introducen utilidades compartidas (callRpc, lineItems, formatMtyDate) que eliminan ~15 casts 'as unknown as'.",
+  "changes": [
+    "Eliminado user!.id en useUserRole y canvasRef.current! en SignaturePad",
+    "Nuevos hooks useDamagePhotoCounts y useForkliftLocation que reemplazan queries inline en DamageTrackingPage y ForkliftDetail",
+    "Nuevo hook useProspectGuard centraliza las 3 validaciones de Cerrado Ganado del CRM",
+    "Nuevo helper src/lib/rpc.ts (callRpc<T>) usado por useDashboardStats, useFinancialKpis, useCustomerSummary, useMrrDetail, useCustomerProfitability, useForkliftFinancials, useInsuranceAlerts, useMonthlyData",
+    "Nuevo helper src/lib/lineItems.ts (parseLineItems / parseRentalMeta / toJsonArray) aplicado en useQuoteFormLogic, useInvoiceFormLogic y useQuoteDetailData",
+    "Nuevo formatMtyDate(value, pattern) en src/lib/utils.ts para unificar el formato de fechas en zona horaria de Monterrey"
+  ]
+}

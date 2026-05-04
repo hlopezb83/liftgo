@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.47.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Auditoría arquitectónica: hooks dedicados, callRpc y lineItems helpers",
+    "category": "refactor"
+  },
+  {
     "version": "5.46.1",
     "date": "2026-05-04",
     "type": "patch",
