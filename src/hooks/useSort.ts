@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 
 type SortDirection = "asc" | "desc";
 
@@ -15,6 +15,11 @@ export function useSort<T>(
   const [sortKey, setSortKey] = useState<string | null>(options.defaultKey ?? null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(options.defaultDirection ?? "asc");
 
+  // Keep latest accessors in a ref to avoid invalidating useMemo on every render
+  // when the caller passes an inline accessors object.
+  const accessorsRef = useRef(options.accessors);
+  accessorsRef.current = options.accessors;
+
   const toggleSort = (key: string) => {
     if (sortKey === key) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
@@ -27,7 +32,7 @@ export function useSort<T>(
   const sortedItems = useMemo(() => {
     if (!items || !sortKey) return items;
 
-    const accessor = options.accessors?.[sortKey];
+    const accessor = accessorsRef.current?.[sortKey];
     const getValue = accessor ?? ((item: T) => (item as Record<string, unknown>)[sortKey]);
 
     return [...items].sort((a, b) => {
@@ -50,7 +55,7 @@ export function useSort<T>(
 
       return sortDirection === "asc" ? cmp : -cmp;
     });
-  }, [items, sortKey, sortDirection, options.accessors]);
+  }, [items, sortKey, sortDirection]);
 
   return { sortKey, sortDirection, toggleSort, sortedItems };
 }

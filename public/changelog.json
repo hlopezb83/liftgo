@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.46.1",
+    "date": "2026-05-04",
+    "type": "patch",
+    "title": "Optimización de re-renders en tablas estandarizadas",
+    "category": "performance"
+  },
+  {
     "version": "5.46.0",
     "date": "2026-05-04",
     "type": "minor",

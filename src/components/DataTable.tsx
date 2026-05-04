@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, memo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { TableSkeleton } from "@/components/TableSkeleton";
@@ -13,15 +13,12 @@ export type ColumnAlign = "left" | "right" | "center";
 export interface DataTableColumn<T> {
   key: string;
   label: ReactNode;
-  /** Cuando true, se vuelve clickeable y participa en useSort. */
   sortable?: boolean;
-  /** Accessor opcional para el sort (default: item[key]). */
   accessor?: (item: T) => unknown;
   render: (item: T, index: number) => ReactNode;
   align?: ColumnAlign;
   className?: string;
   headClassName?: string;
-  /** Oculta esta columna en breakpoints pequeños (sm). */
   hideOnMobile?: boolean;
 }
 
@@ -33,12 +30,9 @@ export interface DataTableProps<T> {
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
-  /** Si se provee, en mobile se renderiza con MobileCardList. */
   mobileCardRender?: (item: T) => ReactNode;
-  /** Sort por defecto opcional. */
   defaultSortKey?: string;
   defaultSortDirection?: "asc" | "desc";
-  /** Footer opcional (totales, etc.). */
   footer?: ReactNode;
   className?: string;
 }
@@ -49,7 +43,35 @@ const alignClass: Record<ColumnAlign, string> = {
   center: "text-center",
 };
 
-export function DataTable<T>({
+interface DataTableRowProps<T> {
+  item: T;
+  index: number;
+  columns: DataTableColumn<T>[];
+  onRowClick?: (item: T) => void;
+  rowClassName?: (item: T) => string | undefined;
+}
+
+function DataTableRowInner<T>({ item, index, columns, onRowClick, rowClassName }: DataTableRowProps<T>) {
+  return (
+    <TableRow
+      className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
+      onClick={onRowClick ? () => onRowClick(item) : undefined}
+    >
+      {columns.map((col) => (
+        <TableCell
+          key={col.key}
+          className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.className)}
+        >
+          {col.render(item, index)}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+}
+
+const DataTableRow = memo(DataTableRowInner) as typeof DataTableRowInner;
+
+function DataTableInner<T>({
   columns,
   data,
   isLoading,
@@ -65,11 +87,16 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const isMobile = useIsMobile();
 
+  // Stable signature based on column keys to avoid invalidating accessors when
+  // a parent passes inline `columns` arrays whose contents are equivalent.
+  const columnsKey = columns.map((c) => c.key).join("|");
+
   const accessors = useMemo(() => {
     const map: Record<string, (item: T) => unknown> = {};
     for (const c of columns) if (c.accessor) map[c.key] = c.accessor;
     return map;
-  }, [columns]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columnsKey]);
 
   const { sortKey, sortDirection, toggleSort, sortedItems } = useSort<T>(data, {
     defaultKey: defaultSortKey,
@@ -124,20 +151,14 @@ export function DataTable<T>({
           <EmptyRow colSpan={columns.length} message={emptyMessage} />
         ) : (
           items.map((item, idx) => (
-            <TableRow
+            <DataTableRow
               key={keyExtractor(item, idx)}
-              className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
-              onClick={onRowClick ? () => onRowClick(item) : undefined}
-            >
-              {columns.map((col) => (
-                <TableCell
-                  key={col.key}
-                  className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.className)}
-                >
-                  {col.render(item, idx)}
-                </TableCell>
-              ))}
-            </TableRow>
+              item={item}
+              index={idx}
+              columns={columns}
+              onRowClick={onRowClick}
+              rowClassName={rowClassName}
+            />
           ))
         )}
       </TableBody>
@@ -145,3 +166,5 @@ export function DataTable<T>({
     </Table>
   );
 }
+
+export const DataTable = memo(DataTableInner) as typeof DataTableInner;

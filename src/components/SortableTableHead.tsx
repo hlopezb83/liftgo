@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { TableHead } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,7 @@ interface SortableTableHeadProps extends React.ThHTMLAttributes<HTMLTableCellEle
   children: React.ReactNode;
 }
 
-export function SortableTableHead({
+function SortableTableHeadInner({
   sortKey,
   currentSort,
   currentDirection,
@@ -46,3 +47,5 @@ export function SortableTableHead({
     </TableHead>
   );
 }
+
+export const SortableTableHead = memo(SortableTableHeadInner);

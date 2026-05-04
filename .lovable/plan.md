@@ -1,89 +1,60 @@
-# Plan: Mejoras integrales al sistema de Changelog
+## Objetivo
+Reducir re-renders innecesarios en las tablas migradas a `DataTable` / `ListPageLayout` y eliminar el warning ruidoso de refs en `PaginationNext` que aparece en consola en `/quotes`.
 
-Implementar todas las mejoras identificadas (P0–P3) al módulo de Changelog para alinearlo con los estándares del proyecto (TanStack Query, Zod, sonner, accesibilidad) y mejorar UX (búsqueda, deep-linking, versión visible en sidebar).
+## Hallazgos de auditoría
 
-## Alcance
+1. **Warning de refs en consola** (`PaginationNext` / `PaginationLink`): `PaginationLink`, `PaginationPrevious`, `PaginationNext` y `Pagination` son componentes funcionales sin `forwardRef`, pero radix/shadcn los pasa por composición que intenta adjuntar refs. Genera ruido en cada render de `TablePagination`.
+2. **`DataTable`**:
+   - El `accessors` map se reconstruye en cada render del padre porque `columns` suele ser un literal inline → invalida `useSort` (su `useMemo` depende de `options.accessors`).
+   - `columns` inline también provoca que `TableRow`/`TableCell` se re-rendericen completos aun cuando `data` no cambió.
+   - No usa `React.memo` para filas; en tablas grandes cada cambio de sort re-renderiza N filas.
+3. **`useSort`**: depende de `options.accessors` (referencia nueva cada render) → el `useMemo` de `sortedItems` se invalida en cada render del consumidor.
+4. **`MobileCardList`**: no memoiza, re-renderiza todas las cards aunque `items` sea estable.
+5. **`TablePagination`**: `getVisiblePages()` se recalcula en cada render (barato pero innecesario), y los handlers inline cambian de identidad cada render.
+6. **`ListPageLayout`**: no es `memo`; cualquier render del page padre re-renderiza header/filters/table aunque `items` sea idéntico.
 
-### P0 — Correcciones críticas
+## Cambios propuestos
 
-1. **Sincronizar fuente de verdad**
-   - Confirmar que `ChangelogPage` consume `public/changelog.json` (vía `fetchChangelog`).
-   - Actualizar `mem://index.md` y `architecture.md` para reflejar que `public/changelog.json` es la fuente runtime y `src/lib/changelog.ts` es solo el módulo de acceso (eliminar la regla "ALWAYS update src/lib/changelog.ts" si el array vive en el JSON).
-   - Decisión técnica: mantener `public/changelog.json` como única fuente (servida estática, cacheable por CDN).
+### 1. Corregir warning de refs (prioritario)
+Convertir `Pagination`, `PaginationLink`, `PaginationPrevious`, `PaginationNext` a `React.forwardRef` en `src/components/ui/pagination.tsx`. Esto elimina el warning en consola y permite composición correcta.
 
-2. **Validación con Zod**
-   - Definir `ChangelogEntrySchema` en `src/lib/changelog.ts` (version, date ISO, type enum, title, description, changes[]).
-   - `fetchChangelog` valida con `z.array(ChangelogEntrySchema).parse()` y lanza error tipado si el JSON está corrupto.
+### 2. Estabilizar `useSort`
+- En `src/hooks/useSort.ts`: comparar `accessors` por contenido o aceptar que el caller provea un objeto memoizado. Mejor: extraer `accessors` con un `useRef` que siempre apunte al último mapa, y eliminar la dependencia de `useMemo` (usando los accessors actuales sin invalidar).
 
-3. **Manejo de errores**
-   - Reemplazar `useState/useEffect` por `useQuery` (ver P1) para que un fallo de red no deje la UI colgada en "loading".
-   - Toast de error con `sonner` y estado de error visible en la página.
+### 3. Estabilizar `DataTable`
+En `src/components/DataTable.tsx`:
+- Memoizar internamente `accessors` con `useMemo` deps `[columns]` ya existe; el problema es `columns` inline. Solución pragmática: construir `accessors` con dep en una clave estable derivada (`columns.map(c => c.key).join('|')`) para que arrays inline equivalentes no invaliden.
+- Envolver el componente en `React.memo` con comparator superficial sobre `data`, `isLoading` y `columns.length`.
+- Extraer la fila a un subcomponente `DataTableRow` memoizado para evitar re-render masivo al cambiar sort.
 
-### P1 — Estandarización
+### 4. Memoizar utilidades
+- `MobileCardList`: envolver en `React.memo`.
+- `TablePagination`: envolver en `React.memo`; memoizar `getVisiblePages` con `useMemo([page, totalPages])`.
+- `ListPageLayout`: envolver en `React.memo` (genérico vía `memo` cast).
+- `SortableTableHead`: envolver en `React.memo`.
 
-4. **Migrar a TanStack Query**
-   - Crear `src/hooks/useChangelog.ts` con `useQuery({ queryKey: ['changelog'], queryFn: fetchChangelog, staleTime: Infinity })`.
-   - `ChangelogPage` consume el hook (loading/error/data).
-   - Eliminar el caché manual `_cache` en `changelog.ts`.
+### 5. Reportes con datasets pesados
+Verificar que los `useMemo` de `data` en `UtilizationReport`, `RevenueReport`, `MaintenanceCostReport`, `UtilizationByModelReport`, `ProfitabilityByModelReport`, `AgingReport` estén correctos (ya lo están). Asegurar que las `columns` arrays se definan fuera del render o memoizadas para que el nuevo `DataTable.memo` funcione realmente. Plan: extraer arrays `columns` a `useMemo([...])` dentro de cada reporte.
 
-5. **Búsqueda**
-   - Agregar `<SearchBar>` en `ChangelogPage` que filtra por `version`, `title`, `description` y `changes[]` (case-insensitive).
-   - Combinar con el filtro existente de tipo (major/minor/patch).
+### 6. Validación
+- `tsc --noEmit` (automático).
+- Recargar `/quotes`, `/inventory`, `/reports` y verificar que el warning de refs desapareció en consola.
+- Profilar con `browser--performance_profile` antes/después en `/reports` (vista Utilización por modelo) para confirmar reducción de scripting time al cambiar sort.
 
-6. **Deep-linking por versión**
-   - Soportar `/changelog#v5.43.2`: al cargar, hacer scroll a la entrada y resaltarla brevemente (anillo `ring-2 ring-primary` 2s).
-   - Botón "Copiar enlace" en cada entrada (icono `Link`) que copia `window.location.origin + /changelog#vX.Y.Z` y muestra toast.
+### 7. Changelog
+Agregar entrada `v5.46.1` (patch) en `public/changelog.json` y `public/changelog/v5.46.1.json` describiendo la optimización de rendimiento y el fix del warning.
 
-7. **Versión visible en `AppSidebar`**
-   - En `SidebarFooter`, mostrar `v{currentVersion}` debajo del email del usuario, como `<NavLink>` a `/changelog`.
-   - Reusar `useChangelog` + `getCurrentVersion` (sin fetch duplicado gracias a la queryKey compartida).
-
-8. **Ordenamiento robusto**
-   - `getCurrentVersion` ordena por `date` descendente con desempate por semver, no por orden de array.
-
-### P2 — Optimización de payload
-
-9. **División del JSON**
-   - `public/changelog.json` queda como índice ligero (solo metadatos: version, date, type, title) — payload reducido (~10 KB).
-   - Detalles (`description`, `changes[]`) se mueven a `public/changelog/v{X.Y.Z}.json` por entrada.
-   - `useChangelog` carga el índice; `useChangelogEntry(version)` (lazy, `enabled` cuando se expande/abre) carga el detalle bajo demanda.
-   - Las entradas se renderizan colapsadas mostrando solo el título; expandir dispara la carga del detalle.
-   - Script de migración one-shot: `scripts/split-changelog.ts` (Node) que divide el JSON actual y genera los archivos por versión.
-
-### P3 — Organización y accesibilidad
-
-10. **Categorías secundarias**
-    - Extender `ChangelogEntrySchema` con `category?: 'feature' | 'fix' | 'docs' | 'refactor' | 'security'` (opcional, retro-compatible).
-    - Badge adicional cuando esté presente.
-    - Filtro extra por categoría.
-
-11. **Semántica y a11y**
-    - Reemplazar `<div>` de la línea de tiempo por `<ol>` con `<li>` por entrada.
-    - `aria-label` en filtros, `aria-current` en versión actual, contraste WCAG AA en badges.
-
-### Final
-- Agregar entrada **minor** al changelog: "Mejoras integrales al historial de cambios: validación Zod, TanStack Query, búsqueda, deep-linking, versión en sidebar, payload optimizado, categorías y accesibilidad."
-
-## Detalles técnicos
-
-**Archivos nuevos**
-- `src/hooks/useChangelog.ts` — hooks `useChangelog()` e `useChangelogEntry(version)`.
-- `scripts/split-changelog.ts` — script one-shot para dividir JSON.
-- `public/changelog/v*.json` — generados por el script.
-
-**Archivos modificados**
-- `src/lib/changelog.ts` — Zod schema, sin caché manual, ordenamiento por date+semver.
-- `src/pages/ChangelogPage.tsx` — `useChangelog`, búsqueda, deep-linking, lazy-load de detalle, `<ol>`, categorías.
-- `src/components/AppSidebar.tsx` — footer con versión actual + link.
-- `public/changelog.json` — reducido al índice (post-script).
-- `architecture.md` y `mem://index.md` — fuente de verdad documentada.
-
-**Consideraciones**
-- `staleTime: Infinity` en el índice (se invalida al deploy por hash del bundle/SW).
-- Mantener compatibilidad: si `changelog.json` aún tiene el formato completo, el código debe funcionar (fallback al `description/changes` inline si no existe el archivo por versión).
-- Sin cambios en BD ni edge functions.
+## Archivos afectados (estimado)
+- `src/components/ui/pagination.tsx` (forwardRef fix)
+- `src/hooks/useSort.ts` (estabilizar deps)
+- `src/components/DataTable.tsx` (memo + row split)
+- `src/components/MobileCardList.tsx` (memo)
+- `src/components/TablePagination.tsx` (memo)
+- `src/components/ListPageLayout.tsx` (memo)
+- `src/components/SortableTableHead.tsx` (memo)
+- 6 archivos en `src/components/reports/*` (memoizar `columns`)
+- `public/changelog.json` + `public/changelog/v5.46.1.json`
 
 ## Fuera de alcance
-- CMS/UI para editar el changelog (sigue siendo edición manual del JSON).
-- i18n del changelog (queda en español).
-- RSS/Atom feed.
+- Virtualización de filas (no necesaria con paginación de 25).
+- Reescritura de `useSort` para soportar sort multicolumna.
