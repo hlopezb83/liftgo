@@ -47,17 +47,17 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4">
       {kpis.map((kpi) => (
         <Link key={kpi.label} to={kpi.href} className="group">
           <Card className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group-hover:ring-2 group-hover:ring-primary/20">
-            <CardContent className="p-5 flex items-center gap-4">
+            <CardContent className="p-4 flex items-center gap-3">
               <div className={`p-2.5 rounded-xl shrink-0 ${kpi.bgColor}`}>
                 <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground truncate">{kpi.label}</p>
-                <p className="text-lg font-bold truncate">{kpi.value}</p>
+                <p className="text-xs text-muted-foreground leading-tight" title={kpi.label}>{kpi.label}</p>
+                <p className="text-base font-bold truncate" title={kpi.value}>{kpi.value}</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
             </CardContent>
