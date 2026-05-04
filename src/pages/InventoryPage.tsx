@@ -11,7 +11,7 @@ import { PartDetailSheet } from "@/components/inventory/PartDetailSheet";
 import { PartFormDialog, PART_CATEGORIES } from "@/components/inventory/PartFormDialog";
 import { SearchBar } from "@/components/SearchBar";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { usePagination } from "@/hooks/usePagination";
+import { useListPage } from "@/hooks/useListPage";
 
 export default function InventoryPage() {
   const { data: parts, isLoading } = usePartsInventory();
@@ -38,7 +38,7 @@ export default function InventoryPage() {
 
   const lowStockCount = useMemo(() => (parts || []).filter((p) => p.stock_quantity <= p.min_stock_level).length, [parts]);
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
   const renderRow = (p: PartInventory) => {
     const isLow = p.stock_quantity <= p.min_stock_level;
