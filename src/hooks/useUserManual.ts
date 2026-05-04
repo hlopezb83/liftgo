@@ -51,7 +51,7 @@ export function useUserManual() {
       const { data, error } = await q.maybeSingle();
       if (error) throw error;
       if (!data) return null;
-      return data as unknown as UserManual;
+      return data as Omit<UserManual, "content"> & { content: unknown } as UserManual;
     },
   });
 
