@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { parseJsonbArray } from "@/lib/lineItems";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -53,7 +54,7 @@ export function useUserManual() {
       if (!data) return null;
       return {
         ...data,
-        content: Array.isArray(data.content) ? (data.content as unknown as ManualSection[]) : [],
+        content: parseJsonbArray<ManualSection>(data.content),
       } as UserManual;
     },
   });

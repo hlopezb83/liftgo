@@ -1,0 +1,17 @@
+{
+  "version": "5.56.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Unificación final de fechas en PDFs y casts JSONB residuales",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "refactor",
+      "description": "Reemplazo de format(parseISO(...)) por formatDateDisplay en src/lib/pdf/shared.ts, src/lib/pdf/contract/placeholders.ts y src/lib/pdf/customerStatement/tables.ts."
+    },
+    {
+      "type": "refactor",
+      "description": "useUserManual ahora usa parseJsonbArray<ManualSection> en lugar de cast manual, dejando los únicos casts restantes como chokepoints intencionales (lib/rpc.ts, lib/lineItems.ts) o limitaciones de tipos externos (jsPDF.lastAutoTable)."
+    }
+  ]
+}

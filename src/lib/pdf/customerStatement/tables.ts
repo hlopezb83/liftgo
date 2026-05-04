@@ -1,7 +1,7 @@
 import type { jsPDF } from "jspdf";
-import { differenceInDays, parseISO, format } from "date-fns";
+import { differenceInDays, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { nowMty } from "@/lib/utils";
+import { nowMty, formatDateDisplay } from "@/lib/utils";
 import { GRAY_700, GRAY_500, MARGIN } from "@/lib/pdf/quote/constants";
 import { drawAccentBar } from "@/lib/pdf/quote/header";
 import { STATEMENT_TABLE_STYLES } from "./parts";
@@ -52,8 +52,8 @@ export function drawOpenInvoicesTable(
         : "—";
       return [
         inv.invoice_number,
-        format(parseISO(inv.issued_at), "dd/MM/yyyy"),
-        inv.due_date ? format(parseISO(inv.due_date), "dd/MM/yyyy") : "—",
+        formatDateDisplay(inv.issued_at),
+        inv.due_date ? formatDateDisplay(inv.due_date) : "—",
         dayLabel,
         STATUS_LABELS[inv.status] || inv.status,
         formatCurrency(Number(inv.total)),
@@ -98,7 +98,7 @@ export function drawPaidInvoicesTable(
     head: [["Folio", "Emisión", "Total"]],
     body: paidInvoices.map((inv) => [
       inv.invoice_number,
-      format(parseISO(inv.issued_at), "dd/MM/yyyy"),
+      formatDateDisplay(inv.issued_at),
       formatCurrency(Number(inv.total)),
     ]),
     theme: "plain",

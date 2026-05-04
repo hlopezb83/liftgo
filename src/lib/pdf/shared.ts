@@ -1,7 +1,7 @@
 import type jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
-import { format, parseISO } from "date-fns";
+import { formatDateDisplay } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────
 
@@ -64,5 +64,6 @@ export function checkPage(doc: jsPDF, cursorY: number, needed: number = 15): num
 
 export function fmtDate(d: string | null): string {
   if (!d) return "—";
-  try { return format(parseISO(d), "dd/MM/yyyy"); } catch { return "—"; }
+  const s = formatDateDisplay(d);
+  return s || "—";
 }
