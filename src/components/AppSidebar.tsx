@@ -167,21 +167,33 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-sidebar-foreground/60 truncate max-w-[140px]">{user?.email}</p>
-          <div className="flex gap-1">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-sidebar-foreground/80 truncate" title={user?.email ?? ""}>{user?.email}</p>
+            {role && (
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wide font-medium">
+                {ROLE_LABELS[role] ?? role}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-1 shrink-0">
             <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+                <Button variant="ghost" size="sm" aria-label="Cambiar contraseña" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
                   <KeyRound className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Cambiar contraseña</TooltipContent>
             </Tooltip>
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" aria-label="Cerrar sesión" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Cerrar sesión</TooltipContent>
+            </Tooltip>
           </div>
         </div>
         {currentVersion && (
