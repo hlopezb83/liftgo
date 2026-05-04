@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.45.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Estandarización de tablas en toda la app",
+    "category": "refactor"
+  },
+  {
     "version": "5.44.0",
     "date": "2026-05-04",
     "type": "minor",

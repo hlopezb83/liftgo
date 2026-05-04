@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DataTable, type DataTableColumn } from "@/components/DataTable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePortalInvoices, usePortalPayments } from "@/hooks/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -71,31 +71,18 @@ export default function PortalInvoiceDetail() {
         <CardHeader>
           <CardTitle className="text-base">Partidas</CardTitle>
         </CardHeader>
-        <CardContent>
-          {lineItems.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead className="text-right">Cant.</TableHead>
-                  <TableHead className="text-right">Precio Unit.</TableHead>
-                  <TableHead className="text-right">Importe</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(lineItems as Array<{ description?: string; quantity?: number; unit_price?: number; amount?: number }>).map((item, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>{item.description || "—"}</TableCell>
-                    <TableCell className="text-right">{item.quantity || 1}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(item.unit_price || 0))}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(item.amount || 0))}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">Sin partidas</p>
-          )}
+        <CardContent className="p-0 pt-0">
+          <DataTable<{ description?: string; quantity?: number; unit_price?: number; amount?: number }>
+            data={lineItems as Array<{ description?: string; quantity?: number; unit_price?: number; amount?: number }>}
+            keyExtractor={(_, idx) => String(idx)}
+            emptyMessage="Sin partidas"
+            columns={[
+              { key: "description", label: "Descripción", render: (item) => item.description || "—" },
+              { key: "quantity", label: "Cant.", align: "right", render: (item) => item.quantity || 1 },
+              { key: "unit_price", label: "Precio Unit.", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.unit_price || 0))}</span> },
+              { key: "amount", label: "Importe", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.amount || 0))}</span> },
+            ]}
+          />
           <div className="mt-4 border-t pt-3 space-y-1 text-sm text-right">
             <div className="flex justify-end gap-8">
               <span className="text-muted-foreground">Subtotal</span>
@@ -117,31 +104,20 @@ export default function PortalInvoiceDetail() {
         <CardHeader>
           <CardTitle className="text-base">Historial de Pagos</CardTitle>
         </CardHeader>
-        <CardContent>
-          {invoicePayments.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Referencia</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoicePayments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>{formatDateDisplay(p.payment_date)}</TableCell>
-                    <TableCell>{p.payment_method || "—"}</TableCell>
-                    <TableCell>{p.reference_number || "—"}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">Sin pagos registrados</p>
-          )}
+        <CardContent className="p-0">
+          <DataTable
+            data={invoicePayments}
+            keyExtractor={(p) => p.id}
+            emptyMessage="Sin pagos registrados"
+            defaultSortKey="payment_date"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "payment_date", label: "Fecha", sortable: true, render: (p) => formatDateDisplay(p.payment_date) },
+              { key: "payment_method", label: "Método", render: (p) => p.payment_method || "—" },
+              { key: "reference_number", label: "Referencia", render: (p) => p.reference_number || "—" },
+              { key: "amount", label: "Monto", sortable: true, align: "right", accessor: (p) => Number(p.amount), render: (p) => <span className="font-mono">{formatCurrency(Number(p.amount))}</span> },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>
