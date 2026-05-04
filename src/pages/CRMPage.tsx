@@ -9,8 +9,7 @@ import { ProspectDetailSheet } from "@/components/crm/ProspectDetailSheet";
 import { KanbanColumn } from "@/components/crm/KanbanColumn";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
 import { useQuotes } from "@/hooks/useQuotes";
-import { useUserRole } from "@/hooks/useUserRole";
-import { toast } from "@/hooks/use-toast";
+import { useProspectGuard } from "@/hooks/crm/useProspectGuard";
 
 const STAGES = [
   { key: "nuevo_prospecto", label: "Nuevo Prospecto", color: "hsl(var(--primary))" },
@@ -24,12 +23,10 @@ const STAGES = [
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();
   const { data: quotes = [] } = useQuotes();
-  const { data: role } = useUserRole();
+  const { canCloseDeal, assertCanClose } = useProspectGuard();
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
   const deleteProspect = useDeleteProspect();
-
-  const canCloseDeal = role === "admin" || role === "administrativo";
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
@@ -71,10 +68,7 @@ export default function CRMPage() {
       if (!result.destination) return;
       const { draggableId, source, destination } = result;
       const newStage = destination.droppableId;
-      if (newStage === "cerrado_ganado" && !canCloseDeal) {
-        toast({ title: "Acceso restringido", description: "Solo usuarios administrativos pueden mover prospectos a Cerrado Ganado", variant: "destructive" });
-        return;
-      }
+      if (newStage === "cerrado_ganado" && !assertCanClose("move")) return;
       if (source.droppableId === newStage) {
         updateProspect.mutate({ id: draggableId, stage_order: destination.index });
         return;
@@ -86,14 +80,11 @@ export default function CRMPage() {
         setDialogOpen(true);
       }
     },
-    [updateProspect, prospects, canCloseDeal]
+    [updateProspect, prospects, assertCanClose]
   );
 
   const openCreate = (stage: string) => {
-    if (stage === "cerrado_ganado" && !canCloseDeal) {
-      toast({ title: "Acceso restringido", description: "Solo usuarios administrativos pueden crear prospectos en Cerrado Ganado", variant: "destructive" });
-      return;
-    }
+    if (stage === "cerrado_ganado" && !assertCanClose("create")) return;
     setEditingProspect(null);
     setDefaultStage(stage);
     setOverrideStage(undefined);
