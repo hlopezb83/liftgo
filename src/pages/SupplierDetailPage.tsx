@@ -8,11 +8,13 @@ import { NotesCard } from "@/components/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { EmptyRow } from "@/components/EmptyRow";
+import { DataTable, type DataTableColumn } from "@/components/DataTable";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { Mail, Phone, Globe, MapPin, FileText, Wrench, DollarSign } from "lucide-react";
+
+type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
+type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string; service_type: string; cost: number | null };
 
 export default function SupplierDetailPage() {
   const { id } = useParams();
