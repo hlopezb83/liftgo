@@ -1,6 +1,5 @@
 import { Link as LinkIcon, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useChangelogEntry } from "@/hooks/useChangelog";
 import type { ChangelogIndexEntry } from "@/lib/changelog";
 import { TYPE_LABELS, TYPE_COLORS, DOT_COLORS, CATEGORY_LABELS } from "@/lib/changelogConstants";
+import { formatMtyDate } from "@/lib/utils";
 
 interface Props {
   entry: ChangelogIndexEntry;
