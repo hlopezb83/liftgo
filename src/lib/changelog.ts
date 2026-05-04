@@ -16,10 +16,20 @@ export const ChangelogDetailSchema = z.object({
   changes: z.array(z.string()),
 });
 
-export type ChangelogType = z.infer<typeof ChangelogTypeSchema>;
-export type ChangelogCategory = z.infer<typeof ChangelogCategorySchema>;
-export type ChangelogIndexEntry = z.infer<typeof ChangelogIndexEntrySchema>;
-export type ChangelogDetail = z.infer<typeof ChangelogDetailSchema>;
+export type ChangelogType = "major" | "minor" | "patch";
+export type ChangelogCategory = "feature" | "fix" | "docs" | "refactor" | "security";
+export interface ChangelogIndexEntry {
+  version: string;
+  date: string;
+  type: ChangelogType;
+  title: string;
+  category?: ChangelogCategory;
+}
+export interface ChangelogDetail {
+  description: string;
+  changes: string[];
+}
+export type ChangelogEntry = ChangelogIndexEntry & Partial<ChangelogDetail>;
 export type ChangelogEntry = ChangelogIndexEntry & Partial<ChangelogDetail>;
 
 /** Compara semver descendente. */
