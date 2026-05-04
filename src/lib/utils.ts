@@ -24,6 +24,21 @@ export function formatDateDisplay(dateStr: string | null | undefined): string {
 }
 
 /**
+ * Formato compacto para rango de fechas. Si inicio == fin muestra una sola fecha.
+ * Usa guión largo y sin saltos de línea (whitespace-nowrap recomendado en celda).
+ */
+export function formatDateRange(
+  start: string | null | undefined,
+  end: string | null | undefined,
+): string {
+  if (!start && !end) return "—";
+  if (!end) return formatDateDisplay(start);
+  if (!start) return formatDateDisplay(end);
+  if (start === end) return formatDateDisplay(start);
+  return `${formatDateDisplay(start)} – ${formatDateDisplay(end)}`;
+}
+
+/**
  * Format a Date or ISO string in Monterrey timezone using a date-fns pattern.
  * Centralized helper to avoid scattered `format(parseISO(...), 'dd/MM/yyyy')`.
  */
