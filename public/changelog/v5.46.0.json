@@ -1,0 +1,10 @@
+{
+  "description": "Auditoría completa: 11 tablas embebidas restantes migradas al estándar DataTable con sort por columna, empty states uniformes y skeleton consistente.",
+  "changes": [
+    "Reportes (UtilizationReport, RevenueReport, MaintenanceCostReport, AgingReport, UtilizationByModelReport, ProfitabilityByModelReport) migrados a DataTable con sort en todas las columnas",
+    "Pestañas de Operaciones (MechanicsTab, DriversTab, EquipmentModelsTab, MaintenancePoliciesTab) migradas a DataTable",
+    "ForkliftHourometerHistory e InvoicePaymentSummary (historial de pagos) migrados a DataTable",
+    "Eliminados imports redundantes de Table/TableSkeleton/EmptyRow en componentes migrados",
+    "Estandarización completa: ListPageLayout para listados principales, DataTable para vistas embebidas, ReadOnlyLineItemsTable únicamente en PDFs"
+  ]
+}
