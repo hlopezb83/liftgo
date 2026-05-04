@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.55.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Modularización de DeliveriesPage en formulario reutilizable",
+    "category": "refactor"
+  },
+  {
     "version": "5.54.0",
     "date": "2026-05-04",
     "type": "minor",
