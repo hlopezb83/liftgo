@@ -1,0 +1,13 @@
+{
+  "version": "5.55.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Modularización de DeliveriesPage",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "refactor",
+      "description": "DeliveriesPage reducida a un orquestador puro extrayendo el formulario de programación a DeliveryFormDialog reutilizable."
+    }
+  ]
+}
