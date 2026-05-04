@@ -5,7 +5,7 @@ export function GanttHeader({ days }: { days: Date[] }) {
   return (
     <>
       {/* Day-of-week header */}
-      <div className="flex border-b pb-1 mb-0">
+      <div className="flex border-b pt-3 pb-1 mb-0">
         <div className="w-48 shrink-0" />
         <div className="flex-1 flex">
           {days.map((day) => {
