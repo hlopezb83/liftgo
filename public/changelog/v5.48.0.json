@@ -1,0 +1,14 @@
+{
+  "version": "5.48.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Refactor de páginas grandes (>250 líneas)",
+  "description": "Se modularizaron ChangelogPage, MaintenancePage y OperatingExpensesPage separando UI, estado y reglas de negocio en componentes y hooks dedicados.",
+  "changes": [
+    "ChangelogPage: extraídos ChangelogEntryCard, useChangelogDeepLink y constantes a src/lib/changelogConstants.ts (271 → 110 líneas).",
+    "MaintenancePage: nuevo hook useMaintenanceForm encapsula el formulario, edición y prompt de disponibilidad; renderers movidos a MaintenanceRow.tsx (261 → 173 líneas).",
+    "OperatingExpensesPage: diálogo de edición extraído a ExpenseEditDialog y filtros a useExpenseFilters; tipo de useUpdateExpense ampliado con supplier_id (256 → 156 líneas).",
+    "Mejor separación de UI / estado / lógica en cada página, facilitando pruebas y reutilización."
+  ]
+}
