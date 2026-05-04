@@ -1,0 +1,19 @@
+{
+  "description": "Refactor completo del módulo de Changelog: validación de esquema, integración con TanStack Query, búsqueda, deep-linking, versión visible en sidebar, payload optimizado mediante división del JSON y mejoras de accesibilidad.",
+  "changes": [
+    "JSON dividido: índice ligero (~32KB vs 148KB) + detalles lazy-loaded por versión en /public/changelog/v*.json",
+    "Validación de esquema en runtime con manejo de errores tipado (sin Zod para evitar runtime extra)",
+    "Migrado a TanStack Query con staleTime: Infinity y caché compartido entre página y sidebar",
+    "Manejo de errores con sonner y estado de error visible (sin loading infinito)",
+    "Búsqueda por versión y título con debounce vía SearchBar (Ctrl+K)",
+    "Deep-linking: /changelog#vX.Y.Z hace scroll y resalta la entrada con ring-2 ring-primary por 2.5s",
+    "Botón 'Copiar enlace' por entrada con icono Link",
+    "Versión actual visible en SidebarFooter como NavLink a /changelog",
+    "Ordenamiento robusto por fecha desc + desempate semver (no por orden de array)",
+    "Categorías secundarias opcionales (feature/fix/docs/refactor/security) con badge y filtro",
+    "Semántica accesible: <ol>/<li>, aria-expanded, aria-controls, aria-label en filtros",
+    "Entradas colapsables con carga lazy del detalle (description + changes) bajo demanda",
+    "Script one-shot scripts/split-changelog.ts para regenerar la división",
+    "Corrección de JSON corrupto en v5.25.0 (coma faltante)"
+  ]
+}
