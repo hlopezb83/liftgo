@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { usePagination } from "@/hooks/usePagination";
+import { useListPage } from "@/hooks/useListPage";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import type { AppRole } from "@/hooks/useUserRole";
 
@@ -51,7 +51,7 @@ export default function UserManagementPage() {
     return matchesSearch && matchesRole;
   }), [users, search, filterRole]);
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
   const handleResetPassword = async (userId: string) => {
     await resetPassword.mutateAsync(userId);

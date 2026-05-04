@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SearchBar } from "@/components/SearchBar";
 import { useChangelog } from "@/hooks/useChangelog";
 import { getCurrentVersion } from "@/lib/changelog";
-import { usePagination } from "@/hooks/usePagination";
+import { useListPage } from "@/hooks/useListPage";
 import { TablePagination } from "@/components/TablePagination";
 import { ChangelogEntryCard } from "@/components/changelog/ChangelogEntryCard";
 import { useChangelogDeepLink } from "@/hooks/useChangelogDeepLink";
@@ -32,7 +32,7 @@ export default function ChangelogPage() {
     });
   }, [changelog, filter, categoryFilter, search]);
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
+  const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
   useEffect(() => { setPage(1); }, [filter, categoryFilter, search, setPage]);
 
   if (isLoading) {

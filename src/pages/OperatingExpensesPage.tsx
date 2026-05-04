@@ -18,7 +18,7 @@ import { ExpenseFormDialog } from "@/components/expenses/ExpenseFormDialog";
 import { ExpenseDetailSheet } from "@/components/expenses/ExpenseDetailSheet";
 import { ExpenseEditDialog } from "@/components/expenses/ExpenseEditDialog";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { usePagination } from "@/hooks/usePagination";
+import { useListPage } from "@/hooks/useListPage";
 import { useExpenseFilters } from "@/hooks/expenses/useExpenseFilters";
 
 export default function OperatingExpensesPage() {
@@ -30,7 +30,7 @@ export default function OperatingExpensesPage() {
   const [selectedExpense, setSelectedExpense] = useState<OperatingExpense | null>(null);
 
   const f = useExpenseFilters(expenses);
-  const { page, setPage, totalPages, paginatedItems } = usePagination(f.filtered);
+  const { page, setPage, totalPages, paginatedItems } = useListPage(f.filtered);
 
   const renderRow = (e: OperatingExpense) => (
     <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedExpense(e)}>
