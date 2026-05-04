@@ -1,0 +1,12 @@
+{
+  "description": "Nuevo componente DataTable reusable y extensión de ListPageLayout con soporte mobileCardRender. Migración de páginas con tablas crudas a wrappers estandarizados con sort, mobile cards y empty states consistentes.",
+  "changes": [
+    "Nuevo src/components/DataTable.tsx: tabla embebida reusable con sort integrado, MobileCardList automático, footer opcional, alineación por columna y hideOnMobile",
+    "ListPageLayout extendido con mobileCardRender y mobileKeyExtractor para renderizar cards en mobile sin código adicional",
+    "MrrDetailPage migrada a DataTable con sort en todas las columnas (default: monthly_rate desc) y footer con total MRR",
+    "SupplierDetailPage migrada a DataTable en sus dos tablas embebidas (gastos y mantenimiento vinculados)",
+    "PortalRentals, PortalInvoices, PortalContracts, PortalInvoiceDetail migradas a DataTable con sort por fecha desc por defecto",
+    "InventoryPage migrada a ListPageLayout con paginación, mobile cards y empty state estandarizados",
+    "Patrón canónico documentado: ListPageLayout para listados principales, DataTable para tablas embebidas, ReadOnlyLineItemsTable para PDFs"
+  ]
+}
