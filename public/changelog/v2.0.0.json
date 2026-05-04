@@ -1,0 +1,11 @@
+{
+  "description": "Gran actualización que agrega sistema de usuarios con roles, cotizaciones, actividad y registro de daños.",
+  "changes": [
+    "Sistema de autenticación con login y registro",
+    "Roles de usuario: admin, dispatcher, mecánico",
+    "Control de acceso por rol en todas las secciones",
+    "Módulo de cotizaciones con número consecutivo",
+    "Feed de actividad en tiempo real",
+    "Registro de daños vinculado a equipos y reservas"
+  ]
+}

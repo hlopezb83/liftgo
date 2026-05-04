@@ -1,0 +1,8 @@
+{
+  "description": "El botón 'Devolución Anticipada' en reservas ahora navega al módulo de devoluciones con la reserva pre-seleccionada, usando el mismo flujo de inspección completo.",
+  "changes": [
+    "Botón 'Devolución Anticipada' navega a /returns con booking_id",
+    "ReturnInspectionPage auto-abre dialog y pre-selecciona reserva desde query param",
+    "Eliminado dialog inline de devolución anticipada en BookingActions"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "description": "El estado 'sent' en cotizaciones ahora muestra 'Enviada' en lugar de 'Sin Pagar'.",
+  "changes": [
+    "Corregida etiqueta de estado 'sent' en el módulo de cotizaciones para mostrar 'Enviada'",
+    "Agregado soporte de label override en componente StatusBadge"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Se eliminaron las columnas Fabricante, Capacidad y Altura de la tabla de inventario de flota para simplificar la vista.",
+  "changes": [
+    "Eliminada columna Fabricante",
+    "Eliminada columna Capacidad",
+    "Eliminada columna Altura",
+    "Actualizado export CSV y vista móvil"
+  ]
+}

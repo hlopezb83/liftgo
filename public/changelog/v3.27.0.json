@@ -1,0 +1,8 @@
+{
+  "description": "Los administradores ahora pueden eliminar clientes desde la página de detalle, con validación de dependencias y confirmación.",
+  "changes": [
+    "Botón 'Eliminar' en detalle de cliente (solo admin)",
+    "Validación: no se permite eliminar si tiene reservas o facturas",
+    "Diálogo de confirmación con AlertDialog"
+  ]
+}

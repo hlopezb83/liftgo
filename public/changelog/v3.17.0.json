@@ -1,0 +1,9 @@
+{
+  "description": "Comparativo año vs año, gráfica de utilidad neta, margen bruto y exportación a PDF en el reporte de Estado de Resultados.",
+  "changes": [
+    "Modo 'Comparativo' año vs año con variación absoluta y porcentual",
+    "Gráfica de área de Utilidad Neta mensual con línea de referencia en cero",
+    "Fila de Margen Bruto (%) después de Utilidad Bruta",
+    "Botón de exportar a PDF con encabezado de empresa y formato contable"
+  ]
+}

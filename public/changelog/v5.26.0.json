@@ -1,0 +1,12 @@
+{
+  "description": "Se ejecutan los pasos 1-4 del plan de auditoría de rendimiento: nueva RPC agregada para detalle de cliente, ajustes de React Query, separación de chunks de Vite, memoización de componentes pesados del Dashboard y eliminación de fetch redundante en AuthProvider.",
+  "changes": [
+    "Nueva RPC get_customer_summary que devuelve reservas, facturas y totales en una sola llamada (CustomerDetailPage deja de descargar todas las reservas y facturas globales)",
+    "QueryClient ahora usa refetchOnWindowFocus:false, staleTime 60s y gcTime 5min por defecto",
+    "staleTime de 5min en catálogos estáticos (equipment_models, drivers, mechanics, suppliers)",
+    "vite.config.ts con manualChunks: separa recharts, jspdf, @radix-ui y vendor (react/react-dom/router/react-query)",
+    "AuthProvider elimina getSession() redundante (onAuthStateChange ya emite INITIAL_SESSION)",
+    "React.memo en StatCards, FleetStatusChart, CashFlowChart, UtilizationCharts e InvoiceBreakdown",
+    "GanttChart memoiza el array de días para evitar recrearlo en cada render"
+  ]
+}

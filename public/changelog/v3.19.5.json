@@ -1,0 +1,8 @@
+{
+  "description": "Se asignó un color gris-azul oscuro al estado 'Completado' para distinguirlo del verde de 'Confirmado'.",
+  "changes": [
+    "Nuevo token --status-completed (gris-azul oscuro)",
+    "StatusBadge usa bg-status-completed para el estado completado",
+    "Confirmado mantiene verde, Completado ahora es gris-azul"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Se agregó un botón 'Editar' en la página de detalle de cliente que abre un formulario pre-llenado para modificar la información.",
+  "changes": [
+    "Botón 'Editar' con icono en el header de detalle de cliente",
+    "Formulario de edición reutilizable extraído como componente compartido (CustomerFormDialog)"
+  ]
+}

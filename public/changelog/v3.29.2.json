@@ -1,0 +1,7 @@
+{
+  "description": "El botón Editar ahora permanece visible cuando una cotización está en estado 'enviada', permitiendo modificarla después de enviarla.",
+  "changes": [
+    "Botón Editar visible en cotizaciones con status draft y sent",
+    "Botón Marcar Enviada solo visible en status draft"
+  ]
+}

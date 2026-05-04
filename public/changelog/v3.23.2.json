@@ -1,0 +1,7 @@
+{
+  "description": "Corregido bug donde los campos Fabricante y Modelo aparecían vacíos al editar un montacargas existente.",
+  "changes": [
+    "Sincronizado el llenado del formulario con la carga de modelos de equipo",
+    "Agregado fallback para mostrar valores guardados aunque no estén en el catálogo"
+  ]
+}

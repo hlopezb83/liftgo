@@ -1,0 +1,9 @@
+{
+  "description": "Se restaura la visibilidad del logo de la empresa en /, /portal/login y header del portal de clientes antes de iniciar sesión. Se creó la función RPC pública get_public_branding() que expone únicamente logo_url y razon_social, manteniendo protegidos los datos sensibles (RFC, régimen fiscal, llaves de Facturapi). Nuevo hook usePublicBranding reemplaza a useCompanySettings en pantallas no autenticadas.",
+  "changes": [
+    "Nueva función RPC get_public_branding() (SECURITY DEFINER, accesible para anon)",
+    "Nuevo hook usePublicBranding para pantallas públicas",
+    "AuthPage, CustomerPortalLayout y PortalLogin migrados al hook público",
+    "Datos fiscales sensibles permanecen protegidos por RLS"
+  ]
+}

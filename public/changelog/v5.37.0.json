@@ -1,0 +1,12 @@
+{
+  "description": "Cierre del plan de auditoría (pasos 7-13). Eliminados los últimos any residuales en SupplierDetailPage, DeliveryDetail e InventoryPage usando los tipos derivados de Supabase. Nuevo módulo src/lib/routes.ts con constantes tipadas para rutas, listo para sustituir literales mágicos en navegación. CRMPage (285 LOC) descompuesto en ProspectCard y KanbanColumn presentacionales. ReturnInspectionPage (285 LOC) extrae ReturnInspectionDialog autónomo. La omisión deliberada de mover los 63 hooks a subcarpetas se documenta como decisión: la convención useX ya provee organización funcional sin justificar cambios masivos en imports.",
+  "changes": [
+    "Eliminados todos los `any` en SupplierDetailPage, DeliveryDetail e InventoryPage (tipado derivado de Supabase)",
+    "Nuevo src/lib/routes.ts con constantes ROUTES tipadas para todas las rutas de la app",
+    "Nuevo componente ProspectCard (presentacional, drag-and-drop encapsulado)",
+    "Nuevo componente KanbanColumn que encapsula columna del pipeline CRM",
+    "Nuevo ReturnInspectionDialog autónomo extraído de ReturnInspectionPage",
+    "CRMPage reducido de 285 a ~190 LOC con `useMemo` aplicado a quoteMap, filteredProspects y prospectsByStage",
+    "ReturnInspectionPage reducido de 285 a ~200 LOC con dialog desacoplado"
+  ]
+}

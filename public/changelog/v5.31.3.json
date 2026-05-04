@@ -1,0 +1,7 @@
+{
+  "description": "El KPI de MRR mostraba $0 porque exigía bookings con estado 'active', pero las reservas vigentes usan el estado 'confirmed'. Ahora se calcula igual que el desglose detallado: forklifts con reserva recurrente vigente a la fecha de hoy.",
+  "changes": [
+    "MRR actual basado en vigencia de fechas (start_date <= hoy <= end_date)",
+    "Lógica homologada con get_mrr_detail para evitar discrepancias"
+  ]
+}

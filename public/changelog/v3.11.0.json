@@ -1,0 +1,9 @@
+{
+  "description": "Nuevo sistema de captura de fotos con arrastrar y soltar, cámara móvil y galería de imágenes a pantalla completa con navegación táctil.",
+  "changes": [
+    "Nuevo componente DragDropImageUploader con react-dropzone: drag-and-drop, previsualización y captura de cámara en móvil",
+    "Nuevo componente ImageGalleryLightbox con navegación por teclado, swipe táctil, zoom y tira de miniaturas",
+    "Sección DamagePhotosSection integrada en ForkliftDetail para ver y subir fotos de daño",
+    "Componente reutilizable para cualquier entidad que necesite gestión de fotos"
+  ]
+}

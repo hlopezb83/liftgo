@@ -1,0 +1,9 @@
+{
+  "description": "Se agregó la columna 'No. de Serie' a la tabla de inventario de flota, visible en desktop, móvil, búsqueda y exportación CSV.",
+  "changes": [
+    "Nueva columna sorteable 'No. de Serie' entre Fabricante y Capacidad",
+    "Búsqueda incluye número de serie",
+    "Exportación CSV incluye número de serie",
+    "Tarjetas móviles muestran S/N cuando existe"
+  ]
+}

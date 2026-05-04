@@ -1,0 +1,8 @@
+{
+  "description": "Ahora puedes adjuntar fotos directamente al reportar un daño manual, sin necesidad de crear el registro primero.",
+  "changes": [
+    "Zona de drag-and-drop para fotos dentro del diálogo 'Reportar Daño'",
+    "Previews locales antes de subir, con opción de eliminar",
+    "Las fotos se suben automáticamente al crear el registro de daño"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Tablas mejoradas con filas zebra, encabezados sticky, bordes definidos y densidad compacta en toda la app.",
+  "changes": [
+    "Filas zebra con fondo alternado para mejor legibilidad",
+    "Encabezados sticky que permanecen fijos al hacer scroll",
+    "Bordes y separadores mejorados con fondo en header",
+    "Densidad compacta: padding reducido para mostrar más datos",
+    "Encabezados en mayúsculas con tracking amplio para jerarquía visual"
+  ]
+}

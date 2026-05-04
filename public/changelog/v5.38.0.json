@@ -1,0 +1,3 @@
+{
+  "description": "Dashboard reorganizado en secciones (Alerts, Charts). DeliveryDetail dividido en cards reutilizables (Status, Equipment, Logistics, Booking) y acciones extraídas. ContractDetail con header de acciones aislado. Generador PDF de contratos modularizado en header/declarations/clauses/signatures. Tipado estricto con jsPDF en helpers compartidos."
+}

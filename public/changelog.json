@@ -3,2908 +3,1392 @@
     "version": "5.43.2",
     "date": "2026-05-02",
     "type": "patch",
-    "title": "Ampliación de architecture.md",
-    "description": "Documentación de arquitectura ampliada: nuevas secciones para Portal de Cliente, Integraciones externas (Facturapi, Lovable AI Gateway, parseo CSF), Migraciones de base de datos y Reglas de negocio críticas (invariantes). Se aclaró que public/changelog.json es la fuente consumida en runtime, se documentaron los 6 roles del enum app_role con un ejemplo real de policy basada en has_role(), y se expandió la lista de anti-patrones (alert/confirm nativos, console.log, FK a auth.users, nested wildcards, terminología hacia el usuario).",
-    "changes": [
-      "Nueva sección §8 Portal de Cliente con modelo de seguridad por customer_id",
-      "Nueva sección §10 Integraciones externas (Facturapi, Lovable AI, CSF)",
-      "Nueva sección §13 Reglas de negocio críticas (invariantes de dominio)",
-      "Nueva sección §14 Migraciones de base de datos con políticas y schemas reservados",
-      "Sección §6 expandida: roles del enum app_role, role_permissions, ejemplo de policy con has_role()",
-      "Sección §11 expandida: catálogo de componentes y hooks UI estándar",
-      "Anti-patrones expandidos: alert/confirm, console.log, FK a auth.users, nested wildcards, terminología Lovable Cloud"
-    ]
+    "title": "Ampliación de architecture.md"
   },
   {
     "version": "5.43.1",
     "date": "2026-04-29",
     "type": "patch",
-    "title": "Corrección de sobreposición en header del PDF de Estado de Resultados",
-    "description": "El logo de la empresa se sobreponía con la razón social y el RFC en el encabezado del PDF. Ahora el logo se ubica en la esquina superior izquierda con altura controlada (16mm) y los datos fiscales se renderizan debajo, evitando colisiones. El separador horizontal se calcula dinámicamente respetando la altura del bloque más alto entre logo+datos y título+periodo.",
-    "changes": [
-      "Logo del emisor con altura máxima reducida a 16mm para layout compacto",
-      "Datos fiscales (razón social y RFC) ahora se dibujan debajo del logo",
-      "Razón social destacada en negrita para jerarquía visual",
-      "Separador horizontal dinámico según altura de bloques izquierdo y derecho"
-    ]
+    "title": "Corrección de sobreposición en header del PDF de Estado de Resultados"
   },
   {
     "version": "5.43.0",
     "date": "2026-04-29",
     "type": "minor",
-    "title": "Rediseño PDF de Estado de Resultados",
-    "description": "El PDF del Estado de Resultados ahora usa el mismo lenguaje visual premium minimalista industrial del PDF de cotización: barra de acento superior, header con logo proporcional + datos fiscales del emisor, tipografía consistente (Helvetica), tabla con header gris claro, filas zebra, subtotales destacados, footer corporativo y márgenes A4 estandarizados. Se reutilizan los tokens de diseño compartidos (GRAY_*, FONT_*, MARGIN) para mantener una sola fuente de verdad.",
-    "changes": [
-      "Header PDF rediseñado con logo proporcional y datos del emisor",
-      "Tabla con header gris claro y filas zebra alternas",
-      "Subtotales con fondo destacado y tipografía bold",
-      "Footer corporativo en cada página",
-      "Re-render del header de tabla en páginas adicionales",
-      "Tokens de diseño unificados con el PDF de cotización"
-    ]
+    "title": "Rediseño PDF de Estado de Resultados"
   },
   {
     "version": "5.42.2",
     "date": "2026-04-29",
     "type": "patch",
-    "title": "Corrección Estado de Resultados",
-    "description": "Se corrige el RPC get_income_statement que fallaba con error 'column expense_date does not exist' al referenciar una columna inexistente en el SELECT externo del CTE expenses_by_month. El reporte ahora vuelve a mostrar los meses con sus ingresos, costos y gastos.",
-    "changes": [
-      "Fix CTE expenses_by_month en get_income_statement",
-      "Estado de Resultados vuelve a cargar datos por mes"
-    ]
+    "title": "Corrección Estado de Resultados"
   },
   {
     "version": "5.42.1",
     "date": "2026-04-28",
     "type": "patch",
-    "title": "Logo restaurado en pantallas de login (público)",
-    "description": "Se restaura la visibilidad del logo de la empresa en /, /portal/login y header del portal de clientes antes de iniciar sesión. Se creó la función RPC pública get_public_branding() que expone únicamente logo_url y razon_social, manteniendo protegidos los datos sensibles (RFC, régimen fiscal, llaves de Facturapi). Nuevo hook usePublicBranding reemplaza a useCompanySettings en pantallas no autenticadas.",
-    "changes": [
-      "Nueva función RPC get_public_branding() (SECURITY DEFINER, accesible para anon)",
-      "Nuevo hook usePublicBranding para pantallas públicas",
-      "AuthPage, CustomerPortalLayout y PortalLogin migrados al hook público",
-      "Datos fiscales sensibles permanecen protegidos por RLS"
-    ]
+    "title": "Logo restaurado en pantallas de login (público)"
   },
   {
     "version": "5.42.0",
     "date": "2026-04-26",
     "type": "minor",
-    "title": "Auditoría: 5 refactors de alto impacto en páginas y rutas",
-    "description": "Extraídos hooks/sub-componentes para reducir complejidad ciclomática en hotspots: useDashboardSections (Dashboard 25→0), useContractDetailLogic + ContractConditionsCard (ContractDetail 27→17), useBookingFormLogic (BookingForm 24→16), ProspectFormFields (ProspectFormDialog 20→16). Configuración de rutas migrada de routes.tsx a lib/routes-config.tsx para eliminar el warning de fast-refresh. Sin cambios funcionales ni de UI."
+    "title": "Auditoría: 5 refactors de alto impacto en páginas y rutas"
   },
   {
     "version": "5.41.0",
     "date": "2026-04-26",
     "type": "minor",
-    "title": "Refactor de modularización: 5 componentes divididos",
-    "description": "Eliminado último error ESLint (require → import en tailwind.config). Extraídos hooks y subcomponentes: useBookingActionsLogic (BookingActions), useReportDamageForm + DamageEvidenceSection (ReportDamageDialog), IncomeStatementTable + IncomeStatementToolbar (IncomeStatementReport), AddMaintenancePartForm (MaintenancePartsSection). Resultado: 0 errores ESLint, warnings reducidos de 50 a 45."
+    "title": "Refactor de modularización: 5 componentes divididos"
   },
   {
     "version": "5.40.1",
     "date": "2026-04-26",
     "type": "patch",
-    "title": "Logo visible en pantalla de inicio de sesión",
-    "description": "Se agregó política RLS de lectura pública para company_settings. El logo y razón social ahora cargan correctamente en /auth y /portal/login antes de iniciar sesión."
+    "title": "Logo visible en pantalla de inicio de sesión"
   },
   {
     "version": "5.40.0",
     "date": "2026-04-26",
     "type": "minor",
-    "title": "Type-safety completo y registro único de placeholders de contrato",
-    "description": "Eliminados los 19 'any' residuales en hooks de prefill (invoice/quote), formularios (forklift, booking), componentes de detalle (ForkliftSpecsCard, ProspectDetailSheet, CollectionNotesCard, ImageGalleryLightbox) y portal (PortalInvoiceDetail). exportToCsv ahora usa generics estrictos. Los placeholders de plantilla de contrato se centralizan en placeholderRegistry.ts como fuente única de verdad. ESLint: 0 errores (down from 19)."
+    "title": "Type-safety completo y registro único de placeholders de contrato"
   },
   {
     "version": "5.39.0",
     "date": "2026-04-26",
     "type": "minor",
-    "title": "Tipado estricto en tests, hooks genéricos y modularización de Suppliers/Inventory",
-    "description": "Eliminación de 'any' en tests (paymentFlow, invoiceFlow, bookingFlow, exportCsv, InvoicesPage) y en hooks genéricos (useListPage, useListFilters, useSort, useAuditLogs). Anexos PDF de contrato (Checklist y Pagaré) ahora usan tipos jsPDF estrictos. División de contractSections.ts en sub-módulos por sección (header/declarations/clauses/signatures). SuppliersPage e InventoryPage modularizadas extrayendo SupplierFormDialog y PartFormDialog. Errores ESLint reducidos de 48 a 19."
+    "title": "Tipado estricto en tests, hooks genéricos y modularización de Suppliers/Inventory"
   },
   {
     "version": "5.38.1",
     "date": "2026-04-26",
     "type": "patch",
-    "title": "Logo de empresa en página de autenticación",
-    "description": "La página de inicio de sesión (AuthPage) ahora muestra el logo configurado en Configuración Fiscal en lugar del monograma 'LG'. Si no hay logo cargado, se mantiene el monograma como fallback."
+    "title": "Logo de empresa en página de autenticación"
   },
   {
     "version": "5.38.0",
     "date": "2026-04-26",
     "type": "minor",
-    "title": "Refactor arquitectónico: modularización de Dashboard, DeliveryDetail y generador de contratos PDF",
-    "description": "Dashboard reorganizado en secciones (Alerts, Charts). DeliveryDetail dividido en cards reutilizables (Status, Equipment, Logistics, Booking) y acciones extraídas. ContractDetail con header de acciones aislado. Generador PDF de contratos modularizado en header/declarations/clauses/signatures. Tipado estricto con jsPDF en helpers compartidos."
+    "title": "Refactor arquitectónico: modularización de Dashboard, DeliveryDetail y generador de contratos PDF"
   },
   {
     "version": "5.37.0",
     "date": "2026-04-25",
     "type": "minor",
-    "title": "Refactor arquitectónico: tipado estricto, rutas centralizadas y CRM/Devoluciones modularizados",
-    "description": "Cierre del plan de auditoría (pasos 7-13). Eliminados los últimos any residuales en SupplierDetailPage, DeliveryDetail e InventoryPage usando los tipos derivados de Supabase. Nuevo módulo src/lib/routes.ts con constantes tipadas para rutas, listo para sustituir literales mágicos en navegación. CRMPage (285 LOC) descompuesto en ProspectCard y KanbanColumn presentacionales. ReturnInspectionPage (285 LOC) extrae ReturnInspectionDialog autónomo. La omisión deliberada de mover los 63 hooks a subcarpetas se documenta como decisión: la convención useX ya provee organización funcional sin justificar cambios masivos en imports.",
-    "changes": [
-      "Eliminados todos los `any` en SupplierDetailPage, DeliveryDetail e InventoryPage (tipado derivado de Supabase)",
-      "Nuevo src/lib/routes.ts con constantes ROUTES tipadas para todas las rutas de la app",
-      "Nuevo componente ProspectCard (presentacional, drag-and-drop encapsulado)",
-      "Nuevo componente KanbanColumn que encapsula columna del pipeline CRM",
-      "Nuevo ReturnInspectionDialog autónomo extraído de ReturnInspectionPage",
-      "CRMPage reducido de 285 a ~190 LOC con `useMemo` aplicado a quoteMap, filteredProspects y prospectsByStage",
-      "ReturnInspectionPage reducido de 285 a ~200 LOC con dialog desacoplado"
-    ]
+    "title": "Refactor arquitectónico: tipado estricto, rutas centralizadas y CRM/Devoluciones modularizados"
   },
   {
     "version": "5.36.0",
     "date": "2026-04-25",
     "type": "minor",
-    "title": "Refactor arquitectónico: páginas grandes modularizadas (CompanySettings, Maintenance)",
-    "description": "Tercera iteración del plan de modularización (Alto Impacto 4-6 del audit). CompanySettingsPage (298 LOC) se descompuso en CompanyFiscalForm, PacConfigForm con sub-componente reutilizable ApiKeyField, y LogoUploader autónomo con manejo propio de carga a storage. MaintenancePage (295 LOC) extrajo MaintenanceFormDialog y MaintenanceFiltersBar como componentes presentacionales aislados. La separación de concerns mejora testabilidad y permite reutilizar piezas como LogoUploader en futuros módulos.",
-    "changes": [
-      "Nuevo directorio company-settings/ con CompanyFiscalForm, PacConfigForm y LogoUploader",
-      "Componente interno ApiKeyField encapsula el patrón de campo password con toggle de visibilidad e indicador de estado",
-      "Nuevo MaintenanceFormDialog que centraliza el formulario de alta/edición de servicios",
-      "Nuevo MaintenanceFiltersBar para la barra de búsqueda + filtro de equipo",
-      "CompanySettingsPage reducido a 70 LOC (antes 298)",
-      "MaintenancePage reducido a 230 LOC con dialog y filtros desacoplados"
-    ]
+    "title": "Refactor arquitectónico: páginas grandes modularizadas (CompanySettings, Maintenance)"
   },
   {
     "version": "5.35.0",
     "date": "2026-04-25",
     "type": "minor",
-    "title": "Refactor arquitectónico: BookingDetail, PDF de contratos y form payloads",
-    "description": "Segunda iteración del plan de modularización (Críticos 1-3 del audit post-v5.34). BookingDetail.tsx se descompuso en 6 cards de dominio (Equipment, Customer, Period, Billing, Hourometer, Extensions) más el hook useBookingHourometer y el componente compartido InfoRow. lib/pdf/contract/data.ts (complejidad 34) se dividió en placeholders.ts (con builders por dominio: party/usage/pricing/equipment) y fetchers.ts. Los hooks useForkliftFormLogic y useContractFormLogic delegan ahora la construcción de payloads y validaciones de unicidad a funciones puras en src/lib/forms/, mejorando testabilidad y separación de concerns.",
-    "changes": [
-      "Nuevo componente compartido src/components/InfoRow.tsx (label/value reutilizable)",
-      "Nuevo directorio booking-detail/ con 6 cards modulares",
-      "Nuevo hook useBookingHourometer que aísla el cálculo de horas usadas",
-      "lib/pdf/contract/placeholders.ts y fetchers.ts reemplazan al monolítico data.ts (mantiene barrel para compatibilidad)",
-      "Nuevo módulo src/lib/forms/ con buildForkliftPayload, validateForkliftUniqueness, mapForkliftMutationError y buildContractPayload",
-      "BookingDetail.tsx reducido a ~95 LOC (antes 219)"
-    ]
+    "title": "Refactor arquitectónico: BookingDetail, PDF de contratos y form payloads"
   },
   {
     "version": "5.34.0",
     "date": "2026-04-25",
     "type": "minor",
-    "title": "Refactor arquitectónico: complejidad reducida en páginas Detail",
-    "description": "Tres páginas Detail con alta complejidad ciclomática se modularizaron sin cambios funcionales. InvoiceDetail (44) extrajo useInvoiceDetailActions + InvoiceDetailActions + InvoiceSourceLinks. QuoteDetail (33) extrajo QuoteDetailActions + QuoteConversionDialogs (3 diálogos agrupados). ReturnInspectionDetail (27) se descompuso en 5 cards reutilizables (Equipment, Booking, Inspection, UsageFuel, Damages) más InfoRow.",
-    "changes": [
-      "Nuevo hook useInvoiceDetailActions que orquesta diálogos y mutaciones de factura",
-      "Nuevos componentes invoice-detail/InvoiceDetailActions e InvoiceSourceLinks",
-      "Nuevos componentes quotes/QuoteDetailActions y QuoteConversionDialogs",
-      "Nuevo directorio return-inspection/ con 5 cards modulares + InfoRow compartido",
-      "InvoiceDetail.tsx, QuoteDetail.tsx y ReturnInspectionDetail.tsx ahora son declarativos (<150 LOC)"
-    ]
+    "title": "Refactor arquitectónico: complejidad reducida en páginas Detail"
   },
   {
     "version": "5.33.0",
     "date": "2026-04-25",
     "type": "minor",
-    "title": "Refactor críticos: complejidad reducida en formularios, hooks y PDFs",
-    "description": "Cuatro refactors críticos sin cambios funcionales. ProspectFormDialog (complejidad 31) se dividió en useProspectForm + 3 subcomponentes. useCustomerDetailPage (complejidad 25) se separó en dialogs + actions. useStatementRows (complejidad 35) se simplificó extrayendo factories puras. customerStatement.ts (211 LOC) e incomeStatement.ts se modularizaron en submódulos parts/tables/header/rows.",
-    "changes": [
-      "Nuevo hook useProspectForm que encapsula estado, validación y matching de cotizaciones",
-      "Nuevos subcomponentes: ProspectStageBadge, ProspectQuoteSelector, ProspectCloseDealActions",
-      "useCustomerDetailPage dividido en useCustomerDetailDialogs + useCustomerDetailActions",
-      "useStatementRows refactorizado con factories puras en statementRowFactories.ts",
-      "lib/pdf/customerStatement/ con submódulos parts.ts (badges, cards) y tables.ts",
-      "lib/pdf/incomeStatement/ con submódulos header.ts y rows.ts (drawing helpers)"
-    ]
+    "title": "Refactor críticos: complejidad reducida en formularios, hooks y PDFs"
   },
   {
     "version": "5.32.0",
     "date": "2026-04-25",
     "type": "minor",
-    "title": "Refactor arquitectónico: separación de responsabilidades",
-    "description": "Mejoras estructurales sin cambios funcionales. CustomerDetailPage redujo su complejidad ciclomática de 52 a <15 extrayendo un hook orquestador y 5 subcomponentes. Los hooks de lógica más grandes (useQuoteDetailLogic, useContractFormLogic) se dividieron en módulos data/state/actions siguiendo el patrón ya establecido en quoteForm/. Todos los generadores PDF se consolidaron bajo lib/pdf/ para mejor descubribilidad.",
-    "changes": [
-      "Nuevo hook useCustomerDetailPage que encapsula data, estado y acciones del detalle de cliente",
-      "Nuevos componentes: CustomerProfitabilityCard, CustomerBookingsHistory, CustomerInvoicesList, CustomerDeleteDialog, CustomerInviteDialog",
-      "useQuoteDetailLogic dividido en useQuoteDetailData + useQuoteConversionState + useQuoteConversionActions",
-      "useContractFormLogic dividido en useContractFormState + useContractFormPrefill + defaults",
-      "Reorganización lib/pdf/: shared.ts, customerStatement.ts, incomeStatement.ts, contractGenerator.ts, quoteGenerator.ts, loadImageAsBase64.ts agrupados",
-      "Eliminado uso de any en useContractFormLogic mediante tipos Database"
-    ]
+    "title": "Refactor arquitectónico: separación de responsabilidades"
   },
   {
     "version": "5.31.5",
     "date": "2026-04-20",
     "type": "patch",
-    "title": "Panel: Eliminada tarjeta 'Ingresos por Unidad'",
-    "description": "Se removió la gráfica 'Ingresos por Unidad' del panel principal por aportar poco valor analítico. La tarjeta de 'Utilización de Flota' ahora ocupa el ancho completo.",
-    "changes": [
-      "UtilizationCharts simplificado a una sola gráfica de utilización"
-    ]
+    "title": "Panel: Eliminada tarjeta 'Ingresos por Unidad'"
   },
   {
     "version": "5.31.4",
     "date": "2026-04-19",
     "type": "patch",
-    "title": "Fix: Topar utilización por unidad en 100%",
-    "description": "El campo 'Utilización' del Resumen Financiero del montacargas usa created_at del sistema (no la fecha real de compra), lo que inflaba el porcentaje en equipos cargados tarde al ERP. Ahora se topa en 100% para evitar valores irreales.",
-    "changes": [
-      "Utilización por unidad limitada a 100% máximo en get_forklift_financials"
-    ]
+    "title": "Fix: Topar utilización por unidad en 100%"
   },
   {
     "version": "5.31.3",
     "date": "2026-04-19",
     "type": "patch",
-    "title": "Fix: Ingreso Mensual Recurrente actual en el panel",
-    "description": "El KPI de MRR mostraba $0 porque exigía bookings con estado 'active', pero las reservas vigentes usan el estado 'confirmed'. Ahora se calcula igual que el desglose detallado: forklifts con reserva recurrente vigente a la fecha de hoy.",
-    "changes": [
-      "MRR actual basado en vigencia de fechas (start_date <= hoy <= end_date)",
-      "Lógica homologada con get_mrr_detail para evitar discrepancias"
-    ]
+    "title": "Fix: Ingreso Mensual Recurrente actual en el panel"
   },
   {
     "version": "5.31.2",
     "date": "2026-04-19",
     "type": "patch",
-    "title": "Fix: KPIs financieros del panel restaurados",
-    "description": "Se corrigió un error en el cálculo de DSO que rompía la función get_financial_kpis y dejaba en blanco las tarjetas de Ingreso Mensual Recurrente, DSO y Cartera Vencida en el panel principal.",
-    "changes": [
-      "Cálculo de DSO simplificado usando resta directa de fechas (date - date = días)",
-      "MRR, DSO y Cartera Vencida ahora se muestran correctamente con sus tendencias"
-    ]
+    "title": "Fix: KPIs financieros del panel restaurados"
   },
   {
     "version": "5.30.1",
     "date": "2026-04-19",
     "type": "patch",
-    "title": "Estado de Cuenta PDF rediseñado con estilo Premium",
-    "description": "El PDF de Estado de Cuenta ahora utiliza el mismo template maestro que las cotizaciones: barra de acento, header premium con logo, tarjetas Emisor/Cliente, paleta industrial minimalista en grises y badge de estado de saldo (Pagado / Con saldo / Vencido).",
-    "changes": [
-      "Header premium homologado con cotizaciones (logo + folio EC-yyyyMMdd + título)",
-      "Tarjetas Emisor / Cliente con datos fiscales completos",
-      "Tres tarjetas de resumen: Total Facturado, Total Pagado y Saldo Pendiente con color condicional",
-      "Tablas en paleta gris (sin colores saturados) con filas zebra y headers oscuros",
-      "Badge de estado de saldo: PAGADO (verde) / CON SALDO (ámbar) / VENCIDO (rojo)",
-      "Footer uniforme con paginación y fecha de emisión"
-    ]
+    "title": "Estado de Cuenta PDF rediseñado con estilo Premium"
   },
   {
     "version": "5.30.0",
     "date": "2026-04-19",
     "type": "minor",
-    "title": "Quick wins de UX: Estado de cuenta, Forecast, Confirmaciones y Dark mode",
-    "description": "Cuatro mejoras de alto valor visible y bajo esfuerzo: PDF de Estado de Cuenta por cliente, widget de Pronóstico de Cobranza en el Panel, confirmaciones de eliminación con detalle de dependencias y monto en mora, y activación del Dark mode automático según preferencia del sistema.",
-    "changes": [
-      "Botón 'Estado de Cuenta' en la ficha de cliente: PDF profesional con facturas pendientes, días vencidos, totales y desglose pagado/saldo",
-      "Widget 'Pronóstico de Cobranza' en el Panel: monto vencido + cobranza esperada en 7 y 30 días",
-      "Nuevo hook useUpcomingInvoices para listar facturas próximas a vencer",
-      "Confirmación de eliminación de cliente ahora muestra # de reservas, # de facturas y saldo pendiente exacto",
-      "Dark mode: el toggle del sidebar ahora respeta la preferencia del sistema operativo (enableSystem)"
-    ]
+    "title": "Quick wins de UX: Estado de cuenta, Forecast, Confirmaciones y Dark mode"
   },
   {
     "version": "5.29.1",
     "date": "2026-04-19",
     "type": "patch",
-    "title": "Cierre de auditoría de rendimiento",
-    "description": "Se completa la revisión de los puntos pendientes del plan: tras auditar 16 consumidores de useForklifts() y todos los <img> del proyecto, se confirma que reemplazar la lista completa por useForkliftOptions en formularios/reportes rompería tipos sin ganancia real, y que las imágenes de la flota no se renderizan en listas (solo logos y firmas únicas). El plan de rendimiento queda formalmente cerrado.",
-    "changes": [
-      "Auditoría: useForklifts() se mantiene en formularios y reportes que requieren todos los campos",
-      "Auditoría: las únicas imágenes a granel son las de daños, que ya usan loading=\"lazy\"",
-      "useForkliftOptions queda disponible para futuros selectors ligeros que solo necesiten id/nombre/estado"
-    ]
+    "title": "Cierre de auditoría de rendimiento"
   },
   {
     "version": "5.29.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Segunda ronda de optimización de rendimiento",
-    "description": "Se ejecuta el plan completo de la segunda auditoría: alertas de seguros vía RPC, debounce en búsquedas, hook ligero para selectors de equipos, rango server-side en calendario, optimistic update de equipos y memoización del sidebar.",
-    "changes": [
-      "Nueva RPC get_insurance_alerts y hook useInsuranceAlerts (Dashboard ya no descarga toda la flota)",
-      "useBookingsRange con filtro server-side por rango de fechas para Calendario",
-      "useForkliftOptions ligero (5 columnas, cache 5min) para selectors",
-      "SearchBar con debounce de 200ms (filtros instantáneos sin recalcular en cada tecla)",
-      "useUpdateForklift usa setQueryData en lugar de invalidar 3 queries grandes",
-      "staleTime 60s en useDocuments, usePayments y useStatusLogs",
-      "Memoización del árbol de navegación en AppSidebar (solo se recalcula al cambiar rol)",
-      "InsuranceAlert envuelto con React.memo"
-    ]
+    "title": "Segunda ronda de optimización de rendimiento"
   },
   {
     "version": "5.28.2",
     "date": "2026-04-18",
     "type": "patch",
-    "title": "Límite de 500 filas en listas globales",
-    "description": "Se aplica un límite explícito de 500 registros (los más recientes) en facturas, cotizaciones, reservas y mantenimientos. Acota el payload sin romper tipos ni componentes y prepara el terreno para paginación server-side futura.",
-    "changes": [
-      "useInvoices, useQuotes, useBookings y useMaintenanceLogs limitan a 500 filas más recientes",
-      "Bookings ahora ordena por start_date descendente para mostrar primero las más nuevas"
-    ]
+    "title": "Límite de 500 filas en listas globales"
   },
   {
     "version": "5.28.1",
     "date": "2026-04-18",
     "type": "patch",
-    "title": "Cierre de auditoría de rendimiento",
-    "description": "Se completan los pasos viables del plan de optimización (1-8). Pasos 9 (paginación server-side de invoices/bookings) y 10 (virtualización de GanttChart) quedan como mejoras preventivas para cuando la flota o el histórico crezcan significativamente.",
-    "changes": [
-      "Auditoría finalizada: RPCs agregadas, manualChunks, staleTime estandarizado, React.memo en dashboard y trigger DB para costo_venta",
-      "Step 2 (select explícitos en hooks globales) pospuesto por alto riesgo de regresión de tipos",
-      "Steps 9-10 documentados como mejoras preventivas a futuro"
-    ]
+    "title": "Cierre de auditoría de rendimiento"
   },
   {
     "version": "5.28.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "RPC agregada para Estado de Resultados",
-    "description": "Se reemplaza el cálculo cliente del Estado de Resultados (que descargaba todas las facturas, mantenimientos, daños, gastos, reservas y montacargas) por una RPC SQL agregada que devuelve los datos ya agrupados por mes.",
-    "changes": [
-      "Nueva RPC get_income_statement(start, end, basis) restringida a admin/administrativo/auditor",
-      "useMonthlyData consume la RPC y elimina 7 hooks de listas globales del flujo de Reportes",
-      "Cálculo de depreciación, ingresos rental vs venta y agrupación por cliente/equipo se ejecuta en la base de datos"
-    ]
+    "title": "RPC agregada para Estado de Resultados"
   },
   {
     "version": "5.27.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Sincronización de costo de venta vía trigger DB",
-    "description": "Se mueve la lógica de sincronización de costo_venta del hook useUpdateForklift a un trigger en la base de datos, eliminando 2 round-trips por edición de montacargas vendido.",
-    "changes": [
-      "Nuevo trigger sync_costo_venta_on_forklift_update sobre forklifts mantiene operating_expenses.costo_venta alineado con acquisition_cost",
-      "useUpdateForklift simplificado: una sola operación de update sin fetches adicionales"
-    ]
+    "title": "Sincronización de costo de venta vía trigger DB"
   },
   {
     "version": "5.26.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Optimizaciones de rendimiento (red, cache, bundle)",
-    "description": "Se ejecutan los pasos 1-4 del plan de auditoría de rendimiento: nueva RPC agregada para detalle de cliente, ajustes de React Query, separación de chunks de Vite, memoización de componentes pesados del Dashboard y eliminación de fetch redundante en AuthProvider.",
-    "changes": [
-      "Nueva RPC get_customer_summary que devuelve reservas, facturas y totales en una sola llamada (CustomerDetailPage deja de descargar todas las reservas y facturas globales)",
-      "QueryClient ahora usa refetchOnWindowFocus:false, staleTime 60s y gcTime 5min por defecto",
-      "staleTime de 5min en catálogos estáticos (equipment_models, drivers, mechanics, suppliers)",
-      "vite.config.ts con manualChunks: separa recharts, jspdf, @radix-ui y vendor (react/react-dom/router/react-query)",
-      "AuthProvider elimina getSession() redundante (onAuthStateChange ya emite INITIAL_SESSION)",
-      "React.memo en StatCards, FleetStatusChart, CashFlowChart, UtilizationCharts e InvoiceBreakdown",
-      "GanttChart memoiza el array de días para evitar recrearlo en cada render"
-    ]
+    "title": "Optimizaciones de rendimiento (red, cache, bundle)"
   },
   {
     "version": "5.25.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Refactor de ForkliftForm bajo el límite de 300 LOC",
-    "description": "ForkliftForm (330 LOC) se descompone en un hook de lógica (useForkliftFormLogic) y tres subcomponentes de sección (Detalles, Tarifas, Seguro). La página queda como composer de ~67 LOC.",
-    "changes": [
-      "Nuevo src/hooks/useForkliftFormLogic.ts centraliza estado, validación y submit",
-      "Nuevos componentes en src/components/forklift-form/ para cada sección del formulario",
-      "ForkliftForm pasa de 330 a 67 LOC sin cambios funcionales"
-    ]
+    "title": "Refactor de ForkliftForm bajo el límite de 300 LOC"
   },
   {
     "version": "5.24.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Modularización de generadores PDF",
-    "description": "quotePdfPremium.ts (473 LOC) y contractPdfGenerator.ts (360 LOC) se descomponen en sub-módulos enfocados bajo src/lib/pdf/. Los archivos originales quedan como barrels finos que re-exportan la API pública sin cambios.",
-    "changes": [
-      "Nuevo src/lib/pdf/quote/ con constants, header, table y totals",
-      "Nuevo src/lib/pdf/contract/ con data, contractPage, checklistPage y pagarePage",
-      "quotePdfPremium.ts y contractPdfGenerator.ts ahora son barrels (~10 LOC)",
-      "Sin cambios en la salida visual ni en la API consumida por los botones de PDF"
-    ]
+    "title": "Modularización de generadores PDF"
   },
   {
     "version": "5.23.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Modularización de la Bitácora de Cambios",
-    "description": "AuditTrailPage (360 LOC) se descompone en componentes enfocados: constantes/traducciones, diálogo de detalle, diálogo de eliminar/revertir, card móvil y fila de tabla. La página queda como composer de ~110 LOC.",
-    "changes": [
-      "Nuevo directorio src/components/auditTrail/ con auditTrailConstants, AuditLogDetailDialog, DeleteAuditLogDialog, AuditLogMobileCard, AuditLogTableRow",
-      "AuditTrailPage reducida a orquestación de estado y filtros",
-      "Sin cambios funcionales: misma UX, mismas acciones admin"
-    ]
+    "title": "Modularización de la Bitácora de Cambios"
   },
   {
     "version": "5.22.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Modularización de hooks de formularios",
-    "description": "Los hooks useQuoteFormLogic y useInvoiceFormLogic se descomponen en sub-módulos: estado del formulario y prefill desde fuente, dejando el composer enfocado en computed values y submit.",
-    "changes": [
-      "Nuevo directorio src/hooks/quoteForm/ con useQuoteFormState y useQuotePrefill",
-      "Nuevo directorio src/hooks/invoiceForm/ con useInvoiceFormState y useInvoicePrefill",
-      "Helper applyCustomerCfdi reutilizable y tipado",
-      "API pública de los hooks composer sin cambios"
-    ]
+    "title": "Modularización de hooks de formularios"
   },
   {
     "version": "5.21.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Modularización del Estado de Resultados",
-    "description": "El hook monolítico useIncomeStatementData (414 LOC) se descompone en sub-módulos especializados por responsabilidad: agregación mensual, totales/comparativos y construcción de filas de presentación.",
-    "changes": [
-      "Nuevo directorio src/hooks/incomeStatement/ con types, useMonthlyData, useStatementTotals y useStatementRows",
-      "useIncomeStatementData ahora es un composer delgado que orquesta los sub-hooks",
-      "Lógica de cálculo de utilidad/margen centralizada en computeDerivedTotals (DRY)",
-      "Sin cambios funcionales: misma API pública del hook, totales idénticos"
-    ]
+    "title": "Modularización del Estado de Resultados"
   },
   {
     "version": "5.20.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Capa de datos: hooks dedicados para edge functions",
-    "description": "Refactor arquitectónico que mueve todas las llamadas directas a Supabase fuera de páginas y componentes, encapsulándolas en hooks de mutación reutilizables con manejo unificado de errores y caché.",
-    "changes": [
-      "Nuevos hooks: useGenerateRecurringInvoices, useGenerateRecurringMaintenance, useStampCfdi, useCancelCfdi, useInviteCustomer, useParseCsf",
-      "InvoicesPage, InvoiceDetail, CustomerDetailPage, MaintenancePage ya no importan supabase directamente",
-      "CustomerFormDialog y CancelCfdiDialog migrados a la nueva capa de hooks",
-      "Mejor invalidación automática de caché de React Query al disparar acciones"
-    ]
+    "title": "Capa de datos: hooks dedicados para edge functions"
   },
   {
     "version": "5.19.0",
     "date": "2026-04-18",
     "type": "minor",
-    "title": "Refuerzo de seguridad en accesos críticos",
-    "description": "Se cierran tres vulnerabilidades detectadas por el escáner de seguridad: timbrado de CFDI sin autenticación, exposición de datos personales de choferes y falta de regla restrictiva en asignación de roles.",
-    "changes": [
-      "stamp-cfdi: ahora exige sesión activa y rol admin/administrativo antes de timbrar",
-      "Choferes: solo roles internos pueden ver nombre, teléfono, correo y licencia (clientes del portal ya no tienen acceso)",
-      "user_roles: regla restrictiva explícita garantiza que solo administradores puedan asignar o cambiar roles"
-    ]
+    "title": "Refuerzo de seguridad en accesos críticos"
   },
   {
     "version": "5.18.1",
     "date": "2026-04-17",
     "type": "patch",
-    "title": "Clasificación correcta de facturas de renta sin reserva",
-    "description": "Las facturas generadas desde una cotización tipo renta ahora se clasifican como 'Ingresos por Rentas' aunque no tengan reserva vinculada. Antes caían erróneamente en 'Ingresos por Ventas'.",
-    "changes": [
-      "Estado de Resultados: facturas con quote_id de tipo rental se cuentan como renta",
-      "Corrige caso reportado: Ring Lock de México (FAC-0028) ahora aparece en rentas"
-    ]
+    "title": "Clasificación correcta de facturas de renta sin reserva"
   },
   {
     "version": "5.18.0",
     "date": "2026-04-17",
     "type": "minor",
-    "title": "Desglose por cliente en Estado de Resultados",
-    "description": "Las filas 'Ingresos por Rentas' e 'Ingresos por Ventas' ahora son expandibles para mostrar el desglose mensual por cliente, igual que la fila de Depreciación.",
-    "changes": [
-      "Click en 'Ingresos por Rentas' muestra el desglose por cliente",
-      "Click en 'Ingresos por Ventas' muestra el desglose por cliente",
-      "Indicador de chevron en filas expandibles"
-    ]
+    "title": "Desglose por cliente en Estado de Resultados"
   },
   {
     "version": "5.17.2",
     "date": "2026-04-16",
     "type": "patch",
-    "title": "Sincronizar fecha de pago al editar pagos",
-    "description": "Al editar un pago registrado, la fecha 'Pagada' en el card de fechas de la factura se actualiza automáticamente con la fecha del pago más reciente.",
-    "changes": [
-      "paid_at se sincroniza al editar pagos (fecha más reciente cuando está pagada, null cuando es parcial o sin pagos)"
-    ]
+    "title": "Sincronizar fecha de pago al editar pagos"
   },
   {
     "version": "5.17.1",
     "date": "2026-04-15",
     "type": "patch",
-    "title": "Editar pagos registrados en facturas",
-    "description": "Permite modificar la fecha, monto, método de pago, referencia y notas de pagos ya registrados en el historial de una factura.",
-    "changes": [
-      "Botón de edición (lápiz) en cada fila del historial de pagos",
-      "Diálogo de edición con campos pre-poblados",
-      "Recalculación automática del status de factura (pagada/parcial/enviada) al editar un pago"
-    ]
+    "title": "Editar pagos registrados en facturas"
   },
   {
     "version": "5.17.0",
     "date": "2026-04-12",
     "type": "minor",
-    "title": "Auditoría de arquitectura v2 — Optimización y limpieza",
-    "description": "Lazy-loading de jsPDF en contratos, refactorización de BookingActions, eliminación del shim useAuth, y carga dinámica del changelog.",
-    "changes": [
-      "contractPdfGenerator: eliminada importación estática de jsPDF (~200KB menos en chunk), helpers addWrappedText/checkPage movidos a pdfShared.ts",
-      "ContractData ahora derivado de ContractViewModel via Pick<> — elimina tipo duplicado",
-      "BookingActions refactorizado: extraídas mutaciones useDeleteBooking y useCancelBooking a useBookings.ts",
-      "BookingActions: JSX duplicado de AlertDialog reemplazado por componente ConfirmActionDialog reutilizable (~80 líneas menos)",
-      "Eliminado shim useAuth.ts — 10 archivos actualizados para importar directamente de AuthContext",
-      "Changelog movido a public/changelog.json con carga dinámica via fetch() (~2,400 líneas fuera del bundle principal)"
-    ]
+    "title": "Auditoría de arquitectura v2 — Optimización y limpieza"
   },
   {
     "version": "5.16.0",
     "date": "2026-04-12",
     "type": "minor",
-    "title": "Auditoría de arquitectura — Limpieza y refactorización",
-    "description": "Eliminación de código muerto, deduplicación de utilidades, y separación de responsabilidades en el módulo de reportes financieros.",
-    "changes": [
-      "Eliminado pdfHelpers.ts — tipos y funciones compartidas movidos a pdfShared.ts",
-      "Eliminadas funciones muertas de quotePdfPremium: drawInfoCards, drawPremiumTotals, drawPremiumNotes, drawTermsSection",
-      "Eliminados 7 legacy color aliases sin uso (NAVY, GOLD, etc.) de quotePdfPremium",
-      "fmtDate centralizado en pdfShared.ts — eliminadas 2 copias duplicadas",
-      "Constantes GRAY_500, GRAY_200, GRAY_900, MARGIN exportadas desde quotePdfPremium en vez de re-declararse",
-      "IncomeStatementReport refactorizado: lógica extraída a useIncomeStatementData hook y incomeStatementPdf.ts",
-      "jsPDF ahora se importa dinámicamente en Estado de Resultados (~200KB menos en chunk inicial)",
-      "Eliminado import no usado de AppRole en useQuoteDetailLogic"
-    ]
+    "title": "Auditoría de arquitectura — Limpieza y refactorización"
   },
   {
     "version": "5.15.0",
     "date": "2026-04-10",
     "type": "minor",
-    "title": "PDF facturas — Homologado al formato de cotizaciones",
-    "description": "El PDF de facturas ahora usa el mismo diseño premium que las cotizaciones: encabezado con logo proporcional, sección EMISOR/CLIENTE simétrica, tabla unificada y bloque de totales+notas integrado.",
-    "changes": [
-      "Encabezado con logo proporcional y título FACTURA usando drawPremiumHeader",
-      "Sección EMISOR/CLIENTE simétrica reemplaza tarjetas Receptor/Detalles",
-      "Fila compacta de detalles: fecha emisión, vencimiento, status y método de pago",
-      "Totales y notas unificados con drawBottomSection",
-      "Conserva badge TIMBRADO SAT, UUID y QR CFDI para facturas timbradas"
-    ]
+    "title": "PDF facturas — Homologado al formato de cotizaciones"
   },
   {
     "version": "5.14.5",
     "date": "2026-04-10",
     "type": "patch",
-    "title": "PDF cotizaciones — Logo simétrico con texto del encabezado",
-    "description": "Se aumentó el tamaño máximo del logo a 24×40mm y se centra verticalmente para que su altura coincida con el bloque de texto del encabezado.",
-    "changes": [
-      "Logo aumentado a 24×40mm máximo para igualar altura del texto",
-      "Centrado vertical del logo respecto al bloque título/número/fecha"
-    ]
+    "title": "PDF cotizaciones — Logo simétrico con texto del encabezado"
   },
   {
     "version": "5.14.4",
     "date": "2026-04-10",
     "type": "patch",
-    "title": "PDF cotizaciones — Logo más grande y sin nombre duplicado",
-    "description": "Se eliminó el nombre de empresa al lado del logo y se aumentó el tamaño máximo del logo de 16×24mm a 22×32mm.",
-    "changes": [
-      "Eliminado texto de razón social junto al logo en el encabezado del PDF",
-      "Aumentado tamaño máximo del logo manteniendo proporciones originales"
-    ]
+    "title": "PDF cotizaciones — Logo más grande y sin nombre duplicado"
   },
   {
     "version": "5.14.3",
     "date": "2026-04-10",
     "type": "patch",
-    "title": "PDF cotizaciones — Logo con proporciones originales",
-    "description": "El logo del encabezado ahora respeta su aspect ratio original en lugar de forzar un cuadrado 16×16mm.",
-    "changes": [
-      "Nuevo helper getPngDimensions para detectar ancho/alto reales del PNG",
-      "Logo se escala proporcionalmente con altura máxima 16mm y ancho máximo 24mm"
-    ]
+    "title": "PDF cotizaciones — Logo con proporciones originales"
   },
   {
     "version": "5.14.2",
     "date": "2026-04-10",
     "type": "patch",
-    "title": "PDF cotizaciones — Simetría emisor/cliente",
-    "description": "Sección de datos Emisor y Cliente ahora usa coordenadas Y compartidas y el mismo tamaño/peso de fuente para lograr alineación perfecta.",
-    "changes": [
-      "Nombres, RFC y C.P. alineados a la misma altura entre ambas columnas",
-      "Nombre del cliente estandarizado a FONT_MD bold (igual que emisor)",
-      "Eliminado cálculo independiente de alturas por columna"
-    ]
+    "title": "PDF cotizaciones — Simetría emisor/cliente"
   },
   {
     "version": "5.14.1",
     "date": "2026-04-10",
     "type": "patch",
-    "title": "PDF cotizaciones — Términos a ancho completo y tipografía estandarizada",
-    "description": "La caja de términos y condiciones ahora ocupa todo el ancho debajo de los totales. Se estandarizaron los tamaños de fuente a solo 4 constantes (XL, LG, MD, SM) para mayor consistencia visual.",
-    "changes": [
-      "Términos y condiciones: caja a ancho completo debajo de totales en vez de columna izquierda",
-      "Tipografía: 4 tamaños estandarizados (14, 10, 8, 6.5) reemplazando 9 tamaños anteriores",
-      "Funciones de backward-compat para facturas sin cambios"
-    ]
+    "title": "PDF cotizaciones — Términos a ancho completo y tipografía estandarizada"
   },
   {
     "version": "5.14.0",
     "date": "2026-04-10",
     "type": "minor",
-    "title": "Rediseño PDF de cotizaciones — Layout industrial minimalista",
-    "description": "Rediseño completo del PDF de cotizaciones con estructura simétrica de 2 columnas, paleta gris industrial sin colores decorativos, descripciones con viñetas de especificaciones, y sección inferior con términos a la izquierda y totales a la derecha.",
-    "changes": [
-      "Encabezado: nombre de empresa como logotipo a la izquierda, título y número a la derecha",
-      "Sección de datos: emisor a la izquierda, cliente a la derecha sin fondos de color",
-      "Tabla: encabezado gris claro, soporte para descripciones multi-línea con viñetas",
-      "Sección inferior en 2 columnas: términos y notas a la izquierda, totales a la derecha",
-      "Pie de página simplificado centrado",
-      "Retrocompatible con PDF de facturas"
-    ]
+    "title": "Rediseño PDF de cotizaciones — Layout industrial minimalista"
   },
   {
     "version": "5.13.2",
     "date": "2026-04-08",
     "type": "patch",
-    "title": "Refuerzo de seguridad RLS",
-    "description": "Corregidas políticas de acceso permisivas en booking_extensions y collection_notes, agregado permiso de actualización para dispatchers en forklifts, y aseguradas 6 funciones internas contra hijacking de search_path.",
-    "changes": [
-      "booking_extensions: reemplazada política ALL true/true con políticas granulares por rol",
-      "collection_notes: reemplazada política ALL true/true con acceso restringido por rol",
-      "forklifts: dispatchers ahora pueden actualizar estado de montacargas",
-      "6 funciones internas aseguradas con SET search_path = public"
-    ]
+    "title": "Refuerzo de seguridad RLS"
   },
   {
     "version": "5.13.1",
     "date": "2026-04-08",
     "type": "patch",
-    "title": "Seguridad de contraseñas mejorada",
-    "description": "Las contraseñas temporales se generan con crypto.getRandomValues() y ya no se devuelven al frontend. El sistema confía en el correo electrónico para entregar credenciales de acceso.",
-    "changes": [
-      "Generación de contraseñas con Web Crypto API (crypto.getRandomValues) en invite-user y reset-user-password",
-      "Eliminada la contraseña en texto plano del JSON de respuesta de ambas Edge Functions",
-      "Simplificado el diálogo de credenciales: muestra confirmación de envío por correo en vez de contraseña",
-      "Eliminado el campo de contraseña manual del formulario de invitación"
-    ]
+    "title": "Seguridad de contraseñas mejorada"
   },
   {
     "version": "5.13.0",
     "date": "2026-04-07",
     "type": "minor",
-    "title": "API Keys de Facturapi configurables por empresa",
-    "description": "Las API keys de Facturapi se almacenan directamente en la configuración de la empresa, permitiendo que cada organización introduzca sus propias credenciales desde la UI.",
-    "changes": [
-      "Nuevos campos en Datos Fiscales para capturar API Key Test y API Key Live de Facturapi",
-      "Campos enmascarados con botón mostrar/ocultar e indicador visual de estado",
-      "Edge Functions stamp-cfdi y cancel-cfdi leen keys de la base de datos con fallback a variables de entorno",
-      "El modo test/producción y las keys se guardan junto con los datos fiscales"
-    ]
+    "title": "API Keys de Facturapi configurables por empresa"
   },
   {
     "version": "5.12.1",
     "date": "2026-04-07",
     "type": "patch",
-    "title": "Soporte dual de API keys Facturapi (test/live)",
-    "description": "Las Edge Functions de timbrado y cancelación seleccionan automáticamente el API key correcto según el modo configurado en Datos Fiscales.",
-    "changes": [
-      "Edge Functions stamp-cfdi y cancel-cfdi usan FACTURAPI_TEST_KEY o FACTURAPI_LIVE_KEY según facturapi_mode",
-      "Toggle test/producción se persiste correctamente al guardar datos fiscales",
-      "Texto informativo en sección PAC sobre configuración de API keys"
-    ]
+    "title": "Soporte dual de API keys Facturapi (test/live)"
   },
   {
     "version": "5.12.0",
     "date": "2026-04-07",
     "type": "minor",
-    "title": "Integración con Facturapi para timbrado CFDI 4.0",
-    "description": "Conexión con el proveedor PAC Facturapi para timbrar y cancelar facturas reales ante el SAT, con fallback a modo stub cuando no hay API key configurado.",
-    "changes": [
-      "Edge Function stamp-cfdi conectada a la API REST de Facturapi para timbrado real de CFDI 4.0",
-      "Edge Function cancel-cfdi conectada a Facturapi para cancelación ante el SAT",
-      "Nueva columna facturapi_invoice_id en la tabla de facturas para rastrear el ID de Facturapi",
-      "Nueva sección de configuración PAC en Datos Fiscales con toggle test/producción",
-      "Fallback automático a modo stub si no hay API key configurado"
-    ]
+    "title": "Integración con Facturapi para timbrado CFDI 4.0"
   },
   {
     "version": "5.11.1",
     "date": "2026-04-03",
     "type": "patch",
-    "title": "Paginación de changelog y tipado de catch blocks",
-    "description": "Mejoras de calidad de código: paginación del historial de cambios y tipado estricto de bloques catch en toda la aplicación.",
-    "changes": [
-      "Paginación del historial de cambios (25 entradas por página) usando usePagination y TablePagination",
-      "Tipado estricto de bloques catch: 'catch (err: unknown)' en InvoicesPage, MaintenancePage, useQuoteDetailLogic e IncomeStatementReport",
-      "Eliminados console.error innecesarios en CustomerFormDialog e IncomeStatementReport",
-      "Eliminado cast 'as any' en CustomerFormDialog para constancia fiscal"
-    ]
+    "title": "Paginación de changelog y tipado de catch blocks"
   },
   {
     "version": "5.11.0",
     "date": "2026-04-03",
     "type": "minor",
-    "title": "Auditoría y optimización arquitectónica",
-    "description": "Mejoras de calidad de código, consistencia de timezone, seguridad de tipos y buenas prácticas de React en toda la aplicación.",
-    "changes": [
-      "Migración completa de new Date() a nowMty() en 20+ archivos para consistencia de zona horaria",
-      "Eliminados casts 'as any' en useBookingExtensions y useCollectionNotes usando tipos nativos de Supabase",
-      "Agregado React.StrictMode en main.tsx para detectar efectos secundarios en desarrollo",
-      "Tipado correcto de bloques catch en MaintenancePage, InvoicesPage y useQuoteDetailLogic"
-    ]
+    "title": "Auditoría y optimización arquitectónica"
   },
   {
     "version": "5.10.5",
     "date": "2026-04-01",
     "type": "patch",
-    "title": "Corrección de carga del preview",
-    "description": "Se corrigió un error de CSS que impedía cargar los módulos dinámicos del dashboard y otras páginas en el preview.",
-    "changes": [
-      "Movido @import de fuentes al inicio de src/index.css para cumplir con Vite/PostCSS",
-      "Restaurada la carga correcta de módulos lazy como Dashboard y CRMPage"
-    ]
+    "title": "Corrección de carga del preview"
   },
   {
     "version": "5.10.4",
     "date": "2026-04-01",
     "type": "patch",
-    "title": "Zona horaria configurada a Monterrey",
-    "description": "Se configuró la zona horaria America/Monterrey para garantizar consistencia en fechas y horas en toda la aplicación.",
-    "changes": [
-      "Agregada constante TIMEZONE en config.ts",
-      "Creado helper nowMty() en utils.ts usando date-fns-tz",
-      "PDFs de contratos y cotizaciones ahora usan hora de Monterrey"
-    ]
+    "title": "Zona horaria configurada a Monterrey"
   },
   {
     "version": "5.10.3",
     "date": "2026-03-31",
     "type": "patch",
-    "title": "Consistencia en conteo de Rentados y Utilización",
-    "description": "La tarjeta de Rentados y el % de Utilización en el dashboard ahora solo cuentan montacargas con reserva confirmada vigente.",
-    "changes": [
-      "Actualizada función get_dashboard_stats para filtrar 'rented' por booking activo",
-      "El conteo de Rentados y Utilización ahora coinciden con el MRR"
-    ]
+    "title": "Consistencia en conteo de Rentados y Utilización"
   },
   {
     "version": "5.10.2",
     "date": "2026-03-31",
     "type": "patch",
-    "title": "Sincronizar MRR entre tarjeta KPI y detalle",
-    "description": "La tarjeta KPI de MRR en el dashboard ahora usa la misma lógica que la página de detalle: solo suma montacargas con reserva confirmada vigente.",
-    "changes": [
-      "Actualizada función get_financial_kpis para filtrar por booking activo",
-      "El monto de MRR en dashboard y detalle ahora coinciden"
-    ]
+    "title": "Sincronizar MRR entre tarjeta KPI y detalle"
   },
   {
     "version": "5.10.1",
     "date": "2026-03-31",
     "type": "patch",
-    "title": "Fix MRR: excluir equipos sin reserva activa",
-    "description": "Corregido el detalle de MRR para mostrar solo montacargas con una reserva confirmada vigente.",
-    "changes": [
-      "Cambiado LEFT JOIN a INNER JOIN en la función get_mrr_detail",
-      "Equipos con status 'rented' pero sin booking activo ya no aparecen"
-    ]
+    "title": "Fix MRR: excluir equipos sin reserva activa"
   },
   {
     "version": "5.10.0",
     "date": "2026-03-31",
     "type": "minor",
-    "title": "Página de Detalle MRR",
-    "description": "Nueva página que muestra el desglose de montacargas rentados, su tarifa mensual y el cliente asignado.",
-    "changes": [
-      "Nueva página /mrr con tabla de equipos rentados y sus tarifas",
-      "Se muestra cliente, reserva y periodo para cada equipo",
-      "Total MRR calculado automáticamente",
-      "Tarjeta KPI 'Ingreso Mensual Recurrente' ahora navega a esta nueva página"
-    ]
+    "title": "Página de Detalle MRR"
   },
   {
     "version": "5.9.1",
     "date": "2026-03-26",
     "type": "patch",
-    "title": "Tarjetas KPI del Dashboard clicables",
-    "description": "Las 4 tarjetas financieras del dashboard ahora navegan a la página relevante al hacer clic.",
-    "changes": [
-      "Ingreso Mensual Recurrente navega a Estado de Resultados",
-      "Utilización de Flota navega al reporte de utilización",
-      "DSO navega al reporte de antigüedad de cartera",
-      "Cartera Vencida navega a facturas filtradas por vencidas",
-      "Reportes aceptan query param para preseleccionar tipo"
-    ]
+    "title": "Tarjetas KPI del Dashboard clicables"
   },
   {
     "version": "5.9.0",
     "date": "2026-03-24",
     "type": "minor",
-    "title": "Soporte multi-moneda en Cotizaciones",
-    "description": "Ahora es posible crear cotizaciones en MXN o USD. La moneda seleccionada se refleja en la interfaz, resumen de costos y PDF generado.",
-    "changes": [
-      "Nuevo selector de moneda (MXN / USD) en el formulario de cotización",
-      "Columna 'currency' agregada a la tabla de cotizaciones con valor default 'MXN'",
-      "PDF de cotización muestra montos en la moneda seleccionada",
-      "Vista de detalle muestra badge de moneda cuando no es MXN",
-      "Nueva función utilitaria formatCurrencyWithCode para formateo dinámico"
-    ]
+    "title": "Soporte multi-moneda en Cotizaciones"
   },
   {
     "version": "5.8.1",
     "date": "2026-03-23",
     "type": "patch",
-    "title": "Corrección: proveedor no se guardaba en gastos",
-    "description": "Se corrigió un bug donde el proveedor seleccionado al registrar un gasto operativo no se persistía en la base de datos.",
-    "changes": [
-      "Se incluyó supplier_id en la mutación de creación de gastos",
-      "Se actualizó el tipo TypeScript del hook useCreateExpense para aceptar supplier_id"
-    ]
+    "title": "Corrección: proveedor no se guardaba en gastos"
   },
   {
     "version": "5.8.0",
     "date": "2026-03-23",
     "type": "minor",
-    "title": "Drill-down en Inventario, CRM y Daños",
-    "description": "Paneles laterales de detalle en tres módulos adicionales: Inventario de Refacciones, CRM Prospectos y Seguimiento de Daños.",
-    "changes": [
-      "Inventario: clic en fila abre panel con SKU, stock, costo y acciones de editar/eliminar",
-      "CRM: clic en tarjeta Kanban abre panel de detalle antes de editar, con datos de contacto y cotización vinculada",
-      "Daños: panel lateral reemplaza expand inline, incluye galería de fotos, costos y acciones de reparar/cobrar",
-      "Tablas limpiadas: se eliminan columnas de acciones redundantes"
-    ]
+    "title": "Drill-down en Inventario, CRM y Daños"
   },
   {
     "version": "5.7.0",
     "date": "2026-03-23",
     "type": "minor",
-    "title": "Drill-down en Gastos Operativos",
-    "description": "Panel lateral de detalle al hacer clic en una fila de gastos operativos con información completa y acciones de editar/eliminar.",
-    "changes": [
-      "Clic en fila de gasto abre panel lateral con todos los detalles",
-      "Botones de editar y eliminar protegidos por permisos de rol",
-      "Confirmación antes de eliminar un gasto",
-      "Se limpia la columna de acciones de la tabla para una interfaz más limpia"
-    ]
+    "title": "Drill-down en Gastos Operativos"
   },
   {
     "version": "5.6.0",
     "date": "2026-03-20",
     "type": "minor",
-    "title": "Drill-down, edición y eliminación en Mantenimiento",
-    "description": "Se agrega la funcionalidad de drill-down al hacer clic en una fila de mantenimiento, abriendo un panel lateral con detalles completos, refacciones utilizadas y acciones de editar/eliminar.",
-    "changes": [
-      "Clic en fila de mantenimiento abre panel lateral con todos los detalles",
-      "Botón de editar pre-llena el formulario existente para modificar registros",
-      "Botón de eliminar con confirmación para borrar registros",
-      "Protegido con permisos de rol (módulo Mantenimiento, acceso completo)"
-    ]
+    "title": "Drill-down, edición y eliminación en Mantenimiento"
   },
   {
     "version": "5.5.1",
     "date": "2026-03-20",
     "type": "patch",
-    "title": "Quitar Software y Depreciación del Estado de Resultados",
-    "description": "Se eliminan las líneas de Software y Depreciación de la sección de gastos operativos del estado de resultados ya que no son categorías de gasto.",
-    "changes": [
-      "Removidas las líneas '(-) Software' y '(-) Depreciación' del reporte"
-    ]
+    "title": "Quitar Software y Depreciación del Estado de Resultados"
   },
   {
     "version": "5.5.0",
     "date": "2026-03-20",
     "type": "minor",
-    "title": "Categoría Publicidad en Gastos Operativos",
-    "description": "Se agrega la categoría 'Publicidad' al catálogo de gastos operativos y al estado de resultados.",
-    "changes": [
-      "Nueva categoría 'Publicidad' disponible en el formulario de registro de gastos",
-      "Categoría reflejada como línea en el Estado de Resultados"
-    ]
+    "title": "Categoría Publicidad en Gastos Operativos"
   },
   {
     "version": "5.4.3",
     "date": "2026-03-20",
     "type": "patch",
-    "title": "Columna Proveedor en Gastos Operativos",
-    "description": "Se reemplazó la columna 'Recurrente' por 'Proveedor' en la tabla de gastos operativos, mostrando el nombre del proveedor vinculado.",
-    "changes": [
-      "Reemplazada columna Recurrente por Proveedor en la tabla de gastos",
-      "Query de gastos ahora incluye join con tabla de proveedores"
-    ]
+    "title": "Columna Proveedor en Gastos Operativos"
   },
   {
     "version": "5.4.2",
     "date": "2026-03-20",
     "type": "patch",
-    "title": "Homologar Caja Chica en Estado de Resultados",
-    "description": "La categoría Caja Chica ahora aparece correctamente como línea de gasto operativo en el Estado de Resultados, incluyéndose en los totales y la utilidad neta.",
-    "changes": [
-      "Agregada categoría Caja Chica al array de gastos operativos del reporte",
-      "Corregidos inicializadores de totales mensuales y anuales para incluir caja_chica"
-    ]
+    "title": "Homologar Caja Chica en Estado de Resultados"
   },
   {
     "version": "5.4.1",
     "date": "2026-03-20",
     "type": "patch",
-    "title": "Nueva categoría Caja Chica en gastos operativos",
-    "description": "Se agregó la categoría 'Caja Chica' al catálogo de gastos operativos para registrar gastos menores de efectivo.",
-    "changes": [
-      "Alta de categoría 'caja_chica' en el enum de base de datos",
-      "Etiqueta 'Caja Chica' visible en formulario y reportes"
-    ]
+    "title": "Nueva categoría Caja Chica en gastos operativos"
   },
   {
     "version": "5.4.0",
     "date": "2026-03-19",
     "type": "minor",
-    "title": "Migración de Edge Functions a getClaims()",
-    "description": "Todas las Edge Functions ahora usan getClaims() en lugar de getUser() para validación de tokens, asegurando compatibilidad con Lovable Cloud.",
-    "changes": [
-      "Migradas 7 Edge Functions: reset-user-password, generate-invoice-pdf, generate-recurring-maintenance, generate-recurring-invoices, invite-customer, generate-manual, delete-user, toggle-user-status",
-      "Se eliminan llamadas de red innecesarias al servidor de Auth — la validación ahora es local via JWT",
-      "Se resuelven errores 401 intermitentes causados por incompatibilidad de signing-keys"
-    ]
+    "title": "Migración de Edge Functions a getClaims()"
   },
   {
     "version": "5.3.1",
     "date": "2026-03-19",
     "type": "patch",
-    "title": "Refuerzo de restricción Cerrado Ganado",
-    "description": "Se cierran brechas de seguridad en la restricción de Cerrado Ganado del CRM.",
-    "changes": [
-      "Guardia en onSave para bloquear guardado en Cerrado Ganado sin permisos",
-      "Botón Convertir a Cliente oculto para usuarios no autorizados",
-      "Botón Guardar deshabilitado al editar prospectos en Cerrado Ganado sin rol admin/administrativo"
-    ]
+    "title": "Refuerzo de restricción Cerrado Ganado"
   },
   {
     "version": "5.3.0",
     "date": "2026-03-19",
     "type": "minor",
-    "title": "Restricción de Cerrado Ganado en CRM",
-    "description": "Solo usuarios con rol admin o administrativo pueden mover o crear prospectos en la etapa Cerrado Ganado.",
-    "changes": [
-      "Bloqueo de drag-and-drop hacia Cerrado Ganado para roles no autorizados",
-      "Bloqueo del botón Agregar en la columna Cerrado Ganado para roles no autorizados",
-      "Mensaje toast informativo al intentar una acción restringida"
-    ]
+    "title": "Restricción de Cerrado Ganado en CRM"
   },
   {
     "version": "5.2.0",
     "date": "2026-03-19",
     "type": "minor",
-    "title": "Cambiar contraseña desde la app",
-    "description": "Los usuarios autenticados pueden cambiar su contraseña directamente desde el sidebar sin necesidad del flujo de reset por email.",
-    "changes": [
-      "Nuevo botón de llave en el footer del sidebar para cambiar contraseña",
-      "Diálogo de cambio de contraseña con validación de mínimo 6 caracteres y confirmación"
-    ]
+    "title": "Cambiar contraseña desde la app"
   },
   {
     "version": "5.1.0",
     "date": "2026-03-19",
     "type": "minor",
-    "title": "Creador visible en tarjetas del CRM",
-    "description": "Cada lead del pipeline CRM ahora muestra qué usuario lo creó, tanto en la tarjeta del Kanban como en el diálogo de edición.",
-    "changes": [
-      "Agregada columna created_by a la tabla prospects con trigger automático",
-      "Nombre del creador visible en tarjetas del Kanban",
-      "Campo 'Creado por' de solo lectura en el diálogo de edición de prospectos"
-    ]
+    "title": "Creador visible en tarjetas del CRM"
   },
   {
     "version": "5.0.2",
     "date": "2026-03-19",
     "type": "patch",
-    "title": "Etiqueta correcta para cotizaciones enviadas",
-    "description": "El estado 'sent' en cotizaciones ahora muestra 'Enviada' en lugar de 'Sin Pagar'.",
-    "changes": [
-      "Corregida etiqueta de estado 'sent' en el módulo de cotizaciones para mostrar 'Enviada'",
-      "Agregado soporte de label override en componente StatusBadge"
-    ]
+    "title": "Etiqueta correcta para cotizaciones enviadas"
   },
   {
     "version": "5.0.1",
     "date": "2026-03-19",
     "type": "patch",
-    "title": "Términos de uso de horas en cotizaciones de renta",
-    "description": "Las cotizaciones de renta ahora incluyen automáticamente condiciones de límite de horas mensuales y costo por horas extras.",
-    "changes": [
-      "Términos 'Equipo sujeto a 200 horas de uso mensual' y 'El uso de horas extras lleva un costo adicional' se agregan automáticamente al PDF de cotizaciones de renta"
-    ]
+    "title": "Términos de uso de horas en cotizaciones de renta"
   },
   {
     "version": "5.0.0",
     "date": "2026-03-18",
     "type": "major",
-    "title": "Mejoras Operativas: Cobranza, Seguros, Extensiones y Reportes",
-    "description": "Paquete de 8 mejoras estratégicas para control operativo y financiero completo.",
-    "changes": [
-      "Seguimiento de cobranza estructurado con notas y fechas de próximo seguimiento en facturas",
-      "Reporte de Antigüedad de Cartera con buckets, detalle por factura y exportación CSV",
-      "Campos de seguro en equipos: aseguradora, póliza, vigencia y costo con alerta en dashboard",
-      "Costos de transporte en entregas: flete y si se cobra al cliente",
-      "Extensión de reservas con trazabilidad: fecha original, nueva fecha y motivo",
-      "Rentabilidad por cliente: ingresos vs. costos de mantenimiento con margen bruto",
-      "Columna de ubicación actual en la lista de flota (desde contratos o entregas)",
-      "Contacto de emergencia en sitio para reservas (nombre y teléfono)",
-      "Nuevas tablas: collection_notes, booking_extensions",
-      "Nuevos campos: forklifts.insurance_*, deliveries.transport_cost, bookings.site_contact_*",
-      "Nueva RPC: get_customer_profitability"
-    ]
+    "title": "Mejoras Operativas: Cobranza, Seguros, Extensiones y Reportes"
   },
   {
     "version": "4.0.0",
     "date": "2026-03-18",
     "type": "major",
-    "title": "Mejoras Estratégicas: KPIs Financieros, Rentabilidad y Alertas",
-    "description": "Paquete de mejoras estratégicas para mejorar la visibilidad financiera y operativa del negocio.",
-    "changes": [
-      "Nuevas tarjetas de KPIs financieros en el dashboard: MRR, Utilización %, DSO y Cartera Vencida",
-      "Alertas proactivas de contratos por vencer (próximos 30 días) en el dashboard",
-      "Card de Resumen Financiero en el detalle de cada equipo: ingresos, costos, margen, ROI y utilización",
-      "Historial consolidado de horómetro por equipo con todas las lecturas cronológicas",
-      "Ubicación actual del equipo en especificaciones (desde contratos o última entrega)",
-      "Nuevas funciones de base de datos: get_financial_kpis y get_forklift_financials"
-    ]
+    "title": "Mejoras Estratégicas: KPIs Financieros, Rentabilidad y Alertas"
   },
   {
     "version": "3.57.0",
     "date": "2026-03-18",
     "type": "minor",
-    "title": "Cálculo automático de horas usadas (Horómetro)",
-    "description": "Se calcula automáticamente la diferencia de horas entre la entrega y la recolección de un equipo en la misma reserva.",
-    "changes": [
-      "Cálculo automático de horas usadas (recolección - entrega) en DeliveryDetail",
-      "Nueva card de Horómetro en BookingDetail con lecturas de entrega, recolección y horas usadas",
-      "Indicador visual destacado para horas usadas con color primario"
-    ]
+    "title": "Cálculo automático de horas usadas (Horómetro)"
   },
   {
     "version": "3.56.0",
     "date": "2026-03-18",
     "type": "minor",
-    "title": "Registro de Horómetro en Entregas",
-    "description": "Se agrega el campo de lectura de horómetro (horas de uso) al flujo de entregas y recolecciones para rastrear el uso del equipo.",
-    "changes": [
-      "Nuevo campo hours_reading en la tabla deliveries",
-      "Campo de horómetro en el diálogo de completar entrega (junto a la firma)",
-      "Campo opcional de horómetro al programar entregas y recolecciones",
-      "Lectura visible en la card de Equipo del detalle de entrega"
-    ]
+    "title": "Registro de Horómetro en Entregas"
   },
   {
     "version": "3.55.0",
     "date": "2026-03-18",
     "type": "minor",
-    "title": "Páginas de detalle para Entregas y Devoluciones",
-    "description": "Las entregas y devoluciones ahora tienen páginas de detalle con drill-down desde las listas, centralizando acciones e información.",
-    "changes": [
-      "Nueva página DeliveryDetail con información de logística, firma, acciones de completar y eliminar",
-      "Nueva página ReturnInspectionDetail con datos de inspección, equipo, reserva y daños",
-      "Filas clickeables en las tablas de entregas y devoluciones",
-      "Acciones inline eliminadas de las listas — centralizadas en las páginas de detalle",
-      "Hooks useDelivery(id) y useReturnInspection(id) para consultas individuales"
-    ]
+    "title": "Páginas de detalle para Entregas y Devoluciones"
   },
   {
     "version": "3.54.0",
     "date": "2026-03-18",
     "type": "minor",
-    "title": "Consecutivos para Entregas (ENT-) y Devoluciones (DEV-)",
-    "description": "Las entregas y devoluciones ahora tienen identificadores secuenciales automáticos, siguiendo el mismo patrón de las reservas (RSV-).",
-    "changes": [
-      "Nueva columna delivery_number (ENT-XXXX) con trigger BEFORE INSERT para auto-asignación",
-      "Nueva columna inspection_number (DEV-XXXX) con trigger BEFORE INSERT para auto-asignación",
-      "Funciones next_delivery_number() y next_inspection_number() para generación secuencial",
-      "Backfill de registros existentes con números consecutivos",
-      "Columna 'Entrega #' en la tabla de entregas (desktop y mobile)",
-      "Columna 'Devolución #' en la tabla de inspecciones de devolución (desktop y mobile)"
-    ]
+    "title": "Consecutivos para Entregas (ENT-) y Devoluciones (DEV-)"
   },
   {
     "version": "3.53.0",
     "date": "2026-03-18",
     "type": "minor",
-    "title": "Consecutivo de reservas (RSV-XXXX)",
-    "description": "Las reservas ahora tienen un número consecutivo único con prefijo RSV-, generado automáticamente al crear cada reserva.",
-    "changes": [
-      "Nueva columna booking_number en la tabla de reservas con backfill de registros existentes",
-      "Función next_booking_number() para generación secuencial automática",
-      "El RPC create_booking ahora asigna automáticamente el número de reserva",
-      "La tabla y el detalle de reservas muestran el consecutivo RSV-XXXX",
-      "Búsqueda por número de reserva en la lista",
-      "Bitácora de auditoría muestra booking_number como etiqueta de registro"
-    ]
+    "title": "Consecutivo de reservas (RSV-XXXX)"
   },
   {
     "version": "3.52.0",
     "date": "2026-03-18",
     "type": "patch",
-    "title": "Historial de estatus en detalle de reserva",
-    "description": "Se agregó una sección de historial de cambios de estatus en la página de detalle de reserva, mostrando transiciones con badges y fechas.",
-    "changes": [
-      "Nuevo componente BookingStatusHistory que consulta la bitácora de auditoría",
-      "Muestra transiciones de estatus con badges visuales y timestamps"
-    ]
+    "title": "Historial de estatus en detalle de reserva"
   },
   {
     "version": "3.51.0",
     "date": "2026-03-18",
     "type": "minor",
-    "title": "Página de detalle de reserva",
-    "description": "Nueva página de detalle para cada reserva con drill-down desde la lista, centralizando la información y acciones en un solo lugar.",
-    "changes": [
-      "Nueva página BookingDetail con cards de equipo, cliente, periodo de renta y facturación",
-      "Filas de la tabla de reservas ahora son clickeables para navegar al detalle",
-      "Se eliminó la columna de Acciones de la tabla; las acciones ahora viven en la página de detalle",
-      "Tarjetas móviles también navegan al detalle al hacer tap"
-    ]
+    "title": "Página de detalle de reserva"
   },
   {
     "version": "3.50.0",
     "date": "2026-03-18",
     "type": "minor",
-    "title": "Edición manual de estatus de reservas",
-    "description": "Los administradores ahora pueden cambiar manualmente el estatus de una reserva entre confirmada, completada y cancelada.",
-    "changes": [
-      "Nuevo botón 'Cambiar Estatus' en las acciones de reserva, visible solo para administradores",
-      "Diálogo con selector de estatus que muestra transiciones válidas según el estado actual",
-      "Al cancelar se usa el RPC cancel_booking para liberar el montacargas correctamente",
-      "Disponible en todos los estados de reserva (confirmada, completada, cancelada)"
-    ]
+    "title": "Edición manual de estatus de reservas"
   },
   {
     "version": "3.49.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Limpieza arquitectónica — as any, reportes modulares, query invalidation",
-    "description": "Eliminación de casts inseguros restantes, modularización de reportes y reemplazo de window.location.reload con invalidación de queries.",
-    "changes": [
-      "Eliminados ~15 casts as any en useUserManagement, useForklifts, ForkliftForm, DeliveriesPage, ExpenseFormDialog, MaintenanceKanban, MaintenancePoliciesTab, IncomeStatementReport",
-      "ReportsPage: cada reporte ahora obtiene sus datos internamente en lugar de recibirlos como props desde el padre",
-      "IncomeStatementPage: simplificado al delegar data fetching al componente de reporte",
-      "MaintenancePage: reemplazado window.location.reload() con queryClient.invalidateQueries",
-      "useContractTemplates: tipado correcto del payload de actualización"
-    ]
+    "title": "Limpieza arquitectónica — as any, reportes modulares, query invalidation"
   },
   {
     "version": "3.48.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Auditoría de tipos — eliminación masiva de as any",
-    "description": "Reducción significativa de casts inseguros (as any) en hooks, páginas y componentes aprovechando los tipos generados por Supabase.",
-    "changes": [
-      "useMaintenancePolicies: eliminados 6 casts — la tabla ya existe en el esquema tipado",
-      "useUserManual: eliminados 2 casts — supabase client ya reconoce user_manual",
-      "useQuoteDetailLogic, useQuoteFormLogic, QuotesPage, QuotePDFButton: eliminados casts para quote_type y rental_meta",
-      "InvoiceDetail: quote_id ya es propiedad tipada de invoices",
-      "ForkliftSpecsCard: acquisition_cost ya es propiedad tipada de forklifts",
-      "useAuditLogs: revert_audit_log ya está en las funciones tipadas",
-      "useForklifts: costo_venta ya es valor válido del enum expense_category",
-      "ReturnInspectionPage: usa ReturnInspectionWithJoins en lugar de as any",
-      "OperatingExpensesPage: tipado explícito con OperatingExpense y ExpenseCategory",
-      "ContractTemplateTab: arrays pasados directamente sin cast (hook ya acepta Partial<ContractTemplate>)",
-      "contractPdfGenerator: data de Supabase ya está correctamente tipada",
-      "useInvoiceFormLogic: cast de setCfdi usa tipo correcto CfdiFormState[keyof CfdiFormState]",
-      "OperatingExpense interface ahora incluye supplier_id"
-    ]
+    "title": "Auditoría de tipos — eliminación masiva de as any"
   },
   {
     "version": "3.47.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Extracción de lógica de detalle de cotización",
-    "description": "Toda la lógica de negocio de QuoteDetail.tsx extraída a useQuoteDetailLogic.ts — la página ahora es un componente puro de presentación.",
-    "changes": [
-      "useQuoteDetailLogic.ts creado — consolida conversión a reserva, reasignación de cliente, facturación recurrente, asignación de equipos y flujo de entregas",
-      "QuoteDetail.tsx reducido de ~444 a ~200 líneas — solo renderizado y orquestación de UI",
-      "Fix: error de suspense sincrónico resuelto — MainLayout ya no es lazy-loaded y cada ruta tiene su propio Suspense boundary"
-    ]
+    "title": "Extracción de lógica de detalle de cotización"
   },
   {
     "version": "3.46.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Modularización de Gestión de Usuarios",
-    "description": "UserManagementPage refactorizado: 7 hooks extraídos a useUserManagement.ts y 4 diálogos a componentes independientes.",
-    "changes": [
-      "useUserManagement.ts creado — consolida useUsersWithRoles, useUpdateRole, useUpdateName, useInviteUser, useDeleteUser, useResetPassword y useToggleStatus",
-      "InviteUserDialog.tsx extraído — formulario de creación de usuario autocontenido",
-      "EditNameDialog.tsx extraído — diálogo de edición de nombre con estado propio",
-      "DeleteUserDialog.tsx extraído — confirmación de eliminación desacoplada",
-      "RoleChangeDialog.tsx extraído — confirmación de cambio de rol independiente",
-      "UserManagementPage.tsx reducido de ~530 a ~230 líneas — solo orquestación y renderizado"
-    ]
+    "title": "Modularización de Gestión de Usuarios"
   },
   {
     "version": "3.45.1",
     "date": "2026-03-13",
     "type": "patch",
-    "title": "Migración completa de toasts a sonner",
-    "description": "Todos los archivos restantes migrados de use-toast (shadcn) a sonner — una sola API de notificaciones en toda la app.",
-    "changes": [
-      "useProspects.ts — migrado a toast.success/toast.error de sonner",
-      "useUserManual.ts — eliminado useToast hook, reemplazado con import estático de sonner",
-      "useDamageRecords.ts — eliminados dynamic imports de use-toast",
-      "useDeliveries.ts — eliminados dynamic imports de use-toast",
-      "useReturnInspections.ts — eliminado dynamic import de use-toast",
-      "CredentialsDialog.tsx — migrado a toast.success de sonner",
-      "ReportDamageDialog.tsx — migrado a toast.error/toast.success de sonner",
-      "CustomerDetailPage.tsx — consolidado dual-import (useToast + sonnerToast) a un solo import de sonner"
-    ]
+    "title": "Migración completa de toasts a sonner"
   },
   {
     "version": "3.45.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Refactor estructural de App.tsx",
-    "description": "Separación de responsabilidades: proveedores, layout y rutas extraídos a archivos dedicados.",
-    "changes": [
-      "AppProviders.tsx creado — centraliza ThemeProvider, QueryClient, AuthProvider, TooltipProvider y toasts",
-      "MainLayout.tsx creado — sidebar, header y ErrorBoundary con <Outlet /> (patrón layout routes de react-router v6)",
-      "routes.tsx creado — configuración de rutas, lazy imports y fallbacks extraídos de App.tsx",
-      "App.tsx reducido a ~40 líneas — solo compone proveedores, router y layout",
-      "Eliminado patrón de doble <Routes> anidado con wildcard catch-all"
-    ]
+    "title": "Refactor estructural de App.tsx"
   },
   {
     "version": "3.44.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Limpieza arquitectónica: datos, naming y consistencia",
-    "description": "Eliminación del hack _rentalMeta, estandarización de naming y toasts, y limpieza de código deprecado.",
-    "changes": [
-      "Columna rental_meta agregada a quotes — elimina hack de data smuggling _rentalMeta en line_items",
-      "Renombrado qc → queryClient en 11 archivos (estándar de naming)",
-      "Toasts estandarizados en sonner (eliminados imports de use-toast en hooks de datos)",
-      "Eliminado useCustomerPortal deprecado (los portales ya usan hooks individuales)",
-      "Eliminada re-exportación innecesaria de replacePlaceholders en contractPdfGenerator",
-      "parseISO/format removidos de la API de useContractFormLogic (importados directamente en ContractForm)",
-      "useUpdateContract tipado con TablesUpdate<contracts> en lugar de [key: string]: any",
-      "staleTime agregado a useAuditLogs, useContractTemplates y useMaintenancePolicies"
-    ]
+    "title": "Limpieza arquitectónica: datos, naming y consistencia"
   },
   {
     "version": "3.43.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Refactorización de arquitectura",
-    "description": "Mejora de modularidad, separación de responsabilidades y estándares de código en hooks y formularios.",
-    "changes": [
-      "Lógica de QuoteForm extraída a useQuoteFormLogic (reducción de ~200 líneas en componente UI)",
-      "Lógica de ContractForm extraída a useContractFormLogic (reducción de ~180 líneas en componente UI)",
-      "replacePlaceholders consolidado en src/lib/templateUtils.ts (elimina duplicación entre ContractForm y contractPdfGenerator)",
-      "staleTime: 60_000 agregado a 13 hooks faltantes (quotes, contracts, deliveries, inspections, drivers, mechanics, parts, prospects, equipment_models, damage_records, expenses, suppliers, payments)",
-      "Variable 'qc' renombrada a 'queryClient' en todos los hooks (estándar de código legible)",
-      "useCustomerPortal dividido en hooks individuales: usePortalCustomer, usePortalBookings, usePortalInvoices, usePortalContracts, usePortalPayments",
-      "Páginas del portal actualizadas para usar hooks individuales en lugar del monolito"
-    ]
+    "title": "Refactorización de arquitectura"
   },
   {
     "version": "3.42.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Optimización de rendimiento integral",
-    "description": "Reducción de llamadas redundantes a la base de datos, carga diferida de jsPDF, contexto compartido de autenticación y mejoras de caché a nivel global.",
-    "changes": [
-      "QueryClient con staleTime global de 30s y retry: 1",
-      "useAuth migrado a React Context compartido (elimina ~10 suscripciones duplicadas)",
-      "staleTime de 60s en useForklifts, useBookings, useCustomers, useInvoices, useMaintenanceLogs, useActivityFeed",
-      "staleTime de 5 min en useCompanySettings",
-      "jsPDF cargado dinámicamente (lazy import) en QuotePDFButton, InvoicePDFButton y ContractPDFButton (~200KB menos en bundle inicial)",
-      "Actividad reciente integrada en get_dashboard_stats RPC (1 query menos en Dashboard)",
-      "Nueva función RPC get_available_forklifts: reemplaza 3 queries client-side por 1 server-side",
-      "CalendarPage usa useForkliftMap compartido en lugar de useForklifts duplicado",
-      "React.memo aplicado a BookingRow en EquipmentListView"
-    ]
+    "title": "Optimización de rendimiento integral"
   },
   {
     "version": "3.41.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Colores migrados a tokens semánticos del design system",
-    "description": "Todos los colores HSL hardcodeados en gráficas y componentes del dashboard se reemplazaron por variables CSS centralizadas, facilitando la tematización y el modo oscuro.",
-    "changes": [
-      "Nuevos tokens CSS: --status-overdue, --status-draft, --status-warning, --gantt-1 a --gantt-8",
-      "Dashboard, CashFlowChart, UtilizationCharts, GanttChart y UtilizationByModelReport migrados a tokens",
-      "Tailwind config extendido con colores status.overdue, status.draft, status.warning y gantt.1-8",
-      "Leyendas del CashFlowChart usan clases Tailwind en lugar de estilos inline"
-    ]
+    "title": "Colores migrados a tokens semánticos del design system"
   },
   {
     "version": "3.40.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Permisos dinámicos por rol",
-    "description": "Los administradores ahora pueden editar los niveles de acceso (completo, lectura, sin acceso) de cada rol por módulo directamente desde la interfaz, sin necesidad de modificar código.",
-    "changes": [
-      "Nueva tabla de permisos dinámicos en la base de datos con seed de valores actuales",
-      "Página de Permisos por Rol ahora es interactiva para administradores",
-      "Sidebar y guardias de ruta se actualizan automáticamente según los permisos configurados",
-      "Los permisos del rol Admin no son editables (siempre acceso completo)",
-      "Matriz de permisos colapsable también refleja datos dinámicos"
-    ]
+    "title": "Permisos dinámicos por rol"
   },
   {
     "version": "3.39.0",
     "date": "2026-03-13",
     "type": "minor",
-    "title": "Filtro por mes en Gastos Operativos",
-    "description": "Se agregó un dropdown para filtrar gastos operativos por mes, mostrando meses disponibles dinámicamente. El total se actualiza automáticamente según el mes seleccionado.",
-    "changes": [
-      "Nuevo selector de mes en la barra de filtros de gastos operativos",
-      "Lista dinámica de meses disponibles a partir de los datos existentes",
-      "El resumen de totales refleja el filtro de mes seleccionado",
-      "Por defecto se muestra el mes actual"
-    ]
+    "title": "Filtro por mes en Gastos Operativos"
   },
   {
     "version": "3.38.4",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Limpieza de código sin uso",
-    "description": "Eliminación de componentes y hooks que ya no se utilizan en la aplicación.",
-    "changes": [
-      "Eliminado EquipmentModelSelector (sin referencias)",
-      "Eliminado PostInspectionInvoiceDialog (deprecado desde v2.17.0)",
-      "Eliminado useDialogState hook (nunca adoptado)"
-    ]
+    "title": "Limpieza de código sin uso"
   },
   {
     "version": "3.38.3",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Sincronización automática de costo de venta",
-    "description": "Al modificar el costo de adquisición de un equipo vendido, se actualiza automáticamente el gasto de costo de venta correspondiente en gastos operativos.",
-    "changes": [
-      "Sincronización automática entre costo de adquisición y gasto de costo de venta",
-      "Invalidación de caché de gastos operativos al actualizar equipo"
-    ]
+    "title": "Sincronización automática de costo de venta"
   },
   {
     "version": "3.38.2",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Filtrado de categorías en gastos",
-    "description": "Se eliminan las categorías 'Software' y 'Depreciación' del dropdown al registrar un nuevo gasto operativo para simplificar el catálogo visible.",
-    "changes": [
-      "Categorías 'software' y 'depreciacion' excluidas del selector de categorías",
-      "Categorías visibles: Renta, Nómina, Costo de Venta, Otro"
-    ]
+    "title": "Filtrado de categorías en gastos"
   },
   {
     "version": "3.38.1",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Limpieza visual del Estado de Resultados",
-    "description": "Se elimina la gráfica de barras y se reacomodan los controles de año, CSV y PDF en una barra independiente entre los KPIs y la tabla.",
-    "changes": [
-      "Eliminación de la gráfica BarChart del Estado de Resultados",
-      "Barra de controles (año, CSV, PDF) reubicada entre KPIs y tabla",
-      "Limpieza de imports y código muerto de recharts"
-    ]
+    "title": "Limpieza visual del Estado de Resultados"
   },
   {
     "version": "3.38.0",
     "date": "2026-03-12",
     "type": "minor",
-    "title": "Toggle base contable en Estado de Resultados",
-    "description": "Se agrega un switch para alternar entre base devengada (por fecha de emisión) y flujo de efectivo (por fecha de cobro) en el reporte de Estado de Resultados.",
-    "changes": [
-      "Toggle Devengado / Flujo de efectivo en la página de Estado de Resultados",
-      "Filtrado condicional de facturas según la base contable seleccionada"
-    ]
+    "title": "Toggle base contable en Estado de Resultados"
   },
   {
     "version": "3.37.1",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Simplificación de Estado de Resultados",
-    "description": "Se remueve la gráfica de Utilidad Neta Mensual del reporte para mantener el enfoque en la tabla de datos y reducir la complejidad visual.",
-    "changes": [
-      "Eliminación de la gráfica de área de Utilidad Neta Mensual",
-      "Limpieza de imports y variables no utilizadas"
-    ]
+    "title": "Simplificación de Estado de Resultados"
   },
   {
     "version": "3.37.0",
     "date": "2026-03-12",
     "type": "minor",
-    "title": "Ingresos en base devengada",
-    "description": "El Estado de Resultados ahora registra ingresos por fecha de emisión (issued_at) en lugar de fecha de cobro, incluyendo facturas emitidas, pagadas y vencidas.",
-    "changes": [
-      "Cambio de base contable de flujo de efectivo a devengado",
-      "Inclusión de facturas con status sent, paid y overdue",
-      "Exclusión solo de borradores y canceladas"
-    ]
+    "title": "Ingresos en base devengada"
   },
   {
     "version": "3.36.1",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Alerta de equipos sin costo de adquisición",
-    "description": "Se muestra una alerta en el Estado de Resultados cuando existen equipos rentados sin costo de adquisición registrado, evitando omisiones en el cálculo de depreciación.",
-    "changes": [
-      "Alerta visible con los nombres de equipos afectados",
-      "Detección automática de montacargas rentados sin costo registrado"
-    ]
+    "title": "Alerta de equipos sin costo de adquisición"
   },
   {
     "version": "3.36.0",
     "date": "2026-03-12",
     "type": "minor",
-    "title": "Desglose de depreciación por equipo",
-    "description": "El Estado de Resultados ahora permite expandir la fila de depreciación para ver el detalle por montacargas.",
-    "changes": [
-      "Fila de depreciación expandible con chevron para mostrar/ocultar desglose",
-      "Detalle por equipo mostrando monto mensual y total",
-      "Solo se muestran equipos con rentas activas en cada mes"
-    ]
+    "title": "Desglose de depreciación por equipo"
   },
   {
     "version": "3.35.0",
     "date": "2026-03-12",
     "type": "minor",
-    "title": "Desglose de ingresos: Rentas vs Ventas",
-    "description": "El Estado de Resultados ahora distingue entre ingresos por rentas y ventas de equipo.",
-    "changes": [
-      "Ingresos separados en 'Ingresos por Rentas' e 'Ingresos por Ventas' con subtotal",
-      "Gráfico de barras actualizado con barras apiladas para ambos tipos de ingreso",
-      "Comparativo YoY incluye el desglose de ingresos"
-    ]
+    "title": "Desglose de ingresos: Rentas vs Ventas"
   },
   {
     "version": "3.34.2",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Corregir fechas de costo de venta",
-    "description": "Se actualizaron las fechas de los registros de costo de venta para usar la fecha de factura correspondiente en lugar de la fecha de creación del registro.",
-    "changes": [
-      "Corregida fecha de costo de venta para 5 equipos vendidos",
-      "Las fechas ahora coinciden con la fecha de emisión de la factura de venta"
-    ]
+    "title": "Corregir fechas de costo de venta"
   },
   {
     "version": "3.34.1",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Fix costo de venta en estado de resultados",
-    "description": "Se corrigió que el costo de venta no aparecía en el estado de resultados al vender un montacargas.",
-    "changes": [
-      "Backfill de registros de costo de venta faltantes para equipos vendidos",
-      "Manejo de errores al crear gasto automático de costo de venta"
-    ]
+    "title": "Fix costo de venta en estado de resultados"
   },
   {
     "version": "3.34.0",
     "date": "2026-03-12",
     "type": "minor",
-    "title": "Persistencia de filtros al regresar desde detalle",
-    "description": "Los filtros de búsqueda y estado en las listas se preservan al navegar a una página de detalle y regresar.",
-    "changes": [
-      "Filtros de lista se guardan en sessionStorage al cambiar",
-      "Botón atrás restaura filtros previos automáticamente"
-    ]
+    "title": "Persistencia de filtros al regresar desde detalle"
   },
   {
     "version": "3.33.3",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Botón atrás navega a lista correcta",
-    "description": "El botón de regreso en páginas de detalle ahora siempre navega a la lista correspondiente en lugar de usar el historial del navegador.",
-    "changes": [
-      "Botón atrás usa ruta fija (backTo) en vez de navigate(-1)",
-      "Comportamiento consistente en todas las páginas de detalle"
-    ]
+    "title": "Botón atrás navega a lista correcta"
   },
   {
     "version": "3.33.2",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Imagen Open Graph personalizada",
-    "description": "Se generó una imagen OG profesional con la marca LiftGo para redes sociales.",
-    "changes": [
-      "Imagen OG 1200×630 con logo, montacargas y subtítulo",
-      "Meta tags de OG e imagen Twitter actualizados"
-    ]
+    "title": "Imagen Open Graph personalizada"
   },
   {
     "version": "3.33.2",
     "date": "2026-03-12",
     "type": "patch",
-    "title": "Favicon y meta tags de LiftGo",
-    "description": "Se agregó el favicon con el ícono LG y se actualizaron los meta tags de título y descripción del sitio.",
-    "changes": [
-      "Favicon personalizado con las iniciales LG en naranja",
-      "Título del sitio actualizado a 'LiftGo — Gestión de Montacargas'",
-      "Meta descripción y Open Graph tags actualizados"
-    ]
+    "title": "Favicon y meta tags de LiftGo"
   },
   {
     "version": "3.33.0",
     "date": "2026-03-12",
     "type": "minor",
-    "title": "Página dedicada de Permisos por Rol",
-    "description": "Nueva página /users/permissions con la matriz completa de roles vs módulos, accesible desde Gestión de Usuarios.",
-    "changes": [
-      "Nueva página de Permisos por Rol con tabla de acceso por módulo",
-      "Botón 'Ver permisos' en la página de Usuarios",
-      "Eliminado el panel colapsable en favor de la página dedicada"
-    ]
+    "title": "Página dedicada de Permisos por Rol"
   },
   {
     "version": "3.32.1",
     "date": "2026-03-11",
     "type": "patch",
-    "title": "Mejora de visibilidad de permisos por rol",
-    "description": "Se reemplazó el tooltip invisible por un popover funcional y se agregó una matriz colapsable de permisos por rol en la página de usuarios.",
-    "changes": [
-      "RolePermissionsTooltip ahora usa Popover en lugar de Tooltip para compatibilidad con Select",
-      "Nueva matriz visual de permisos (roles vs módulos) con indicadores de acceso completo, solo lectura y sin acceso",
-      "Panel colapsable integrado en la página de Gestión de Usuarios"
-    ]
+    "title": "Mejora de visibilidad de permisos por rol"
   },
   {
     "version": "3.32.0",
     "date": "2026-03-11",
     "type": "minor",
-    "title": "Robustecimiento del módulo de Gestión de Usuarios",
-    "description": "Mejoras significativas en la administración de usuarios: búsqueda, filtrado, estado activo/inactivo, reseteo de contraseña y descripción de permisos por rol.",
-    "changes": [
-      "Columna de email visible en la tabla de usuarios",
-      "Barra de búsqueda por nombre o email",
-      "Filtro por rol con dropdown",
-      "Activar/desactivar usuarios sin eliminarlos (ban/unban)",
-      "Botón para resetear contraseña y generar credenciales temporales",
-      "Confirmación al cambiar rol con resumen de permisos",
-      "Tooltip de permisos por rol (acceso completo vs solo lectura)",
-      "Badge 'Tú' junto al usuario actual",
-      "Paginación en la tabla de usuarios",
-      "Nuevas Edge Functions: reset-user-password, toggle-user-status",
-      "Campos email e is_active en tabla profiles con sincronización automática"
-    ]
+    "title": "Robustecimiento del módulo de Gestión de Usuarios"
   },
   {
     "version": "3.31.0",
     "date": "2026-03-11",
     "type": "minor",
-    "title": "Nuevo rol: Ventas",
-    "description": "Se agregó el rol 'Ventas' orientado al equipo comercial con acceso completo a CRM, clientes y cotizaciones, y lectura en flota, reservas y reportes.",
-    "changes": [
-      "Nuevo valor 'ventas' en el enum de roles",
-      "Políticas RLS: acceso completo a clientes, prospectos y cotizaciones",
-      "Políticas RLS: lectura en equipos, reservas, actividad, auditoría y documentos",
-      "Sidebar y rutas actualizadas con permisos para el rol ventas",
-      "Color del rol: teal-600"
-    ]
+    "title": "Nuevo rol: Ventas"
   },
   {
     "version": "3.30.2",
     "date": "2026-03-11",
     "type": "patch",
-    "title": "Eliminar facturas",
-    "description": "Se agregó la funcionalidad de eliminar facturas desde el detalle, disponible para los roles Admin y Administrativo.",
-    "changes": [
-      "Opción de eliminar en el menú de acciones del detalle de factura",
-      "Confirmación con diálogo antes de eliminar",
-      "Restringido a roles admin y administrativo"
-    ]
+    "title": "Eliminar facturas"
   },
   {
     "version": "3.30.1",
     "date": "2026-03-11",
     "type": "patch",
-    "title": "Eliminar entregas y recolecciones",
-    "description": "Se agregó la funcionalidad de eliminar registros de entregas y recolecciones, disponible para los roles Admin y Administrativo.",
-    "changes": [
-      "Botón de eliminar entrega en tabla y vista móvil",
-      "Confirmación con diálogo antes de eliminar",
-      "Restringido a roles admin y administrativo"
-    ]
+    "title": "Eliminar entregas y recolecciones"
   },
   {
     "version": "3.30.0",
     "date": "2026-03-11",
     "type": "minor",
-    "title": "Cotización de renta por modelo de equipo",
-    "description": "Las cotizaciones de renta ahora se crean seleccionando modelos de equipo con cantidad y tarifas, en lugar de montacargas específicos. Al convertir a reserva, se asignan los equipos físicos disponibles.",
-    "changes": [
-      "Nuevo componente RentalLineItems para cotizaciones de renta por modelo",
-      "Tarifas por defecto (diaria, semanal, mensual) en modelos de equipo",
-      "Diálogo de asignación de equipos al convertir cotización a reserva",
-      "Función generateLineItemsFromModel en invoiceUtils",
-      "Compatibilidad con cotizaciones existentes (flujo legacy)",
-      "Formulario de modelos de equipo actualizado con campos de tarifas"
-    ]
+    "title": "Cotización de renta por modelo de equipo"
   },
   {
     "version": "3.29.2",
     "date": "2026-03-11",
     "type": "patch",
-    "title": "Editar cotizaciones enviadas",
-    "description": "El botón Editar ahora permanece visible cuando una cotización está en estado 'enviada', permitiendo modificarla después de enviarla.",
-    "changes": [
-      "Botón Editar visible en cotizaciones con status draft y sent",
-      "Botón Marcar Enviada solo visible en status draft"
-    ]
+    "title": "Editar cotizaciones enviadas"
   },
   {
     "version": "3.29.1",
     "date": "2026-03-11",
     "type": "patch",
-    "title": "Administrativo puede eliminar cotizaciones",
-    "description": "El rol Administrativo ahora puede eliminar cotizaciones desde la vista de detalle, además de crearlas y editarlas.",
-    "changes": [
-      "Botón de eliminar cotización visible para rol Administrativo"
-    ]
+    "title": "Administrativo puede eliminar cotizaciones"
   },
   {
     "version": "3.29.0",
     "date": "2026-03-10",
     "type": "minor",
-    "title": "Descuento por línea en cotizaciones",
-    "description": "Cada línea de una cotización (renta o venta) ahora puede tener un descuento en porcentaje (%) o monto fijo ($). Se refleja en formulario, vista de detalle, resumen de costos y PDF.",
-    "changes": [
-      "Nuevo campo de descuento por línea con selector de tipo (% o $)",
-      "Soporte en cotizaciones de renta y venta",
-      "Columna 'Dto.' condicional en tabla de detalle y PDF Premium",
-      "Resumen de costos muestra indicador de descuento aplicado",
-      "Persistencia automática en JSONB sin migración de base de datos"
-    ]
+    "title": "Descuento por línea en cotizaciones"
   },
   {
     "version": "3.28.0",
     "date": "2026-03-10",
     "type": "minor",
-    "title": "Reasignar cliente al convertir cotización genérica",
-    "description": "Al convertir una cotización de 'Público en General' a reserva, se muestra un diálogo para seleccionar el cliente final antes de proceder.",
-    "changes": [
-      "Diálogo intermedio de reasignación de cliente al detectar 'Público en General'",
-      "Actualización automática de la cotización con el cliente seleccionado",
-      "Filtrado del cliente genérico en el selector"
-    ]
+    "title": "Reasignar cliente al convertir cotización genérica"
   },
   {
     "version": "3.27.0",
     "date": "2026-03-10",
     "type": "minor",
-    "title": "Eliminar clientes",
-    "description": "Los administradores ahora pueden eliminar clientes desde la página de detalle, con validación de dependencias y confirmación.",
-    "changes": [
-      "Botón 'Eliminar' en detalle de cliente (solo admin)",
-      "Validación: no se permite eliminar si tiene reservas o facturas",
-      "Diálogo de confirmación con AlertDialog"
-    ]
+    "title": "Eliminar clientes"
   },
   {
     "version": "3.26.1",
     "date": "2026-03-10",
     "type": "patch",
-    "title": "Eliminar campo Dirección de Facturación",
-    "description": "Se removió el campo 'Dirección de Facturación' del formulario de cliente. El C.P. Fiscal cubre la parte fiscal del CFDI y el campo 'Dirección' queda como dirección general/de entrega.",
-    "changes": [
-      "Eliminado campo 'Dirección de Facturación' del formulario de cliente",
-      "Simplificada la sección de direcciones en el diálogo de cliente"
-    ]
+    "title": "Eliminar campo Dirección de Facturación"
   },
   {
     "version": "3.26.0",
     "date": "2026-03-10",
     "type": "minor",
-    "title": "Importar cliente desde CSF del SAT",
-    "description": "Al agregar un cliente, ahora se puede subir un PDF de Constancia de Situación Fiscal (CSF) para extraer automáticamente los datos fiscales mediante IA.",
-    "changes": [
-      "Nueva pestaña 'Importar desde CSF' en el diálogo de agregar cliente",
-      "Extracción automática de RFC, razón social, C.P. fiscal, dirección y régimen fiscal",
-      "Soporte drag-and-drop para subir el PDF",
-      "Nueva función backend parse-csf con Lovable AI"
-    ]
+    "title": "Importar cliente desde CSF del SAT"
   },
   {
     "version": "3.25.0",
     "date": "2026-03-10",
     "type": "minor",
-    "title": "Editar cliente desde página de detalle",
-    "description": "Se agregó un botón 'Editar' en la página de detalle de cliente que abre un formulario pre-llenado para modificar la información.",
-    "changes": [
-      "Botón 'Editar' con icono en el header de detalle de cliente",
-      "Formulario de edición reutilizable extraído como componente compartido (CustomerFormDialog)"
-    ]
+    "title": "Editar cliente desde página de detalle"
   },
   {
     "version": "3.24.3",
     "date": "2026-03-10",
     "type": "patch",
-    "title": "Modelo seleccionado se mantiene al editar equipo",
-    "description": "Se corrigió un problema donde el dropdown de modelo aparecía vacío al editar un montacargas existente.",
-    "changes": [
-      "Se agregó key al Select de modelo para forzar re-montaje cuando cambia el fabricante"
-    ]
+    "title": "Modelo seleccionado se mantiene al editar equipo"
   },
   {
     "version": "3.24.2",
     "date": "2026-03-10",
     "type": "patch",
-    "title": "Selector de cotizaciones muestra todas las opciones",
-    "description": "El selector de cotización vinculada en el diálogo de prospecto ahora muestra todas las cotizaciones, priorizando las que coinciden con el nombre de empresa.",
-    "changes": [
-      "Se reemplazó el filtro excluyente por un ordenamiento por relevancia"
-    ]
+    "title": "Selector de cotizaciones muestra todas las opciones"
   },
   {
     "version": "3.24.1",
     "date": "2026-03-10",
     "type": "patch",
-    "title": "Columnas Kanban más angostas en CRM",
-    "description": "Se redujo el ancho de las columnas del pipeline Kanban de 288px a 256px para mejor aprovechamiento del espacio.",
-    "changes": [
-      "Columnas Kanban reducidas de w-72 a w-64"
-    ]
+    "title": "Columnas Kanban más angostas en CRM"
   },
   {
     "version": "3.24.0",
     "date": "2026-03-10",
     "type": "minor",
-    "title": "Persistencia de filtros en todas las páginas de listado",
-    "description": "Los filtros de búsqueda y estado ahora se sincronizan con la URL en todas las páginas de listado, preservándose al navegar y regresar.",
-    "changes": [
-      "Hook useListFilters migrado de useState a useSearchParams para persistencia automática",
-      "Páginas beneficiadas: Facturas, Cotizaciones, Reservas, Contratos, Mantenimiento, Daños y Clientes",
-      "Al regresar con la flecha atrás, todos los filtros se restauran automáticamente"
-    ]
+    "title": "Persistencia de filtros en todas las páginas de listado"
   },
   {
     "version": "3.23.7",
     "date": "2026-03-10",
     "type": "patch",
-    "title": "Flecha atrás preserva filtros de búsqueda",
-    "description": "El botón de retroceso en páginas de detalle ahora usa el historial del navegador para conservar los filtros activos al regresar.",
-    "changes": [
-      "DetailPageHeader usa navigate(-1) en lugar de ruta fija para preservar query params",
-      "Fallback a ruta fija (backTo) cuando no hay historial previo"
-    ]
+    "title": "Flecha atrás preserva filtros de búsqueda"
   },
   {
     "version": "3.23.6",
     "date": "2026-03-10",
     "type": "patch",
-    "title": "Persistencia de filtros en Inventario de Flota",
-    "description": "Los filtros de búsqueda y estado se conservan en la URL al navegar a un detalle y volver con el botón atrás.",
-    "changes": [
-      "Filtros de búsqueda y estado sincronizados con query params de la URL",
-      "Al volver con el botón atrás, los filtros se restauran automáticamente"
-    ]
+    "title": "Persistencia de filtros en Inventario de Flota"
   },
   {
     "version": "3.23.5",
     "date": "2026-03-09",
     "type": "patch",
-    "title": "Reorden del Estado de Resultados",
-    "description": "Se reordenó el Estado de Resultados para mostrar Total de Egresos antes de Depreciación, ya que esta no es una salida de efectivo.",
-    "changes": [
-      "Total Egresos ahora excluye depreciación de equipos",
-      "Depreciación se muestra como deducción separada antes de Utilidad Neta",
-      "Aplicado en vista mensual y comparativa YoY"
-    ]
+    "title": "Reorden del Estado de Resultados"
   },
   {
     "version": "3.23.4",
     "date": "2026-03-09",
     "type": "patch",
-    "title": "Simplificación de tabla de flota",
-    "description": "Se eliminaron las columnas Fabricante, Capacidad y Altura de la tabla de inventario de flota para simplificar la vista.",
-    "changes": [
-      "Eliminada columna Fabricante",
-      "Eliminada columna Capacidad",
-      "Eliminada columna Altura",
-      "Actualizado export CSV y vista móvil"
-    ]
+    "title": "Simplificación de tabla de flota"
   },
   {
     "version": "3.23.3",
     "date": "2026-03-09",
     "type": "patch",
-    "title": "Columna No. de Serie en inventario de flota",
-    "description": "Se agregó la columna 'No. de Serie' a la tabla de inventario de flota, visible en desktop, móvil, búsqueda y exportación CSV.",
-    "changes": [
-      "Nueva columna sorteable 'No. de Serie' entre Fabricante y Capacidad",
-      "Búsqueda incluye número de serie",
-      "Exportación CSV incluye número de serie",
-      "Tarjetas móviles muestran S/N cuando existe"
-    ]
+    "title": "Columna No. de Serie en inventario de flota"
   },
   {
     "version": "3.23.2",
     "date": "2026-03-09",
     "type": "patch",
-    "title": "Fix precarga de fabricante y modelo al editar montacargas",
-    "description": "Corregido bug donde los campos Fabricante y Modelo aparecían vacíos al editar un montacargas existente.",
-    "changes": [
-      "Sincronizado el llenado del formulario con la carga de modelos de equipo",
-      "Agregado fallback para mostrar valores guardados aunque no estén en el catálogo"
-    ]
+    "title": "Fix precarga de fabricante y modelo al editar montacargas"
   },
   {
     "version": "3.23.1",
     "date": "2026-03-09",
     "type": "patch",
-    "title": "Eliminar diálogo de factura post-devolución",
-    "description": "Se removió el diálogo automático que preguntaba si generar factura al completar una inspección de devolución.",
-    "changes": [
-      "Eliminado el diálogo PostInspectionInvoiceDialog del flujo de devoluciones",
-      "El flujo ahora es: completar devolución → toast de éxito → cerrar"
-    ]
+    "title": "Eliminar diálogo de factura post-devolución"
   },
   {
     "version": "3.23.0",
     "date": "2026-03-09",
     "type": "minor",
-    "title": "Módulo de Proveedores",
-    "description": "Nuevo módulo completo de Proveedores integrado al ERP, con vinculación a gastos operativos y registros de mantenimiento.",
-    "changes": [
-      "Tabla de proveedores con RLS, auditoría y actividad",
-      "Página de listado con búsqueda, ordenamiento, paginación y exportación CSV",
-      "Página de detalle con datos de contacto, fiscales, gastos y mantenimiento vinculados",
-      "Selector de proveedor en formularios de gastos operativos y mantenimiento",
-      "Columna supplier_id en operating_expenses y maintenance_logs",
-      "Navegación en sidebar bajo Administración"
-    ]
+    "title": "Módulo de Proveedores"
   },
   {
     "version": "3.22.2",
     "date": "2026-03-09",
     "type": "patch",
-    "title": "Corrección de rango de fechas en Estado de Resultados",
-    "description": "Se corrigió un bug donde el mes seleccionado en 'Hasta' no se incluía completamente debido a interpretación UTC de fechas.",
-    "changes": [
-      "Construcción de fechas con parámetros locales en lugar de cadenas ISO para evitar desfase por zona horaria"
-    ]
+    "title": "Corrección de rango de fechas en Estado de Resultados"
   },
   {
     "version": "3.22.1",
     "date": "2026-03-09",
     "type": "patch",
-    "title": "Selector de rango por mes en Estado de Resultados",
-    "description": "El selector de fechas del Estado de Resultados ahora permite elegir meses completos en lugar de días individuales, alineándose con la naturaleza mensual de los estados financieros.",
-    "changes": [
-      "Reemplazo de selector de rango por día con dos selectores de mes (Desde / Hasta)",
-      "Opciones dinámicas de los últimos 24 meses en español",
-      "Cálculo automático del primer y último día del mes seleccionado"
-    ]
+    "title": "Selector de rango por mes en Estado de Resultados"
   },
   {
     "version": "3.22.0",
     "date": "2026-03-09",
     "type": "minor",
-    "title": "Módulo independiente de Estado de Resultados",
-    "description": "El Estado de Resultados ahora tiene su propia entrada en el sidebar para acceso directo, manteniendo también su disponibilidad dentro del módulo de Reportes.",
-    "changes": [
-      "Nueva página standalone de Estado de Resultados con selector de fechas propio",
-      "Entrada dedicada en sidebar bajo sección Administración",
-      "Acceso restringido a roles admin, administrativo y auditor",
-      "Se mantiene disponible también dentro del módulo de Reportes"
-    ]
+    "title": "Módulo independiente de Estado de Resultados"
   },
   {
     "version": "3.21.0",
     "date": "2026-03-09",
     "type": "minor",
-    "title": "Depreciación de equipos rentados en Estado de Resultados",
-    "description": "El Estado de Resultados ahora calcula automáticamente la depreciación mensual (costo de adquisición / 36 meses) únicamente para montacargas que tuvieron rentas activas en cada mes.",
-    "changes": [
-      "Nueva fila 'Depreciación (Equipos Rentados)' en el Estado de Resultados",
-      "Cálculo automático de depreciación línea recta a 36 meses solo para equipos con rentas activas",
-      "Ajuste de Utilidad Neta: ahora resta depreciación de equipos rentados",
-      "Incluido en tabla estándar, comparativo YoY, gráficas, exportación CSV y PDF",
-      "Montacargas sin costo de adquisición se omiten del cálculo"
-    ]
+    "title": "Depreciación de equipos rentados en Estado de Resultados"
   },
   {
     "version": "3.20.0",
     "date": "2026-03-09",
     "type": "minor",
-    "title": "Refactorización de código y consolidación de patrones",
-    "description": "Mejora significativa de la arquitectura del código: consolidación del hook useListPage en todas las páginas de lista, estandarización de manejo de errores con sonner, y nuevo hook useDialogState para gestión de diálogos.",
-    "changes": [
-      "Nuevo hook useDialogState para gestión unificada de estados de diálogos con formularios",
-      "Migración de 6 páginas de lista a usar useListPage: BookingsPage, ContractsPage, QuotesPage, InvoicesPage, CustomersPage, Fleet",
-      "Eliminación de imports redundantes de useSort, usePagination, useIsMobile en páginas migradas",
-      "Estandarización de error handling: useBookings, useInvoices, useForklifts, useQuotes ahora usan sonner directamente",
-      "Eliminación de dynamic imports de toast en favor de imports estáticos de sonner",
-      "Reducción de ~20-30 líneas de boilerplate por página"
-    ]
+    "title": "Refactorización de código y consolidación de patrones"
   },
   {
     "version": "3.19.10",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Remover botón de nueva reserva en calendario",
-    "description": "Se eliminó el botón de 'Nueva Reserva' en la página de calendario para centrar la vista exclusivamente en la disponibilidad.",
-    "changes": [
-      "Se quitó la propiedad action del PageHeader en CalendarPage.tsx"
-    ]
+    "title": "Remover botón de nueva reserva en calendario"
   },
   {
     "version": "3.19.9",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Enlace directo a reservas desde mensaje de devoluciones",
-    "description": "El mensaje informativo en el formulario de devolución ahora incluye un enlace directo a la página de reservas para facilitar el ajuste de fechas.",
-    "changes": [
-      "Enlace clickeable 'edita la reserva' que abre la página de reservas en nueva pestaña"
-    ]
+    "title": "Enlace directo a reservas desde mensaje de devoluciones"
   },
   {
     "version": "3.19.8",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Filtrar solo reservas terminadas en devoluciones",
-    "description": "El formulario de nueva devolución ahora solo muestra reservas cuyo periodo de renta ya finalizó, con mensaje informativo para el usuario.",
-    "changes": [
-      "Filtro de activeBookings validando que end_date <= hoy",
-      "Mensaje informativo debajo del selector de reserva"
-    ]
+    "title": "Filtrar solo reservas terminadas en devoluciones"
   },
   {
     "version": "3.19.7",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Campo de fecha en formulario de Nueva Devolución",
-    "description": "Se agregó un selector de fecha al formulario de nueva inspección de devolución para poder registrar inspecciones con fecha diferente a la actual.",
-    "changes": [
-      "Nuevo campo DatePickerField en el diálogo de Nueva Devolución",
-      "Parámetro p_inspected_at agregado a la función complete_return_inspection",
-      "Valor predeterminado: fecha actual"
-    ]
+    "title": "Campo de fecha en formulario de Nueva Devolución"
   },
   {
     "version": "3.19.6",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Filtro de fecha en Inspección de Devolución",
-    "description": "Se agregó un selector de fecha para filtrar inspecciones por día en la tabla de devoluciones.",
-    "changes": [
-      "Nuevo filtro DatePickerField en la página de Devoluciones",
-      "Filtrado client-side por fecha de inspección",
-      "Botón para limpiar el filtro"
-    ]
+    "title": "Filtro de fecha en Inspección de Devolución"
   },
   {
     "version": "3.19.5",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Diferenciar colores de Confirmado y Completado",
-    "description": "Se asignó un color gris-azul oscuro al estado 'Completado' para distinguirlo del verde de 'Confirmado'.",
-    "changes": [
-      "Nuevo token --status-completed (gris-azul oscuro)",
-      "StatusBadge usa bg-status-completed para el estado completado",
-      "Confirmado mantiene verde, Completado ahora es gris-azul"
-    ]
+    "title": "Diferenciar colores de Confirmado y Completado"
   },
   {
     "version": "3.19.4",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Mejora de diseño en PDF de facturas",
-    "description": "Se aplicaron las mismas mejoras de jerarquía visual (etiquetas bold/normal) a la tarjeta de Detalles del PDF de facturas.",
-    "changes": [
-      "Etiquetas 'Emitida' y 'Vence' en negrita con valores en texto normal",
-      "Consistencia visual con el PDF de cotizaciones"
-    ]
+    "title": "Mejora de diseño en PDF de facturas"
   },
   {
     "version": "3.19.3",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Mejora en sección de Periodo del PDF de cotización",
-    "description": "Se mejoró la presentación del periodo de renta en la tarjeta de Detalles del PDF, separando fechas de inicio y fin con etiquetas claras.",
-    "changes": [
-      "Reemplazado carácter Unicode → por etiquetas 'Inicio' y 'Fin' separadas",
-      "Agregado formato bold/normal para mejor jerarquía visual",
-      "Cambiado 'Vigencia' por 'Vigencia hasta' para mayor claridad"
-    ]
+    "title": "Mejora en sección de Periodo del PDF de cotización"
   },
   {
     "version": "3.19.2",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Corrección de PDF de cotización y datos fiscales del cliente",
-    "description": "Se corrigieron solapamientos de texto en el encabezado del PDF, se ajustó el logo y se agregó RFC y C.P. del cliente en la tarjeta de información.",
-    "changes": [
-      "Reducido tamaño de fuente del título y nombre de empresa para evitar solapamiento",
-      "Ajustada posición del logo en el encabezado",
-      "Limitado ancho del nombre de empresa con maxWidth",
-      "Agregado RFC y C.P. del cliente en la tarjeta de Cliente del PDF",
-      "Aumentada altura de tarjeta de cliente para acomodar datos fiscales"
-    ]
+    "title": "Corrección de PDF de cotización y datos fiscales del cliente"
   },
   {
     "version": "3.19.1",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Hover estandarizado en tablas clickeables",
-    "description": "Se unificó el efecto hover en todas las tablas con filas clickeables (Clientes, Flota) para usar el mismo estilo que Contratos, Cotizaciones, Facturas y Auditoría.",
-    "changes": [
-      "Agregado borde izquierdo al hover en filas de Clientes",
-      "Cambiado color de hover en Flota de accent a muted para consistencia"
-    ]
+    "title": "Hover estandarizado en tablas clickeables"
   },
   {
     "version": "3.19.0",
     "date": "2026-03-08",
     "type": "minor",
-    "title": "RFC y C.P. en tarjeta de cliente (cotización)",
-    "description": "Se muestran el RFC y código postal del cliente en la tarjeta de Cliente del detalle de cotización.",
-    "changes": [
-      "Agregado RFC y C.P. en la tarjeta de cliente del detalle de cotización"
-    ]
+    "title": "RFC y C.P. en tarjeta de cliente (cotización)"
   },
   {
     "version": "3.18.9",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Eliminar botones redundantes en tabla de clientes",
-    "description": "Se eliminaron los botones Ver/Editar de la tabla de clientes ya que la fila completa es clickeable.",
-    "changes": [
-      "Eliminada columna de acciones redundante en tabla de clientes"
-    ]
+    "title": "Eliminar botones redundantes en tabla de clientes"
   },
   {
     "version": "3.18.8",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Filas de clientes clickeables",
-    "description": "Al hacer clic en cualquier parte de la fila de un cliente se navega a su detalle.",
-    "changes": [
-      "Filas de la tabla de clientes ahora son clickeables para abrir el detalle",
-      "Botones de acción mantienen su comportamiento independiente"
-    ]
+    "title": "Filas de clientes clickeables"
   },
   {
     "version": "3.18.6",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Diseño premium PDF en facturas",
-    "description": "Aplicado el diseño gráfico profesional a las facturas PDF: barra accent navy, tarjetas de receptor y detalles, badge de estado, tabla premium, totales destacados y pie de página corporativo.",
-    "changes": [
-      "Facturas con la misma estructura visual que las cotizaciones",
-      "Tarjeta de receptor con RFC y régimen fiscal",
-      "Badge de estado (Pagada/Pendiente/Cancelada) con color semafórico",
-      "Badge verde 'Timbrado SAT' cuando tiene CFDI",
-      "Información de forma y método de pago integrada",
-      "QR placeholder y leyenda CFDI estilizados"
-    ]
+    "title": "Diseño premium PDF en facturas"
   },
   {
     "version": "3.18.5",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Rediseño profesional del PDF de cotizaciones",
-    "description": "Las cotizaciones ahora se generan con un diseño premium: barra de acento navy, tarjetas de información, tabla con header navy y filas alternadas, total destacado, términos y condiciones automáticos, y pie de página corporativo.",
-    "changes": [
-      "Barra superior navy con línea dorada como acento de marca",
-      "Encabezado con logo, datos de empresa y número de cotización destacado",
-      "Tarjetas de info lado a lado para cliente y detalles del periodo",
-      "Tabla de conceptos con header navy/texto blanco y filas alternadas",
-      "Total en caja navy con tipografía dorada",
-      "Sección de términos y condiciones automática",
-      "Pie de página con datos de la empresa"
-    ]
+    "title": "Rediseño profesional del PDF de cotizaciones"
   },
   {
     "version": "3.18.4",
     "date": "2026-03-08",
     "type": "minor",
-    "title": "Conversión de prospecto a cliente",
-    "description": "Los prospectos en etapa 'Cerrado Ganado' pueden convertirse en clientes registrados con un clic. Los datos se pre-llenan automáticamente.",
-    "changes": [
-      "Botón 'Convertir a Cliente' en prospectos cerrados ganados",
-      "Pre-llenado automático de nombre, contacto, email y teléfono",
-      "Vinculación automática del prospecto con el cliente creado",
-      "Badge 'Cliente creado' con enlace directo al detalle del cliente"
-    ]
+    "title": "Conversión de prospecto a cliente"
   },
   {
     "version": "3.18.3",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Vinculación de prospectos con cotizaciones",
-    "description": "Los prospectos CRM ahora pueden vincularse a cotizaciones existentes. Al mover a 'Cotización Enviada', el valor del trato es obligatorio y se auto-llena al seleccionar una cotización.",
-    "changes": [
-      "Nuevo selector de cotización en el formulario de prospecto",
-      "Valor del trato obligatorio (> $0) desde etapa Cotización Enviada en adelante",
-      "Auto-llenado del valor al vincular cotización",
-      "Badge clicable con número de cotización en las tarjetas del Kanban",
-      "Navegación directa al detalle de la cotización desde el pipeline"
-    ]
+    "title": "Vinculación de prospectos con cotizaciones"
   },
   {
     "version": "3.18.2",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Diálogo de validación al mover prospectos",
-    "description": "Al arrastrar un prospecto a otra etapa del pipeline, se abre automáticamente el formulario de edición para validar o actualizar campos como el valor del trato.",
-    "changes": [
-      "Diálogo de edición se abre al cambiar etapa por drag-and-drop",
-      "Indicador visual de etapa origen → destino en el diálogo",
-      "Cancelar el diálogo deja el prospecto en su etapa original",
-      "Reordenar dentro de la misma columna no abre diálogo"
-    ]
+    "title": "Diálogo de validación al mover prospectos"
   },
   {
     "version": "3.18.1",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Reorganización del Sidebar",
-    "description": "Reestructuración de la navegación lateral en 5 grupos lógicos siguiendo el flujo del negocio.",
-    "changes": [
-      "Nuevo grupo 'Comercial': CRM, Clientes, Cotizaciones, Reservas",
-      "Grupo 'Operaciones' enfocado: Contratos, Entregas, Devoluciones, Facturas",
-      "Refacciones absorbido en 'Flota y Mantenimiento'",
-      "Administración reordenada: Gastos y Reportes priorizados"
-    ]
+    "title": "Reorganización del Sidebar"
   },
   {
     "version": "3.18.0",
     "date": "2026-03-08",
     "type": "minor",
-    "title": "Pipeline de Ventas CRM",
-    "description": "Nuevo tablero Kanban drag-and-drop para rastrear prospectos de venta a través de 6 etapas.",
-    "changes": [
-      "Nueva página Pipeline CRM con tablero tipo Trello",
-      "6 etapas: Nuevo Prospecto, Contactado, Cotización Enviada, Negociación, Cerrado Ganado, Cerrado Perdido",
-      "Drag & drop entre columnas para mover prospectos",
-      "Tarjetas con empresa, contacto y valor del trato en MXN",
-      "Diálogo para crear, editar y eliminar prospectos",
-      "Totales por columna visibles en el encabezado"
-    ]
+    "title": "Pipeline de Ventas CRM"
   },
   {
     "version": "3.17.11",
     "date": "2026-03-08",
     "type": "patch",
-    "title": "Alerta de Póliza Faltante al Crear Reserva",
-    "description": "Al crear una reserva, si el montacargas no tiene póliza de mantenimiento activa, se ofrece crearla inmediatamente.",
-    "changes": [
-      "Nuevo diálogo PostBookingPolicyDialog para crear póliza post-reserva",
-      "Detección automática de póliza faltante al confirmar reserva",
-      "Flujo encadenado: Entrega → Póliza → Calendario"
-    ]
+    "title": "Alerta de Póliza Faltante al Crear Reserva"
   },
   {
     "version": "3.17.10",
     "date": "2026-03-08",
     "type": "minor",
-    "title": "Mantenimiento Recurrente con Póliza de Proveedor Externo",
-    "description": "Genera automáticamente registros de mantenimiento mensual para cada montacargas rentado con póliza activa de proveedor externo.",
-    "changes": [
-      "Nueva tabla 'maintenance_policies' para configurar pólizas por montacargas",
-      "Pestaña 'Pólizas de Mantenimiento' en Configuración de Operaciones con CRUD completo",
-      "Edge Function 'generate-recurring-maintenance' ejecutable por cron o manualmente",
-      "Botón 'Generar Recurrente' en página de Mantenimiento (admin/administrativo)",
-      "'Póliza de Mantenimiento' agregado como tipo de servicio",
-      "Control de duplicados con campo last_generated_month"
-    ]
+    "title": "Mantenimiento Recurrente con Póliza de Proveedor Externo"
   },
   {
     "version": "3.17.9",
     "date": "2026-03-08",
     "type": "minor",
-    "title": "Integración Inventario ↔ Mantenimiento",
-    "description": "Los mecánicos pueden agregar refacciones usadas directamente desde el tablero Kanban. El sistema descuenta stock automáticamente y actualiza el costo del mantenimiento.",
-    "changes": [
-      "Sección 'Refacciones Utilizadas' en el detalle de cada tarea de mantenimiento",
-      "Combobox buscable por nombre o SKU con alerta de stock bajo",
-      "Al agregar refacción: inserta en maintenance_parts, descuenta stock vía trigger, suma costo al log",
-      "Sheet lateral al hacer clic en tarjeta del Kanban con info completa y gestión de refacciones",
-      "Costo total del mantenimiento se actualiza en tiempo real"
-    ]
+    "title": "Integración Inventario ↔ Mantenimiento"
   },
   {
     "version": "3.17.8",
     "date": "2026-03-08",
     "type": "minor",
-    "title": "Página de Control de Refacciones",
-    "description": "Nueva página de inventario de refacciones con tabla, búsqueda, filtro por categoría, alertas de stock bajo y formulario de alta/edición.",
-    "changes": [
-      "Página InventoryPage con tabla de refacciones y acciones CRUD",
-      "Badge destructive 'Reabastecer' cuando stock ≤ mínimo",
-      "Formulario con validación Zod en español mexicano",
-      "Sección 'Inventario' en sidebar con icono Package",
-      "Schema partFormSchema centralizado en formSchemas.ts"
-    ]
+    "title": "Página de Control de Refacciones"
   },
   {
     "version": "3.17.7",
     "date": "2026-03-08",
     "type": "minor",
-    "title": "Módulo de Control de Refacciones — Infraestructura",
-    "description": "Nuevas tablas parts_inventory y maintenance_parts con RLS, trigger de descuento automático de stock y hooks React Query para CRUD completo.",
-    "changes": [
-      "Tabla parts_inventory con categorías, stock mínimo y costo unitario",
-      "Tabla maintenance_parts como junction con maintenance_logs",
-      "Trigger handle_part_usage para decrementar stock automáticamente",
-      "RLS: lectura para staff, escritura para admin/administrativo/mechanic",
-      "Hook usePartsInventory con CRUD completo y useMaintenanceParts"
-    ]
+    "title": "Módulo de Control de Refacciones — Infraestructura"
   },
   {
     "version": "3.17.6",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Alerta de Rentas Vencidas en el Panel",
-    "description": "Nueva alerta en el dashboard que muestra reservas confirmadas cuya fecha de fin ya pasó y no se ha registrado devolución, con acceso directo al módulo de devoluciones.",
-    "changes": [
-      "Nueva sección 'Rentas Vencidas' en AlertsRow del dashboard",
-      "Función get_dashboard_stats actualizada con campo overdue_bookings",
-      "Muestra nombre del equipo, cliente y días de retraso",
-      "Botón de acción navega a /returns con booking_id pre-seleccionado"
-    ]
+    "title": "Alerta de Rentas Vencidas en el Panel"
   },
   {
     "version": "3.17.5",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Eliminar carta de Reservas del Calendario",
-    "description": "Se eliminó la carta duplicada de reservas del módulo de calendario ya que esta información está disponible en el módulo dedicado de reservas.",
-    "changes": [
-      "Eliminada carta de 'Reservas' con filtros de estado del CalendarPage",
-      "Limpieza de imports y estado no utilizados"
-    ]
+    "title": "Eliminar carta de Reservas del Calendario"
   },
   {
     "version": "3.17.4",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Devolución anticipada abre formulario completo de devoluciones",
-    "description": "El botón 'Devolución Anticipada' en reservas ahora navega al módulo de devoluciones con la reserva pre-seleccionada, usando el mismo flujo de inspección completo.",
-    "changes": [
-      "Botón 'Devolución Anticipada' navega a /returns con booking_id",
-      "ReturnInspectionPage auto-abre dialog y pre-selecciona reserva desde query param",
-      "Eliminado dialog inline de devolución anticipada en BookingActions"
-    ]
+    "title": "Devolución anticipada abre formulario completo de devoluciones"
   },
   {
     "version": "3.17.3",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Fix paréntesis vacíos en contacto de reserva",
-    "description": "Corregido renderizado de '()' cuando el contacto del cliente está vacío en la tarjeta de reservas del calendario.",
-    "changes": [
-      "Renderizado condicional del contacto del cliente en CalendarPage"
-    ]
+    "title": "Fix paréntesis vacíos en contacto de reserva"
   },
   {
     "version": "3.17.2",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "UI mejorada de Gastos Operativos",
-    "description": "Tarjeta de total, barra de búsqueda, badges de categoría y empty state mejorado en la página de gastos.",
-    "changes": [
-      "Tarjeta resumen 'Total de Gastos' con formatCurrency",
-      "SearchBar para filtrar por descripción",
-      "Badge con variante secondary para costo_venta y outline para el resto",
-      "EmptyRow en lugar de EmptyState para tabla vacía con headers visibles"
-    ]
+    "title": "UI mejorada de Gastos Operativos"
   },
   {
     "version": "3.17.1",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Formulario de Registro de Gastos con Validación",
-    "description": "Nuevo diálogo ExpenseFormDialog con react-hook-form + zod para registrar gastos con validación inline en español.",
-    "changes": [
-      "Componente ExpenseFormDialog con validación zod y mensajes en español mexicano",
-      "Schema expenseFormSchema centralizado en formSchemas.ts",
-      "Errores inline bajo cada campo en lugar de toasts genéricos",
-      "Categoría 'Costo de Venta (Directo)' explícita en el selector"
-    ]
+    "title": "Formulario de Registro de Gastos con Validación"
   },
   {
     "version": "3.17.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Mejoras al Estado de Resultados",
-    "description": "Comparativo año vs año, gráfica de utilidad neta, margen bruto y exportación a PDF en el reporte de Estado de Resultados.",
-    "changes": [
-      "Modo 'Comparativo' año vs año con variación absoluta y porcentual",
-      "Gráfica de área de Utilidad Neta mensual con línea de referencia en cero",
-      "Fila de Margen Bruto (%) después de Utilidad Bruta",
-      "Botón de exportar a PDF con encabezado de empresa y formato contable"
-    ]
+    "title": "Mejoras al Estado de Resultados"
   },
   {
     "version": "3.16.2",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Filtro por año en Estado de Resultados",
-    "description": "Selector de año en el reporte de Estado de Resultados para separar datos por período anual.",
-    "changes": [
-      "Selector de año (Todos / 2025 / 2026 / etc.) en el encabezado del reporte",
-      "KPIs, gráfica, tabla y CSV se filtran según el año seleccionado",
-      "Años disponibles se detectan dinámicamente de los datos"
-    ]
+    "title": "Filtro por año en Estado de Resultados"
   },
   {
     "version": "3.16.1",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Mejora y estandarización de tablas",
-    "description": "Tablas mejoradas con filas zebra, encabezados sticky, bordes definidos y densidad compacta en toda la app.",
-    "changes": [
-      "Filas zebra con fondo alternado para mejor legibilidad",
-      "Encabezados sticky que permanecen fijos al hacer scroll",
-      "Bordes y separadores mejorados con fondo en header",
-      "Densidad compacta: padding reducido para mostrar más datos",
-      "Encabezados en mayúsculas con tracking amplio para jerarquía visual"
-    ]
+    "title": "Mejora y estandarización de tablas"
   },
   {
     "version": "3.16.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Costo de Venta de Montacargas",
-    "description": "Campo de costo de adquisición en montacargas y generación automática de gasto operativo al vender un equipo.",
-    "changes": [
-      "Nuevo campo 'Costo de Adquisición' en formulario y detalle de montacargas",
-      "Nueva categoría de gasto 'Costo de Venta' en gastos operativos",
-      "Al cambiar status a 'Vendido', se genera automáticamente un gasto con el costo de adquisición",
-      "Estado de Resultados incluye '(-) Costo de Venta' como costo directo antes de Utilidad Bruta"
-    ]
+    "title": "Costo de Venta de Montacargas"
   },
   {
     "version": "3.15.2",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Estado de Resultados en formato vertical",
-    "description": "Tabla del Estado de Resultados transpuesta al formato contable tradicional: conceptos como filas y meses como columnas.",
-    "changes": [
-      "Tabla transpuesta: conceptos financieros de arriba a abajo, meses de izquierda a derecha",
-      "Filas de subtotal (Utilidad Bruta, Utilidad Neta) con estilo diferenciado",
-      "Costos con prefijo (-) y color rojo para fácil identificación",
-      "Columna sticky de conceptos para scroll horizontal"
-    ]
+    "title": "Estado de Resultados en formato vertical"
   },
   {
     "version": "3.15.1",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Estado de Resultados mejorado",
-    "description": "Reporte de Estado de Resultados con KPIs, gráfica de barras apiladas por categoría de gasto, utilidad bruta y total de egresos.",
-    "changes": [
-      "4 tarjetas KPI: Ingresos, Total Egresos, Utilidad Neta, Margen Neto con colores condicionales",
-      "Gráfica de barras apiladas desglosando costos por categoría (mantenimiento, daños, renta, nómina, etc.)",
-      "Columna de Utilidad Bruta separando costos directos de gastos operativos",
-      "Columna de Total Egresos explícita",
-      "Todas las categorías de gastos siempre visibles para consistencia"
-    ]
+    "title": "Estado de Resultados mejorado"
   },
   {
     "version": "3.15.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Gastos Recurrentes",
-    "description": "Permite marcar gastos operativos como recurrentes mensuales y generarlos automáticamente con un solo clic.",
-    "changes": [
-      "Switch 'Gasto recurrente mensual' en el formulario de crear/editar gastos",
-      "Badge visual 'Mensual' en la tabla para identificar gastos recurrentes",
-      "Botón 'Generar Recurrentes' que crea automáticamente los gastos del mes actual evitando duplicados",
-      "Nueva columna 'is_recurring' en la base de datos"
-    ]
+    "title": "Gastos Recurrentes"
   },
   {
     "version": "3.14.1",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Prefijo $ en campo de monto de gastos",
-    "description": "Se agrega el símbolo de peso mexicano ($) como prefijo visual en el campo de monto del diálogo de gastos operativos.",
-    "changes": [
-      "Prefijo '$' visible en el campo de monto del formulario de gastos",
-      "Placeholder actualizado a '0.00' con formato mexicano"
-    ]
+    "title": "Prefijo $ en campo de monto de gastos"
   },
   {
     "version": "3.14.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Módulo de Gastos Operativos y Estado de Resultados mejorado",
-    "description": "Nueva tabla y página CRUD para registrar gastos operativos (renta, nómina, software, depreciación, otros). El Estado de Resultados ahora incluye todas las categorías de gastos para calcular utilidad neta.",
-    "changes": [
-      "Nueva página 'Gastos Operativos' con formulario para registrar, editar y eliminar gastos",
-      "Categorías de gasto: Renta, Nómina, Software, Depreciación, Otro",
-      "Filtro por categoría en la lista de gastos",
-      "Estado de Resultados actualizado: muestra columnas dinámicas por cada categoría de gasto con datos",
-      "Cálculo de Utilidad Neta = Ingresos - Mantenimiento - Daños - Gastos Operativos",
-      "Entrada en sidebar bajo Administración con acceso para admin, administrativo y auditor",
-      "Exportación CSV del Estado de Resultados incluye todas las categorías"
-    ]
+    "title": "Módulo de Gastos Operativos y Estado de Resultados mejorado"
   },
   {
     "version": "3.13.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Reporte Estado de Resultados mensual",
-    "description": "Nuevo reporte financiero que muestra ingresos (sin IVA), costos de mantenimiento, costos de daños, utilidad bruta y margen por mes.",
-    "changes": [
-      "Nuevo reporte 'Estado de Resultados' en la sección de Reportes",
-      "Tabla mensual con ingresos, costos de mantenimiento, costos de daños, utilidad bruta y margen %",
-      "Gráfica de barras comparando ingresos vs costos por mes",
-      "Fila de totales acumulados",
-      "Exportación a CSV"
-    ]
+    "title": "Reporte Estado de Resultados mensual"
   },
   {
     "version": "3.12.2",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Badge de fotos en tabla de daños",
-    "description": "Cada fila de daño muestra un contador de fotos para identificar rápidamente cuáles tienen evidencia fotográfica.",
-    "changes": [
-      "Badge con ícono de cámara y conteo de fotos en cada fila de la tabla de daños",
-      "Visible tanto en vista de escritorio como en tarjetas móviles",
-      "Consulta optimizada que obtiene los conteos en una sola petición"
-    ]
+    "title": "Badge de fotos en tabla de daños"
   },
   {
     "version": "3.12.1",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Fotos integradas en reporte de daño",
-    "description": "Ahora puedes adjuntar fotos directamente al reportar un daño manual, sin necesidad de crear el registro primero.",
-    "changes": [
-      "Zona de drag-and-drop para fotos dentro del diálogo 'Reportar Daño'",
-      "Previews locales antes de subir, con opción de eliminar",
-      "Las fotos se suben automáticamente al crear el registro de daño"
-    ]
+    "title": "Fotos integradas en reporte de daño"
   },
   {
     "version": "3.12.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Reporte manual de daños",
-    "description": "Los operadores ahora pueden reportar daños encontrados en almacén sin necesidad de una inspección de devolución.",
-    "changes": [
-      "Nuevo diálogo 'Reportar Daño' en la página de Seguimiento de Daños",
-      "Selección de montacargas de todo el inventario, cliente opcional, descripción y costo estimado",
-      "Disponible para roles admin, administrativo, despachador y mecánico"
-    ]
+    "title": "Reporte manual de daños"
   },
   {
     "version": "3.11.2",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Fotos por registro de daño en seguimiento",
-    "description": "Cada registro de daño ahora tiene su propia sección expandible de fotos con carga drag-and-drop y galería lightbox.",
-    "changes": [
-      "Filas expandibles en DamageTrackingPage: clic en una fila revela la sección de fotos de ese daño",
-      "Soporte completo en móvil con toggle para ver/subir fotos por daño",
-      "Cada registro usa su ID como entidad para almacenar fotos independientes"
-    ]
+    "title": "Fotos por registro de daño en seguimiento"
   },
   {
     "version": "3.11.1",
     "date": "2026-03-07",
     "type": "patch",
-    "title": "Fotos en inspección de devolución",
-    "description": "Se agregó el componente de carga de fotos drag-and-drop al formulario de inspección de devolución.",
-    "changes": [
-      "DragDropImageUploader integrado en el diálogo de nueva inspección de devolución",
-      "Permite capturar fotos del estado del equipo durante la inspección desde móvil o escritorio"
-    ]
+    "title": "Fotos en inspección de devolución"
   },
   {
     "version": "3.11.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Fotos de daño con drag-and-drop y galería lightbox",
-    "description": "Nuevo sistema de captura de fotos con arrastrar y soltar, cámara móvil y galería de imágenes a pantalla completa con navegación táctil.",
-    "changes": [
-      "Nuevo componente DragDropImageUploader con react-dropzone: drag-and-drop, previsualización y captura de cámara en móvil",
-      "Nuevo componente ImageGalleryLightbox con navegación por teclado, swipe táctil, zoom y tira de miniaturas",
-      "Sección DamagePhotosSection integrada en ForkliftDetail para ver y subir fotos de daño",
-      "Componente reutilizable para cualquier entidad que necesite gestión de fotos"
-    ]
+    "title": "Fotos de daño con drag-and-drop y galería lightbox"
   },
   {
     "version": "3.10.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Tablero Kanban para mantenimiento",
-    "description": "Vista de tablero drag-and-drop para gestionar el estado de trabajo de los registros de mantenimiento con 4 columnas.",
-    "changes": [
-      "Nueva vista Kanban en la página de mantenimiento con columnas: Pendiente, En Progreso, Esperando Refacciones y Completado",
-      "Drag-and-drop entre columnas actualiza el estado de trabajo en la base de datos con actualización optimista",
-      "Toggle para alternar entre vista de lista y vista de tablero",
-      "Nueva columna work_status en maintenance_logs con valor por defecto 'pending'",
-      "Componente MaintenanceKanban reutilizable con @hello-pangea/dnd"
-    ]
+    "title": "Tablero Kanban para mantenimiento"
   },
   {
     "version": "3.9.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Firma electrónica en entregas y skeleton de carga en listas",
-    "description": "Nuevo componente de firma digital para completar entregas, y eliminación de layout shift en todas las páginas de lista con skeletons alineados a columnas.",
-    "changes": [
-      "Nuevo componente SignaturePad con canvas táctil, deshacer y limpiar",
-      "Diálogo de firma del cliente al marcar una entrega como completada",
-      "Opción de omitir firma para completar sin captura",
-      "Firma guardada como base64 en columna signature_base64 de deliveries",
-      "Skeleton de carga alineado a columnas en BookingsPage (7 cols), Fleet (8 cols), InvoicesPage (7), ContractsPage (7), QuotesPage (7) y CustomersPage (6)",
-      "Componente TableSkeleton mejorado con prop columnCount para renderizar tabla con celdas skeleton",
-      "ListPageLayout acepta skeletonColumns para eliminar layout shift durante carga"
-    ]
+    "title": "Firma electrónica en entregas y skeleton de carga en listas"
   },
   {
     "version": "3.8.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Empty states, loading states y localización MXN",
-    "description": "Mejoras de UX en formularios, estados vacíos rediseñados y correcciones de localización en moneda y fechas.",
-    "changes": [
-      "Nuevo componente EmptyState con icono, título, subtítulo y botón de acción",
-      "Empty states aplicados automáticamente en Reservas, Flota y Facturas vía ListPageLayout",
-      "Spinner de carga y texto 'Guardando…' en botones de envío de Reservas, Facturas y Contratos",
-      "ContractForm migrado al componente compartido FormActions",
-      "Botón Cancelar deshabilitado durante envío para prevenir navegación accidental"
-    ]
+    "title": "Empty states, loading states y localización MXN"
   },
   {
     "version": "3.7.0",
     "date": "2026-03-07",
     "type": "minor",
-    "title": "Localización completa a pesos mexicanos y español",
-    "description": "Correcciones de formato de moneda y fechas para garantizar consistencia en toda la aplicación.",
-    "changes": [
-      "Meses en español (Ene, Feb…) en reporte de Ingresos vía locale es de date-fns",
-      "Contratos PDF usan formatCurrency en lugar de .toFixed(2) para tarifas y depósito",
-      "Eliminada función duplicada fmtMXN en pdfHelpers.ts, reemplazada por formatCurrency centralizado",
-      "Limpieza de imports no usados en QuotePDFButton e InvoicePDFButton",
-      "Spinner de carga con marca 'Cargando LiftGo…' en App.tsx"
-    ]
+    "title": "Localización completa a pesos mexicanos y español"
   },
   {
     "version": "3.6.2",
     "date": "2026-03-05",
     "type": "patch",
-    "title": "Admins pueden editar facturas en cualquier estado",
-    "description": "Los usuarios con rol admin ahora pueden editar facturas independientemente de su estado (enviada, vencida, pagada, parcial).",
-    "changes": [
-      "Botón 'Editar' visible para admins en todos los estados de factura",
-      "Usuarios no-admin mantienen la restricción de solo editar borradores"
-    ]
+    "title": "Admins pueden editar facturas en cualquier estado"
   },
   {
     "version": "3.6.1",
     "date": "2026-03-04",
     "type": "patch",
-    "title": "Corrección de selector de montacargas",
-    "description": "El selector de montacargas ahora muestra fabricante y modelo en lugar del ID interno.",
-    "changes": [
-      "Formato cambiado de '{ID} — {modelo}' a '{fabricante} {modelo} — {ID}' en selectores",
-      "Corrección aplicada en selector simple y multi-selector de cotizaciones"
-    ]
+    "title": "Corrección de selector de montacargas"
   },
   {
     "version": "3.6.0",
     "date": "2026-03-04",
     "type": "minor",
-    "title": "Refactorización de código",
-    "description": "Reorganización y limpieza del código para mejorar mantenibilidad, reducir duplicación y facilitar futuras extensiones.",
-    "changes": [
-      "Helpers PDF reutilizables en pdfHelpers.ts (header, tabla de partidas, totales, notas)",
-      "Nuevo hook useListPage que combina useSort + usePagination + useIsMobile",
-      "ContractPDFButton dividido en 3 archivos: datos, generador y componente UI",
-      "Consolidación de 11 useState en InvoiceForm a un solo useFormState",
-      "NotesCard con modo readOnly para páginas de detalle",
-      "Renombrado de variables ambiguas (qc→queryClient, fl→forklift, etc.)"
-    ]
+    "title": "Refactorización de código"
   },
   {
     "version": "3.5.3",
     "date": "2026-02-28",
     "type": "patch",
-    "title": "Corrección de facturación recurrente",
-    "description": "La primera factura recurrente ahora cubre correctamente el mes de inicio de la reserva.",
-    "changes": [
-      "Primera factura ahora cubre el mes de inicio de la reserva en lugar de saltarlo",
-      "Corrección en la lógica de last_billed_date para facturación automática"
-    ]
+    "title": "Corrección de facturación recurrente"
   },
   {
     "version": "3.5.2",
     "date": "2026-02-28",
     "type": "patch",
-    "title": "Corrección de cálculo de meses en rentas",
-    "description": "La fecha final ahora se trata como inclusiva para calcular correctamente la duración de periodos de renta.",
-    "changes": [
-      "Fecha final tratada como inclusiva: periodos como 01/12 al 30/11 ahora calculan 12 meses exactos",
-      "Ajuste en invoiceUtils para evitar cobros de un mes menos en rentas largas"
-    ]
+    "title": "Corrección de cálculo de meses en rentas"
   },
   {
     "version": "3.5.1",
     "date": "2026-02-27",
     "type": "patch",
-    "title": "Revertir acciones desde la Bitácora",
-    "description": "Al eliminar un registro de la bitácora, ahora puedes elegir entre solo borrar el registro o revertir la acción original en la base de datos.",
-    "changes": [
-      "Nuevo diálogo con dos opciones: borrar solo de bitácora o revertir la acción",
-      "Reversión atómica: INSERT se elimina, UPDATE restaura valores anteriores, DELETE re-inserta",
-      "Validación de seguridad: solo admins con whitelist de tablas permitidas",
-      "Información contextual sobre qué pasará al revertir cada tipo de acción"
-    ]
+    "title": "Revertir acciones desde la Bitácora"
   },
   {
     "version": "3.5.0",
     "date": "2026-02-27",
     "type": "minor",
-    "title": "Eliminar registros de la Bitácora de Cambios",
-    "description": "Los administradores ahora pueden eliminar registros individuales de la bitácora de cambios (audit trail) con un diálogo de confirmación.",
-    "changes": [
-      "Nuevo botón de eliminar en cada registro de la bitácora (solo visible para Admin)",
-      "Diálogo de confirmación antes de borrar para evitar eliminaciones accidentales",
-      "Notificación de éxito o error al eliminar un registro"
-    ]
+    "title": "Eliminar registros de la Bitácora de Cambios"
   },
   {
     "version": "3.4.0",
     "date": "2026-02-27",
     "type": "minor",
-    "title": "Reporte de Utilización por Modelo",
-    "description": "Nuevo reporte que agrupa la utilización de la flota por modelo de equipo, facilitando decisiones de compra al identificar qué modelos tienen alta demanda.",
-    "changes": [
-      "Nuevo reporte 'Utilización por Modelo' en la página de Reportes",
-      "Gráfica de barras horizontales con colores por nivel de utilización (verde/amarillo/rojo)",
-      "Tabla detallada con unidades, disponibles, rentados, días reservados y % de utilización",
-      "Exportación a CSV del reporte",
-      "Equipos vendidos o retirados se excluyen automáticamente del cálculo"
-    ]
+    "title": "Reporte de Utilización por Modelo"
   },
   {
     "version": "3.3.1",
     "date": "2026-02-27",
     "type": "patch",
-    "title": "Generación de manual restringida a Admin",
-    "description": "Solo el rol Admin puede generar nuevos manuales. Cada regeneración incrementa automáticamente la versión y se conservan las versiones anteriores.",
-    "changes": [
-      "Solo el rol Admin puede generar y regenerar el manual de usuario",
-      "Versión incremental automática (1.0 → 2.0 → 3.0) en cada generación",
-      "Se conservan versiones anteriores del manual con selector de versión",
-      "Política RLS actualizada para restringir escritura solo a admin"
-    ]
+    "title": "Generación de manual restringida a Admin"
   },
   {
     "version": "3.3.0",
     "date": "2026-02-26",
     "type": "minor",
-    "title": "Manual de Usuario con IA",
-    "description": "Nueva sección de Ayuda con un manual de usuario completo generado por inteligencia artificial, con documentación detallada de cada módulo y workflows paso a paso.",
-    "changes": [
-      "Nueva página /help con manual de usuario generado por IA",
-      "18 secciones cubriendo todos los módulos de la app",
-      "Workflows completos: flujo de renta, facturación recurrente, daños y mantenimiento",
-      "Barra de búsqueda para filtrar contenido del manual",
-      "Botón de regenerar manual disponible para administradores",
-      "Accesible desde el sidebar para todos los roles"
-    ]
+    "title": "Manual de Usuario con IA"
   },
   {
     "version": "3.2.0",
     "date": "2026-02-26",
     "type": "minor",
-    "title": "Editor de Plantilla de Contrato",
-    "description": "Los administradores ahora pueden editar el contenido de contratos, checklist y pagaré desde Configuración de Operaciones, sin modificar código.",
-    "changes": [
-      "Nueva pestaña 'Plantilla de Contrato' en Configuración de Operaciones",
-      "Editor de párrafo introductorio, declaraciones, cláusulas, checklist y pagaré",
-      "Sistema de placeholders dinámicos ({arrendador}, {tarifa_mensual}, etc.)",
-      "Generación de PDF lee la plantilla de la base de datos con fallback al contenido original",
-      "Guía visual de placeholders disponibles en la interfaz de edición"
-    ]
+    "title": "Editor de Plantilla de Contrato"
   },
   {
     "version": "3.1.0",
     "date": "2026-02-26",
     "type": "minor",
-    "title": "Página de Changelog",
-    "description": "Nueva página dentro de la app que muestra el historial completo de cambios organizados por versión semántica.",
-    "changes": [
-      "Historial de cambios con versionado semántico (MAJOR.MINOR.PATCH)",
-      "Línea de tiempo visual con badges de color por tipo de cambio",
-      "Filtros por tipo: Mayor, Menor y Parche",
-      "Accesible desde el sidebar para todos los roles"
-    ]
+    "title": "Página de Changelog"
   },
   {
     "version": "3.0.1",
     "date": "2026-02-26",
     "type": "patch",
-    "title": "Representante legal en clientes",
-    "description": "Se agregó el campo de representante legal en la ficha del cliente, y se integró automáticamente en el contrato y el pagaré.",
-    "changes": [
-      "Nuevo campo 'Representante Legal' en el formulario de clientes",
-      "El nombre del representante aparece automáticamente en el contrato PDF",
-      "El pagaré (Anexo B) incluye al representante legal como firmante"
-    ]
+    "title": "Representante legal en clientes"
   },
   {
     "version": "3.0.0",
     "date": "2026-02-25",
     "type": "major",
-    "title": "Contratos profesionales con anexos legales",
-    "description": "Rediseño completo del módulo de contratos con un machote profesional que incluye cláusulas legales, checklist de entrega y pagaré.",
-    "changes": [
-      "8 cláusulas legales profesionales (objeto, vigencia, renta, obligaciones, etc.)",
-      "Anexo A: Checklist de condiciones del equipo al momento de entrega",
-      "Anexo B: Pagaré con datos del cliente y montos del contrato",
-      "PDF multi-página generado con jsPDF",
-      "Plantillas de contrato editables desde Configuración",
-      "Testigos configurables por contrato"
-    ]
+    "title": "Contratos profesionales con anexos legales"
   },
   {
     "version": "2.5.1",
     "date": "2026-02-24",
     "type": "patch",
-    "title": "Actividad en español",
-    "description": "El feed de actividad ahora muestra todos los eventos traducidos al español en lugar de inglés.",
-    "changes": [
-      "Traducciones completas del feed de actividad al español",
-      "Tipos de evento y descripciones en lenguaje natural"
-    ]
+    "title": "Actividad en español"
   },
   {
     "version": "2.5.0",
     "date": "2026-02-24",
     "type": "minor",
-    "title": "Rol de auditor",
-    "description": "Nuevo rol 'auditor' que permite ver toda la información del sistema sin poder modificar nada.",
-    "changes": [
-      "Rol 'auditor' con acceso de solo lectura a todas las secciones",
-      "Visible en la gestión de usuarios para asignar a nuevos miembros"
-    ]
+    "title": "Rol de auditor"
   },
   {
     "version": "2.4.1",
     "date": "2026-02-23",
     "type": "patch",
-    "title": "Corrección de permisos de perfil",
-    "description": "Se corrigió un problema donde los clientes del portal podían ver información de perfiles internos.",
-    "changes": [
-      "Separación de permisos entre perfiles de clientes y personal interno",
-      "Los clientes solo ven su propia información"
-    ]
+    "title": "Corrección de permisos de perfil"
   },
   {
     "version": "2.4.0",
     "date": "2026-02-23",
     "type": "minor",
-    "title": "Rol administrativo",
-    "description": "Nuevo rol 'administrativo' con permisos completos de operación, similar al dispatcher pero con acceso a configuración.",
-    "changes": [
-      "Rol 'administrativo' con acceso completo a operaciones",
-      "Acceso a configuración de empresa y operaciones",
-      "Puede gestionar reservas, contratos, facturas y entregas"
-    ]
+    "title": "Rol administrativo"
   },
   {
     "version": "2.3.1",
     "date": "2026-02-23",
     "type": "patch",
-    "title": "Mejoras al dashboard",
-    "description": "El panel principal ahora muestra información más precisa sobre la flota y su utilización.",
-    "changes": [
-      "Nuevo estado 'vendido' para equipos retirados de la flota activa",
-      "Gráfica de utilización semanal en el dashboard",
-      "Los equipos retirados ya no se cuentan en las estadísticas de flota"
-    ]
+    "title": "Mejoras al dashboard"
   },
   {
     "version": "2.3.0",
     "date": "2026-02-23",
     "type": "minor",
-    "title": "Portal de clientes",
-    "description": "Los clientes ahora pueden iniciar sesión en su propio portal para ver sus rentas, facturas y contratos.",
-    "changes": [
-      "Nuevo rol 'customer' para clientes con cuenta",
-      "Pantalla de login dedicada para clientes en /portal/login",
-      "Dashboard del portal con resumen de cuenta",
-      "Vista de facturas y contratos desde la perspectiva del cliente",
-      "Invitación de clientes por correo electrónico"
-    ]
+    "title": "Portal de clientes"
   },
   {
     "version": "2.2.0",
     "date": "2026-02-15",
     "type": "minor",
-    "title": "Contratos, pagos y auditoría",
-    "description": "Se agregaron contratos de renta, registro de pagos parciales/totales, y auditoría detallada de cambios.",
-    "changes": [
-      "Módulo de contratos con número consecutivo automático",
-      "Registro de pagos con método, referencia y notas",
-      "Auditoría detallada que registra qué campos cambiaron y sus valores anteriores",
-      "Estado de factura se actualiza automáticamente al registrar pagos"
-    ]
+    "title": "Contratos, pagos y auditoría"
   },
   {
     "version": "2.1.0",
     "date": "2026-02-15",
     "type": "minor",
-    "title": "Choferes, mecánicos y datos fiscales",
-    "description": "Nuevos catálogos de choferes y mecánicos, más integración con datos fiscales del SAT para facturación.",
-    "changes": [
-      "Catálogo de choferes con licencia y datos de contacto",
-      "Catálogo de mecánicos con especialización",
-      "Configuración de datos fiscales de la empresa (RFC, razón social, régimen)",
-      "Campos de CFDI en facturas (uso CFDI, forma de pago, método de pago)"
-    ]
+    "title": "Choferes, mecánicos y datos fiscales"
   },
   {
     "version": "2.0.3",
     "date": "2026-02-15",
     "type": "patch",
-    "title": "Cancelación de reservas y validaciones",
-    "description": "Ahora se pueden cancelar reservas activas, y se validó que no haya equipos con nombres o series duplicadas.",
-    "changes": [
-      "Botón de cancelar reserva con confirmación",
-      "Validación de nombres únicos en equipos",
-      "Validación de números de serie únicos"
-    ]
+    "title": "Cancelación de reservas y validaciones"
   },
   {
     "version": "2.0.2",
     "date": "2026-02-14",
     "type": "patch",
-    "title": "Optimización de base de datos",
-    "description": "Se agregaron índices en las tablas principales para mejorar la velocidad de las consultas.",
-    "changes": [
-      "Índices de rendimiento en reservas, facturas, mantenimiento y más",
-      "Mejora en tiempos de carga de listados grandes"
-    ]
+    "title": "Optimización de base de datos"
   },
   {
     "version": "2.0.1",
     "date": "2026-02-14",
     "type": "patch",
-    "title": "Procedimientos atómicos",
-    "description": "Las operaciones críticas ahora se ejecutan como transacciones atómicas para evitar datos inconsistentes.",
-    "changes": [
-      "Crear reserva: valida disponibilidad y cambia estado del equipo en una sola transacción",
-      "Eliminar equipo: limpia dependencias automáticamente",
-      "Completar inspección: cierra reserva y libera equipo de forma atómica"
-    ]
+    "title": "Procedimientos atómicos"
   },
   {
     "version": "2.0.0",
     "date": "2026-02-14",
     "type": "major",
-    "title": "Autenticación, roles y nuevos módulos",
-    "description": "Gran actualización que agrega sistema de usuarios con roles, cotizaciones, actividad y registro de daños.",
-    "changes": [
-      "Sistema de autenticación con login y registro",
-      "Roles de usuario: admin, dispatcher, mecánico",
-      "Control de acceso por rol en todas las secciones",
-      "Módulo de cotizaciones con número consecutivo",
-      "Feed de actividad en tiempo real",
-      "Registro de daños vinculado a equipos y reservas"
-    ]
+    "title": "Autenticación, roles y nuevos módulos"
   },
   {
     "version": "1.2.0",
     "date": "2026-02-13",
     "type": "minor",
-    "title": "Devoluciones, entregas y documentos",
-    "description": "Se completó el flujo operativo con inspecciones de devolución, programación de entregas y adjuntos.",
-    "changes": [
-      "Inspecciones de devolución con checklist de condición",
-      "Programación de entregas y recolecciones",
-      "Documentos adjuntos en reservas, equipos y clientes"
-    ]
+    "title": "Devoluciones, entregas y documentos"
   },
   {
     "version": "1.1.0",
     "date": "2026-02-13",
     "type": "minor",
-    "title": "Clientes, mantenimiento y facturas",
-    "description": "Se agregaron los módulos de clientes, registro de mantenimiento, facturación y catálogo de modelos.",
-    "changes": [
-      "Catálogo de clientes con datos de contacto",
-      "Registro de mantenimiento por equipo",
-      "Módulo de facturación con partidas y totales",
-      "Catálogo de modelos de equipo con especificaciones por defecto"
-    ]
+    "title": "Clientes, mantenimiento y facturas"
   },
   {
     "version": "1.0.0",
     "date": "2026-02-12",
     "type": "major",
-    "title": "Lanzamiento inicial",
-    "description": "Primera versión del sistema con los módulos básicos para gestionar una flota de montacargas en renta.",
-    "changes": [
-      "Catálogo de equipos (montacargas) con estado y especificaciones",
-      "Reservas con fechas de inicio y fin",
-      "Calendario visual de disponibilidad",
-      "Panel principal con estadísticas generales"
-    ]
+    "title": "Lanzamiento inicial"
   }
 ]

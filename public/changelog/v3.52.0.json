@@ -1,0 +1,7 @@
+{
+  "description": "Se agregó una sección de historial de cambios de estatus en la página de detalle de reserva, mostrando transiciones con badges y fechas.",
+  "changes": [
+    "Nuevo componente BookingStatusHistory que consulta la bitácora de auditoría",
+    "Muestra transiciones de estatus con badges visuales y timestamps"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "description": "Corregido renderizado de '()' cuando el contacto del cliente está vacío en la tarjeta de reservas del calendario.",
+  "changes": [
+    "Renderizado condicional del contacto del cliente en CalendarPage"
+  ]
+}

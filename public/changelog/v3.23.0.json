@@ -1,0 +1,11 @@
+{
+  "description": "Nuevo módulo completo de Proveedores integrado al ERP, con vinculación a gastos operativos y registros de mantenimiento.",
+  "changes": [
+    "Tabla de proveedores con RLS, auditoría y actividad",
+    "Página de listado con búsqueda, ordenamiento, paginación y exportación CSV",
+    "Página de detalle con datos de contacto, fiscales, gastos y mantenimiento vinculados",
+    "Selector de proveedor en formularios de gastos operativos y mantenimiento",
+    "Columna supplier_id en operating_expenses y maintenance_logs",
+    "Navegación en sidebar bajo Administración"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Al convertir una cotización de 'Público en General' a reserva, se muestra un diálogo para seleccionar el cliente final antes de proceder.",
+  "changes": [
+    "Diálogo intermedio de reasignación de cliente al detectar 'Público en General'",
+    "Actualización automática de la cotización con el cliente seleccionado",
+    "Filtrado del cliente genérico en el selector"
+  ]
+}

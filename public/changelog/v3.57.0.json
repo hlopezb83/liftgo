@@ -1,0 +1,8 @@
+{
+  "description": "Se calcula automáticamente la diferencia de horas entre la entrega y la recolección de un equipo en la misma reserva.",
+  "changes": [
+    "Cálculo automático de horas usadas (recolección - entrega) en DeliveryDetail",
+    "Nueva card de Horómetro en BookingDetail con lecturas de entrega, recolección y horas usadas",
+    "Indicador visual destacado para horas usadas con color primario"
+  ]
+}

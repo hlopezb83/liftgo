@@ -1,0 +1,7 @@
+{
+  "description": "Se agrega la categoría 'Publicidad' al catálogo de gastos operativos y al estado de resultados.",
+  "changes": [
+    "Nueva categoría 'Publicidad' disponible en el formulario de registro de gastos",
+    "Categoría reflejada como línea en el Estado de Resultados"
+  ]
+}

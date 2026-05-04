@@ -1,0 +1,11 @@
+{
+  "description": "Reorganización y limpieza del código para mejorar mantenibilidad, reducir duplicación y facilitar futuras extensiones.",
+  "changes": [
+    "Helpers PDF reutilizables en pdfHelpers.ts (header, tabla de partidas, totales, notas)",
+    "Nuevo hook useListPage que combina useSort + usePagination + useIsMobile",
+    "ContractPDFButton dividido en 3 archivos: datos, generador y componente UI",
+    "Consolidación de 11 useState en InvoiceForm a un solo useFormState",
+    "NotesCard con modo readOnly para páginas de detalle",
+    "Renombrado de variables ambiguas (qc→queryClient, fl→forklift, etc.)"
+  ]
+}

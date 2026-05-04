@@ -1,0 +1,8 @@
+{
+  "description": "Permite modificar la fecha, monto, método de pago, referencia y notas de pagos ya registrados en el historial de una factura.",
+  "changes": [
+    "Botón de edición (lápiz) en cada fila del historial de pagos",
+    "Diálogo de edición con campos pre-poblados",
+    "Recalculación automática del status de factura (pagada/parcial/enviada) al editar un pago"
+  ]
+}

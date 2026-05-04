@@ -1,0 +1,8 @@
+{
+  "description": "Se completó el flujo operativo con inspecciones de devolución, programación de entregas y adjuntos.",
+  "changes": [
+    "Inspecciones de devolución con checklist de condición",
+    "Programación de entregas y recolecciones",
+    "Documentos adjuntos en reservas, equipos y clientes"
+  ]
+}

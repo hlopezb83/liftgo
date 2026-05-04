@@ -1,0 +1,6 @@
+{
+  "description": "Se removió la gráfica 'Ingresos por Unidad' del panel principal por aportar poco valor analítico. La tarjeta de 'Utilización de Flota' ahora ocupa el ancho completo.",
+  "changes": [
+    "UtilizationCharts simplificado a una sola gráfica de utilización"
+  ]
+}

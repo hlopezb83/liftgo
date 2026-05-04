@@ -1,0 +1,7 @@
+{
+  "description": "Los filtros de búsqueda y estado en las listas se preservan al navegar a una página de detalle y regresar.",
+  "changes": [
+    "Filtros de lista se guardan en sessionStorage al cambiar",
+    "Botón atrás restaura filtros previos automáticamente"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Se corrigió un problema donde los clientes del portal podían ver información de perfiles internos.",
+  "changes": [
+    "Separación de permisos entre perfiles de clientes y personal interno",
+    "Los clientes solo ven su propia información"
+  ]
+}

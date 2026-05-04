@@ -1,0 +1,9 @@
+{
+  "description": "Nuevo diálogo ExpenseFormDialog con react-hook-form + zod para registrar gastos con validación inline en español.",
+  "changes": [
+    "Componente ExpenseFormDialog con validación zod y mensajes en español mexicano",
+    "Schema expenseFormSchema centralizado en formSchemas.ts",
+    "Errores inline bajo cada campo en lugar de toasts genéricos",
+    "Categoría 'Costo de Venta (Directo)' explícita en el selector"
+  ]
+}

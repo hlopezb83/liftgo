@@ -1,0 +1,7 @@
+{
+  "description": "Las facturas generadas desde una cotización tipo renta ahora se clasifican como 'Ingresos por Rentas' aunque no tengan reserva vinculada. Antes caían erróneamente en 'Ingresos por Ventas'.",
+  "changes": [
+    "Estado de Resultados: facturas con quote_id de tipo rental se cuentan como renta",
+    "Corrige caso reportado: Ring Lock de México (FAC-0028) ahora aparece en rentas"
+  ]
+}

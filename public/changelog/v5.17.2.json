@@ -1,0 +1,6 @@
+{
+  "description": "Al editar un pago registrado, la fecha 'Pagada' en el card de fechas de la factura se actualiza automáticamente con la fecha del pago más reciente.",
+  "changes": [
+    "paid_at se sincroniza al editar pagos (fecha más reciente cuando está pagada, null cuando es parcial o sin pagos)"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Nuevo rol 'auditor' que permite ver toda la información del sistema sin poder modificar nada.",
+  "changes": [
+    "Rol 'auditor' con acceso de solo lectura a todas las secciones",
+    "Visible en la gestión de usuarios para asignar a nuevos miembros"
+  ]
+}

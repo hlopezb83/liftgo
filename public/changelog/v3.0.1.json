@@ -1,0 +1,8 @@
+{
+  "description": "Se agregó el campo de representante legal en la ficha del cliente, y se integró automáticamente en el contrato y el pagaré.",
+  "changes": [
+    "Nuevo campo 'Representante Legal' en el formulario de clientes",
+    "El nombre del representante aparece automáticamente en el contrato PDF",
+    "El pagaré (Anexo B) incluye al representante legal como firmante"
+  ]
+}

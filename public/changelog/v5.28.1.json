@@ -1,0 +1,8 @@
+{
+  "description": "Se completan los pasos viables del plan de optimización (1-8). Pasos 9 (paginación server-side de invoices/bookings) y 10 (virtualización de GanttChart) quedan como mejoras preventivas para cuando la flota o el histórico crezcan significativamente.",
+  "changes": [
+    "Auditoría finalizada: RPCs agregadas, manualChunks, staleTime estandarizado, React.memo en dashboard y trigger DB para costo_venta",
+    "Step 2 (select explícitos en hooks globales) pospuesto por alto riesgo de regresión de tipos",
+    "Steps 9-10 documentados como mejoras preventivas a futuro"
+  ]
+}

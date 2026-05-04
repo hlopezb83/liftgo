@@ -1,0 +1,8 @@
+{
+  "description": "Se reemplaza el cálculo cliente del Estado de Resultados (que descargaba todas las facturas, mantenimientos, daños, gastos, reservas y montacargas) por una RPC SQL agregada que devuelve los datos ya agrupados por mes.",
+  "changes": [
+    "Nueva RPC get_income_statement(start, end, basis) restringida a admin/administrativo/auditor",
+    "useMonthlyData consume la RPC y elimina 7 hooks de listas globales del flujo de Reportes",
+    "Cálculo de depreciación, ingresos rental vs venta y agrupación por cliente/equipo se ejecuta en la base de datos"
+  ]
+}

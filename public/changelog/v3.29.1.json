@@ -1,0 +1,6 @@
+{
+  "description": "El rol Administrativo ahora puede eliminar cotizaciones desde la vista de detalle, además de crearlas y editarlas.",
+  "changes": [
+    "Botón de eliminar cotización visible para rol Administrativo"
+  ]
+}

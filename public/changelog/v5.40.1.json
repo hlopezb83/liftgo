@@ -1,0 +1,3 @@
+{
+  "description": "Se agregó política RLS de lectura pública para company_settings. El logo y razón social ahora cargan correctamente en /auth y /portal/login antes de iniciar sesión."
+}

@@ -1,0 +1,7 @@
+{
+  "description": "Se agregaron índices en las tablas principales para mejorar la velocidad de las consultas.",
+  "changes": [
+    "Índices de rendimiento en reservas, facturas, mantenimiento y más",
+    "Mejora en tiempos de carga de listados grandes"
+  ]
+}

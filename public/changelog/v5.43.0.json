@@ -1,0 +1,11 @@
+{
+  "description": "El PDF del Estado de Resultados ahora usa el mismo lenguaje visual premium minimalista industrial del PDF de cotización: barra de acento superior, header con logo proporcional + datos fiscales del emisor, tipografía consistente (Helvetica), tabla con header gris claro, filas zebra, subtotales destacados, footer corporativo y márgenes A4 estandarizados. Se reutilizan los tokens de diseño compartidos (GRAY_*, FONT_*, MARGIN) para mantener una sola fuente de verdad.",
+  "changes": [
+    "Header PDF rediseñado con logo proporcional y datos del emisor",
+    "Tabla con header gris claro y filas zebra alternas",
+    "Subtotales con fondo destacado y tipografía bold",
+    "Footer corporativo en cada página",
+    "Re-render del header de tabla en páginas adicionales",
+    "Tokens de diseño unificados con el PDF de cotización"
+  ]
+}

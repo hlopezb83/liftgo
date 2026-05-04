@@ -1,0 +1,8 @@
+{
+  "description": "El panel principal ahora muestra información más precisa sobre la flota y su utilización.",
+  "changes": [
+    "Nuevo estado 'vendido' para equipos retirados de la flota activa",
+    "Gráfica de utilización semanal en el dashboard",
+    "Los equipos retirados ya no se cuentan en las estadísticas de flota"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Tres páginas Detail con alta complejidad ciclomática se modularizaron sin cambios funcionales. InvoiceDetail (44) extrajo useInvoiceDetailActions + InvoiceDetailActions + InvoiceSourceLinks. QuoteDetail (33) extrajo QuoteDetailActions + QuoteConversionDialogs (3 diálogos agrupados). ReturnInspectionDetail (27) se descompuso en 5 cards reutilizables (Equipment, Booking, Inspection, UsageFuel, Damages) más InfoRow.",
+  "changes": [
+    "Nuevo hook useInvoiceDetailActions que orquesta diálogos y mutaciones de factura",
+    "Nuevos componentes invoice-detail/InvoiceDetailActions e InvoiceSourceLinks",
+    "Nuevos componentes quotes/QuoteDetailActions y QuoteConversionDialogs",
+    "Nuevo directorio return-inspection/ con 5 cards modulares + InfoRow compartido",
+    "InvoiceDetail.tsx, QuoteDetail.tsx y ReturnInspectionDetail.tsx ahora son declarativos (<150 LOC)"
+  ]
+}

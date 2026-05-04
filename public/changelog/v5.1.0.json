@@ -1,0 +1,8 @@
+{
+  "description": "Cada lead del pipeline CRM ahora muestra qué usuario lo creó, tanto en la tarjeta del Kanban como en el diálogo de edición.",
+  "changes": [
+    "Agregada columna created_by a la tabla prospects con trigger automático",
+    "Nombre del creador visible en tarjetas del Kanban",
+    "Campo 'Creado por' de solo lectura en el diálogo de edición de prospectos"
+  ]
+}

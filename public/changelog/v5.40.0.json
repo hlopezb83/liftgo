@@ -1,0 +1,3 @@
+{
+  "description": "Eliminados los 19 'any' residuales en hooks de prefill (invoice/quote), formularios (forklift, booking), componentes de detalle (ForkliftSpecsCard, ProspectDetailSheet, CollectionNotesCard, ImageGalleryLightbox) y portal (PortalInvoiceDetail). exportToCsv ahora usa generics estrictos. Los placeholders de plantilla de contrato se centralizan en placeholderRegistry.ts como fuente única de verdad. ESLint: 0 errores (down from 19)."
+}

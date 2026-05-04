@@ -1,0 +1,9 @@
+{
+  "description": "Los hooks useQuoteFormLogic y useInvoiceFormLogic se descomponen en sub-módulos: estado del formulario y prefill desde fuente, dejando el composer enfocado en computed values y submit.",
+  "changes": [
+    "Nuevo directorio src/hooks/quoteForm/ con useQuoteFormState y useQuotePrefill",
+    "Nuevo directorio src/hooks/invoiceForm/ con useInvoiceFormState y useInvoicePrefill",
+    "Helper applyCustomerCfdi reutilizable y tipado",
+    "API pública de los hooks composer sin cambios"
+  ]
+}

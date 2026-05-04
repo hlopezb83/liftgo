@@ -1,0 +1,9 @@
+{
+  "description": "Se agrega el campo de lectura de horómetro (horas de uso) al flujo de entregas y recolecciones para rastrear el uso del equipo.",
+  "changes": [
+    "Nuevo campo hours_reading en la tabla deliveries",
+    "Campo de horómetro en el diálogo de completar entrega (junto a la firma)",
+    "Campo opcional de horómetro al programar entregas y recolecciones",
+    "Lectura visible en la card de Equipo del detalle de entrega"
+  ]
+}

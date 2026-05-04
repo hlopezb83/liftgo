@@ -1,0 +1,8 @@
+{
+  "description": "Se agregó un selector de fecha al formulario de nueva inspección de devolución para poder registrar inspecciones con fecha diferente a la actual.",
+  "changes": [
+    "Nuevo campo DatePickerField en el diálogo de Nueva Devolución",
+    "Parámetro p_inspected_at agregado a la función complete_return_inspection",
+    "Valor predeterminado: fecha actual"
+  ]
+}

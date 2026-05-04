@@ -1,0 +1,7 @@
+{
+  "description": "Se muestra una alerta en el Estado de Resultados cuando existen equipos rentados sin costo de adquisición registrado, evitando omisiones en el cálculo de depreciación.",
+  "changes": [
+    "Alerta visible con los nombres de equipos afectados",
+    "Detección automática de montacargas rentados sin costo registrado"
+  ]
+}

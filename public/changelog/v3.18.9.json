@@ -1,0 +1,6 @@
+{
+  "description": "Se eliminaron los botones Ver/Editar de la tabla de clientes ya que la fila completa es clickeable.",
+  "changes": [
+    "Eliminada columna de acciones redundante en tabla de clientes"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Los prospectos en etapa 'Cerrado Ganado' pueden convertirse en clientes registrados con un clic. Los datos se pre-llenan automáticamente.",
+  "changes": [
+    "Botón 'Convertir a Cliente' en prospectos cerrados ganados",
+    "Pre-llenado automático de nombre, contacto, email y teléfono",
+    "Vinculación automática del prospecto con el cliente creado",
+    "Badge 'Cliente creado' con enlace directo al detalle del cliente"
+  ]
+}

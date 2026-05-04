@@ -1,0 +1,8 @@
+{
+  "description": "Se configuró la zona horaria America/Monterrey para garantizar consistencia en fechas y horas en toda la aplicación.",
+  "changes": [
+    "Agregada constante TIMEZONE en config.ts",
+    "Creado helper nowMty() en utils.ts usando date-fns-tz",
+    "PDFs de contratos y cotizaciones ahora usan hora de Monterrey"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "description": "Al agregar un cliente, ahora se puede subir un PDF de Constancia de Situación Fiscal (CSF) para extraer automáticamente los datos fiscales mediante IA.",
+  "changes": [
+    "Nueva pestaña 'Importar desde CSF' en el diálogo de agregar cliente",
+    "Extracción automática de RFC, razón social, C.P. fiscal, dirección y régimen fiscal",
+    "Soporte drag-and-drop para subir el PDF",
+    "Nueva función backend parse-csf con Lovable AI"
+  ]
+}

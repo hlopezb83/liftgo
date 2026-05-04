@@ -1,0 +1,7 @@
+{
+  "description": "Se corrigió que el costo de venta no aparecía en el estado de resultados al vender un montacargas.",
+  "changes": [
+    "Backfill de registros de costo de venta faltantes para equipos vendidos",
+    "Manejo de errores al crear gasto automático de costo de venta"
+  ]
+}

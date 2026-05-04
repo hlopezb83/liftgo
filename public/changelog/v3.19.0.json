@@ -1,0 +1,6 @@
+{
+  "description": "Se muestran el RFC y código postal del cliente en la tarjeta de Cliente del detalle de cotización.",
+  "changes": [
+    "Agregado RFC y C.P. en la tarjeta de cliente del detalle de cotización"
+  ]
+}

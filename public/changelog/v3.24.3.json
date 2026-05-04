@@ -1,0 +1,6 @@
+{
+  "description": "Se corrigió un problema donde el dropdown de modelo aparecía vacío al editar un montacargas existente.",
+  "changes": [
+    "Se agregó key al Select de modelo para forzar re-montaje cuando cambia el fabricante"
+  ]
+}

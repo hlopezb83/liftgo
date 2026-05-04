@@ -1,0 +1,9 @@
+{
+  "description": "Se agregaron contratos de renta, registro de pagos parciales/totales, y auditoría detallada de cambios.",
+  "changes": [
+    "Módulo de contratos con número consecutivo automático",
+    "Registro de pagos con método, referencia y notas",
+    "Auditoría detallada que registra qué campos cambiaron y sus valores anteriores",
+    "Estado de factura se actualiza automáticamente al registrar pagos"
+  ]
+}

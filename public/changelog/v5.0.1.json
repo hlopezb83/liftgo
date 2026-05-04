@@ -1,0 +1,6 @@
+{
+  "description": "Las cotizaciones de renta ahora incluyen automáticamente condiciones de límite de horas mensuales y costo por horas extras.",
+  "changes": [
+    "Términos 'Equipo sujeto a 200 horas de uso mensual' y 'El uso de horas extras lleva un costo adicional' se agregan automáticamente al PDF de cotizaciones de renta"
+  ]
+}

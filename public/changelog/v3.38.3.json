@@ -1,0 +1,7 @@
+{
+  "description": "Al modificar el costo de adquisición de un equipo vendido, se actualiza automáticamente el gasto de costo de venta correspondiente en gastos operativos.",
+  "changes": [
+    "Sincronización automática entre costo de adquisición y gasto de costo de venta",
+    "Invalidación de caché de gastos operativos al actualizar equipo"
+  ]
+}

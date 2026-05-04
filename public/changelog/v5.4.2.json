@@ -1,0 +1,7 @@
+{
+  "description": "La categoría Caja Chica ahora aparece correctamente como línea de gasto operativo en el Estado de Resultados, incluyéndose en los totales y la utilidad neta.",
+  "changes": [
+    "Agregada categoría Caja Chica al array de gastos operativos del reporte",
+    "Corregidos inicializadores de totales mensuales y anuales para incluir caja_chica"
+  ]
+}

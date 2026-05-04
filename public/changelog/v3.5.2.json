@@ -1,0 +1,7 @@
+{
+  "description": "La fecha final ahora se trata como inclusiva para calcular correctamente la duración de periodos de renta.",
+  "changes": [
+    "Fecha final tratada como inclusiva: periodos como 01/12 al 30/11 ahora calculan 12 meses exactos",
+    "Ajuste en invoiceUtils para evitar cobros de un mes menos en rentas largas"
+  ]
+}

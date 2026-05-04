@@ -1,0 +1,9 @@
+{
+  "description": "Se agregaron los módulos de clientes, registro de mantenimiento, facturación y catálogo de modelos.",
+  "changes": [
+    "Catálogo de clientes con datos de contacto",
+    "Registro de mantenimiento por equipo",
+    "Módulo de facturación con partidas y totales",
+    "Catálogo de modelos de equipo con especificaciones por defecto"
+  ]
+}

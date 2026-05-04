@@ -1,0 +1,7 @@
+{
+  "description": "Se agregó la categoría 'Caja Chica' al catálogo de gastos operativos para registrar gastos menores de efectivo.",
+  "changes": [
+    "Alta de categoría 'caja_chica' en el enum de base de datos",
+    "Etiqueta 'Caja Chica' visible en formulario y reportes"
+  ]
+}

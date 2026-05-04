@@ -1,0 +1,8 @@
+{
+  "description": "Cada fila de daño muestra un contador de fotos para identificar rápidamente cuáles tienen evidencia fotográfica.",
+  "changes": [
+    "Badge con ícono de cámara y conteo de fotos en cada fila de la tabla de daños",
+    "Visible tanto en vista de escritorio como en tarjetas móviles",
+    "Consulta optimizada que obtiene los conteos en una sola petición"
+  ]
+}

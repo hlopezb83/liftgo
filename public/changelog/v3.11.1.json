@@ -1,0 +1,7 @@
+{
+  "description": "Se agregó el componente de carga de fotos drag-and-drop al formulario de inspección de devolución.",
+  "changes": [
+    "DragDropImageUploader integrado en el diálogo de nueva inspección de devolución",
+    "Permite capturar fotos del estado del equipo durante la inspección desde móvil o escritorio"
+  ]
+}
