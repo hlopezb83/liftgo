@@ -1,0 +1,10 @@
+{
+  "description": "Auditoría de rendimiento y memoización de las tablas migradas a DataTable/ListPageLayout. Se reduce la cantidad de re-renders al ordenar, paginar o cambiar filtros y se elimina un warning ruidoso de refs en el componente de paginación.",
+  "changes": [
+    "Pagination, PaginationLink, PaginationPrevious y PaginationNext ahora usan React.forwardRef (elimina el warning 'Function components cannot be given refs')",
+    "useSort estabilizado con useRef para los accessors: deja de invalidar el useMemo cuando el caller pasa columns inline",
+    "DataTable envuelto en React.memo y con DataTableRow memoizado: evita re-render masivo de filas al cambiar sort o paginación",
+    "MobileCardList, SortableTableHead y TablePagination envueltos en React.memo",
+    "TablePagination memoiza visiblePages y handlers prev/next con useCallback"
+  ]
+}
