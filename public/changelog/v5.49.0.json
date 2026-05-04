@@ -1,0 +1,15 @@
+{
+  "version": "5.49.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Modularización de componentes >200 líneas",
+  "description": "Continuación del plan de refactor: AlertsRow, GanttChart y ContractTemplateTab se dividieron en piezas más pequeñas. Además se corrigieron problemas de tipos y se reorganizó la ubicación del portal de cliente.",
+  "changes": [
+    "AlertsRow: extraídos AlertCard y AlertRow reutilizables; corregido bug de JSX donde 'Rentas Vencidas' estaba anidada dentro de la tarjeta de Facturas Vencidas (196 → 137 líneas).",
+    "GanttChart: lógica de segmentos movida a useGanttSegments; UI dividida en GanttHeader y GanttRow (236 → 38 líneas).",
+    "ContractTemplateTab: extraídos ClausesEditor, ChecklistEditor y EditableList a subcarpeta dedicada (239 → 137 líneas).",
+    "ExpenseFormDialog: eliminado 'undefined as unknown as number' usando defaultValues parciales con casteo único en el resolver.",
+    "CustomerPortalRoutes movido de src/components/ a src/layouts/ para mejor separación arquitectónica."
+  ]
+}

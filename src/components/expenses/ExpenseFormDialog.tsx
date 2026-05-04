@@ -33,27 +33,24 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   const createExpense = useCreateExpense();
   const [supplierId, setSupplierId] = useState("");
 
+  const defaultValues: Partial<ExpenseFormData> = {
+    expense_date: nowMty(),
+    category: "",
+    description: "",
+  };
+
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseFormSchema),
-    defaultValues: {
-      expense_date: nowMty(),
-      amount: undefined as unknown as number,
-      category: "",
-      description: "",
-    },
+    defaultValues: defaultValues as ExpenseFormData,
   });
 
   useEffect(() => {
     if (open) {
       setSupplierId("");
-      form.reset({
-        expense_date: nowMty(),
-        amount: undefined as unknown as number,
-        category: "",
-        description: "",
-      });
+      form.reset(defaultValues as ExpenseFormData);
     }
-  }, [open, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const onSubmit = (data: ExpenseFormData) => {
     createExpense.mutate(

@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "@/pages/AuthPage";
-import { CustomerPortalRoutes } from "@/components/CustomerPortalRoutes";
+import { CustomerPortalRoutes } from "@/layouts/CustomerPortalRoutes";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
