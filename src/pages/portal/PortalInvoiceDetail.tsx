@@ -104,31 +104,20 @@ export default function PortalInvoiceDetail() {
         <CardHeader>
           <CardTitle className="text-base">Historial de Pagos</CardTitle>
         </CardHeader>
-        <CardContent>
-          {invoicePayments.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Referencia</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoicePayments.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>{formatDateDisplay(p.payment_date)}</TableCell>
-                    <TableCell>{p.payment_method || "—"}</TableCell>
-                    <TableCell>{p.reference_number || "—"}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(p.amount))}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">Sin pagos registrados</p>
-          )}
+        <CardContent className="p-0">
+          <DataTable
+            data={invoicePayments}
+            keyExtractor={(p) => p.id}
+            emptyMessage="Sin pagos registrados"
+            defaultSortKey="payment_date"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "payment_date", label: "Fecha", sortable: true, render: (p) => formatDateDisplay(p.payment_date) },
+              { key: "payment_method", label: "Método", render: (p) => p.payment_method || "—" },
+              { key: "reference_number", label: "Referencia", render: (p) => p.reference_number || "—" },
+              { key: "amount", label: "Monto", sortable: true, align: "right", accessor: (p) => Number(p.amount), render: (p) => <span className="font-mono">{formatCurrency(Number(p.amount))}</span> },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>
