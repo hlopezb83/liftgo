@@ -16,10 +16,10 @@ export interface RentalLineMeta {
   quantity: number;
 }
 
-/** Safely parse line_items from a JSONB column. */
-export function parseLineItems(json: Json | null | undefined): LineItem[] {
+/** Safely parse line_items from a JSONB column as a typed LineItem[]. */
+export function parseLineItems<T = LineItem>(json: Json | null | undefined): T[] {
   if (!Array.isArray(json)) return [];
-  return json as unknown as LineItem[];
+  return json as unknown as T[];
 }
 
 /** Safely parse rental_meta (array of model+quantity descriptors). */
@@ -28,12 +28,7 @@ export function parseRentalMeta(json: Json | null | undefined): RentalLineMeta[]
   return json as unknown as RentalLineMeta[];
 }
 
-/** Serialize a LineItem[] back to the JSONB-compatible shape. */
-export function serializeLineItems(items: LineItem[]): Json {
+/** Serialize any array-shaped JSON-compatible value back to a Json column. */
+export function toJsonArray<T>(items: readonly T[]): Json {
   return items as unknown as Json;
-}
-
-/** Serialize rental_meta back to JSONB. */
-export function serializeRentalMeta(meta: RentalLineMeta[]): Json {
-  return meta as unknown as Json;
 }
