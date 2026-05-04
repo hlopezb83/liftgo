@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface MobileCardListProps<T> {
@@ -8,7 +8,7 @@ interface MobileCardListProps<T> {
   keyExtractor: (item: T) => string;
 }
 
-export function MobileCardList<T>({ items, renderCard, emptyMessage, keyExtractor }: MobileCardListProps<T>) {
+function MobileCardListInner<T>({ items, renderCard, emptyMessage, keyExtractor }: MobileCardListProps<T>) {
   if (items.length === 0) {
     return (
       <Card>
@@ -27,3 +27,5 @@ export function MobileCardList<T>({ items, renderCard, emptyMessage, keyExtracto
     </div>
   );
 }
+
+export const MobileCardList = memo(MobileCardListInner) as typeof MobileCardListInner;

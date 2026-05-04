@@ -1,3 +1,4 @@
+import { memo, useCallback, useMemo } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -14,10 +15,8 @@ interface TablePaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function TablePagination({ page, totalPages, onPageChange }: TablePaginationProps) {
-  if (totalPages <= 1) return null;
-
-  const getVisiblePages = () => {
+function TablePaginationInner({ page, totalPages, onPageChange }: TablePaginationProps) {
+  const visiblePages = useMemo(() => {
     const pages: (number | "ellipsis")[] = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -31,18 +30,23 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
       pages.push(totalPages);
     }
     return pages;
-  };
+  }, [page, totalPages]);
+
+  const goPrev = useCallback(() => onPageChange(Math.max(1, page - 1)), [onPageChange, page]);
+  const goNext = useCallback(() => onPageChange(Math.min(totalPages, page + 1)), [onPageChange, page, totalPages]);
+
+  if (totalPages <= 1) return null;
 
   return (
     <Pagination className="py-4">
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            onClick={() => onPageChange(Math.max(1, page - 1))}
+            onClick={goPrev}
             className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
           />
         </PaginationItem>
-        {getVisiblePages().map((p, i) =>
+        {visiblePages.map((p, i) =>
           p === "ellipsis" ? (
             <PaginationItem key={`e-${i}`}>
               <PaginationEllipsis />
@@ -61,7 +65,7 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
         )}
         <PaginationItem>
           <PaginationNext
-            onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+            onClick={goNext}
             className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
           />
         </PaginationItem>
@@ -69,3 +73,5 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
     </Pagination>
   );
 }
+
+export const TablePagination = memo(TablePaginationInner);
