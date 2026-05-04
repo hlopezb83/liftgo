@@ -1,0 +1,16 @@
+{
+  "version": "5.57.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Refinamiento UI/UX global",
+  "summary": "Topbar con breadcrumbs, paleta de badges semántica, fechas en una sola línea, KPIs responsivos, sidebar con rol y Login con toggle de contraseña.",
+  "highlights": [
+    "Topbar muestra breadcrumb dinámico en lugar de header vacío",
+    "StatusBadge repaletizado: Enviada (azul), Sin Pagar/Pendiente (ámbar), Vencido (rojo)",
+    "Helper formatDateRange aplicado a Cotizaciones, Reservas, Facturas, Contratos, Entregas y Devoluciones",
+    "KPI cards responsivos (2 cols móvil, 3 tablet, 5 desktop) sin truncar labels",
+    "Calendario Gantt con bordes semanales y línea destacada en 'hoy'",
+    "Sidebar con truncate del nombre de empresa y rol del usuario visible en footer",
+    "Login con toggle mostrar/ocultar contraseña, icono Users para Portal y versión visible"
+  ]
+}
