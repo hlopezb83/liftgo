@@ -101,7 +101,7 @@ export default function QuotesPage() {
           <TableHead>Fechas</TableHead>
           <SortableTableHead sortKey="total" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Total</SortableTableHead>
           <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <SortableTableHead sortKey="valid_until" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Válida Hasta</SortableTableHead>
+          <SortableTableHead sortKey="valid_until" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Vigencia</SortableTableHead>
         </TableRow>
       }
       renderRow={(q) => (
