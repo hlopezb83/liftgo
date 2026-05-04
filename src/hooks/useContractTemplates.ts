@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { nowMty } from "@/lib/utils";
+import { parseJsonbArray } from "@/lib/lineItems";
 
 export interface ContractClause {
   title: string;
@@ -41,10 +42,10 @@ export function useDefaultContractTemplate() {
       if (!data) return null;
       return {
         ...data,
-        declarations_landlord: (data.declarations_landlord ?? []) as unknown as string[],
-        declarations_tenant: (data.declarations_tenant ?? []) as unknown as string[],
-        clauses: (data.clauses ?? []) as unknown as ContractClause[],
-        checklist_sections: (data.checklist_sections ?? []) as unknown as ChecklistSection[],
+        declarations_landlord: parseJsonbArray<string>(data.declarations_landlord),
+        declarations_tenant: parseJsonbArray<string>(data.declarations_tenant),
+        clauses: parseJsonbArray<ContractClause>(data.clauses),
+        checklist_sections: parseJsonbArray<ChecklistSection>(data.checklist_sections),
       } as ContractTemplate;
     },
   });

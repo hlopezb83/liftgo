@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUpdateQuote, useDeleteQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
 import type { LineItem } from "@/lib/invoiceUtils";
+import { parseLineItems } from "@/lib/lineItems";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
 import type { useQuoteConversionState, DeliveryInfo } from "./useQuoteConversionState";
 import { isPublicoGeneral } from "./useQuoteDetailData";
@@ -139,7 +140,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
 
   const convertToBookingLegacy = async (recurringBilling: boolean) => {
     if (!quote || !forklifts) return;
-    const items = (quote.line_items as unknown as LineItem[]) || [];
+    const items = parseLineItems<LineItem>(quote.line_items);
     const forkliftIds: string[] = [];
     for (const item of items) {
       const matched = forklifts.find((f) => item.description?.includes(f.name));

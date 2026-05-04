@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format } from "date-fns";
+import { format, type Locale } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { APP_CONFIG } from "@/lib/config";
 
@@ -30,11 +30,12 @@ export function formatDateDisplay(dateStr: string | null | undefined): string {
 export function formatMtyDate(
   value: Date | string | null | undefined,
   pattern = "dd/MM/yyyy",
+  locale?: Locale,
 ): string {
   if (!value) return "—";
   try {
     const date = typeof value === "string" ? new Date(value) : value;
-    return format(toZonedTime(date, APP_CONFIG.TIMEZONE), pattern);
+    return format(toZonedTime(date, APP_CONFIG.TIMEZONE), pattern, locale ? { locale } : undefined);
   } catch {
     return typeof value === "string" ? value : "—";
   }

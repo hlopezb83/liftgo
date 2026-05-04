@@ -1,0 +1,13 @@
+{
+  "version": "5.51.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Reducción de casts as unknown as y unificación de fechas",
+  "category": "refactor",
+  "highlights": [
+    "Nuevo parseJsonbArray<T> en src/lib/lineItems.ts: chokepoint único para narrowing de columnas JSONB.",
+    "Eliminados ~10 casts as unknown as en useContractTemplates, useUserManual, useAvailableForklifts, useAuditLogs, useProspects, InvoiceDetail, QuotePDFButton, InvoicePDFButton, useQuoteConversionActions y pdf/contract/fetchers.ts.",
+    "useAvailableForklifts migrado a callRpc<Forklift[]>.",
+    "formatMtyDate ahora acepta locale opcional; reemplaza format(parseISO(...)) en 8 archivos (BookingsPage, CalendarPage, MrrDetailPage, GanttRow, EquipmentListView, BookingPeriodCard, BookingBillingCard, ChangelogEntryCard)."
+  ]
+}

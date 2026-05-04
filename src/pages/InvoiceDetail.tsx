@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatDateDisplay } from "@/lib/utils";
+import { parseLineItems } from "@/lib/lineItems";
 import type { LineItem } from "@/lib/invoiceUtils";
 
 const cfdiBadgeClass = (status: string) =>
@@ -47,7 +48,7 @@ export default function InvoiceDetail() {
   if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
   if (!invoice) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
 
-  const lineItems = (invoice.line_items as unknown as LineItem[]) || [];
+  const lineItems = parseLineItems<LineItem>(invoice.line_items);
   const cfdiStatus = invoice.cfdi_status || "pending";
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
   const balance = Number(invoice.total) - totalPaid;

@@ -51,7 +51,10 @@ export function useUserManual() {
       const { data, error } = await q.maybeSingle();
       if (error) throw error;
       if (!data) return null;
-      return data as unknown as UserManual;
+      return {
+        ...data,
+        content: Array.isArray(data.content) ? (data.content as unknown as ManualSection[]) : [],
+      } as UserManual;
     },
   });
 

@@ -7,12 +7,12 @@ import { DataTable, type DataTableColumn } from "@/components/DataTable";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useMrrDetail } from "@/hooks/useMrrDetail";
 import { EmptyState } from "@/components/EmptyState";
-import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { formatMtyDate } from "@/lib/utils";
 
 type MrrItem = NonNullable<ReturnType<typeof useMrrDetail>["data"]>["items"][number];
 
-const fmt = (d: string | null) => (d ? format(parseISO(d), "dd MMM yyyy", { locale: es }) : "—");
+const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", es);
 
 export default function MrrDetailPage() {
   const { data, isLoading } = useMrrDetail();

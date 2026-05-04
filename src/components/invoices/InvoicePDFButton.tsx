@@ -4,6 +4,7 @@ import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fetchCompanyDataAndLogo, fmtDate, type PdfLineItem } from "@/lib/pdf/shared";
+import { parseLineItems } from "@/lib/lineItems";
 
 const GREEN = { r: 22, g: 163, b: 74 };
 
@@ -130,7 +131,7 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       y = detailY + 8;
 
       // 6. Line items table
-      const lineItems = (invoice.line_items as unknown as PdfLineItem[]) || [];
+      const lineItems = parseLineItems<PdfLineItem>(invoice.line_items);
       const invoiceCurrency = invoice.moneda || "MXN";
       y = drawPremiumTable(doc, lineItems, y, invoiceCurrency);
 

@@ -34,7 +34,7 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
       if (error) throw error;
 
       // Batch fetch user emails for display
-      const logs = data as unknown as AuditLog[];
+      const logs = (data ?? []) as unknown[] as AuditLog[];
       const userIds = [...new Set(logs.map((l) => l.user_id).filter(Boolean))] as string[];
 
       if (userIds.length > 0) {

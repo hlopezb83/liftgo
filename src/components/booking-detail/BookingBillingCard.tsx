@@ -3,11 +3,11 @@ import { Clock } from "lucide-react";
 import { InfoRow } from "@/components/InfoRow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
-import { format, parseISO } from "date-fns";
+import { formatMtyDate } from "@/lib/utils";
 import type { BookingWithForklift } from "@/hooks/useBookings";
 
 export function BookingBillingCard({ booking }: { booking: BookingWithForklift }) {
-  const fmt = (d: string) => format(parseISO(d), "dd/MM/yyyy");
+  const fmt = (d: string) => formatMtyDate(d);
   return (
     <Card>
       <CardHeader className="pb-3">

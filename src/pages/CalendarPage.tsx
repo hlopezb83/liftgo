@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
-import { nowMty } from "@/lib/utils";
+import { nowMty, formatMtyDate } from "@/lib/utils";
 import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -80,7 +80,7 @@ export default function CalendarPage() {
               {endingSoon.map((b) => (
                 <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
                   <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
-                  <span className="text-xs text-muted-foreground">Termina: {format(parseISO(b.end_date), "dd/MM/yyyy")}</span>
+                  <span className="text-xs text-muted-foreground">Termina: {formatMtyDate(b.end_date)}</span>
                 </div>
               ))}
             </div>
