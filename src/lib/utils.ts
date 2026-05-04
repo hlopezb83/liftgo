@@ -23,6 +23,23 @@ export function formatDateDisplay(dateStr: string | null | undefined): string {
   }
 }
 
+/**
+ * Format a Date or ISO string in Monterrey timezone using a date-fns pattern.
+ * Centralized helper to avoid scattered `format(parseISO(...), 'dd/MM/yyyy')`.
+ */
+export function formatMtyDate(
+  value: Date | string | null | undefined,
+  pattern = "dd/MM/yyyy",
+): string {
+  if (!value) return "—";
+  try {
+    const date = typeof value === "string" ? new Date(value) : value;
+    return format(toZonedTime(date, APP_CONFIG.TIMEZONE), pattern);
+  } catch {
+    return typeof value === "string" ? value : "—";
+  }
+}
+
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
