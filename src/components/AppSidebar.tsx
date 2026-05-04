@@ -166,6 +166,11 @@ export function AppSidebar() {
             </Button>
           </div>
         </div>
+        {currentVersion && (
+          <NavLink to="/changelog" className="text-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono">
+            v{currentVersion}
+          </NavLink>
+        )}
         <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
       </SidebarFooter>
     </Sidebar>
