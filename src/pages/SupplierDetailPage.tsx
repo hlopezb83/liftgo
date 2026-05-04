@@ -130,62 +130,40 @@ export default function SupplierDetailPage() {
       {/* Linked expenses */}
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" />Gastos Operativos Vinculados</CardTitle></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {linkedExpenses.length === 0 ? (
-                <EmptyRow colSpan={4} message="Sin gastos vinculados" />
-              ) : (
-                linkedExpenses.map((e) => (
-                  <TableRow key={e.id}>
-                    <TableCell className="font-mono text-sm">{formatDateDisplay(e.expense_date)}</TableCell>
-                    <TableCell><Badge variant="outline">{e.category}</Badge></TableCell>
-                    <TableCell className="text-muted-foreground">{e.description || "—"}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(e.amount)}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+        <CardContent className="p-0">
+          <DataTable<LinkedExpense>
+            data={linkedExpenses}
+            keyExtractor={(e) => e.id}
+            emptyMessage="Sin gastos vinculados"
+            defaultSortKey="expense_date"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "expense_date", label: "Fecha", sortable: true, render: (e) => <span className="font-mono text-sm">{formatDateDisplay(e.expense_date)}</span> },
+              { key: "category", label: "Categoría", sortable: true, render: (e) => <Badge variant="outline">{e.category}</Badge> },
+              { key: "description", label: "Descripción", render: (e) => <span className="text-muted-foreground">{e.description || "—"}</span> },
+              { key: "amount", label: "Monto", sortable: true, align: "right", render: (e) => <span className="font-mono">{formatCurrency(e.amount)}</span> },
+            ]}
+          />
         </CardContent>
       </Card>
 
       {/* Linked maintenance */}
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" />Mantenimiento Vinculado</CardTitle></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Montacargas</TableHead>
-                <TableHead>Tipo de Servicio</TableHead>
-                <TableHead className="text-right">Costo</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {linkedMaintenance.length === 0 ? (
-                <EmptyRow colSpan={4} message="Sin mantenimiento vinculado" />
-              ) : (
-                linkedMaintenance.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell className="font-mono text-sm">{formatDateDisplay(m.performed_at)}</TableCell>
-                    <TableCell>{forkliftMap.get(m.forklift_id)?.name || "—"}</TableCell>
-                    <TableCell>{m.service_type}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(m.cost || 0)}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+        <CardContent className="p-0">
+          <DataTable<LinkedMaintenance>
+            data={linkedMaintenance}
+            keyExtractor={(m) => m.id}
+            emptyMessage="Sin mantenimiento vinculado"
+            defaultSortKey="performed_at"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "performed_at", label: "Fecha", sortable: true, render: (m) => <span className="font-mono text-sm">{formatDateDisplay(m.performed_at)}</span> },
+              { key: "forklift", label: "Montacargas", accessor: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", sortable: true, render: (m) => forkliftMap.get(m.forklift_id)?.name || "—" },
+              { key: "service_type", label: "Tipo de Servicio", sortable: true, render: (m) => m.service_type },
+              { key: "cost", label: "Costo", sortable: true, align: "right", accessor: (m) => m.cost ?? 0, render: (m) => <span className="font-mono">{formatCurrency(m.cost || 0)}</span> },
+            ]}
+          />
         </CardContent>
       </Card>
     </div>
