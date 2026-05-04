@@ -3,9 +3,10 @@ import { type LucideIcon } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyRow } from "@/components/EmptyRow";
 import { EmptyState } from "@/components/EmptyState";
 import { TablePagination } from "@/components/TablePagination";
+import { MobileCardList } from "@/components/MobileCardList";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableHeader } from "@/components/ui/table";
 
@@ -26,6 +27,10 @@ interface ListPageLayoutProps<T> {
   onEmptyAction?: () => void;
   tableHeader: ReactNode;
   renderRow: (item: T, index: number) => ReactNode;
+  /** Si se provee, en mobile se renderiza como tarjetas en lugar de tabla. */
+  mobileCardRender?: (item: T) => ReactNode;
+  /** Extractor de key para mobile cards. Default: (item).id */
+  mobileKeyExtractor?: (item: T) => string;
   customContent?: ReactNode;
   skeletonColumns?: number;
 }
@@ -47,9 +52,14 @@ export function ListPageLayout<T extends { id?: string }>({
   onEmptyAction,
   tableHeader,
   renderRow,
+  mobileCardRender,
+  mobileKeyExtractor,
   customContent,
   skeletonColumns,
 }: ListPageLayoutProps<T>) {
+  const isMobile = useIsMobile();
+  const showMobileCards = isMobile && !!mobileCardRender;
+
   return (
     <PageTransition>
       <div className="p-6 space-y-6">
@@ -68,6 +78,15 @@ export function ListPageLayout<T extends { id?: string }>({
                   actionLabel={emptyActionLabel}
                   onAction={onEmptyAction}
                 />
+              ) : showMobileCards ? (
+                <div className="p-4">
+                  <MobileCardList
+                    items={items}
+                    keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
+                    emptyMessage={emptyMessage}
+                    renderCard={mobileCardRender}
+                  />
+                </div>
               ) : (
                 <Table>
                   <TableHeader>{tableHeader}</TableHeader>
