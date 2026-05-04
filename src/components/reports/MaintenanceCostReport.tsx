@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -9,6 +8,7 @@ import { parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
+import { DataTable } from "@/components/DataTable";
 
 interface Props {
   startDate: Date;
@@ -30,7 +30,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
       byForklift[m.forklift_id].count++;
     });
     return Object.values(byForklift).sort((a, b) => b.totalCost - a.totalCost);
-  }, [maintenanceLogs, forklifts, startDate, endDate, forkliftMap]);
+  }, [maintenanceLogs, startDate, endDate, forkliftMap]);
 
   return (
     <>
@@ -56,24 +56,18 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Montacargas</TableHead>
-                <TableHead className="text-right">Trabajos</TableHead>
-                <TableHead className="text-right">Costo Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((r) => (
-                <TableRow key={r.name}>
-                  <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell className="text-right">{r.count}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(r.totalCost)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            data={data}
+            keyExtractor={(r) => r.name}
+            emptyMessage="Sin mantenimientos en el rango"
+            defaultSortKey="totalCost"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
+              { key: "count", label: "Trabajos", align: "right", sortable: true, render: (r) => r.count },
+              { key: "totalCost", label: "Costo Total", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.totalCost)}</span> },
+            ]}
+          />
         </CardContent>
       </Card>
     </>

@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -8,6 +7,7 @@ import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useBookings } from "@/hooks/useBookings";
+import { DataTable } from "@/components/DataTable";
 
 interface Props {
   startDate: Date;
@@ -21,7 +21,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
   const data = useMemo(() => {
     const totalDays = Math.max(differenceInDays(endDate, startDate), 1);
     return forklifts.map((fl) => {
-      const flBookings = bookings.filter((b) => b.forklift_id === fl.id && 
+      const flBookings = bookings.filter((b) => b.forklift_id === fl.id &&
         isWithinInterval(parseISO(b.start_date), { start: startDate, end: endDate }));
       const bookedDays = flBookings.reduce((sum, b) => sum + differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1, 0);
       const utilization = Math.min(Math.round((bookedDays / totalDays) * 100), 100);
@@ -53,26 +53,19 @@ export function UtilizationReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Montacargas</TableHead>
-                <TableHead className="text-right">Días Reservados</TableHead>
-                <TableHead className="text-right">Días Totales</TableHead>
-                <TableHead className="text-right">Utilización</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((r) => (
-                <TableRow key={r.name}>
-                  <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell className="text-right">{r.bookedDays}</TableCell>
-                  <TableCell className="text-right">{r.totalDays}</TableCell>
-                  <TableCell className="text-right font-mono">{r.utilization}%</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            data={data}
+            keyExtractor={(r) => r.name}
+            emptyMessage="Sin datos en el rango"
+            defaultSortKey="utilization"
+            defaultSortDirection="desc"
+            columns={[
+              { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
+              { key: "bookedDays", label: "Días Reservados", align: "right", sortable: true, render: (r) => r.bookedDays },
+              { key: "totalDays", label: "Días Totales", align: "right", sortable: true, render: (r) => r.totalDays },
+              { key: "utilization", label: "Utilización", align: "right", sortable: true, render: (r) => <span className="font-mono">{r.utilization}%</span> },
+            ]}
+          />
         </CardContent>
       </Card>
     </>

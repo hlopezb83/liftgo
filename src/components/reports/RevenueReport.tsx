@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -9,6 +8,7 @@ import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download } from "lucide-react";
 import { useInvoices } from "@/hooks/useInvoices";
+import { DataTable } from "@/components/DataTable";
 
 interface Props {
   startDate: Date;
@@ -56,26 +56,17 @@ export function RevenueReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mes</TableHead>
-                <TableHead className="text-right">Facturas</TableHead>
-                <TableHead className="text-right">Facturado</TableHead>
-                <TableHead className="text-right">Pagado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((r) => (
-                <TableRow key={r.month}>
-                  <TableCell className="font-medium">{r.month}</TableCell>
-                  <TableCell className="text-right">{r.count}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(r.invoiced)}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(r.paid)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            data={data}
+            keyExtractor={(r) => r.month}
+            emptyMessage="Sin facturas en el rango"
+            columns={[
+              { key: "month", label: "Mes", sortable: true, render: (r) => <span className="font-medium">{r.month}</span> },
+              { key: "count", label: "Facturas", align: "right", sortable: true, render: (r) => r.count },
+              { key: "invoiced", label: "Facturado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.invoiced)}</span> },
+              { key: "paid", label: "Pagado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.paid)}</span> },
+            ]}
+          />
         </CardContent>
       </Card>
     </>
