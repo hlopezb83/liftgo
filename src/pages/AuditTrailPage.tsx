@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "@/hooks/useAuditLogs";
 import { useUserRole } from "@/hooks/useUserRole";
-import { usePagination } from "@/hooks/usePagination";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SearchBar } from "@/components/SearchBar";
@@ -41,8 +40,7 @@ export default function AuditTrailPage() {
     );
   });
 
-  const { page, setPage, totalPages, paginatedItems } = usePagination(filtered);
-  const isMobile = useIsMobile();
+  const { page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered);
 
   const mobileContent = isMobile ? (
     <MobileCardList

@@ -1,0 +1,13 @@
+{
+  "version": "5.53.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Adopción de useListPage en Inventario y Bitácora",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "refactor",
+      "description": "InventoryPage y AuditTrailPage migrados al hook unificado useListPage, reemplazando las invocaciones individuales de usePagination y useIsMobile."
+    }
+  ]
+}

@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.53.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Adopción de useListPage en Inventario y Bitácora",
+    "category": "refactor"
+  },
+  {
     "version": "5.52.0",
     "date": "2026-05-04",
     "type": "minor",
