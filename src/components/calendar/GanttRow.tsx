@@ -1,4 +1,5 @@
 import { format, getDay, isToday, parseISO } from "date-fns";
+import { formatMtyDate } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
@@ -62,8 +63,8 @@ export function GanttRow({ forklift, segments, days }: Props) {
               <TooltipContent side="top" className="text-xs space-y-1">
                 <p className="font-semibold">{seg.label}</p>
                 <p>
-                  {format(parseISO(seg.booking.start_date), "dd/MM")} →{" "}
-                  {format(parseISO(seg.booking.end_date), "dd/MM/yyyy")}
+                  {formatMtyDate(seg.booking.start_date, "dd/MM")} →{" "}
+                  {formatMtyDate(seg.booking.end_date)}
                 </p>
                 <p className="text-muted-foreground">
                   {seg.durationDays} día{seg.durationDays !== 1 ? "s" : ""} ·{" "}

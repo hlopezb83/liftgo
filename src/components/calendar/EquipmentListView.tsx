@@ -2,8 +2,8 @@ import { useMemo, memo } from "react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ChevronRight } from "lucide-react";
-import { format, parseISO, differenceInDays, isWithinInterval } from "date-fns";
-import { nowMty } from "@/lib/utils";
+import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
+import { nowMty, formatMtyDate } from "@/lib/utils";
 
 import type { BookingWithForklift } from "@/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
@@ -90,7 +90,7 @@ const BookingRow = memo(function BookingRow({ booking, label }: { booking: Booki
         <RecurringBillingBadge booking={booking} />
       </div>
       <div className="text-xs text-muted-foreground">
-        {format(parseISO(booking.start_date), "dd/MM")} → {format(parseISO(booking.end_date), "dd/MM/yyyy")}
+        {formatMtyDate(booking.start_date, "dd/MM")} → {formatMtyDate(booking.end_date)}
         <span className="ml-2">{duration}d</span>
       </div>
     </div>

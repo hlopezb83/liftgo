@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { format, differenceInDays, parseISO } from "date-fns";
+import { differenceInDays, parseISO } from "date-fns";
+import { formatMtyDate } from "@/lib/utils";
 
 import { STATUS_LABELS } from "@/lib/constants";
 import { useBookings } from "@/hooks/useBookings";
@@ -44,7 +45,7 @@ export default function BookingsPage() {
     return `${days} día${days !== 1 ? "s" : ""}`;
   };
 
-  const formatDate = (d: string) => format(parseISO(d), "dd/MM/yyyy");
+  const formatDate = (d: string) => formatMtyDate(d);
 
   const mobileContent = isMobile ? (
     <MobileCardList
