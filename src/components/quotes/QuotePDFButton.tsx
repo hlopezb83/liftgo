@@ -4,6 +4,7 @@ import { FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
+import { parseLineItems } from "@/lib/lineItems";
 
 interface QuotePDFButtonProps {
   quoteId: string;
