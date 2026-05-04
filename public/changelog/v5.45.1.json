@@ -1,0 +1,9 @@
+{
+  "description": "Estandarización completa de tablas: OperatingExpensesPage y UserManagementPage migradas al patrón canónico ListPageLayout con paginación, mobile cards y empty states consistentes.",
+  "changes": [
+    "OperatingExpensesPage migrada a ListPageLayout con usePagination, mobile cards y empty state estandarizado",
+    "UserManagementPage migrada a ListPageLayout reemplazando lógica manual de paginación y MobileCardList",
+    "Eliminado código duplicado de renderizado mobile/desktop y filtros por página",
+    "Todas las páginas de listado principal ahora comparten el mismo patrón visual y de UX"
+  ]
+}

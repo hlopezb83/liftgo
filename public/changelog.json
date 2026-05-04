@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.45.1",
+    "date": "2026-05-04",
+    "type": "patch",
+    "title": "Migración de OperatingExpenses y UserManagement a ListPageLayout",
+    "category": "refactor"
+  },
+  {
     "version": "5.45.0",
     "date": "2026-05-04",
     "type": "minor",
