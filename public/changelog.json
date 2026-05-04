@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.58.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Búsqueda global Ctrl+K, indicadores en Kanban CRM y etiqueta Hoy en Gantt",
+    "category": "feature"
+  },
+  {
     "version": "5.57.0",
     "date": "2026-05-04",
     "type": "minor",

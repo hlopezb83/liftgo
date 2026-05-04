@@ -1,0 +1,25 @@
+{
+  "version": "5.58.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Búsqueda global Ctrl+K, indicadores en Kanban CRM y etiqueta Hoy en Gantt",
+  "category": "feature",
+  "description": "Cierre de pendientes de la auditoría visual: navegación global y refinamientos visuales en módulos clave.",
+  "changes": [
+    {
+      "type": "added",
+      "title": "Búsqueda global en topbar (Ctrl+K)",
+      "description": "Nuevo componente GlobalSearch con CommandDialog: botón visible 'Buscar…' en el header con atajo Ctrl+K que abre un buscador agrupado por módulo (General, Comercial, Operaciones, Flota, Administración) con navegación instantánea a cualquier sección. El atajo respeta el foco de inputs para no interferir con búsquedas locales."
+    },
+    {
+      "type": "improved",
+      "title": "CRM Kanban con indicadores de scroll horizontal",
+      "description": "Se añadieron gradientes laterales (fade) en el contenedor del pipeline para indicar visualmente que hay columnas adicionales, además de scroll suave."
+    },
+    {
+      "type": "improved",
+      "title": "Calendario Gantt: etiqueta 'Hoy' y bordes semanales más visibles",
+      "description": "La columna del día actual ahora muestra una etiqueta flotante 'HOY' sobre el número; los bordes de inicio de semana ganaron contraste para mejor legibilidad en modo claro."
+    }
+  ]
+}

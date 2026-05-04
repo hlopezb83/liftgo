@@ -125,32 +125,37 @@ export default function CRMPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-x-auto p-4">
-          {isLoading ? (
-            <div className="flex gap-4">
-              {STAGES.map((s) => (
-                <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
-              ))}
-            </div>
-          ) : (
-            <DragDropContext onDragEnd={onDragEnd}>
-              <div className="flex gap-4 h-full min-w-max">
-                {prospectsByStage.map((stage) => (
-                  <KanbanColumn
-                    key={stage.key}
-                    stageKey={stage.key}
-                    label={stage.label}
-                    color={stage.color}
-                    items={stage.items}
-                    total={stage.total}
-                    quoteMap={quoteMap}
-                    onAdd={() => openCreate(stage.key)}
-                    onCardClick={setDetailProspect}
-                  />
+        <div className="flex-1 relative">
+          {/* Fade lateral derecho que indica scroll horizontal */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="h-full overflow-x-auto p-4 scroll-smooth">
+            {isLoading ? (
+              <div className="flex gap-4">
+                {STAGES.map((s) => (
+                  <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
                 ))}
               </div>
-            </DragDropContext>
-          )}
+            ) : (
+              <DragDropContext onDragEnd={onDragEnd}>
+                <div className="flex gap-4 h-full min-w-max">
+                  {prospectsByStage.map((stage) => (
+                    <KanbanColumn
+                      key={stage.key}
+                      stageKey={stage.key}
+                      label={stage.label}
+                      color={stage.color}
+                      items={stage.items}
+                      total={stage.total}
+                      quoteMap={quoteMap}
+                      onAdd={() => openCreate(stage.key)}
+                      onCardClick={setDetailProspect}
+                    />
+                  ))}
+                </div>
+              </DragDropContext>
+            )}
+          </div>
         </div>
       </div>
 
