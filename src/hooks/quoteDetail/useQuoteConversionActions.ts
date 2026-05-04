@@ -139,7 +139,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
 
   const convertToBookingLegacy = async (recurringBilling: boolean) => {
     if (!quote || !forklifts) return;
-    const items = (quote.line_items as unknown as LineItem[]) || [];
+    const items = parseLineItems<LineItem>(quote.line_items);
     const forkliftIds: string[] = [];
     for (const item of items) {
       const matched = forklifts.find((f) => item.description?.includes(f.name));

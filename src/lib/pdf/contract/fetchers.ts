@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
 import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
 import type { ContractViewModel } from "@/types/rental";
+import { parseJsonbArray } from "@/lib/lineItems";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
   DEFAULT_CLAUSES, DEFAULT_CHECKLIST, DEFAULT_PAGARE,
@@ -53,17 +54,17 @@ export async function fetchTemplate(): Promise<TemplateData> {
     };
   }
 
-  const declLandlord = data.declarations_landlord as unknown as string[] | null;
-  const declTenant = data.declarations_tenant as unknown as string[] | null;
-  const clauses = data.clauses as unknown as ContractClause[] | null;
-  const checklist = data.checklist_sections as unknown as ChecklistSection[] | null;
+  const declLandlord = parseJsonbArray<string>(data.declarations_landlord);
+  const declTenant = parseJsonbArray<string>(data.declarations_tenant);
+  const clauses = parseJsonbArray<ContractClause>(data.clauses);
+  const checklist = parseJsonbArray<ChecklistSection>(data.checklist_sections);
 
   return {
     intro_text: (data.intro_text as string) || DEFAULT_INTRO,
-    declarations_landlord: declLandlord?.length ? declLandlord : DEFAULT_DECL_LANDLORD,
-    declarations_tenant: declTenant?.length ? declTenant : DEFAULT_DECL_TENANT,
-    clauses: clauses?.length ? clauses : DEFAULT_CLAUSES,
-    checklist_sections: checklist?.length ? checklist : DEFAULT_CHECKLIST,
+    declarations_landlord: declLandlord.length ? declLandlord : DEFAULT_DECL_LANDLORD,
+    declarations_tenant: declTenant.length ? declTenant : DEFAULT_DECL_TENANT,
+    clauses: clauses.length ? clauses : DEFAULT_CLAUSES,
+    checklist_sections: checklist.length ? checklist : DEFAULT_CHECKLIST,
     pagare_text: (data.pagare_text as string) || DEFAULT_PAGARE,
   };
 }

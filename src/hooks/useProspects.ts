@@ -35,7 +35,7 @@ export function useProspects() {
         .select("*")
         .order("stage_order", { ascending: true });
       if (error) throw error;
-      const prospects = data as unknown as Prospect[];
+      const prospects = (data ?? []) as unknown[] as Prospect[];
 
       // Resolve creator names from profiles
       const creatorIds = [...new Set(prospects.map((p) => p.created_by).filter(Boolean))] as string[];

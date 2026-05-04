@@ -55,7 +55,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
 
       y = drawInfoCardsAt(doc, y, quote.customer_name, quote.start_date, quote.end_date, quote.valid_until, isSale, customerRfc, customerCp, company);
 
-      const lineItems = (quote.line_items as unknown as PdfLineItem[]) || [];
+      const lineItems = parseLineItems<PdfLineItem>(quote.line_items);
       const quoteCurrency = (quote as unknown as { currency?: string }).currency || "MXN";
       y = drawPremiumTable(doc, lineItems, y, quoteCurrency);
 
