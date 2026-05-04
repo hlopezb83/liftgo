@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.50.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Cierre de plan arquitectónico: memoización y modularización de Cliente",
+    "category": "refactor"
+  },
+  {
     "version": "5.49.0",
     "date": "2026-05-04",
     "type": "minor",

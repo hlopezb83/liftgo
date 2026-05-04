@@ -1,0 +1,12 @@
+{
+  "version": "5.50.0",
+  "date": "2026-05-04",
+  "type": "minor",
+  "title": "Cierre de plan arquitectónico: memoización y modularización de Cliente",
+  "category": "refactor",
+  "highlights": [
+    "Memoización de columnas DataTable en 5 reportes (Utilization, UtilizationByModel, Revenue, MaintenanceCost, Profitability, Aging) para aprovechar React.memo del DataTable.",
+    "CustomerFormDialog dividido en CustomerFormSections (Identity/Fiscal/Contact/Address) y CsfDropzone — separación clara entre UI estructural y carga CSF.",
+    "Plan de refactor arquitectónico completado en sus pasos críticos, altos y medios."
+  ]
+}
