@@ -35,7 +35,7 @@ export function GanttRow({ forklift, segments, days }: Props) {
             return (
               <div
                 key={day.toISOString()}
-                className={`flex-1 ${isWeekend ? "bg-muted/20" : ""} ${today ? "bg-primary/10 border-x border-primary/30" : ""} ${weekStart && !today ? "border-l border-border/60" : ""}`}
+                className={`flex-1 ${isWeekend ? "bg-muted/20" : ""} ${today ? "bg-primary/10 border-x border-primary/30" : ""} ${weekStart && !today ? "border-l border-border" : ""}`}
               />
             );
           })}
