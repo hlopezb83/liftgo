@@ -2,9 +2,7 @@ import { useState } from "react";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { useDamagePhotoCounts } from "@/hooks/useDamagePhotoCounts";
 import { useListFilters } from "@/hooks/useListFilters";
-import { usePagination } from "@/hooks/usePagination";
-import { useSort } from "@/hooks/useSort";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
@@ -45,7 +43,7 @@ export default function DamageTrackingPage() {
     );
   });
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort(extraFiltered, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(extraFiltered, {
     accessors: {
       created_at: (r) => r.created_at,
       forklift_name: (r) => r.forklifts?.name || "",
@@ -54,9 +52,6 @@ export default function DamageTrackingPage() {
       status: (r) => r.status,
     },
   });
-
-  const { page, setPage, totalPages, paginatedItems } = usePagination(sortedItems);
-  const isMobile = useIsMobile();
 
   const mobileContent = isMobile ? (
     <MobileCardList
