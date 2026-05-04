@@ -1,5 +1,5 @@
-import { format, parseISO } from "date-fns";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { formatDateDisplay } from "@/lib/utils";
 import type { ContractData } from "./fetchers";
 
 interface CompanyInfo { razon_social?: string | null }
@@ -12,7 +12,7 @@ interface ForkliftInfo {
   capacity_kg?: number | null; fuel_type?: string | null;
 }
 
-const fmtDate = (d?: string | null) => (d ? format(parseISO(d), "dd/MM/yyyy") : "[Fecha]");
+const fmtDate = (d?: string | null) => (d ? (formatDateDisplay(d) || "[Fecha]") : "[Fecha]");
 const num = (v: number | string | null | undefined) => Number(v || 0);
 
 function buildPartyVars(contract: ContractData, company: CompanyInfo | null, customer: CustomerInfo | null) {
