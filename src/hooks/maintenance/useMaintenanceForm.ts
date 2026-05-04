@@ -6,7 +6,9 @@ import {
   useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog,
 } from "@/hooks/useMaintenanceLogs";
 import type { MaintenanceFormShape } from "@/components/maintenance/MaintenanceFormDialog";
-import type { ForkliftMap } from "@/hooks/useForkliftMap";
+import type { Tables } from "@/integrations/supabase/types";
+
+type ForkliftMap = Map<string, Tables<"forklifts">>;
 
 const initialForm: MaintenanceFormShape = {
   forkliftId: "", serviceType: "", description: "", cost: "",
