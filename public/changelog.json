@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.51.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Reducción de casts as unknown as y unificación de fechas",
+    "category": "refactor"
+  },
+  {
     "version": "5.50.0",
     "date": "2026-05-04",
     "type": "minor",
