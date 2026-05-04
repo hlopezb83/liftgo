@@ -2,38 +2,56 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { STATUS_LABELS } from "@/lib/constants";
 
+// Tonos semánticos:
+// - success (verde): available, paid, accepted, confirmed, repaired, good, active, signed
+// - info    (azul):  rented, sent, scheduled, delivery, invoiced
+// - warning (ámbar): maintenance, partial, pending, minor_damage, reported, in_repair, pickup
+// - danger  (rojo):  overdue, cancelled, declined, major_damage, needs_repair
+// - neutral (gris):  draft, retired, expired, completed, sold, inactive
+const SUCCESS = "bg-status-available text-white border-transparent";
+const INFO = "bg-status-rented text-white border-transparent";
+const WARNING = "bg-status-warning text-foreground border-transparent dark:text-background";
+const DANGER = "bg-destructive text-destructive-foreground border-transparent";
+const NEUTRAL_DARK = "bg-status-completed text-white border-transparent";
+const NEUTRAL_LIGHT = "bg-muted text-muted-foreground border-transparent";
+
 const statusStyles: Record<string, string> = {
-  available: "bg-status-available text-white border-transparent",
-  rented: "bg-status-rented text-white border-transparent",
-  maintenance: "bg-status-maintenance text-white border-transparent",
-  retired: "bg-status-retired text-white border-transparent",
-  draft: "bg-muted text-muted-foreground border-transparent",
-  sent: "bg-destructive text-destructive-foreground border-transparent",
-  paid: "bg-status-available text-white border-transparent",
-  overdue: "bg-destructive text-destructive-foreground border-transparent",
-  confirmed: "bg-status-available text-white border-transparent",
-  accepted: "bg-status-available text-white border-transparent",
-  declined: "bg-destructive text-destructive-foreground border-transparent",
-  expired: "bg-status-retired text-white border-transparent",
-  completed: "bg-status-completed text-white border-transparent",
-  reported: "bg-status-maintenance text-white border-transparent",
-  in_repair: "bg-status-maintenance text-white border-transparent",
-  repaired: "bg-status-available text-white border-transparent",
-  invoiced: "bg-status-rented text-white border-transparent",
-  good: "bg-status-available text-white border-transparent",
-  minor_damage: "bg-status-maintenance text-white border-transparent",
-  major_damage: "bg-destructive text-destructive-foreground border-transparent",
-  needs_repair: "bg-destructive text-destructive-foreground border-transparent",
-  active: "bg-status-available text-white border-transparent",
-  inactive: "bg-status-retired text-white border-transparent",
-  sold: "bg-status-sold text-white border-transparent",
-  signed: "bg-status-available text-white border-transparent",
-  cancelled: "bg-destructive text-destructive-foreground border-transparent",
-  partial: "bg-status-maintenance text-white border-transparent",
-  scheduled: "bg-status-rented text-white border-transparent",
-  pending: "bg-status-maintenance text-white border-transparent",
-  delivery: "bg-status-rented text-white border-transparent",
-  pickup: "bg-status-maintenance text-white border-transparent",
+  // success
+  available: SUCCESS,
+  paid: SUCCESS,
+  accepted: SUCCESS,
+  confirmed: SUCCESS,
+  repaired: SUCCESS,
+  good: SUCCESS,
+  active: SUCCESS,
+  signed: SUCCESS,
+  // info (azul)
+  rented: INFO,
+  sent: INFO,
+  scheduled: INFO,
+  delivery: INFO,
+  invoiced: INFO,
+  // warning (ámbar)
+  maintenance: WARNING,
+  partial: WARNING,
+  pending: WARNING,
+  minor_damage: WARNING,
+  reported: WARNING,
+  in_repair: WARNING,
+  pickup: WARNING,
+  // danger (rojo)
+  overdue: DANGER,
+  cancelled: DANGER,
+  declined: DANGER,
+  major_damage: DANGER,
+  needs_repair: DANGER,
+  // neutral
+  draft: NEUTRAL_LIGHT,
+  retired: NEUTRAL_LIGHT,
+  expired: NEUTRAL_LIGHT,
+  inactive: NEUTRAL_LIGHT,
+  completed: NEUTRAL_DARK,
+  sold: NEUTRAL_DARK,
 };
 
 export function StatusBadge({ status, label: labelOverride }: { status: string; label?: string }) {

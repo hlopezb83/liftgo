@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { useCurrentVersion } from "@/hooks/useChangelog";
+import { ROLE_LABELS } from "@/lib/constants";
 
 type NavItem = { title: string; url: string; icon: React.ElementType };
 type NavGroup = { label: string; items: NavItem[] };
@@ -77,10 +78,22 @@ const ALWAYS_VISIBLE = ["/changelog", "/help", "/activity", "/audit"];
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
   return (
-    <Button variant="ghost" size="sm" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{isDark ? "Tema claro" : "Tema oscuro"}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -113,17 +126,22 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {company?.logo_url ? (
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white p-1">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white p-1">
               <img src={company.logo_url} alt="Logo" className="h-full w-full rounded object-contain" />
             </div>
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">LG</div>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">LG</div>
           )}
-          <div>
-            <h2 className="text-sm font-bold text-sidebar-primary-foreground tracking-tight">{company?.razon_social || "Lift Go"}</h2>
-            <p className="text-xs text-sidebar-foreground/60">Montacargas</p>
+          <div className="min-w-0 flex-1">
+            <h2
+              className="text-sm font-bold text-sidebar-primary-foreground tracking-tight truncate"
+              title={company?.razon_social || "Lift Go"}
+            >
+              {company?.razon_social || "Lift Go"}
+            </h2>
+            <p className="text-xs text-sidebar-foreground/60 truncate">Montacargas</p>
           </div>
         </div>
       </SidebarHeader>
@@ -149,21 +167,33 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-sidebar-foreground/60 truncate max-w-[140px]">{user?.email}</p>
-          <div className="flex gap-1">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-sidebar-foreground/80 truncate" title={user?.email ?? ""}>{user?.email}</p>
+            {role && (
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wide font-medium">
+                {ROLE_LABELS[role] ?? role}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-1 shrink-0">
             <ThemeToggle />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+                <Button variant="ghost" size="sm" aria-label="Cambiar contraseña" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
                   <KeyRound className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Cambiar contraseña</TooltipContent>
             </Tooltip>
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" aria-label="Cerrar sesión" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Cerrar sesión</TooltipContent>
+            </Tooltip>
           </div>
         </div>
         {currentVersion && (

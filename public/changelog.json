@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.57.0",
+    "date": "2026-05-04",
+    "type": "minor",
+    "title": "Refinamiento UI/UX: breadcrumbs, badges semánticos, KPIs responsivos y Gantt mejorado",
+    "category": "feature"
+  },
+  {
     "version": "5.56.0",
     "date": "2026-05-04",
     "type": "minor",

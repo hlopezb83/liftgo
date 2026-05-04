@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalLink } from "lucide-react";
+import { Users, Eye, EyeOff } from "lucide-react";
+import { useCurrentVersion } from "@/hooks/useChangelog";
 import { usePublicBranding } from "@/hooks/usePublicBranding";
 
 type Mode = "sign-in" | "forgot" | "reset";
@@ -17,7 +18,9 @@ export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const currentVersion = useCurrentVersion();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -82,7 +85,25 @@ export default function AuthPage() {
             {(mode === "sign-in" || mode === "reset") && (
               <div className="space-y-1.5">
                 <Label>{mode === "reset" ? "Nueva Contraseña" : "Contraseña"}</Label>
-                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
@@ -105,8 +126,11 @@ export default function AuthPage() {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
           </div>
           <Button variant="outline" className="w-full" onClick={() => window.location.href = "/portal/login"}>
-            <ExternalLink className="mr-2 h-4 w-4" /> Portal de Clientes
+            <Users className="mr-2 h-4 w-4" /> Portal de Clientes
           </Button>
+          {currentVersion && (
+            <p className="mt-4 text-center text-[10px] text-muted-foreground/60 font-mono">v{currentVersion}</p>
+          )}
         </CardContent>
       </Card>
     </main>

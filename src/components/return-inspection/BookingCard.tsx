@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "lucide-react";
 import { InfoRow } from "./InfoRow";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 export function BookingCard({ ins }: { ins: ReturnInspectionWithJoins }) {
@@ -17,7 +17,7 @@ export function BookingCard({ ins }: { ins: ReturnInspectionWithJoins }) {
         {ins.bookings?.start_date && ins.bookings?.end_date && (
           <InfoRow
             label="Periodo"
-            value={`${formatDateDisplay(ins.bookings.start_date)} → ${formatDateDisplay(ins.bookings.end_date)}`}
+            value={`${formatDateRange(ins.bookings.start_date, ins.bookings.end_date)}`}
           />
         )}
       </CardContent>

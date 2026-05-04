@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Truck, MapPin, User } from "lucide-react";
-import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
+import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
 
 interface InfoRowProps { label: string; value: string }
 
@@ -113,7 +113,7 @@ export function DeliveryBookingCard({ bookingNumber, customerName, startDate, en
       <CardContent className="space-y-3">
         <InfoRow label="Número" value={bookingNumber} />
         <InfoRow label="Cliente" value={customerName || "—"} />
-        <InfoRow label="Periodo" value={`${formatDateDisplay(startDate)} → ${formatDateDisplay(endDate)}`} />
+        <InfoRow label="Periodo" value={`${formatDateRange(startDate, endDate)}`} />
       </CardContent>
     </Card>
   );

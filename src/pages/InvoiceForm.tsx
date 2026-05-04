@@ -12,7 +12,7 @@ import { TotalsSummary } from "@/components/TotalsSummary";
 import { CfdiFieldsCard } from "@/components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "@/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
@@ -57,7 +57,7 @@ export default function InvoiceForm() {
                   <SelectContent>
                     {form.availableBookings?.map((booking) => (
                       <SelectItem key={booking.id} value={booking.id}>
-                        {(booking as BookingWithForklift).forklifts?.name} — {booking.customer_name || "Sin cliente"} ({formatDateDisplay(booking.start_date)} → {formatDateDisplay(booking.end_date)})
+                        {(booking as BookingWithForklift).forklifts?.name} — {booking.customer_name || "Sin cliente"} ({formatDateRange(booking.start_date, booking.end_date)})
                       </SelectItem>
                     ))}
                   </SelectContent>

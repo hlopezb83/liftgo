@@ -1,4 +1,4 @@
-import { format, getDay, isToday, parseISO } from "date-fns";
+import { format, getDay, isToday, parseISO, startOfWeek, isSameDay } from "date-fns";
 import { formatMtyDate } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -31,10 +31,11 @@ export function GanttRow({ forklift, segments, days }: Props) {
             const wd = getDay(day);
             const isWeekend = wd === 0 || wd === 6;
             const today = isToday(day);
+            const weekStart = isSameDay(day, startOfWeek(day, { weekStartsOn: 1 }));
             return (
               <div
                 key={day.toISOString()}
-                className={`flex-1 ${isWeekend ? "bg-muted/20" : ""} ${today ? "bg-primary/5" : ""}`}
+                className={`flex-1 ${isWeekend ? "bg-muted/20" : ""} ${today ? "bg-primary/10 border-x border-primary/30" : ""} ${weekStart && !today ? "border-l border-border/60" : ""}`}
               />
             );
           })}

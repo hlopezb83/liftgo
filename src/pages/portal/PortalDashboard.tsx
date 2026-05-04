@@ -4,7 +4,7 @@ import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/hooks
 import { formatCurrency } from "@/lib/formatCurrency";
 import { CalendarDays, Receipt, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 export default function PortalDashboard() {
   const { data: customer, isLoading: customerLoading } = usePortalCustomer();
@@ -81,7 +81,7 @@ export default function PortalDashboard() {
               <div key={b.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
                 <div>
                   <p className="font-medium">{b.forklifts?.name || "—"} — {b.forklifts?.model || ""}</p>
-                  <p className="text-xs text-muted-foreground">{formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)}</p>
+                  <p className="text-xs text-muted-foreground">{formatDateRange(b.start_date, b.end_date)}</p>
                 </div>
                 <StatusBadge status={b.status} />
               </div>
