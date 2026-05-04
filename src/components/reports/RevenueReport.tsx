@@ -31,6 +31,13 @@ export function RevenueReport({ startDate, endDate }: Props) {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
   }, [invoices, startDate, endDate]);
 
+  const columns = useMemo(() => [
+    { key: "month", label: "Mes", sortable: true, render: (r: typeof data[number]) => <span className="font-medium">{r.month}</span> },
+    { key: "count", label: "Facturas", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.count },
+    { key: "invoiced", label: "Facturado", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{formatCurrency(r.invoiced)}</span> },
+    { key: "paid", label: "Pagado", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{formatCurrency(r.paid)}</span> },
+  ], []);
+
   return (
     <>
       <Card>
@@ -60,12 +67,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
             data={data}
             keyExtractor={(r) => r.month}
             emptyMessage="Sin facturas en el rango"
-            columns={[
-              { key: "month", label: "Mes", sortable: true, render: (r) => <span className="font-medium">{r.month}</span> },
-              { key: "count", label: "Facturas", align: "right", sortable: true, render: (r) => r.count },
-              { key: "invoiced", label: "Facturado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.invoiced)}</span> },
-              { key: "paid", label: "Pagado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.paid)}</span> },
-            ]}
+            columns={columns}
           />
         </CardContent>
       </Card>

@@ -32,6 +32,12 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
     return Object.values(byForklift).sort((a, b) => b.totalCost - a.totalCost);
   }, [maintenanceLogs, startDate, endDate, forkliftMap]);
 
+  const columns = useMemo(() => [
+    { key: "name", label: "Montacargas", sortable: true, render: (r: typeof data[number]) => <span className="font-medium">{r.name}</span> },
+    { key: "count", label: "Trabajos", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.count },
+    { key: "totalCost", label: "Costo Total", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{formatCurrency(r.totalCost)}</span> },
+  ], []);
+
   return (
     <>
       <Card>
@@ -62,11 +68,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
             emptyMessage="Sin mantenimientos en el rango"
             defaultSortKey="totalCost"
             defaultSortDirection="desc"
-            columns={[
-              { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
-              { key: "count", label: "Trabajos", align: "right", sortable: true, render: (r) => r.count },
-              { key: "totalCost", label: "Costo Total", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.totalCost)}</span> },
-            ]}
+            columns={columns}
           />
         </CardContent>
       </Card>

@@ -29,6 +29,13 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     });
   }, [forklifts, bookings, startDate, endDate]);
 
+  const columns = useMemo(() => [
+    { key: "name", label: "Montacargas", sortable: true, render: (r: typeof data[number]) => <span className="font-medium">{r.name}</span> },
+    { key: "bookedDays", label: "Días Reservados", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.bookedDays },
+    { key: "totalDays", label: "Días Totales", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.totalDays },
+    { key: "utilization", label: "Utilización", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{r.utilization}%</span> },
+  ], []);
+
   return (
     <>
       <Card>
@@ -59,12 +66,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
             emptyMessage="Sin datos en el rango"
             defaultSortKey="utilization"
             defaultSortDirection="desc"
-            columns={[
-              { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
-              { key: "bookedDays", label: "Días Reservados", align: "right", sortable: true, render: (r) => r.bookedDays },
-              { key: "totalDays", label: "Días Totales", align: "right", sortable: true, render: (r) => r.totalDays },
-              { key: "utilization", label: "Utilización", align: "right", sortable: true, render: (r) => <span className="font-mono">{r.utilization}%</span> },
-            ]}
+            columns={columns}
           />
         </CardContent>
       </Card>

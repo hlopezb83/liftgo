@@ -70,6 +70,16 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
       .sort((a, b) => b.utilization - a.utilization);
   }, [forklifts, bookings, startDate, endDate]);
 
+  const columns = useMemo(() => [
+    { key: "model", label: "Modelo", sortable: true, render: (r: ModelRow) => <span className="font-medium">{r.model}</span> },
+    { key: "units", label: "Unidades", align: "right" as const, sortable: true, render: (r: ModelRow) => r.units },
+    { key: "available", label: "Disponibles", align: "right" as const, sortable: true, render: (r: ModelRow) => r.available },
+    { key: "rented", label: "Rentados", align: "right" as const, sortable: true, render: (r: ModelRow) => r.rented },
+    { key: "bookedDays", label: "Días Reservados", align: "right" as const, sortable: true, render: (r: ModelRow) => r.bookedDays },
+    { key: "totalDays", label: "Días Totales", align: "right" as const, sortable: true, render: (r: ModelRow) => r.totalDays },
+    { key: "utilization", label: "Utilización", align: "right" as const, sortable: true, render: (r: ModelRow) => <span className="font-mono" style={{ color: getUtilColor(r.utilization) }}>{r.utilization}%</span> },
+  ], []);
+
   const handleExport = () => {
     exportToCsv("reporte-utilizacion-modelo.csv", data.map((r) => ({
       Modelo: r.model,
@@ -117,15 +127,7 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
             emptyMessage="No hay equipos activos para mostrar"
             defaultSortKey="utilization"
             defaultSortDirection="desc"
-            columns={[
-              { key: "model", label: "Modelo", sortable: true, render: (r) => <span className="font-medium">{r.model}</span> },
-              { key: "units", label: "Unidades", align: "right", sortable: true, render: (r) => r.units },
-              { key: "available", label: "Disponibles", align: "right", sortable: true, render: (r) => r.available },
-              { key: "rented", label: "Rentados", align: "right", sortable: true, render: (r) => r.rented },
-              { key: "bookedDays", label: "Días Reservados", align: "right", sortable: true, render: (r) => r.bookedDays },
-              { key: "totalDays", label: "Días Totales", align: "right", sortable: true, render: (r) => r.totalDays },
-              { key: "utilization", label: "Utilización", align: "right", sortable: true, render: (r) => <span className="font-mono" style={{ color: getUtilColor(r.utilization) }}>{r.utilization}%</span> },
-            ]}
+            columns={columns}
           />
         </CardContent>
       </Card>

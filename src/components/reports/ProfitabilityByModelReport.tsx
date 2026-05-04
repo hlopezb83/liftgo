@@ -89,6 +89,16 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
     return result.sort((a, b) => b.profit - a.profit);
   }, [forklifts, invoices, bookings, maintenanceLogs, damageRecords, startDate, endDate]);
 
+  const columns = useMemo(() => [
+    { key: "model", label: "Modelo", sortable: true, render: (r: ModelRow) => <span className="font-medium">{r.model}</span> },
+    { key: "units", label: "Unidades", align: "right" as const, sortable: true, render: (r: ModelRow) => r.units },
+    { key: "revenue", label: "Ingresos", align: "right" as const, sortable: true, render: (r: ModelRow) => formatCurrency(r.revenue) },
+    { key: "maintenance", label: "Mantenimiento", align: "right" as const, sortable: true, render: (r: ModelRow) => formatCurrency(r.maintenance) },
+    { key: "damages", label: "Daños", align: "right" as const, sortable: true, render: (r: ModelRow) => formatCurrency(r.damages) },
+    { key: "profit", label: "Ganancia Neta", align: "right" as const, sortable: true, render: (r: ModelRow) => <span className={cn("font-semibold", r.profit >= 0 ? "text-chart-2" : "text-destructive")}>{formatCurrency(r.profit)}</span> },
+    { key: "margin", label: "Margen %", align: "right" as const, sortable: true, render: (r: ModelRow) => `${r.margin.toFixed(1)}%` },
+  ], []);
+
   const chartConfig = { profit: { label: "Ganancia Neta" } };
 
   const handleExport = () => {
@@ -147,15 +157,7 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
             emptyMessage="No hay datos para el rango seleccionado."
             defaultSortKey="profit"
             defaultSortDirection="desc"
-            columns={[
-              { key: "model", label: "Modelo", sortable: true, render: (r) => <span className="font-medium">{r.model}</span> },
-              { key: "units", label: "Unidades", align: "right", sortable: true, render: (r) => r.units },
-              { key: "revenue", label: "Ingresos", align: "right", sortable: true, render: (r) => formatCurrency(r.revenue) },
-              { key: "maintenance", label: "Mantenimiento", align: "right", sortable: true, render: (r) => formatCurrency(r.maintenance) },
-              { key: "damages", label: "Daños", align: "right", sortable: true, render: (r) => formatCurrency(r.damages) },
-              { key: "profit", label: "Ganancia Neta", align: "right", sortable: true, render: (r) => <span className={cn("font-semibold", r.profit >= 0 ? "text-chart-2" : "text-destructive")}>{formatCurrency(r.profit)}</span> },
-              { key: "margin", label: "Margen %", align: "right", sortable: true, render: (r) => `${r.margin.toFixed(1)}%` },
-            ]}
+            columns={columns}
           />
         </CardContent>
       </Card>
