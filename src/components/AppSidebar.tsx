@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { useCurrentVersion } from "@/hooks/useChangelog";
+import { ROLE_LABELS } from "@/lib/constants";
 
 type NavItem = { title: string; url: string; icon: React.ElementType };
 type NavGroup = { label: string; items: NavItem[] };
