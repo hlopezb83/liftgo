@@ -6,6 +6,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
 import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
+import { toJsonArray } from "@/lib/lineItems";
 import { format } from "date-fns";
 import { useInvoiceFormState } from "./invoiceForm/useInvoiceFormState";
 import { useInvoicePrefill, applyCustomerCfdi } from "./invoiceForm/useInvoicePrefill";
