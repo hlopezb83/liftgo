@@ -1,0 +1,12 @@
+{
+  "version": "5.58.3",
+  "date": "2026-05-05",
+  "type": "patch",
+  "title": "Fix crítico: usuarios no-admin pueden leer su propio rol",
+  "category": "bugfix",
+  "description": "Una política RLS restrictiva sobre user_roles aplicada a TODOS los comandos (incluyendo SELECT) impedía a cualquier usuario que no fuera admin leer incluso su propio rol. El sistema entonces los trataba como sin permisos, mostrando 'No tienes permiso para acceder a esta página' en cada módulo. Se restringió la política únicamente a operaciones de escritura (INSERT/UPDATE/DELETE), permitiendo que la política permisiva 'Users can view own roles' funcione correctamente.",
+  "changes": [
+    "DB: Política restrictiva 'Only admins can modify roles' separada en INSERT/UPDATE/DELETE para no bloquear SELECT.",
+    "Resultado: usuarios administrativo, ventas, despachador, mecánico y auditor ahora ven sus módulos correctamente."
+  ]
+}
