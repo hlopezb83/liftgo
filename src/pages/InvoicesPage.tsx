@@ -35,7 +35,40 @@ export default function InvoicesPage() {
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const dateRange = useMemo(() => {
+    if (!fromParam && !toParam) return undefined;
+    return {
+      from: fromParam ? parseISO(fromParam) : undefined,
+      to: toParam ? parseISO(toParam) : undefined,
+    };
+  }, [fromParam, toParam]);
+
+  const setDateRange = (range?: { from?: Date; to?: Date }) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (range?.from) next.set("from", range.from.toISOString().slice(0, 10));
+      else next.delete("from");
+      if (range?.to) next.set("to", range.to.toISOString().slice(0, 10));
+      else next.delete("to");
+      return next;
+    }, { replace: true });
+  };
+
+  const dateFiltered = useMemo(() => {
+    if (!filtered) return filtered;
+    if (!dateRange?.from && !dateRange?.to) return filtered;
+    const start = dateRange.from ? startOfDay(dateRange.from) : new Date(-8640000000000000);
+    const end = dateRange.to ? endOfDay(dateRange.to) : new Date(8640000000000000);
+    return filtered.filter((inv) => {
+      if (!inv.issued_at) return false;
+      return isWithinInterval(parseISO(inv.issued_at), { start, end });
+    });
+  }, [filtered, dateRange]);
+
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(dateFiltered, {
     defaultSortKey: "invoice_number",
     defaultSortDirection: "desc",
     accessors: {
