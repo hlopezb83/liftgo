@@ -1,0 +1,6 @@
+{
+  "description": "La factura FAC-0052 (HG RUBBER) se vinculó a la reservación RSV-0006 para que el Estado de Resultados la reconozca como ingreso por renta en lugar de venta.",
+  "changes": [
+    "FAC-0052 ahora aparece bajo 'Ingresos por Rentas' en el Estado de Resultados"
+  ]
+}
