@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.58.5",
+    "date": "2026-05-05",
+    "type": "patch",
+    "title": "Pantalla de Sin Permisos con detalle de rol y recarga de sesión",
+    "category": "improvement"
+  },
+  {
     "version": "5.58.4",
     "date": "2026-05-05",
     "type": "patch",

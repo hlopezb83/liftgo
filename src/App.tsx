@@ -5,15 +5,10 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { appRoutes, PageFallback } from "@/lib/routes-config";
 import { RoleGuard } from "@/components/RoleGuard";
 import MainLayout from "@/layouts/MainLayout";
+import { NoAccess } from "@/components/NoAccess";
 
 const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-
-const NoAccess = () => (
-  <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
-    No tienes permiso para acceder a esta página.
-  </div>
-);
 
 const App = () => (
   <AppProviders>
@@ -28,7 +23,7 @@ const App = () => (
               element={
                 <Suspense fallback={<PageFallback />}>
                   {module ? (
-                    <RoleGuard module={module} fallback={<NoAccess />}>
+                    <RoleGuard module={module} fallback={<NoAccess module={module} />}>
                       <Component />
                     </RoleGuard>
                   ) : (
