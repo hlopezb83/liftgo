@@ -40,14 +40,16 @@ describe("useUserRole — RLS visibility of own role", () => {
   it("non-admin user can read own role (administrativo)", async () => {
     selectMock.mockResolvedValue({ data: [{ role: "administrativo" }], error: null });
     const { result } = renderHook(() => useUserRole(), { wrapper });
-    await waitFor(() => expect(result.current.data).toBe("administrativo"));
+    await flush();
+    expect(result.current.data).toBe("administrativo");
   });
 
   it("returns null (no silent demotion) when RLS blocks read and returns []", async () => {
     selectMock.mockResolvedValue({ data: [], error: null });
     const { result } = renderHook(() => useUserRole(), { wrapper });
-    await waitFor(() => expect(result.current.isFetching).toBe(false));
+    await flush();
     expect(result.current.data).toBeNull();
+    expect(result.current.isFetching).toBe(false);
   });
 
   it("picks the highest-priority role when user has multiple", async () => {
@@ -56,13 +58,15 @@ describe("useUserRole — RLS visibility of own role", () => {
       error: null,
     });
     const { result } = renderHook(() => useUserRole(), { wrapper });
-    await waitFor(() => expect(result.current.data).toBe("admin"));
+    await flush();
+    expect(result.current.data).toBe("admin");
   });
 
   it("propagates errors instead of defaulting to dispatcher", async () => {
     selectMock.mockResolvedValue({ data: null, error: { message: "RLS denied" } });
     const { result } = renderHook(() => useUserRole(), { wrapper });
-    await waitFor(() => expect(result.current.isError).toBe(true));
+    await flush();
+    expect(result.current.isError).toBe(true);
     expect(result.current.data).not.toBe("dispatcher");
   });
 });
