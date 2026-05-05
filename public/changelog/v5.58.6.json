@@ -1,0 +1,14 @@
+{
+  "version": "5.58.6",
+  "date": "2026-05-05",
+  "type": "patch",
+  "title": "RoleGuard distingue rol no encontrado, error y sin permisos",
+  "category": "improvement",
+  "description": "El RoleGuard ahora diferencia tres escenarios distintos al bloquear acceso: (1) rol no asignado, (2) error al cargar rol/permisos, (3) rol con acceso insuficiente. Cada caso muestra un mensaje accionable con icono propio y, en el caso de permisos insuficientes, indica el nivel de acceso requerido vs el actual.",
+  "changes": [
+    "RoleGuard detecta isError y rol nulo además de permisos insuficientes",
+    "NoAccess acepta prop 'reason' (forbidden | no-role | error)",
+    "Muestra acceso requerido vs actual cuando aplica",
+    "Evita flicker durante carga inicial (retorna null mientras isLoading)"
+  ]
+}
