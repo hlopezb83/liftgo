@@ -1,0 +1,13 @@
+{
+  "version": "5.58.4",
+  "date": "2026-05-05",
+  "type": "patch",
+  "title": "Tests: validación de RLS de roles y matriz de permisos por módulo",
+  "category": "feature",
+  "description": "Suite automatizada que asegura que los usuarios no-admin pueden leer su propio rol vía useUserRole y que la matriz de permisos habilita/deshabilita módulos correctamente para cada rol.",
+  "changes": [
+    "useUserRole: lectura de rol propio (administrativo), retorno null sin demote silencioso, prioridad de roles múltiples y propagación de errores RLS.",
+    "RoleGuard/getAccessLevel: administrativo full en Facturas (recurrentes), bloqueado en Gestión de Usuarios; ventas sin Facturas; dispatcher read-only; mechanic full Mantenimiento; defaults seguros.",
+    "Resultado: 10/10 tests verdes — regresión cubierta para el bug de la política restrictiva ALL en user_roles."
+  ]
+}
