@@ -14,6 +14,10 @@ export interface LineItem {
 export interface RentalLineMeta {
   modelId: string;
   quantity: number;
+  /** Tarifas pactadas en la cotización; se propagan al forklift al convertir. */
+  dailyRate?: number;
+  weeklyRate?: number;
+  monthlyRate?: number;
 }
 
 /**
