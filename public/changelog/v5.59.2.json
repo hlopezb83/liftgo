@@ -1,0 +1,8 @@
+{
+  "description": "Se agregó un filtro por rango de fechas (emisión) en el listado de facturas, sincronizado con la URL.",
+  "changes": [
+    "Selector de rango de fechas en la barra de filtros de Facturas",
+    "Filtro persistido en query params (from/to) y restaurado al regresar",
+    "Exportación CSV respeta el rango de fechas seleccionado"
+  ]
+}

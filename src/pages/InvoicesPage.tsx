@@ -13,11 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt } from "lucide-react";
+import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt, X } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { RoleGuard } from "@/components/RoleGuard";
+import { DateRangePickerField } from "@/components/DateRangePickerField";
+import { useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
@@ -31,7 +35,40 @@ export default function InvoicesPage() {
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const dateRange = useMemo(() => {
+    if (!fromParam && !toParam) return undefined;
+    return {
+      from: fromParam ? parseISO(fromParam) : undefined,
+      to: toParam ? parseISO(toParam) : undefined,
+    };
+  }, [fromParam, toParam]);
+
+  const setDateRange = (range?: { from?: Date; to?: Date }) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (range?.from) next.set("from", range.from.toISOString().slice(0, 10));
+      else next.delete("from");
+      if (range?.to) next.set("to", range.to.toISOString().slice(0, 10));
+      else next.delete("to");
+      return next;
+    }, { replace: true });
+  };
+
+  const dateFiltered = useMemo(() => {
+    if (!filtered) return filtered;
+    if (!dateRange?.from && !dateRange?.to) return filtered;
+    const start = dateRange.from ? startOfDay(dateRange.from) : new Date(-8640000000000000);
+    const end = dateRange.to ? endOfDay(dateRange.to) : new Date(8640000000000000);
+    return filtered.filter((inv) => {
+      if (!inv.issued_at) return false;
+      return isWithinInterval(parseISO(inv.issued_at), { start, end });
+    });
+  }, [filtered, dateRange]);
+
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(dateFiltered, {
     defaultSortKey: "invoice_number",
     defaultSortDirection: "desc",
     accessors: {
@@ -85,12 +122,12 @@ export default function InvoicesPage() {
               Generar Recurrentes
             </Button>
           </RoleGuard>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (filtered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (dateFiltered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
           <Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />Nueva Factura</Button>
         </div>
       }
       filters={
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
             <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
               {STATUSES.map((s) => (
@@ -98,7 +135,22 @@ export default function InvoicesPage() {
               ))}
             </TabsList>
           </Tabs>
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64" />
+          <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
+            <div className="w-full sm:w-64">
+              <DateRangePickerField
+                label=""
+                dateRange={dateRange}
+                onSelect={setDateRange}
+                placeholder="Filtrar por fecha de emisión"
+              />
+            </div>
+            {(dateRange?.from || dateRange?.to) && (
+              <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <SearchBar value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64" />
+          </div>
         </div>
       }
       isLoading={isLoading}
