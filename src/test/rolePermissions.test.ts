@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
-async function flush() {
-  for (let i = 0; i < 100; i++) {
-    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+async function waitUntil(predicate: () => boolean, timeout = 3000) {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeout) throw new Error("waitUntil timeout");
+    await act(async () => { await new Promise((r) => setTimeout(r, 10)); });
   }
 }
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
