@@ -123,6 +123,8 @@ export default function InvoiceDetail() {
 
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
 
+      {id && <InvoiceHistoryCard invoiceId={id} />}
+
       {id && invoice.status !== "paid" && invoice.status !== "draft" && (
         <CollectionNotesCard invoiceId={id} />
       )}
