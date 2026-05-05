@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
 async function flush() {
-  for (let i = 0; i < 20; i++) {
-    await act(async () => { await Promise.resolve(); });
+  for (let i = 0; i < 100; i++) {
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
   }
 }
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
