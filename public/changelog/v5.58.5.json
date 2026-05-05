@@ -1,0 +1,14 @@
+{
+  "version": "5.58.5",
+  "date": "2026-05-05",
+  "type": "patch",
+  "title": "Pantalla de Sin Permisos con detalle de rol y recarga de sesión",
+  "category": "improvement",
+  "description": "Reemplazamos el mensaje plano de 'No tienes permiso' por una pantalla dedicada que muestra el rol actual del usuario y el módulo bloqueado, e incluye acciones para recargar la sesión (invalida cachés y refresca permisos) o cerrar sesión. No expone datos sensibles del usuario.",
+  "changes": [
+    "Nuevo componente NoAccess con tarjeta centrada y acciones primarias",
+    "Muestra rol traducido (es-MX) y nombre del módulo bloqueado",
+    "Botón 'Recargar sesión' invalida queries y refresca la página",
+    "Botón 'Cerrar sesión' como alternativa rápida"
+  ]
+}
