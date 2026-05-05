@@ -1,0 +1,13 @@
+{
+  "version": "5.59.3",
+  "date": "2026-05-05",
+  "type": "patch",
+  "title": "Reservar siguiente folio de factura en FAC-0057",
+  "category": "improvement",
+  "description": "Se agregó una configuración interna de folio mínimo para la numeración de facturas. La función next_invoice_number ahora respeta ese mínimo, permitiendo saltar folios sin crear facturas falsas. La próxima factura emitida será FAC-0057.",
+  "changes": [
+    "Nueva tabla invoice_number_settings (solo Admin/Administrativo)",
+    "Función next_invoice_number actualizada para usar GREATEST(max+1, min_next_number)",
+    "Folio mínimo inicial configurado en 57"
+  ]
+}

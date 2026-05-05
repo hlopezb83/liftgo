@@ -1,46 +1,41 @@
 ## Objetivo
-Mostrar en el detalle de cada factura (`/invoices/:id`) un historial completo de todos los cambios que ha sufrido (creación, actualizaciones de campos, timbrado, pagos, cancelación, etc.), aprovechando la bitácora de auditoría ya existente (`audit_logs`).
+Que la próxima factura que se cree tenga el número **FAC-0057** (actualmente la siguiente sería FAC-0053, ya que la última emitida es FAC-0052).
 
-## Contexto encontrado
-- Ya existe la tabla `audit_logs` con `old_data`, `new_data` y `changed_fields`, y triggers que registran INSERT/UPDATE/DELETE de `invoices`.
-- Existe el hook `useAuditLogs({ table_name, record_id })` que ya enriquece con el nombre del usuario.
-- Patrón de referencia: `BookingStatusHistory.tsx` (timeline simple) y la página `/audit` (vista global).
-- `InvoiceDetail.tsx` aún no muestra ningún historial.
+## Contexto
+La numeración la genera la función `next_invoice_number()` en la base de datos, que toma el máximo número existente en `invoices.invoice_number` y le suma 1. No hay una tabla de configuración para "saltar" folios.
 
-## Cambios
+## Enfoque propuesto
+Crear una pequeña tabla de configuración para el folio mínimo siguiente y actualizar la función `next_invoice_number()` para que use el mayor entre `max(invoice_number)+1` y ese mínimo configurado. Así podemos reservar saltos sin crear facturas falsas (que ensuciarían reportes, P&L, auditoría y SAT).
 
-### 1. Nuevo componente `src/components/invoice-detail/InvoiceHistoryCard.tsx`
-- Recibe `invoiceId`.
-- Usa `useAuditLogs({ table_name: "invoices", record_id: invoiceId })`.
-- Render tipo timeline (consistente con `BookingStatusHistory`) mostrando, por cada entrada:
-  - Acción traducida (Creación / Actualización / Eliminación) usando los mapas de `activityTranslations.ts`.
-  - Fecha y hora `dd/MM/yyyy HH:mm` (timezone Monterrey vía `nowMty`/`format`).
-  - Usuario (`user_email` / `full_name`).
-  - Para UPDATE: lista compacta de campos modificados con diff `antes → después`, formateando valores especiales:
-    - `status`, `cfdi_status` → `<StatusBadge>`.
-    - `total`, `subtotal`, `tax_amount`, `paid_at`, `due_date` → `formatCurrency` / `formatDateDisplay`.
-    - Campos largos (`cfdi_xml`, `line_items`, `notes`) → mostrar solo "actualizado" sin volcar el contenido.
-  - Botón opcional "Ver detalle" que abre el `AuditLogDetailDialog` ya existente para inspección completa (reutilización, sin duplicar UI).
-- Estados: loading (skeleton corto), vacío ("Sin cambios registrados").
-- Colapsable: mostrar las 5 entradas más recientes y un botón "Ver más" (usa `Collapsible` ya disponible) para no saturar la vista.
+### Cambios en BD (migración)
+1. Crear tabla `invoice_number_settings` con una sola fila:
+   - `id` (uuid PK)
+   - `min_next_number` int not null default 1
+   - `updated_at` timestamptz
+   - RLS: solo `admin` y `administrativo` pueden leer/escribir.
+2. Insertar la fila inicial con `min_next_number = 57`.
+3. Reemplazar `next_invoice_number()` por:
+   ```sql
+   SELECT 'FAC-' || lpad(
+     GREATEST(
+       coalesce(max(nullif(regexp_replace(invoice_number,'[^0-9]','','g'),'')::int),0) + 1,
+       (SELECT min_next_number FROM invoice_number_settings LIMIT 1)
+     )::text, 4, '0')
+   FROM invoices;
+   ```
+   Mantiene `SET search_path = public` y `SECURITY` actuales.
 
-### 2. Diccionario de etiquetas de campos
-Agregar a `src/lib/activityTranslations.ts` (o crear `src/lib/auditFieldLabels.ts` si conviene aislarlo) un mapa `INVOICE_FIELD_LABELS` con traducciones es-MX para los campos clave: `status`, `cfdi_status`, `total`, `subtotal`, `tax_amount`, `tax_rate`, `paid_at`, `due_date`, `notes`, `cancellation_reason`, `cancelled_at`, `cfdi_uuid`, `metodo_pago`, `forma_pago`, `uso_cfdi`, etc. El componente lo consume para etiquetar el diff.
+### Resultado inmediato
+- La siguiente factura creada (manual o por el job de recurrentes) será **FAC-0057**.
+- Las posteriores seguirán normalmente: FAC-0058, FAC-0059, etc.
+- El salto (0053–0056) queda documentado en la tabla de configuración por si auditoría pregunta.
 
-### 3. Integración en `src/pages/InvoiceDetail.tsx`
-- Importar `InvoiceHistoryCard` y renderizarlo después de `InvoicePaymentSummary` (antes del bloque de `CollectionNotesCard`), pasando `invoiceId={id}`.
+### UI (opcional, no incluido en este cambio)
+No se agrega UI ahora. Si más adelante quieres poder saltar folios desde la app, se puede agregar un campo "Próximo folio mínimo" en **Configuración → Facturación**.
 
-### 4. Changelog
-- Crear `public/changelog/v5.59.1.json` (patch — nueva sub-funcionalidad de visualización, sin cambios de schema ni breaking changes) con título "Historial de cambios en facturas".
-- Agregar la entrada al inicio de `public/changelog.json`.
+### Changelog
+- Nueva entrada `v5.59.3` (patch): "Reservar siguiente folio de factura en FAC-0057".
 
-## Sin cambios necesarios
-- No se requiere migración: las RLS de `audit_logs` ya permiten lectura a admin/administrativo/auditor/dispatcher/ventas, que son los roles con acceso al módulo de facturas.
-- Reutilizamos `useAuditLogs`, `AuditLogDetailDialog`, `StatusBadge`, `formatCurrency`, `formatDateDisplay`.
-
-## Validación
-- Abrir una factura existente con varios cambios (status draft → issued → paid, registro de pago, etc.) y verificar que cada evento aparece con su diff y usuario.
-- Confirmar que una factura recién creada muestra solo la entrada de "Creación".
-- Verificar que un usuario con rol `auditor` puede ver el historial (read-only).
-
-¿Procedo con esta implementación?
+## Notas
+- No se crean facturas dummy; el SAT y los reportes no se ven afectados.
+- Si en el futuro quieres reiniciar o volver a saltar, basta con un `UPDATE invoice_number_settings SET min_next_number = N`.

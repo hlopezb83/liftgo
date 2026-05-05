@@ -893,6 +893,24 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_number_settings: {
+        Row: {
+          id: string
+          min_next_number: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          min_next_number?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          min_next_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           booking_id: string | null
