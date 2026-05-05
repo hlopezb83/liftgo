@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.58.1",
+    "date": "2026-05-05",
+    "type": "patch",
+    "title": "Fix: rol de usuario ya no degrada silenciosamente a Despachador",
+    "category": "bugfix"
+  },
+  {
     "version": "5.58.0",
     "date": "2026-05-04",
     "type": "minor",

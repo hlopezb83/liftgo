@@ -1,0 +1,20 @@
+{
+  "version": "5.58.1",
+  "date": "2026-05-05",
+  "type": "patch",
+  "title": "Fix: rol de usuario ya no degrada silenciosamente a Despachador",
+  "category": "bugfix",
+  "description": "Corrección crítica en useUserRole que provocaba que ciertos usuarios (p.ej. Administrativo) vieran 'Despachador' en el sidebar y perdieran acceso a acciones como 'Generar Recurrentes' en Facturas.",
+  "changes": [
+    {
+      "type": "fixed",
+      "title": "Eliminado fallback silencioso a 'dispatcher' en useUserRole",
+      "description": "Antes, cualquier error transitorio al leer user_roles devolvía 'dispatcher' y se cacheaba toda la sesión. Ahora los errores se propagan, React Query reintenta automáticamente, y si no hay rol asignado se devuelve null en vez de un rol falso."
+    },
+    {
+      "type": "improved",
+      "title": "Refetch al montar para evitar cachés obsoletos",
+      "description": "staleTime: 0 y retry: 2 garantizan que cada navegación obtenga el rol fresco desde la BD, evitando que cambios de permisos requieran cerrar sesión."
+    }
+  ]
+}
