@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook } from "@testing-library/react";
-import { waitFor } from "@testing-library/dom";
+import { renderHook, act } from "@testing-library/react";
+
+async function flush() {
+  for (let i = 0; i < 20; i++) {
+    await act(async () => { await Promise.resolve(); });
+  }
+}
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { getAccessLevel, type PermissionsMap } from "@/hooks/useRolePermissions";
