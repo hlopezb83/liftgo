@@ -1,0 +1,1 @@
+UPDATE public.invoices SET booking_id = 'f94fee07-cdcf-404b-8fd7-2b660de31849' WHERE id = 'f9127547-33cc-48ad-9ebb-032e8c66717b';
