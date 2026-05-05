@@ -122,12 +122,12 @@ export default function InvoicesPage() {
               Generar Recurrentes
             </Button>
           </RoleGuard>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (filtered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (dateFiltered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
           <Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />Nueva Factura</Button>
         </div>
       }
       filters={
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
             <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
               {STATUSES.map((s) => (
@@ -135,7 +135,22 @@ export default function InvoicesPage() {
               ))}
             </TabsList>
           </Tabs>
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64" />
+          <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
+            <div className="w-full sm:w-64">
+              <DateRangePickerField
+                label=""
+                dateRange={dateRange}
+                onSelect={setDateRange}
+                placeholder="Filtrar por fecha de emisión"
+              />
+            </div>
+            {(dateRange?.from || dateRange?.to) && (
+              <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <SearchBar value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64" />
+          </div>
         </div>
       }
       isLoading={isLoading}
