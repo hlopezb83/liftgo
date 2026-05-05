@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.58.3",
+    "date": "2026-05-05",
+    "type": "patch",
+    "title": "Fix crítico: usuarios no-admin pueden leer su propio rol",
+    "category": "bugfix"
+  },
+  {
     "version": "5.58.2",
     "date": "2026-05-05",
     "type": "patch",
