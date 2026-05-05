@@ -23,7 +23,7 @@ const App = () => (
               element={
                 <Suspense fallback={<PageFallback />}>
                   {module ? (
-                    <RoleGuard module={module} fallback={<NoAccess />}>
+                    <RoleGuard module={module} fallback={<NoAccess module={module} />}>
                       <Component />
                     </RoleGuard>
                   ) : (
