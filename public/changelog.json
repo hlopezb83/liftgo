@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.58.2",
+    "date": "2026-05-05",
+    "type": "patch",
+    "title": "Fix: login desde portal de clientes redirige a inicio según rol",
+    "category": "bugfix"
+  },
+  {
     "version": "5.58.1",
     "date": "2026-05-05",
     "type": "patch",

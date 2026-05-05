@@ -1,0 +1,11 @@
+{
+  "version": "5.58.2",
+  "date": "2026-05-05",
+  "type": "patch",
+  "title": "Fix: login desde portal de clientes redirige a inicio según rol",
+  "category": "bugfix",
+  "description": "El login del portal de clientes redirigía siempre a /portal tras iniciar sesión. Si un usuario interno (admin, administrativo, ventas, etc.) iniciaba sesión desde /portal/login, el AuthGuard lo enviaba al ERP normal donde /portal no existe, mostrando un 404. Ahora el redirect es a / y el AuthGuard decide el destino según el rol.",
+  "changes": [
+    "PortalLogin: redirect post-login cambiado de /portal a / para que el AuthGuard determine el layout correcto según el rol del usuario."
+  ]
+}

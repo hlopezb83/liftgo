@@ -21,7 +21,7 @@ export default function PortalLogin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate("/portal", { replace: true });
+    if (user) navigate("/", { replace: true });
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
