@@ -13,11 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt } from "lucide-react";
+import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt, X } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { RoleGuard } from "@/components/RoleGuard";
+import { DateRangePickerField } from "@/components/DateRangePickerField";
+import { useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
