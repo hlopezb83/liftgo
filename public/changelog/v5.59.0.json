@@ -1,0 +1,10 @@
+{
+  "description": "Al convertir una cotización en reserva, las tarifas (diaria, semanal, mensual) acordadas con el cliente se aplican automáticamente al equipo asignado, asegurando que la facturación recurrente y los contratos usen el precio pactado.",
+  "changes": [
+    "rental_meta ampliado para almacenar tarifas por línea",
+    "EquipmentAssignmentDialog muestra la tarifa pactada por unidad",
+    "createBookingsFor sobrescribe daily/weekly/monthly_rate del forklift cuando el valor cotizado es > 0",
+    "Toast de confirmación cuando se actualizan tarifas",
+    "Compatibilidad preservada con cotizaciones legacy (no sobrescribe a 0)"
+  ]
+}

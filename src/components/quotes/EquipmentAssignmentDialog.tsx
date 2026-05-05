@@ -1,43 +1,59 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/formatCurrency";
+import type { RentalLineMeta } from "@/lib/lineItems";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Forklift = Tables<"forklifts">;
 type EquipmentModel = Tables<"equipment_models">;
 
+export interface AssignmentResult {
+  forkliftId: string;
+  dailyRate: number;
+  weeklyRate: number;
+  monthlyRate: number;
+}
+
 interface AssignmentSlot {
   modelId: string;
   modelName: string;
-  lineIndex: number;
   forkliftId: string;
+  dailyRate: number;
+  weeklyRate: number;
+  monthlyRate: number;
 }
 
 interface EquipmentAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Rental lines metadata from the quote */
-  rentalMeta: { modelId: string; quantity: number }[];
+  rentalMeta: RentalLineMeta[];
   models: EquipmentModel[];
   forklifts: Forklift[];
-  onConfirm: (forkliftIds: string[]) => void;
+  onConfirm: (assignments: AssignmentResult[]) => void;
   isLoading?: boolean;
 }
 
 export function EquipmentAssignmentDialog({
   open, onOpenChange, rentalMeta, models, forklifts, onConfirm, isLoading,
 }: EquipmentAssignmentDialogProps) {
-  // Build assignment slots: one per unit per model line
   const slots = useMemo(() => {
     const result: AssignmentSlot[] = [];
     for (const line of rentalMeta) {
       const model = models.find((m) => m.id === line.modelId);
       const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
       for (let i = 0; i < line.quantity; i++) {
-        result.push({ modelId: line.modelId, modelName, lineIndex: result.length, forkliftId: "" });
+        result.push({
+          modelId: line.modelId,
+          modelName,
+          forkliftId: "",
+          dailyRate: line.dailyRate ?? model?.default_daily_rate ?? 0,
+          weeklyRate: line.weeklyRate ?? model?.default_weekly_rate ?? 0,
+          monthlyRate: line.monthlyRate ?? model?.default_monthly_rate ?? 0,
+        });
       }
     }
     return result;
@@ -45,12 +61,8 @@ export function EquipmentAssignmentDialog({
 
   const [assignments, setAssignments] = useState<AssignmentSlot[]>(slots);
 
-  // Reset assignments when slots change
-  useMemo(() => {
-    setAssignments(slots);
-  }, [slots]);
+  useEffect(() => { setAssignments(slots); }, [slots]);
 
-  // Available forklifts per model: match by manufacturer+model and status=available
   const getAvailableForModel = (modelId: string, currentSlotIndex: number) => {
     const model = models.find((m) => m.id === modelId);
     if (!model) return [];
@@ -78,7 +90,8 @@ export function EquipmentAssignmentDialog({
         <DialogHeader>
           <DialogTitle>Asignar Equipos</DialogTitle>
           <DialogDescription>
-            Selecciona el montacargas específico para cada unidad cotizada antes de crear las reservas.
+            Selecciona el montacargas específico para cada unidad cotizada. Las tarifas pactadas en la cotización
+            se aplicarán al equipo asignado.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 max-h-[50vh] overflow-y-auto py-2">
@@ -105,6 +118,9 @@ export function EquipmentAssignmentDialog({
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Tarifa pactada: {formatCurrency(slot.monthlyRate)} / mes · {formatCurrency(slot.dailyRate)} / día
+                </p>
               </div>
             );
           })}
@@ -112,7 +128,12 @@ export function EquipmentAssignmentDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
-            onClick={() => onConfirm(assignments.map((a) => a.forkliftId))}
+            onClick={() => onConfirm(assignments.map((a) => ({
+              forkliftId: a.forkliftId,
+              dailyRate: a.dailyRate,
+              weeklyRate: a.weeklyRate,
+              monthlyRate: a.monthlyRate,
+            })))}
             disabled={!allAssigned || isLoading}
           >
             {isLoading ? "Creando reservas..." : "Confirmar y Crear Reservas"}

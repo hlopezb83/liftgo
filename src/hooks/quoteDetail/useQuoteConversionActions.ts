@@ -103,14 +103,32 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     });
   };
 
-  const createBookingsFor = async (forkliftIds: string[], recurring: boolean) => {
+  const createBookingsFor = async (
+    assignments: { forkliftId: string; dailyRate: number; weeklyRate: number; monthlyRate: number }[],
+    recurring: boolean,
+  ) => {
     if (!quote) return;
     state.setIsConverting(true);
     try {
       const createdBookingIds: string[] = [];
-      for (const fId of forkliftIds) {
+      let ratesApplied = 0;
+      for (const a of assignments) {
+        // Aplicar tarifas pactadas al equipo antes de crear la reserva.
+        // Sólo sobreescribimos cuando viene un valor > 0 para no borrar tarifas existentes.
+        const rateUpdate: Record<string, number> = {};
+        if (a.dailyRate > 0) rateUpdate.daily_rate = a.dailyRate;
+        if (a.weeklyRate > 0) rateUpdate.weekly_rate = a.weeklyRate;
+        if (a.monthlyRate > 0) rateUpdate.monthly_rate = a.monthlyRate;
+        if (Object.keys(rateUpdate).length > 0) {
+          const { error: rateErr } = await supabase
+            .from("forklifts")
+            .update(rateUpdate)
+            .eq("id", a.forkliftId);
+          if (!rateErr) ratesApplied++;
+        }
+
         const bookingId = await createBooking.mutateAsync({
-          forklift_id: fId,
+          forklift_id: a.forkliftId,
           start_date: quote.start_date ?? "",
           end_date: quote.end_date ?? "",
           customer_name: quote.customer_name,
@@ -123,9 +141,12 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
       }
       updateQuote.mutate({ id: quote.id, status: "accepted" });
       toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);
+      if (ratesApplied > 0) {
+        toast.success(`Tarifas actualizadas en ${ratesApplied} equipo(s) según la cotización`);
+      }
       state.setShowAssignmentDialog(false);
       state.setCurrentDeliveryIndex(0);
-      state.setPendingDeliveries(createDeliveryInfos(forkliftIds, createdBookingIds));
+      state.setPendingDeliveries(createDeliveryInfos(assignments.map((a) => a.forkliftId), createdBookingIds));
     } catch (err: unknown) {
       toast.error(`Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}`);
     } finally {
@@ -133,9 +154,9 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     }
   };
 
-  const handleAssignmentConfirm = (forkliftIds: string[]) => {
+  const handleAssignmentConfirm = (assignments: { forkliftId: string; dailyRate: number; weeklyRate: number; monthlyRate: number }[]) => {
     if (!forklifts) return;
-    return createBookingsFor(forkliftIds, state.pendingRecurring);
+    return createBookingsFor(assignments, state.pendingRecurring);
   };
 
   const convertToBookingLegacy = async (recurringBilling: boolean) => {
@@ -151,7 +172,9 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
       toast.error("No se encontraron montacargas para crear reservas");
       return;
     }
-    await createBookingsFor(forkliftIds, recurringBilling);
+    // En el flujo legacy no tenemos tarifas por línea: se preservan las tarifas actuales del equipo.
+    const assignments = forkliftIds.map((fId) => ({ forkliftId: fId, dailyRate: 0, weeklyRate: 0, monthlyRate: 0 }));
+    await createBookingsFor(assignments, recurringBilling);
   };
 
   return {
