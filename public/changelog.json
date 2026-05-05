@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.59.1",
+    "date": "2026-05-05",
+    "type": "patch",
+    "title": "Historial de cambios en facturas",
+    "category": "feature"
+  },
+  {
     "version": "5.59.0",
     "date": "2026-05-05",
     "type": "minor",

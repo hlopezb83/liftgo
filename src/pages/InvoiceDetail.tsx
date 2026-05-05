@@ -13,6 +13,7 @@ import { InvoiceFiscalDataCard } from "@/components/invoice-detail/InvoiceFiscal
 import { InvoicePaymentSummary } from "@/components/invoice-detail/InvoicePaymentSummary";
 import { CancelCfdiDialog } from "@/components/invoice-detail/CancelCfdiDialog";
 import { CollectionNotesCard } from "@/components/invoice-detail/CollectionNotesCard";
+import { InvoiceHistoryCard } from "@/components/invoice-detail/InvoiceHistoryCard";
 import { InvoiceDetailActions } from "@/components/invoice-detail/InvoiceDetailActions";
 import { InvoiceSourceLinks } from "@/components/invoice-detail/InvoiceSourceLinks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -122,6 +123,8 @@ export default function InvoiceDetail() {
       {invoice.notes && <NotesCard value={invoice.notes} readOnly />}
 
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
+
+      {id && <InvoiceHistoryCard invoiceId={id} />}
 
       {id && invoice.status !== "paid" && invoice.status !== "draft" && (
         <CollectionNotesCard invoiceId={id} />

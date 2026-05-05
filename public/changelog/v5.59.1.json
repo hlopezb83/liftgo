@@ -1,0 +1,9 @@
+{
+  "description": "El detalle de cada factura ahora muestra un historial completo de cambios (creación, actualizaciones de campos, timbrado, pagos y cancelación) con usuario, fecha y diff antes/después. Incluye acceso al detalle completo del registro.",
+  "changes": [
+    "Nueva tarjeta 'Historial de Cambios' en /invoices/:id alimentada por audit_logs",
+    "Diff compacto por campo con etiquetas en español",
+    "Botón de detalle reutiliza AuditLogDetailDialog",
+    "Vista colapsable: 5 entradas iniciales + Ver más"
+  ]
+}
