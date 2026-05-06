@@ -24,9 +24,8 @@ const formatCell = (row: StatementRow | ComparisonRow, value: number) =>
   row.isPercent ? `${value.toFixed(1)}%` : formatCurrency(value);
 
 const cellColor = (row: StatementRow | ComparisonRow, value: number) => {
-  if (row.isPercent) return value >= 0 ? "" : "text-destructive";
-  if (row.label === "= Utilidad Neta") return value >= 0 ? "" : "text-destructive";
   if (row.isCost) return "text-destructive";
+  if (value < 0) return "text-destructive";
   return "";
 };
 
