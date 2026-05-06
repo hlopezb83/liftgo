@@ -12,7 +12,9 @@ interface Totals {
   maintenanceCost: number; damageCost: number; depreciation: number;
   expenses: MonthData["expenses"];
   grossProfit: number; grossMargin: number;
-  totalExpenses: number; netProfit: number; margin: number;
+  totalExpenses: number;
+  profitBeforeDepreciation: number; marginBeforeDepreciation: number;
+  netProfit: number; margin: number;
 }
 
 export function useStatementRows(filteredData: MonthData[], totals: Totals) {
