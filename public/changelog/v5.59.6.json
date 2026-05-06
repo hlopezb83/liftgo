@@ -1,0 +1,8 @@
+{
+  "description": "Se unificó la regla de color en el Estado de Resultados: cualquier valor negativo (utilidad bruta, utilidad antes de depreciación, márgenes, totales) ahora se muestra en rojo, no solo Utilidad Neta y costos.",
+  "changes": [
+    "Tabla en pantalla: rojo automático para cualquier subtotal o margen negativo",
+    "PDF: misma regla aplicada para consistencia visual",
+    "Costos siempre permanecen en rojo"
+  ]
+}
