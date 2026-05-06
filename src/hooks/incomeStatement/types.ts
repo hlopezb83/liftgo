@@ -23,6 +23,8 @@ export interface MonthData {
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
   totalExpenses: number;
+  profitBeforeDepreciation: number;
+  marginBeforeDepreciation: number;
   netProfit: number;
   margin: number;
 }
