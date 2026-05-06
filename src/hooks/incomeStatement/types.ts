@@ -23,6 +23,8 @@ export interface MonthData {
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
   totalExpenses: number;
+  profitBeforeDepreciation: number;
+  marginBeforeDepreciation: number;
   netProfit: number;
   margin: number;
 }
@@ -48,6 +50,8 @@ export interface YearTotals {
   grossProfit: number;
   grossMargin: number;
   totalExpenses: number;
+  profitBeforeDepreciation: number;
+  marginBeforeDepreciation: number;
   netProfit: number;
   margin: number;
 }
@@ -81,7 +85,9 @@ export function computeDerivedTotals(t: {
   const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
   const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
   const totalExpenses = t.maintenanceCost + t.damageCost + costoVenta + opexTotal;
-  const netProfit = t.revenue - totalExpenses - t.depreciation;
+  const profitBeforeDepreciation = t.revenue - totalExpenses;
+  const marginBeforeDepreciation = t.revenue > 0 ? (profitBeforeDepreciation / t.revenue) * 100 : 0;
+  const netProfit = profitBeforeDepreciation - t.depreciation;
   const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
-  return { grossProfit, grossMargin, totalExpenses, netProfit, margin };
+  return { grossProfit, grossMargin, totalExpenses, profitBeforeDepreciation, marginBeforeDepreciation, netProfit, margin };
 }

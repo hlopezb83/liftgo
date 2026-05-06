@@ -1,41 +1,48 @@
 ## Objetivo
-Que la próxima factura que se cree tenga el número **FAC-0057** (actualmente la siguiente sería FAC-0053, ya que la última emitida es FAC-0052).
 
-## Contexto
-La numeración la genera la función `next_invoice_number()` en la base de datos, que toma el máximo número existente en `invoices.invoice_number` y le suma 1. No hay una tabla de configuración para "saltar" folios.
+Agregar una nueva línea de subtotal **"= Utilidad antes de Depreciación"** en el Estado de Resultados, justo después de **Total Egresos** y antes de la fila de **Depreciación**. Esto da visibilidad de la utilidad operativa real (similar a EBITDA) antes de aplicar la deducción contable de depreciación.
 
-## Enfoque propuesto
-Crear una pequeña tabla de configuración para el folio mínimo siguiente y actualizar la función `next_invoice_number()` para que use el mayor entre `max(invoice_number)+1` y ese mínimo configurado. Así podemos reservar saltos sin crear facturas falsas (que ensuciarían reportes, P&L, auditoría y SAT).
+## Cambios
 
-### Cambios en BD (migración)
-1. Crear tabla `invoice_number_settings` con una sola fila:
-   - `id` (uuid PK)
-   - `min_next_number` int not null default 1
-   - `updated_at` timestamptz
-   - RLS: solo `admin` y `administrativo` pueden leer/escribir.
-2. Insertar la fila inicial con `min_next_number = 57`.
-3. Reemplazar `next_invoice_number()` por:
-   ```sql
-   SELECT 'FAC-' || lpad(
-     GREATEST(
-       coalesce(max(nullif(regexp_replace(invoice_number,'[^0-9]','','g'),'')::int),0) + 1,
-       (SELECT min_next_number FROM invoice_number_settings LIMIT 1)
-     )::text, 4, '0')
-   FROM invoices;
-   ```
-   Mantiene `SET search_path = public` y `SECURITY` actuales.
+### 1. Tipos y cálculo de totales (`src/hooks/incomeStatement/types.ts`)
+- En `computeDerivedTotals` agregar campo derivado `profitBeforeDepreciation = revenue - totalExpenses` (sin restar depreciación).
+- También calcular `marginBeforeDepreciation` (% sobre ingresos) por consistencia con Margen Bruto/Neto.
+- Actualizar interfaces `MonthData` y `YearTotals` para incluir `profitBeforeDepreciation` y `marginBeforeDepreciation`.
 
-### Resultado inmediato
-- La siguiente factura creada (manual o por el job de recurrentes) será **FAC-0057**.
-- Las posteriores seguirán normalmente: FAC-0058, FAC-0059, etc.
-- El salto (0053–0056) queda documentado en la tabla de configuración por si auditoría pregunta.
+### 2. Agregación (`src/hooks/incomeStatement/useStatementTotals.ts` y `useMonthlyData`)
+- Asegurar que el nuevo campo se propague desde el cálculo mensual y desde la agregación anual.
 
-### UI (opcional, no incluido en este cambio)
-No se agrega UI ahora. Si más adelante quieres poder saltar folios desde la app, se puede agregar un campo "Próximo folio mínimo" en **Configuración → Facturación**.
+### 3. Filas del reporte (`src/hooks/incomeStatement/statementRowFactories.ts`)
+Modificar `buildStatementRows` para insertar después de `= Total Egresos` y antes de `(-) Depreciación`:
+```
+= Utilidad antes de Depreciación   (subtotal)
+Margen antes de Depreciación        (porcentaje)
+```
 
-### Changelog
-- Nueva entrada `v5.59.3` (patch): "Reservar siguiente folio de factura en FAC-0057".
+### 4. Vista comparativa (`src/hooks/incomeStatement/useStatementRows.ts`)
+Insertar las mismas dos filas en el array de `useComparisonRows` en la misma posición.
+
+### 5. PDF (sin cambios de código requeridos)
+`src/lib/pdf/incomeStatement/rows.ts` itera filas genéricamente, así que las nuevas filas se renderizan automáticamente. Solo verificar que el ancho de columna siga cabiendo en A4 horizontal (ya tiene margen).
+
+### 6. Changelog
+- Crear `public/changelog/v5.59.5.json` y agregar entrada al inicio de `public/changelog.json` (patch: agrega visibilidad sin cambiar lógica fiscal).
+
+## Resultado visual esperado
+
+```
+...
+(-) Otros gastos
+= Total Egresos
+= Utilidad antes de Depreciación   ← NUEVO
+Margen antes de Depreciación        ← NUEVO
+(-) Depreciación (Equipos Rentados)
+= Utilidad Neta
+Margen Neto
+```
 
 ## Notas
-- No se crean facturas dummy; el SAT y los reportes no se ven afectados.
-- Si en el futuro quieres reiniciar o volver a saltar, basta con un `UPDATE invoice_number_settings SET min_next_number = N`.
+
+- No cambia el cálculo de Utilidad Neta ni de impuestos.
+- Aparece en vista mensual, comparativa anual, CSV y PDF.
+- Versión: **v5.59.5** (patch).

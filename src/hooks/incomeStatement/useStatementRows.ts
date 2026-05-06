@@ -12,7 +12,9 @@ interface Totals {
   maintenanceCost: number; damageCost: number; depreciation: number;
   expenses: MonthData["expenses"];
   grossProfit: number; grossMargin: number;
-  totalExpenses: number; netProfit: number; margin: number;
+  totalExpenses: number;
+  profitBeforeDepreciation: number; marginBeforeDepreciation: number;
+  netProfit: number; margin: number;
 }
 
 export function useStatementRows(filteredData: MonthData[], totals: Totals) {
@@ -64,6 +66,8 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
         ...v((yt) => yt.expenses[c], { isCost: true }),
       })),
       { label: "= Total Egresos", ...v((yt) => yt.totalExpenses, { isSubtotal: true, isCost: true }) },
+      { label: "= Utilidad antes de Depreciación", ...v((yt) => yt.profitBeforeDepreciation, { isSubtotal: true }) },
+      { label: "Margen antes de Depreciación", ...v((yt) => yt.marginBeforeDepreciation, { isPercent: true }) },
       { label: "(-) Depreciación (Equipos Rentados)", ...v((yt) => yt.depreciation, { isCost: true }) },
       { label: "= Utilidad Neta", ...v((yt) => yt.netProfit, { isSubtotal: true }) },
       { label: "Margen Neto", ...v((yt) => yt.margin, { isPercent: true }) },
