@@ -1,0 +1,9 @@
+{
+  "description": "El Estado de Resultados ahora muestra una línea de 'Utilidad antes de Depreciación' (similar a EBITDA) entre Total Egresos y la deducción de depreciación, dando visibilidad de la utilidad operativa real.",
+  "changes": [
+    "Nueva fila '= Utilidad antes de Depreciación' como subtotal",
+    "Nueva fila 'Margen antes de Depreciación' como porcentaje sobre ingresos",
+    "Aplicado en vista mensual, comparativa anual, exportación CSV y PDF",
+    "No afecta el cálculo de Utilidad Neta ni de impuestos"
+  ]
+}
