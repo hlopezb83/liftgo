@@ -50,6 +50,8 @@ export interface YearTotals {
   grossProfit: number;
   grossMargin: number;
   totalExpenses: number;
+  profitBeforeDepreciation: number;
+  marginBeforeDepreciation: number;
   netProfit: number;
   margin: number;
 }
