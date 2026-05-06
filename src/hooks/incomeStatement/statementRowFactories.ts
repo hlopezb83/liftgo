@@ -8,7 +8,9 @@ interface RowTotals {
   maintenanceCost: number; damageCost: number; depreciation: number;
   expenses: MonthData["expenses"];
   grossProfit: number; grossMargin: number;
-  totalExpenses: number; netProfit: number; margin: number;
+  totalExpenses: number;
+  profitBeforeDepreciation: number; marginBeforeDepreciation: number;
+  netProfit: number; margin: number;
 }
 
 const directCostRows = (filteredData: MonthData[], totals: RowTotals): StatementRow[] =>
