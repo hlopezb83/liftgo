@@ -9,8 +9,8 @@ import {
 const COST_RED: [number, number, number] = [200, 60, 60];
 const POSITIVE_GREEN: [number, number, number] = [22, 122, 60];
 
-const isCostRow = (label: string, isCost: boolean | undefined, value: number) =>
-  isCost || (label === "= Utilidad Neta" && value < 0);
+const isCostRow = (_label: string, isCost: boolean | undefined, value: number) =>
+  isCost || value < 0;
 
 const formatValue = (val: number, isPercent: boolean | undefined) =>
   isPercent ? `${val.toFixed(1)}%` : formatCurrency(val);
