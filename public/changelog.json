@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.59.8",
+    "date": "2026-05-07",
+    "type": "patch",
+    "title": "Folio mínimo de factura ajustado a FAC-0058",
+    "category": "improvement"
+  },
+  {
     "version": "5.59.7",
     "date": "2026-05-07",
     "type": "patch",
