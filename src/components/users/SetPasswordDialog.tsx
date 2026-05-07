@@ -123,8 +123,13 @@ export function SetPasswordDialog({ user, onClose }: Props) {
             <Sparkles className="h-4 w-4 mr-2" />
             Generar contraseña segura
           </Button>
+          {errorMsg && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              {errorMsg}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
-            Comparte la nueva contraseña con el usuario por un canal seguro. No se enviará por correo automáticamente.
+            Mínimo 8 caracteres recomendado. No se aceptan contraseñas comunes o filtradas (HIBP). Comparte la nueva contraseña con el usuario por un canal seguro.
           </p>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
