@@ -215,15 +215,9 @@ export default function CRMPage() {
                 </Button>
               )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowClosed((s) => !s)}
-                className="h-8 ml-auto text-xs"
-              >
-                {showClosed ? <ChevronLeft className="h-3.5 w-3.5 mr-1" /> : <ChevronRight className="h-3.5 w-3.5 mr-1" />}
-                Cerrados: Ganados {closedSummary.wonCount} · Perdidos {closedSummary.lostCount}
-              </Button>
+              <div className="ml-auto">
+                <CRMHeaderKPIs metrics={metrics} />
+              </div>
             </div>
           </div>
 
