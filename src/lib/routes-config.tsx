@@ -1,4 +1,4 @@
-import { lazy, type ComponentType } from "react";
+import { lazy, useEffect, useState, type ComponentType } from "react";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -44,13 +44,30 @@ const SuppliersPage = lazy(() => import("@/pages/SuppliersPage"));
 const SupplierDetailPage = lazy(() => import("@/pages/SupplierDetailPage"));
 const MrrDetailPage = lazy(() => import("@/pages/MrrDetailPage"));
 
-// Shared fallback
-export const PageFallback = () => (
-  <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-    <div className="h-12 w-12 rounded-xl bg-primary animate-spin [animation-duration:1.5s]" style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }} />
-    <span className="text-sm font-medium text-muted-foreground tracking-wide">Cargando LiftGo…</span>
-  </div>
-);
+// Shared fallback con timeout: si tras 10s sigue cargando, sugerimos recargar.
+export const PageFallback = () => {
+  const [stalled, setStalled] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setStalled(true), 10_000);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+      <div className="h-12 w-12 rounded-xl bg-primary animate-spin [animation-duration:1.5s]" style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }} />
+      <span className="text-sm font-medium text-muted-foreground tracking-wide">Cargando LiftGo…</span>
+      {stalled && (
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="text-xs text-primary underline-offset-4 hover:underline"
+        >
+          La carga está tardando. Recarga la página
+        </button>
+      )}
+    </div>
+  );
+};
 
 // Route configuration — uses module names from role_permissions table
 export interface RouteConfig {
