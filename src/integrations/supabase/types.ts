@@ -913,6 +913,8 @@ export type Database = {
       }
       invoices: {
         Row: {
+          billing_period_end: string | null
+          billing_period_start: string | null
           booking_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
@@ -950,6 +952,8 @@ export type Database = {
           uso_cfdi: string | null
         }
         Insert: {
+          billing_period_end?: string | null
+          billing_period_start?: string | null
           booking_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
@@ -987,6 +991,8 @@ export type Database = {
           uso_cfdi?: string | null
         }
         Update: {
+          billing_period_end?: string | null
+          billing_period_start?: string | null
           booking_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
