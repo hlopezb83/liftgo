@@ -33,11 +33,11 @@ export default function UserManagementPage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
-  const resetPassword = useResetPassword();
   const toggleStatus = useToggleStatus();
 
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [editTarget, setEditTarget] = useState<UserRow | null>(null);
+  const [passwordTarget, setPasswordTarget] = useState<UserRow | null>(null);
   const [createdEmail, setCreatedEmail] = useState<string | null>(null);
   const [roleChangeTarget, setRoleChangeTarget] = useState<{ user: UserRow; newRole: AppRole } | null>(null);
 
@@ -53,10 +53,6 @@ export default function UserManagementPage() {
   }), [users, search, filterRole]);
 
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
-
-  const handleResetPassword = async (userId: string) => {
-    await resetPassword.mutateAsync(userId);
-  };
 
   const handleToggleStatus = (userId: string, currentActive: boolean) => {
     toggleStatus.mutate({ userId, isActive: !currentActive });
