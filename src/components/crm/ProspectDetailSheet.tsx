@@ -241,7 +241,6 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
             );
           }}
         />
-        </div>
       </SheetContent>
     </Sheet>
   );
