@@ -46,6 +46,7 @@ export default function CRMPage() {
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
   const deleteProspect = useDeleteProspect();
+  const { data: metrics } = useCRMMetrics();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
@@ -53,23 +54,28 @@ export default function CRMPage() {
   const [defaultStage, setDefaultStage] = useState("nuevo_prospecto");
   const [overrideStage, setOverrideStage] = useState<string | undefined>(undefined);
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
-  const [showClosed, setShowClosed] = useState(false);
 
-  const { filters, update, reset, filtered, hasActive } = useCRMFilters(prospects);
+  // Pipeline only operates on active (open) prospects
+  const activeProspects = useMemo(
+    () => prospects.filter((p) => p.stage !== "cerrado_ganado" && p.stage !== "cerrado_perdido"),
+    [prospects]
+  );
+
+  const { filters, update, reset, filtered, hasActive } = useCRMFilters(activeProspects);
 
   const quoteMap = useMemo(() => new Map(quotes.map((q) => [q.id, q.quote_number])), [quotes]);
 
   const creators = useMemo(() => {
     const map = new Map<string, string>();
-    prospects.forEach((p) => {
+    activeProspects.forEach((p) => {
       if (p.created_by && p.created_by_name) map.set(p.created_by, p.created_by_name);
     });
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [prospects]);
+  }, [activeProspects]);
 
   const stagesData = useMemo(
     () =>
-      ALL_STAGES.map((s) => {
+      ACTIVE_STAGES.map((s) => {
         const items = filtered.filter((p) => p.stage === s.key).sort((a, b) => a.stage_order - b.stage_order);
         return { ...s, items, total: items.reduce((sum, p) => sum + (p.deal_value ?? 0), 0) };
       }),
@@ -77,21 +83,7 @@ export default function CRMPage() {
   );
 
   const pipelineTotal = useMemo(() => stagesData.reduce((s, c) => s + c.total, 0), [stagesData]);
-
-  const closedSummary = useMemo(() => {
-    const won = stagesData.find((s) => s.key === "cerrado_ganado");
-    const lost = stagesData.find((s) => s.key === "cerrado_perdido");
-    return {
-      wonCount: won?.items.length ?? 0,
-      lostCount: lost?.items.length ?? 0,
-      wonTotal: won?.total ?? 0,
-    };
-  }, [stagesData]);
-
-  const visibleStages = useMemo(
-    () => (showClosed ? stagesData : stagesData.filter((s) => s.key !== "cerrado_ganado" && s.key !== "cerrado_perdido")),
-    [stagesData, showClosed]
-  );
+  const visibleStages = stagesData;
 
   const onDragEnd = useCallback(
     (result: DropResult) => {
