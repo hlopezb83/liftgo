@@ -33,19 +33,23 @@ export default function InvoicesPage() {
   const { search, setSearch, statusFilter, setStatusFilter, filtered: baseFiltered } = useListFilters(invoices, {
     searchFields: ["invoice_number", "customer_name"],
     statusField: "status",
-    skipStatusValues: ["overdue"],
   });
 
   const filtered = useMemo(() => {
     if (statusFilter !== "overdue") return baseFiltered;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return (baseFiltered || []).filter((inv) => {
+    const q = search.toLowerCase();
+    return (invoices || []).filter((inv) => {
       if (!inv.due_date) return false;
       if (!["sent", "partial"].includes(inv.status)) return false;
-      return parseISO(inv.due_date) < today;
+      if (parseISO(inv.due_date) >= today) return false;
+      if (search) {
+        return [inv.invoice_number, inv.customer_name || ""].some((v) => v.toLowerCase().includes(q));
+      }
+      return true;
     });
-  }, [baseFiltered, statusFilter]);
+  }, [invoices, baseFiltered, statusFilter, search]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from");
