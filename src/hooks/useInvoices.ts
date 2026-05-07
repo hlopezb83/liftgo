@@ -42,10 +42,7 @@ export function useCreateInvoice() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoices", "next-number"] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["invoices"] }),
     onError: (err: Error) => {
       toast.error("Error al crear factura", { description: err.message });
     },
@@ -79,7 +76,6 @@ export function useDeleteInvoice() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoices", "next-number"] });
       toast.success("Factura eliminada");
     },
     onError: (err: Error) => {
