@@ -127,7 +127,7 @@ export default function UserManagementPage() {
             <Button variant="ghost" size="icon" onClick={() => setEditTarget(u)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => handleResetPassword(u.user_id)} disabled={resetPassword.isPending}>
+            <Button variant="ghost" size="icon" onClick={() => setPasswordTarget(u)}>
               <KeyRound className="h-4 w-4" />
             </Button>
             {u.user_id !== currentUser?.id && (
