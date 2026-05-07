@@ -128,7 +128,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Mínimo 8 caracteres recomendado. No se aceptan contraseñas comunes o filtradas (HIBP). Comparte la nueva contraseña con el usuario por un canal seguro.
+            Mínimo 8 caracteres. Evita secuencias comunes (<code>1234567890</code>, <code>qwerty</code>, fechas o nombres) aunque incluyan símbolos — son rechazadas por la política de filtraciones (HIBP). Lo más seguro es pulsar <strong>Generar contraseña segura</strong>. Comparte la contraseña por un canal seguro.
           </p>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
