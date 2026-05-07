@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.61.2",
+    "date": "2026-05-07",
+    "type": "patch",
+    "title": "Actualización de next-themes a 0.4 para compatibilidad con React 18+",
+    "category": "chore"
+  },
+  {
     "version": "5.61.1",
     "date": "2026-05-07",
     "type": "patch",
