@@ -14,6 +14,18 @@ export interface UserRow {
 
 const QUERY_KEY = ["users_with_roles"];
 
+export class PasswordValidationError extends Error {
+  readonly code: "weak_password" | "pwned";
+  readonly raw?: string;
+
+  constructor(message: string, code: "weak_password" | "pwned", raw?: string) {
+    super(message);
+    this.name = "PasswordValidationError";
+    this.code = code;
+    this.raw = raw;
+  }
+}
+
 export function useUsersWithRoles() {
   return useQuery({
     queryKey: QUERY_KEY,
@@ -113,6 +125,11 @@ export function useResetPassword() {
         body: { user_id: userId, new_password: newPassword },
       });
       if (error) throw error;
+      if (data?.success === false && typeof data.error === "string") {
+        const code = data.code === "pwned" ? "pwned" : "weak_password";
+        const raw = typeof data.raw === "string" ? data.raw : undefined;
+        throw new PasswordValidationError(data.error, code, raw);
+      }
       if (data?.error) throw new Error(data.error);
       return data as { email: string };
     },
@@ -121,7 +138,10 @@ export function useResetPassword() {
         description: `Comparte la nueva contraseña con ${data.email}`,
       });
     },
-    onError: (err: Error) => toast.error("Error al actualizar contraseña", { description: err.message }),
+    onError: (err: Error) => {
+      if (err instanceof PasswordValidationError) return;
+      toast.error("Error al actualizar contraseña", { description: err.message });
+    },
   });
 }
 
