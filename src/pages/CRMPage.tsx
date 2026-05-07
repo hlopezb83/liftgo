@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { Plus, Search, X, ChevronRight, ChevronLeft, LayoutGrid, Rows3 } from "lucide-react";
+import { Plus, Search, X, LayoutGrid, Rows3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,10 +10,12 @@ import { PageTransition } from "@/components/PageTransition";
 import { ProspectFormDialog } from "@/components/crm/ProspectFormDialog";
 import { ProspectDetailSheet } from "@/components/crm/ProspectDetailSheet";
 import { KanbanColumn } from "@/components/crm/KanbanColumn";
+import { CRMHeaderKPIs } from "@/components/crm/CRMHeaderKPIs";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useProspectGuard } from "@/hooks/crm/useProspectGuard";
 import { useCRMFilters, type ValueRange, type AgeRange } from "@/hooks/crm/useCRMFilters";
+import { useCRMMetrics } from "@/hooks/crm/useCRMMetrics";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 const ACTIVE_STAGES = [
@@ -22,13 +24,6 @@ const ACTIVE_STAGES = [
   { key: "cotizacion_enviada", label: "Cotización Enviada", color: "hsl(45 93% 47%)" },
   { key: "negociacion", label: "Negociación", color: "hsl(280 60% 55%)" },
 ] as const;
-
-const CLOSED_STAGES = [
-  { key: "cerrado_ganado", label: "Cerrado Ganado", color: "hsl(142 71% 45%)" },
-  { key: "cerrado_perdido", label: "Cerrado Perdido", color: "hsl(0 72% 51%)" },
-] as const;
-
-const ALL_STAGES = [...ACTIVE_STAGES, ...CLOSED_STAGES];
 
 const VALUE_OPTIONS: { value: ValueRange; label: string }[] = [
   { value: "all", label: "Cualquier valor" },
