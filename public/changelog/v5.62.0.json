@@ -1,0 +1,30 @@
+{
+  "version": "5.62.0",
+  "date": "2026-05-07",
+  "type": "minor",
+  "category": "security",
+  "title": "Auditoría: CORS estricto, ErrorBoundary global y facturación recurrente robusta",
+  "description": "Tanda 1 de remediación de la auditoría externa: refuerza CORS, evita pantallas en blanco y garantiza facturación recurrente sin duplicados ni desfases de zona horaria.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "CORS con allowlist explícita en Edge Functions",
+      "description": "Reemplaza el regex permisivo *.lovable.app por una lista cerrada de orígenes (preview, producción y localhost), restringe los preview URLs a los que contengan el project ID, y permite añadir dominios adicionales vía secret ALLOWED_ORIGINS sin redeploy."
+    },
+    {
+      "type": "feature",
+      "title": "ErrorBoundary global",
+      "description": "Nuevo componente ErrorBoundary envuelve toda la app en main.tsx. Si un componente falla, muestra una UI minimalista industrial con botones para Recargar o volver al Inicio en lugar de pantalla en blanco."
+    },
+    {
+      "type": "fix",
+      "title": "Idempotencia en facturación recurrente",
+      "description": "Se agregan billing_period_start y billing_period_end a invoices y un índice único parcial (booking_id + periodo). El job verifica antes de insertar y maneja la violación de unicidad como defensa final, evitando facturas duplicadas si el cron se ejecuta dos veces."
+    },
+    {
+      "type": "fix",
+      "title": "Cálculo de facturación en zona América/Monterrey",
+      "description": "generate-recurring-invoices ahora calcula billingStart, billingEnd y due_date usando wall-clock de Monterrey en lugar de UTC, eliminando desfases de un día en cambios de mes."
+    }
+  ]
+}

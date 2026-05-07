@@ -1,6 +1,59 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 
+const TZ = "America/Monterrey";
+
+/** "now" en zona Monterrey como Date interpretado como wall-clock local. */
+function nowInMonterrey(): Date {
+  // Intl en es-MX con timeZone=America/Monterrey nos da la "wall clock" allá.
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
+  // Construimos fecha como UTC pero con los componentes de Monterrey,
+  // de modo que getFullYear/getMonth/getDate (UTC) reflejen el calendario MTY.
+  return new Date(Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second")));
+}
+
+/** Parsea YYYY-MM-DD como medianoche en Monterrey (sin desfase). */
+function dateOnlyToMty(yyyyMmDd: string): Date {
+  const [y, m, d] = yyyyMmDd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
+
+/** Formato YYYY-MM-DD a partir de un Date "wall clock" (UTC components). */
+function toIsoDate(d: Date): string {
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/** Formato DD/MM/YYYY (local MX). */
+function fmtMx(d: Date): string {
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const yyyy = d.getUTCFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+/** Primer día del mes (UTC components, representando wall-clock MTY). */
+function firstOfMonth(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+}
+
+/** Último día del mes (UTC components, representando wall-clock MTY). */
+function lastOfMonth(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -11,7 +64,6 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Authenticate caller
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -33,7 +85,6 @@ Deno.serve(async (req) => {
     }
     const user = { id: claimsData.claims.sub as string };
 
-    // Authorize: admin or administrativo only
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data: roleData } = await supabase
       .from("user_roles")
@@ -48,7 +99,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Find bookings with recurring billing enabled and confirmed status
     const { data: bookings, error: bErr } = await supabase
       .from("bookings")
       .select("*, forklifts(name, model, daily_rate, weekly_rate, monthly_rate)")
@@ -57,46 +107,58 @@ Deno.serve(async (req) => {
 
     if (bErr) throw bErr;
 
-    const fmtDate = (d: Date) => {
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const yyyy = d.getFullYear();
-      return `${dd}/${mm}/${yyyy}`;
-    };
-
     let invoicesCreated = 0;
+    let duplicatesSkipped = 0;
+    const nowMty = nowInMonterrey();
 
     for (const booking of bookings || []) {
-      const now = new Date();
       let billingStart: Date;
-      let billingEnd: Date;
 
       if (booking.last_billed_date) {
-        // Facturas subsecuentes: mes siguiente al último facturado
-        const lastBilled = new Date(booking.last_billed_date);
-        billingStart = new Date(lastBilled.getFullYear(), lastBilled.getMonth() + 1, 1);
+        // Mes siguiente al último facturado (calculado en wall-clock Monterrey).
+        const lastBilled = dateOnlyToMty(booking.last_billed_date);
+        billingStart = new Date(Date.UTC(lastBilled.getUTCFullYear(), lastBilled.getUTCMonth() + 1, 1));
       } else {
-        // Primera factura: el mes del inicio de la reserva
-        const startDate = new Date(booking.start_date);
-        billingStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        const startDate = dateOnlyToMty(booking.start_date);
+        billingStart = firstOfMonth(startDate);
       }
 
-      // Último día del mes de facturación
-      billingEnd = new Date(billingStart.getFullYear(), billingStart.getMonth() + 1, 0);
+      const billingEnd = lastOfMonth(billingStart);
 
-      // Solo generar si ya estamos en o después del mes a facturar
-      if (now < billingStart) continue;
+      // Solo si ya estamos en o después del mes a facturar (en MTY).
+      if (nowMty < billingStart) continue;
 
-      const forklift = booking.forklifts as { name?: string; model?: string; daily_rate?: number; weekly_rate?: number; monthly_rate?: number } | null;
+      const forklift = booking.forklifts as
+        | { name?: string; model?: string; daily_rate?: number; weekly_rate?: number; monthly_rate?: number }
+        | null;
       const monthlyRate = forklift?.monthly_rate || 0;
       if (monthlyRate === 0) continue;
 
+      const startStr = toIsoDate(billingStart);
+      const endStr = toIsoDate(billingEnd);
+
+      // Idempotencia explícita: verifica antes de pedir folio para no consumirlos.
+      const { data: existing } = await supabase
+        .from("invoices")
+        .select("id")
+        .eq("booking_id", booking.id)
+        .eq("billing_period_start", startStr)
+        .eq("billing_period_end", endStr)
+        .maybeSingle();
+
+      if (existing) {
+        duplicatesSkipped++;
+        // Mantén last_billed_date sincronizado por si quedó atrás.
+        if (booking.last_billed_date !== endStr) {
+          await supabase.from("bookings").update({ last_billed_date: endStr }).eq("id", booking.id);
+        }
+        continue;
+      }
+
       const { data: invNum } = await supabase.rpc("next_invoice_number");
 
-      const endStr = billingEnd.toISOString().split("T")[0];
-
       const lineItems = [{
-        description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtDate(billingStart)} al ${fmtDate(billingEnd)})`,
+        description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtMx(billingStart)} al ${fmtMx(billingEnd)})`,
         quantity: 1,
         unit_price: monthlyRate,
         total: monthlyRate,
@@ -118,18 +180,29 @@ Deno.serve(async (req) => {
         total,
         status: "draft",
         due_date: endStr,
+        billing_period_start: startStr,
+        billing_period_end: endStr,
       });
 
-      if (!invErr) {
-        await supabase.from("bookings").update({ last_billed_date: endStr }).eq("id", booking.id);
-        invoicesCreated++;
+      if (invErr) {
+        // 23505 = unique_violation. Defensa final del índice único.
+        const code = (invErr as { code?: string }).code;
+        if (code === "23505") {
+          duplicatesSkipped++;
+          continue;
+        }
+        throw invErr;
       }
+
+      await supabase.from("bookings").update({ last_billed_date: endStr }).eq("id", booking.id);
+      invoicesCreated++;
     }
 
-    return new Response(JSON.stringify({ success: true, invoicesCreated }), {
+    return new Response(JSON.stringify({ success: true, invoicesCreated, duplicatesSkipped }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (_err) {
+  } catch (err) {
+    console.error("[generate-recurring-invoices]", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
