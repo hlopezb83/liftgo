@@ -1,0 +1,19 @@
+{
+  "version": "5.61.0",
+  "date": "2026-05-07",
+  "type": "minor",
+  "title": "Rediseño del cierre de deals en CRM (Ganado/Perdido)",
+  "category": "feature",
+  "description": "El pipeline ahora muestra solo deals abiertos. Cerrar un deal es una acción explícita con captura de monto final (Ganado) o razón obligatoria (Perdido). Nuevo histórico en /crm/cerrados con tabs Ganados/Perdidos, KPIs de win rate, ganados del mes y opción de reabrir deals.",
+  "changes": [
+    "Pipeline Kanban muestra únicamente las 4 etapas activas (Nuevo, Contactado, Cotización Enviada, Negociación)",
+    "Eliminado el toggle confuso de columnas Cerrado Ganado/Perdido en el pipeline",
+    "Nuevos botones 'Marcar como Ganado' y 'Marcar como Perdido' en el panel del prospecto",
+    "Modal de Ganado: captura monto final, fecha de cierre y nota",
+    "Modal de Perdido: razón obligatoria (Precio, Competencia, Timing, Sin presupuesto, No responde, Otro)",
+    "Nueva página /crm/cerrados con histórico, tabs Ganados/Perdidos y acción Reabrir",
+    "Header de KPIs: Pipeline activo, Win rate 30 días, Ganados del mes",
+    "Trigger de validación a nivel DB: razón obligatoria al perder, limpieza automática al reabrir",
+    "Nuevos campos en prospectos: closed_at, lost_reason, final_amount"
+  ]
+}
