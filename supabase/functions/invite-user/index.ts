@@ -1,13 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shared/auth.ts";
 import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
-
-function generateSecurePassword(length = 20): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
-  const values = new Uint8Array(length);
-  crypto.getRandomValues(values);
-  return Array.from(values, (v) => charset[v % charset.length]).join("");
-}
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -15,44 +8,11 @@ Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    const callerClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const callerId = claimsData.claims.sub;
-
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerId)
-      .single();
-
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const limited = await enforceRateLimit(req, auth.adminClient, "invite-user", auth.userId);
+    if (limited) return limited;
 
     const body = await req.json();
     const { email, full_name, role, password } = body;
@@ -71,7 +31,7 @@ Deno.serve(async (req) => {
     }
     if (!isValidRole(role)) {
       return new Response(
-        JSON.stringify({ error: "Invalid role. Must be admin, administrativo, dispatcher or mechanic" }),
+        JSON.stringify({ error: "Invalid role" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -84,7 +44,7 @@ Deno.serve(async (req) => {
 
     const finalPassword = password || generateSecurePassword();
     const { data: newUser, error: createErr } =
-      await adminClient.auth.admin.createUser({
+      await auth.adminClient.auth.admin.createUser({
         email,
         password: finalPassword,
         email_confirm: true,
@@ -101,29 +61,23 @@ Deno.serve(async (req) => {
     const userId = newUser.user.id;
 
     if (role !== "dispatcher") {
-      await adminClient
-        .from("user_roles")
-        .update({ role })
-        .eq("user_id", userId);
+      await auth.adminClient.from("user_roles").update({ role }).eq("user_id", userId);
     }
 
-    await adminClient
+    await auth.adminClient
       .from("profiles")
       .update({ full_name, email })
       .eq("user_id", userId);
 
     return new Response(
       JSON.stringify({ success: true, user_id: userId, email }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (_err) {
     console.error("invite-user error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

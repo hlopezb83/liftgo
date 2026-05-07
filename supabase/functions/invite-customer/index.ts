@@ -1,5 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shared/auth.ts";
 import { isUUID, isEmail } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
@@ -8,44 +8,11 @@ Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    const token = authHeader.replace("Bearer ", "");
-    const callerClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const caller = { id: claimsData.claims.sub as string };
-
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", caller.id)
-      .single();
-
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const limited = await enforceRateLimit(req, auth.adminClient, "invite-customer", auth.userId);
+    if (limited) return limited;
 
     const body = await req.json();
     const { customer_id, email } = body;
@@ -63,7 +30,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { data: customer, error: custErr } = await adminClient
+    const { data: customer, error: custErr } = await auth.adminClient
       .from("customers")
       .select("id, user_id, name")
       .eq("id", customer_id)
@@ -83,9 +50,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const tempPassword = crypto.randomUUID() + "Aa1!";
+    // Contraseña segura no predecible (rejection sampling, sin sufijo fijo).
+    const tempPassword = generateSecurePassword(24);
     const { data: newUser, error: createErr } =
-      await adminClient.auth.admin.createUser({
+      await auth.adminClient.auth.admin.createUser({
         email,
         password: tempPassword,
         email_confirm: true,
@@ -101,30 +69,27 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    await adminClient
+    await auth.adminClient
       .from("user_roles")
       .delete()
       .eq("user_id", userId)
       .eq("role", "dispatcher");
 
-    await adminClient
+    await auth.adminClient
       .from("user_roles")
       .insert({ user_id: userId, role: "customer" });
 
-    await adminClient
+    await auth.adminClient
       .from("profiles")
       .insert({ user_id: userId, full_name: customer.name });
 
-    await adminClient
+    await auth.adminClient
       .from("customers")
       .update({ user_id: userId })
       .eq("id", customer_id);
 
     const { error: resetErr } =
-      await adminClient.auth.admin.generateLink({
-        type: "recovery",
-        email,
-      });
+      await auth.adminClient.auth.admin.generateLink({ type: "recovery", email });
 
     if (resetErr) {
       console.error("Password reset email error:", resetErr.message);
@@ -138,7 +103,7 @@ Deno.serve(async (req) => {
     console.error("invite-customer error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
