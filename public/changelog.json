@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.62.0",
+    "date": "2026-05-07",
+    "type": "minor",
+    "title": "Auditoría: CORS estricto, ErrorBoundary global y facturación recurrente robusta",
+    "category": "security"
+  },
+  {
     "version": "5.61.2",
     "date": "2026-05-07",
     "type": "patch",
