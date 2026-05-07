@@ -1,5 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAdmin, enforceRateLimit } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
@@ -8,44 +8,11 @@ Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    const token = authHeader.replace("Bearer ", "");
-    const callerClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const caller = { id: claimsData.claims.sub as string };
-
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", caller.id)
-      .single();
-
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const limited = await enforceRateLimit(req, auth.adminClient, "delete-user", auth.userId);
+    if (limited) return limited;
 
     const body = await req.json();
     const { user_id } = body;
@@ -57,17 +24,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (user_id === caller.id) {
+    if (user_id === auth.userId) {
       return new Response(
         JSON.stringify({ error: "Cannot delete your own account" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    await adminClient.from("user_roles").delete().eq("user_id", user_id);
-    await adminClient.from("profiles").delete().eq("user_id", user_id);
+    await auth.adminClient.from("user_roles").delete().eq("user_id", user_id);
+    await auth.adminClient.from("profiles").delete().eq("user_id", user_id);
 
-    const { error: deleteErr } = await adminClient.auth.admin.deleteUser(user_id);
+    const { error: deleteErr } = await auth.adminClient.auth.admin.deleteUser(user_id);
     if (deleteErr) {
       return new Response(JSON.stringify({ error: "Failed to delete user" }), {
         status: 400,
@@ -83,7 +50,7 @@ Deno.serve(async (req) => {
     console.error("delete-user error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

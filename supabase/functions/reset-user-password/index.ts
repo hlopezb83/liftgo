@@ -1,13 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
-
-function generateSecurePassword(length = 20): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
-  const values = new Uint8Array(length);
-  crypto.getRandomValues(values);
-  return Array.from(values, (v) => charset[v % charset.length]).join("");
-}
 
 function passwordValidationResponse(
   payload: { error: string; code: "weak_password" | "pwned"; raw?: string },
@@ -25,44 +18,11 @@ Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    const token = authHeader.replace("Bearer ", "");
-    const callerClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const callerId = claimsData.claims.sub;
-
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: roleData } = await adminClient
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerId)
-      .single();
-
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const limited = await enforceRateLimit(req, auth.adminClient, "reset-user-password", auth.userId);
+    if (limited) return limited;
 
     const body = await req.json();
     const { user_id, new_password } = body;
@@ -87,7 +47,7 @@ Deno.serve(async (req) => {
       newPassword = generateSecurePassword();
     }
 
-    const { data: userData, error: getUserErr } = await adminClient.auth.admin.getUserById(user_id);
+    const { data: userData, error: getUserErr } = await auth.adminClient.auth.admin.getUserById(user_id);
     if (getUserErr || !userData?.user) {
       return new Response(
         JSON.stringify({ error: "User not found" }),
@@ -95,7 +55,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { error: updateErr } = await adminClient.auth.admin.updateUserById(user_id, {
+    const { error: updateErr } = await auth.adminClient.auth.admin.updateUserById(user_id, {
       password: newPassword,
     });
 
