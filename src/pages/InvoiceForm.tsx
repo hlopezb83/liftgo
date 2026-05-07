@@ -13,10 +13,12 @@ import { CfdiFieldsCard } from "@/components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "@/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { useNextInvoiceNumber } from "@/hooks/useNextInvoiceNumber";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
   const form = useInvoiceFormLogic();
+  const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!form.isEdit);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +51,14 @@ export default function InvoiceForm() {
         <Card>
           <CardHeader><CardTitle className="text-base">Detalles de Factura</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            {!form.isEdit && (
+              <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
+                <span className="text-sm text-muted-foreground">Folio próximo</span>
+                <span className="font-semibold text-primary">
+                  {loadingNext ? "Calculando…" : (nextNumber ?? "—")}
+                </span>
+              </div>
+            )}
             {!form.isEdit && (
               <div className="space-y-1.5">
                 <Label>Generar desde Reserva</Label>

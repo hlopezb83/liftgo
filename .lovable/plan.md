@@ -1,48 +1,31 @@
-## Objetivo
+# Mostrar folio próximo en Nueva Factura
 
-Agregar una nueva línea de subtotal **"= Utilidad antes de Depreciación"** en el Estado de Resultados, justo después de **Total Egresos** y antes de la fila de **Depreciación**. Esto da visibilidad de la utilidad operativa real (similar a EBITDA) antes de aplicar la deducción contable de depreciación.
+## Objetivo
+Cuando el usuario entra a `/invoices/new`, mostrar de forma visible cuál será el folio que se asignará al guardar (por ejemplo, "Folio: FAC-0057").
 
 ## Cambios
 
-### 1. Tipos y cálculo de totales (`src/hooks/incomeStatement/types.ts`)
-- En `computeDerivedTotals` agregar campo derivado `profitBeforeDepreciation = revenue - totalExpenses` (sin restar depreciación).
-- También calcular `marginBeforeDepreciation` (% sobre ingresos) por consistencia con Margen Bruto/Neto.
-- Actualizar interfaces `MonthData` y `YearTotals` para incluir `profitBeforeDepreciation` y `marginBeforeDepreciation`.
+### 1. Hook nuevo: `src/hooks/useNextInvoiceNumber.ts`
+- Query con `useQuery(["invoices", "next-number"])`.
+- Llama a `supabase.rpc("next_invoice_number")` (la misma RPC que usa `useCreateInvoice`).
+- `staleTime: 0` y se invalida tras crear/eliminar facturas para mantenerse actualizado.
+- Solo se ejecuta cuando se necesita (modo creación).
 
-### 2. Agregación (`src/hooks/incomeStatement/useStatementTotals.ts` y `useMonthlyData`)
-- Asegurar que el nuevo campo se propague desde el cálculo mensual y desde la agregación anual.
+### 2. UI en `src/pages/InvoiceForm.tsx`
+- En modo creación (`!form.isEdit`), agregar dentro de la card "Detalles de Factura" una fila destacada:
+  - Etiqueta: "Folio próximo"
+  - Valor: `FAC-XXXX` con estilo `font-semibold text-primary`, o "Calculando…" mientras carga.
+- Usar el componente existente `InfoRow` para mantener consistencia visual.
+- Nota auxiliar pequeña: "El folio se asigna al guardar; puede cambiar si otra factura se emite antes."
 
-### 3. Filas del reporte (`src/hooks/incomeStatement/statementRowFactories.ts`)
-Modificar `buildStatementRows` para insertar después de `= Total Egresos` y antes de `(-) Depreciación`:
-```
-= Utilidad antes de Depreciación   (subtotal)
-Margen antes de Depreciación        (porcentaje)
-```
+### 3. Invalidación
+- En `useCreateInvoice` y `useDeleteInvoice` (en `src/hooks/useInvoices.ts`), invalidar también `["invoices", "next-number"]` en `onSuccess` para refrescar el preview tras una emisión.
 
-### 4. Vista comparativa (`src/hooks/incomeStatement/useStatementRows.ts`)
-Insertar las mismas dos filas en el array de `useComparisonRows` en la misma posición.
+### 4. Changelog
+- `public/changelog/v5.59.7.json` (patch) + entrada en `public/changelog.json`:
+  - Título: "Vista previa de folio en nueva factura"
+  - Descripción: muestra el próximo `FAC-XXXX` antes de guardar.
 
-### 5. PDF (sin cambios de código requeridos)
-`src/lib/pdf/incomeStatement/rows.ts` itera filas genéricamente, así que las nuevas filas se renderizan automáticamente. Solo verificar que el ancho de columna siga cabiendo en A4 horizontal (ya tiene margen).
-
-### 6. Changelog
-- Crear `public/changelog/v5.59.5.json` y agregar entrada al inicio de `public/changelog.json` (patch: agrega visibilidad sin cambiar lógica fiscal).
-
-## Resultado visual esperado
-
-```
-...
-(-) Otros gastos
-= Total Egresos
-= Utilidad antes de Depreciación   ← NUEVO
-Margen antes de Depreciación        ← NUEVO
-(-) Depreciación (Equipos Rentados)
-= Utilidad Neta
-Margen Neto
-```
-
-## Notas
-
-- No cambia el cálculo de Utilidad Neta ni de impuestos.
-- Aparece en vista mensual, comparativa anual, CSV y PDF.
-- Versión: **v5.59.5** (patch).
+## Notas técnicas
+- La RPC `next_invoice_number` ya respeta `min_next_number` (introducido en v5.59.3), por lo que el preview reflejará correctamente saltos de folio configurados.
+- No se hace ninguna escritura adicional en BD; es solo una consulta de previsualización.
