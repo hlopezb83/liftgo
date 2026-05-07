@@ -1,0 +1,3 @@
+{
+  "description": "Corrección: la constante ROUTES.returnInspections en src/lib/routes.ts apuntaba a /return-inspections, pero la ruta real es /returns. Se alineó la constante para evitar 404 si se usa. Se eliminó la entrada obsoleta 'return-inspections' del mapa de breadcrumbs."
+}
