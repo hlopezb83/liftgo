@@ -1,31 +1,51 @@
-# Mostrar folio próximo en Nueva Factura
+# Breadcrumb con nombres legibles en vez de IDs
 
-## Objetivo
-Cuando el usuario entra a `/invoices/new`, mostrar de forma visible cuál será el folio que se asignará al guardar (por ejemplo, "Folio: FAC-0057").
+## Problema
+En la barra superior se muestra `Equipos › #7e2f93` (ID truncado del UUID). Esto no le dice nada al usuario. Lo mismo ocurre en el resto de páginas de detalle: facturas, cotizaciones, clientes, contratos, etc., todas terminan en `#abcdef`.
+
+## Solución
+Resolver el último segmento del breadcrumb consultando la entidad correspondiente y mostrar un nombre humano (ej. `LIFT GO CQD15 — HPLTC015A0762/004`, `FAC-0057`, `Acme Corp`).
 
 ## Cambios
 
-### 1. Hook nuevo: `src/hooks/useNextInvoiceNumber.ts`
-- Query con `useQuery(["invoices", "next-number"])`.
-- Llama a `supabase.rpc("next_invoice_number")` (la misma RPC que usa `useCreateInvoice`).
-- `staleTime: 0` y se invalida tras crear/eliminar facturas para mantenerse actualizado.
-- Solo se ejecuta cuando se necesita (modo creación).
+### 1. Nuevo hook `useBreadcrumbEntityLabel(pathname)`
+Ubicación: `src/hooks/useBreadcrumbEntityLabel.ts`.
 
-### 2. UI en `src/pages/InvoiceForm.tsx`
-- En modo creación (`!form.isEdit`), agregar dentro de la card "Detalles de Factura" una fila destacada:
-  - Etiqueta: "Folio próximo"
-  - Valor: `FAC-XXXX` con estilo `font-semibold text-primary`, o "Calculando…" mientras carga.
-- Usar el componente existente `InfoRow` para mantener consistencia visual.
-- Nota auxiliar pequeña: "El folio se asigna al guardar; puede cambiar si otra factura se emite antes."
+- Detecta si el pathname coincide con un patrón conocido (`/fleet/:id`, `/invoices/:id`, `/quotes/:id`, `/customers/:id`, `/contracts/:id`, `/bookings/:id`, `/maintenance/:id`, `/deliveries/:id`, `/returns/:id`, `/suppliers/:id`, `/expenses/:id`, `/crm/:id`, `/inventory/:id`).
+- Para cada uno, ejecuta una `useQuery` ligera que obtenga el campo descriptivo (`name`, `invoice_number`, `quote_number`, `contract_number`, `booking_id`, etc.).
+- Devuelve `{ label, isLoading }`.
+- Comparte cache con queries existentes vía `queryKey: ["<table>", id]` cuando sea posible.
 
-### 3. Invalidación
-- En `useCreateInvoice` y `useDeleteInvoice` (en `src/hooks/useInvoices.ts`), invalidar también `["invoices", "next-number"]` en `onSuccess` para refrescar el preview tras una emisión.
+### 2. `src/components/TopbarBreadcrumbs.tsx`
+- Llamar al hook con el `pathname`.
+- Si el último segmento parece un ID (regex actual) y el hook devuelve `label`, usarlo en vez de `#abcdef`.
+- Mientras carga: mostrar un skeleton/`…` corto en lugar de saltar el contenido.
+- Mantener el truncate y la ruta clickeable como ya están.
 
-### 4. Changelog
-- `public/changelog/v5.59.7.json` (patch) + entrada en `public/changelog.json`:
-  - Título: "Vista previa de folio en nueva factura"
-  - Descripción: muestra el próximo `FAC-XXXX` antes de guardar.
+### 3. Mapas de patrones
+Definir un objeto:
 
-## Notas técnicas
-- La RPC `next_invoice_number` ya respeta `min_next_number` (introducido en v5.59.3), por lo que el preview reflejará correctamente saltos de folio configurados.
-- No se hace ninguna escritura adicional en BD; es solo una consulta de previsualización.
+```ts
+const ENTITY_RESOLVERS: Record<string, { table: string; field: string }> = {
+  fleet: { table: "forklifts", field: "name" },
+  invoices: { table: "invoices", field: "invoice_number" },
+  quotes: { table: "quotes", field: "quote_number" },
+  customers: { table: "customers", field: "name" },
+  contracts: { table: "contracts", field: "contract_number" },
+  bookings: { table: "bookings", field: "booking_id" },
+  // etc.
+};
+```
+
+Verificar nombres reales en el esquema antes de implementar (pueden variar; ej. `bookings.booking_id` vs `bookings.id`).
+
+### 4. Casos especiales
+- En `/fleet/:id`: para que sea más útil, mostrar `manufacturer model` (ej. `LIFT GO CQD15`) en lugar del ID interno `name`. Esto requiere seleccionar dos columnas y concatenar.
+- Si el ID no resuelve (entidad eliminada o sin permiso), caer al `#abcdef` actual.
+
+### 5. Sin cambios en RLS ni en el resto de páginas
+Las consultas usan las mismas RLS que ya están permitidas para usuarios autenticados.
+
+### 6. Changelog
+- `public/changelog/v5.59.10.json` (patch, mejora) + entrada en `public/changelog.json`.
+- Título: "Breadcrumb muestra nombres legibles en vez de IDs".
