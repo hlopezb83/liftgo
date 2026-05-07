@@ -15,12 +15,13 @@ import { useListPage } from "@/hooks/useListPage";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import type { AppRole } from "@/hooks/useUserRole";
 
-import { useUsersWithRoles, useResetPassword, useToggleStatus, type UserRow } from "@/hooks/useUserManagement";
+import { useUsersWithRoles, useToggleStatus, type UserRow } from "@/hooks/useUserManagement";
 import { CredentialsDialog } from "@/components/users/CredentialsDialog";
 import { InviteUserDialog } from "@/components/users/InviteUserDialog";
 import { EditNameDialog } from "@/components/users/EditNameDialog";
 import { DeleteUserDialog } from "@/components/users/DeleteUserDialog";
 import { RoleChangeDialog } from "@/components/users/RoleChangeDialog";
+import { SetPasswordDialog } from "@/components/users/SetPasswordDialog";
 
 const renderRoleBadge = (r: AppRole) => (
   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[r] ?? ""}`}>
@@ -32,11 +33,11 @@ export default function UserManagementPage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
-  const resetPassword = useResetPassword();
   const toggleStatus = useToggleStatus();
 
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [editTarget, setEditTarget] = useState<UserRow | null>(null);
+  const [passwordTarget, setPasswordTarget] = useState<UserRow | null>(null);
   const [createdEmail, setCreatedEmail] = useState<string | null>(null);
   const [roleChangeTarget, setRoleChangeTarget] = useState<{ user: UserRow; newRole: AppRole } | null>(null);
 
@@ -52,10 +53,6 @@ export default function UserManagementPage() {
   }), [users, search, filterRole]);
 
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
-
-  const handleResetPassword = async (userId: string) => {
-    await resetPassword.mutateAsync(userId);
-  };
 
   const handleToggleStatus = (userId: string, currentActive: boolean) => {
     toggleStatus.mutate({ userId, isActive: !currentActive });
@@ -104,7 +101,7 @@ export default function UserManagementPage() {
           <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => setEditTarget(u)}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" title="Resetear contraseña" onClick={() => handleResetPassword(u.user_id)} disabled={resetPassword.isPending}>
+          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => setPasswordTarget(u)}>
             <KeyRound className="h-4 w-4" />
           </Button>
           {u.user_id !== currentUser?.id && (
@@ -130,7 +127,7 @@ export default function UserManagementPage() {
             <Button variant="ghost" size="icon" onClick={() => setEditTarget(u)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => handleResetPassword(u.user_id)} disabled={resetPassword.isPending}>
+            <Button variant="ghost" size="icon" onClick={() => setPasswordTarget(u)}>
               <KeyRound className="h-4 w-4" />
             </Button>
             {u.user_id !== currentUser?.id && (
@@ -215,6 +212,7 @@ export default function UserManagementPage() {
       <RoleChangeDialog target={roleChangeTarget} onClose={() => setRoleChangeTarget(null)} />
       <EditNameDialog user={editTarget} onClose={() => setEditTarget(null)} />
       <CredentialsDialog email={createdEmail} onClose={() => setCreatedEmail(null)} />
+      <SetPasswordDialog user={passwordTarget} onClose={() => setPasswordTarget(null)} />
     </>
   );
 }

@@ -108,18 +108,20 @@ export function useDeleteUser() {
 
 export function useResetPassword() {
   return useMutation({
-    mutationFn: async (userId: string) => {
-      const { data, error } = await supabase.functions.invoke("reset-user-password", { body: { user_id: userId } });
+    mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
+      const { data, error } = await supabase.functions.invoke("reset-user-password", {
+        body: { user_id: userId, new_password: newPassword },
+      });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data as { email: string };
     },
     onSuccess: (data) => {
-      toast.success("Contraseña restablecida", {
-        description: `Se enviarán instrucciones de acceso a ${data.email}`,
+      toast.success("Contraseña actualizada", {
+        description: `Comparte la nueva contraseña con ${data.email}`,
       });
     },
-    onError: (err: Error) => toast.error("Error al resetear contraseña", { description: err.message }),
+    onError: (err: Error) => toast.error("Error al actualizar contraseña", { description: err.message }),
   });
 }
 
