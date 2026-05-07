@@ -9,6 +9,16 @@ function generateSecurePassword(length = 20): string {
   return Array.from(values, (v) => charset[v % charset.length]).join("");
 }
 
+function passwordValidationResponse(
+  payload: { error: string; code: "weak_password" | "pwned"; raw?: string },
+  corsHeaders: Record<string, string>,
+) {
+  return new Response(JSON.stringify({ success: false, ...payload }), {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -66,10 +76,10 @@ Deno.serve(async (req) => {
 
     let newPassword: string;
     if (typeof new_password === "string" && new_password.length > 0) {
-      if (new_password.length < 6 || new_password.length > 72) {
-        return new Response(
-          JSON.stringify({ error: "La contraseña debe tener entre 6 y 72 caracteres" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      if (new_password.length < 8 || new_password.length > 72) {
+        return passwordValidationResponse(
+          { error: "La contraseña debe tener entre 8 y 72 caracteres", code: "weak_password" },
+          corsHeaders,
         );
       }
       newPassword = new_password;
@@ -100,6 +110,9 @@ Deno.serve(async (req) => {
       } else if (lower.includes("weak") || lower.includes("should be at least") || lower.includes("password")) {
         friendly = "Contraseña demasiado débil. Usa al menos 8 caracteres con mayúsculas, números y símbolos, o pulsa 'Generar contraseña segura'.";
         code = "weak_password";
+      }
+      if (code !== "other") {
+        return passwordValidationResponse({ error: friendly, code, raw }, corsHeaders);
       }
       return new Response(JSON.stringify({ error: friendly, code, raw }), {
         status: 400,

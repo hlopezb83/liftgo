@@ -1,0 +1,8 @@
+{
+  "description": "El rechazo de contraseñas débiles o filtradas ahora se maneja como validación controlada para evitar pantalla en blanco al asignar contraseñas.",
+  "changes": [
+    "reset-user-password devuelve success:false con status 200 para rechazos esperados de contraseña débil o filtrada",
+    "useResetPassword convierte esos rechazos en PasswordValidationError sin disparar el manejador global de errores",
+    "SetPasswordDialog valida mínimo 8 caracteres y muestra todos los errores del formulario en línea"
+  ]
+}

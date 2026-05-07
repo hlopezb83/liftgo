@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { useResetPassword, type UserRow } from "@/hooks/useUserManagement";
 
 interface Props {
@@ -47,16 +46,16 @@ export function SetPasswordDialog({ user, onClose }: Props) {
     e.preventDefault();
     if (!user) return;
     setErrorMsg(null);
-    if (password.length < 6) {
-      toast.error("La contraseña debe tener al menos 6 caracteres");
+    if (password.length < 8) {
+      setErrorMsg("La contraseña debe tener al menos 8 caracteres");
       return;
     }
     if (password.length > 72) {
-      toast.error("La contraseña no puede exceder 72 caracteres");
+      setErrorMsg("La contraseña no puede exceder 72 caracteres");
       return;
     }
     if (password !== confirm) {
-      toast.error("Las contraseñas no coinciden");
+      setErrorMsg("Las contraseñas no coinciden");
       return;
     }
     try {
@@ -91,7 +90,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setErrorMsg(null); }}
                 required
-                minLength={6}
+                minLength={8}
                 maxLength={72}
                 autoComplete="new-password"
                 className="pr-10"
@@ -114,7 +113,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
               value={confirm}
               onChange={(e) => { setConfirm(e.target.value); setErrorMsg(null); }}
               required
-              minLength={6}
+              minLength={8}
               maxLength={72}
               autoComplete="new-password"
             />

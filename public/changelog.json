@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.59.13",
+    "date": "2026-05-07",
+    "type": "patch",
+    "title": "Sin pantalla en blanco al rechazar contraseñas",
+    "category": "fix"
+  },
+  {
     "version": "5.59.12",
     "date": "2026-05-07",
     "type": "patch",
