@@ -32,8 +32,8 @@ export const ROUTES = {
     detail: (id: string) => `/deliveries/${id}`,
   },
   returnInspections: {
-    list: "/return-inspections",
-    detail: (id: string) => `/return-inspections/${id}`,
+    list: "/returns",
+    detail: (id: string) => `/returns/${id}`,
   },
   damage: "/damage",
   maintenance: "/maintenance",

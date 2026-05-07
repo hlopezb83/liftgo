@@ -10,7 +10,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   calendar: "Calendario",
   deliveries: "Entregas",
   returns: "Devoluciones",
-  "return-inspections": "Devoluciones",
   damage: "Daños",
   maintenance: "Mantenimiento",
   inventory: "Refacciones",
