@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.59.14",
+    "date": "2026-05-07",
+    "type": "patch",
+    "title": "Mensaje específico para contraseñas predecibles",
+    "category": "improvement"
+  },
+  {
     "version": "5.59.13",
     "date": "2026-05-07",
     "type": "patch",

@@ -1,0 +1,13 @@
+{
+  "version": "5.59.14",
+  "date": "2026-05-07",
+  "type": "patch",
+  "title": "Mensaje específico para contraseñas predecibles",
+  "category": "improvement",
+  "description": "Al asignar contraseña desde Gestión de Usuarios, ahora se distingue entre 'demasiado corta', 'predecible/filtrada (HIBP)' y otros rechazos. Ejemplo: 'Ep@1234567890' cumple complejidad pero es rechazada por contener una secuencia común; el nuevo mensaje lo explica claramente y sugiere usar 'Generar contraseña segura'.",
+  "changes": [
+    "Edge function reset-user-password: detecta 'easy to guess' y 'known to be' como contraseña predecible/filtrada",
+    "SetPasswordDialog: ayuda actualizada advirtiendo sobre secuencias comunes (1234567890, qwerty, fechas) aun con símbolos",
+    "Mensaje separado para 'demasiado corta' vs 'política de seguridad'"
+  ]
+}
