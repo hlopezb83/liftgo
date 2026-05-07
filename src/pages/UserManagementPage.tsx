@@ -101,7 +101,7 @@ export default function UserManagementPage() {
           <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => setEditTarget(u)}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" title="Resetear contraseña" onClick={() => handleResetPassword(u.user_id)} disabled={resetPassword.isPending}>
+          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => setPasswordTarget(u)}>
             <KeyRound className="h-4 w-4" />
           </Button>
           {u.user_id !== currentUser?.id && (
