@@ -15,12 +15,13 @@ import { useListPage } from "@/hooks/useListPage";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import type { AppRole } from "@/hooks/useUserRole";
 
-import { useUsersWithRoles, useResetPassword, useToggleStatus, type UserRow } from "@/hooks/useUserManagement";
+import { useUsersWithRoles, useToggleStatus, type UserRow } from "@/hooks/useUserManagement";
 import { CredentialsDialog } from "@/components/users/CredentialsDialog";
 import { InviteUserDialog } from "@/components/users/InviteUserDialog";
 import { EditNameDialog } from "@/components/users/EditNameDialog";
 import { DeleteUserDialog } from "@/components/users/DeleteUserDialog";
 import { RoleChangeDialog } from "@/components/users/RoleChangeDialog";
+import { SetPasswordDialog } from "@/components/users/SetPasswordDialog";
 
 const renderRoleBadge = (r: AppRole) => (
   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_COLORS[r] ?? ""}`}>
