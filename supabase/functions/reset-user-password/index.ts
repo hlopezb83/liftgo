@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       newPassword = generateSecurePassword();
     }
 
-    const { data: userData, error: getUserErr } = await adminClient.auth.admin.getUserById(user_id);
+    const { data: userData, error: getUserErr } = await auth.adminClient.auth.admin.getUserById(user_id);
     if (getUserErr || !userData?.user) {
       return new Response(
         JSON.stringify({ error: "User not found" }),
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { error: updateErr } = await adminClient.auth.admin.updateUserById(user_id, {
+    const { error: updateErr } = await auth.adminClient.auth.admin.updateUserById(user_id, {
       password: newPassword,
     });
 
