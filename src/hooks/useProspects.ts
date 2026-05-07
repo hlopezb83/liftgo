@@ -18,6 +18,9 @@ export interface Prospect {
   created_by_name: string | null;
   created_at: string;
   updated_at: string;
+  closed_at: string | null;
+  lost_reason: string | null;
+  final_amount: number | null;
 }
 
 export type ProspectInsert = Omit<Prospect, "id" | "created_at" | "updated_at" | "created_by" | "created_by_name">;
