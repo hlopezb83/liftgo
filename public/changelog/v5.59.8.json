@@ -1,0 +1,9 @@
+{
+  "version": "5.59.8",
+  "date": "2026-05-07",
+  "type": "patch",
+  "title": "Folio mínimo de factura ajustado a FAC-0058",
+  "category": "improvement",
+  "description": "Se actualizó el folio mínimo en invoice_number_settings a 58. La próxima factura emitida será FAC-0058.",
+  "changes": ["min_next_number = 58"]
+}
