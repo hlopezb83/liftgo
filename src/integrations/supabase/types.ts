@@ -1642,6 +1642,27 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          bucket: string
+          created_at: string
+          id: number
+          identifier: string
+        }
+        Insert: {
+          bucket: string
+          created_at?: string
+          id?: number
+          identifier: string
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          id?: number
+          identifier?: string
+        }
+        Relationships: []
+      }
       return_inspections: {
         Row: {
           booking_id: string
@@ -1860,6 +1881,15 @@ export type Database = {
     }
     Functions: {
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
+      check_and_record_rate_limit: {
+        Args: {
+          _bucket: string
+          _identifier: string
+          _max_requests: number
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       complete_return_inspection:
         | {
             Args: {
