@@ -1,0 +1,8 @@
+{
+  "description": "Botones de Eliminar en CRM y Refacciones que estaban ocultos por un nombre de módulo incorrecto.",
+  "changes": [
+    "ProspectDetailSheet ahora valida permisos contra 'CRM / Prospectos' (antes 'CRM' que no existía)",
+    "PartDetailSheet ahora valida permisos contra 'Refacciones' (antes 'Inventario' que no existía)",
+    "RoleGuard avisa por consola en desarrollo si se usa un módulo inexistente"
+  ]
+}

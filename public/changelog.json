@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.60.1",
+    "date": "2026-05-07",
+    "type": "patch",
+    "title": "Fix permisos: botones Eliminar en CRM y Refacciones",
+    "category": "fix"
+  },
+  {
     "version": "5.60.0",
     "date": "2026-05-07",
     "type": "minor",
