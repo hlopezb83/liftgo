@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.59.7",
+    "date": "2026-05-07",
+    "type": "patch",
+    "title": "Vista previa de folio en Nueva Factura",
+    "category": "improvement"
+  },
+  {
     "version": "5.59.6",
     "date": "2026-05-06",
     "type": "patch",
