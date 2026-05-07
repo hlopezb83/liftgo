@@ -16,7 +16,7 @@ const QUERY_KEY = ["users_with_roles"];
 
 export class PasswordValidationError extends Error {
   readonly code: "weak_password" | "pwned";
-  readonly raw?: string;
+  readonly raw: string | undefined;
 
   constructor(message: string, code: "weak_password" | "pwned", raw?: string) {
     super(message);
