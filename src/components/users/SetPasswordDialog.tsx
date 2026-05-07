@@ -24,12 +24,14 @@ export function SetPasswordDialog({ user, onClose }: Props) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       setPassword("");
       setConfirm("");
       setShow(false);
+      setErrorMsg(null);
     }
   }, [user]);
 
@@ -38,11 +40,13 @@ export function SetPasswordDialog({ user, onClose }: Props) {
     setPassword(pwd);
     setConfirm(pwd);
     setShow(true);
+    setErrorMsg(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    setErrorMsg(null);
     if (password.length < 6) {
       toast.error("La contraseña debe tener al menos 6 caracteres");
       return;
@@ -58,8 +62,9 @@ export function SetPasswordDialog({ user, onClose }: Props) {
     try {
       await resetPassword.mutateAsync({ userId: user.user_id, newPassword: password });
       onClose();
-    } catch {
-      // toast handled by hook
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error al actualizar contraseña";
+      setErrorMsg(msg);
     }
   };
 
