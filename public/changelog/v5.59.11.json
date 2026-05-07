@@ -1,0 +1,9 @@
+{
+  "description": "El reseteo de contraseña ahora abre un diálogo donde el administrador define manualmente la nueva contraseña del usuario.",
+  "changes": [
+    "Nuevo diálogo SetPasswordDialog con campos de contraseña y confirmación",
+    "Botón 'Generar contraseña segura' que sugiere una contraseña aleatoria",
+    "Edge function reset-user-password acepta new_password opcional (6-72 caracteres)",
+    "Toast de éxito recuerda compartir la contraseña con el usuario por canal seguro"
+  ]
+}
