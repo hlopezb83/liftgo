@@ -1,33 +1,19 @@
-# Corregir desalineación de rutas de Devoluciones
+# Actualizar next-themes a ^0.4
 
-## Problema confirmado
+## Contexto
+`next-themes@0.3.0` es la versión actual en `package.json`. La librería se usa activamente:
+- `src/components/AppProviders.tsx` — `ThemeProvider`
+- `src/components/AppSidebar.tsx` — toggle claro/oscuro vía `useTheme`
+- `src/components/ui/sonner.tsx` — sincroniza tema de toasts
 
-En `src/lib/routes-config.tsx` (líneas 79-80) las rutas reales son:
-- `/returns`
-- `/returns/:id`
-
-Pero en `src/lib/routes.ts` (líneas 34-37) la constante `ROUTES.returnInspections` apunta a:
-- `/return-inspections`
-- `/return-inspections/${id}`
-
-Aunque hoy nadie consume `ROUTES.returnInspections` (todos los demás archivos usan el literal `/returns`), la constante es una trampa: si alguien la importa terminará en 404.
+La 0.4.x es compatible con React 18 y 19 y mantiene la misma API pública (`ThemeProvider`, `useTheme`), por lo que no se requieren cambios de código.
 
 ## Cambio
 
-Editar `src/lib/routes.ts` para que `returnInspections` quede:
-
-```ts
-returnInspections: {
-  list: "/returns",
-  detail: (id: string) => `/returns/${id}`,
-},
-```
-
-## Verificación
-
-- `rg "return-inspections" src` debe regresar vacío después del cambio (excepto el label en `TopbarBreadcrumbs.tsx`, que es solo texto y no afecta).
-- Revisar `TopbarBreadcrumbs.tsx` línea 13: la key `"return-inspections"` ya no coincide con ningún segmento de URL. Cambiarla a `"returns": "Devoluciones"` para que el breadcrumb muestre el nombre correcto.
+1. `bun add next-themes@^0.4` (actualiza a la última 0.4.x).
+2. Verificación rápida: confirmar que el toggle de tema en el sidebar y los toasts siguen reaccionando al cambio claro/oscuro en el preview.
 
 ## Changelog
 
-Agregar `v5.61.1` (patch) en `public/changelog.json` + `public/changelog/v5.61.1.json` describiendo la corrección de la ruta y el breadcrumb.
+Agregar `v5.61.2` (patch, category `chore`) en `public/changelog.json` + `public/changelog/v5.61.2.json`:
+- Título: "Actualización de next-themes a 0.4 para compatibilidad con React 18+"
