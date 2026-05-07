@@ -212,6 +212,7 @@ export default function UserManagementPage() {
       <RoleChangeDialog target={roleChangeTarget} onClose={() => setRoleChangeTarget(null)} />
       <EditNameDialog user={editTarget} onClose={() => setEditTarget(null)} />
       <CredentialsDialog email={createdEmail} onClose={() => setCreatedEmail(null)} />
+      <SetPasswordDialog user={passwordTarget} onClose={() => setPasswordTarget(null)} />
     </>
   );
 }
