@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XCircle } from "lucide-react";
 import { format } from "date-fns";
-import { nowMty } from "@/lib/date";
+import { nowMty } from "@/lib/utils";
 import { LOST_REASONS, type LostReason } from "@/lib/constants/crm";
 import type { Prospect } from "@/hooks/useProspects";
 

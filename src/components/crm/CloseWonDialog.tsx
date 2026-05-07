@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Trophy } from "lucide-react";
 import { format } from "date-fns";
-import { nowMty } from "@/lib/date";
+import { nowMty } from "@/lib/utils";
 import type { Prospect } from "@/hooks/useProspects";
 
 interface Props {
