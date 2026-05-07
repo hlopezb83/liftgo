@@ -112,7 +112,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
               id="confirm-password"
               type={show ? "text" : "password"}
               value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
+              onChange={(e) => { setConfirm(e.target.value); setErrorMsg(null); }}
               required
               minLength={6}
               maxLength={72}
