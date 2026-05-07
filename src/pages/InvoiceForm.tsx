@@ -13,10 +13,12 @@ import { CfdiFieldsCard } from "@/components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "@/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { useNextInvoiceNumber } from "@/hooks/useNextInvoiceNumber";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
   const form = useInvoiceFormLogic();
+  const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!form.isEdit);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
