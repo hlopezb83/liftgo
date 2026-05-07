@@ -85,12 +85,10 @@ export function useUpdatePermission() {
 export function getAccessLevel(perms: PermissionsMap | undefined, role: AppRole | undefined, module: string): AccessLevel {
   if (!perms || !role) return "none";
   const roleMap = perms[role];
-  if (roleMap && !(module in roleMap) && import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[RoleGuard] Módulo "${module}" no existe en role_permissions. Módulos válidos:`,
-      Object.keys(roleMap),
-    );
+  if (roleMap && !(module in roleMap)) {
+    telemetry.warn("RoleGuard", `Módulo "${module}" no existe en role_permissions`, {
+      validModules: Object.keys(roleMap),
+    });
   }
   return roleMap?.[module] ?? "none";
 }
