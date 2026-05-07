@@ -30,10 +30,22 @@ export default function InvoicesPage() {
   const navigate = useNavigate();
   const generateRecurring = useGenerateRecurringInvoices();
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(invoices, {
+  const { search, setSearch, statusFilter, setStatusFilter, filtered: baseFiltered } = useListFilters(invoices, {
     searchFields: ["invoice_number", "customer_name"],
     statusField: "status",
+    skipStatusValues: ["overdue"],
   });
+
+  const filtered = useMemo(() => {
+    if (statusFilter !== "overdue") return baseFiltered;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return (baseFiltered || []).filter((inv) => {
+      if (!inv.due_date) return false;
+      if (!["sent", "partial"].includes(inv.status)) return false;
+      return parseISO(inv.due_date) < today;
+    });
+  }, [baseFiltered, statusFilter]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from");
