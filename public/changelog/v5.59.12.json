@@ -1,0 +1,8 @@
+{
+  "description": "El diálogo de asignar contraseña ahora muestra mensajes claros cuando Auth rechaza la contraseña por ser débil o aparecer en filtraciones (HIBP).",
+  "changes": [
+    "Edge function reset-user-password mapea errores de Auth a mensajes en español",
+    "SetPasswordDialog muestra el motivo del rechazo en línea (no solo como toast)",
+    "Texto de ayuda recordando el chequeo HIBP y la opción 'Generar contraseña segura'"
+  ]
+}

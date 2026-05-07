@@ -90,7 +90,18 @@ Deno.serve(async (req) => {
     });
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: updateErr.message }), {
+      const raw = updateErr.message || "Error desconocido";
+      const lower = raw.toLowerCase();
+      let friendly = raw;
+      let code: "weak_password" | "pwned" | "other" = "other";
+      if (lower.includes("pwned") || lower.includes("leaked") || lower.includes("compromised") || lower.includes("filtrad")) {
+        friendly = "Esta contraseña aparece en filtraciones públicas conocidas (HIBP). Elige una diferente o usa el botón 'Generar contraseña segura'.";
+        code = "pwned";
+      } else if (lower.includes("weak") || lower.includes("should be at least") || lower.includes("password")) {
+        friendly = "Contraseña demasiado débil. Usa al menos 8 caracteres con mayúsculas, números y símbolos, o pulsa 'Generar contraseña segura'.";
+        code = "weak_password";
+      }
+      return new Response(JSON.stringify({ error: friendly, code, raw }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
