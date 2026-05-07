@@ -1,49 +1,34 @@
-## Objetivo
-Cambiar la acción "Resetear contraseña" para que el admin **escriba la nueva contraseña** en lugar de que el sistema genere una aleatoria automáticamente.
+## Diagnóstico
 
-## Flujo nuevo
-1. Admin hace clic en el ícono de llave (KeyRound) junto a un usuario.
-2. Se abre un diálogo `SetPasswordDialog` con:
-   - Nombre/email del usuario destino (contexto visible).
-   - Campo "Nueva contraseña" (con toggle mostrar/ocultar, mínimo 6 caracteres).
-   - Campo "Confirmar contraseña".
-   - Botón opcional "Generar contraseña segura" (rellena ambos campos con una sugerencia, sin enviarla automáticamente).
-   - Botones Cancelar / Guardar.
-3. Al guardar, se valida (longitud, coincidencia) y se envía al backend.
-4. Toast de éxito: "Contraseña actualizada para {email}". El admin la comparte con el usuario por su canal preferido.
+Los logs de Auth muestran que el endpoint `PUT /admin/users/{id}` devolvió **422 Unprocessable Entity** dos veces seguidas al intentar resetear la contraseña de `comercial@liftgo.com.mx`. Causa: la contraseña ingresada fue rechazada por las políticas de seguridad de Supabase Auth (HIBP — pwned passwords está habilitado en este proyecto, además de validación de longitud/complejidad mínima).
 
-## Cambios técnicos
+La edge function `reset-user-password` se ejecutó correctamente; el error viene de Supabase Auth. Hoy el mensaje se reenvía como `updateErr.message`, pero en el toast aparece como un texto técnico poco accionable, y el diálogo se queda en estado "Guardando…" sin orientar al admin.
 
-### Backend — `supabase/functions/reset-user-password/index.ts`
-- Aceptar opcionalmente `new_password` en el body además de `user_id`.
-- Validar: string, longitud mínima 6, máxima 72 (límite de bcrypt/Supabase).
-- Si `new_password` está presente → usar esa.
-- Si no viene → conservar comportamiento actual (genera aleatoria) para no romper otros llamadores.
-- Mantener verificación admin con `getClaims` + `has_role`.
-- Respuesta: `{ success: true, email }` (no devolver la contraseña).
+## Cambios propuestos (v5.59.12 — patch)
 
-### Hook — `src/hooks/useUserManagement.ts`
-- `useResetPassword`: cambiar firma a `mutationFn: ({ userId, newPassword }: { userId: string; newPassword: string })` y pasar `new_password` en el body.
-- Toast de éxito: "Contraseña actualizada para {email}".
+### 1. `supabase/functions/reset-user-password/index.ts`
+- Detectar errores conocidos de Auth y mapearlos a mensajes claros en español:
+  - `weak_password` / "Password should be at least…" → "Contraseña demasiado débil. Usa al menos 8 caracteres con mayúsculas, números y símbolos."
+  - "pwned" / "leaked" / "compromised" → "Esta contraseña aparece en filtraciones públicas conocidas. Elige otra diferente."
+  - cualquier otro 422 → mensaje original.
+- Devolver además `code: "weak_password" | "pwned" | "other"` en el JSON para que el frontend pueda reaccionar.
+- Status code: mantener 400 (lo que ya consume el hook).
 
-### UI nuevo — `src/components/users/SetPasswordDialog.tsx`
-- Props: `user: UserRow | null`, `onClose()`.
-- Estado local: `password`, `confirm`, `showPassword`.
-- Validaciones con `sonner` (siguiendo el patrón global de manejo de errores).
-- Botón "Generar segura" con util local (mismo charset que el edge function).
-- Llama a `useResetPassword().mutateAsync({ userId, newPassword })` y cierra al éxito.
+### 2. `src/components/users/SetPasswordDialog.tsx`
+- Capturar el error en `handleSubmit` (sin depender solo del toast del hook): mostrar un bloque inline rojo debajo del campo de contraseña con el mensaje devuelto, para que el admin lo vea sin que desaparezca como el toast.
+- Limpiar el error al modificar el campo.
+- Al pulsar "Generar contraseña segura" se garantiza una contraseña aleatoria larga (ya cumple HIBP), así que ese botón sigue siendo el escape rápido.
+- Agregar texto de ayuda visible: "Mínimo 8 caracteres. No se aceptan contraseñas comunes o filtradas (HIBP)."
 
-### `src/pages/UserManagementPage.tsx`
-- Reemplazar `handleResetPassword` por `setPasswordTarget` state.
-- Los dos botones KeyRound (tabla + mobile card) abren el diálogo en lugar de llamar a `mutateAsync` directamente.
-- Renderizar `<SetPasswordDialog user={setPasswordTarget} onClose={() => setPasswordTarget(null)} />`.
-- Quitar el uso de `resetPassword.isPending` para deshabilitar los botones (ya no aplica, el diálogo maneja el estado).
+### 3. `src/hooks/useUserManagement.ts`
+- En `useResetPassword.onError`, además del toast actual agregar `description: err.message` completo para que se vea el motivo real.
+- Re-lanzar el error (ya lo hace vía `mutateAsync`) para que el diálogo lo capture inline.
 
-### Changelog
-- `public/changelog/v5.59.11.json` (patch): "Reseteo de contraseña ahora permite al admin definir manualmente la nueva contraseña."
-- Agregar entrada al inicio de `public/changelog.json`.
+### 4. Changelog
+- Crear `public/changelog/v5.59.12.json` y agregar entrada al inicio de `public/changelog.json`:
+  - "Mejor manejo de errores al asignar contraseña: ahora se explica claramente cuándo es débil o aparece en filtraciones (HIBP)."
 
 ## Notas
-- No se cambia RLS ni esquema de DB.
-- El diálogo `CredentialsDialog` existente queda igual (se sigue usando para creación de usuarios).
-- HIBP sigue activo en Supabase Auth, así que contraseñas filtradas serán rechazadas por el backend con mensaje claro vía toast.
+- No se cambia la política HIBP de Supabase Auth — se mantiene activa porque protege a los usuarios.
+- No se modifica RLS ni esquema de DB.
+- El diálogo `CredentialsDialog` (creación) no se toca.
