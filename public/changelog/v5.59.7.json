@@ -1,0 +1,12 @@
+{
+  "version": "5.59.7",
+  "date": "2026-05-07",
+  "type": "patch",
+  "title": "Vista previa de folio en Nueva Factura",
+  "category": "improvement",
+  "description": "Al crear una factura ahora se muestra el folio próximo (FAC-XXXX) que se asignará al guardar, respetando el folio mínimo configurado.",
+  "changes": [
+    "Nuevo hook useNextInvoiceNumber que consulta la RPC next_invoice_number",
+    "Indicador de 'Folio próximo' en la card Detalles de Factura"
+  ]
+}
