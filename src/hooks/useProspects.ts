@@ -23,7 +23,11 @@ export interface Prospect {
   final_amount: number | null;
 }
 
-export type ProspectInsert = Omit<Prospect, "id" | "created_at" | "updated_at" | "created_by" | "created_by_name">;
+export type ProspectInsert = Omit<Prospect, "id" | "created_at" | "updated_at" | "created_by" | "created_by_name" | "closed_at" | "lost_reason" | "final_amount"> & {
+  closed_at?: string | null;
+  lost_reason?: string | null;
+  final_amount?: number | null;
+};
 export type ProspectUpdate = Partial<ProspectInsert> & { id: string };
 
 const QUERY_KEY = ["prospects"];
