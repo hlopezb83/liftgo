@@ -6,11 +6,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoleGuard } from "@/components/RoleGuard";
-import { useDeleteProspect, type Prospect } from "@/hooks/useProspects";
+import { useDeleteProspect, useUpdateProspect, type Prospect } from "@/hooks/useProspects";
+import { useProspectGuard } from "@/hooks/crm/useProspectGuard";
+import { CloseWonDialog } from "./CloseWonDialog";
+import { CloseLostDialog } from "./CloseLostDialog";
+import { LOST_REASON_LABELS } from "@/lib/constants/crm";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Pencil, Trash2, Building2, User, Mail, Phone, DollarSign, FileText, Calendar, StickyNote } from "lucide-react";
+import { Pencil, Trash2, Building2, User, Mail, Phone, DollarSign, FileText, StickyNote, Trophy, XCircle, RotateCcw } from "lucide-react";
 
 const STAGE_LABELS: Record<string, string> = {
   nuevo_prospecto: "Nuevo Prospecto",
@@ -40,15 +44,28 @@ interface Props {
 
 export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quoteNumber }: Props) {
   const deleteProspect = useDeleteProspect();
+  const updateProspect = useUpdateProspect();
+  const { canCloseDeal, assertCanClose } = useProspectGuard();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [wonOpen, setWonOpen] = useState(false);
+  const [lostOpen, setLostOpen] = useState(false);
 
   if (!prospect) return null;
+
+  const isClosed = prospect.stage === "cerrado_ganado" || prospect.stage === "cerrado_perdido";
 
   const handleDelete = () => {
     deleteProspect.mutate(prospect.id, {
       onSuccess: () => onOpenChange(false),
     });
+  };
+
+  const handleReopen = () => {
+    updateProspect.mutate(
+      { id: prospect.id, stage: "negociacion" },
+      { onSuccess: () => onOpenChange(false) }
+    );
   };
 
   const DetailRow = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) => (
