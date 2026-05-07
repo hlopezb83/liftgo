@@ -127,7 +127,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
           </div>
 
           <Separator />
-          <RoleGuard module="CRM" minAccess="full">
+          <RoleGuard module="CRM / Prospectos" minAccess="full">
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(prospect); onOpenChange(false); }}>
                 <Pencil className="h-4 w-4 mr-1" /> Editar
