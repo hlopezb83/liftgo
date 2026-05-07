@@ -1,0 +1,10 @@
+{
+  "description": "Tanda 3 de la auditoría: validación de email endurecida, telemetría centralizada, helpers de ruteo y limpieza menor.",
+  "changes": [
+    "Regex de email reforzada en _shared/validate.ts: TLD ≥ 2 chars, dominios válidos, sin puntos consecutivos (crítico para CFDI 4.0)",
+    "Nuevo helper getModuleForPath() con matching por prefijo para resolver el módulo de cualquier subruta dinámica",
+    "Nuevo wrapper telemetry en src/lib/telemetry.ts; reemplaza console.warn de getAccessLevel y queda listo para conectar a Sentry / function_logs",
+    "PageFallback ahora muestra botón 'Recarga la página' si la carga supera 10 segundos",
+    "Eliminado package-lock.json duplicado (el lockfile autoritativo es bun.lock)"
+  ]
+}

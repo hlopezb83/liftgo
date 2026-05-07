@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.64.0",
+    "date": "2026-05-07",
+    "type": "minor",
+    "title": "Auditoría Tanda 3: email reforzado, telemetría centralizada, fallback con timeout",
+    "category": "security"
+  },
+  {
     "version": "5.63.0",
     "date": "2026-05-07",
     "type": "minor",
