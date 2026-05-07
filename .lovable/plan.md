@@ -24,14 +24,17 @@
 6. ~~**HI-3 Password predecible**~~ — `generateSecurePassword` con rejection sampling en `_shared/auth.ts`. `invite-customer` usa 24 chars sin sufijo fijo.
 7. ~~**HI-4 Refactor auth**~~ — `requireAuth`/`requireRole`/`requireAdmin` extraídos a `_shared/auth.ts`. Aplicado a invite-user, invite-customer, delete-user, toggle-user-status, reset-user-password.
 
-#### Tanda 3 — Medio/Bajo (sprint siguiente)
-8. **MI-2** Completar `ROUTES_TO_MODULE` con pattern matching (`startsWith`) para subrutas como `/fleet/new`, `/quotes/new`, `/bookings/:id`, etc.
-9. **MI-4 Lockfile dual** — eliminar `package-lock.json` (usamos Bun). Agregar nota en README.
-10. **MI-5 Regex de email muy permisivo** — endurecer `isEmail` en `_shared/validate.ts` (requerir TLD ≥ 2 chars, dominio válido) — crítico para CFDI.
-11. **MI-6 Logging estructurado** — opcional: tabla `function_logs` con `function_name`, `level`, `payload`, `created_at`. RLS solo admin lectura.
-12. **LO-1** Reescribir `generateSecurePassword` con rejection sampling para eliminar bias del módulo.
-13. **LO-3** Agregar timeout de 10s en `PageFallback` con mensaje "Recarga la página".
-14. **LO-4** Reemplazar `console.warn` en `getAccessLevel` por hook de telemetría (placeholder ahora, conectar a Sentry/log table después).
+#### Tanda 3 — Medio/Bajo ✅ COMPLETADO en v5.64.0
+8. ~~**MI-2** Pattern matching de rutas~~ — nuevo `getModuleForPath()` con prefijo descendente (cubre `/fleet/:id/edit`, `/quotes/new`, etc.).
+9. ~~**MI-4 Lockfile dual**~~ — `package-lock.json` eliminado.
+10. ~~**MI-5 Regex de email**~~ — `_shared/validate.ts` endurecido (TLD ≥ 2, sin puntos consecutivos, longitud 6-254).
+11. **MI-6 Logging estructurado** — diferido. Hoy `telemetry` es placeholder console-only; conectar a tabla cuando se decida proveedor (Sentry vs in-DB).
+12. ~~**LO-1** rejection sampling en `generateSecurePassword`~~ — ya entregado en Tanda 2 (v5.63.0).
+13. ~~**LO-3** Timeout en `PageFallback`~~ — botón "Recarga la página" tras 10s.
+14. ~~**LO-4** Telemetría en `getAccessLevel`~~ — usa `telemetry.warn()` desde `src/lib/telemetry.ts`.
+
+## Estado final
+Tandas 1, 2 y 3 cerradas. Único pendiente: **MI-6 (logging persistente)** sujeto a decisión de proveedor.
 
 ## Entregables por tanda
 

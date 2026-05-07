@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { nowMty } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { telemetry } from "@/lib/telemetry";
 import type { AppRole } from "./useUserRole";
 
 export type AccessLevel = "full" | "read" | "none";
@@ -39,6 +40,23 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/income-statement": "Reportes",
 };
 
+/**
+ * Resuelve el módulo para una ruta arbitraria (ej: `/fleet/abc-123/edit`).
+ * Hace match por prefijo del segmento más largo. Devuelve `null` si no aplica
+ * permisos (ej: rutas internas como `/activity`, `/changelog`).
+ */
+export function getModuleForPath(pathname: string): string | null {
+  if (ROUTE_TO_MODULE[pathname]) return ROUTE_TO_MODULE[pathname];
+  // Ordenamos por longitud descendente para que "/fleet/new" gane sobre "/fleet"
+  const candidates = Object.keys(ROUTE_TO_MODULE).sort((a, b) => b.length - a.length);
+  for (const route of candidates) {
+    if (route === "/") continue;
+    if (pathname === route || pathname.startsWith(route + "/")) {
+      return ROUTE_TO_MODULE[route];
+    }
+  }
+  return null;
+}
 export function useRolePermissions() {
   const { user } = useAuth();
 
@@ -85,12 +103,10 @@ export function useUpdatePermission() {
 export function getAccessLevel(perms: PermissionsMap | undefined, role: AppRole | undefined, module: string): AccessLevel {
   if (!perms || !role) return "none";
   const roleMap = perms[role];
-  if (roleMap && !(module in roleMap) && import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      `[RoleGuard] Módulo "${module}" no existe en role_permissions. Módulos válidos:`,
-      Object.keys(roleMap),
-    );
+  if (roleMap && !(module in roleMap)) {
+    telemetry.warn("RoleGuard", `Módulo "${module}" no existe en role_permissions`, {
+      validModules: Object.keys(roleMap),
+    });
   }
   return roleMap?.[module] ?? "none";
 }
