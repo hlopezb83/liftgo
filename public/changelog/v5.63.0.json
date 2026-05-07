@@ -1,0 +1,10 @@
+{
+  "description": "Tanda 2 de la auditoría: rate limiting en Edge Functions administrativas, contraseñas seguras sin patrones predecibles y refactor de autenticación compartida.",
+  "changes": [
+    "Nueva tabla rate_limits + función check_and_record_rate_limit (ejecutable solo por service_role) para limitar peticiones admin a 10/min por usuario",
+    "Helpers compartidos en _shared/auth.ts: requireAuth, requireRole, requireAdmin, enforceRateLimit y generateSecurePassword con rejection sampling sin bias",
+    "Refactor de invite-user, invite-customer, delete-user, toggle-user-status y reset-user-password usando los nuevos helpers (~30 LOC menos por función)",
+    "invite-customer ya no usa contraseñas con sufijo predecible 'Aa1!'; ahora genera 24 caracteres con entropía completa",
+    "Respuestas 429 con header Retry-After cuando se excede el límite; fail-open con log si el rate limiter falla por error transitorio"
+  ]
+}

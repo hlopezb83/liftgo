@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.63.0",
+    "date": "2026-05-07",
+    "type": "minor",
+    "title": "Auditoría Tanda 2: rate limiting, contraseñas seguras y refactor de auth compartida",
+    "category": "security"
+  },
+  {
     "version": "5.62.0",
     "date": "2026-05-07",
     "type": "minor",

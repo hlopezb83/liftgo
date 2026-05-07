@@ -19,14 +19,10 @@
 3. **CR-3 Idempotencia de facturación recurrente** — en `generate-recurring-invoices`: antes de insertar, verificar que no exista ya una `invoice` con `(subscription_id, billing_period_start, billing_period_end)`. Idealmente vía índice único parcial en DB + `ON CONFLICT DO NOTHING`.
 4. **CR-4 Timezone Monterrey en facturación** — usar `date-fns-tz` con `America/Monterrey` para calcular `billingStart`/`billingEnd`/`due_date` en lugar de `new Date()` UTC. Coincide con regla de memoria `Localization: Dates`.
 
-#### Tanda 2 — Alto (siguiente entrega)
-5. **HI-2 Rate limit en Edge Functions admin** — agregar helper `_shared/rateLimit.ts` (token bucket en tabla `rate_limits` o memoria por instancia) aplicado a `invite-user`, `delete-user`, `toggle-user-status`, `invite-customer`. Límite sugerido: 10 req/min por usuario admin.
-6. **HI-3 Password temporal predecible en `invite-customer`** — reemplazar `crypto.randomUUID() + 'Aa1!'` por `generateSecurePassword()` que ya existe en `invite-user`. Mover el helper a `_shared/auth.ts`.
-7. **HI-4 Refactor de auth duplicada** — extraer a `_shared/auth.ts`:
-   - `requireAuth(req): { user, supabase }`
-   - `requireRole(req, roles[]): { user, supabase }`
-   - `requireAdmin(req)` (atajo)
-   Refactorizar las ~14 funciones para usar estos helpers. Reduce ~30 LOC por función.
+#### Tanda 2 — Alto ✅ COMPLETADO en v5.63.0
+5. ~~**HI-2 Rate limit**~~ — tabla `rate_limits` + RPC `check_and_record_rate_limit` + helper `enforceRateLimit` (10/min por admin) aplicado a las 5 funciones admin.
+6. ~~**HI-3 Password predecible**~~ — `generateSecurePassword` con rejection sampling en `_shared/auth.ts`. `invite-customer` usa 24 chars sin sufijo fijo.
+7. ~~**HI-4 Refactor auth**~~ — `requireAuth`/`requireRole`/`requireAdmin` extraídos a `_shared/auth.ts`. Aplicado a invite-user, invite-customer, delete-user, toggle-user-status, reset-user-password.
 
 #### Tanda 3 — Medio/Bajo (sprint siguiente)
 8. **MI-2** Completar `ROUTES_TO_MODULE` con pattern matching (`startsWith`) para subrutas como `/fleet/new`, `/quotes/new`, `/bookings/:id`, etc.
