@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
+import { useBreadcrumbEntityLabel } from "@/hooks/useBreadcrumbEntityLabel";
 
 // Etiquetas de segmentos comunes (es-MX). Si no está en el mapa se capitaliza el slug.
 const SEGMENT_LABELS: Record<string, string> = {
@@ -50,6 +51,7 @@ function labelFor(seg: string): string {
 export function TopbarBreadcrumbs() {
   const { pathname } = useLocation();
   const segments = pathname.split("/").filter(Boolean);
+  const { targetSegment, label: entityLabel, isLoading: loadingLabel } = useBreadcrumbEntityLabel(pathname);
 
   // Inicio sólo
   if (segments.length === 0) {
@@ -64,7 +66,12 @@ export function TopbarBreadcrumbs() {
   const crumbs = segments.map((seg, i) => {
     const path = "/" + segments.slice(0, i + 1).join("/");
     const isLast = i === segments.length - 1;
-    return { label: labelFor(seg), path, isLast };
+    let label = labelFor(seg);
+    if (seg === targetSegment) {
+      if (entityLabel) label = entityLabel;
+      else if (loadingLabel) label = "…";
+    }
+    return { label, path, isLast };
   });
 
   return (

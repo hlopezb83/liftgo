@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.59.10",
+    "date": "2026-05-07",
+    "type": "patch",
+    "title": "Breadcrumb con nombres legibles",
+    "category": "improvement"
+  },
+  {
     "version": "5.59.9",
     "date": "2026-05-07",
     "type": "patch",
