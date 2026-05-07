@@ -1,51 +1,49 @@
-# Breadcrumb con nombres legibles en vez de IDs
+## Objetivo
+Cambiar la acción "Resetear contraseña" para que el admin **escriba la nueva contraseña** en lugar de que el sistema genere una aleatoria automáticamente.
 
-## Problema
-En la barra superior se muestra `Equipos › #7e2f93` (ID truncado del UUID). Esto no le dice nada al usuario. Lo mismo ocurre en el resto de páginas de detalle: facturas, cotizaciones, clientes, contratos, etc., todas terminan en `#abcdef`.
+## Flujo nuevo
+1. Admin hace clic en el ícono de llave (KeyRound) junto a un usuario.
+2. Se abre un diálogo `SetPasswordDialog` con:
+   - Nombre/email del usuario destino (contexto visible).
+   - Campo "Nueva contraseña" (con toggle mostrar/ocultar, mínimo 6 caracteres).
+   - Campo "Confirmar contraseña".
+   - Botón opcional "Generar contraseña segura" (rellena ambos campos con una sugerencia, sin enviarla automáticamente).
+   - Botones Cancelar / Guardar.
+3. Al guardar, se valida (longitud, coincidencia) y se envía al backend.
+4. Toast de éxito: "Contraseña actualizada para {email}". El admin la comparte con el usuario por su canal preferido.
 
-## Solución
-Resolver el último segmento del breadcrumb consultando la entidad correspondiente y mostrar un nombre humano (ej. `LIFT GO CQD15 — HPLTC015A0762/004`, `FAC-0057`, `Acme Corp`).
+## Cambios técnicos
 
-## Cambios
+### Backend — `supabase/functions/reset-user-password/index.ts`
+- Aceptar opcionalmente `new_password` en el body además de `user_id`.
+- Validar: string, longitud mínima 6, máxima 72 (límite de bcrypt/Supabase).
+- Si `new_password` está presente → usar esa.
+- Si no viene → conservar comportamiento actual (genera aleatoria) para no romper otros llamadores.
+- Mantener verificación admin con `getClaims` + `has_role`.
+- Respuesta: `{ success: true, email }` (no devolver la contraseña).
 
-### 1. Nuevo hook `useBreadcrumbEntityLabel(pathname)`
-Ubicación: `src/hooks/useBreadcrumbEntityLabel.ts`.
+### Hook — `src/hooks/useUserManagement.ts`
+- `useResetPassword`: cambiar firma a `mutationFn: ({ userId, newPassword }: { userId: string; newPassword: string })` y pasar `new_password` en el body.
+- Toast de éxito: "Contraseña actualizada para {email}".
 
-- Detecta si el pathname coincide con un patrón conocido (`/fleet/:id`, `/invoices/:id`, `/quotes/:id`, `/customers/:id`, `/contracts/:id`, `/bookings/:id`, `/maintenance/:id`, `/deliveries/:id`, `/returns/:id`, `/suppliers/:id`, `/expenses/:id`, `/crm/:id`, `/inventory/:id`).
-- Para cada uno, ejecuta una `useQuery` ligera que obtenga el campo descriptivo (`name`, `invoice_number`, `quote_number`, `contract_number`, `booking_id`, etc.).
-- Devuelve `{ label, isLoading }`.
-- Comparte cache con queries existentes vía `queryKey: ["<table>", id]` cuando sea posible.
+### UI nuevo — `src/components/users/SetPasswordDialog.tsx`
+- Props: `user: UserRow | null`, `onClose()`.
+- Estado local: `password`, `confirm`, `showPassword`.
+- Validaciones con `sonner` (siguiendo el patrón global de manejo de errores).
+- Botón "Generar segura" con util local (mismo charset que el edge function).
+- Llama a `useResetPassword().mutateAsync({ userId, newPassword })` y cierra al éxito.
 
-### 2. `src/components/TopbarBreadcrumbs.tsx`
-- Llamar al hook con el `pathname`.
-- Si el último segmento parece un ID (regex actual) y el hook devuelve `label`, usarlo en vez de `#abcdef`.
-- Mientras carga: mostrar un skeleton/`…` corto en lugar de saltar el contenido.
-- Mantener el truncate y la ruta clickeable como ya están.
+### `src/pages/UserManagementPage.tsx`
+- Reemplazar `handleResetPassword` por `setPasswordTarget` state.
+- Los dos botones KeyRound (tabla + mobile card) abren el diálogo en lugar de llamar a `mutateAsync` directamente.
+- Renderizar `<SetPasswordDialog user={setPasswordTarget} onClose={() => setPasswordTarget(null)} />`.
+- Quitar el uso de `resetPassword.isPending` para deshabilitar los botones (ya no aplica, el diálogo maneja el estado).
 
-### 3. Mapas de patrones
-Definir un objeto:
+### Changelog
+- `public/changelog/v5.59.11.json` (patch): "Reseteo de contraseña ahora permite al admin definir manualmente la nueva contraseña."
+- Agregar entrada al inicio de `public/changelog.json`.
 
-```ts
-const ENTITY_RESOLVERS: Record<string, { table: string; field: string }> = {
-  fleet: { table: "forklifts", field: "name" },
-  invoices: { table: "invoices", field: "invoice_number" },
-  quotes: { table: "quotes", field: "quote_number" },
-  customers: { table: "customers", field: "name" },
-  contracts: { table: "contracts", field: "contract_number" },
-  bookings: { table: "bookings", field: "booking_id" },
-  // etc.
-};
-```
-
-Verificar nombres reales en el esquema antes de implementar (pueden variar; ej. `bookings.booking_id` vs `bookings.id`).
-
-### 4. Casos especiales
-- En `/fleet/:id`: para que sea más útil, mostrar `manufacturer model` (ej. `LIFT GO CQD15`) en lugar del ID interno `name`. Esto requiere seleccionar dos columnas y concatenar.
-- Si el ID no resuelve (entidad eliminada o sin permiso), caer al `#abcdef` actual.
-
-### 5. Sin cambios en RLS ni en el resto de páginas
-Las consultas usan las mismas RLS que ya están permitidas para usuarios autenticados.
-
-### 6. Changelog
-- `public/changelog/v5.59.10.json` (patch, mejora) + entrada en `public/changelog.json`.
-- Título: "Breadcrumb muestra nombres legibles en vez de IDs".
+## Notas
+- No se cambia RLS ni esquema de DB.
+- El diálogo `CredentialsDialog` existente queda igual (se sigue usando para creación de usuarios).
+- HIBP sigue activo en Supabase Auth, así que contraseñas filtradas serán rechazadas por el backend con mensaje claro vía toast.
