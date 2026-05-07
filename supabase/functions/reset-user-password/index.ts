@@ -55,13 +55,26 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { user_id } = body;
+    const { user_id, new_password } = body;
 
     if (!isUUID(user_id)) {
       return new Response(
         JSON.stringify({ error: "user_id must be a valid UUID" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    let newPassword: string;
+    if (typeof new_password === "string" && new_password.length > 0) {
+      if (new_password.length < 6 || new_password.length > 72) {
+        return new Response(
+          JSON.stringify({ error: "La contraseña debe tener entre 6 y 72 caracteres" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      newPassword = new_password;
+    } else {
+      newPassword = generateSecurePassword();
     }
 
     const { data: userData, error: getUserErr } = await adminClient.auth.admin.getUserById(user_id);
@@ -71,8 +84,6 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const newPassword = generateSecurePassword();
 
     const { error: updateErr } = await adminClient.auth.admin.updateUserById(user_id, {
       password: newPassword,
