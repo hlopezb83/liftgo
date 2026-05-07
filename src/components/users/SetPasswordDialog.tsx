@@ -89,7 +89,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
                 id="set-password"
                 type={show ? "text" : "password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setErrorMsg(null); }}
                 required
                 minLength={6}
                 maxLength={72}
