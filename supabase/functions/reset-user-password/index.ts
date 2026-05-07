@@ -1,13 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
-
-function generateSecurePassword(length = 20): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
-  const values = new Uint8Array(length);
-  crypto.getRandomValues(values);
-  return Array.from(values, (v) => charset[v % charset.length]).join("");
-}
 
 function passwordValidationResponse(
   payload: { error: string; code: "weak_password" | "pwned"; raw?: string },
