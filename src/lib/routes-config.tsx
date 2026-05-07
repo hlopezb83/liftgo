@@ -39,6 +39,7 @@ const OperatingExpensesPage = lazy(() => import("@/pages/OperatingExpensesPage")
 const IncomeStatementPage = lazy(() => import("@/pages/IncomeStatementPage"));
 const InventoryPage = lazy(() => import("@/pages/InventoryPage"));
 const CRMPage = lazy(() => import("@/pages/CRMPage"));
+const CRMClosedPage = lazy(() => import("@/pages/CRMClosedPage"));
 const SuppliersPage = lazy(() => import("@/pages/SuppliersPage"));
 const SupplierDetailPage = lazy(() => import("@/pages/SupplierDetailPage"));
 const MrrDetailPage = lazy(() => import("@/pages/MrrDetailPage"));
@@ -96,6 +97,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },
   { path: "/crm", component: CRMPage, module: "CRM / Prospectos" },
+  { path: "/crm/cerrados", component: CRMClosedPage, module: "CRM / Prospectos" },
   { path: "/suppliers", component: SuppliersPage, module: "Proveedores" },
   { path: "/suppliers/:id", component: SupplierDetailPage, module: "Proveedores" },
   { path: "/settings/operations", component: OperationsSetupPage, module: "Configuración" },

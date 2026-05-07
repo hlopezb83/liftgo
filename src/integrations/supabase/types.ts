@@ -1430,6 +1430,7 @@ export type Database = {
       }
       prospects: {
         Row: {
+          closed_at: string | null
           company_name: string
           contact_person: string | null
           created_at: string | null
@@ -1437,7 +1438,9 @@ export type Database = {
           customer_id: string | null
           deal_value: number | null
           email: string | null
+          final_amount: number | null
           id: string
+          lost_reason: string | null
           notes: string | null
           phone: string | null
           quote_id: string | null
@@ -1446,6 +1449,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          closed_at?: string | null
           company_name: string
           contact_person?: string | null
           created_at?: string | null
@@ -1453,7 +1457,9 @@ export type Database = {
           customer_id?: string | null
           deal_value?: number | null
           email?: string | null
+          final_amount?: number | null
           id?: string
+          lost_reason?: string | null
           notes?: string | null
           phone?: string | null
           quote_id?: string | null
@@ -1462,6 +1468,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          closed_at?: string | null
           company_name?: string
           contact_person?: string | null
           created_at?: string | null
@@ -1469,7 +1476,9 @@ export type Database = {
           customer_id?: string | null
           deal_value?: number | null
           email?: string | null
+          final_amount?: number | null
           id?: string
+          lost_reason?: string | null
           notes?: string | null
           phone?: string | null
           quote_id?: string | null

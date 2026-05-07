@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { Plus, Search, X, ChevronRight, ChevronLeft, LayoutGrid, Rows3 } from "lucide-react";
+import { Plus, Search, X, LayoutGrid, Rows3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,10 +10,12 @@ import { PageTransition } from "@/components/PageTransition";
 import { ProspectFormDialog } from "@/components/crm/ProspectFormDialog";
 import { ProspectDetailSheet } from "@/components/crm/ProspectDetailSheet";
 import { KanbanColumn } from "@/components/crm/KanbanColumn";
+import { CRMHeaderKPIs } from "@/components/crm/CRMHeaderKPIs";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
 import { useQuotes } from "@/hooks/useQuotes";
 import { useProspectGuard } from "@/hooks/crm/useProspectGuard";
 import { useCRMFilters, type ValueRange, type AgeRange } from "@/hooks/crm/useCRMFilters";
+import { useCRMMetrics } from "@/hooks/crm/useCRMMetrics";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 const ACTIVE_STAGES = [
@@ -22,13 +24,6 @@ const ACTIVE_STAGES = [
   { key: "cotizacion_enviada", label: "Cotización Enviada", color: "hsl(45 93% 47%)" },
   { key: "negociacion", label: "Negociación", color: "hsl(280 60% 55%)" },
 ] as const;
-
-const CLOSED_STAGES = [
-  { key: "cerrado_ganado", label: "Cerrado Ganado", color: "hsl(142 71% 45%)" },
-  { key: "cerrado_perdido", label: "Cerrado Perdido", color: "hsl(0 72% 51%)" },
-] as const;
-
-const ALL_STAGES = [...ACTIVE_STAGES, ...CLOSED_STAGES];
 
 const VALUE_OPTIONS: { value: ValueRange; label: string }[] = [
   { value: "all", label: "Cualquier valor" },
@@ -51,6 +46,7 @@ export default function CRMPage() {
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
   const deleteProspect = useDeleteProspect();
+  const { data: metrics } = useCRMMetrics();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null);
@@ -58,23 +54,28 @@ export default function CRMPage() {
   const [defaultStage, setDefaultStage] = useState("nuevo_prospecto");
   const [overrideStage, setOverrideStage] = useState<string | undefined>(undefined);
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
-  const [showClosed, setShowClosed] = useState(false);
 
-  const { filters, update, reset, filtered, hasActive } = useCRMFilters(prospects);
+  // Pipeline only operates on active (open) prospects
+  const activeProspects = useMemo(
+    () => prospects.filter((p) => p.stage !== "cerrado_ganado" && p.stage !== "cerrado_perdido"),
+    [prospects]
+  );
+
+  const { filters, update, reset, filtered, hasActive } = useCRMFilters(activeProspects);
 
   const quoteMap = useMemo(() => new Map(quotes.map((q) => [q.id, q.quote_number])), [quotes]);
 
   const creators = useMemo(() => {
     const map = new Map<string, string>();
-    prospects.forEach((p) => {
+    activeProspects.forEach((p) => {
       if (p.created_by && p.created_by_name) map.set(p.created_by, p.created_by_name);
     });
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [prospects]);
+  }, [activeProspects]);
 
   const stagesData = useMemo(
     () =>
-      ALL_STAGES.map((s) => {
+      ACTIVE_STAGES.map((s) => {
         const items = filtered.filter((p) => p.stage === s.key).sort((a, b) => a.stage_order - b.stage_order);
         return { ...s, items, total: items.reduce((sum, p) => sum + (p.deal_value ?? 0), 0) };
       }),
@@ -82,21 +83,7 @@ export default function CRMPage() {
   );
 
   const pipelineTotal = useMemo(() => stagesData.reduce((s, c) => s + c.total, 0), [stagesData]);
-
-  const closedSummary = useMemo(() => {
-    const won = stagesData.find((s) => s.key === "cerrado_ganado");
-    const lost = stagesData.find((s) => s.key === "cerrado_perdido");
-    return {
-      wonCount: won?.items.length ?? 0,
-      lostCount: lost?.items.length ?? 0,
-      wonTotal: won?.total ?? 0,
-    };
-  }, [stagesData]);
-
-  const visibleStages = useMemo(
-    () => (showClosed ? stagesData : stagesData.filter((s) => s.key !== "cerrado_ganado" && s.key !== "cerrado_perdido")),
-    [stagesData, showClosed]
-  );
+  const visibleStages = stagesData;
 
   const onDragEnd = useCallback(
     (result: DropResult) => {
@@ -228,15 +215,9 @@ export default function CRMPage() {
                 </Button>
               )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowClosed((s) => !s)}
-                className="h-8 ml-auto text-xs"
-              >
-                {showClosed ? <ChevronLeft className="h-3.5 w-3.5 mr-1" /> : <ChevronRight className="h-3.5 w-3.5 mr-1" />}
-                Cerrados: Ganados {closedSummary.wonCount} · Perdidos {closedSummary.lostCount}
-              </Button>
+              <div className="ml-auto">
+                <CRMHeaderKPIs metrics={metrics} />
+              </div>
             </div>
           </div>
 

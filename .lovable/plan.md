@@ -1,35 +1,115 @@
-# Investigación: por qué el panel de Admin sí muestra "Ventas" pero el usuario ve "Sin permisos"
+## Problema actual
 
-## Lo que vi en datos
-- En `user_roles` ahora **sí existe** la fila para `comercial@liftgo.com.mx` con rol `ventas` (id `1b112dfd-...`). Por eso el panel de Admin muestra "Ventas" — lee `user_roles` correctamente vía `useUserManagement`.
-- En `role_permissions`, el rol `ventas` tiene `full` en el módulo **`CRM / Prospectos`**.
-- La ruta `/crm` está registrada en `routes-config.tsx` con `module: "CRM / Prospectos"` y el `RoleGuard` global la valida correctamente.
+Hoy el CRM mezcla dos conceptos en el mismo Kanban:
 
-Conclusión: a nivel de datos **el usuario sí debería entrar al CRM**. El error que describe ya no aplica con los datos actuales. Casi seguro está viendo una **sesión cacheada** anterior a la asignación del rol (TanStack Query guarda `["user_role", userId]`; antes devolvió `null` y se mantuvo).
+- **Etapas activas del pipeline**: Nuevo Prospecto → Contactado → Cotización Enviada → Negociación. Son fases por las que un deal *fluye*.
+- **Estados terminales**: Cerrado Ganado y Cerrado Perdido. NO son etapas, son resultados finales.
 
-### Por qué Admin ve "Ventas" y el propio usuario no
-- **Admin** consulta `user_roles` desde su sesión (con permisos de admin vía RLS) y obtiene la fila fresca cada vez que abre `/users`.
-- **El usuario `comercial`** ya estaba logueado cuando aún no tenía rol; su navegador tiene cacheado `user_role = null`. Hasta que **recargue la sesión o cierre/abra**, el `RoleGuard` seguirá creyendo que no tiene rol.
+El botón "Cerrados: Ganados X · Perdidos Y" que despliega dos columnas extra es confuso porque:
 
-## Qué debe hacer el usuario ahora
-1. Pulsar **"Recargar sesión"** en la pantalla de error (botón ya existente, hace `invalidateQueries + reload`), o
-2. **Cerrar sesión y volver a iniciar sesión** con `comercial@liftgo.com.mx`.
+1. Visualmente sugiere que se puede arrastrar libremente entre activos y cerrados, cuando "cerrar" debería ser una decisión deliberada (con razón, fecha real, monto final).
+2. Las columnas de cerrados crecen indefinidamente y nunca se "limpian" — saturan el pipeline activo.
+3. Mezcla deals vivos con histórico, ensuciando los KPIs visibles (total pipeline, conteos por etapa).
+4. No hay forma natural de ver KPIs de conversión (win rate, deals ganados este mes, ciclo promedio).
 
-Tras eso debería entrar al `/crm` sin problema.
+## Best practices de la industria
 
-## Bug latente que sí conviene corregir (independiente)
-En `src/components/crm/ProspectDetailSheet.tsx:130` el botón de eliminar prospecto usa:
-```tsx
-<RoleGuard module="CRM" minAccess="full">
+**HubSpot, Pipedrive, Salesforce, Close, Attio** convergen en este patrón:
+
+1. **El Kanban muestra SOLO deals abiertos.** Cerrar es un evento, no una columna.
+2. **Acciones explícitas "Marcar como Ganado / Perdido"** en la tarjeta (no drag-and-drop a columna terminal). Drag a una "columna de cerrado" se considera anti-pattern porque el cierre requiere capturar metadata (razón perdido, fecha real cierre, monto final).
+3. **Modal de confirmación al cerrar**:
+  - Ganado: confirmar monto final, fecha cierre, link a cotización/contrato.
+  - Perdido: razón obligatoria (precio, competencia, timing, sin presupuesto, no responde, otro) + nota.
+4. **Vista separada para histórico cerrado** — pestaña/filtro "Ganados" y "Perdidos" con tabla (no Kanban), filtros por fecha, vendedor, razón.
+5. **KPIs en el header del pipeline**: Win rate %, Ganados MTD ($ y #), Perdidos MTD, ciclo promedio. Reemplazan al botón confuso actual.
+
+## Diseño propuesto
+
+### 1. Pipeline (Kanban) — solo abiertos
+
+Eliminar columnas Cerrado Ganado / Cerrado Perdido del Kanban. Eliminar el toggle "Cerrados: Ganados X · Perdidos Y" del header. El Kanban siempre muestra exactamente las 4 etapas activas.
+
+### 2. Header con KPIs (reemplaza el toggle)
+
+```text
+[Pipeline activo: 12 deals · $1.2M]   [Win rate 30d: 42%]   [Ganados mes: 5 · $340k]   [Ver historial →]
 ```
-Pero en `role_permissions` el módulo se llama **`CRM / Prospectos`** (no `"CRM"`). Como no existe fila para `"CRM"`, `getAccessLevel` devuelve `"none"` para todos los roles → **el botón de eliminar nunca aparece**, ni siquiera para admin. Lo mismo ocurre en `src/components/inventory/PartDetailSheet.tsx:100` con `module="Inventario"` cuando el módulo real es **`Refacciones`**.
 
-### Fix propuesto
-1. `ProspectDetailSheet.tsx`: cambiar `module="CRM"` → `module="CRM / Prospectos"`.
-2. `PartDetailSheet.tsx`: cambiar `module="Inventario"` → `module="Refacciones"`.
-3. (Defensivo) En `useRolePermissions.ts`: si `module` no existe en la matriz de un rol, loguear `console.warn` en dev para detectar este tipo de typo en el futuro.
-4. Changelog `v5.60.1` (patch, fix): documenta los dos botones que no aparecían por nombre de módulo incorrecto.
+El link "Ver historial" lleva a la vista de cerrados.
 
-## Fuera de alcance
-- Cambios al RoleGuard de página `/crm` (ya está correcto).
-- Cambios a la matriz de permisos en DB.
+### 3. Acciones de cierre en la tarjeta / sheet
+
+En `ProspectDetailSheet` (panel lateral del prospecto), agregar dos botones primarios al pie:
+
+- **"Marcar como Ganado"** (verde) → abre `CloseWonDialog`
+- **"Marcar como Perdido"** (outline rojo) → abre `CloseLostDialog`
+
+Bloquear drag-and-drop hacia estados cerrados (ya estaba parcialmente: actualmente abre el form, lo cual es más confuso que útil).
+
+### 4. Modales de cierre
+
+**CloseWonDialog**:
+
+- Monto final (pre-llenado con `deal_value`)
+- Fecha de cierre (default hoy)
+- Cotización vinculada (si existe)
+- Nota opcional
+- Confirmar → `stage = cerrado_ganado`, `closed_at = ...`, sale del Kanban
+
+**CloseLostDialog**:
+
+- Razón (select obligatorio): Precio · Competencia · Timing · Sin presupuesto · No responde · Otro
+- Nota opcional (obligatoria si "Otro")
+- Confirmar → `stage = cerrado_perdido`, `lost_reason`, `closed_at`
+
+### 5. Vista de histórico cerrados (`/crm/cerrados`)
+
+Pestañas: **Ganados** | **Perdidos**. Tabla densa zebra (siguiendo el patrón del proyecto) con columnas:
+Empresa · Contacto · Valor · Fecha cierre · Vendedor · (Razón si perdido) · Acciones (reabrir → vuelve a "Negociación").
+
+Filtros: rango de fechas, vendedor, razón pérdida.
+
+### 6. Reabrir un deal cerrado
+
+Acción "Reabrir" en la fila del histórico → vuelve a `negociacion` con audit trail.
+
+## Cambios técnicos
+
+### Schema (migración)
+
+Agregar columnas a `prospects`:
+
+- `closed_at timestamptz NULL`
+- `lost_reason text NULL` (validación trigger: requerida si stage = cerrado_perdido)
+- `final_amount numeric NULL` (monto real al cerrar ganado)
+
+### Archivos a tocar
+
+- `src/pages/CRMPage.tsx`: quitar `CLOSED_STAGES`, `showClosed`, `closedSummary`, botón toggle. Agregar componente `<CRMHeaderKPIs/>`.
+- `src/components/crm/KanbanColumn.tsx`: sin cambios estructurales.
+- `src/components/crm/ProspectDetailSheet.tsx`: agregar botones "Marcar Ganado/Perdido".
+- **Nuevos**: `CloseWonDialog.tsx`, `CloseLostDialog.tsx`, `CRMHeaderKPIs.tsx`, `pages/CRMClosedPage.tsx` (con tabs ganados/perdidos), `hooks/useCRMMetrics.ts`.
+- Routing: agregar `/crm/cerrados`.
+- Deshabilitar destino drag a etapas cerradas (ya no existen como columna, problema desaparece).
+- Constantes de razones de pérdida en `src/lib/constants/crm.ts`.
+
+### RLS / permisos
+
+`closed_at`, `final_amount`, `lost_reason` heredan políticas existentes de `prospects`. La acción "Marcar Ganado" sigue restringida a Admin (ya existe `canCloseDeal`). "Marcar Perdido" disponible para Ventas y Admin.
+
+### Changelog
+
+Entrada minor `v5.61.0` — "Rediseño de cierre de deals en CRM siguiendo best practices".
+
+## Lo que NO se hace
+
+- No tocar las etapas activas (Nuevo Prospecto, Contactado, Cotización Enviada, Negociación) — siguen igual.
+- No tocar el flujo de conversión cotización → booking.
+- No cambiar la forma compacta/cómoda de las tarjetas.
+
+## Pregunta abierta antes de implementar
+
+¿Quieres que la vista de histórico cerrados sea **una página separada** (`/crm/cerrados`) o un **drawer/sheet lateral** que se abre desde el botón "Ver historial"? La página separada permite filtros más ricos y bookmarkable; el drawer mantiene contexto del pipeline. Recomiendo página separada por consistencia con el resto del ERP.
+
+Usa una pagina separada

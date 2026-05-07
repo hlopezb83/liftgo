@@ -6,11 +6,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoleGuard } from "@/components/RoleGuard";
-import { useDeleteProspect, type Prospect } from "@/hooks/useProspects";
+import { useDeleteProspect, useUpdateProspect, type Prospect } from "@/hooks/useProspects";
+import { useProspectGuard } from "@/hooks/crm/useProspectGuard";
+import { CloseWonDialog } from "./CloseWonDialog";
+import { CloseLostDialog } from "./CloseLostDialog";
+import { LOST_REASON_LABELS } from "@/lib/constants/crm";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Pencil, Trash2, Building2, User, Mail, Phone, DollarSign, FileText, Calendar, StickyNote } from "lucide-react";
+import { Pencil, Trash2, Building2, User, Mail, Phone, DollarSign, FileText, StickyNote, Trophy, XCircle, RotateCcw } from "lucide-react";
 
 const STAGE_LABELS: Record<string, string> = {
   nuevo_prospecto: "Nuevo Prospecto",
@@ -40,15 +44,28 @@ interface Props {
 
 export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quoteNumber }: Props) {
   const deleteProspect = useDeleteProspect();
+  const updateProspect = useUpdateProspect();
+  const { canCloseDeal, assertCanClose } = useProspectGuard();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [wonOpen, setWonOpen] = useState(false);
+  const [lostOpen, setLostOpen] = useState(false);
 
   if (!prospect) return null;
+
+  const isClosed = prospect.stage === "cerrado_ganado" || prospect.stage === "cerrado_perdido";
 
   const handleDelete = () => {
     deleteProspect.mutate(prospect.id, {
       onSuccess: () => onOpenChange(false),
     });
+  };
+
+  const handleReopen = () => {
+    updateProspect.mutate(
+      { id: prospect.id, stage: "negociacion" },
+      { onSuccess: () => onOpenChange(false) }
+    );
   };
 
   const DetailRow = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) => (
@@ -126,36 +143,104 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
             {prospect.updated_at && <p>Actualizado: {format(new Date(prospect.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>}
           </div>
 
+          {isClosed && (
+            <>
+              <Separator />
+              <div className="rounded-md border bg-muted/30 p-3 space-y-1 text-xs">
+                <p className="font-semibold text-sm">Información de cierre</p>
+                {prospect.closed_at && (
+                  <p>Fecha cierre: <span className="font-medium">{format(new Date(prospect.closed_at), "dd MMM yyyy", { locale: es })}</span></p>
+                )}
+                {prospect.stage === "cerrado_ganado" && prospect.final_amount != null && (
+                  <p>Monto final: <span className="font-medium">{formatCurrency(prospect.final_amount)}</span></p>
+                )}
+                {prospect.stage === "cerrado_perdido" && prospect.lost_reason && (
+                  <p>Razón: <span className="font-medium">{LOST_REASON_LABELS[prospect.lost_reason] ?? prospect.lost_reason}</span></p>
+                )}
+              </div>
+            </>
+          )}
+
           <Separator />
           <RoleGuard module="CRM / Prospectos" minAccess="full">
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => { onEdit(prospect); onOpenChange(false); }}>
-                <Pencil className="h-4 w-4 mr-1" /> Editar
-              </Button>
-              <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="flex-1">
-                    <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+            <div className="space-y-2">
+              {!isClosed && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => {
+                      if (!assertCanClose("save")) return;
+                      setWonOpen(true);
+                    }}
+                    className="bg-success hover:bg-success/90 text-success-foreground"
+                    disabled={!canCloseDeal}
+                  >
+                    <Trophy className="h-4 w-4 mr-1" /> Ganado
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>¿Eliminar prospecto?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta acción no se puede deshacer. Se eliminará permanentemente el prospecto "{prospect.company_name}".
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} disabled={deleteProspect.isPending}>
-                      {deleteProspect.isPending ? "Eliminando..." : "Eliminar"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                  <Button variant="destructive" onClick={() => setLostOpen(true)}>
+                    <XCircle className="h-4 w-4 mr-1" /> Perdido
+                  </Button>
+                </div>
+              )}
+              {isClosed && (
+                <Button variant="outline" className="w-full" onClick={handleReopen} disabled={updateProspect.isPending}>
+                  <RotateCcw className="h-4 w-4 mr-1" /> Reabrir deal
+                </Button>
+              )}
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => { onEdit(prospect); onOpenChange(false); }}>
+                  <Pencil className="h-4 w-4 mr-1" /> Editar
+                </Button>
+                <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" className="flex-1 text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar prospecto?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. Se eliminará permanentemente el prospecto "{prospect.company_name}".
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} disabled={deleteProspect.isPending}>
+                        {deleteProspect.isPending ? "Eliminando..." : "Eliminar"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </RoleGuard>
         </div>
+
+        <CloseWonDialog
+          prospect={prospect}
+          open={wonOpen}
+          onOpenChange={setWonOpen}
+          isPending={updateProspect.isPending}
+          onConfirm={(payload) => {
+            updateProspect.mutate(
+              { id: prospect.id, stage: "cerrado_ganado", ...payload },
+              { onSuccess: () => { setWonOpen(false); onOpenChange(false); } }
+            );
+          }}
+        />
+
+        <CloseLostDialog
+          prospect={prospect}
+          open={lostOpen}
+          onOpenChange={setLostOpen}
+          isPending={updateProspect.isPending}
+          onConfirm={(payload) => {
+            updateProspect.mutate(
+              { id: prospect.id, stage: "cerrado_perdido", ...payload },
+              { onSuccess: () => { setLostOpen(false); onOpenChange(false); } }
+            );
+          }}
+        />
       </SheetContent>
     </Sheet>
   );

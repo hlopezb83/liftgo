@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.61.0",
+    "date": "2026-05-07",
+    "type": "minor",
+    "title": "Rediseño del cierre de deals en CRM (Ganado/Perdido)",
+    "category": "feature"
+  },
+  {
     "version": "5.60.1",
     "date": "2026-05-07",
     "type": "patch",
