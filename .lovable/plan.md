@@ -1,34 +1,27 @@
-## Diagnóstico
+## Problema
 
-Los logs de Auth muestran que el endpoint `PUT /admin/users/{id}` devolvió **422 Unprocessable Entity** dos veces seguidas al intentar resetear la contraseña de `comercial@liftgo.com.mx`. Causa: la contraseña ingresada fue rechazada por las políticas de seguridad de Supabase Auth (HIBP — pwned passwords está habilitado en este proyecto, además de validación de longitud/complejidad mínima).
+La contraseña `Ep@1234567890` cumple con los requisitos visuales (mayúscula, número, símbolo, ≥8 chars) pero Supabase Auth la rechaza porque el sufijo `1234567890` está en listas de contraseñas filtradas/predecibles (HIBP + heurística interna). El mensaje actual confunde al usuario porque sugiere agregar más complejidad, cuando el problema real es que el patrón es **predecible/filtrado**.
 
-La edge function `reset-user-password` se ejecutó correctamente; el error viene de Supabase Auth. Hoy el mensaje se reenvía como `updateErr.message`, pero en el toast aparece como un texto técnico poco accionable, y el diálogo se queda en estado "Guardando…" sin orientar al admin.
+## Causa técnica
 
-## Cambios propuestos (v5.59.12 — patch)
+En `supabase/functions/reset-user-password/index.ts` mapeamos el error de Supabase así:
 
-### 1. `supabase/functions/reset-user-password/index.ts`
-- Detectar errores conocidos de Auth y mapearlos a mensajes claros en español:
-  - `weak_password` / "Password should be at least…" → "Contraseña demasiado débil. Usa al menos 8 caracteres con mayúsculas, números y símbolos."
-  - "pwned" / "leaked" / "compromised" → "Esta contraseña aparece en filtraciones públicas conocidas. Elige otra diferente."
-  - cualquier otro 422 → mensaje original.
-- Devolver además `code: "weak_password" | "pwned" | "other"` en el JSON para que el frontend pueda reaccionar.
-- Status code: mantener 400 (lo que ya consume el hook).
+- Si contiene `"pwned"` o `"leaked"` → mensaje de filtración
+- Si contiene `"weak"` → mensaje genérico de complejidad
 
-### 2. `src/components/users/SetPasswordDialog.tsx`
-- Capturar el error en `handleSubmit` (sin depender solo del toast del hook): mostrar un bloque inline rojo debajo del campo de contraseña con el mensaje devuelto, para que el admin lo vea sin que desaparezca como el toast.
-- Limpiar el error al modificar el campo.
-- Al pulsar "Generar contraseña segura" se garantiza una contraseña aleatoria larga (ya cumple HIBP), así que ese botón sigue siendo el escape rápido.
-- Agregar texto de ayuda visible: "Mínimo 8 caracteres. No se aceptan contraseñas comunes o filtradas (HIBP)."
+Supabase devuelve literal: `"Password is known to be weak and easy to guess"` — contiene `"weak"`, así que cae en el mensaje de complejidad aunque la causa real sea predictibilidad.
 
-### 3. `src/hooks/useUserManagement.ts`
-- En `useResetPassword.onError`, además del toast actual agregar `description: err.message` completo para que se vea el motivo real.
-- Re-lanzar el error (ya lo hace vía `mutateAsync`) para que el diálogo lo capture inline.
+## Plan
 
-### 4. Changelog
-- Crear `public/changelog/v5.59.12.json` y agregar entrada al inicio de `public/changelog.json`:
-  - "Mejor manejo de errores al asignar contraseña: ahora se explica claramente cuándo es débil o aparece en filtraciones (HIBP)."
+1. **Mejorar el mapeo de errores en la edge function** (`reset-user-password/index.ts`):
+   - Detectar también `"easy to guess"` y `"known to be"` y tratarlos como contraseña comprometida/predecible (no como falta de complejidad).
+   - Texto nuevo: *"Esta contraseña es predecible o aparece en filtraciones públicas conocidas. Aunque cumpla con mayúsculas/números/símbolos, evita secuencias comunes (1234567890, qwerty, fechas, etc.). Usa 'Generar contraseña segura'."*
 
-## Notas
-- No se cambia la política HIBP de Supabase Auth — se mantiene activa porque protege a los usuarios.
-- No se modifica RLS ni esquema de DB.
-- El diálogo `CredentialsDialog` (creación) no se toca.
+2. **Mejorar la ayuda en el diálogo** (`SetPasswordDialog.tsx`):
+   - Agregar línea bajo el input: *"Evita secuencias comunes como `1234567890` o `qwerty` aunque incluyan símbolos — Supabase las rechaza por estar en listas de filtraciones."*
+
+3. **Changelog** v5.59.14 (patch): documentar el ajuste de mensajería.
+
+## Sin cambios de lógica de negocio
+
+No se modifica la política de validación de contraseñas (sigue siendo HIBP del lado de Supabase). Solo se mejora la comunicación del error al admin.
