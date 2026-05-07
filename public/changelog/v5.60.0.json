@@ -1,0 +1,12 @@
+{
+  "description": "Pipeline CRM rediseñado: columnas responsivas, vista Cómoda/Compacta, búsqueda y filtros, agrupación de Cerrados e indicador de prospectos estancados.",
+  "changes": [
+    "Columnas con ancho fluido (clamp 220–280px) para evitar columnas cortadas en pantallas medianas",
+    "Cerrado Ganado y Cerrado Perdido ocultos por defecto detrás de un botón con conteos; expansibles con un clic",
+    "Toggle de densidad Cómodo / Compacto: vista compacta muestra empresa + valor en una sola línea",
+    "Búsqueda por empresa o contacto y filtros por rango de valor y antigüedad (creador conservado)",
+    "Mini barra de progreso por etapa con el porcentaje del valor total del pipeline",
+    "Punto naranja en tarjetas con > 14 días sin movimiento (excluye etapas cerradas)",
+    "Jerarquía mejorada: monto del trato más prominente, creador y fecha en pie sutil"
+  ]
+}
