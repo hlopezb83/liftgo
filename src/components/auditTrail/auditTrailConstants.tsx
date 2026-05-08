@@ -48,6 +48,9 @@ const FIELD_LABELS: Record<string, string> = {
   payment_method: "Método de Pago", payment_date: "Fecha de Pago", reference_number: "Número de Referencia",
   type: "Tipo", completed_at: "Fecha de Completado", image_url: "Imagen", return_status: "Estado de Devolución",
   last_billed_date: "Última Fecha de Facturación", line_items: "Partidas", valid_until: "Válido Hasta",
+  company_name: "Empresa", contact_person: "Contacto", deal_value: "Valor del Deal", stage: "Etapa",
+  quote_id: "Cotización", closed_at: "Fecha de Cierre", lost_reason: "Razón de Pérdida",
+  final_amount: "Monto Final", stage_order: "Orden en Etapa",
 };
 
 export const translateField = (field: string) => FIELD_LABELS[field] || field.replace(/_/g, " ");
