@@ -1,54 +1,32 @@
-# Mover "Datos Fiscales" dentro de Configuración
+## Objetivo
+Mostrar dentro del side panel de cada prospecto un historial detallado de cambios (creación, actualizaciones de campos, cierre, reapertura) con quién, cuándo y diff antes/después, reutilizando la infraestructura existente de `audit_logs` (la tabla `prospects` ya tiene `prospects_audit_trigger`).
 
-Hoy en el sidebar hay dos entradas separadas:
+## Cambios propuestos
 
-- **Configuración** → `/settings/operations` (pestañas: Modelos, Operadores, Mecánicos, Pólizas, Plantilla de Contrato)
-- **Datos Fiscales** → `/settings/company` (formulario fiscal CFDI + logo + Configuración PAC)
+1. **Nuevo componente `src/components/crm/ProspectHistoryCard.tsx`**
+   - Basado 1:1 en `InvoiceHistoryCard` (mismo patrón visual y UX ya validado en facturas).
+   - Recibe `prospectId` y consulta `useAuditLogs({ table_name: "prospects", record_id: prospectId })`.
+   - Resumen por entrada: acción (Creación/Actualización), usuario, fecha (DD/MM/YYYY HH:mm America/Monterrey), y lista de campos modificados con `valor anterior → valor nuevo` traducidos al español vía `translateField`.
+   - Campos largos/poco útiles ocultos del resumen (ej. `stage_order`, `updated_at`); se muestran solo "actualizado".
+   - Botón ojo para abrir `AuditLogDetailDialog` con el diff completo.
+   - Vista colapsable: 5 entradas iniciales + "Ver N más".
 
-El logo de la empresa ya se sube desde Datos Fiscales (componente `LogoUploader` dentro de `CompanyFiscalForm`), así que al mover esa página a una pestaña, el logo viaja con ella sin código nuevo.
+2. **`src/components/crm/ProspectDetailSheet.tsx`**
+   - Insertar `<ProspectHistoryCard prospectId={prospect.id} />` debajo del bloque "Creado por / Creado / Actualizado", separado por `<Separator />`.
+   - Sin tocar lógica existente (acciones, cierre, etc.).
 
-## Cambios
+3. **Traducciones de campos de prospectos**
+   - Extender `auditTrailConstants.tsx` (`translateField`) para incluir etiquetas en español de campos de prospectos: `company_name`, `contact_person`, `email`, `phone`, `deal_value`, `stage`, `notes`, `quote_id`, `closed_at`, `lost_reason`, `final_amount`, `stage_order`.
+   - Para `stage` y `lost_reason` mostrar el label legible (usando `STAGE_LABELS` / `LOST_REASON_LABELS`) en el resumen cuando el valor coincida con una clave conocida.
 
-### 1. `src/pages/OperationsSetupPage.tsx`
+4. **Changelog v5.65.3** (`public/changelog/v5.65.3.json` + entrada en `public/changelog.json`)
+   - "Historial de cambios en el panel de prospecto del CRM".
 
-Agregar una pestaña nueva **"Datos Fiscales"** (icono `Building2`) que renderiza el contenido actual de `CompanySettingsPage` (formulario fiscal + logo + PAC). Protegerla con `RoleGuard module="Configuración" minAccess="full"` igual que las otras pestañas sensibles.
+## Detalles técnicos
+- No requiere migraciones: `prospects_audit_trigger` ya escribe en `audit_logs`, y RLS permite a admin/administrativo/auditor/dispatcher/ventas leer.
+- Reutiliza `useAuditLogs`, `AuditLogDetailDialog`, y `translateAction/translateField` existentes.
+- Respeta el patrón de zebra/compacto y `formatTimestamp` ya usado para mantener coherencia con InvoiceDetail.
 
-Para evitar duplicar lógica, extraer el cuerpo de `CompanySettingsPage` (el `<form>` con `CompanyFiscalForm` + `PacConfigForm`) a un componente reutilizable `src/components/company-settings/CompanySettingsForm.tsx`. Tanto la pestaña nueva como la página antigua lo consumen.
-
-### 2. `src/components/AppSidebar.tsx`
-
-- Eliminar la entrada `{ title: "Datos Fiscales", url: "/settings/company", icon: Building2 }` del grupo Administración.
-- Quitar import `Building2` si ya no se usa en otro lado.
-
-### 3. `src/lib/routes-config.tsx`
-
-Mantener la ruta `/settings/company` activa por compatibilidad (links viejos, marcadores) — sigue funcionando, solo desaparece del sidebar. Sin cambios aquí.
-
-### 4. Changelog
-
-Entrada `v5.65.1` (patch — reorganización UI sin cambio funcional) en `public/changelog.json` + `public/changelog/v5.65.1.json`.
-
-## Resultado
-
-Sidebar después:
-
-```text
-Administración
-  └─ Configuración  ──┐
-                      ├─ Modelos de Equipo
-                      ├─ Operadores
-                      ├─ Mecánicos
-                      ├─ Pólizas de Mantenimiento
-                      ├─ Plantilla de Contrato
-                      └─ Datos Fiscales (incluye logo + CFDI + PAC)
-```
-
-## Archivos a tocar
-
-- `src/components/company-settings/CompanySettingsForm.tsx` (nuevo, extracción)
-- `src/pages/CompanySettingsPage.tsx` (consume el nuevo componente)
-- `src/pages/OperationsSetupPage.tsx` (nueva pestaña)
-- `src/components/AppSidebar.tsx` (quitar entrada)
-- `public/changelog.json` + `public/changelog/v5.65.1.json`
-
-haz un pestana separada para el logo
+## Fuera de alcance
+- No se agrega historial en otras pantallas del CRM (pipeline/kanban).
+- No se modifica el trigger ni la estructura de `audit_logs`.
