@@ -82,6 +82,69 @@ export function formatTimestamp(ts: string) {
   return format(new Date(ts), "dd/MM/yyyy HH:mm");
 }
 
+export const HIDDEN_DIFF_FIELDS = new Set([
+  "updated_at",
+  "stage_order",
+  "search_vector",
+]);
+
+const CURRENCY_FIELDS = new Set([
+  "deal_value", "final_amount", "total", "subtotal", "tax_amount",
+  "daily_rate", "weekly_rate", "monthly_rate", "cost", "estimated_cost",
+  "actual_cost", "damage_cost", "deposit_amount", "amount", "balance",
+  "paid_amount", "discount", "unit_price",
+]);
+
+const DATETIME_FIELDS = new Set([
+  "created_at", "updated_at", "paid_at", "issued_at", "performed_at",
+  "completed_at", "signed_at", "closed_at",
+]);
+
+const DATE_ONLY_FIELDS = new Set([
+  "start_date", "end_date", "due_date", "scheduled_date", "payment_date",
+  "valid_until", "last_billed_date",
+]);
+
+const ENUM_LABEL_FIELDS: Record<string, Record<string, string>> = {
+  stage: STAGE_LABELS,
+  lost_reason: LOST_REASON_LABELS,
+  status: STATUS_LABELS,
+  return_status: STATUS_LABELS,
+  condition: STATUS_LABELS,
+  type: STATUS_LABELS,
+  fuel_type: FUEL_TYPE_LABELS,
+  fuel_level: FUEL_LEVEL_LABELS,
+  service_type: MAINTENANCE_WORK_STATUS_LABELS,
+};
+
+export function formatAuditValue(field: string, value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Sí" : "No";
+
+  if (CURRENCY_FIELDS.has(field)) {
+    const num = typeof value === "number" ? value : Number(value);
+    if (Number.isFinite(num)) return formatCurrency(num);
+  }
+
+  if (typeof value === "string") {
+    if (ENUM_LABEL_FIELDS[field]?.[value]) return ENUM_LABEL_FIELDS[field][value];
+
+    if (DATETIME_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy HH:mm");
+    }
+    if (DATE_ONLY_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy");
+    }
+
+    return value.length > 80 ? `${value.slice(0, 80)}…` : value;
+  }
+
+  if (typeof value === "object") return "(estructura actualizada)";
+  return String(value);
+}
+
 export function getRecordLabel(log: AuditLog): string {
   const data = (log.new_data || log.old_data) as Record<string, unknown> | null;
   if (!data) return log.record_id.slice(0, 8);
