@@ -21,3 +21,12 @@ export const ACTIVE_STAGE_KEYS = [
 ] as const;
 
 export const CLOSED_STAGE_KEYS = ["cerrado_ganado", "cerrado_perdido"] as const;
+
+export const STAGE_LABELS: Record<string, string> = {
+  nuevo_prospecto: "Nuevo Prospecto",
+  contactado: "Contactado",
+  cotizacion_enviada: "Cotización Enviada",
+  negociacion: "Negociación",
+  cerrado_ganado: "Cerrado Ganado",
+  cerrado_perdido: "Cerrado Perdido",
+};
