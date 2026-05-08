@@ -23,8 +23,7 @@ function visibleFields(fields: string[] | null | undefined): string[] {
 function visibleSnapshot(data: Record<string, unknown> | null | undefined): [string, unknown][] {
   if (!data) return [];
   return Object.entries(data)
-    .filter(([k]) => !HIDDEN_DIFF_FIELDS.has(k) && !k.endsWith("_id") || k === "customer_id" || k === "forklift_id" || k === "booking_id" || k === "quote_id")
-    .filter(([k]) => !HIDDEN_DIFF_FIELDS.has(k))
+    .filter(([k, v]) => !HIDDEN_DIFF_FIELDS.has(k) && v !== null && v !== "")
     .sort(([a], [b]) => translateField(a).localeCompare(translateField(b)));
 }
 
