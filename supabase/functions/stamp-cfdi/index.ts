@@ -193,6 +193,7 @@ Deno.serve(async (req) => {
         cfdi_uuid: cfdiUuid,
         cfdi_xml: cfdiXml,
         cfdi_status: "stamped",
+        cfdi_error_message: null,
         facturapi_invoice_id: facturApiId,
       })
       .eq("id", invoice_id);
