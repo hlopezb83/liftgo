@@ -1,11 +1,31 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import type { AuditLog } from "@/hooks/useAuditLogs";
-import { actionIcon, translateAction, translateTable, translateField, formatTimestamp } from "./auditTrailConstants";
+import {
+  actionIcon,
+  translateAction,
+  translateTable,
+  translateField,
+  formatTimestamp,
+  formatAuditValue,
+  HIDDEN_DIFF_FIELDS,
+} from "./auditTrailConstants";
 
 interface Props {
   log: AuditLog | null;
   onClose: () => void;
+}
+
+function visibleFields(fields: string[] | null | undefined): string[] {
+  return (fields ?? []).filter((f) => !HIDDEN_DIFF_FIELDS.has(f));
+}
+
+function visibleSnapshot(data: Record<string, unknown> | null | undefined): [string, unknown][] {
+  if (!data) return [];
+  return Object.entries(data)
+    .filter(([k]) => !HIDDEN_DIFF_FIELDS.has(k) && !k.endsWith("_id") || k === "customer_id" || k === "forklift_id" || k === "booking_id" || k === "quote_id")
+    .filter(([k]) => !HIDDEN_DIFF_FIELDS.has(k))
+    .sort(([a], [b]) => translateField(a).localeCompare(translateField(b)));
 }
 
 export function AuditLogDetailDialog({ log, onClose }: Props) {
@@ -25,7 +45,10 @@ export function AuditLogDetailDialog({ log, onClose }: Props) {
               <div><span className="text-muted-foreground block">Usuario</span>{log.user_email || "Sistema"}</div>
               <div><span className="text-muted-foreground block">Fecha y Hora</span>{formatTimestamp(log.created_at)}</div>
               {log.changed_fields && (
-                <div><span className="text-muted-foreground block">Campos Modificados</span>{log.changed_fields.map(translateField).join(", ")}</div>
+                <div>
+                  <span className="text-muted-foreground block">Campos Modificados</span>
+                  {visibleFields(log.changed_fields).map(translateField).join(", ") || "—"}
+                </div>
               )}
             </div>
 
@@ -41,14 +64,14 @@ export function AuditLogDetailDialog({ log, onClose }: Props) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {log.changed_fields.map((field) => (
+                    {visibleFields(log.changed_fields).map((field) => (
                       <TableRow key={field}>
                         <TableCell className="font-medium text-sm">{translateField(field)}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground font-mono max-w-[200px] truncate">
-                          {JSON.stringify(log.old_data?.[field]) ?? "—"}
+                        <TableCell className="text-sm text-destructive line-through max-w-[220px] truncate">
+                          {formatAuditValue(field, log.old_data?.[field])}
                         </TableCell>
-                        <TableCell className="text-sm font-mono max-w-[200px] truncate">
-                          {JSON.stringify(log.new_data?.[field]) ?? "—"}
+                        <TableCell className="text-sm font-medium text-emerald-600 max-w-[220px] truncate">
+                          {formatAuditValue(field, log.new_data?.[field])}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -57,21 +80,39 @@ export function AuditLogDetailDialog({ log, onClose }: Props) {
               </div>
             )}
 
-            {log.action === "INSERT" && log.new_data && (
+            {(log.action === "INSERT" || log.action === "DELETE") && (log.new_data || log.old_data) && (
               <div>
-                <h4 className="text-sm font-semibold mb-2">Datos Creados</h4>
-                <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-60">
-                  {JSON.stringify(log.new_data, null, 2)}
-                </pre>
-              </div>
-            )}
-
-            {log.action === "DELETE" && log.old_data && (
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Datos Eliminados</h4>
-                <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-60">
-                  {JSON.stringify(log.old_data, null, 2)}
-                </pre>
+                <h4 className="text-sm font-semibold mb-2">
+                  {log.action === "INSERT" ? "Datos Creados" : "Datos Eliminados"}
+                </h4>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Campo</TableHead>
+                      <TableHead>Valor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {visibleSnapshot((log.action === "INSERT" ? log.new_data : log.old_data) as Record<string, unknown>).map(
+                      ([field, value]) => (
+                        <TableRow key={field}>
+                          <TableCell className="font-medium text-sm">{translateField(field)}</TableCell>
+                          <TableCell className="text-sm max-w-[400px] truncate">
+                            {formatAuditValue(field, value)}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+                <details className="mt-3">
+                  <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                    Ver JSON completo
+                  </summary>
+                  <pre className="bg-muted p-3 rounded-lg text-xs overflow-auto max-h-60 mt-2">
+                    {JSON.stringify(log.action === "INSERT" ? log.new_data : log.old_data, null, 2)}
+                  </pre>
+                </details>
               </div>
             )}
           </div>
