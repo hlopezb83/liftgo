@@ -161,6 +161,10 @@ Deno.serve(async (req) => {
     if (!createRes.ok) {
       const errBody = await createRes.text();
       console.error("Facturapi create error:", errBody);
+      await supabase
+        .from("invoices")
+        .update({ cfdi_status: "error", cfdi_error_message: errBody.slice(0, 1000) })
+        .eq("id", invoice_id);
       return new Response(
         JSON.stringify({ error: `Facturapi error: ${createRes.status}`, detail: errBody }),
         { status: 502, headers: jsonHeaders }
