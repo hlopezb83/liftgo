@@ -1,0 +1,21 @@
+{
+  "version": "5.65.2",
+  "date": "2026-05-08",
+  "type": "patch",
+  "title": "Logo: indicador de estado guardado y vista previa antes de guardar",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "La pestaña Logo dentro de Configuración ahora muestra un badge indicando si ya hay un logo guardado o no."
+    },
+    {
+      "type": "improvement",
+      "description": "Al subir un nuevo logo, se muestra una vista previa lado a lado (actual vs. nuevo) antes de confirmar el guardado."
+    },
+    {
+      "type": "improvement",
+      "description": "El botón Guardar se deshabilita cuando no hay cambios pendientes para evitar escrituras innecesarias."
+    }
+  ]
+}
