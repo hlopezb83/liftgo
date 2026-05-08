@@ -144,6 +144,9 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
             {prospect.updated_at && <p>Actualizado: {format(new Date(prospect.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>}
           </div>
 
+          <Separator />
+          <ProspectHistoryCard prospectId={prospect.id} />
+
           {isClosed && (
             <>
               <Separator />
