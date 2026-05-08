@@ -138,13 +138,6 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
           )}
 
           <Separator />
-          <div className="text-xs text-muted-foreground space-y-1">
-            {prospect.created_by_name && <p>Creado por: {prospect.created_by_name}</p>}
-            {prospect.created_at && <p>Creado: {format(new Date(prospect.created_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>}
-            {prospect.updated_at && <p>Actualizado: {format(new Date(prospect.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>}
-          </div>
-
-          <Separator />
           <ProspectHistoryCard prospectId={prospect.id} />
 
           {isClosed && (
