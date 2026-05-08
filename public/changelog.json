@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.65.4",
+    "date": "2026-05-08",
+    "type": "patch",
+    "title": "CRM: eliminar metadatos duplicados en panel de prospecto",
+    "category": "improvement"
+  },
+  {
     "version": "5.65.3",
     "date": "2026-05-08",
     "type": "patch",

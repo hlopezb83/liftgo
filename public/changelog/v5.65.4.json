@@ -1,0 +1,6 @@
+{
+  "description": "Se eliminó del panel lateral del prospecto el bloque de 'Creado por / Creado / Actualizado', ya que esa información ahora aparece dentro de la tarjeta 'Historial de Cambios' como primera y última entrada.",
+  "changes": [
+    "CRM: removido bloque de metadatos duplicado en ProspectDetailSheet"
+  ]
+}
