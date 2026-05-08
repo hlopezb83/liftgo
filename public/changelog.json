@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.65.3",
+    "date": "2026-05-08",
+    "type": "patch",
+    "title": "CRM: historial de cambios en el panel de prospecto",
+    "category": "improvement"
+  },
+  {
     "version": "5.65.2",
     "date": "2026-05-08",
     "type": "patch",

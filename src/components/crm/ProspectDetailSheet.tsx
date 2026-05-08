@@ -15,6 +15,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Pencil, Trash2, Building2, User, Mail, Phone, DollarSign, FileText, StickyNote, Trophy, XCircle, RotateCcw } from "lucide-react";
+import { ProspectHistoryCard } from "./ProspectHistoryCard";
 
 const STAGE_LABELS: Record<string, string> = {
   nuevo_prospecto: "Nuevo Prospecto",
@@ -142,6 +143,9 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
             {prospect.created_at && <p>Creado: {format(new Date(prospect.created_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>}
             {prospect.updated_at && <p>Actualizado: {format(new Date(prospect.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>}
           </div>
+
+          <Separator />
+          <ProspectHistoryCard prospectId={prospect.id} />
 
           {isClosed && (
             <>
