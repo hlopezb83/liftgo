@@ -57,7 +57,6 @@ export function CompanyFiscalForm({ form, set, isPending }: Props) {
           </div>
         </div>
 
-        <LogoUploader logoUrl={form.logo_url} onChange={(url) => set("logo_url", url)} />
 
         <div className="pt-2">
           <Button type="submit" disabled={isPending}>
