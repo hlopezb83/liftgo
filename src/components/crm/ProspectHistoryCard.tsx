@@ -5,42 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuditLogs, type AuditLog } from "@/hooks/useAuditLogs";
 import { AuditLogDetailDialog } from "@/components/auditTrail/AuditLogDetailDialog";
-import { translateAction, translateField, formatTimestamp } from "@/components/auditTrail/auditTrailConstants";
-import { LOST_REASON_LABELS } from "@/lib/constants/crm";
-import { formatCurrency } from "@/lib/formatCurrency";
+import {
+  translateAction,
+  translateField,
+  formatTimestamp,
+  formatAuditValue,
+  HIDDEN_DIFF_FIELDS,
+} from "@/components/auditTrail/auditTrailConstants";
 
 interface Props {
   prospectId: string;
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  nuevo_prospecto: "Nuevo Prospecto",
-  contactado: "Contactado",
-  cotizacion_enviada: "Cotización Enviada",
-  negociacion: "Negociación",
-  cerrado_ganado: "Cerrado Ganado",
-  cerrado_perdido: "Cerrado Perdido",
-};
-
-const HIDDEN_FIELDS = new Set(["updated_at", "stage_order"]);
-const CURRENCY_FIELDS = new Set(["deal_value", "final_amount"]);
-
-function fmtValue(field: string, value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—";
-  if (field === "stage" && typeof value === "string") return STAGE_LABELS[value] ?? value;
-  if (field === "lost_reason" && typeof value === "string") return LOST_REASON_LABELS[value] ?? value;
-  if (CURRENCY_FIELDS.has(field) && typeof value === "number") return formatCurrency(value);
-  if (typeof value === "object") return "(actualizado)";
-  return String(value);
-}
-
 function summarizeChanges(log: AuditLog): string[] {
   if (log.action === "INSERT") return ["Prospecto creado"];
   if (log.action === "DELETE") return ["Prospecto eliminado"];
-  const fields = (log.changed_fields || []).filter((f) => !HIDDEN_FIELDS.has(f));
+  const fields = (log.changed_fields || []).filter((f) => !HIDDEN_DIFF_FIELDS.has(f));
   if (fields.length === 0) return ["Sin cambios detectables"];
   return fields.map(
-    (f) => `${translateField(f)}: ${fmtValue(f, log.old_data?.[f])} → ${fmtValue(f, log.new_data?.[f])}`
+    (f) => `${translateField(f)}: ${formatAuditValue(f, log.old_data?.[f])} → ${formatAuditValue(f, log.new_data?.[f])}`
   );
 }
 

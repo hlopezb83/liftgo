@@ -1,0 +1,9 @@
+{
+  "description": "El detalle del historial (tarjeta lateral del prospecto y diálogo de auditoría global) ahora muestra valores legibles por campo: monedas en MXN, fechas DD/MM/YYYY, etiquetas en español para etapas, estados, razón de pérdida, combustible, etc. Las columnas Anterior/Nuevo se diferencian visualmente (rojo tachado vs verde).",
+  "changes": [
+    "Nuevo formateador central formatAuditValue por tipo de campo (currency, fechas, enums, booleanos, JSON)",
+    "AuditLogDetailDialog: diff con colores semánticos y campos ocultos consistentes",
+    "INSERT/DELETE: tabla campo→valor legible y JSON crudo colapsado en <details>",
+    "ProspectHistoryCard reutiliza el formateador compartido"
+  ]
+}
