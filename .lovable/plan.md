@@ -1,70 +1,54 @@
-# Completar modelo de datos CFDI 4.0 (sobre Facturapi existente)
+# Mover "Datos Fiscales" dentro de Configuración
 
-El sistema **ya tiene CFDI 4.0 funcionando con Facturapi** (edge functions `stamp-cfdi` / `cancel-cfdi`, UI en Datos Fiscales para capturar API keys test/live). Para empezar a timbrar facturas reales solo necesitas capturar tus API keys de Facturapi en **Datos Fiscales** y poner el modo en `live`.
+Hoy en el sidebar hay dos entradas separadas:
 
-Aparte de eso, hay tres huecos pequeños en el modelo de datos que conviene cerrar para soportar mejor PDF/XML descargables, mensajes de error de timbrado, y razón social separada del nombre comercial del cliente.
+- **Configuración** → `/settings/operations` (pestañas: Modelos, Operadores, Mecánicos, Pólizas, Plantilla de Contrato)
+- **Datos Fiscales** → `/settings/company` (formulario fiscal CFDI + logo + Configuración PAC)
 
-## Cambios propuestos
+El logo de la empresa ya se sube desde Datos Fiscales (componente `LogoUploader` dentro de `CompanyFiscalForm`), así que al mover esa página a una pestaña, el logo viaja con ella sin código nuevo.
 
-### 1. Migración a `invoices`
-Agregar tres columnas opcionales:
-- `cfdi_xml_url text` — URL al XML almacenado (cuando se descargue de Facturapi a Storage).
-- `cfdi_pdf_url text` — URL al PDF representación impresa.
-- `cfdi_error_message text` — último error devuelto por el PAC al intentar timbrar (para mostrar en UI sin abrir logs).
+## Cambios
 
-> Ya existe `cfdi_xml` (texto en línea); las nuevas columnas son para URLs de Storage cuando se opte por archivos descargables.
+### 1. `src/pages/OperationsSetupPage.tsx`
 
-### 2. Migración a `customers`
-Agregar `razon_social text` (nullable). Hoy se usa `name` como razón social cuando se timbra; separarlos permite que `name` sea el nombre comercial y `razon_social` el legal del SAT.
+Agregar una pestaña nueva **"Datos Fiscales"** (icono `Building2`) que renderiza el contenido actual de `CompanySettingsPage` (formulario fiscal + logo + PAC). Protegerla con `RoleGuard module="Configuración" minAccess="full"` igual que las otras pestañas sensibles.
 
-> `rfc`, `regimen_fiscal`, `uso_cfdi` y `domicilio_fiscal_cp` (= código postal fiscal) **ya existen**, no se duplican.
+Para evitar duplicar lógica, extraer el cuerpo de `CompanySettingsPage` (el `<form>` con `CompanyFiscalForm` + `PacConfigForm`) a un componente reutilizable `src/components/company-settings/CompanySettingsForm.tsx`. Tanto la pestaña nueva como la página antigua lo consumen.
 
-### 3. NO se crea `cfdi_configs`
-Ya existe `company_settings` con: `rfc`, `razon_social`, `regimen_fiscal`, `lugar_expedicion`, `facturapi_mode`, `facturapi_test_key`, `facturapi_live_key`, RLS solo-admin para escritura. Cubre el caso 100%.
+### 2. `src/components/AppSidebar.tsx`
 
-### 4. Tabla `sat_catalogs` (opcional, baja prioridad)
-Hoy los catálogos SAT viven como constantes TS en `src/lib/satCatalogs.ts` (`REGIMEN_FISCAL`, `USO_CFDI`, `FORMA_PAGO`, `METODO_PAGO`, `CLAVE_PROD_SERV`, `CLAVE_UNIDAD`). Funciona bien y no requiere round-trip a DB.
+- Eliminar la entrada `{ title: "Datos Fiscales", url: "/settings/company", icon: Building2 }` del grupo Administración.
+- Quitar import `Building2` si ya no se usa en otro lado.
 
-**Recomendación:** **no** crear `sat_catalogs` por ahora. Solo migrar a DB si en el futuro necesitas: editar catálogos sin redeploy, búsqueda full-text en miles de claves, o exponer catálogos a clientes externos. Si confirmas que la quieres igual, la incluyo con seed básico.
+### 3. `src/lib/routes-config.tsx`
 
-### 5. UI mínima de soporte
-- Mostrar `cfdi_error_message` en el panel de detalle de la factura cuando exista (badge rojo + texto).
-- Campo opcional **Razón social** en el formulario de cliente (debajo de `name`), con hint "Como aparece en la Constancia de Situación Fiscal".
-- Pre-llenar `receptor_razon_social` al timbrar usando `customer.razon_social ?? customer.name`.
+Mantener la ruta `/settings/company` activa por compatibilidad (links viejos, marcadores) — sigue funcionando, solo desaparece del sidebar. Sin cambios aquí.
 
-### 6. Edge function `stamp-cfdi`
-Capturar errores de Facturapi (catch en `createRes.ok === false`) y guardar el mensaje en `invoices.cfdi_error_message` además del status 502 actual. Limpiar el campo en éxito.
+### 4. Changelog
 
-### 7. Changelog
-Nueva entrada `v5.65.0` en `public/changelog.json` + `public/changelog/v5.65.0.json`.
+Entrada `v5.65.1` (patch — reorganización UI sin cambio funcional) en `public/changelog.json` + `public/changelog/v5.65.1.json`.
 
-## Detalles técnicos
+## Resultado
 
-**Migración SQL (resumen):**
-```sql
-ALTER TABLE public.invoices
-  ADD COLUMN cfdi_xml_url text,
-  ADD COLUMN cfdi_pdf_url text,
-  ADD COLUMN cfdi_error_message text;
+Sidebar después:
 
-ALTER TABLE public.customers
-  ADD COLUMN razon_social text;
+```text
+Administración
+  └─ Configuración  ──┐
+                      ├─ Modelos de Equipo
+                      ├─ Operadores
+                      ├─ Mecánicos
+                      ├─ Pólizas de Mantenimiento
+                      ├─ Plantilla de Contrato
+                      └─ Datos Fiscales (incluye logo + CFDI + PAC)
 ```
-Sin cambios de RLS (heredan políticas existentes). Sin índices nuevos.
 
-**Archivos a tocar:**
-- `supabase/migrations/<timestamp>_cfdi_extras.sql` (nueva)
-- `supabase/functions/stamp-cfdi/index.ts` (capturar error + limpiar en éxito)
-- `src/components/customers/CustomerForm.tsx` (campo razón social)
-- `src/pages/InvoiceDetailPage.tsx` o panel equivalente (mostrar `cfdi_error_message`)
-- `public/changelog.json` + `public/changelog/v5.65.0.json`
+## Archivos a tocar
 
-## Para empezar a timbrar de inmediato (sin código)
-1. Ir a **Datos Fiscales → Configuración PAC**.
-2. Pegar la **API Key Live** de tu cuenta Facturapi.
-3. Cambiar el switch a **Live**. Listo.
+- `src/components/company-settings/CompanySettingsForm.tsx` (nuevo, extracción)
+- `src/pages/CompanySettingsPage.tsx` (consume el nuevo componente)
+- `src/pages/OperationsSetupPage.tsx` (nueva pestaña)
+- `src/components/AppSidebar.tsx` (quitar entrada)
+- `public/changelog.json` + `public/changelog/v5.65.1.json`
 
-## Lo que queda fuera del plan (a confirmar si lo quieres)
-- Tabla `sat_catalogs` en DB (hoy en TS).
-- Campos `pac_provider`/`pac_secret` (Facturapi solo usa una API key, no requiere secret).
-- Reemplazar `domicilio_fiscal_cp` por `codigo_postal` (rename con riesgo, sin beneficio funcional).
+haz un pestana separada para el logo

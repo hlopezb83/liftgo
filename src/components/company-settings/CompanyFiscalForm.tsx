@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Save } from "lucide-react";
 import { REGIMEN_FISCAL } from "@/lib/satCatalogs";
-import { LogoUploader } from "./LogoUploader";
 
 interface FiscalFormValues {
   rfc: string;
@@ -58,7 +57,6 @@ export function CompanyFiscalForm({ form, set, isPending }: Props) {
           </div>
         </div>
 
-        <LogoUploader logoUrl={form.logo_url} onChange={(url) => set("logo_url", url)} />
 
         <div className="pt-2">
           <Button type="submit" disabled={isPending}>

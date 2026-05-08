@@ -1,0 +1,21 @@
+{
+  "version": "5.65.1",
+  "date": "2026-05-08",
+  "type": "patch",
+  "title": "Configuración unificada: Datos Fiscales y Logo dentro de Configuración",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "Datos Fiscales se movió como pestaña dentro de Configuración (/settings/operations), eliminando la entrada duplicada del sidebar."
+    },
+    {
+      "type": "improvement",
+      "description": "Nueva pestaña dedicada 'Logo' dentro de Configuración para subir el logo de la empresa de forma independiente."
+    },
+    {
+      "type": "improvement",
+      "description": "La ruta antigua /settings/company ahora redirige automáticamente a Configuración para mantener compatibilidad con marcadores."
+    }
+  ]
+}

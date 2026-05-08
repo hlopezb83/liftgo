@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, Building2, ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake, KeyRound } from "lucide-react";
+import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake, KeyRound } from "lucide-react";
 import { useTheme } from "next-themes";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,7 +65,6 @@ const navGroups: NavGroup[] = [
       { title: "Actividad", url: "/activity", icon: Activity },
       { title: "Bitácora", url: "/audit", icon: History },
       { title: "Configuración", url: "/settings/operations", icon: Settings },
-      { title: "Datos Fiscales", url: "/settings/company", icon: Building2 },
       { title: "Usuarios", url: "/users", icon: ShieldCheck },
       { title: "Changelog", url: "/changelog", icon: ScrollText },
       { title: "Ayuda", url: "/help", icon: HelpCircle },
