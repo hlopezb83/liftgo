@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.65.2",
+    "date": "2026-05-08",
+    "type": "patch",
+    "title": "Logo: indicador de estado guardado y vista previa antes de guardar",
+    "category": "improvement"
+  },
+  {
     "version": "5.65.1",
     "date": "2026-05-08",
     "type": "patch",
