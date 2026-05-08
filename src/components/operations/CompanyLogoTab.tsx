@@ -25,7 +25,14 @@ export function CompanyLogoTab() {
       return;
     }
     upsert.mutate(
-      { id: settings.id, logo_url: form.logo_url || null },
+      {
+        id: settings.id,
+        rfc: settings.rfc || "",
+        razon_social: settings.razon_social || "",
+        regimen_fiscal: settings.regimen_fiscal || "",
+        lugar_expedicion: settings.lugar_expedicion || "",
+        logo_url: form.logo_url || null,
+      },
       { onSuccess: () => toast.success("Logo guardado") }
     );
   };
