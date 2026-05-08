@@ -96,6 +96,15 @@ export default function InvoiceDetail() {
         </Card>
       )}
 
+      {invoice.cfdi_error_message && cfdiStatus !== "stamped" && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="py-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Error de timbrado</p>
+            <p className="text-sm text-destructive/90 mt-1 whitespace-pre-wrap break-words">{invoice.cfdi_error_message}</p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>
           <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface ParsedCsfData {
   name?: string;
+  razon_social?: string;
   rfc?: string;
   domicilio_fiscal_cp?: string;
   address?: string;

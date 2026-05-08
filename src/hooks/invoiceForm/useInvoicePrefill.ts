@@ -4,11 +4,11 @@ import type { CfdiLineItem } from "@/components/invoice-form/EditableLineItemsTa
 import type { useInvoiceFormState, CfdiFormState } from "./useInvoiceFormState";
 
 type State = ReturnType<typeof useInvoiceFormState>;
-type Customer = { id: string; name: string; rfc?: string | null; regimen_fiscal?: string | null; domicilio_fiscal_cp?: string | null; uso_cfdi?: string | null };
+type Customer = { id: string; name: string; rfc?: string | null; razon_social?: string | null; regimen_fiscal?: string | null; domicilio_fiscal_cp?: string | null; uso_cfdi?: string | null };
 
 export function applyCustomerCfdi(customer: Customer, setCfdi: State["setCfdi"]) {
   setCfdi("receptorRfc", customer.rfc || "");
-  setCfdi("receptorRazonSocial", customer.name || "");
+  setCfdi("receptorRazonSocial", customer.razon_social || customer.name || "");
   setCfdi("receptorRegimenFiscal", customer.regimen_fiscal || "");
   setCfdi("receptorDomicilioFiscalCp", customer.domicilio_fiscal_cp || "");
   if (customer.uso_cfdi) setCfdi("usoCfdi", customer.uso_cfdi);

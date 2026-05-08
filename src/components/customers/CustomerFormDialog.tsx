@@ -16,7 +16,7 @@ import { CsfDropzone } from "./CsfDropzone";
 const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
   website: "", contact_person: "",
-  rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
+  rfc: "", razon_social: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
   representante_legal: "",
 };
 

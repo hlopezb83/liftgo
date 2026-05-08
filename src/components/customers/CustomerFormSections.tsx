@@ -28,6 +28,15 @@ export function FiscalSection({ form, set }: SectionProps) {
   return (
     <div className="space-y-3">
       <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Datos Fiscales (CFDI)</p>
+      <div className="space-y-1.5">
+        <Label>Razón Social</Label>
+        <Input
+          value={form.razon_social}
+          onChange={(e) => set("razon_social", e.target.value)}
+          placeholder="Como aparece en la Constancia de Situación Fiscal"
+        />
+        <p className="text-xs text-muted-foreground">Si se deja vacío, se usará el Nombre / Empresa al timbrar.</p>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>RFC</Label>

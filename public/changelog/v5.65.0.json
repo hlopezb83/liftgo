@@ -1,0 +1,10 @@
+{
+  "description": "Se completó el modelo de datos CFDI 4.0 sobre la integración Facturapi existente. Para empezar a timbrar facturas reales basta con capturar las API keys de Facturapi en Datos Fiscales y poner el modo en Live.",
+  "changes": [
+    "Cliente: nuevo campo Razón Social, separado del Nombre / Empresa, para usar el nombre legal exacto de la Constancia de Situación Fiscal al timbrar",
+    "Factura: nueva tarjeta visible cuando un timbrado falla, con el mensaje de error devuelto por el PAC, sin necesidad de revisar logs",
+    "Facturas: nuevas columnas cfdi_xml_url, cfdi_pdf_url y cfdi_error_message para soportar archivos descargables y diagnóstico",
+    "Edge function stamp-cfdi ahora persiste el error en la factura y lo limpia al timbrar correctamente",
+    "Pre-llenado de razón social del receptor usa cliente.razon_social cuando existe, con fallback al nombre"
+  ]
+}
