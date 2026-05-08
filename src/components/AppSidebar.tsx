@@ -65,7 +65,6 @@ const navGroups: NavGroup[] = [
       { title: "Actividad", url: "/activity", icon: Activity },
       { title: "Bitácora", url: "/audit", icon: History },
       { title: "Configuración", url: "/settings/operations", icon: Settings },
-      { title: "Datos Fiscales", url: "/settings/company", icon: Building2 },
       { title: "Usuarios", url: "/users", icon: ShieldCheck },
       { title: "Changelog", url: "/changelog", icon: ScrollText },
       { title: "Ayuda", url: "/help", icon: HelpCircle },
