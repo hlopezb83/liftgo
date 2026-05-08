@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.65.0",
+    "date": "2026-05-08",
+    "type": "minor",
+    "title": "CFDI: razón social separada, mensaje de error de timbrado y URLs para XML/PDF",
+    "category": "feature"
+  },
+  {
     "version": "5.64.0",
     "date": "2026-05-07",
     "type": "minor",
