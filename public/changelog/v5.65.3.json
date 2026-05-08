@@ -1,0 +1,9 @@
+{
+  "description": "El panel lateral de cada prospecto en el CRM ahora muestra un historial completo de cambios (creación, actualizaciones de campos, cierre y reapertura) con usuario, fecha y diff antes/después. Incluye acceso al detalle completo del registro.",
+  "changes": [
+    "Nueva tarjeta 'Historial de Cambios' dentro del side panel de prospecto",
+    "Diff compacto por campo con etiquetas en español (etapa, valor, razón de pérdida, etc.)",
+    "Botón de detalle reutiliza AuditLogDetailDialog",
+    "Vista colapsable: 5 entradas iniciales + Ver más"
+  ]
+}
