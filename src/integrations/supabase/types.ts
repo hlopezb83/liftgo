@@ -479,6 +479,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          razon_social: string | null
           regimen_fiscal: string | null
           representante_legal: string | null
           rfc: string | null
@@ -500,6 +501,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          razon_social?: string | null
           regimen_fiscal?: string | null
           representante_legal?: string | null
           rfc?: string | null
@@ -521,6 +523,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          razon_social?: string | null
           regimen_fiscal?: string | null
           representante_legal?: string | null
           rfc?: string | null
@@ -918,9 +921,12 @@ export type Database = {
           booking_id: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
+          cfdi_error_message: string | null
+          cfdi_pdf_url: string | null
           cfdi_status: string | null
           cfdi_uuid: string | null
           cfdi_xml: string | null
+          cfdi_xml_url: string | null
           created_at: string
           customer_id: string | null
           customer_name: string | null
@@ -957,9 +963,12 @@ export type Database = {
           booking_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cfdi_error_message?: string | null
+          cfdi_pdf_url?: string | null
           cfdi_status?: string | null
           cfdi_uuid?: string | null
           cfdi_xml?: string | null
+          cfdi_xml_url?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null
@@ -996,9 +1005,12 @@ export type Database = {
           booking_id?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          cfdi_error_message?: string | null
+          cfdi_pdf_url?: string | null
           cfdi_status?: string | null
           cfdi_uuid?: string | null
           cfdi_xml?: string | null
+          cfdi_xml_url?: string | null
           created_at?: string
           customer_id?: string | null
           customer_name?: string | null

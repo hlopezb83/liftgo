@@ -1,48 +1,70 @@
-# Plan de remediación — Auditoría Greg
+# Completar modelo de datos CFDI 4.0 (sobre Facturapi existente)
 
-## Estado actual de los 19 hallazgos
+El sistema **ya tiene CFDI 4.0 funcionando con Facturapi** (edge functions `stamp-cfdi` / `cancel-cfdi`, UI en Datos Fiscales para capturar API keys test/live). Para empezar a timbrar facturas reales solo necesitas capturar tus API keys de Facturapi en **Datos Fiscales** y poner el modo en `live`.
 
-### Ya resueltos (no requieren acción)
-- **HI-1** Rutas `/return-inspections` vs `/returns` → corregido en **v5.61.1**.
-- **HI-5** `next-themes` desactualizado → actualizado a `^0.4.6` en **v5.61.2**.
-- **MI-1** `useUserRole` jerarquía hardcodeada → ya está derivada de DB (memoria `Domain Constants`).
+Aparte de eso, hay tres huecos pequeños en el modelo de datos que conviene cerrar para soportar mejor PDF/XML descargables, mensajes de error de timbrado, y razón social separada del nombre comercial del cliente.
 
-### Falsos positivos / no aplican a este stack
-- **MI-3** Refresh proactivo de tokens — `supabase-js` v2 ya refresca automáticamente cuando el cliente se inicializa con `autoRefreshToken: true` (default). Agregar un `setInterval` sería redundante.
-- **LO-2** `host: '::'` en `vite.config.ts` — solo afecta dev local; el preview de Lovable lo requiere. No es vulnerabilidad en producción (build estático).
+## Cambios propuestos
 
-### Hallazgos reales a corregir
+### 1. Migración a `invoices`
+Agregar tres columnas opcionales:
+- `cfdi_xml_url text` — URL al XML almacenado (cuando se descargue de Facturapi a Storage).
+- `cfdi_pdf_url text` — URL al PDF representación impresa.
+- `cfdi_error_message text` — último error devuelto por el PAC al intentar timbrar (para mostrar en UI sin abrir logs).
 
-#### Tanda 1 — Crítico (esta sesión, una sola entrega)
-1. **CR-1 CORS restrictivo** — reemplazar regex `*.lovable.app` en `supabase/functions/_shared/cors.ts` por allowlist explícita: preview URL, published URL (`liftgo.lovable.app`) y dominios custom. Permitir override por env var `ALLOWED_ORIGINS`.
-2. **CR-2 ErrorBoundary global** — crear `src/components/ErrorBoundary.tsx` con UI minimalista industrial (botón "Recargar" + "Volver al inicio"), envolver `<App />` en `main.tsx`. Loggear a `console.error` (telemetría futura opcional).
-3. **CR-3 Idempotencia de facturación recurrente** — en `generate-recurring-invoices`: antes de insertar, verificar que no exista ya una `invoice` con `(subscription_id, billing_period_start, billing_period_end)`. Idealmente vía índice único parcial en DB + `ON CONFLICT DO NOTHING`.
-4. **CR-4 Timezone Monterrey en facturación** — usar `date-fns-tz` con `America/Monterrey` para calcular `billingStart`/`billingEnd`/`due_date` en lugar de `new Date()` UTC. Coincide con regla de memoria `Localization: Dates`.
+> Ya existe `cfdi_xml` (texto en línea); las nuevas columnas son para URLs de Storage cuando se opte por archivos descargables.
 
-#### Tanda 2 — Alto ✅ COMPLETADO en v5.63.0
-5. ~~**HI-2 Rate limit**~~ — tabla `rate_limits` + RPC `check_and_record_rate_limit` + helper `enforceRateLimit` (10/min por admin) aplicado a las 5 funciones admin.
-6. ~~**HI-3 Password predecible**~~ — `generateSecurePassword` con rejection sampling en `_shared/auth.ts`. `invite-customer` usa 24 chars sin sufijo fijo.
-7. ~~**HI-4 Refactor auth**~~ — `requireAuth`/`requireRole`/`requireAdmin` extraídos a `_shared/auth.ts`. Aplicado a invite-user, invite-customer, delete-user, toggle-user-status, reset-user-password.
+### 2. Migración a `customers`
+Agregar `razon_social text` (nullable). Hoy se usa `name` como razón social cuando se timbra; separarlos permite que `name` sea el nombre comercial y `razon_social` el legal del SAT.
 
-#### Tanda 3 — Medio/Bajo ✅ COMPLETADO en v5.64.0
-8. ~~**MI-2** Pattern matching de rutas~~ — nuevo `getModuleForPath()` con prefijo descendente (cubre `/fleet/:id/edit`, `/quotes/new`, etc.).
-9. ~~**MI-4 Lockfile dual**~~ — `package-lock.json` eliminado.
-10. ~~**MI-5 Regex de email**~~ — `_shared/validate.ts` endurecido (TLD ≥ 2, sin puntos consecutivos, longitud 6-254).
-11. **MI-6 Logging estructurado** — diferido. Hoy `telemetry` es placeholder console-only; conectar a tabla cuando se decida proveedor (Sentry vs in-DB).
-12. ~~**LO-1** rejection sampling en `generateSecurePassword`~~ — ya entregado en Tanda 2 (v5.63.0).
-13. ~~**LO-3** Timeout en `PageFallback`~~ — botón "Recarga la página" tras 10s.
-14. ~~**LO-4** Telemetría en `getAccessLevel`~~ — usa `telemetry.warn()` desde `src/lib/telemetry.ts`.
+> `rfc`, `regimen_fiscal`, `uso_cfdi` y `domicilio_fiscal_cp` (= código postal fiscal) **ya existen**, no se duplican.
 
-## Estado final
-Tandas 1, 2 y 3 cerradas. Único pendiente: **MI-6 (logging persistente)** sujeto a decisión de proveedor.
+### 3. NO se crea `cfdi_configs`
+Ya existe `company_settings` con: `rfc`, `razon_social`, `regimen_fiscal`, `lugar_expedicion`, `facturapi_mode`, `facturapi_test_key`, `facturapi_live_key`, RLS solo-admin para escritura. Cubre el caso 100%.
 
-## Entregables por tanda
+### 4. Tabla `sat_catalogs` (opcional, baja prioridad)
+Hoy los catálogos SAT viven como constantes TS en `src/lib/satCatalogs.ts` (`REGIMEN_FISCAL`, `USO_CFDI`, `FORMA_PAGO`, `METODO_PAGO`, `CLAVE_PROD_SERV`, `CLAVE_UNIDAD`). Funciona bien y no requiere round-trip a DB.
 
-Cada tanda termina con:
-- Cambios de código + migración DB si aplica.
-- Entrada nueva en `public/changelog.json` y `public/changelog/v{X.Y.Z}.json`.
-- Tests unitarios donde aplique (idempotencia de facturación, rate limit, timezone).
+**Recomendación:** **no** crear `sat_catalogs` por ahora. Solo migrar a DB si en el futuro necesitas: editar catálogos sin redeploy, búsqueda full-text en miles de claves, o exponer catálogos a clientes externos. Si confirmas que la quieres igual, la incluyo con seed básico.
 
-## Recomendación
+### 5. UI mínima de soporte
+- Mostrar `cfdi_error_message` en el panel de detalle de la factura cuando exista (badge rojo + texto).
+- Campo opcional **Razón social** en el formulario de cliente (debajo de `name`), con hint "Como aparece en la Constancia de Situación Fiscal".
+- Pre-llenar `receptor_razon_social` al timbrar usando `customer.razon_social ?? customer.name`.
 
-Empezar por **Tanda 1** ya, porque CR-3 (facturas duplicadas) y CR-4 (timezone) tienen impacto financiero directo. ¿Apruebas que ejecute la Tanda 1 completa en una sola entrega?
+### 6. Edge function `stamp-cfdi`
+Capturar errores de Facturapi (catch en `createRes.ok === false`) y guardar el mensaje en `invoices.cfdi_error_message` además del status 502 actual. Limpiar el campo en éxito.
+
+### 7. Changelog
+Nueva entrada `v5.65.0` en `public/changelog.json` + `public/changelog/v5.65.0.json`.
+
+## Detalles técnicos
+
+**Migración SQL (resumen):**
+```sql
+ALTER TABLE public.invoices
+  ADD COLUMN cfdi_xml_url text,
+  ADD COLUMN cfdi_pdf_url text,
+  ADD COLUMN cfdi_error_message text;
+
+ALTER TABLE public.customers
+  ADD COLUMN razon_social text;
+```
+Sin cambios de RLS (heredan políticas existentes). Sin índices nuevos.
+
+**Archivos a tocar:**
+- `supabase/migrations/<timestamp>_cfdi_extras.sql` (nueva)
+- `supabase/functions/stamp-cfdi/index.ts` (capturar error + limpiar en éxito)
+- `src/components/customers/CustomerForm.tsx` (campo razón social)
+- `src/pages/InvoiceDetailPage.tsx` o panel equivalente (mostrar `cfdi_error_message`)
+- `public/changelog.json` + `public/changelog/v5.65.0.json`
+
+## Para empezar a timbrar de inmediato (sin código)
+1. Ir a **Datos Fiscales → Configuración PAC**.
+2. Pegar la **API Key Live** de tu cuenta Facturapi.
+3. Cambiar el switch a **Live**. Listo.
+
+## Lo que queda fuera del plan (a confirmar si lo quieres)
+- Tabla `sat_catalogs` en DB (hoy en TS).
+- Campos `pac_provider`/`pac_secret` (Facturapi solo usa una API key, no requiere secret).
+- Reemplazar `domicilio_fiscal_cp` por `codigo_postal` (rename con riesgo, sin beneficio funcional).
