@@ -1,17 +1,50 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+
+const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 
 serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
   const cors = getCorsHeaders(req);
+  const jsonHeaders = { ...cors, "Content-Type": "application/json" };
 
   try {
+    // --- AuthN ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: jsonHeaders,
+      });
+    }
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: jsonHeaders,
+      });
+    }
+
     const { pdf_base64 } = await req.json();
     if (!pdf_base64 || typeof pdf_base64 !== "string") {
       return new Response(JSON.stringify({ error: "pdf_base64 es requerido" }), {
         status: 400,
-        headers: { ...cors, "Content-Type": "application/json" },
+        headers: jsonHeaders,
+      });
+    }
+    // Approx size: base64 length * 3/4
+    if (pdf_base64.length > Math.ceil(MAX_PDF_BYTES * 4 / 3)) {
+      return new Response(JSON.stringify({ error: "El PDF excede el tamaño máximo permitido (5MB)" }), {
+        status: 413,
+        headers: jsonHeaders,
       });
     }
 
@@ -19,7 +52,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }), {
         status: 500,
-        headers: { ...cors, "Content-Type": "application/json" },
+        headers: jsonHeaders,
       });
     }
 
@@ -107,18 +140,18 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Demasiadas solicitudes, intenta de nuevo en un momento." }), {
           status: 429,
-          headers: { ...cors, "Content-Type": "application/json" },
+          headers: jsonHeaders,
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos insuficientes para el servicio de IA." }), {
           status: 402,
-          headers: { ...cors, "Content-Type": "application/json" },
+          headers: jsonHeaders,
         });
       }
       return new Response(JSON.stringify({ error: "Error al procesar el documento con IA" }), {
         status: 500,
-        headers: { ...cors, "Content-Type": "application/json" },
+        headers: jsonHeaders,
       });
     }
 
@@ -127,18 +160,16 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
     if (!toolCall?.function?.arguments) {
       return new Response(JSON.stringify({ error: "No se pudieron extraer datos del documento" }), {
         status: 422,
-        headers: { ...cors, "Content-Type": "application/json" },
+        headers: jsonHeaders,
       });
     }
 
     const extracted = JSON.parse(toolCall.function.arguments);
 
-    return new Response(JSON.stringify(extracted), {
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify(extracted), { headers: jsonHeaders });
   } catch (e) {
-    console.error("parse-csf error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Error desconocido" }), {
+    console.error("[parse-csf] error:", e);
+    return new Response(JSON.stringify({ error: "Error interno del servidor" }), {
       status: 500,
       headers: { ...cors, "Content-Type": "application/json" },
     });
