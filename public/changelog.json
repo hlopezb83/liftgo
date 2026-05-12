@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.66.2",
+    "date": "2026-05-12",
+    "type": "patch",
+    "title": "Cierre de hallazgos críticos de Realtime y Storage",
+    "category": "security"
+  },
+  {
     "version": "5.66.1",
     "date": "2026-05-12",
     "type": "patch",
