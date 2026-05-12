@@ -79,6 +79,11 @@ Deno.serve(async (req) => {
       .select("*")
       .limit(1)
       .maybeSingle();
+    const { data: secrets } = await supabase
+      .from("billing_secrets")
+      .select("facturapi_test_key, facturapi_live_key")
+      .limit(1)
+      .maybeSingle();
 
     if (!company) {
       return new Response(JSON.stringify({ error: "Company settings not configured" }), {
@@ -88,8 +93,8 @@ Deno.serve(async (req) => {
 
     // Select API key: DB first, env var fallback
     const mode = (company as Record<string, unknown>).facturapi_mode as string || "test";
-    const dbTestKey = (company as Record<string, unknown>).facturapi_test_key as string | null;
-    const dbLiveKey = (company as Record<string, unknown>).facturapi_live_key as string | null;
+    const dbTestKey = (secrets?.facturapi_test_key as string | null | undefined) ?? null;
+    const dbLiveKey = (secrets?.facturapi_live_key as string | null | undefined) ?? null;
     const apiKey = mode === "live"
       ? (dbLiveKey || Deno.env.get("FACTURAPI_LIVE_KEY"))
       : (dbTestKey || Deno.env.get("FACTURAPI_TEST_KEY"));

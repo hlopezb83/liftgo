@@ -62,10 +62,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = adminClient;
 
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
@@ -86,16 +83,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Read company settings for API key
+    // Read mode from company_settings + keys from billing_secrets
     const { data: company } = await supabase
       .from("company_settings")
-      .select("facturapi_mode, facturapi_test_key, facturapi_live_key")
+      .select("facturapi_mode")
+      .limit(1)
+      .maybeSingle();
+    const { data: secrets } = await supabase
+      .from("billing_secrets")
+      .select("facturapi_test_key, facturapi_live_key")
       .limit(1)
       .maybeSingle();
 
-    const mode = (company as Record<string, unknown>)?.facturapi_mode as string || "test";
-    const dbTestKey = (company as Record<string, unknown>)?.facturapi_test_key as string | null;
-    const dbLiveKey = (company as Record<string, unknown>)?.facturapi_live_key as string | null;
+    const mode = (company?.facturapi_mode as string | undefined) || "test";
+    const dbTestKey = (secrets?.facturapi_test_key as string | null | undefined) ?? null;
+    const dbLiveKey = (secrets?.facturapi_live_key as string | null | undefined) ?? null;
     const apiKey = mode === "live"
       ? (dbLiveKey || Deno.env.get("FACTURAPI_LIVE_KEY"))
       : (dbTestKey || Deno.env.get("FACTURAPI_TEST_KEY"));

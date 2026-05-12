@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { Book, RefreshCw, Search, FileText, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 
@@ -165,7 +166,7 @@ function HelpPage() {
                   <AccordionContent>
                     <div
                       className="manual-content"
-                      dangerouslySetInnerHTML={{ __html: renderMarkdown(section.content) }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderMarkdown(section.content)) }}
                     />
                   </AccordionContent>
                 </AccordionItem>
