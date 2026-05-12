@@ -1,0 +1,20 @@
+{
+  "version": "5.66.2",
+  "date": "2026-05-12",
+  "type": "patch",
+  "category": "security",
+  "title": "Cierre de hallazgos críticos de Realtime y Storage",
+  "description": "Se restringe la suscripción a canales de notificaciones por usuario y se exige rol interno para borrar o sobrescribir archivos del bucket documents.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Canal de notificaciones aislado por usuario",
+      "description": "RLS en realtime.messages: cada usuario solo puede suscribirse a 'notifications:<su-uid>'. Antes cualquier autenticado podía escuchar notificaciones ajenas."
+    },
+    {
+      "type": "security",
+      "title": "Bucket documents: borrado/edición solo personal interno",
+      "description": "Las políticas DELETE/UPDATE de storage.objects ahora exigen rol admin, administrativo o despachador. Lectura pública y subida autenticada se conservan."
+    }
+  ]
+}
