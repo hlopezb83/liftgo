@@ -1,0 +1,45 @@
+{
+  "version": "5.66.0",
+  "date": "2026-05-12",
+  "type": "minor",
+  "category": "security",
+  "title": "Endurecimiento de seguridad post-auditoría",
+  "description": "Tanda 3 de remediación: aísla llaves Facturapi, asegura Edge Functions abiertas, restringe el bucket de documentos y sanitiza el manual.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Llaves Facturapi en tabla aislada billing_secrets",
+      "description": "Se eliminaron facturapi_test_key y facturapi_live_key de company_settings y se movieron a una nueva tabla con RLS estricta (admin/administrativo). Edge functions stamp-cfdi y cancel-cfdi siguen leyéndolas vía service_role."
+    },
+    {
+      "type": "security",
+      "title": "Auth obligatoria en parse-csf y cancel-cfdi",
+      "description": "parse-csf ahora exige JWT válido + límite de 5MB por PDF. cancel-cfdi exige JWT con rol admin/administrativo antes de cancelar facturas timbradas."
+    },
+    {
+      "type": "security",
+      "title": "generate-recurring-maintenance bloquea llamadas anónimas",
+      "description": "Se eliminó el bypass cuando faltaba header Authorization. Ahora exige siempre Bearer token (service_role para cron o JWT admin/administrativo)."
+    },
+    {
+      "type": "security",
+      "title": "Bucket 'documents' deja de aceptar subidas/borrados anónimos",
+      "description": "Lectura pública (necesaria para logos y URLs en PDFs) se conserva, pero INSERT/UPDATE/DELETE ahora exigen usuario autenticado."
+    },
+    {
+      "type": "security",
+      "title": "Sanitización XSS en HelpPage",
+      "description": "El manual generado por IA se renderiza ahora con DOMPurify, evitando inyección de HTML/scripts si el contenido se manipula."
+    },
+    {
+      "type": "security",
+      "title": "Errores genéricos en Edge Functions",
+      "description": "generate-manual y generate-recurring-maintenance dejan de filtrar mensajes de excepción al cliente; los detalles solo se loguean en servidor."
+    },
+    {
+      "type": "security",
+      "title": "Política explícita de denegación en rate_limits",
+      "description": "Se añadió una política que bloquea cualquier acceso desde clientes autenticados o anónimos; la tabla solo es accesible por service_role."
+    }
+  ]
+}

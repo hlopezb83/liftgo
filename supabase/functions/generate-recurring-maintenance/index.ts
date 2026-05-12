@@ -11,9 +11,18 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Verify caller is admin/administrativo (skip for cron calls with service key)
+    // Always require Authorization header. Either:
+    //  - service_role token (cron / scheduled invocations), or
+    //  - a JWT belonging to admin/administrativo
     const authHeader = req.headers.get("authorization") ?? "";
-    if (authHeader.includes("Bearer") && !authHeader.includes(serviceKey.slice(0, 20))) {
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+    const isServiceCall = authHeader.includes(serviceKey);
+    if (!isServiceCall) {
       const token = authHeader.replace("Bearer ", "");
       const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
       const callerClient = createClient(supabaseUrl, anonKey, {
@@ -31,7 +40,7 @@ Deno.serve(async (req) => {
         .from("user_roles")
         .select("role")
         .eq("user_id", callerId);
-      const roles = (roleData ?? []).map((r: any) => r.role);
+      const roles = (roleData ?? []).map((r: { role: string }) => r.role);
       if (!roles.includes("admin") && !roles.includes("administrativo")) {
         return new Response(JSON.stringify({ error: "Solo admin/administrativo puede ejecutar esta función" }), {
           status: 403,
@@ -96,8 +105,9 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error("[generate-recurring-maintenance]", err);
     return new Response(
-      JSON.stringify({ error: (err as Error).message }),
+      JSON.stringify({ error: "Error interno del servidor" }),
       { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
     );
   }
