@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.66.0",
+    "date": "2026-05-12",
+    "type": "minor",
+    "title": "Endurecimiento de seguridad post-auditoría",
+    "category": "security"
+  },
+  {
     "version": "5.65.5",
     "date": "2026-05-08",
     "type": "patch",
