@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.66.1",
+    "date": "2026-05-12",
+    "type": "patch",
+    "title": "Revocar EXECUTE público en funciones internas",
+    "category": "security"
+  },
+  {
     "version": "5.66.0",
     "date": "2026-05-12",
     "type": "minor",

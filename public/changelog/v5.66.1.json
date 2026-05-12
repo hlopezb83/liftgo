@@ -1,0 +1,15 @@
+{
+  "version": "5.66.1",
+  "date": "2026-05-12",
+  "type": "patch",
+  "category": "security",
+  "title": "Revocar EXECUTE público en funciones internas",
+  "description": "Se revocaron permisos de ejecución de PUBLIC y anon en todas las funciones SECURITY DEFINER del esquema public, excepto get_public_branding (usada en pantallas de login).",
+  "changes": [
+    {
+      "type": "security",
+      "title": "RPCs internas inaccesibles para clientes anónimos",
+      "description": "REVOKE EXECUTE FROM PUBLIC, anon en get_dashboard_stats, get_income_statement, get_mrr_detail, revert_audit_log, cancel_booking, has_role y demás funciones SECURITY DEFINER. Solo usuarios autenticados pueden invocarlas."
+    }
+  ]
+}
