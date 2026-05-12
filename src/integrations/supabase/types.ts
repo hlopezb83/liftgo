@@ -80,6 +80,30 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_secrets: {
+        Row: {
+          created_at: string
+          facturapi_live_key: string | null
+          facturapi_test_key: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          facturapi_live_key?: string | null
+          facturapi_test_key?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          facturapi_live_key?: string | null
+          facturapi_test_key?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_extensions: {
         Row: {
           booking_id: string
@@ -273,9 +297,7 @@ export type Database = {
       company_settings: {
         Row: {
           created_at: string
-          facturapi_live_key: string | null
           facturapi_mode: string | null
-          facturapi_test_key: string | null
           id: string
           logo_url: string | null
           lugar_expedicion: string
@@ -286,9 +308,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          facturapi_live_key?: string | null
           facturapi_mode?: string | null
-          facturapi_test_key?: string | null
           id?: string
           logo_url?: string | null
           lugar_expedicion: string
@@ -299,9 +319,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          facturapi_live_key?: string | null
           facturapi_mode?: string | null
-          facturapi_test_key?: string | null
           id?: string
           logo_url?: string | null
           lugar_expedicion?: string
