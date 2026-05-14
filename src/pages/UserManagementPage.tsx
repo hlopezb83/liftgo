@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -40,13 +41,18 @@ export default function UserManagementPage() {
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
-  const handleToggleStatus = (userId: string, currentActive: boolean) => {
+  const handleToggleStatus = useCallback((userId: string, currentActive: boolean) => {
     toggleStatus.mutate({ userId, isActive: !currentActive });
-  };
+  }, [toggleStatus]);
 
-  const handleRoleChange = (user: UserRow, newRole: AppRole) => {
+  const handleRoleChange = useCallback((user: UserRow, newRole: AppRole) => {
     dialogs.setRoleChangeTarget({ user, newRole });
-  };
+  }, [dialogs]);
+
+  const { setEditTarget, setPasswordTarget, setDeleteTarget } = dialogs;
+  const onEdit = useCallback((u: UserRow) => setEditTarget(u), [setEditTarget]);
+  const onSetPassword = useCallback((u: UserRow) => setPasswordTarget(u), [setPasswordTarget]);
+  const onDelete = useCallback((u: UserRow) => setDeleteTarget(u), [setDeleteTarget]);
 
   const renderRow = (u: UserRow) => (
     <TableRow key={u.user_id} className={!u.is_active ? "opacity-60" : ""}>
@@ -84,14 +90,14 @@ export default function UserManagementPage() {
       </TableCell>
       <TableCell>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => dialogs.setEditTarget(u)}>
+          <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => onEdit(u)}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => dialogs.setPasswordTarget(u)}>
+          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => onSetPassword(u)}>
             <KeyRound className="h-4 w-4" />
           </Button>
           {u.user_id !== currentUser?.id && (
-            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => dialogs.setDeleteTarget(u)}>
+            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => onDelete(u)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
@@ -110,14 +116,14 @@ export default function UserManagementPage() {
             {!u.is_active && <Badge variant="destructive" className="text-[10px] px-1.5">Inactivo</Badge>}
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => dialogs.setEditTarget(u)}>
+            <Button variant="ghost" size="icon" onClick={() => onEdit(u)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => dialogs.setPasswordTarget(u)}>
+            <Button variant="ghost" size="icon" onClick={() => onSetPassword(u)}>
               <KeyRound className="h-4 w-4" />
             </Button>
             {u.user_id !== currentUser?.id && (
-              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => dialogs.setDeleteTarget(u)}>
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => onDelete(u)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
