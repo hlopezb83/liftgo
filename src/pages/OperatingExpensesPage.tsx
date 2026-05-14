@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,15 +25,15 @@ export default function OperatingExpensesPage() {
   const { data: expenses, isLoading } = useOperatingExpenses();
   const generateRecurring = useGenerateRecurring();
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<OperatingExpense | null>(null);
-  const [selectedExpense, setSelectedExpense] = useState<OperatingExpense | null>(null);
+  const createDialog = useToggleDialog();
+  const editDialog = useDialogState<OperatingExpense>();
+  const detail = useDialogState<OperatingExpense>();
 
   const f = useExpenseFilters(expenses);
   const { page, setPage, totalPages, paginatedItems } = useListPage(f.filtered);
 
   const renderRow = (e: OperatingExpense) => (
-    <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedExpense(e)}>
+    <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => detail.open(e)}>
       <TableCell>{format(parseDateLocal(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
       <TableCell>
         <Badge variant={e.category === "costo_venta" ? "secondary" : "outline"}>
@@ -47,7 +47,7 @@ export default function OperatingExpensesPage() {
   );
 
   const mobileCard = (e: OperatingExpense) => (
-    <Card onClick={() => setSelectedExpense(e)} className="cursor-pointer">
+    <Card onClick={() => detail.open(e)} className="cursor-pointer">
       <CardContent className="p-4 space-y-2">
         <div className="flex items-center justify-between">
           <Badge variant={e.category === "costo_venta" ? "secondary" : "outline"}>
@@ -75,7 +75,7 @@ export default function OperatingExpensesPage() {
             <Button variant="outline" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
               <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />Generar Recurrentes
             </Button>
-            <Button onClick={() => setCreateDialogOpen(true)}><Plus className="h-4 w-4 mr-1" />Registrar Gasto</Button>
+            <Button onClick={createDialog.openDialog}><Plus className="h-4 w-4 mr-1" />Registrar Gasto</Button>
           </div>
         }
         filters={
@@ -122,7 +122,7 @@ export default function OperatingExpensesPage() {
         emptyMessage="Sin gastos registrados"
         emptyIcon={DollarSign}
         emptyActionLabel="Registrar Gasto"
-        onEmptyAction={() => setCreateDialogOpen(true)}
+        onEmptyAction={createDialog.openDialog}
         skeletonColumns={5}
         tableHeader={
           <TableRow>
@@ -137,19 +137,19 @@ export default function OperatingExpensesPage() {
         mobileCardRender={mobileCard}
       />
 
-      <ExpenseFormDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+      <ExpenseFormDialog open={createDialog.open} onOpenChange={createDialog.setOpen} />
 
       <ExpenseDetailSheet
-        expense={selectedExpense}
-        open={!!selectedExpense}
-        onOpenChange={(open) => { if (!open) setSelectedExpense(null); }}
-        onEdit={(e) => setEditTarget(e)}
+        expense={detail.selected}
+        open={detail.isOpen}
+        onOpenChange={detail.onOpenChange}
+        onEdit={(e) => editDialog.open(e)}
       />
 
       <ExpenseEditDialog
-        expense={editTarget}
-        open={!!editTarget}
-        onOpenChange={(open) => { if (!open) setEditTarget(null); }}
+        expense={editDialog.selected}
+        open={editDialog.isOpen}
+        onOpenChange={editDialog.onOpenChange}
       />
     </>
   );
