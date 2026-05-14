@@ -3,6 +3,12 @@ import { useSearchParams, useLocation } from "react-router-dom";
 
 interface UseListFiltersOptions<T> {
   searchFields: (keyof T)[];
+  /**
+   * Optional accessors to search inside derived/joined fields
+   * (e.g. `(r) => r.customers?.name`). Each accessor returns a string
+   * to be matched against the search query.
+   */
+  searchAccessors?: ((item: T) => string | null | undefined)[];
   statusField?: keyof T;
   searchParam?: string;
   statusParam?: string;
@@ -61,14 +67,20 @@ export function useListFilters<T extends Record<string, unknown>>(
       }
       if (search) {
         const q = search.toLowerCase();
-        return options.searchFields.some((field) => {
+        const fieldMatch = options.searchFields.some((field) => {
           const val = item[field];
           return typeof val === "string" && val.toLowerCase().includes(q);
         });
+        if (fieldMatch) return true;
+        const accessorMatch = options.searchAccessors?.some((acc) => {
+          const val = acc(item);
+          return typeof val === "string" && val.toLowerCase().includes(q);
+        });
+        return Boolean(accessorMatch);
       }
       return true;
     });
-  }, [items, search, statusFilter, options.searchFields, options.statusField]);
+  }, [items, search, statusFilter, options.searchFields, options.searchAccessors, options.statusField]);
 
   return { search, setSearch, statusFilter, setStatusFilter, filtered };
 }

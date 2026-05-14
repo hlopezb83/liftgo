@@ -1,0 +1,41 @@
+{
+  "version": "5.70.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: páginas detalle estandarizadas con useDialogState",
+  "category": "refactor",
+  "description": "Paso 4 del refactor arquitectónico: se uniforma el patrón selected/edit dialogs en páginas tipo lista y se centraliza el filtrado por campos derivados.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Nuevo hook useDialogState",
+      "details": [
+        "src/hooks/useDialogState.ts encapsula el patrón 'selected entity = open state' (con open/close/onOpenChange).",
+        "Incluye useToggleDialog para diálogos sin payload (crear/confirmar)."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "useListFilters acepta searchAccessors",
+      "details": [
+        "Permite buscar dentro de campos derivados/joined (ej. r.forklifts?.name) sin necesidad de un .filter() extra en cada página.",
+        "DamageTrackingPage elimina su extraFiltered redundante y delega la búsqueda al hook."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Nuevo hook useInventoryFilters",
+      "details": [
+        "src/hooks/inventory/useInventoryFilters.ts centraliza search, filtro por categoría y conteo de stock bajo para InventoryPage."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Páginas detalle adoptan el patrón estándar",
+      "details": [
+        "InventoryPage, OperatingExpensesPage, MaintenancePage y DamageTrackingPage migran sus useState de selected/edit a useDialogState.",
+        "Se reduce el boilerplate y se elimina la inconsistencia entre páginas en el manejo de sheets/diálogos."
+      ]
+    }
+  ]
+}

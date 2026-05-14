@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useDialogState } from "@/hooks/useDialogState";
 import { useDamageRecords } from "@/hooks/useDamageRecords";
 import { useDamagePhotoCounts } from "@/hooks/useDamagePhotoCounts";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -24,26 +24,20 @@ import type { DamageRecordWithJoins } from "@/types/rental";
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
   const { data: photoCounts } = useDamagePhotoCounts();
-  const [selectedRecord, setSelectedRecord] = useState<DamageRecordWithJoins | null>(null);
+  const detail = useDialogState<DamageRecordWithJoins>();
 
   const getPhotoCount = (id: string) => photoCounts?.[id] || 0;
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(records, {
     searchFields: ["description"],
+    searchAccessors: [
+      (r) => r.forklifts?.name,
+      (r) => r.customers?.name,
+    ],
     statusField: "status",
   });
 
-  const extraFiltered = filtered?.filter((r) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      r.description.toLowerCase().includes(q) ||
-      (r.forklifts?.name || "").toLowerCase().includes(q) ||
-      (r.customers?.name || "").toLowerCase().includes(q)
-    );
-  });
-
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(extraFiltered, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
     accessors: {
       created_at: (r) => r.created_at,
       forklift_name: (r) => r.forklifts?.name || "",
@@ -59,7 +53,7 @@ export default function DamageTrackingPage() {
       keyExtractor={(r) => r.id}
       emptyMessage="No se encontraron registros de daños"
       renderCard={(r) => (
-        <Card className="cursor-pointer" onClick={() => setSelectedRecord(r as DamageRecordWithJoins)}>
+        <Card className="cursor-pointer" onClick={() => detail.open(r as DamageRecordWithJoins)}>
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -124,7 +118,7 @@ export default function DamageTrackingPage() {
           <TableRow
             key={r.id}
             className="hover:bg-muted/50 cursor-pointer"
-            onClick={() => setSelectedRecord(r as DamageRecordWithJoins)}
+            onClick={() => detail.open(r as DamageRecordWithJoins)}
           >
             <TableCell className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</TableCell>
             <TableCell className="font-medium">{r.forklifts?.name || "—"}</TableCell>
@@ -146,9 +140,9 @@ export default function DamageTrackingPage() {
     />
 
     <DamageDetailSheet
-      record={selectedRecord}
-      open={!!selectedRecord}
-      onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
+      record={detail.selected}
+      open={detail.isOpen}
+      onOpenChange={detail.onOpenChange}
     />
     </>
   );

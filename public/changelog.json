@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.70.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: páginas detalle estandarizadas con useDialogState",
+    "category": "refactor"
+  },
+  {
     "version": "5.69.0",
     "date": "2026-05-14",
     "type": "minor",
