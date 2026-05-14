@@ -11,6 +11,7 @@ export default tseslint.config(
       "src/components/ui/**",
       "src/integrations/supabase/types.ts",
       "supabase/functions/**",
+      "scripts/**",
     ],
   },
   {

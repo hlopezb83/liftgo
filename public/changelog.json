@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.80.2",
+    "date": "2026-05-14",
+    "type": "patch",
+    "title": "Lint: 164 warnings react-refresh suprimidos en shims",
+    "category": "refactor"
+  },
+  {
     "version": "5.80.1",
     "date": "2026-05-14",
     "type": "patch",
