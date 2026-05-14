@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.67.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: queries de Supabase fuera de 6 vistas",
+    "category": "refactor"
+  },
+  {
     "version": "5.66.6",
     "date": "2026-05-14",
     "type": "patch",

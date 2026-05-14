@@ -1,36 +1,22 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { History } from "lucide-react";
 import { format } from "date-fns";
+import { useBookingStatusHistory } from "@/hooks/bookingDetail/useBookingStatusHistory";
 
 interface BookingStatusHistoryProps {
   bookingId: string;
 }
 
-export function BookingStatusHistory({ bookingId }: BookingStatusHistoryProps) {
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: ["booking_audit_logs", bookingId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("audit_logs")
-        .select("*")
-        .eq("table_name", "bookings")
-        .eq("record_id", bookingId)
-        .contains("changed_fields", ["status"])
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+function getStatus(data: unknown): string | null {
+  if (data && typeof data === "object" && "status" in data) {
+    return (data as Record<string, unknown>).status as string;
+  }
+  return null;
+}
 
-  const getStatus = (data: unknown): string | null => {
-    if (data && typeof data === "object" && "status" in data) {
-      return (data as Record<string, unknown>).status as string;
-    }
-    return null;
-  };
+export function BookingStatusHistory({ bookingId }: BookingStatusHistoryProps) {
+  const { data: logs = [], isLoading } = useBookingStatusHistory(bookingId);
 
   return (
     <Card>

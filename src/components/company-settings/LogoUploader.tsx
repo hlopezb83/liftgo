@@ -1,9 +1,8 @@
-import { useRef, useState } from "react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Upload, Trash2, ImageIcon } from "lucide-react";
+import { useUploadCompanyLogo } from "@/hooks/useUploadCompanyLogo";
 
 interface Props {
   logoUrl: string;
@@ -12,29 +11,14 @@ interface Props {
 
 export function LogoUploader({ logoUrl, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const { upload, uploading } = useUploadCompanyLogo();
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { toast.error("El archivo no debe superar 2MB"); return; }
-    if (!file.type.startsWith("image/")) { toast.error("Solo se permiten archivos de imagen"); return; }
-
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop();
-      const filePath = `company/logo_${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("documents").upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);
-      onChange(urlData.publicUrl);
-      toast.success("Logo subido correctamente");
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al subir logo");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+    const url = await upload(file);
+    if (url) onChange(url);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (

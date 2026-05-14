@@ -1,6 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { calculateRentalCost, computeTotals } from "@/lib/invoiceUtils";
+import { useContractFinancialSummary } from "@/hooks/contractDetail/useContractFinancialSummary";
+import { calculateRentalCost } from "@/lib/invoiceUtils";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { differenceInDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
@@ -24,18 +23,7 @@ export function RentalFinancialSummary({
   weeklyRate,
   monthlyRate,
 }: RentalFinancialSummaryProps) {
-  const { data: invoices } = useQuery({
-    queryKey: ["invoices", "booking", bookingId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invoices")
-        .select("total, status")
-        .eq("booking_id", bookingId)
-        .neq("status", "cancelled");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: invoices } = useContractFinancialSummary(bookingId);
 
   const start = parseDateLocal(startDate);
   const end = parseDateLocal(endDate);
