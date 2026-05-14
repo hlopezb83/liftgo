@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.73.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: hooks de formulario en triplete state/prefill/submit",
+    "category": "refactor"
+  },
+  {
     "version": "5.72.0",
     "date": "2026-05-14",
     "type": "minor",
