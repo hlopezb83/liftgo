@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,31 +11,22 @@ import { PartFormDialog, PART_CATEGORIES } from "@/components/inventory/PartForm
 import { SearchBar } from "@/components/SearchBar";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { useListPage } from "@/hooks/useListPage";
+import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
+import { useInventoryFilters } from "@/hooks/inventory/useInventoryFilters";
+import { useState, useCallback } from "react";
 
 export default function InventoryPage() {
   const { data: parts, isLoading } = usePartsInventory();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const formDialog = useToggleDialog();
   const [editing, setEditing] = useState<PartInventory | null>(null);
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [search, setSearch] = useState("");
-  const [selectedPart, setSelectedPart] = useState<PartInventory | null>(null);
+  const detail = useDialogState<PartInventory>();
 
-  const openCreate = () => { setEditing(null); setDialogOpen(true); };
-  const openEdit = (p: PartInventory) => { setEditing(p); setDialogOpen(true); };
+  const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount } =
+    useInventoryFilters(parts);
 
-  const filtered = useMemo(() => {
-    return (parts || []).filter((p) => {
-      if (filterCategory !== "all" && p.category !== filterCategory) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (!p.name.toLowerCase().includes(q) && !(p.sku || "").toLowerCase().includes(q)) return false;
-      }
-      return true;
-    });
-  }, [parts, filterCategory, search]);
-
-  const lowStockCount = useMemo(() => (parts || []).filter((p) => p.stock_quantity <= p.min_stock_level).length, [parts]);
+  const openCreate = useCallback(() => { setEditing(null); formDialog.openDialog(); }, [formDialog]);
+  const openEdit = useCallback((p: PartInventory) => { setEditing(p); formDialog.openDialog(); }, [formDialog]);
 
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
