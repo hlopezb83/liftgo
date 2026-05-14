@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDialogState } from "@/hooks/useDialogState";
 import { useForkliftMap } from "@/hooks/useForkliftMap";
 import { useMaintenanceLogs, type MaintenanceLog } from "@/hooks/useMaintenanceLogs";
 import { useGenerateRecurringMaintenance } from "@/hooks/useGenerateRecurringMaintenance";
@@ -28,7 +29,7 @@ export default function MaintenancePage() {
   const { data: logs, isLoading } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
   const generateRecurring = useGenerateRecurringMaintenance();
-  const [selectedLog, setSelectedLog] = useState<MaintenanceLog | null>(null);
+  const detail = useDialogState<MaintenanceLog>();
   const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
@@ -68,7 +69,7 @@ export default function MaintenancePage() {
       keyExtractor={(log) => log.id}
       emptyMessage="No se encontraron registros"
       renderCard={(log) => (
-        <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => setSelectedLog(log)} />
+        <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
       )}
     />
   ) : undefined;
@@ -135,16 +136,16 @@ export default function MaintenancePage() {
           </TableRow>
         }
         renderRow={(log) => (
-          <MaintenanceTableRow key={log.id} log={log} forkliftMap={forkliftMap} onClick={() => setSelectedLog(log)} />
+          <MaintenanceTableRow key={log.id} log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
         )}
         customContent={kanbanContent || mobileContent}
       />
 
       <MaintenanceDetailSheet
-        log={selectedLog}
-        open={!!selectedLog}
-        onOpenChange={(open) => { if (!open) setSelectedLog(null); }}
-        forkliftName={selectedLog ? (forkliftMap.get(selectedLog.forklift_id)?.name || "—") : ""}
+        log={detail.selected}
+        open={detail.isOpen}
+        onOpenChange={detail.onOpenChange}
+        forkliftName={detail.selected ? (forkliftMap.get(detail.selected.forklift_id)?.name || "—") : ""}
         onEdit={formCtl.openEdit}
       />
 
