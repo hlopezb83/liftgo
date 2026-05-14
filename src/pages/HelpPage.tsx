@@ -12,6 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUserManual } from "@/hooks/useUserManual";
 import { useUserRole } from "@/hooks/useUserRole";
 
+function getManualButtonLabel(isGenerating: boolean, hasManual: boolean): string {
+  if (isGenerating) return "Generando…";
+  if (hasManual) return "Regenerar";
+  return "Generar Manual";
+}
+
 /** Simple Markdown → HTML renderer (no deps) */
 function renderMarkdown(md: string): string {
   const html = md

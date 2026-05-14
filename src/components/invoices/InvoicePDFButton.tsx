@@ -8,6 +8,19 @@ import { parseLineItems } from "@/lib/lineItems";
 
 const GREEN = { r: 22, g: 163, b: 74 };
 
+type RGB = { r: number; g: number; b: number };
+
+function getInvoicePdfStatusLabel(status: string): string {
+  if (status === "paid") return "PAGADA";
+  if (status === "cancelled") return "CANCELADA";
+  return "PENDIENTE";
+}
+
+function getInvoicePdfStatusColor(status: string, paidColor: RGB): RGB {
+  if (status === "paid") return paidColor;
+  if (status === "cancelled") return { r: 220, g: 38, b: 38 };
+  return { r: 234, g: 179, b: 8 };
+}
 interface InvoicePDFButtonProps {
   invoiceId: string;
 }

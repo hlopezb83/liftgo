@@ -12,6 +12,13 @@ import { usePublicBranding } from "@/hooks/usePublicBranding";
 
 type Mode = "sign-in" | "forgot" | "reset";
 
+function getAuthSubmitLabel(loading: boolean, mode: Mode): string {
+  if (loading) return "Cargando...";
+  if (mode === "forgot") return "Enviar Enlace";
+  if (mode === "reset") return "Actualizar Contraseña";
+  return "Iniciar Sesión";
+}
+
 export default function AuthPage() {
   const { signIn, resetPassword, updatePassword } = useAuth();
   const { data: company } = usePublicBranding();

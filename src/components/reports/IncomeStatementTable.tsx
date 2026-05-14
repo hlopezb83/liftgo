@@ -23,6 +23,12 @@ interface Props {
 const formatCell = (row: StatementRow | ComparisonRow, value: number) =>
   row.isPercent ? `${value.toFixed(1)}%` : formatCurrency(value);
 
+function formatRowDelta(row: ComparisonRow): string {
+  const sign = row.delta >= 0 ? "+" : "";
+  if (row.isPercent) return `${sign}${row.delta.toFixed(1)} pp`;
+  return `${sign}${formatCurrency(row.delta)}`;
+}
+
 const cellColor = (row: StatementRow | ComparisonRow, value: number) => {
   if (row.isCost) return "text-destructive";
   if (value < 0) return "text-destructive";
