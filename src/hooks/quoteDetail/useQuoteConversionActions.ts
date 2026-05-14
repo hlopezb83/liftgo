@@ -110,34 +110,45 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     if (!quote) return;
     state.setIsConverting(true);
     try {
-      const createdBookingIds: string[] = [];
-      let ratesApplied = 0;
-      for (const a of assignments) {
-        // Aplicar tarifas pactadas al equipo antes de crear la reserva.
-        // Sólo sobreescribimos cuando viene un valor > 0 para no borrar tarifas existentes.
-        const rateUpdate: Record<string, number> = {};
-        if (a.dailyRate > 0) rateUpdate.daily_rate = a.dailyRate;
-        if (a.weeklyRate > 0) rateUpdate.weekly_rate = a.weeklyRate;
-        if (a.monthlyRate > 0) rateUpdate.monthly_rate = a.monthlyRate;
-        if (Object.keys(rateUpdate).length > 0) {
-          const { error: rateErr } = await supabase
-            .from("forklifts")
-            .update(rateUpdate)
-            .eq("id", a.forkliftId);
-          if (!rateErr) ratesApplied++;
-        }
+      // 1) Aplicar tarifas pactadas en paralelo (cada equipo puede tener tarifas distintas).
+      const rateUpdates = assignments
+        .map((a) => {
+          const rateUpdate: Record<string, number> = {};
+          if (a.dailyRate > 0) rateUpdate.daily_rate = a.dailyRate;
+          if (a.weeklyRate > 0) rateUpdate.weekly_rate = a.weeklyRate;
+          if (a.monthlyRate > 0) rateUpdate.monthly_rate = a.monthlyRate;
+          return { forkliftId: a.forkliftId, rateUpdate };
+        })
+        .filter((u) => Object.keys(u.rateUpdate).length > 0);
 
-        const bookingId = await createBooking.mutateAsync({
-          forklift_id: a.forkliftId,
-          start_date: quote.start_date ?? "",
-          end_date: quote.end_date ?? "",
-          customer_name: quote.customer_name,
-          customer_id: quote.customer_id,
-          status: "confirmed",
-          recurring_billing: recurring,
-        });
-        await supabase.from("bookings").update({ quote_id: quote.id }).eq("id", bookingId);
-        createdBookingIds.push(bookingId);
+      const rateResults = await Promise.all(
+        rateUpdates.map((u) =>
+          supabase.from("forklifts").update(u.rateUpdate).eq("id", u.forkliftId),
+        ),
+      );
+      const ratesApplied = rateResults.filter((r) => !r.error).length;
+
+      // 2) Crear todas las reservas en paralelo (independientes entre sí).
+      const createdBookingIds: string[] = await Promise.all(
+        assignments.map((a) =>
+          createBooking.mutateAsync({
+            forklift_id: a.forkliftId,
+            start_date: quote.start_date ?? "",
+            end_date: quote.end_date ?? "",
+            customer_name: quote.customer_name,
+            customer_id: quote.customer_id,
+            status: "confirmed",
+            recurring_billing: recurring,
+          }),
+        ),
+      );
+
+      // 3) Asociar todas las reservas a la cotización en una sola llamada.
+      if (createdBookingIds.length > 0) {
+        await supabase
+          .from("bookings")
+          .update({ quote_id: quote.id })
+          .in("id", createdBookingIds);
       }
       updateQuote.mutate({ id: quote.id, status: "accepted" });
       toast.success(`${createdBookingIds.length} reserva(s) creada(s) desde cotización`);

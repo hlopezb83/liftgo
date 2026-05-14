@@ -69,12 +69,11 @@ Deno.serve(async (req) => {
     );
 
     let generated = 0;
-    let skipped = (policies?.length ?? 0) - toGenerate.length;
+    const skipped = (policies?.length ?? 0) - toGenerate.length;
     const details: string[] = [];
 
-    for (const policy of toGenerate) {
-      // Insert maintenance log
-      const { error: insertErr } = await supabase.from("maintenance_logs").insert({
+    if (toGenerate.length > 0) {
+      const logsToInsert = toGenerate.map((policy: any) => ({
         forklift_id: policy.forklift_id,
         service_type: policy.service_type,
         description: policy.description || `Póliza mensual - ${policy.provider_name}`,
@@ -83,21 +82,29 @@ Deno.serve(async (req) => {
         performed_at: firstOfMonth,
         work_status: "completed",
         next_service_date: firstOfNextMonth,
-      });
+      }));
 
-      if (insertErr) {
-        details.push(`Error ${(policy as any).forklifts?.name}: ${insertErr.message}`);
-        continue;
+      const { error: bulkInsertErr } = await supabase
+        .from("maintenance_logs")
+        .insert(logsToInsert);
+
+      if (bulkInsertErr) {
+        details.push(`Error en inserción masiva: ${bulkInsertErr.message}`);
+      } else {
+        const policyIds = toGenerate.map((p: any) => p.id);
+        const { error: bulkUpdateErr } = await supabase
+          .from("maintenance_policies")
+          .update({ last_generated_month: currentMonth })
+          .in("id", policyIds);
+
+        if (bulkUpdateErr) {
+          details.push(`Logs insertados pero error al marcar pólizas: ${bulkUpdateErr.message}`);
+        }
+        generated = toGenerate.length;
+        for (const policy of toGenerate) {
+          details.push(`✓ ${(policy as any).forklifts?.name}`);
+        }
       }
-
-      // Update last_generated_month
-      await supabase
-        .from("maintenance_policies")
-        .update({ last_generated_month: currentMonth })
-        .eq("id", policy.id);
-
-      generated++;
-      details.push(`✓ ${(policy as any).forklifts?.name}`);
     }
 
     return new Response(

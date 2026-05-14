@@ -37,26 +37,28 @@ export function useAssignForklift() {
         .insert(rows);
       if (insertError) throw insertError;
 
-      // Update each forklift to 'sold' and log status change
-      for (const a of assignments) {
-        const { data: fl } = await supabase
-          .from("forklifts")
-          .select("status")
-          .eq("id", a.forkliftId)
-          .single();
+      // Bulk read current statuses (1 round trip), bulk update to 'sold' (1), bulk insert logs (1)
+      const ids = assignments.map((a) => a.forkliftId);
+      const { data: currentForklifts } = await supabase
+        .from("forklifts")
+        .select("id,status")
+        .in("id", ids);
+      const statusById = new Map((currentForklifts ?? []).map((f) => [f.id, f.status]));
 
-        await supabase
-          .from("forklifts")
-          .update({ status: "sold" })
-          .eq("id", a.forkliftId);
+      const { error: updateError } = await supabase
+        .from("forklifts")
+        .update({ status: "sold" })
+        .in("id", ids);
+      if (updateError) throw updateError;
 
-        await supabase.from("status_logs").insert({
-          forklift_id: a.forkliftId,
-          from_status: fl?.status || "available",
-          to_status: "sold",
-          note: "Asignado a cotización de venta",
-        });
-      }
+      const logs = assignments.map((a) => ({
+        forklift_id: a.forkliftId,
+        from_status: statusById.get(a.forkliftId) || "available",
+        to_status: "sold",
+        note: "Asignado a cotización de venta",
+      }));
+      const { error: logsError } = await supabase.from("status_logs").insert(logs);
+      if (logsError) throw logsError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
