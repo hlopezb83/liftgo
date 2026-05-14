@@ -119,6 +119,34 @@ export default function CRMPage() {
     setDialogOpen(true);
   };
 
+  const kanbanContent = isLoading ? (
+    <div className="flex gap-4">
+      {ACTIVE_STAGES.map((s) => (
+        <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
+      ))}
+    </div>
+  ) : (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="flex gap-3 h-full min-w-max">
+        {visibleStages.map((stage) => (
+          <KanbanColumn
+            key={stage.key}
+            stageKey={stage.key}
+            label={stage.label}
+            color={stage.color}
+            items={stage.items}
+            total={stage.total}
+            pipelineTotal={pipelineTotal}
+            density={density}
+            quoteMap={quoteMap}
+            onAdd={() => openCreate(stage.key)}
+            onCardClick={setDetailProspect}
+          />
+        ))}
+      </div>
+    </DragDropContext>
+  );
+
   return (
     <TooltipProvider delayDuration={300}>
       <PageTransition>
