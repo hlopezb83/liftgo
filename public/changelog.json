@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.80.1",
+    "date": "2026-05-14",
+    "type": "patch",
+    "title": "Lint impecable: 32 errores de Power of 10 corregidos",
+    "category": "refactor"
+  },
+  {
     "version": "5.80.0",
     "date": "2026-05-14",
     "type": "minor",
