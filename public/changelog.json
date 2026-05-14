@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.72.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: AppSidebar dividido en subcomponentes",
+    "category": "refactor"
+  },
+  {
     "version": "5.71.0",
     "date": "2026-05-14",
     "type": "minor",

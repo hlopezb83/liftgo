@@ -1,0 +1,33 @@
+{
+  "version": "5.72.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: AppSidebar dividido en subcomponentes",
+  "category": "refactor",
+  "description": "Paso 6 del refactor arquitectónico: AppSidebar (207 LOC) se descompone en piezas reutilizables y la lógica de permisos sale a un hook dedicado.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Nueva carpeta src/components/sidebar/",
+      "details": [
+        "navConfig.ts centraliza NAV_GROUPS y ALWAYS_VISIBLE_ROUTES.",
+        "SidebarBranding, SidebarNavSection, SidebarUserFooter y ThemeToggle quedan como componentes presentacionales independientes."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "useVisibleNavGroups",
+      "details": [
+        "Hook que combina rol + permisos y devuelve los grupos de navegación visibles, memoizados.",
+        "AppSidebar.tsx queda como un contenedor delgado de ~25 LOC."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "InvoicePDFButton ya estaba modularizado",
+      "details": [
+        "El paso 6 incluía dividir InvoicePDFButton; quedó cubierto en v5.67.0 con useInvoicePdfDownload + lib/pdf/invoice/build.ts."
+      ]
+    }
+  ]
+}
