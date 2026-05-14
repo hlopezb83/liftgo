@@ -11,7 +11,7 @@ export function useDocuments(entityType: string, entityId: string | undefined) {
         .from("documents")
         .select("*")
         .eq("entity_type", entityType)
-        .eq("entity_id", entityId!)
+        .eq("entity_id", entityId ?? "")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

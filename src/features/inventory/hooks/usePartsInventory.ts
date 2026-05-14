@@ -89,7 +89,7 @@ export function useMaintenanceParts(maintenanceLogId?: string) {
       const { data, error } = await supabase
         .from("maintenance_parts")
         .select("*, parts_inventory(name, sku, category)")
-        .eq("maintenance_log_id", maintenanceLogId!)
+        .eq("maintenance_log_id", maintenanceLogId ?? "")
         .order("created_at");
       if (error) throw error;
       return data;

@@ -51,7 +51,7 @@ export function useBooking(bookingId?: string) {
       const { data, error } = await supabase
         .from("bookings")
         .select("*, forklifts(name, model)")
-        .eq("id", bookingId!)
+        .eq("id", bookingId ?? "")
         .single();
       if (error) throw error;
       return data;

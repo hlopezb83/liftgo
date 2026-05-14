@@ -81,7 +81,7 @@ export function ProspectCard({ prospect, index, quoteNumber, density, onClick }:
                     className="text-[11px] cursor-pointer hover:bg-accent gap-1"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(ROUTES.quotes.detail(prospect.quote_id!));
+                      if (prospect.quote_id) navigate(ROUTES.quotes.detail(prospect.quote_id));
                     }}
                   >
                     <FileText className="h-3 w-3" />

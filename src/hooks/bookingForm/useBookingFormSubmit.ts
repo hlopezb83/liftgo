@@ -23,12 +23,14 @@ export function useBookingFormSubmit() {
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
 
   const onSubmit = (data: BookingFormData) => {
+    const { from, to } = data.date_range;
+    if (!from || !to) return;
     const selectedCustomer = customers?.find((c) => c.id === data.customer_id);
     createBooking.mutate(
       {
         forklift_id: data.forklift_id,
-        start_date: format(data.date_range.from!, "yyyy-MM-dd"),
-        end_date: format(data.date_range.to!, "yyyy-MM-dd"),
+        start_date: format(from, "yyyy-MM-dd"),
+        end_date: format(to, "yyyy-MM-dd"),
         customer_name: selectedCustomer?.name || data.customer_name || null,
         customer_contact: selectedCustomer?.email || data.customer_contact || null,
         customer_id: data.customer_id || null,
@@ -41,7 +43,7 @@ export function useBookingFormSubmit() {
           setPostBooking({
             bookingId,
             forkliftId: data.forklift_id,
-            startDate: format(data.date_range.from!, "yyyy-MM-dd"),
+            startDate: format(from, "yyyy-MM-dd"),
             customerAddress: cust?.address || null,
           });
         },

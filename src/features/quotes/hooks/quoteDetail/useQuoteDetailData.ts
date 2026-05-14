@@ -22,7 +22,7 @@ export function useQuoteDetailData(id: string | undefined) {
     queryKey: ["bookings_for_quote", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id!);
+      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
       return data || [];
     },
   });

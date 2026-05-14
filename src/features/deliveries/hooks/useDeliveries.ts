@@ -8,7 +8,7 @@ export function useDelivery(id?: string) {
     queryKey: ["deliveries", "detail", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("deliveries").select("*, forklifts(name, model)").eq("id", id!).single();
+      const { data, error } = await supabase.from("deliveries").select("*, forklifts(name, model)").eq("id", id ?? "").single();
       if (error) throw error;
       return data;
     },

@@ -14,7 +14,7 @@ export function useQuoteAssignments(quoteId: string | undefined) {
       const { data, error } = await supabase
         .from("quote_assigned_forklifts")
         .select("*")
-        .eq("quote_id", quoteId!)
+        .eq("quote_id", quoteId ?? "")
         .order("line_index");
       if (error) throw error;
       return data;

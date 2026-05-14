@@ -29,7 +29,7 @@ const REPORT_TYPES = [
 export default function ReportsPage() {
   const [searchParams] = useSearchParams();
   const initialType = REPORT_TYPES.some((t) => t.value === searchParams.get("type"))
-    ? searchParams.get("type")!
+    ? (searchParams.get("type") ?? "utilization")
     : "utilization";
   const [reportType, setReportType] = useState(initialType);
   const [dateRange, setDateRange] = useState<DateRange>({ from: subMonths(nowMty(), 3), to: nowMty() });

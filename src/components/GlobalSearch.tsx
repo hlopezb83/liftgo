@@ -63,8 +63,9 @@ export function GlobalSearch() {
   const groups = useMemo(() => {
     const map = new Map<string, Item[]>();
     ITEMS.forEach((i) => {
-      if (!map.has(i.group)) map.set(i.group, []);
-      map.get(i.group)!.push(i);
+      const arr = map.get(i.group) ?? [];
+      arr.push(i);
+      map.set(i.group, arr);
     });
     return [...map.entries()];
   }, []);
