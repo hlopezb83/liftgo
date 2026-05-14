@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.80.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Adopción de Power of 10: principios de desarrollo formales",
+    "category": "architecture"
+  },
+  {
     "version": "5.79.0",
     "date": "2026-05-14",
     "type": "minor",

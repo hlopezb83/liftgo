@@ -345,7 +345,31 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ---
 
-## 18. Referencias
+## 18. Principios de desarrollo (Power of 10, calibrados)
+
+Inspirado en las "Power of 10 Rules" de la NASA, adaptado al contexto de un ERP React + Supabase. Aplica a **código nuevo o tocado**; no obliga a refactorear retroactivamente.
+
+| # | Regla | Cómo se aplica en LiftGo | Enforcement |
+|---|---|---|---|
+| 1 | **Flujo de control simple** | Early returns para `loading`/`error` antes del JSX principal. Sin ternarios anidados >2 niveles. | ESLint `complexity ≤ 12` (warn). |
+| 2 | **Límites fijos en datos** | Toda query con paginación: server-side (`.limit()` ≤ 500) **o** client-side documentada vía `usePagination` (25/página). Nunca renderizar listas ilimitadas. | Revisión IA. |
+| 3 | **Sin fugas de memoria** | Todo `useEffect` con suscripción Supabase Realtime, `setInterval` o listener **debe** retornar cleanup. | ESLint `react-hooks/exhaustive-deps: error`. |
+| 4 | **Micro-componentes** | Componentes ≤ **150 LOC**, hooks ≤ **80 LOC**. Si crece: extraer subcomponente o hook. | ESLint `max-lines-per-function: 150` (warn). |
+| 5 | **Verificaciones densas** | Tipos generados de Supabase. `if (!data) return …` antes de renderizar. `ErrorBoundary` en rutas. Validación con Zod en formularios. | ESLint `no-non-null-assertion: error`. |
+| 6 | **Estado local primero** | `useState` por defecto. Elevar solo si hermanos lo comparten. Context solo para concerns transversales (Auth). | Revisión IA. |
+| 7 | **Manejo exhaustivo de APIs** | Toda llamada Supabase verifica `error` y notifica al usuario vía `sonner`. Nunca asumir éxito silencioso. | Revisión IA. |
+| 8 | **Herramientas estándar** | Solo Vite + Tailwind estándar. Sin macros, sin scripts de diseño externos. | Revisión IA. |
+| 9 | **Cero prop drilling** | Máximo **3 niveles** de props. Si va más profundo: composición (`children`), Context, o restructurar. | Revisión IA. |
+| 10 | **Compilación impecable** | Cero warnings en consola. Cero errores TS. Prohibido `any` para silenciar errores. | ESLint `no-explicit-any: error`, `no-console: warn`. |
+
+**Excepciones documentadas:**
+- Tests (`**/*.test.{ts,tsx}`, `src/test/**`) están exentos de `no-explicit-any` y `max-lines-per-function`.
+- Archivos generados (`src/integrations/supabase/types.ts`, `src/components/ui/**`) están en `ignores`.
+- `console.warn` y `console.error` permitidos para diagnósticos legítimos.
+
+---
+
+## 19. Referencias
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
