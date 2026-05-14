@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.79.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: 19 módulos restantes migrados a src/features/",
+    "category": "refactor"
+  },
+  {
     "version": "5.78.0",
     "date": "2026-05-14",
     "type": "minor",
