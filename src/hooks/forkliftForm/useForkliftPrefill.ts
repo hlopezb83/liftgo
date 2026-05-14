@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 import type { ForkliftFormData } from "@/lib/formSchemas";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -6,7 +6,7 @@ type ExistingForklift = Tables<"forklifts"> | null | undefined;
 
 export function useForkliftPrefill(
   existing: ExistingForklift,
-  setForm: (form: ForkliftFormData) => void,
+  setForm: Dispatch<SetStateAction<ForkliftFormData>>,
 ) {
   useEffect(() => {
     if (!existing) return;
