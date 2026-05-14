@@ -11,7 +11,7 @@ export function useBookingExtensions(bookingId?: string) {
       const { data, error } = await supabase
         .from("booking_extensions")
         .select("*")
-        .eq("booking_id", bookingId!)
+        .eq("booking_id", bookingId ?? "")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

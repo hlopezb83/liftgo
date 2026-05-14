@@ -11,7 +11,7 @@ export function useCollectionNotes(invoiceId?: string) {
       const { data, error } = await supabase
         .from("collection_notes")
         .select("*")
-        .eq("invoice_id", invoiceId!)
+        .eq("invoice_id", invoiceId ?? "")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

@@ -14,7 +14,7 @@ export function usePayments(invoiceId: string | undefined) {
       const { data, error } = await supabase
         .from("payments")
         .select("*")
-        .eq("invoice_id", invoiceId!)
+        .eq("invoice_id", invoiceId ?? "")
         .order("payment_date", { ascending: false });
       if (error) throw error;
       return data;

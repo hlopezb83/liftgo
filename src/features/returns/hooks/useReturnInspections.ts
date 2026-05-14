@@ -9,7 +9,7 @@ export function useReturnInspection(id?: string) {
     queryKey: ["return_inspections", "detail", id],
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("return_inspections").select("*, bookings(customer_name, start_date, end_date), forklifts(name, model)").eq("id", id!).single();
+      const { data, error } = await supabase.from("return_inspections").select("*, bookings(customer_name, start_date, end_date), forklifts(name, model)").eq("id", id ?? "").single();
       if (error) throw error;
       return data;
     },
