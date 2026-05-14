@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.76.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: módulo CRM migrado a features/crm/",
+    "category": "refactor"
+  },
+  {
     "version": "5.75.0",
     "date": "2026-05-14",
     "type": "patch",
