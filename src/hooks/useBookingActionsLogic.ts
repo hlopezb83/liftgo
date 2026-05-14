@@ -1,1 +1,1 @@
-export * from "./bookings/useBookingActionsLogic";
+export * from "@/features/bookings/hooks/useBookingActionsLogic";
