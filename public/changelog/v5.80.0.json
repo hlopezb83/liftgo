@@ -1,0 +1,16 @@
+{
+  "version": "5.80.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Adopción de Power of 10: principios de desarrollo formales",
+  "category": "architecture",
+  "description": "Se formalizaron 10 reglas de desarrollo inspiradas en las Power of 10 de la NASA, calibradas para el contexto React + Supabase de LiftGo. Aplican a código nuevo o tocado; no se refactorea código existente que las viole.",
+  "changes": [
+    "Documentadas en architecture.md sección §18 con tabla de enforcement y excepciones",
+    "Agregadas a la memoria del proyecto (mem://arch/power-of-10) para inyectarse en cada turno de la IA",
+    "Reglas ESLint endurecidas: no-explicit-any, no-non-null-assertion y react-hooks/exhaustive-deps ahora son error",
+    "complexity bajada de 15 a 12 (warning) para forzar early returns",
+    "Nuevo override: tests exentos de no-explicit-any y max-lines-per-function",
+    "Reglas no automatizables (paginación obligatoria, manejo de errores Supabase, prop drilling ≤3 niveles, herramientas estándar) quedan como revisión manual e IA"
+  ]
+}
