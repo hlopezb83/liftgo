@@ -1,0 +1,23 @@
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { useContract, useUpdateContract } from "@/features/contracts/hooks/useContracts";
+
+/**
+ * Centraliza el id, fetch, mutación y handler de status de la página de detalle
+ * de Contrato para que el componente de página quede declarativo.
+ */
+export function useContractDetailLogic() {
+  const { id } = useParams();
+  const { data: contract, isLoading } = useContract(id);
+  const updateContract = useUpdateContract();
+
+  const setStatus = (status: string, extra?: Record<string, unknown>) => {
+    if (!id) return;
+    updateContract.mutate(
+      { id, status, ...extra },
+      { onSuccess: () => toast.success(`Contrato marcado como ${status}`) }
+    );
+  };
+
+  return { id, contract, isLoading, setStatus };
+}
