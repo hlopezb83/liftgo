@@ -1,0 +1,36 @@
+{
+  "version": "5.76.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: módulo CRM migrado a features/crm/",
+  "category": "refactor",
+  "description": "Paso 10 (piloto) del refactor arquitectónico: el módulo CRM se reorganiza bajo src/features/crm/{components,hooks,lib,pages} para validar la estructura por feature.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Nueva estructura src/features/crm/",
+      "details": [
+        "components/ — KanbanColumn, ProspectCard, ProspectDetailSheet, ProspectFormDialog, CRMToolbar, CRMHeaderKPIs, CloseWonDialog, CloseLostDialog, ProspectHistoryCard y prospect-form/.",
+        "hooks/ — useProspects… (useCRMFilters, useCRMMetrics, useCRMPageDialogs, useProspectForm, useProspectGuard).",
+        "lib/constants.ts — antes en src/lib/constants/crm.ts.",
+        "pages/ — CRMPage y CRMClosedPage."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Shims de compatibilidad y router actualizado",
+      "details": [
+        "src/components/crm/, src/hooks/crm/ y src/lib/constants/crm.ts quedan como shims `export *` para no romper imports externos.",
+        "src/lib/routes-config.tsx ahora hace lazy import desde @/features/crm/pages/."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Patrón validado para próximas migraciones",
+      "details": [
+        "Si el patrón funciona, los siguientes módulos candidatos son Invoices, Bookings, Customers y Maintenance.",
+        "La migración módulo por módulo permite mantener shims temporales hasta que todos los importadores se actualicen."
+      ]
+    }
+  ]
+}
