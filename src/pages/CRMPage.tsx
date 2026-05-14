@@ -174,7 +174,7 @@ export default function CRMPage() {
               createProspect.mutate(data);
             }
           }}
-          onDelete={dialogs.editingProspect ? () => deleteProspect.mutate(dialogs.editingProspect!.id) : undefined}
+          onDelete={dialogs.editingProspect ? (() => { const target = dialogs.editingProspect; if (target) deleteProspect.mutate(target.id); }) : undefined}
         />
       </PageTransition>
     </TooltipProvider>

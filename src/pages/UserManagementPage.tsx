@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,8 @@ import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import type { AppRole } from "@/hooks/useUserRole";
 
 import { useUsersWithRoles, useToggleStatus, type UserRow } from "@/hooks/useUserManagement";
+import { useUserManagementDialogs } from "@/hooks/users/useUserManagementDialogs";
+import { useUserManagementFilters } from "@/hooks/users/useUserManagementFilters";
 import { CredentialsDialog } from "@/components/users/CredentialsDialog";
 import { InviteUserDialog } from "@/components/users/InviteUserDialog";
 import { EditNameDialog } from "@/components/users/EditNameDialog";
@@ -35,23 +36,8 @@ export default function UserManagementPage() {
   const { data: users, isLoading } = useUsersWithRoles();
   const toggleStatus = useToggleStatus();
 
-  const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
-  const [editTarget, setEditTarget] = useState<UserRow | null>(null);
-  const [passwordTarget, setPasswordTarget] = useState<UserRow | null>(null);
-  const [createdEmail, setCreatedEmail] = useState<string | null>(null);
-  const [roleChangeTarget, setRoleChangeTarget] = useState<{ user: UserRow; newRole: AppRole } | null>(null);
-
-  const [search, setSearch] = useState("");
-  const [filterRole, setFilterRole] = useState<string>("all");
-
-  const filtered = useMemo(() => (users ?? []).filter((u) => {
-    const matchesSearch = !search ||
-      (u.full_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-      (u.email ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchesRole = filterRole === "all" || u.role === filterRole;
-    return matchesSearch && matchesRole;
-  }), [users, search, filterRole]);
-
+  const dialogs = useUserManagementDialogs();
+  const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
   const handleToggleStatus = (userId: string, currentActive: boolean) => {
@@ -59,7 +45,7 @@ export default function UserManagementPage() {
   };
 
   const handleRoleChange = (user: UserRow, newRole: AppRole) => {
-    setRoleChangeTarget({ user, newRole });
+    dialogs.setRoleChangeTarget({ user, newRole });
   };
 
   const renderRow = (u: UserRow) => (
@@ -98,14 +84,14 @@ export default function UserManagementPage() {
       </TableCell>
       <TableCell>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => setEditTarget(u)}>
+          <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => dialogs.setEditTarget(u)}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => setPasswordTarget(u)}>
+          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => dialogs.setPasswordTarget(u)}>
             <KeyRound className="h-4 w-4" />
           </Button>
           {u.user_id !== currentUser?.id && (
-            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => setDeleteTarget(u)}>
+            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => dialogs.setDeleteTarget(u)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
@@ -124,14 +110,14 @@ export default function UserManagementPage() {
             {!u.is_active && <Badge variant="destructive" className="text-[10px] px-1.5">Inactivo</Badge>}
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setEditTarget(u)}>
+            <Button variant="ghost" size="icon" onClick={() => dialogs.setEditTarget(u)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setPasswordTarget(u)}>
+            <Button variant="ghost" size="icon" onClick={() => dialogs.setPasswordTarget(u)}>
               <KeyRound className="h-4 w-4" />
             </Button>
             {u.user_id !== currentUser?.id && (
-              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(u)}>
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => dialogs.setDeleteTarget(u)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
@@ -208,11 +194,11 @@ export default function UserManagementPage() {
         mobileKeyExtractor={(u) => (u as UserRow).user_id}
       />
 
-      <DeleteUserDialog user={deleteTarget} onClose={() => setDeleteTarget(null)} />
-      <RoleChangeDialog target={roleChangeTarget} onClose={() => setRoleChangeTarget(null)} />
-      <EditNameDialog user={editTarget} onClose={() => setEditTarget(null)} />
-      <CredentialsDialog email={createdEmail} onClose={() => setCreatedEmail(null)} />
-      <SetPasswordDialog user={passwordTarget} onClose={() => setPasswordTarget(null)} />
+      <DeleteUserDialog user={dialogs.deleteTarget} onClose={() => dialogs.setDeleteTarget(null)} />
+      <RoleChangeDialog target={dialogs.roleChangeTarget} onClose={() => dialogs.setRoleChangeTarget(null)} />
+      <EditNameDialog user={dialogs.editTarget} onClose={() => dialogs.setEditTarget(null)} />
+      <CredentialsDialog email={dialogs.createdEmail} onClose={() => dialogs.setCreatedEmail(null)} />
+      <SetPasswordDialog user={dialogs.passwordTarget} onClose={() => dialogs.setPasswordTarget(null)} />
     </>
   );
 }
