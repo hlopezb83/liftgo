@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/hooks/usePublicBranding";
 import { LogOut, LayoutDashboard, CalendarDays, Receipt, FileText } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -14,13 +13,13 @@ const tabs = [
 ];
 
 export default function CustomerPortalLayout() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { data: company } = usePublicBranding();
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     navigate("/");
   };
 
