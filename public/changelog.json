@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.77.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: módulo Invoices migrado a features/invoices/",
+    "category": "refactor"
+  },
+  {
     "version": "5.76.0",
     "date": "2026-05-14",
     "type": "minor",
