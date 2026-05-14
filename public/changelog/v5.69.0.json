@@ -1,0 +1,27 @@
+{
+  "version": "5.69.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: ReturnInspectionPage e InvoicesPage modularizadas",
+  "category": "refactor",
+  "description": "Paso 3 del refactor arquitectónico: se separa la lógica de diálogo y filtros de las vistas hacia hooks dedicados.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "ReturnInspectionPage: hook useReturnInspectionDialog",
+      "details": [
+        "Nuevo hook src/hooks/returnInspection/useReturnInspectionDialog.ts que encapsula el estado del diálogo, el formulario, el deep-link por ?booking_id= y el handler de submit (createInspection).",
+        "Se exporta initialReturnInspectionForm como constante reutilizable.",
+        "ReturnInspectionPage queda como contenedor puro de UI: solo lee datos, calcula activeBookings y orquesta render."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "InvoicesPage: hook useInvoicesFilters",
+      "details": [
+        "Nuevo hook src/hooks/invoices/useInvoicesFilters.ts que centraliza search, statusFilter, el caso especial 'overdue' (sent/partial vencidas) y el rango de fechas con sincronización en URL (?from=&to=).",
+        "InvoicesPage se reduce a la composición de filtros, paginación y render de tabla/mobile."
+      ]
+    }
+  ]
+}

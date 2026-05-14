@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useGenerateRecurringInvoices } from "@/hooks/useGenerateRecurringInvoices";
+import { useInvoicesFilters } from "@/hooks/invoices/useInvoicesFilters";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
@@ -19,9 +19,6 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { RoleGuard } from "@/components/RoleGuard";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
-import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
-import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
@@ -30,61 +27,10 @@ export default function InvoicesPage() {
   const navigate = useNavigate();
   const generateRecurring = useGenerateRecurringInvoices();
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered: baseFiltered } = useListFilters(invoices, {
-    searchFields: ["invoice_number", "customer_name"],
-    statusField: "status",
-  });
+  const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, filtered } =
+    useInvoicesFilters(invoices);
 
-  const filtered = useMemo(() => {
-    if (statusFilter !== "overdue") return baseFiltered;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const q = search.toLowerCase();
-    return (invoices || []).filter((inv) => {
-      if (!inv.due_date) return false;
-      if (!["sent", "partial"].includes(inv.status)) return false;
-      if (parseISO(inv.due_date) >= today) return false;
-      if (search) {
-        return [inv.invoice_number, inv.customer_name || ""].some((v) => v.toLowerCase().includes(q));
-      }
-      return true;
-    });
-  }, [invoices, baseFiltered, statusFilter, search]);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const fromParam = searchParams.get("from");
-  const toParam = searchParams.get("to");
-  const dateRange = useMemo(() => {
-    if (!fromParam && !toParam) return undefined;
-    return {
-      from: fromParam ? parseISO(fromParam) : undefined,
-      to: toParam ? parseISO(toParam) : undefined,
-    };
-  }, [fromParam, toParam]);
-
-  const setDateRange = (range?: { from?: Date; to?: Date }) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (range?.from) next.set("from", range.from.toISOString().slice(0, 10));
-      else next.delete("from");
-      if (range?.to) next.set("to", range.to.toISOString().slice(0, 10));
-      else next.delete("to");
-      return next;
-    }, { replace: true });
-  };
-
-  const dateFiltered = useMemo(() => {
-    if (!filtered) return filtered;
-    if (!dateRange?.from && !dateRange?.to) return filtered;
-    const start = dateRange.from ? startOfDay(dateRange.from) : new Date(-8640000000000000);
-    const end = dateRange.to ? endOfDay(dateRange.to) : new Date(8640000000000000);
-    return filtered.filter((inv) => {
-      if (!inv.issued_at) return false;
-      return isWithinInterval(parseISO(inv.issued_at), { start, end });
-    });
-  }, [filtered, dateRange]);
-
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(dateFiltered, {
+  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
     defaultSortKey: "invoice_number",
     defaultSortDirection: "desc",
     accessors: {
@@ -138,7 +84,7 @@ export default function InvoicesPage() {
               Generar Recurrentes
             </Button>
           </RoleGuard>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (dateFiltered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("facturas.csv", (filtered || []).map(inv => ({ "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total, Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
           <Button size="sm" onClick={() => navigate("/invoices/new")}><Plus className="h-4 w-4 mr-1" />Nueva Factura</Button>
         </div>
       }
