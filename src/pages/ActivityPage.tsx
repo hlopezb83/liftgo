@@ -46,22 +46,46 @@ export default function ActivityPage() {
   const { data: activities, isLoading } = useActivityFeed(100, filter === "all" ? undefined : filter);
   const navigate = useNavigate();
 
+  const filterControl = (
+    <Select value={filter} onValueChange={setFilter}>
+      <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {ENTITY_TYPES.map((t) => <SelectItem key={t} value={t}>{ENTITY_LABELS[t] || t}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  );
+
+  if (isLoading) {
+    return (
+      <PageTransition>
+        <div className="p-6 space-y-6">
+          <PageHeader title="Actividad Reciente" subtitle="Eventos recientes del sistema" />
+          {filterControl}
+          <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-16" />)}</div>
+        </div>
+      </PageTransition>
+    );
+  }
+
+  if (!activities || activities.length === 0) {
+    return (
+      <PageTransition>
+        <div className="p-6 space-y-6">
+          <PageHeader title="Actividad Reciente" subtitle="Eventos recientes del sistema" />
+          {filterControl}
+          <p className="text-center text-muted-foreground py-10">Sin actividad aún</p>
+        </div>
+      </PageTransition>
+    );
+  }
+
   return (
     <PageTransition>
-    <div className="p-6 space-y-6">
-      <PageHeader title="Actividad Reciente" subtitle="Eventos recientes del sistema" />
-      <Select value={filter} onValueChange={setFilter}>
-        <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {ENTITY_TYPES.map((t) => <SelectItem key={t} value={t}>{ENTITY_LABELS[t] || t}</SelectItem>)}
-        </SelectContent>
-      </Select>
-
-      {isLoading ? (
-        <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-16" />)}</div>
-      ) : (
+      <div className="p-6 space-y-6">
+        <PageHeader title="Actividad Reciente" subtitle="Eventos recientes del sistema" />
+        {filterControl}
         <div className="space-y-2">
-          {activities?.map((a) => (
+          {activities.map((a) => (
             <Card
               key={a.id}
               className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -72,8 +96,8 @@ export default function ActivityPage() {
             >
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                   <p className="font-medium text-sm">{translateActivityTitle(a.title, a.event_type, a.entity_type)}</p>
-                   <p className="text-xs text-muted-foreground">{translateActivityDescription(a.description, a.event_type, a.entity_type)}</p>
+                  <p className="font-medium text-sm">{translateActivityTitle(a.title, a.event_type, a.entity_type)}</p>
+                  <p className="text-xs text-muted-foreground">{translateActivityDescription(a.description, a.event_type, a.entity_type)}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <StatusBadge status={a.event_type} />
@@ -82,12 +106,8 @@ export default function ActivityPage() {
               </CardContent>
             </Card>
           ))}
-          {activities?.length === 0 && (
-            <p className="text-center text-muted-foreground py-10">Sin actividad aún</p>
-          )}
         </div>
-      )}
-    </div>
+      </div>
     </PageTransition>
   );
 }
