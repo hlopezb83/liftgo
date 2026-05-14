@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { lazy, useEffect, useState, type ComponentType } from "react";
 
 // Lazy-loaded pages
