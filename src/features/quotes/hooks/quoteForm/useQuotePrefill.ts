@@ -20,79 +20,86 @@ interface Props {
   state: State;
 }
 
+const matchModel = (item: LineItem, models: EquipmentModel[]) =>
+  models.find((m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model));
+
+function applyBaseFields(q: ExistingQuote, state: State, isSale: boolean) {
+  state.setQuoteType(isSale ? "sale" : "rental");
+  state.setCustomerId(q.customer_id || "");
+  state.setCustomerName(q.customer_name || "");
+  if (q.start_date && q.end_date) {
+    state.setDateRange({ from: parseDateLocal(q.start_date), to: parseDateLocal(q.end_date) });
+  }
+  state.setTaxRate(String(q.tax_rate));
+  state.setCurrency(q.currency || "MXN");
+  state.setNotes(q.notes || "");
+  state.setValidUntil(q.valid_until ? parseDateLocal(q.valid_until) : undefined);
+}
+
+function applyLogistics(allItems: LineItem[], state: State) {
+  const logisticsItem = allItems.find((item) => item.description?.includes("Logística"));
+  if (!logisticsItem) return;
+  state.setIncludeLogistics(true);
+  state.setLogisticsCost(logisticsItem.unit_price || logisticsItem.total || 0);
+}
+
+function applySaleLines(items: LineItem[], models: EquipmentModel[], state: State) {
+  if (items.length === 0) return;
+  const rebuilt = items.map((item) => {
+    const found = matchModel(item, models);
+    return {
+      modelId: found?.id || "",
+      quantity: item.quantity || 1,
+      unitPrice: item.unit_price || 0,
+      discount: item.discount || 0,
+      discountType: (item.discount_type || "%") as "%" | "$",
+    };
+  });
+  state.setSaleLines(rebuilt);
+}
+
+function applyRentalLines(items: LineItem[], q: ExistingQuote, models: EquipmentModel[], state: State) {
+  const meta = (q.rental_meta as RentalLine[] | undefined)
+    || ((items as Array<LineItem & { _rentalMeta?: RentalLine[] }>)?.[0]?._rentalMeta);
+  if (meta && meta.length > 0) {
+    state.setRentalLines(meta);
+    return;
+  }
+  if (items.length === 0) return;
+  const matched = new Map<string, RentalLine>();
+  for (const item of items) {
+    const found = matchModel(item, models);
+    if (found && !matched.has(found.id)) {
+      matched.set(found.id, {
+        modelId: found.id,
+        quantity: 1,
+        dailyRate: found.default_daily_rate ?? 0,
+        weeklyRate: found.default_weekly_rate ?? 0,
+        monthlyRate: found.default_monthly_rate ?? 0,
+        discount: item.discount || 0,
+        discountType: (item.discount_type || "%") as "%" | "$",
+      });
+    }
+  }
+  if (matched.size > 0) state.setRentalLines(Array.from(matched.values()));
+}
+
 export function useQuotePrefill({ existingQuote, equipmentModels, state }: Props) {
   useEffect(() => {
-    if (existingQuote) {
-      const isSale = existingQuote.quote_type === "sale";
-      state.setQuoteType(isSale ? "sale" : "rental");
-      state.setCustomerId(existingQuote.customer_id || "");
-      state.setCustomerName(existingQuote.customer_name || "");
-      if (existingQuote.start_date && existingQuote.end_date) {
-        state.setDateRange({ from: parseDateLocal(existingQuote.start_date), to: parseDateLocal(existingQuote.end_date) });
-      }
-      state.setTaxRate(String(existingQuote.tax_rate));
-      state.setCurrency((existingQuote as { currency?: string }).currency || "MXN");
-      state.setNotes(existingQuote.notes || "");
-      state.setValidUntil(existingQuote.valid_until ? parseDateLocal(existingQuote.valid_until) : undefined);
-
-      const allItems = (existingQuote.line_items as LineItem[]) || [];
-      const logisticsItem = allItems.find((item) => item.description?.includes("Logística"));
-      if (logisticsItem) {
-        state.setIncludeLogistics(true);
-        state.setLogisticsCost(logisticsItem.unit_price || logisticsItem.total || 0);
-      }
-
-      if (isSale && equipmentModels) {
-        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
-        if (nonLogisticsItems.length > 0) {
-          const rebuilt = nonLogisticsItems.map((item) => {
-            const found = equipmentModels.find(
-              (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
-            );
-            return {
-              modelId: found?.id || "",
-              quantity: item.quantity || 1,
-              unitPrice: item.unit_price || 0,
-              discount: item.discount || 0,
-              discountType: (item.discount_type || "%") as "%" | "$",
-            };
-          });
-          state.setSaleLines(rebuilt);
-        }
-      }
-
-      if (!isSale && equipmentModels) {
-        const nonLogisticsItems = allItems.filter((item) => !item.description?.includes("Logística"));
-        const meta = (existingQuote.rental_meta as RentalLine[] | undefined)
-          || ((allItems as Array<LineItem & { _rentalMeta?: RentalLine[] }>)?.[0]?._rentalMeta);
-        if (meta && meta.length > 0) {
-          state.setRentalLines(meta);
-        } else if (nonLogisticsItems.length > 0) {
-          const matchedModels = new Map<string, RentalLine>();
-          for (const item of nonLogisticsItems) {
-            const found = equipmentModels.find(
-              (m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model)
-            );
-            if (found && !matchedModels.has(found.id)) {
-              matchedModels.set(found.id, {
-                modelId: found.id,
-                quantity: 1,
-                dailyRate: found.default_daily_rate ?? 0,
-                weeklyRate: found.default_weekly_rate ?? 0,
-                monthlyRate: found.default_monthly_rate ?? 0,
-                discount: item.discount || 0,
-                discountType: (item.discount_type || "%") as "%" | "$",
-              });
-            }
-          }
-          if (matchedModels.size > 0) {
-            state.setRentalLines(Array.from(matchedModels.values()));
-          }
-        }
-      }
-    } else if (!state.validUntil) {
-      state.setValidUntil(addDays(nowMty(), 30));
+    if (!existingQuote) {
+      if (!state.validUntil) state.setValidUntil(addDays(nowMty(), 30));
+      return;
     }
+    const isSale = existingQuote.quote_type === "sale";
+    applyBaseFields(existingQuote, state, isSale);
+
+    const allItems = (existingQuote.line_items as LineItem[]) || [];
+    applyLogistics(allItems, state);
+
+    if (!equipmentModels) return;
+    const nonLogistics = allItems.filter((item) => !item.description?.includes("Logística"));
+    if (isSale) applySaleLines(nonLogistics, equipmentModels, state);
+    else applyRentalLines(nonLogistics, existingQuote, equipmentModels, state);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingQuote, equipmentModels]);
 }

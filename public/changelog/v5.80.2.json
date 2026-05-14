@@ -2,12 +2,14 @@
   "version": "5.80.2",
   "date": "2026-05-14",
   "type": "patch",
-  "title": "Lint: 164 warnings react-refresh suprimidos en shims",
+  "title": "Lint: 165 warnings eliminados (216 → 51)",
   "category": "refactor",
   "changes": [
     "Suprimido `react-refresh/only-export-components` en 160 archivos shim de re-export (`src/components/**`, `src/pages/**`) que solo hacen `export *` o `export { default } from`.",
     "Suprimido también en 3 archivos legítimos con exports mixtos (`AuthContext.tsx`, `PartFormDialog.tsx`, `routes-config.tsx`) donde separar a otro archivo no aporta valor.",
     "Excluido `scripts/**` del lint (build scripts, `console.log` esperado).",
-    "Resultado: 216 → 52 warnings restantes (49 complexity + 3 max-lines-per-function), 0 errores. Las 52 son deuda incremental tracked, no bloquean build."
+    "Refactor de `useQuotePrefill`: complejidad ciclomática 35 → ≤16, extraídas funciones puras `applyBaseFields`, `applyLogistics`, `applySaleLines`, `applyRentalLines`, `matchModel`.",
+    "Refactor de `useQuoteFormLogic`: complejidad de `lineItems` (29) y `handleSubmit` (29) reducida; extraídas `buildSaleItems`, `buildRentalItems`, `validateForm`.",
+    "Resultado: 216 → 51 warnings (49 complexity + 2 max-lines), 0 errores. Las restantes son deuda incremental tracked, no bloquean build."
   ]
 }
