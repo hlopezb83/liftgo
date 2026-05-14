@@ -53,9 +53,11 @@ export function useReportDamageForm(onClose: () => void) {
       });
 
       if (previews.length > 0) {
-        for (const { file } of previews) {
-          await uploadDoc.mutateAsync({ file, entityType: "damage_record", entityId: newRecord.id });
-        }
+        await Promise.all(
+          previews.map(({ file }) =>
+            uploadDoc.mutateAsync({ file, entityType: "damage_record", entityId: newRecord.id }),
+          ),
+        );
       }
 
       toast.success("Daño reportado", {
