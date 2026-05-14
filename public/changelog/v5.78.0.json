@@ -1,0 +1,16 @@
+{
+  "version": "5.78.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: módulo Bookings migrado a features/bookings/",
+  "category": "refactor",
+  "description": "Las páginas, componentes y hooks de Reservas se consolidaron en src/features/bookings/. Las rutas legacy quedan como shims para mantener compatibilidad.",
+  "changes": [
+    "Movidas pages BookingsPage, BookingDetail y BookingForm a src/features/bookings/pages/",
+    "Movidos componentes de bookings y booking-detail a src/features/bookings/components/",
+    "Movidos hooks useBookings, useBookingExtensions y useBookingActionsLogic a src/features/bookings/hooks/",
+    "Imports intra-módulo reescritos a la nueva ruta @/features/bookings/*",
+    "Rutas anteriores conservadas como re-exports (shims) para no romper consumidores externos",
+    "Router actualizado para importar las páginas desde la nueva ubicación"
+  ]
+}
