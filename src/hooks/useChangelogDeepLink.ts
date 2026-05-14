@@ -19,10 +19,14 @@ export function useChangelogDeepLink(changelog: ChangelogIndexEntry[]) {
     handled.current = true;
     setExpanded((prev) => new Set(prev).add(version));
     setHighlighted(version);
-    setTimeout(() => {
+    const scrollTimer = window.setTimeout(() => {
       document.getElementById(`v${version}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
-    setTimeout(() => setHighlighted(null), 2500);
+    const highlightTimer = window.setTimeout(() => setHighlighted(null), 2500);
+    return () => {
+      window.clearTimeout(scrollTimer);
+      window.clearTimeout(highlightTimer);
+    };
   }, [changelog]);
 
   const toggle = (version: string) => {

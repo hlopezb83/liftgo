@@ -1,33 +1,63 @@
-# Early returns para estados de carga
+# Cleanup obligatorio en useEffect
 
-Busqué pages/components donde el JSX principal se envuelve dentro de un `isLoading ? (…) : (…)` que podría volverse un `if (isLoading) return <skeleton/>;` para aplanar el render.
+## Auditoría realizada
 
-La mayoría del proyecto ya usa el patrón de early return (ej. `InvoiceDetail`, `ContractDetail`, etc.). Quedan **3 páginas** con ternarios "envolventes" que vale la pena refactorizar:
+Revisé todos los `useEffect` que involucran suscripciones de Supabase, event listeners o temporizadores. Resultado:
 
-## Cambios
+| Archivo | Tipo | Cleanup |
+|---|---|---|
+| `src/contexts/AuthContext.tsx` | `onAuthStateChange` | ✅ |
+| `src/pages/AuthPage.tsx` | `onAuthStateChange` | ✅ |
+| `src/hooks/use-mobile.tsx` | `addEventListener` | ✅ |
+| `src/components/SearchBar.tsx` | `addEventListener` | ✅ |
+| `src/components/GlobalSearch.tsx` | `addEventListener` | ✅ |
+| `src/components/ImageGalleryLightbox.tsx` | `addEventListener` | ✅ |
+| `src/components/ui/sidebar.tsx` | `addEventListener` | ✅ |
+| `src/hooks/useDebouncedValue.ts` | `setTimeout` | ✅ |
+| `src/lib/routes-config.tsx` | `setTimeout` | ✅ |
+| **`src/hooks/useChangelogDeepLink.ts`** | **2× `setTimeout`** | **❌ falta** |
 
-1. **`src/pages/ActivityPage.tsx`** (líneas 60-89)
-   - Extraer el `isLoading` antes del `return`. Si está cargando, devolver el shell (`PageTransition` + `PageHeader` + filtro `Select`) con el skeleton y `return` temprano.
-   - El `return` principal queda con la lista plana sin ternario envolvente.
+## Cambios propuestos
 
-2. **`src/pages/RolePermissionsPage.tsx`** (líneas 60-…)
-   - Mismo patrón: si `isLoading`, devolver el shell con un loader centrado y `return`.
-   - El `return` principal queda con la tabla plana.
+### 1. Corregir `src/hooks/useChangelogDeepLink.ts`
 
-3. **`src/pages/CRMPage.tsx`** (líneas 227-253)
-   - Extraer un componente local `KanbanBoardSkeleton` (o `if (isLoading)` que renderice el shell con el skeleton de columnas) para evitar el ternario que envuelve todo el `DragDropContext`.
-   - Como el shell tiene mucho contenido (sticky header, KPIs), aquí prefiero **extraer una variable** `kanbanContent = isLoading ? <Skeleton/> : <DragDropContext>…</DragDropContext>` declarada arriba del `return`, y usarla en su sitio. Eso aplana el JSX sin duplicar el shell.
+El `useEffect` dispara dos `setTimeout` (scroll a 100ms y reset de highlight a 2500ms) sin limpiar los timers. Si `changelog` cambia o el componente se desmonta antes de que disparen, intentan tocar el DOM / hacer `setState` en un componente desmontado.
 
-## Fuera de alcance (se dejan como están)
+Guardar los IDs y limpiarlos en el return:
 
-- `CRMClosedPage.tsx` líneas 129/132 — ternario inline mínimo dentro de un `<TabsContent>`; refactor no aporta.
-- `MrrDetailPage.tsx` línea 87 — `isLoading ? "…" : valor` dentro de un texto; trivial.
-- Componentes con loaders propios (`DocumentAttachments`, `BookingStatusHistory`, `ProspectHistoryCard`, `InvoiceHistoryCard`, `CollectionNotesCard`, `RolePermissionsMatrix`, `ListPageLayout`) — son secciones internas reutilizables, su `isLoading` decide qué muestra la sección, no envuelven la página entera.
-- Estados de error: a nivel página no se renderiza error UI (los hooks usan `toast` global vía `sonner` y `ErrorBoundary` para crashes). No hay oportunidad real de early-return de error sin agregar UI nueva, lo cual sería expandir alcance.
+```ts
+useEffect(() => {
+  if (handled.current || changelog.length === 0) return;
+  // ...validaciones...
+  handled.current = true;
+  setExpanded((prev) => new Set(prev).add(version));
+  setHighlighted(version);
+  const scrollTimer = window.setTimeout(() => {
+    document.getElementById(`v${version}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
+  const highlightTimer = window.setTimeout(() => setHighlighted(null), 2500);
+  return () => {
+    window.clearTimeout(scrollTimer);
+    window.clearTimeout(highlightTimer);
+  };
+}, [changelog]);
+```
 
-## Notas técnicas
+### 2. Persistir la regla en memoria del proyecto
 
-- Cero cambios visuales o de comportamiento.
-- En `ActivityPage` y `RolePermissionsPage`, el shell se duplica brevemente (header + filtro). Es el costo aceptable por aplanar el JSX principal y permitir un early return claro. Si alguno se vuelve mayor, se factorizaría a un wrapper, pero no es necesario aquí.
-- En `CRMPage` se usa una variable local porque el shell es demasiado grande para duplicar.
-- Agregar entrada `5.66.5` (patch) en `public/changelog.json` + `public/changelog/v5.66.5.json` titulada "Refactor: early returns para estados de carga en páginas".
+Agregar un memory file `mem://arch/useEffect-cleanup` con la regla:
+
+> Todo `useEffect` que cree suscripciones (Supabase channels, `onAuthStateChange`), event listeners (`addEventListener`) o temporizadores (`setTimeout`/`setInterval`) **debe** retornar una función de limpieza que las desmonte. Aplica también a hooks personalizados.
+
+Y referenciarlo desde `mem://index.md` en la sección Memories.
+
+### 3. Changelog
+
+Agregar entrada `5.66.6` (patch) en `public/changelog.json` y archivo detalle `public/changelog/v5.66.6.json` describiendo el fix de cleanup en `useChangelogDeepLink`.
+
+## Archivos afectados
+
+- `src/hooks/useChangelogDeepLink.ts` (fix)
+- `mem://arch/useEffect-cleanup` (nuevo)
+- `mem://index.md` (referencia)
+- `public/changelog.json` + `public/changelog/v5.66.6.json`
