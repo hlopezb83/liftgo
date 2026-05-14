@@ -49,6 +49,7 @@ export default tseslint.config(
     files: ["**/*.test.{ts,tsx}", "src/test/**", "**/__tests__/**"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
       "max-lines-per-function": "off",
     },
   },
