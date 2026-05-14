@@ -1,0 +1,39 @@
+import { useMonthlyData } from "./incomeStatement/useMonthlyData";
+import { useStatementTotals } from "./incomeStatement/useStatementTotals";
+import { useStatementRows, useComparisonRows } from "./incomeStatement/useStatementRows";
+import type { AccountingBasis } from "./incomeStatement/types";
+
+export type {
+  MonthData, StatementRow, YearTotals, ComparisonRow, ExpenseCategory,
+} from "./incomeStatement/types";
+export {
+  EXPENSE_CATEGORIES, DIRECT_COST_CATEGORIES, EXPENSE_CATEGORY_LABELS,
+} from "./incomeStatement/types";
+
+interface UseIncomeStatementDataProps {
+  startDate: Date;
+  endDate: Date;
+  accountingBasis?: AccountingBasis;
+}
+
+export function useIncomeStatementData({
+  startDate, endDate, accountingBasis = "accrual",
+}: UseIncomeStatementDataProps) {
+  const { data, rentedWithoutCost } = useMonthlyData({ startDate, endDate, accountingBasis });
+  const {
+    filteredData, totals, yearTotals,
+    availableYears, selectedYear, setSelectedYear, isComparison,
+  } = useStatementTotals(data);
+  const {
+    statementRows, csvRows,
+    depreciationBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
+  } = useStatementRows(filteredData, totals);
+  const comparisonRows = useComparisonRows(yearTotals);
+
+  return {
+    data, filteredData, totals, statementRows, comparisonRows, yearTotals,
+    csvRows, depreciationBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
+    rentedWithoutCost,
+    availableYears, selectedYear, setSelectedYear, isComparison,
+  };
+}
