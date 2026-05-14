@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.66.3",
+    "date": "2026-05-14",
+    "type": "patch",
+    "title": "Linealización de fetches: bulk ops en lugar de await-en-loop",
+    "category": "performance"
+  },
+  {
     "version": "5.66.2",
     "date": "2026-05-12",
     "type": "patch",

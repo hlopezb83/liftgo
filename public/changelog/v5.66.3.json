@@ -1,0 +1,9 @@
+{
+  "description": "Se eliminan los pocos lugares donde la app hacía llamadas secuenciales a la base de datos dentro de un for...await. Ahora cada flujo usa operaciones por lote o ejecución en paralelo, reduciendo round-trips y evitando estados parciales si una operación falla a la mitad.",
+  "changes": [
+    "useAssignForklift: 3N round-trips reducidos a 3 (select+update+insert por lotes con .in())",
+    "Conversión de cotización a reservas: tarifas y reservas creadas en paralelo, asociación de quote_id en una sola llamada bulk",
+    "useReportDamageForm: subida de fotos de daños en paralelo con Promise.all",
+    "generate-recurring-maintenance (cron): bulk insert de logs y bulk update de pólizas en lugar de loop por póliza"
+  ]
+}
