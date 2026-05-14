@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -40,13 +41,18 @@ export default function UserManagementPage() {
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
-  const handleToggleStatus = (userId: string, currentActive: boolean) => {
+  const handleToggleStatus = useCallback((userId: string, currentActive: boolean) => {
     toggleStatus.mutate({ userId, isActive: !currentActive });
-  };
+  }, [toggleStatus]);
 
-  const handleRoleChange = (user: UserRow, newRole: AppRole) => {
+  const handleRoleChange = useCallback((user: UserRow, newRole: AppRole) => {
     dialogs.setRoleChangeTarget({ user, newRole });
-  };
+  }, [dialogs]);
+
+  const { setEditTarget, setPasswordTarget, setDeleteTarget } = dialogs;
+  const onEdit = useCallback((u: UserRow) => setEditTarget(u), [setEditTarget]);
+  const onSetPassword = useCallback((u: UserRow) => setPasswordTarget(u), [setPasswordTarget]);
+  const onDelete = useCallback((u: UserRow) => setDeleteTarget(u), [setDeleteTarget]);
 
   const renderRow = (u: UserRow) => (
     <TableRow key={u.user_id} className={!u.is_active ? "opacity-60" : ""}>
