@@ -43,71 +43,82 @@ export default function RolePermissionsPage() {
     );
   };
 
-  return (
-    <PageTransition>
-      <div className="p-6 space-y-6">
-        <PageHeader
-          title="Permisos por Rol"
-          subtitle={isAdmin ? "Haz clic en un icono para cambiar el nivel de acceso" : "Consulta los niveles de acceso de cada rol del sistema por módulo"}
-          action={
-            <Button variant="outline" onClick={() => navigate("/users")}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver a Usuarios
-            </Button>
-          }
-        />
+  const header = (
+    <PageHeader
+      title="Permisos por Rol"
+      subtitle={isAdmin ? "Haz clic en un icono para cambiar el nivel de acceso" : "Consulta los niveles de acceso de cada rol del sistema por módulo"}
+      action={
+        <Button variant="outline" onClick={() => navigate("/users")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver a Usuarios
+        </Button>
+      }
+    />
+  );
 
-        {isLoading ? (
+  if (isLoading) {
+    return (
+      <PageTransition>
+        <div className="p-6 space-y-6">
+          {header}
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : (
-          <div className="rounded-lg border bg-card overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold min-w-[160px]">Módulo</th>
-                  {STAFF_ROLES.map((r) => (
-                    <th key={r} className="px-3 py-3 text-center min-w-[100px]">
-                      <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", ROLE_COLORS[r])}>
-                        {ROLE_LABELS[r]}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {MODULES.map((mod, i) => (
-                  <tr key={mod} className={cn("border-t", i % 2 === 0 && "bg-muted/20")}>
-                    <td className="px-4 py-2.5 font-medium">{mod}</td>
-                    {STAFF_ROLES.map((r) => {
-                      const access = getAccess(r, mod);
-                      const { icon: Icon, color } = accessConfig[access];
-                      const canEdit = isAdmin && r !== "admin";
-                      return (
-                        <td key={r} className="px-3 py-2.5 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleCycle(r, mod)}
-                            disabled={!canEdit}
-                            className={cn(
-                              "inline-flex items-center justify-center rounded-md p-1 transition-colors",
-                              canEdit && "hover:bg-accent cursor-pointer",
-                              !canEdit && "cursor-default opacity-80"
-                            )}
-                            title={canEdit ? "Clic para cambiar" : accessConfig[access].label}
-                          >
-                            <Icon className={cn("h-4 w-4", color)} />
-                          </button>
-                        </td>
-                      );
-                    })}
-                  </tr>
+        </div>
+      </PageTransition>
+    );
+  }
+
+  return (
+    <PageTransition>
+      <div className="p-6 space-y-6">
+        {header}
+
+        <div className="rounded-lg border bg-card overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur">
+              <tr>
+                <th className="text-left px-4 py-3 font-semibold min-w-[160px]">Módulo</th>
+                {STAFF_ROLES.map((r) => (
+                  <th key={r} className="px-3 py-3 text-center min-w-[100px]">
+                    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", ROLE_COLORS[r])}>
+                      {ROLE_LABELS[r]}
+                    </span>
+                  </th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              </tr>
+            </thead>
+            <tbody>
+              {MODULES.map((mod, i) => (
+                <tr key={mod} className={cn("border-t", i % 2 === 0 && "bg-muted/20")}>
+                  <td className="px-4 py-2.5 font-medium">{mod}</td>
+                  {STAFF_ROLES.map((r) => {
+                    const access = getAccess(r, mod);
+                    const { icon: Icon, color } = accessConfig[access];
+                    const canEdit = isAdmin && r !== "admin";
+                    return (
+                      <td key={r} className="px-3 py-2.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleCycle(r, mod)}
+                          disabled={!canEdit}
+                          className={cn(
+                            "inline-flex items-center justify-center rounded-md p-1 transition-colors",
+                            canEdit && "hover:bg-accent cursor-pointer",
+                            !canEdit && "cursor-default opacity-80"
+                          )}
+                          title={canEdit ? "Clic para cambiar" : accessConfig[access].label}
+                        >
+                          <Icon className={cn("h-4 w-4", color)} />
+                        </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <div className="flex gap-5 text-xs text-muted-foreground">
           {Object.values(accessConfig).map(({ icon: Icon, color, label }) => (

@@ -119,6 +119,34 @@ export default function CRMPage() {
     setDialogOpen(true);
   };
 
+  const kanbanContent = isLoading ? (
+    <div className="flex gap-4">
+      {ACTIVE_STAGES.map((s) => (
+        <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
+      ))}
+    </div>
+  ) : (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="flex gap-3 h-full min-w-max">
+        {visibleStages.map((stage) => (
+          <KanbanColumn
+            key={stage.key}
+            stageKey={stage.key}
+            label={stage.label}
+            color={stage.color}
+            items={stage.items}
+            total={stage.total}
+            pipelineTotal={pipelineTotal}
+            density={density}
+            quoteMap={quoteMap}
+            onAdd={() => openCreate(stage.key)}
+            onCardClick={setDetailProspect}
+          />
+        ))}
+      </div>
+    </DragDropContext>
+  );
+
   return (
     <TooltipProvider delayDuration={300}>
       <PageTransition>
@@ -224,33 +252,7 @@ export default function CRMPage() {
           <div className="flex-1 relative">
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
             <div className="h-full overflow-x-auto p-4 scroll-smooth">
-              {isLoading ? (
-                <div className="flex gap-4">
-                  {ACTIVE_STAGES.map((s) => (
-                    <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
-                  ))}
-                </div>
-              ) : (
-                <DragDropContext onDragEnd={onDragEnd}>
-                  <div className="flex gap-3 h-full min-w-max">
-                    {visibleStages.map((stage) => (
-                      <KanbanColumn
-                        key={stage.key}
-                        stageKey={stage.key}
-                        label={stage.label}
-                        color={stage.color}
-                        items={stage.items}
-                        total={stage.total}
-                        pipelineTotal={pipelineTotal}
-                        density={density}
-                        quoteMap={quoteMap}
-                        onAdd={() => openCreate(stage.key)}
-                        onCardClick={setDetailProspect}
-                      />
-                    ))}
-                  </div>
-                </DragDropContext>
-              )}
+              {kanbanContent}
             </div>
           </div>
         </div>

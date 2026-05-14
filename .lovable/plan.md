@@ -1,53 +1,33 @@
-# Eliminar ternarios anidados en la UI
+# Early returns para estados de carga
 
-Recorrí el código y encontré los siguientes casos de ternarios anidados (`a ? x : b ? y : ...`) en componentes/páginas de UI. La regla a aplicar: extraer una **función helper local** (o `const` con `switch`/`if`) que devuelva el valor a renderizar, y usarla en el JSX.
+Busqué pages/components donde el JSX principal se envuelve dentro de un `isLoading ? (…) : (…)` que podría volverse un `if (isLoading) return <skeleton/>;` para aplanar el render.
 
-## Archivos a modificar
+La mayoría del proyecto ya usa el patrón de early return (ej. `InvoiceDetail`, `ContractDetail`, etc.). Quedan **3 páginas** con ternarios "envolventes" que vale la pena refactorizar:
 
-1. **`src/pages/AuthPage.tsx`** (línea 110)
-   - Etiqueta del botón con `loading / mode === "forgot" / "reset" / default`.
-   - Helper: `getSubmitLabel(loading, mode)` arriba del `return`.
+## Cambios
 
-2. **`src/pages/portal/PortalLogin.tsx`** (línea 77)
-   - Mismo patrón (loading + mode).
-   - Helper: `getSubmitLabel(loading, mode)`.
+1. **`src/pages/ActivityPage.tsx`** (líneas 60-89)
+   - Extraer el `isLoading` antes del `return`. Si está cargando, devolver el shell (`PageTransition` + `PageHeader` + filtro `Select`) con el skeleton y `return` temprano.
+   - El `return` principal queda con la lista plana sin ternario envolvente.
 
-3. **`src/pages/InvoiceDetail.tsx`** (línea 37)
-   - Mapeo `status → etiqueta` con cadena de ternarios.
-   - Helper: reemplazar por objeto `STATUS_LABELS` local o función `getCfdiStatusLabel(status)`.
+2. **`src/pages/RolePermissionsPage.tsx`** (líneas 60-…)
+   - Mismo patrón: si `isLoading`, devolver el shell con un loader centrado y `return`.
+   - El `return` principal queda con la tabla plana.
 
-4. **`src/pages/HelpPage.tsx`** (línea 95)
-   - Botón: `isGenerating / manual / default`.
-   - Helper: `getManualButtonLabel(isGenerating, manual)`.
+3. **`src/pages/CRMPage.tsx`** (líneas 227-253)
+   - Extraer un componente local `KanbanBoardSkeleton` (o `if (isLoading)` que renderice el shell con el skeleton de columnas) para evitar el ternario que envuelve todo el `DragDropContext`.
+   - Como el shell tiene mucho contenido (sticky header, KPIs), aquí prefiero **extraer una variable** `kanbanContent = isLoading ? <Skeleton/> : <DragDropContext>…</DragDropContext>` declarada arriba del `return`, y usarla en su sitio. Eso aplana el JSX sin duplicar el shell.
 
-5. **`src/components/damage/ReportDamageDialog.tsx`** (línea 95)
-   - Etiqueta de botón con pluralización anidada.
-   - Helper: `getReportButtonLabel(previewsCount)` (usar pluralización plana).
+## Fuera de alcance (se dejan como están)
 
-6. **`src/components/ReadOnlyLineItemsTable.tsx`** (líneas 35-39)
-   - Render de descuento `discount>0 ? ($? : %?) : "—"`.
-   - Helper: `formatDiscount(item)` que devuelva el string.
-
-7. **`src/components/calendar/GanttHeader.tsx`** (línea 38)
-   - className con `today ? ... : isWeekend ? ... : ...`.
-   - Helper: `getDayTextClass(today, isWeekend)` que devuelva la clase.
-
-8. **`src/components/reports/IncomeStatementTable.tsx`** (línea 67)
-   - Formato de delta con signo anidado.
-   - Helper: `formatDelta(row)` y `formatDeltaPct(row)` (línea 70 ya es simple, pero unifico).
-
-9. **`src/components/invoices/InvoicePDFButton.tsx`** (líneas 113-114)
-   - Aunque genera PDF (no JSX), el usuario pidió "en la UI"; este archivo es de UI. Extraer `getStatusLabel(status)` y `getStatusColor(status)` con `switch`.
-
-## Fuera de alcance
-
-- Ternarios simples (`a ? x : y`) — no se tocan.
-- Ternarios anidados en lógica de hooks/utils que no renderizan UI (ej. `useOperatingExpenses.ts`, `useStatementRows.ts`, payloads en `EquipmentModelsTab`, etc.) — no son render UI, se dejan.
-- Spreads condicionales tipo `...(x ? {a} : {})` — no son ternarios anidados de render.
+- `CRMClosedPage.tsx` líneas 129/132 — ternario inline mínimo dentro de un `<TabsContent>`; refactor no aporta.
+- `MrrDetailPage.tsx` línea 87 — `isLoading ? "…" : valor` dentro de un texto; trivial.
+- Componentes con loaders propios (`DocumentAttachments`, `BookingStatusHistory`, `ProspectHistoryCard`, `InvoiceHistoryCard`, `CollectionNotesCard`, `RolePermissionsMatrix`, `ListPageLayout`) — son secciones internas reutilizables, su `isLoading` decide qué muestra la sección, no envuelven la página entera.
+- Estados de error: a nivel página no se renderiza error UI (los hooks usan `toast` global vía `sonner` y `ErrorBoundary` para crashes). No hay oportunidad real de early-return de error sin agregar UI nueva, lo cual sería expandir alcance.
 
 ## Notas técnicas
 
-- Cada helper se declara como `function` local en el mismo archivo, antes del componente, para evitar recrearla en cada render.
-- Mantener exactamente las mismas cadenas/clases/colores actuales — sin cambios visuales ni de comportamiento.
-- Tipar parámetros estrictamente (sin `any`, sin `as`).
-- Al final: agregar entrada `5.66.4` (patch) en `public/changelog.json` + archivo `public/changelog/v5.66.4.json` con título "Refactor: helpers en lugar de ternarios anidados en UI".
+- Cero cambios visuales o de comportamiento.
+- En `ActivityPage` y `RolePermissionsPage`, el shell se duplica brevemente (header + filtro). Es el costo aceptable por aplanar el JSX principal y permitir un early return claro. Si alguno se vuelve mayor, se factorizaría a un wrapper, pero no es necesario aquí.
+- En `CRMPage` se usa una variable local porque el shell es demasiado grande para duplicar.
+- Agregar entrada `5.66.5` (patch) en `public/changelog.json` + `public/changelog/v5.66.5.json` titulada "Refactor: early returns para estados de carga en páginas".

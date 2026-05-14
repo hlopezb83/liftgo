@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.66.5",
+    "date": "2026-05-14",
+    "type": "patch",
+    "title": "Refactor: early returns para estados de carga en páginas",
+    "category": "improvement"
+  },
+  {
     "version": "5.66.4",
     "date": "2026-05-14",
     "type": "patch",
