@@ -1,0 +1,12 @@
+{
+  "version": "5.66.5",
+  "date": "2026-05-14",
+  "type": "patch",
+  "title": "Refactor: early returns para estados de carga en páginas",
+  "category": "improvement",
+  "details": [
+    "ActivityPage: early return para isLoading y estado vacío.",
+    "RolePermissionsPage: early return para isLoading.",
+    "CRMPage: kanban extraído a variable kanbanContent para aplanar el JSX principal."
+  ]
+}
