@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.66.4",
+    "date": "2026-05-14",
+    "type": "patch",
+    "title": "Refactor: helpers en lugar de ternarios anidados en UI",
+    "category": "improvement"
+  },
+  {
     "version": "5.66.3",
     "date": "2026-05-14",
     "type": "patch",
