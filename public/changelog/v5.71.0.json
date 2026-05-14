@@ -1,0 +1,26 @@
+{
+  "version": "5.71.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: src/lib subdividido en utils puros y dominio",
+  "category": "refactor",
+  "description": "Paso 5 del refactor arquitectónico: se separan las utilidades genéricas de la lógica de dominio dentro de src/lib/.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Nueva carpeta src/lib/domain",
+      "details": [
+        "Se mueven invoiceUtils, activityTranslations, templateUtils y satCatalogs a src/lib/domain/ para distinguirlos de utilidades puras (utils, formatCurrency, lineItems, exportCsv).",
+        "src/lib/ a la raíz queda con utilidades transversales sin acoplamiento a entidades de negocio."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Re-exports de compatibilidad",
+      "details": [
+        "Los archivos antiguos en src/lib/ se conservan como shims `export * from './domain/X'` para no romper los 27 importadores existentes.",
+        "Las nuevas referencias deben usar @/lib/domain/<archivo>; los shims pueden retirarse cuando se migren todos los imports."
+      ]
+    }
+  ]
+}

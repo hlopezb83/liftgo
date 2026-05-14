@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.71.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: src/lib subdividido en utils puros y dominio",
+    "category": "refactor"
+  },
+  {
     "version": "5.70.0",
     "date": "2026-05-14",
     "type": "minor",
