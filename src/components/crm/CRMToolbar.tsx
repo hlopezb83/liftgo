@@ -6,12 +6,12 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CRMHeaderKPIs } from "@/components/crm/CRMHeaderKPIs";
 import { VALUE_RANGE_OPTIONS, AGE_RANGE_OPTIONS } from "@/lib/constants/crm";
-import type { CRMFiltersState, ValueRange, AgeRange } from "@/hooks/crm/useCRMFilters";
+import type { CRMFilters, ValueRange, AgeRange } from "@/hooks/crm/useCRMFilters";
 import type { CRMMetrics } from "@/hooks/crm/useCRMMetrics";
 
 interface CRMToolbarProps {
-  filters: CRMFiltersState;
-  update: <K extends keyof CRMFiltersState>(key: K, value: CRMFiltersState[K]) => void;
+  filters: CRMFilters;
+  update: <K extends keyof CRMFilters>(key: K, value: CRMFilters[K]) => void;
   reset: () => void;
   hasActive: boolean;
   creators: [string, string][];
