@@ -90,14 +90,14 @@ export default function UserManagementPage() {
       </TableCell>
       <TableCell>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => dialogs.setEditTarget(u)}>
+          <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => onEdit(u)}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => dialogs.setPasswordTarget(u)}>
+          <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => onSetPassword(u)}>
             <KeyRound className="h-4 w-4" />
           </Button>
           {u.user_id !== currentUser?.id && (
-            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => dialogs.setDeleteTarget(u)}>
+            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => onDelete(u)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
@@ -116,14 +116,14 @@ export default function UserManagementPage() {
             {!u.is_active && <Badge variant="destructive" className="text-[10px] px-1.5">Inactivo</Badge>}
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => dialogs.setEditTarget(u)}>
+            <Button variant="ghost" size="icon" onClick={() => onEdit(u)}>
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => dialogs.setPasswordTarget(u)}>
+            <Button variant="ghost" size="icon" onClick={() => onSetPassword(u)}>
               <KeyRound className="h-4 w-4" />
             </Button>
             {u.user_id !== currentUser?.id && (
-              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => dialogs.setDeleteTarget(u)}>
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => onDelete(u)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
