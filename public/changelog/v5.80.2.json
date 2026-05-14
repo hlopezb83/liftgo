@@ -1,0 +1,13 @@
+{
+  "version": "5.80.2",
+  "date": "2026-05-14",
+  "type": "patch",
+  "title": "Lint: 164 warnings react-refresh suprimidos en shims",
+  "category": "refactor",
+  "changes": [
+    "Suprimido `react-refresh/only-export-components` en 160 archivos shim de re-export (`src/components/**`, `src/pages/**`) que solo hacen `export *` o `export { default } from`.",
+    "Suprimido también en 3 archivos legítimos con exports mixtos (`AuthContext.tsx`, `PartFormDialog.tsx`, `routes-config.tsx`) donde separar a otro archivo no aporta valor.",
+    "Excluido `scripts/**` del lint (build scripts, `console.log` esperado).",
+    "Resultado: 216 → 52 warnings restantes (49 complexity + 3 max-lines-per-function), 0 errores. Las 52 son deuda incremental tracked, no bloquean build."
+  ]
+}
