@@ -5,8 +5,8 @@ import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { ForkliftSelector } from "@/components/fleet/ForkliftSelector";
-import { PostBookingDeliveryDialog } from "@/components/bookings/PostBookingDeliveryDialog";
-import { PostBookingPolicyDialog } from "@/components/bookings/PostBookingPolicyDialog";
+import { PostBookingDeliveryDialog } from "@/features/bookings/components/bookings/PostBookingDeliveryDialog";
+import { PostBookingPolicyDialog } from "@/features/bookings/components/bookings/PostBookingPolicyDialog";
 import { differenceInDays } from "date-fns";
 import { useBookingFormLogic } from "@/hooks/bookingForm/useBookingFormLogic";
 

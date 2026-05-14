@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateBookingExtension } from "@/hooks/useBookingExtensions";
+import { useCreateBookingExtension } from "@/features/bookings/hooks/useBookingExtensions";
 
 interface ExtendBookingDialogProps {
   open: boolean;

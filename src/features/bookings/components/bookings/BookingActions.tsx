@@ -5,10 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerField } from "@/components/DatePickerField";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { type BookingWithForklift } from "@/hooks/useBookings";
+import { type BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "lucide-react";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
-import { useBookingActionsLogic, STATUS_LABELS, getValidTransitions } from "@/hooks/useBookingActionsLogic";
+import { useBookingActionsLogic, STATUS_LABELS, getValidTransitions } from "@/features/bookings/hooks/useBookingActionsLogic";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 

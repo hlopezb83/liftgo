@@ -3,7 +3,7 @@ import { differenceInDays, parseISO } from "date-fns";
 import { formatMtyDate } from "@/lib/utils";
 
 import { STATUS_LABELS } from "@/lib/constants";
-import { useBookings } from "@/hooks/useBookings";
+import { useBookings } from "@/features/bookings/hooks/useBookings";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -11,7 +11,7 @@ import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
-import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
+import { RecurringBillingBadge } from "@/features/bookings/components/bookings/RecurringBillingBadge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";

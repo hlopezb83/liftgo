@@ -8,7 +8,7 @@ import {
   useDeleteBooking,
   useCancelBooking,
   type BookingWithForklift,
-} from "@/hooks/useBookings";
+} from "@/features/bookings/hooks/useBookings";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
 import { useUserRole } from "@/hooks/useUserRole";
 

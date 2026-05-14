@@ -2,7 +2,7 @@ import { Repeat } from "lucide-react";
 import { format, addDays, parseISO } from "date-fns";
 
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import type { Booking } from "@/hooks/useBookings";
+import type { Booking } from "@/features/bookings/hooks/useBookings";
 
 interface RecurringBillingBadgeProps {
   booking: Pick<Booking, "recurring_billing" | "last_billed_date" | "start_date">;
