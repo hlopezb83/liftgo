@@ -1,0 +1,11 @@
+{
+  "description": "Paso 1 de la auditoría arquitectónica: las 6 vistas que aún hablaban con Supabase ahora consumen hooks/servicios dedicados.",
+  "changes": [
+    "Nuevo hook useBookingStatusHistory en hooks/bookingDetail/ — BookingStatusHistory deja de importar supabase",
+    "Nuevo hook useContractFinancialSummary en hooks/contractDetail/ — RentalFinancialSummary deja de importar supabase",
+    "Nuevo hook useUploadCompanyLogo — LogoUploader deja de manejar supabase.storage directamente",
+    "Nuevos hooks useInvoicePdfDownload y useQuotePdfDownload + módulos lib/pdf/invoice/build.ts y lib/pdf/quote/build.ts — InvoicePDFButton (201 → 18 LOC) y QuotePDFButton se reducen a UI pura",
+    "CustomerPortalLayout usa useAuth().signOut en lugar de supabase.auth.signOut",
+    "Eliminado import no utilizado computeTotals en RentalFinancialSummary"
+  ]
+}
