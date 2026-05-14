@@ -52,5 +52,4 @@ export default tseslint.config(
       "max-lines-per-function": "off",
     },
   },
-  },
 );
