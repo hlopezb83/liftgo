@@ -1,6 +1,12 @@
 import { format, getDay, isToday, startOfWeek, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 
+function getDayNumberClass(today: boolean, isWeekend: boolean): string {
+  if (today) return "font-bold text-primary";
+  if (isWeekend) return "text-destructive/60";
+  return "text-muted-foreground";
+}
+
 export function GanttHeader({ days }: { days: Date[] }) {
   return (
     <>
@@ -35,7 +41,7 @@ export function GanttHeader({ days }: { days: Date[] }) {
             return (
               <div
                 key={day.toISOString()}
-                className={`relative flex-1 text-center text-[10px] ${today ? "font-bold text-primary" : isWeekend ? "text-destructive/60" : "text-muted-foreground"} ${weekStart ? "border-l border-border" : ""}`}
+                className={`relative flex-1 text-center text-[10px] ${getDayNumberClass(today, isWeekend)} ${weekStart ? "border-l border-border" : ""}`}
               >
                 {today && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[8px] uppercase tracking-wider font-bold text-primary">

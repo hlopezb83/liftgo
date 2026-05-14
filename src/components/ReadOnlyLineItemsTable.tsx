@@ -8,6 +8,12 @@ interface ReadOnlyLineItemsTableProps {
   lineItems: LineItem[];
 }
 
+function formatLineDiscount(item: LineItem): string {
+  if (!item.discount || item.discount <= 0) return "—";
+  if (item.discount_type === "$") return `-${formatCurrency(item.discount)}`;
+  return `-${item.discount}%`;
+}
+
 export function ReadOnlyLineItemsTable({ lineItems }: ReadOnlyLineItemsTableProps) {
   const hasDiscount = lineItems.some((item) => item.discount && item.discount > 0);
 
@@ -32,11 +38,7 @@ export function ReadOnlyLineItemsTable({ lineItems }: ReadOnlyLineItemsTableProp
                 <TableCell className="text-right font-mono">{formatCurrency(Number(item.unit_price))}</TableCell>
                 {hasDiscount && (
                   <TableCell className="text-right text-destructive font-mono">
-                    {item.discount && item.discount > 0
-                      ? item.discount_type === "$"
-                        ? `-${formatCurrency(item.discount)}`
-                        : `-${item.discount}%`
-                      : "—"}
+                    {formatLineDiscount(item)}
                   </TableCell>
                 )}
                 <TableCell className="text-right font-mono">{formatCurrency(applyDiscount(item))}</TableCell>

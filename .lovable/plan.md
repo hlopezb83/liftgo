@@ -1,42 +1,53 @@
-# Linealizar lógica de acceso a datos
+# Eliminar ternarios anidados en la UI
 
-## Objetivo
-Eliminar los pocos lugares donde se hacen llamadas a Supabase dentro de `for ... await` (N round-trips secuenciales). El resto de hooks ya son lineales: una sola consulta por hook vía `useQuery` o RPCs agregadas (`get_income_statement`, `get_customer_summary`, etc.). Solo quedan 4 puntos calientes a corregir.
+Recorrí el código y encontré los siguientes casos de ternarios anidados (`a ? x : b ? y : ...`) en componentes/páginas de UI. La regla a aplicar: extraer una **función helper local** (o `const` con `switch`/`if`) que devuelva el valor a renderizar, y usarla en el JSX.
 
-## Cambios
+## Archivos a modificar
 
-### 1. `src/hooks/useAssignForklifts.ts` — `useAssignForklift`
-Hoy hace por cada asignación: `select status` → `update status='sold'` → `insert status_logs`. Para N equipos = 3N viajes.
+1. **`src/pages/AuthPage.tsx`** (línea 110)
+   - Etiqueta del botón con `loading / mode === "forgot" / "reset" / default`.
+   - Helper: `getSubmitLabel(loading, mode)` arriba del `return`.
 
-Reemplazar por flujo lineal de 3 llamadas totales:
-- `select id,status from forklifts where id in (...)` (una sola)
-- `update forklifts set status='sold' where id in (...)` (una sola)
-- `insert into status_logs (...)` con array de filas (una sola)
-- El `insert` inicial a `quote_assigned_forklifts` se mantiene (ya es bulk)
+2. **`src/pages/portal/PortalLogin.tsx`** (línea 77)
+   - Mismo patrón (loading + mode).
+   - Helper: `getSubmitLabel(loading, mode)`.
 
-### 2. `src/hooks/quoteDetail/useQuoteConversionActions.ts` — `createBookingsFor`
-Hoy por cada assignment: `update forklifts (rates)` → `createBooking.mutateAsync` → `update bookings.quote_id`.
+3. **`src/pages/InvoiceDetail.tsx`** (línea 37)
+   - Mapeo `status → etiqueta` con cadena de ternarios.
+   - Helper: reemplazar por objeto `STATUS_LABELS` local o función `getCfdiStatusLabel(status)`.
 
-Plan:
-- Agrupar las actualizaciones de tarifas en un solo paso: dado que cada equipo puede tener tarifas distintas, usar `upsert` con array de objetos `{id, daily_rate, weekly_rate, monthly_rate}` en una sola llamada (filtrando los campos > 0 en el cliente; los nulos se omiten con un objeto por equipo).
-- Crear las reservas en paralelo con `Promise.all(assignments.map(createBooking.mutateAsync(...)))` ya que son independientes.
-- Reemplazar el `update bookings.quote_id` por pasar `quote_id` directamente al insert de `bookings` dentro de `createBooking` (más limpio que un update extra). Si no es posible sin tocar el hook compartido, hacer un solo `update bookings set quote_id=... where id in (...)`.
+4. **`src/pages/HelpPage.tsx`** (línea 95)
+   - Botón: `isGenerating / manual / default`.
+   - Helper: `getManualButtonLabel(isGenerating, manual)`.
 
-### 3. `src/hooks/useReportDamageForm.ts`
-Hoy: `for (const {file} of previews) await uploadDoc.mutateAsync(...)` — uploads secuenciales.
+5. **`src/components/damage/ReportDamageDialog.tsx`** (línea 95)
+   - Etiqueta de botón con pluralización anidada.
+   - Helper: `getReportButtonLabel(previewsCount)` (usar pluralización plana).
 
-Plan: `await Promise.all(previews.map(({file}) => uploadDoc.mutateAsync({file, entityType:'damage_record', entityId:newRecord.id})))`. Las subidas a Storage son independientes y se benefician del paralelismo.
+6. **`src/components/ReadOnlyLineItemsTable.tsx`** (líneas 35-39)
+   - Render de descuento `discount>0 ? ($? : %?) : "—"`.
+   - Helper: `formatDiscount(item)` que devuelva el string.
 
-### 4. `supabase/functions/generate-recurring-maintenance/index.ts`
-El loop `for (const policy of toGenerate)` hace `insert maintenance_logs` + `update maintenance_policies` por póliza. Es cron, no es crítico pero se beneficia.
+7. **`src/components/calendar/GanttHeader.tsx`** (línea 38)
+   - className con `today ? ... : isWeekend ? ... : ...`.
+   - Helper: `getDayTextClass(today, isWeekend)` que devuelva la clase.
 
-Plan: una sola `insert` con array de logs y un solo `update maintenance_policies set last_generated_month=... where id in (...)`. Conservar el `details[]` para reporting.
+8. **`src/components/reports/IncomeStatementTable.tsx`** (línea 67)
+   - Formato de delta con signo anidado.
+   - Helper: `formatDelta(row)` y `formatDeltaPct(row)` (línea 70 ya es simple, pero unifico).
 
-## Notas técnicas
-- Ninguno de los cambios altera UX visible: solo reduce latencia y evita parciales en caso de fallo a mitad del loop.
-- No se introduce recursión en ningún lado (no existe hoy tampoco).
-- No se tocan los hooks de lectura (`useQuery`); todos ya son una sola consulta.
-- Tras los cambios: registrar entrada `5.66.3` en `public/changelog.json` + `public/changelog/v5.66.3.json` (patch, performance/refactor).
+9. **`src/components/invoices/InvoicePDFButton.tsx`** (líneas 113-114)
+   - Aunque genera PDF (no JSX), el usuario pidió "en la UI"; este archivo es de UI. Extraer `getStatusLabel(status)` y `getStatusColor(status)` con `switch`.
 
 ## Fuera de alcance
-- Cambios de RPC en DB: solo se usan APIs existentes de PostgREST (`in()`, bulk insert/update, upsert). No se requieren migraciones.
+
+- Ternarios simples (`a ? x : y`) — no se tocan.
+- Ternarios anidados en lógica de hooks/utils que no renderizan UI (ej. `useOperatingExpenses.ts`, `useStatementRows.ts`, payloads en `EquipmentModelsTab`, etc.) — no son render UI, se dejan.
+- Spreads condicionales tipo `...(x ? {a} : {})` — no son ternarios anidados de render.
+
+## Notas técnicas
+
+- Cada helper se declara como `function` local en el mismo archivo, antes del componente, para evitar recrearla en cada render.
+- Mantener exactamente las mismas cadenas/clases/colores actuales — sin cambios visuales ni de comportamiento.
+- Tipar parámetros estrictamente (sin `any`, sin `as`).
+- Al final: agregar entrada `5.66.4` (patch) en `public/changelog.json` + archivo `public/changelog/v5.66.4.json` con título "Refactor: helpers en lugar de ternarios anidados en UI".

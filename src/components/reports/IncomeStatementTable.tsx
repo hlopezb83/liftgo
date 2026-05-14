@@ -23,6 +23,12 @@ interface Props {
 const formatCell = (row: StatementRow | ComparisonRow, value: number) =>
   row.isPercent ? `${value.toFixed(1)}%` : formatCurrency(value);
 
+function formatRowDelta(row: ComparisonRow): string {
+  const sign = row.delta >= 0 ? "+" : "";
+  if (row.isPercent) return `${sign}${row.delta.toFixed(1)} pp`;
+  return `${sign}${formatCurrency(row.delta)}`;
+}
+
 const cellColor = (row: StatementRow | ComparisonRow, value: number) => {
   if (row.isCost) return "text-destructive";
   if (value < 0) return "text-destructive";
@@ -64,7 +70,7 @@ export function IncomeStatementTable({
                     </TableCell>
                   ))}
                   <TableCell className={`text-right font-mono font-bold ${row.delta >= 0 ? "text-chart-2" : "text-destructive"}`}>
-                    {row.isPercent ? `${row.delta >= 0 ? "+" : ""}${row.delta.toFixed(1)} pp` : `${row.delta >= 0 ? "+" : ""}${formatCurrency(row.delta)}`}
+                    {formatRowDelta(row)}
                   </TableCell>
                   <TableCell className={`text-right font-mono font-bold ${row.deltaPct !== null && row.deltaPct >= 0 ? "text-chart-2" : "text-destructive"}`}>
                     {row.deltaPct !== null ? `${row.deltaPct >= 0 ? "+" : ""}${row.deltaPct.toFixed(1)}%` : "—"}

@@ -1,0 +1,13 @@
+{
+  "description": "Refactor de calidad: se eliminan los ternarios anidados en componentes/páginas de UI y se reemplazan por funciones helper locales con nombre. Mejora legibilidad sin cambios visuales ni de comportamiento.",
+  "changes": [
+    "AuthPage y PortalLogin: helper getAuthSubmitLabel/getPortalSubmitLabel para la etiqueta del botón según loading + mode",
+    "InvoiceDetail: cfdiBadgeLabel usa un mapa de estados en lugar de cadena de ternarios",
+    "HelpPage: helper getManualButtonLabel (generando/regenerar/generar)",
+    "ReportDamageDialog: helper getReportButtonLabel con pluralización plana",
+    "ReadOnlyLineItemsTable: helper formatLineDiscount para el render de descuentos",
+    "GanttHeader: helper getDayNumberClass para la clase del número de día",
+    "IncomeStatementTable: helper formatRowDelta para el delta con signo y unidades",
+    "InvoicePDFButton: helpers getInvoicePdfStatusLabel y getInvoicePdfStatusColor"
+  ]
+}
