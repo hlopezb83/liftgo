@@ -1,0 +1,8 @@
+{
+  "version": "5.77.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: módulo Invoices migrado a features/invoices/",
+  "category": "refactor",
+  "description": "Migración del módulo de Facturas a la estructura features-based en src/features/invoices/{components,hooks,lib,pages}/. Se reubicaron páginas (InvoicesPage, InvoiceDetail, InvoiceForm), componentes (invoices/, invoice-detail/, invoice-form/), hooks (invoices/, invoiceDetail/, invoiceForm/, useInvoiceFormLogic) y utilidades de PDF (lib/pdf/build). Se mantuvieron shims de retrocompatibilidad en las rutas originales para no romper imports externos. Rutas /invoices, /invoices/new, /invoices/:id e /invoices/:id/edit ahora apuntan al nuevo path. Segundo módulo migrado tras CRM, validando el patrón a mayor escala."
+}
