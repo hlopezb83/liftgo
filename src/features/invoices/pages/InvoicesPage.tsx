@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useGenerateRecurringInvoices } from "@/hooks/useGenerateRecurringInvoices";
-import { useInvoicesFilters } from "@/hooks/invoices/useInvoicesFilters";
+import { useInvoicesFilters } from "@/features/invoices/hooks/invoices/useInvoicesFilters";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";

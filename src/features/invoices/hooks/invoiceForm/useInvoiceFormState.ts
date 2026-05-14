@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useFormState } from "@/hooks/useFormState";
 import { nowMty } from "@/lib/utils";
-import type { CfdiLineItem } from "@/components/invoice-form/EditableLineItemsTable";
+import type { CfdiLineItem } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 
 export const INITIAL_CFDI = {
   serie: "",

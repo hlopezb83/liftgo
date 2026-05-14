@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/satCatalogs";
-import type { LineItem } from "@/lib/invoiceUtils";
+import type { LineItem } from "@/features/invoices/lib/invoiceUtils";
 
 export interface CfdiLineItem extends LineItem {
   clave_prod_serv?: string;

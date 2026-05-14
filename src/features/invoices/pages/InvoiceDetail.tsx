@@ -4,18 +4,18 @@ import { useBooking } from "@/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
 import { useQuote } from "@/hooks/useQuotes";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useInvoiceDetailActions } from "@/hooks/invoiceDetail/useInvoiceDetailActions";
+import { useInvoiceDetailActions } from "@/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
-import { RecordPaymentDialog } from "@/components/invoices/RecordPaymentDialog";
-import { InvoiceFiscalDataCard } from "@/components/invoice-detail/InvoiceFiscalDataCard";
-import { InvoicePaymentSummary } from "@/components/invoice-detail/InvoicePaymentSummary";
-import { CancelCfdiDialog } from "@/components/invoice-detail/CancelCfdiDialog";
-import { CollectionNotesCard } from "@/components/invoice-detail/CollectionNotesCard";
-import { InvoiceHistoryCard } from "@/components/invoice-detail/InvoiceHistoryCard";
-import { InvoiceDetailActions } from "@/components/invoice-detail/InvoiceDetailActions";
-import { InvoiceSourceLinks } from "@/components/invoice-detail/InvoiceSourceLinks";
+import { RecordPaymentDialog } from "@/features/invoices/components/invoices/RecordPaymentDialog";
+import { InvoiceFiscalDataCard } from "@/features/invoices/components/invoice-detail/InvoiceFiscalDataCard";
+import { InvoicePaymentSummary } from "@/features/invoices/components/invoice-detail/InvoicePaymentSummary";
+import { CancelCfdiDialog } from "@/features/invoices/components/invoice-detail/CancelCfdiDialog";
+import { CollectionNotesCard } from "@/features/invoices/components/invoice-detail/CollectionNotesCard";
+import { InvoiceHistoryCard } from "@/features/invoices/components/invoice-detail/InvoiceHistoryCard";
+import { InvoiceDetailActions } from "@/features/invoices/components/invoice-detail/InvoiceDetailActions";
+import { InvoiceSourceLinks } from "@/features/invoices/components/invoice-detail/InvoiceSourceLinks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatDateDisplay } from "@/lib/utils";
 import { parseLineItems } from "@/lib/lineItems";
-import type { LineItem } from "@/lib/invoiceUtils";
+import type { LineItem } from "@/features/invoices/lib/invoiceUtils";
 
 const cfdiBadgeClass = (status: string) =>
   status === "stamped"

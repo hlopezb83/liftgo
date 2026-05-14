@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { buildInvoicePdf } from "@/lib/pdf/invoice/build";
+import { buildInvoicePdf } from "@/features/invoices/lib/pdf/build";
 
 export function useInvoicePdfDownload() {
   const [loading, setLoading] = useState(false);

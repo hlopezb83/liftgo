@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { BookingWithForklift } from "@/hooks/useBookings";
-import { useInvoiceFormLogic } from "@/hooks/useInvoiceFormLogic";
+import { useInvoiceFormLogic } from "@/features/invoices/hooks/useInvoiceFormLogic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,8 +9,8 @@ import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { NotesCard } from "@/components/NotesCard";
 import { TotalsSummary } from "@/components/TotalsSummary";
-import { CfdiFieldsCard } from "@/components/invoice-form/CfdiFieldsCard";
-import { EditableLineItemsTable } from "@/components/invoice-form/EditableLineItemsTable";
+import { CfdiFieldsCard } from "@/features/invoices/components/invoice-form/CfdiFieldsCard";
+import { EditableLineItemsTable } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useNextInvoiceNumber } from "@/hooks/useNextInvoiceNumber";

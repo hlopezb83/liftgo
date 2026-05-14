@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { useCreateInvoice, useUpdateInvoice } from "@/hooks/useInvoices";
 import { useUpdateQuote } from "@/hooks/useQuotes";
-import { computeTotals } from "@/lib/invoiceUtils";
+import { computeTotals } from "@/features/invoices/lib/invoiceUtils";
 import { toJsonArray } from "@/lib/lineItems";
 import type { useInvoiceFormState } from "./useInvoiceFormState";
 

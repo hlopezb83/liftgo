@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { parseDateLocal, nowMty } from "@/lib/utils";
-import type { CfdiLineItem } from "@/components/invoice-form/EditableLineItemsTable";
+import type { CfdiLineItem } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 import type { useInvoiceFormState, CfdiFormState } from "./useInvoiceFormState";
 
 type State = ReturnType<typeof useInvoiceFormState>;
