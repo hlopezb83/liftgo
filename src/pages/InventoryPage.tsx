@@ -33,7 +33,7 @@ export default function InventoryPage() {
   const renderRow = (p: PartInventory) => {
     const isLow = p.stock_quantity <= p.min_stock_level;
     return (
-      <TableRow key={p.id} className="cursor-pointer" onClick={() => setSelectedPart(p)}>
+      <TableRow key={p.id} className="cursor-pointer" onClick={() => detail.open(p)}>
         <TableCell className="font-mono text-muted-foreground">{p.sku || "—"}</TableCell>
         <TableCell className="font-medium">{p.name}</TableCell>
         <TableCell><Badge variant="outline">{p.category}</Badge></TableCell>
@@ -50,7 +50,7 @@ export default function InventoryPage() {
   const mobileCard = (p: PartInventory) => {
     const isLow = p.stock_quantity <= p.min_stock_level;
     return (
-      <Card onClick={() => setSelectedPart(p)} className="cursor-pointer">
+      <Card onClick={() => detail.open(p)} className="cursor-pointer">
         <CardContent className="p-4 space-y-2">
           <div className="flex items-center justify-between">
             <div>
@@ -126,13 +126,13 @@ export default function InventoryPage() {
       />
 
       <PartDetailSheet
-        part={selectedPart}
-        open={!!selectedPart}
-        onOpenChange={(open) => { if (!open) setSelectedPart(null); }}
+        part={detail.selected}
+        open={detail.isOpen}
+        onOpenChange={detail.onOpenChange}
         onEdit={(p) => openEdit(p)}
       />
 
-      <PartFormDialog open={dialogOpen} onOpenChange={setDialogOpen} part={editing} />
+      <PartFormDialog open={formDialog.open} onOpenChange={formDialog.setOpen} part={editing} />
     </>
   );
 }
