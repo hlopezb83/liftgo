@@ -1,0 +1,30 @@
+{
+  "version": "5.74.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: hooks reorganizados por dominio",
+  "category": "refactor",
+  "description": "Paso 8 del refactor arquitectónico: 30 hooks de la raíz src/hooks/ se mueven a sub-carpetas por dominio (forklifts, invoices, maintenance, bookings, quotes, customers).",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Nuevas sub-carpetas por dominio",
+      "details": [
+        "src/hooks/forklifts/ — useForklifts, useForkliftFinancials, useForkliftLocation, useForkliftMap, useForkliftOptions, useAvailableForklifts, useAssignForklifts.",
+        "src/hooks/invoices/ — useInvoices, useNextInvoiceNumber, useUpcomingInvoices, useGenerateRecurringInvoices, useInvoicePdfDownload, useStampCfdi, useCancelCfdi, useCollectionNotes (junto al ya existente useInvoicesFilters).",
+        "src/hooks/maintenance/ — useMaintenanceLogs, useMaintenancePolicies, useGenerateRecurringMaintenance, useMechanics.",
+        "src/hooks/bookings/ — useBookings, useBookingActionsLogic, useBookingExtensions.",
+        "src/hooks/quotes/ — useQuotes, useQuotePdfDownload.",
+        "src/hooks/customers/ — useCustomers, useCustomerProfitability, useCustomerSummary, useCustomerPortal, useCustomerDetailPage, useInviteCustomer."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Shims de compatibilidad",
+      "details": [
+        "Cada archivo en src/hooks/ se conserva como un shim `export * from './<dominio>/X'` para no tocar los importadores existentes.",
+        "Las nuevas referencias deben usar @/hooks/<dominio>/<archivo>; los shims pueden retirarse cuando se migren todos los imports."
+      ]
+    }
+  ]
+}

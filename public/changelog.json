@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.74.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: hooks reorganizados por dominio",
+    "category": "refactor"
+  },
+  {
     "version": "5.73.0",
     "date": "2026-05-14",
     "type": "minor",
