@@ -1,0 +1,35 @@
+{
+  "version": "5.73.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: hooks de formulario en triplete state/prefill/submit",
+  "category": "refactor",
+  "description": "Paso 7 del refactor arquitectónico: useInvoiceFormLogic, useForkliftFormLogic y useBookingFormLogic se descomponen en sub-hooks dedicados a estado, prefill e submit, siguiendo el patrón ya usado en quoteForm/.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Invoice form",
+      "details": [
+        "Nuevo useInvoiceFormSubmit que centraliza buildPayload, mutaciones (create/update invoice + updateQuote) y flag isPending.",
+        "useInvoiceFormLogic queda como orquestador combinando useInvoiceFormState + useInvoicePrefill + useInvoiceFormSubmit."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Forklift form",
+      "details": [
+        "Nueva carpeta hooks/forkliftForm/ con useForkliftFormState (defaults + manufacturers/filteredModels memoizados), useForkliftPrefill (hidratación desde existing) y useForkliftFormSubmit (validación + uniqueness + mutaciones).",
+        "useForkliftFormLogic se reduce a 40 LOC orquestando los sub-hooks."
+      ]
+    },
+    {
+      "type": "refactor",
+      "title": "Booking form",
+      "details": [
+        "useBookingFormState aísla RHF + watchers + sincronización con disponibilidad.",
+        "useBookingFormSubmit encapsula la mutación createBooking y el flujo post-creación (entrega + política de mantenimiento).",
+        "useBookingFormLogic se vuelve orquestador delgado."
+      ]
+    }
+  ]
+}
