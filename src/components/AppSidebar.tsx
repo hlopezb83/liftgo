@@ -1,207 +1,34 @@
-import { useMemo, useState } from "react";
-import { LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings, ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, LogOut, ShieldCheck, Moon, Sun, ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake, KeyRound } from "lucide-react";
-import { useTheme } from "next-themes";
-import { NavLink } from "@/components/NavLink";
+import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
-import type { AppRole } from "@/hooks/useUserRole";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
-import { useRolePermissions, ROUTE_TO_MODULE, type AccessLevel } from "@/hooks/useRolePermissions";
-import {
-  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { useCurrentVersion } from "@/hooks/useChangelog";
-import { ROLE_LABELS } from "@/lib/constants";
-
-type NavItem = { title: string; url: string; icon: React.ElementType };
-type NavGroup = { label: string; items: NavItem[] };
-
-const navGroups: NavGroup[] = [
-  {
-    label: "General",
-    items: [
-      { title: "Panel", url: "/", icon: LayoutDashboard },
-      { title: "Calendario", url: "/calendar", icon: CalendarDays },
-    ],
-  },
-  {
-    label: "Comercial",
-    items: [
-      { title: "CRM", url: "/crm", icon: Target },
-      { title: "Clientes", url: "/customers", icon: Users },
-      { title: "Cotizaciones", url: "/quotes", icon: FileText },
-      { title: "Reservas", url: "/bookings", icon: BookOpen },
-    ],
-  },
-  {
-    label: "Operaciones",
-    items: [
-      { title: "Contratos", url: "/contracts", icon: ScrollText },
-      { title: "Entregas", url: "/deliveries", icon: TruckIcon },
-      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck },
-      { title: "Facturas", url: "/invoices", icon: Receipt },
-    ],
-  },
-  {
-    label: "Flota y Mantenimiento",
-    items: [
-      { title: "Equipos", url: "/fleet", icon: Truck },
-      { title: "Mantenimiento", url: "/maintenance", icon: Wrench },
-      { title: "Daños", url: "/damage", icon: AlertTriangle },
-      { title: "Refacciones", url: "/inventory", icon: Package },
-    ],
-  },
-  {
-    label: "Administración",
-    items: [
-      { title: "Proveedores", url: "/suppliers", icon: Handshake },
-      { title: "Gastos Operativos", url: "/expenses", icon: Wallet },
-      { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
-      { title: "Reportes", url: "/reports", icon: BarChart3 },
-      { title: "Actividad", url: "/activity", icon: Activity },
-      { title: "Bitácora", url: "/audit", icon: History },
-      { title: "Configuración", url: "/settings/operations", icon: Settings },
-      { title: "Usuarios", url: "/users", icon: ShieldCheck },
-      { title: "Changelog", url: "/changelog", icon: ScrollText },
-      { title: "Ayuda", url: "/help", icon: HelpCircle },
-    ],
-  },
-];
-
-// Items that are always visible (no permission check)
-const ALWAYS_VISIBLE = ["/changelog", "/help", "/activity", "/audit"];
-
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === "dark";
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-          onClick={() => setTheme(isDark ? "light" : "dark")}
-          className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{isDark ? "Tema claro" : "Tema oscuro"}</TooltipContent>
-    </Tooltip>
-  );
-}
-
-function getItemAccess(perms: Record<string, Record<string, AccessLevel>> | undefined, role: AppRole | undefined, url: string): AccessLevel {
-  if (!perms || !role) return "none";
-  if (ALWAYS_VISIBLE.includes(url)) return "full";
-  const module = ROUTE_TO_MODULE[url];
-  if (!module) return "full";
-  return perms[role]?.[module] ?? "none";
-}
+import { useVisibleNavGroups } from "@/hooks/useVisibleNavGroups";
+import { SidebarBranding } from "@/components/sidebar/SidebarBranding";
+import { SidebarNavSection } from "@/components/sidebar/SidebarNavSection";
+import { SidebarUserFooter } from "@/components/sidebar/SidebarUserFooter";
 
 export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
   const { data: company } = useCompanySettings();
-  const { data: perms } = useRolePermissions();
-  const [pwDialogOpen, setPwDialogOpen] = useState(false);
   const currentVersion = useCurrentVersion();
-
-  // Memoizar el árbol de navegación filtrado: solo se recalcula cuando cambia rol o permisos.
-  const visibleNavGroups = useMemo(() => {
-    return navGroups
-      .map((group) => ({
-        label: group.label,
-        items: group.items.filter((item) => getItemAccess(perms, role, item.url) !== "none"),
-      }))
-      .filter((group) => group.items.length > 0);
-  }, [perms, role]);
+  const visibleNavGroups = useVisibleNavGroups();
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3 min-w-0">
-          {company?.logo_url ? (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white p-1">
-              <img src={company.logo_url} alt="Logo" className="h-full w-full rounded object-contain" />
-            </div>
-          ) : (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--accent-gold))] text-white font-bold text-sm">LG</div>
-          )}
-          <div className="min-w-0 flex-1">
-            <h2
-              className="text-sm font-bold text-sidebar-primary-foreground tracking-tight truncate"
-              title={company?.razon_social || "Lift Go"}
-            >
-              {company?.razon_social || "Lift Go"}
-            </h2>
-            <p className="text-xs text-sidebar-foreground/60 truncate">Montacargas</p>
-          </div>
-        </div>
-      </SidebarHeader>
+      <SidebarBranding logoUrl={company?.logo_url} razonSocial={company?.razon_social} />
       <SidebarContent>
         {visibleNavGroups.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink to={item.url} end={item.url === "/"} className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors" activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarNavSection key={group.label} group={group} />
         ))}
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
-        <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-sidebar-foreground/80 truncate" title={user?.email ?? ""}>{user?.email}</p>
-            {role && (
-              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wide font-medium">
-                {ROLE_LABELS[role] ?? role}
-              </p>
-            )}
-          </div>
-          <div className="flex gap-1 shrink-0">
-            <ThemeToggle />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" aria-label="Cambiar contraseña" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-                  <KeyRound className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Cambiar contraseña</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" aria-label="Cerrar sesión" onClick={signOut} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Cerrar sesión</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-        {currentVersion && (
-          <NavLink to="/changelog" className="text-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono">
-            v{currentVersion}
-          </NavLink>
-        )}
-        <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
-      </SidebarFooter>
+      <SidebarUserFooter
+        email={user?.email}
+        role={role}
+        currentVersion={currentVersion}
+        onSignOut={signOut}
+      />
     </Sidebar>
   );
 }
