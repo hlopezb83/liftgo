@@ -1,1 +1,1 @@
-export * from "@/features/invoices/lib/invoiceUtils";
+export * from "@/lib/domain/invoiceUtils";
