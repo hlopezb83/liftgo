@@ -33,8 +33,12 @@ const cfdiBadgeClass = (status: string) =>
     ? "bg-destructive text-destructive-foreground border-transparent"
     : "bg-status-maintenance text-white border-transparent";
 
-const cfdiBadgeLabel = (status: string) =>
-  status === "pending" ? "Pendiente CFDI" : status === "stamped" ? "Timbrado" : status === "cancelled" ? "CFDI Cancelado" : status;
+const CFDI_BADGE_LABELS: Record<string, string> = {
+  pending: "Pendiente CFDI",
+  stamped: "Timbrado",
+  cancelled: "CFDI Cancelado",
+};
+const cfdiBadgeLabel = (status: string) => CFDI_BADGE_LABELS[status] ?? status;
 
 export default function InvoiceDetail() {
   const { id } = useParams();

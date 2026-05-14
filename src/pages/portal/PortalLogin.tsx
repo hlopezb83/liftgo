@@ -11,6 +11,12 @@ import { usePublicBranding } from "@/hooks/usePublicBranding";
 
 type Mode = "sign-in" | "forgot";
 
+function getPortalSubmitLabel(loading: boolean, mode: Mode): string {
+  if (loading) return "Cargando...";
+  if (mode === "forgot") return "Enviar Enlace";
+  return "Iniciar Sesión";
+}
+
 export default function PortalLogin() {
   const { user, signIn, resetPassword } = useAuth();
   const { data: company } = usePublicBranding();
@@ -74,7 +80,7 @@ export default function PortalLogin() {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Cargando..." : mode === "forgot" ? "Enviar Enlace" : "Iniciar Sesión"}
+              {getPortalSubmitLabel(loading, mode)}
             </Button>
           </form>
           <div className="mt-4 text-center space-y-1">

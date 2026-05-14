@@ -92,7 +92,7 @@ function HelpPage() {
         {isAdmin && (
           <Button onClick={() => generate()} disabled={isGenerating} size="sm">
             <RefreshCw className={`h-4 w-4 mr-2 ${isGenerating ? "animate-spin" : ""}`} />
-            {isGenerating ? "Generando…" : manual ? "Regenerar" : "Generar Manual"}
+            {getManualButtonLabel(isGenerating, !!manual)}
           </Button>
         )}
       </div>

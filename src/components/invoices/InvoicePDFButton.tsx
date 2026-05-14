@@ -110,8 +110,8 @@ export function InvoicePDFButton({ invoiceId }: InvoicePDFButtonProps) {
       doc.text(fmtDate(invoice.due_date), MARGIN + 54, detailY);
 
       // Status badge
-      const statusLabel = invoice.status === "paid" ? "PAGADA" : invoice.status === "cancelled" ? "CANCELADA" : "PENDIENTE";
-      const statusColor = invoice.status === "paid" ? GREEN : invoice.status === "cancelled" ? { r: 220, g: 38, b: 38 } : { r: 234, g: 179, b: 8 };
+      const statusLabel = getInvoicePdfStatusLabel(invoice.status);
+      const statusColor = getInvoicePdfStatusColor(invoice.status, GREEN);
       doc.setFillColor(statusColor.r, statusColor.g, statusColor.b);
       doc.roundedRect(MARGIN + 80, detailY - 3.5, 22, 5, 1, 1, "F");
       doc.setFontSize(5.5);

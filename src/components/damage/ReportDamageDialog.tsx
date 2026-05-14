@@ -11,6 +11,12 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useReportDamageForm } from "@/hooks/useReportDamageForm";
 import { DamageEvidenceSection } from "@/components/damage/DamageEvidenceSection";
 
+function getReportButtonLabel(previewsCount: number): string {
+  if (previewsCount === 0) return "Reportar";
+  if (previewsCount === 1) return "Reportar (1 foto)";
+  return `Reportar (${previewsCount} fotos)`;
+}
+
 export function ReportDamageDialog() {
   const [open, setOpen] = useState(false);
   const { data: forklifts } = useForklifts();
@@ -92,7 +98,7 @@ export function ReportDamageDialog() {
           <Button onClick={form.handleSubmit} disabled={form.isProcessing}>
             {form.isProcessing
               ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Guardando…</>
-              : `Reportar${form.previews.length > 0 ? ` (${form.previews.length} foto${form.previews.length > 1 ? "s" : ""})` : ""}`}
+              : getReportButtonLabel(form.previews.length)}
           </Button>
         </DialogFooter>
       </DialogContent>

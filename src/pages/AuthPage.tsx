@@ -107,7 +107,7 @@ export default function AuthPage() {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Cargando..." : mode === "forgot" ? "Enviar Enlace" : mode === "reset" ? "Actualizar Contraseña" : "Iniciar Sesión"}
+              {getAuthSubmitLabel(loading, mode)}
             </Button>
           </form>
           <div className="mt-4 text-center space-y-1">
