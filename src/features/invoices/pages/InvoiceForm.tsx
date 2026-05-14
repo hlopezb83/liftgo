@@ -26,8 +26,8 @@ export default function InvoiceForm() {
 
     const payload = form.buildPayload();
 
-    if (form.isEdit) {
-      form.updateInvoice.mutate({ id: form.id!, ...payload }, {
+    if (form.isEdit && form.id) {
+      form.updateInvoice.mutate({ id: form.id, ...payload }, {
         onSuccess: () => { toast.success("Factura actualizada"); navigate(`/invoices/${form.id}`); },
       });
     } else {

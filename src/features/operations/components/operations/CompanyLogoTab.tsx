@@ -17,6 +17,8 @@ export function CompanyLogoTab() {
   useEffect(() => {
     if (!settings) return;
     setForm({ logo_url: settings.logo_url || "" });
+    // setForm es estable (referencia de useFormState).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
   const savedUrl = settings?.logo_url || "";

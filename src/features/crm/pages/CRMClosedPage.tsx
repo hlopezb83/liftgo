@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, RotateCcw, Search } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
@@ -67,7 +67,7 @@ export default function CRMClosedPage() {
   const updateProspect = useUpdateProspect();
   const [search, setSearch] = useState("");
 
-  const filterRows = (rows: Prospect[]) => {
+  const filterRows = useCallback((rows: Prospect[]) => {
     const q = search.trim().toLowerCase();
     const sorted = [...rows].sort((a, b) => {
       const da = a.closed_at ? new Date(a.closed_at).getTime() : 0;
@@ -80,10 +80,10 @@ export default function CRMClosedPage() {
         p.company_name.toLowerCase().includes(q) ||
         (p.contact_person ?? "").toLowerCase().includes(q)
     );
-  };
+  }, [search]);
 
-  const wonRows = useMemo(() => filterRows(metrics.won), [metrics.won, search]);
-  const lostRows = useMemo(() => filterRows(metrics.lost), [metrics.lost, search]);
+  const wonRows = useMemo(() => filterRows(metrics.won), [metrics.won, filterRows]);
+  const lostRows = useMemo(() => filterRows(metrics.lost), [metrics.lost, filterRows]);
 
   const handleReopen = (p: Prospect) => {
     if (!confirm(`¿Reabrir deal con ${p.company_name}? Volverá a la columna de Negociación.`)) return;

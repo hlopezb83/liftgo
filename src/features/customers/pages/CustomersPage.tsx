@@ -45,6 +45,8 @@ export default function CustomersPage() {
       setDialogOpen(true);
       setSearchParams({}, { replace: true });
     }
+    // Solo se ejecuta una vez al montar para leer query params iniciales.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { search, setSearch, filtered } = useListFilters(customers, {

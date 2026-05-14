@@ -40,6 +40,8 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       reset();
       setTab("manual");
     }
+    // Solo reaccionar a la apertura del diálogo; ignorar cambios en initialData/reset/setForm.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleCsfParsed = useCallback((patch: Partial<CustomerFormData>) => {

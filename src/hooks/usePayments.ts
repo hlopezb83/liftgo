@@ -97,7 +97,7 @@ export function useUpdatePayment() {
         const balance = Number(invoice.total) - totalPaid;
         if (balance <= 0 && invoice.status !== "paid") {
           const latestDate = (allPayments || []).reduce((latest, p) =>
-            p.payment_date > latest ? p.payment_date : latest, allPayments![0].payment_date);
+            p.payment_date > latest ? p.payment_date : latest, allPayments?.[0]?.payment_date ?? "");
           await supabase.from("invoices").update({ status: "paid", paid_at: latestDate }).eq("id", invoice_id);
         } else if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
           await supabase.from("invoices").update({ status: "partial", paid_at: null }).eq("id", invoice_id);
