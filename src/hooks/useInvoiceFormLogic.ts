@@ -1,16 +1,14 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
 import { useForklifts } from "@/hooks/useForklifts";
-import { useCreateInvoice, useUpdateInvoice, useInvoice, useInvoices } from "@/hooks/useInvoices";
+import { useInvoice, useInvoices } from "@/hooks/useInvoices";
 import { useCustomers } from "@/hooks/useCustomers";
-import { useQuote, useUpdateQuote } from "@/hooks/useQuotes";
+import { useQuote } from "@/hooks/useQuotes";
 import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/lib/invoiceUtils";
-import { toJsonArray } from "@/lib/lineItems";
-import { format } from "date-fns";
-import { useInvoiceFormState } from "./invoiceForm/useInvoiceFormState";
+import { useInvoiceFormState, type CfdiFormState } from "./invoiceForm/useInvoiceFormState";
 import { useInvoicePrefill, applyCustomerCfdi } from "./invoiceForm/useInvoicePrefill";
-import type { CfdiFormState } from "./invoiceForm/useInvoiceFormState";
+import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 
 export type { CfdiFormState };
 
@@ -27,22 +25,20 @@ export function useInvoiceFormLogic() {
   const { data: sourceQuote } = useQuote(fromQuoteId || undefined);
   const { data: assignments } = useQuoteAssignments(fromQuoteId || undefined);
   const { data: invoices } = useInvoices();
-  const createInvoice = useCreateInvoice();
-  const updateInvoice = useUpdateInvoice();
-  const updateQuote = useUpdateQuote();
-
-  const invoicedBookingIds = new Set(
-    invoices?.filter((invoice) => invoice.status !== "cancelled" && invoice.booking_id)
-      .map((invoice) => invoice.booking_id),
-  );
 
   const state = useInvoiceFormState();
   useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, state });
+  const submit = useInvoiceFormSubmit();
 
   const {
     bookingId, customerName, customerId, lineItems, taxRate, dueDate, issueDate, notes, cfdi,
     setBookingId, setCustomerName, setCustomerId, setLineItems, setCfdi,
   } = state;
+
+  const invoicedBookingIds = new Set(
+    invoices?.filter((invoice) => invoice.status !== "cancelled" && invoice.booking_id)
+      .map((invoice) => invoice.booking_id),
+  );
 
   const handleCustomerSelect = (selectedCustomerId: string) => {
     setCustomerId(selectedCustomerId);
@@ -94,27 +90,15 @@ export function useInvoiceFormLogic() {
   };
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, taxRate);
-  const isPending = createInvoice.isPending || updateInvoice.isPending;
 
   const availableBookings = bookings?.filter(
     (booking) => booking.status === "confirmed" && !invoicedBookingIds.has(booking.id),
   ) as BookingWithForklift[] | undefined;
 
-  const buildPayload = () => ({
-    booking_id: bookingId || (isEdit ? existing?.booking_id : null) || null,
-    customer_id: customerId,
-    customer_name: customerName || null,
-    quote_id: fromQuoteId || (isEdit ? existing?.quote_id : null) || null,
-    line_items: toJsonArray(lineItems),
-    subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
-    due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
-    issued_at: format(issueDate, "yyyy-MM-dd"),
-    notes: notes || null,
-    serie: cfdi.serie || null, folio: cfdi.folio || null, forma_pago: cfdi.formaPago || null,
-    metodo_pago: cfdi.metodoPago || null, uso_cfdi: cfdi.usoCfdi || null, moneda: cfdi.moneda || null,
-    tipo_cambio: cfdi.tipoCambio, receptor_rfc: cfdi.receptorRfc || null,
-    receptor_razon_social: cfdi.receptorRazonSocial || null, receptor_regimen_fiscal: cfdi.receptorRegimenFiscal || null,
-    receptor_domicilio_fiscal_cp: cfdi.receptorDomicilioFiscalCp || null,
+  const buildPayload = () => submit.buildPayload({
+    state, isEdit, fromQuoteId,
+    existingBookingId: existing?.booking_id,
+    existingQuoteId: existing?.quote_id,
   });
 
   return {
@@ -129,7 +113,10 @@ export function useInvoiceFormLogic() {
     handleCustomerSelect, handleBookingSelect,
     updateLineItem, addLineItem, removeLineItem, handleCfdiUpdate,
     buildPayload,
-    createInvoice, updateInvoice, updateQuote,
-    subtotal, taxAmount, total, isPending,
+    createInvoice: submit.createInvoice,
+    updateInvoice: submit.updateInvoice,
+    updateQuote: submit.updateQuote,
+    subtotal, taxAmount, total,
+    isPending: submit.isPending,
   };
 }
