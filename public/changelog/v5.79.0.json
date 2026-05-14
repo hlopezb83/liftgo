@@ -1,0 +1,16 @@
+{
+  "version": "5.79.0",
+  "date": "2026-05-14",
+  "type": "minor",
+  "title": "Refactor: 19 módulos restantes migrados a src/features/",
+  "category": "refactor",
+  "description": "Se completó la migración del proyecto a la arquitectura por dominios. Todos los módulos viven ahora bajo src/features/<dominio>/{components,hooks,pages}. Las rutas legacy se conservan como shims para mantener compatibilidad y evitar romper consumidores externos o pruebas.",
+  "changes": [
+    "Migrados: fleet, maintenance, quotes, customers, contracts, suppliers, damage, deliveries, returns, inventory, expenses, calendar, dashboard, reports, operations, company-settings, users, audit y changelog",
+    "Componentes anidados (maintenance/kanban, operations/contractTemplate, crm/prospect-form) migrados con su jerarquía intacta",
+    "Hooks por dominio movidos a features/<modulo>/hooks/, conservando shims en src/hooks para compatibilidad",
+    "Router (routes-config.tsx) actualizado para importar pages directamente desde features/",
+    "Rutas src/pages/* y src/components/* legacy quedan como re-exports de un solo línea",
+    "Patrón validado para futuras adiciones: cada nuevo módulo debe nacer dentro de src/features/<dominio>/"
+  ]
+}
