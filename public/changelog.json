@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.68.0",
+    "date": "2026-05-14",
+    "type": "minor",
+    "title": "Refactor: CRMPage y UserManagementPage modularizadas",
+    "category": "refactor"
+  },
+  {
     "version": "5.67.0",
     "date": "2026-05-14",
     "type": "minor",

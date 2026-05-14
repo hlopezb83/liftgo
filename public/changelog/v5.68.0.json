@@ -1,0 +1,11 @@
+{
+  "description": "Paso 2 de la auditoría: CRMPage y UserManagementPage divididas en hooks dedicados (filtros + diálogos) y componentes presentacionales.",
+  "changes": [
+    "Nuevo hook useCRMPageDialogs en hooks/crm/ — encapsula 5 estados de diálogo del kanban",
+    "Nuevo componente CRMToolbar — extrae header, filtros, density toggle y KPIs (≈100 LOC fuera de la página)",
+    "Constantes ACTIVE_STAGES, VALUE_RANGE_OPTIONS, AGE_RANGE_OPTIONS movidas de CRMPage a lib/constants/crm.ts",
+    "CRMPage reducido de 294 a ≈180 LOC, handlers envueltos en useCallback",
+    "Nuevos hooks useUserManagementDialogs y useUserManagementFilters en hooks/users/ — sustituyen 7 useState locales",
+    "UserManagementPage reducido de 218 a ≈195 LOC con responsabilidades separadas"
+  ]
+}
