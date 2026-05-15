@@ -1,0 +1,7 @@
+{
+  "description": "Limpieza de dependencias sin uso para reducir el tamaño del bundle y la superficie de ataque.",
+  "changes": [
+    "Eliminadas 15 dependencias npm sin uso: @radix-ui/react-aspect-ratio, avatar, context-menu, hover-card, menubar, navigation-menu, progress, radio-group, slider, embla-carousel-react, input-otp, vaul, react-resizable-panels, @tailwindcss/typography, @types/dompurify",
+    "Removidos 14 componentes shadcn/ui no utilizados (aspect-ratio, avatar, context-menu, hover-card, menubar, navigation-menu, progress, radio-group, slider, carousel, input-otp, drawer, resizable, breadcrumb)"
+  ]
+}
