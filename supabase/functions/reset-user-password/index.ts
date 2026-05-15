@@ -3,7 +3,7 @@ import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shar
 import { isUUID } from "../_shared/validate.ts";
 
 function passwordValidationResponse(
-  payload: { error: string; code: "weak_password" | "pwned"; raw?: string },
+  payload: { error: string; code: "weak_password" | "pwned" },
   corsHeaders: Record<string, string>,
 ) {
   return new Response(JSON.stringify({ success: false, ...payload }), {
