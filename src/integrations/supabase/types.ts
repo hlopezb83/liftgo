@@ -2137,6 +2137,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_customer_forklifts_brief: {
+        Args: never
+        Returns: {
+          id: string
+          manufacturer: string
+          model: string
+          name: string
+        }[]
+      }
       get_customer_id_for_user: { Args: { p_user_id: string }; Returns: string }
       get_customer_profitability: {
         Args: { p_customer_id: string }
