@@ -37,20 +37,22 @@ export function useCreateFeedback() {
         screenshotUrl = await uploadScreenshot(user.id, input.screenshot);
       }
 
+      const payload: TablesInsert<"feedback_reports"> = {
+        reporter_id: user.id,
+        reporter_type: input.reporterType,
+        reporter_name: input.reporterName,
+        type: input.values.type,
+        module: input.values.module,
+        severity: input.values.type === "bug" ? input.values.severity ?? "medium" : null,
+        title: input.values.title,
+        description: input.values.description,
+        screenshot_url: screenshotUrl,
+        context_json: input.context as unknown as TablesInsert<"feedback_reports">["context_json"],
+      };
+
       const { data, error } = await supabase
         .from("feedback_reports")
-        .insert({
-          reporter_id: user.id,
-          reporter_type: input.reporterType,
-          reporter_name: input.reporterName,
-          type: input.values.type,
-          module: input.values.module,
-          severity: input.values.type === "bug" ? input.values.severity ?? "medium" : null,
-          title: input.values.title,
-          description: input.values.description,
-          screenshot_url: screenshotUrl,
-          context_json: input.context as unknown as Record<string, unknown>,
-        })
+        .insert(payload)
         .select()
         .single();
       if (error) throw error;
