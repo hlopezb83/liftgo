@@ -1,0 +1,11 @@
+{
+  "version": "5.84.1",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Tabla de honor: ocultar identidad del personal a clientes del portal",
+  "description": "La RPC get_feedback_leaderboard ya no expone nombres ni UUIDs reales del personal interno cuando la consulta proviene de un usuario con rol customer; los reportes del equipo se agrupan como 'Equipo LiftGo'. Personal interno conserva la vista completa.",
+  "changes": [
+    { "type": "security", "title": "PII de personal protegida en /portal/leaderboard", "description": "Clientes ven 'Equipo LiftGo' sin reporter_id; staff conserva nombres reales." }
+  ]
+}
