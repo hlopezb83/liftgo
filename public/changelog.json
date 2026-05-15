@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.81.3",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Endurecimiento de RLS: documentos, flota y configuración de empresa",
+    "category": "security"
+  },
+  {
     "version": "5.81.2",
     "date": "2026-05-15",
     "type": "patch",
