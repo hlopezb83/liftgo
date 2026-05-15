@@ -20,6 +20,16 @@ export function usePortalCustomer() {
   });
 }
 
+type ForkliftBrief = { id: string; name: string | null; model: string | null; manufacturer: string | null };
+
+async function fetchForkliftsBriefMap(): Promise<Map<string, ForkliftBrief>> {
+  const { data, error } = await supabase.rpc("get_customer_forklifts_brief");
+  if (error) throw error;
+  const map = new Map<string, ForkliftBrief>();
+  (data ?? []).forEach((f: ForkliftBrief) => map.set(f.id, f));
+  return map;
+}
+
 export function usePortalBookings() {
   const { user } = useAuth();
   return useQuery({
@@ -27,12 +37,18 @@ export function usePortalBookings() {
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("*, forklifts(name, model)")
-        .order("start_date", { ascending: false });
+      const [{ data, error }, forkliftMap] = await Promise.all([
+        supabase
+          .from("bookings")
+          .select("*")
+          .order("start_date", { ascending: false }),
+        fetchForkliftsBriefMap(),
+      ]);
       if (error) throw error;
-      return data;
+      return (data ?? []).map((b) => ({
+        ...b,
+        forklifts: b.forklift_id ? forkliftMap.get(b.forklift_id) ?? null : null,
+      }));
     },
   });
 }
@@ -61,12 +77,18 @@ export function usePortalContracts() {
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contracts")
-        .select("*, forklifts(name, model)")
-        .order("created_at", { ascending: false });
+      const [{ data, error }, forkliftMap] = await Promise.all([
+        supabase
+          .from("contracts")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        fetchForkliftsBriefMap(),
+      ]);
       if (error) throw error;
-      return data;
+      return (data ?? []).map((c) => ({
+        ...c,
+        forklifts: c.forklift_id ? forkliftMap.get(c.forklift_id) ?? null : null,
+      }));
     },
   });
 }
@@ -87,4 +109,3 @@ export function usePortalPayments() {
     },
   });
 }
-
