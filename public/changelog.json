@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.84.3",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Portal de Cliente: ocultar tarifas, costos internos e IDs fiscales",
+    "category": "security"
+  },
+  {
     "version": "5.84.2",
     "date": "2026-05-15",
     "type": "patch",
