@@ -1,0 +1,14 @@
+{
+  "version": "5.84.3",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Portal de Cliente: ocultar tarifas, costos internos e IDs fiscales",
+  "description": "Se reemplazaron las policies SELECT directas de clientes en contracts, deliveries e invoices por funciones SECURITY DEFINER (get_portal_contracts, get_portal_invoices) que devuelven solo los campos seguros. Además se re-acotaron las policies de quote_assigned_forklifts del rol public a authenticated.",
+  "changes": [
+    { "type": "security", "title": "contracts: clientes ya no ven tarifas, depósito ni testigos", "description": "Se quitó la policy 'Customers read own contracts'. El portal usa get_portal_contracts() con campos seguros." },
+    { "type": "security", "title": "deliveries: clientes ya no ven costo de transporte ni teléfono del operador", "description": "Se eliminó la policy 'Customers read own deliveries'." },
+    { "type": "security", "title": "invoices: clientes ya no ven facturapi_invoice_id ni cfdi_xml", "description": "Se reemplazó la policy por get_portal_invoices() devolviendo solo folio, totales y PDF del CFDI." },
+    { "type": "security", "title": "quote_assigned_forklifts: policies acotadas a authenticated", "description": "Se eliminó la exposición innecesaria al rol public." }
+  ]
+}

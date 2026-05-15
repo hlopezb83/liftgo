@@ -2183,6 +2183,43 @@ export type Database = {
       }
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
+      get_portal_contracts: {
+        Args: never
+        Returns: {
+          contract_number: string
+          created_at: string
+          customer_id: string
+          end_date: string
+          forklift_id: string
+          id: string
+          signed_at: string
+          start_date: string
+          status: string
+          usage_location: string
+        }[]
+      }
+      get_portal_invoices: {
+        Args: never
+        Returns: {
+          billing_period_end: string
+          billing_period_start: string
+          cfdi_pdf_url: string
+          cfdi_uuid: string
+          customer_id: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issued_at: string
+          line_items: Json
+          moneda: string
+          paid_at: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+        }[]
+      }
       get_public_branding: {
         Args: never
         Returns: {
