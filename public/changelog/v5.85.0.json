@@ -1,0 +1,14 @@
+{
+  "version": "5.85.0",
+  "date": "2026-05-15",
+  "type": "minor",
+  "title": "Endurecimiento de RPCs internos y registro público",
+  "category": "security",
+  "description": "Las funciones críticas (crear/cancelar reserva, completar inspección de retorno y eliminar montacargas) ahora exigen rol válido. Eliminar montacargas queda restringido a administradores. Se desactivó el auto-registro público y los nuevos usuarios reciben el rol 'cliente' por defecto en lugar de 'despachador'.",
+  "changes": [
+    "create_booking, cancel_booking y complete_return_inspection: guard has_role() para admin/administrativo/dispatcher (+ventas o mecánico)",
+    "delete_forklift: restringido únicamente a admin",
+    "handle_new_user: rol por defecto cambiado de dispatcher a customer",
+    "Auth: disable_signup activado — el personal sólo se crea vía Gestión de Usuarios"
+  ]
+}
