@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.81.5",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Mecánicos sin acceso a PII de clientes en reservas",
+    "category": "security"
+  },
+  {
     "version": "5.81.4",
     "date": "2026-05-15",
     "type": "patch",

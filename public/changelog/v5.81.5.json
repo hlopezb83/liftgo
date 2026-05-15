@@ -1,0 +1,15 @@
+{
+  "version": "5.81.5",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Mecánicos sin acceso a PII de clientes en reservas",
+  "description": "Se eliminó la política de lectura de bookings y booking_extensions para el rol mecánico, evitando exposición de customer_name, customer_contact y site_contact_phone. Mecánicos no requieren datos de cliente para sus flujos de mantenimiento.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Mecánicos sin acceso a bookings ni booking_extensions",
+      "description": "La tabla bookings contiene PII denormalizada (nombre y teléfono del cliente). Se eliminaron las políticas SELECT del rol mecánico en ambas tablas."
+    }
+  ]
+}
