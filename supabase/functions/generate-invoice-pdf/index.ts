@@ -51,7 +51,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify(invoice), {
+    const safeInvoice = isStaff
+      ? invoice
+      : (() => {
+          const { facturapi_invoice_id: _f, cfdi_xml: _x, cfdi_error_message: _e, cancellation_reason: _c, ...rest } = invoice;
+          return rest;
+        })();
+
+    return new Response(JSON.stringify(safeInvoice), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (_err) {
