@@ -1,0 +1,15 @@
+{
+  "version": "5.81.6",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Mecánicos sin permiso de subida ni modificación en bucket documents",
+  "description": "Se eliminó al rol mecánico de las políticas INSERT y UPDATE del bucket documents para evitar manipulación de archivos vinculados a facturas, contratos o clientes que el mecánico no puede leer vía RLS. Conservan acceso de lectura.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Storage documents: mecánicos sin escritura",
+      "description": "Las políticas Staff upload documents y Staff update documents ahora restringen escritura a admin, administrativo, dispatcher y ventas. Mecánicos mantienen lectura mediante Staff read documents."
+    }
+  ]
+}
