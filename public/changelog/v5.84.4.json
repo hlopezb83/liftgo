@@ -1,0 +1,11 @@
+{
+  "version": "5.84.4",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Edge Function generate-invoice-pdf: filtrar campos sensibles",
+  "description": "La función generate-invoice-pdf devolvía la fila completa de invoices a clientes autenticados (incluyendo facturapi_invoice_id, cfdi_xml, cfdi_error_message y cancellation_reason). Ahora se filtran esos campos para callers no-staff, alineando con get_portal_invoices().",
+  "changes": [
+    { "type": "security", "title": "Strip de campos internos para clientes en generate-invoice-pdf", "description": "Staff sigue recibiendo la fila completa; clientes solo reciben el subset seguro." }
+  ]
+}
