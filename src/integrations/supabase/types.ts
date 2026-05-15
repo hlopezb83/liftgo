@@ -839,6 +839,107 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_reports: {
+        Row: {
+          admin_notes: string | null
+          context_json: Json
+          created_at: string
+          description: string
+          folio: string
+          id: string
+          module: string
+          points_awarded: number
+          reporter_id: string
+          reporter_name: string | null
+          reporter_type: string
+          resolved_at: string | null
+          screenshot_url: string | null
+          severity: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          context_json?: Json
+          created_at?: string
+          description: string
+          folio?: string
+          id?: string
+          module: string
+          points_awarded?: number
+          reporter_id: string
+          reporter_name?: string | null
+          reporter_type: string
+          resolved_at?: string | null
+          screenshot_url?: string | null
+          severity?: string | null
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          context_json?: Json
+          created_at?: string
+          description?: string
+          folio?: string
+          id?: string
+          module?: string
+          points_awarded?: number
+          reporter_id?: string
+          reporter_name?: string | null
+          reporter_type?: string
+          resolved_at?: string | null
+          screenshot_url?: string | null
+          severity?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      feedback_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          comment: string | null
+          from_status: string | null
+          id: string
+          report_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          from_status?: string | null
+          id?: string
+          report_id: string
+          to_status: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          from_status?: string | null
+          id?: string
+          report_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_status_history_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       forklifts: {
         Row: {
           acquisition_cost: number | null
@@ -1911,6 +2012,35 @@ export type Database = {
     }
     Functions: {
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
+      change_feedback_status: {
+        Args: { _comment?: string; _new_status: string; _report_id: string }
+        Returns: {
+          admin_notes: string | null
+          context_json: Json
+          created_at: string
+          description: string
+          folio: string
+          id: string
+          module: string
+          points_awarded: number
+          reporter_id: string
+          reporter_name: string | null
+          reporter_type: string
+          resolved_at: string | null
+          screenshot_url: string | null
+          severity: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "feedback_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       check_and_record_rate_limit: {
         Args: {
           _bucket: string
@@ -1973,6 +2103,7 @@ export type Database = {
         Returns: string
       }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
+      generate_feedback_number: { Args: never; Returns: string }
       get_available_forklifts: {
         Args: { p_end_date: string; p_start_date: string }
         Returns: {
@@ -2013,6 +2144,17 @@ export type Database = {
       }
       get_customer_summary: { Args: { p_customer_id: string }; Returns: Json }
       get_dashboard_stats: { Args: never; Returns: Json }
+      get_feedback_leaderboard: {
+        Args: { _period?: string }
+        Returns: {
+          accepted_reports: number
+          reporter_id: string
+          reporter_name: string
+          resolved_reports: number
+          total_points: number
+          total_reports: number
+        }[]
+      }
       get_financial_kpis: { Args: never; Returns: Json }
       get_forklift_financials: {
         Args: { p_forklift_id: string }
