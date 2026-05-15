@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.81.4",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Hardening: flota sin datos sensibles a clientes, configuración de empresa restringida y mecánicos sin facturas",
+    "category": "security"
+  },
+  {
     "version": "5.81.3",
     "date": "2026-05-15",
     "type": "patch",

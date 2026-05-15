@@ -1,0 +1,30 @@
+{
+  "version": "5.81.4",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Hardening: flota sin datos sensibles a clientes, configuración de empresa restringida y mecánicos sin facturas",
+  "description": "Cinco hallazgos del scanner cerrados: clientes ya no leen costos/seguros/serie de la flota, mecánicos pierden acceso a datos fiscales y a facturas vía edge function, auditor ya no sube documentos, y se confirma que la tabla documents niega lectura a clientes por default.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Clientes solo ven nombre/modelo de su flota rentada",
+      "description": "Se eliminó la política SELECT del cliente sobre forklifts (que exponía costo de adquisición, seguros y número de serie). El portal usa ahora la RPC get_customer_forklifts_brief que devuelve únicamente id, nombre, modelo y fabricante de equipos asociados a sus reservas o contratos."
+    },
+    {
+      "type": "security",
+      "title": "Mecánicos sin acceso a configuración fiscal",
+      "description": "Se eliminó al rol mecánico de la política de lectura de company_settings (RFC, régimen fiscal, modo Facturapi). Solo admin, administrativo, auditor, despachador y ventas conservan acceso. La marca pública sigue disponible vía get_public_branding."
+    },
+    {
+      "type": "security",
+      "title": "Mecánicos sin acceso a PDFs de facturas",
+      "description": "Se eliminó al rol mecánico del listado isStaff de la edge function generate-invoice-pdf, alineado con las políticas RLS que ya niegan lectura de invoices a mecánicos."
+    },
+    {
+      "type": "security",
+      "title": "Auditor sin permiso de subida de documentos",
+      "description": "La política Staff upload documents del bucket eliminó al rol auditor. Auditores conservan lectura pero no pueden cargar/modificar archivos."
+    }
+  ]
+}
