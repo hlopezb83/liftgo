@@ -1,10 +1,19 @@
-import { ReactNode, useMemo, memo } from "react";
+import { ReactNode, useMemo, useState, memo } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+  type SortingFn,
+  type Row,
+} from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
 import { MobileCardList } from "@/components/MobileCardList";
-import { useSort } from "@/hooks/useSort";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -43,33 +52,17 @@ const alignClass: Record<ColumnAlign, string> = {
   center: "text-center",
 };
 
-interface DataTableRowProps<T> {
-  item: T;
-  index: number;
-  columns: DataTableColumn<T>[];
-  onRowClick?: (item: T) => void;
-  rowClassName?: (item: T) => string | undefined;
-}
-
-function DataTableRowInner<T>({ item, index, columns, onRowClick, rowClassName }: DataTableRowProps<T>) {
-  return (
-    <TableRow
-      className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
-      onClick={onRowClick ? () => onRowClick(item) : undefined}
-    >
-      {columns.map((col) => (
-        <TableCell
-          key={col.key}
-          className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.className)}
-        >
-          {col.render(item, index)}
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-}
-
-const DataTableRow = memo(DataTableRowInner) as typeof DataTableRowInner;
+// Espejo del comparador anterior de useSort: nulls al final, números nativos,
+// strings con localeCompare insensible a acentos y numeric:true.
+const liftgoSortingFn: SortingFn<unknown> = (rowA: Row<unknown>, rowB: Row<unknown>, columnId: string) => {
+  const a = rowA.getValue(columnId);
+  const b = rowB.getValue(columnId);
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).localeCompare(String(b), undefined, { sensitivity: "base", numeric: true });
+};
 
 function DataTableInner<T>({
   columns,
@@ -87,37 +80,67 @@ function DataTableInner<T>({
 }: DataTableProps<T>) {
   const isMobile = useIsMobile();
 
-  // Stable signature based on column keys to avoid invalidating accessors when
-  // a parent passes inline `columns` arrays whose contents are equivalent.
+  // Firma estable basada en `key` para no invalidar columnas cuando el padre
+  // pasa arrays inline equivalentes.
   const columnsKey = columns.map((c) => c.key).join("|");
 
-  const accessors = useMemo(() => {
-    const map: Record<string, (item: T) => unknown> = {};
-    for (const c of columns) if (c.accessor) map[c.key] = c.accessor;
-    return map;
+  const columnDefs = useMemo<ColumnDef<T>[]>(
+    () =>
+      columns.map((col) => ({
+        id: col.key,
+        accessorFn: col.accessor ?? ((row: T) => (row as Record<string, unknown>)[col.key]),
+        enableSorting: !!col.sortable,
+        sortingFn: liftgoSortingFn as SortingFn<T>,
+        cell: (ctx) => col.render(ctx.row.original, ctx.row.index),
+        header: () => col.label,
+      })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnsKey]);
+    [columnsKey],
+  );
 
-  const { sortKey, sortDirection, toggleSort, sortedItems } = useSort<T>(data, {
-    defaultKey: defaultSortKey,
-    defaultDirection: defaultSortDirection,
-    accessors,
+  const [sorting, setSorting] = useState<SortingState>(
+    defaultSortKey ? [{ id: defaultSortKey, desc: defaultSortDirection === "desc" }] : [],
+  );
+
+  const tableData = useMemo(() => data ?? [], [data]);
+
+  const table = useReactTable<T>({
+    data: tableData,
+    columns: columnDefs,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
-  const items = sortedItems ?? [];
+  const sortedRows = table.getRowModel().rows;
+  const sortedItems = useMemo(() => sortedRows.map((r) => r.original), [sortedRows]);
 
   if (isLoading) return <TableSkeleton columnCount={columns.length} rows={5} />;
 
   if (isMobile && mobileCardRender) {
     return (
       <MobileCardList
-        items={items}
+        items={sortedItems}
         keyExtractor={(item) => keyExtractor(item, 0)}
         emptyMessage={emptyMessage}
         renderCard={mobileCardRender}
       />
     );
   }
+
+  const currentSort = sorting[0];
+  const sortKey = currentSort?.id ?? null;
+  const sortDirection: "asc" | "desc" = currentSort?.desc ? "desc" : "asc";
+
+  const toggleSort = (key: string) => {
+    setSorting((prev) => {
+      const cur = prev[0];
+      if (!cur || cur.id !== key) return [{ id: key, desc: false }];
+      if (!cur.desc) return [{ id: key, desc: true }];
+      return [{ id: key, desc: false }];
+    });
+  };
 
   return (
     <Table className={className}>
@@ -147,19 +170,35 @@ function DataTableInner<T>({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {items.length === 0 ? (
+        {sortedRows.length === 0 ? (
           <EmptyRow colSpan={columns.length} message={emptyMessage} />
         ) : (
-          items.map((item, idx) => (
-            <DataTableRow
-              key={keyExtractor(item, idx)}
-              item={item}
-              index={idx}
-              columns={columns}
-              onRowClick={onRowClick}
-              rowClassName={rowClassName}
-            />
-          ))
+          sortedRows.map((row) => {
+            const item = row.original;
+            return (
+              <TableRow
+                key={keyExtractor(item, row.index)}
+                className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
+                onClick={onRowClick ? () => onRowClick(item) : undefined}
+              >
+                {row.getVisibleCells().map((cell) => {
+                  const col = columns.find((c) => c.key === cell.column.id);
+                  return (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        alignClass[col?.align ?? "left"],
+                        col?.hideOnMobile && "hidden md:table-cell",
+                        col?.className,
+                      )}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            );
+          })
         )}
       </TableBody>
       {footer}

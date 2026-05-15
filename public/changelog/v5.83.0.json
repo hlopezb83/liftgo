@@ -1,0 +1,14 @@
+{
+  "version": "5.83.0",
+  "date": "2026-05-15",
+  "type": "minor",
+  "title": "DataTable migrado a @tanstack/react-table (Fase 1)",
+  "category": "refactor",
+  "description": "El componente DataTable ahora usa @tanstack/react-table como motor interno de ordenamiento, manteniendo exactamente la misma API pública. Los 19 consumidores no requieren cambios. Esta base habilita features futuras (selección de filas, column visibility/resize, virtualización, filtros por columna) sin reescribir cada página.",
+  "changes": [
+    "Refactor: src/components/DataTable.tsx ahora usa useReactTable con getCoreRowModel + getSortedRowModel.",
+    "Comparador custom (liftgoSortingFn) que replica el comportamiento previo de useSort: nulls al final, números nativos, strings con localeCompare(sensitivity:'base', numeric:true).",
+    "Misma API pública: columns, data, keyExtractor, mobileCardRender, defaultSortKey, defaultSortDirection, etc.",
+    "useSort sigue vigente para las páginas que lo usan directamente (BookingsPage, DeliveriesPage, useListPage)."
+  ]
+}

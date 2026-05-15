@@ -1,97 +1,104 @@
-## Resumen
+# Fase 1: Migración de DataTable a @tanstack/react-table
 
-Revisé las utilidades y componentes "caseros" del ERP comparándolos con librerías maduras. **La conclusión honesta: el código actual está bien arquitecturizado y la mayoría de "reinventos" son intencionales y mínimos.** Solo encontré **2 candidatos con beneficio real** y varios donde migrar **empeoraría** las cosas.
+## Objetivo
 
----
+Reemplazar el motor interno de ordenamiento de `DataTable` (`useSort`) por `@tanstack/react-table` **sin cambiar la API pública**. Los 19 consumidores actuales no requieren cambios.
 
-## Vale la pena migrar (2)
+## Alcance
 
-### 1. `exportToCsv` → `papaparse` (recomendado)
+- ✅ Refactor de `src/components/DataTable.tsx` para usar `useReactTable`
+- ✅ Mantener exactamente: `columns`, `data`, `isLoading`, `keyExtractor`, `emptyMessage`, `onRowClick`, `rowClassName`, `mobileCardRender`, `defaultSortKey`, `defaultSortDirection`, `footer`, `className`
+- ✅ Mantener `DataTableColumn<T>` con `key`, `label`, `sortable`, `accessor`, `render`, `align`, `className`, `headClassName`, `hideOnMobile`
+- ✅ Mantener integración con `MobileCardList`, `TableSkeleton`, `EmptyRow`, `SortableTableHead`
+- ❌ NO se tocan los 19 consumidores
+- ❌ NO se elimina `useSort` (sigue usándose en `useListPage`, `BookingsPage`, `DeliveriesPage`, etc. que NO pasan por `DataTable`)
+- ❌ NO se agregan features nuevas (selección, resize, visibility, virtualization) — eso es Fase 3
 
-**Hoy** (`src/lib/exportCsv.ts`, 21 LOC): serializador CSV propio.
+## Pasos
 
-**Problemas reales**:
-- No escapa saltos de línea dentro de celdas (rompe Excel si una nota tiene `\n`).
-- No agrega BOM UTF-8 → caracteres con acentos se ven mal en Excel español.
-- Convierte fechas/objetos con `String()` sin formato controlado.
+1. **Instalar dependencia**
+   - `bun add @tanstack/react-table`
 
-**Beneficio**: exports de clientes, facturas, gastos, etc. abren correctamente en Excel mexicano sin caracteres rotos. Papaparse pesa ~45 KB minified pero solo se usa al exportar (puede ir lazy-loaded).
+2. **Refactor `src/components/DataTable.tsx`**
+   - Construir `ColumnDef<T>[]` a partir de `DataTableColumn<T>[]`:
+     - `id: col.key`
+     - `accessorFn: col.accessor ?? (row) => (row as Record<string, unknown>)[col.key]`
+     - `header: col.label` (renderizado por `SortableTableHead` cuando `sortable`)
+     - `cell: ({ row, index }) => col.render(row.original, index)`
+     - `enableSorting: !!col.sortable`
+   - Configurar `useReactTable`:
+     - `data: data ?? []`
+     - `columns: columnDefs`
+     - `getCoreRowModel`, `getSortedRowModel`
+     - `state.sorting` controlado, `onSortingChange`
+     - `initialState.sorting` desde `defaultSortKey`/`defaultSortDirection`
+   - Render: iterar `table.getHeaderGroups()` y `table.getRowModel().rows`
+   - Conservar lógica `isMobile + mobileCardRender → MobileCardList` exactamente igual
+   - Conservar `memo` en row interno y `DataTable`
 
-**Trade-off**: agregamos una dependencia para resolver bugs reales que ya nos van a morder cuando un cliente con `ñ` o una nota multilínea aparezca en un export.
+3. **Mapping de sorting al header**
+   - `SortableTableHead` sigue recibiendo `sortKey/currentSort/currentDirection/onSort`
+   - Adaptar: leer `state.sorting[0]` y exponer `toggleSort(key)` que llame a `table.setSorting`
 
-### 2. `DataTable` + `useSort` + `usePagination` → `@tanstack/react-table` (opcional, mediano plazo)
+4. **Comparador de orden**
+   - `useSort` actual usa `localeCompare` con `sensitivity: "base", numeric: true` para strings y resta para números
+   - Implementar `sortingFn` custom equivalente y aplicarlo por defecto a todas las columnas para preservar comportamiento (acentos, números embebidos en strings, nulls al final)
 
-**Hoy**: `DataTable.tsx` (170 LOC) + `useSort` (61 LOC) + `usePagination` (29 LOC) + `SortableTableHead` + `TablePagination`. Todo client-side.
+5. **Validación**
+   - Correr `vitest` (`InvoicesPage.test.tsx`, `bookingFlow.test.ts`, etc.)
+   - Smoke test visual de 3 páginas representativas: `InvoicesPage`, `QuotesPage`, `CustomersPage`
 
-**Cuándo conviene migrar**:
-- Cuando agreguemos **column resizing**, **column visibility toggle**, **multi-sort**, o **virtualización** para listas grandes.
-- Cuando empiece a doler que las tablas no comparten lógica de filtros con `useListFilters`.
+6. **Changelog**
+   - Crear `public/changelog/v5.83.0.json` (minor: dependencia nueva + refactor interno, sin cambios visibles)
+   - Agregar entrada al inicio de `public/changelog.json`
 
-**Cuándo NO**: hoy. El sistema actual cumple Power of 10, es predecible y bajo en LOC. Migrar ahora es deuda sin retorno claro.
+7. **Memoria**
+   - Actualizar `mem://arch/ui/tables` indicando que `DataTable` ya usa TanStack internamente y que Fase 2/3 (selección, resize, virtualization) queda lista para activarse on-demand
 
-**Recomendación**: dejarlo como **regla de oro a futuro**: la próxima vez que una tabla pida features avanzadas, migrar **esa** primero como prueba y evaluar.
+## Detalles técnicos
 
----
-
-## NO vale la pena migrar (lo verifiqué)
-
-| Código actual | Alternativa rechazada | Razón |
-|---|---|---|
-| `ImageGalleryLightbox` (126 LOC) | `yet-another-react-lightbox` | Ya cubre teclado, swipe táctil, zoom, miniaturas. Migrar añade ~30 KB sin nuevas features. |
-| `useDebouncedValue` (14 LOC) | `use-debounce` | 14 líneas vs nueva dependencia. Cero ganancia. |
-| `useSort` / `usePagination` por separado | `@tanstack/react-table` | Ver arriba: solo si DataTable evoluciona. |
-| `formatCurrency` (27 LOC) | librería externa | `Intl.NumberFormat` nativo es más que suficiente. |
-| `nowMty()` y helpers de fecha | librería extra | Ya usamos `date-fns` + `date-fns-tz`. |
-| PDFs de cotización/factura/contrato | template engine | Diseño A4 brand-specific, intencionalmente custom. |
-| `GlobalSearch` (Ctrl+K) | re-añadir `cmdk` | Ya usa `@/components/ui/command` que envuelve cmdk vía shadcn. **Funciona**, no migrar. |
-| Validación de formularios | otra lib | `react-hook-form` + `zod` ya es el estándar. |
-| Kanban (CRM, Mantenimiento) | otra lib DnD | `@hello-pangea/dnd` ya cumple, sin razón para cambiar. |
-
----
-
-## Plan de acción propuesto
-
-**Fase 1 — Inmediata (recomendada):**
-1. `bun add papaparse @types/papaparse`
-2. Reescribir `src/lib/exportCsv.ts` para usar `Papa.unparse` con BOM UTF-8 y escape correcto de saltos de línea.
-3. Verificar exports actuales (clientes, facturas, gastos, proveedores) abren bien en Excel.
-4. Entrada en changelog v5.82.1 (patch, category: "fix").
-
-**Fase 2 — Diferida (no hacer hoy):**
-- Dejar documentado en memoria que **`DataTable` se migrará a `@tanstack/react-table` cuando aparezca el primer requerimiento de features avanzadas** (resize, virtualización, etc.), no antes.
-
----
-
-## Detalles técnicos (Fase 1)
+### Equivalencia de sorting (clave para no romper UX)
 
 ```ts
-// src/lib/exportCsv.ts
-import Papa from "papaparse";
-
-export function exportToCsv<T extends Record<string, unknown>>(
-  filename: string,
-  rows: T[]
-): void {
-  if (rows.length === 0) return;
-  const csv = Papa.unparse(rows, { header: true, newline: "\r\n" });
-  // BOM para que Excel español detecte UTF-8
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
+const liftgoSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) => {
+  const a = rowA.getValue(columnId);
+  const b = rowB.getValue(columnId);
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  if (typeof a === "number" && typeof b === "number") return a - b;
+  return String(a).localeCompare(String(b), undefined, { sensitivity: "base", numeric: true });
+};
 ```
 
-Papaparse maneja automáticamente:
-- Comillas dentro de campos
-- Saltos de línea dentro de celdas
-- Valores `null` / `undefined`
-- Headers a partir de keys del objeto
+### Estado de sorting controlado
 
-**Impacto en bundle**: solo en chunks que importan `exportToCsv` (páginas de listado). Si preocupa, se puede `await import('papaparse')` dentro del handler de "Exportar".
+```ts
+const [sorting, setSorting] = useState<SortingState>(
+  defaultSortKey ? [{ id: defaultSortKey, desc: defaultSortDirection === "desc" }] : []
+);
+```
 
----
+### Riesgos y mitigaciones
 
-¿Procedo solo con la Fase 1 (papaparse), o prefieres que también deje la nota en memoria sobre la regla diferida para `DataTable`?
+| Riesgo | Mitigación |
+|---|---|
+| Cambio sutil en orden de nulls/acentos | `sortingFn` custom espejo de `useSort` |
+| Re-render extra al pasar `columns` inline | Mantener `columnsKey` memo basado en `col.key` |
+| Romper `mobileCardRender` | No se toca esa rama, se ejecuta antes de `useReactTable` con los items ya ordenados vía `table.getRowModel()` o usando `useSort` solo para el branch mobile (decisión: usar `table` también en mobile leyendo `getSortedRowModel`) |
+| Bundle size | `@tanstack/react-table` headless ≈ 14 KB gzip, aceptable |
+
+## Estimación
+
+- Implementación: ~30 min
+- Tests + smoke: ~15 min
+- Changelog + memoria: ~5 min
+- **Total: ~1 sesión corta**
+
+## Fuera de alcance (Fase 2/3)
+
+- Selección de filas con checkbox
+- Column visibility / resize
+- Filtros por columna (`getFilteredRowModel`)
+- Virtualización (`@tanstack/react-virtual`)
+- Migrar `BookingsPage` / `DeliveriesPage` (usan `ListPageLayout` + `useListPage`, no `DataTable`)
