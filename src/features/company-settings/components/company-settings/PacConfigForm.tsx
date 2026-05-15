@@ -66,7 +66,7 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
   );
 }
 
-export function PacConfigForm({ form, set, isPending }: Props) {
+export function PacConfigForm({ form, set, isPending, hasTestKey, hasLiveKey }: Props) {
   const isLive = form.facturapi_mode === "live";
   return (
     <Card className="mt-6">
@@ -101,17 +101,19 @@ export function PacConfigForm({ form, set, isPending }: Props) {
             value={form.facturapi_test_key}
             onChange={(v) => set("facturapi_test_key", v)}
             placeholder="sk_test_..."
+            isConfigured={hasTestKey}
           />
           <ApiKeyField
             label="API Key Live (Producción)"
             value={form.facturapi_live_key}
             onChange={(v) => set("facturapi_live_key", v)}
             placeholder="sk_live_..."
+            isConfigured={hasLiveKey}
           />
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Obtén tus API keys en <a href="https://dashboard.facturapi.io" target="_blank" rel="noopener noreferrer" className="underline">dashboard.facturapi.io</a>. Si no se configuran, el sistema opera en modo stub (sin conexión al SAT).
+          Por seguridad, las llaves nunca se descargan al navegador. Solo se muestra si están configuradas; captura un valor para reemplazarlas.
         </p>
 
         <div className="pt-2">
