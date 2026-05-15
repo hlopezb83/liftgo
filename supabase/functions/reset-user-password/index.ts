@@ -82,9 +82,11 @@ Deno.serve(async (req) => {
         code = "weak_password";
       }
       if (code !== "other") {
-        return passwordValidationResponse({ error: friendly, code, raw }, corsHeaders);
+        console.error("[reset-user-password] raw error:", raw);
+        return passwordValidationResponse({ error: friendly, code }, corsHeaders);
       }
-      return new Response(JSON.stringify({ error: friendly, code, raw }), {
+      console.error("[reset-user-password] raw error:", raw);
+      return new Response(JSON.stringify({ error: friendly, code }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
