@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireRole, enforceRateLimit } from "../_shared/auth.ts";
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -11,27 +11,12 @@ serve(async (req) => {
   const jsonHeaders = { ...cors, "Content-Type": "application/json" };
 
   try {
-    // --- AuthN ---
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
-    }
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
-    }
+    // --- AuthN + role check (back-office only) ---
+    const auth = await requireRole(req, ["admin", "administrativo", "dispatcher", "ventas"]);
+    if (!auth.ok) return auth.response;
+
+    const limited = await enforceRateLimit(req, auth.adminClient, "parse-csf", auth.userId, 5, 60);
+    if (limited) return limited;
 
     const { pdf_base64 } = await req.json();
     if (!pdf_base64 || typeof pdf_base64 !== "string") {
