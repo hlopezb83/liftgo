@@ -34,17 +34,23 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
     <div className="space-y-1.5">
       <Label className="flex items-center gap-1.5">
         {label}
-        {value
+        {(isConfigured || value)
           ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
           : <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />}
+        {isConfigured && !value && (
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
+            configurada
+          </span>
+        )}
       </Label>
       <div className="relative">
         <Input
           type={show ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={isConfigured ? "•••••••• (capturar para reemplazar)" : placeholder}
           className="pr-10"
+          autoComplete="off"
         />
         <Button
           type="button"
