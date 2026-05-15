@@ -1,0 +1,12 @@
+{
+  "version": "5.81.2",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Bucket 'documents' privado y mecánicos sin acceso a datos financieros",
+  "description": "Se cierran 6 hallazgos del scanner: bucket 'documents' privado con signed URLs y permisos limitados a personal interno + clientes con scope propio; mecánicos pierden lectura de clientes, facturas, contratos, entregas y pagos.",
+  "changes": [
+    { "type": "security", "title": "Bucket 'documents' privado", "description": "Se eliminó la política pública de lectura. Sólo personal interno puede leer todos los archivos; los clientes sólo pueden leer documentos asociados a sus propias facturas, contratos, reservas, entregas o daños. useDocuments genera signed URLs de 1h." },
+    { "type": "security", "title": "Mecánicos sin acceso a clientes/facturas/contratos/entregas/pagos", "description": "Se eliminaron las políticas 'Mechanics read' de customers, invoices, contracts, deliveries y payments. Mecánicos conservan acceso operativo a equipos y mantenimiento." }
+  ]
+}
