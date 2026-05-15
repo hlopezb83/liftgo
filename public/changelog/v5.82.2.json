@@ -1,0 +1,12 @@
+{
+  "version": "5.82.2",
+  "date": "2026-05-15",
+  "type": "patch",
+  "title": "Fix crítico: Panel cargaba indefinidamente para Ventas",
+  "category": "bugfix",
+  "description": "El RPC get_dashboard_stats fallaba con 'operator does not exist: timestamp without time zone + integer' al construir la utilización semanal, porque generate_series con CURRENT_DATE - INTERVAL devuelve timestamp y luego sumábamos un entero (ws.week_start + 6). Esto rompía toda la respuesta y dejaba el Panel atascado en el skeleton para todos los roles (especialmente notable en Ventas). Se cast el rango de generate_series y los usos a date.",
+  "changes": [
+    "DB: get_dashboard_stats — generate_series((CURRENT_DATE - INTERVAL '8 weeks')::date, ...) y ws.week_start::date + 6.",
+    "Resultado: Panel carga correctamente para admin, administrativo, auditor, dispatcher y ventas."
+  ]
+}
