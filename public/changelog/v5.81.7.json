@@ -1,0 +1,10 @@
+{
+  "description": "Endurecimiento de credenciales de facturación y restricción de documentos sensibles para mecánicos.",
+  "changes": [
+    "Las llaves Facturapi (test/live) ya no se descargan al navegador; el formulario solo muestra si están configuradas",
+    "Nueva función SECURITY DEFINER get_billing_secrets_status que devuelve únicamente flags de configuración",
+    "Eliminadas las políticas SELECT directas sobre billing_secrets; solo queda acceso de escritura para admin/administrativo",
+    "Mecánicos restringidos a leer documentos solo de tipo 'forklift' y 'maintenance' (DB y Storage)",
+    "Edge Functions de timbrado siguen accediendo a las llaves vía service role"
+  ]
+}
