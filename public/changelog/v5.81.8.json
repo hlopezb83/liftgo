@@ -1,0 +1,7 @@
+{
+  "description": "El endpoint reset-user-password ya no expone el mensaje crudo de Supabase Auth en la respuesta; los detalles internos solo quedan en logs del servidor.",
+  "changes": [
+    "Se eliminó el campo 'raw' de las respuestas de reset-user-password",
+    "Errores internos se registran vía console.error sin filtrarse al cliente"
+  ]
+}

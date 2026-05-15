@@ -3,7 +3,7 @@ import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shar
 import { isUUID } from "../_shared/validate.ts";
 
 function passwordValidationResponse(
-  payload: { error: string; code: "weak_password" | "pwned"; raw?: string },
+  payload: { error: string; code: "weak_password" | "pwned" },
   corsHeaders: Record<string, string>,
 ) {
   return new Response(JSON.stringify({ success: false, ...payload }), {
@@ -82,9 +82,11 @@ Deno.serve(async (req) => {
         code = "weak_password";
       }
       if (code !== "other") {
-        return passwordValidationResponse({ error: friendly, code, raw }, corsHeaders);
+        console.error("[reset-user-password] raw error:", raw);
+        return passwordValidationResponse({ error: friendly, code }, corsHeaders);
       }
-      return new Response(JSON.stringify({ error: friendly, code, raw }), {
+      console.error("[reset-user-password] raw error:", raw);
+      return new Response(JSON.stringify({ error: friendly, code }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
