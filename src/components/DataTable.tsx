@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useState, memo } from "react";
+import { ReactNode, useMemo, useState, useEffect, useRef, memo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,8 +8,10 @@ import {
   type SortingState,
   type SortingFn,
   type Row,
+  type RowSelectionState,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyRow } from "@/components/EmptyRow";
@@ -31,6 +33,12 @@ export interface DataTableColumn<T> {
   hideOnMobile?: boolean;
 }
 
+export interface DataTableSelectionContext<T> {
+  selectedIds: string[];
+  selectedRows: T[];
+  clearSelection: () => void;
+}
+
 export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
   data: T[] | undefined;
@@ -44,6 +52,11 @@ export interface DataTableProps<T> {
   defaultSortDirection?: "asc" | "desc";
   footer?: ReactNode;
   className?: string;
+  // --- Selección múltiple (opt-in) ---
+  enableRowSelection?: boolean;
+  isRowSelectable?: (item: T) => boolean;
+  onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
+  selectionToolbar?: (ctx: DataTableSelectionContext<T>) => ReactNode;
 }
 
 const alignClass: Record<ColumnAlign, string> = {
@@ -77,6 +90,10 @@ function DataTableInner<T>({
   defaultSortDirection = "asc",
   footer,
   className,
+  enableRowSelection = false,
+  isRowSelectable,
+  onSelectionChange,
+  selectionToolbar,
 }: DataTableProps<T>) {
   const isMobile = useIsMobile();
 
@@ -101,20 +118,60 @@ function DataTableInner<T>({
   const [sorting, setSorting] = useState<SortingState>(
     defaultSortKey ? [{ id: defaultSortKey, desc: defaultSortDirection === "desc" }] : [],
   );
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const tableData = useMemo(() => data ?? [], [data]);
 
   const table = useReactTable<T>({
     data: tableData,
     columns: columnDefs,
-    state: { sorting },
+    state: { sorting, rowSelection },
     onSortingChange: setSorting,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: enableRowSelection
+      ? (row) => (isRowSelectable ? isRowSelectable(row.original) : true)
+      : false,
+    getRowId: (row, index) => keyExtractor(row, index),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
 
   const sortedRows = table.getRowModel().rows;
   const sortedItems = useMemo(() => sortedRows.map((r) => r.original), [sortedRows]);
+
+  const selectedIds = useMemo(() => Object.keys(rowSelection).filter((k) => rowSelection[k]), [rowSelection]);
+  const selectedRows = useMemo(
+    () => table.getSelectedRowModel().rows.map((r) => r.original),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rowSelection, sortedRows],
+  );
+
+  const clearSelection = () => setRowSelection({});
+
+  // Notificar selección al padre con stable signature
+  const lastNotifiedRef = useRef<string>("");
+  useEffect(() => {
+    if (!enableRowSelection || !onSelectionChange) return;
+    const sig = selectedIds.join("|");
+    if (sig === lastNotifiedRef.current) return;
+    lastNotifiedRef.current = sig;
+    onSelectionChange({ selectedIds, selectedRows, clearSelection });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds, selectedRows, enableRowSelection]);
+
+  // Limpiar selección de filas que ya no existen en el dataset (ej: al filtrar)
+  useEffect(() => {
+    if (!enableRowSelection) return;
+    const validIds = new Set(tableData.map((row, i) => keyExtractor(row, i)));
+    const next: RowSelectionState = {};
+    let changed = false;
+    for (const id of Object.keys(rowSelection)) {
+      if (validIds.has(id) && rowSelection[id]) next[id] = true;
+      else changed = true;
+    }
+    if (changed) setRowSelection(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tableData, enableRowSelection]);
 
   if (isLoading) return <TableSkeleton columnCount={columns.length} rows={5} />;
 
@@ -142,67 +199,102 @@ function DataTableInner<T>({
     });
   };
 
+  const showSelection = enableRowSelection;
+  const selectableRows = showSelection ? sortedRows.filter((r) => r.getCanSelect()) : [];
+  const allSelected = selectableRows.length > 0 && selectableRows.every((r) => r.getIsSelected());
+  const someSelected = selectableRows.some((r) => r.getIsSelected()) && !allSelected;
+  const headerCheckedState: boolean | "indeterminate" = allSelected ? true : someSelected ? "indeterminate" : false;
+
+  const toolbar =
+    showSelection && selectionToolbar && selectedIds.length > 0
+      ? selectionToolbar({ selectedIds, selectedRows, clearSelection })
+      : null;
+
   return (
-    <Table className={className}>
-      <TableHeader>
-        <TableRow>
-          {columns.map((col) =>
-            col.sortable ? (
-              <SortableTableHead
-                key={col.key}
-                sortKey={col.key}
-                currentSort={sortKey}
-                currentDirection={sortDirection}
-                onSort={toggleSort}
-                className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.headClassName)}
-              >
-                {col.label}
-              </SortableTableHead>
-            ) : (
-              <TableHead
-                key={col.key}
-                className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.headClassName)}
-              >
-                {col.label}
+    <div className="space-y-2">
+      {toolbar}
+      <Table className={className}>
+        <TableHeader>
+          <TableRow>
+            {showSelection && (
+              <TableHead className="w-10 px-3">
+                <Checkbox
+                  checked={headerCheckedState}
+                  onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+                  aria-label="Seleccionar todas las filas"
+                />
               </TableHead>
-            ),
-          )}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sortedRows.length === 0 ? (
-          <EmptyRow colSpan={columns.length} message={emptyMessage} />
-        ) : (
-          sortedRows.map((row) => {
-            const item = row.original;
-            return (
-              <TableRow
-                key={keyExtractor(item, row.index)}
-                className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
-                onClick={onRowClick ? () => onRowClick(item) : undefined}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const col = columns.find((c) => c.key === cell.column.id);
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      className={cn(
-                        alignClass[col?.align ?? "left"],
-                        col?.hideOnMobile && "hidden md:table-cell",
-                        col?.className,
-                      )}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            )}
+            {columns.map((col) =>
+              col.sortable ? (
+                <SortableTableHead
+                  key={col.key}
+                  sortKey={col.key}
+                  currentSort={sortKey}
+                  currentDirection={sortDirection}
+                  onSort={toggleSort}
+                  className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.headClassName)}
+                >
+                  {col.label}
+                </SortableTableHead>
+              ) : (
+                <TableHead
+                  key={col.key}
+                  className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.headClassName)}
+                >
+                  {col.label}
+                </TableHead>
+              ),
+            )}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedRows.length === 0 ? (
+            <EmptyRow colSpan={columns.length + (showSelection ? 1 : 0)} message={emptyMessage} />
+          ) : (
+            sortedRows.map((row) => {
+              const item = row.original;
+              const isSelected = row.getIsSelected();
+              return (
+                <TableRow
+                  key={row.id}
+                  data-state={isSelected ? "selected" : undefined}
+                  className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
+                  onClick={onRowClick ? () => onRowClick(item) : undefined}
+                >
+                  {showSelection && (
+                    <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        disabled={!row.getCanSelect()}
+                        onCheckedChange={(value) => row.toggleSelected(!!value)}
+                        aria-label="Seleccionar fila"
+                      />
                     </TableCell>
-                  );
-                })}
-              </TableRow>
-            );
-          })
-        )}
-      </TableBody>
-      {footer}
-    </Table>
+                  )}
+                  {row.getVisibleCells().map((cell) => {
+                    const col = columns.find((c) => c.key === cell.column.id);
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          alignClass[col?.align ?? "left"],
+                          col?.hideOnMobile && "hidden md:table-cell",
+                          col?.className,
+                        )}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })
+          )}
+        </TableBody>
+        {footer}
+      </Table>
+    </div>
   );
 }
 

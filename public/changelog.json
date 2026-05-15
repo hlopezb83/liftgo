@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.84.0",
+    "date": "2026-05-15",
+    "type": "minor",
+    "title": "DataTable: selección múltiple de filas (Fase 3)",
+    "category": "feature"
+  },
+  {
     "version": "5.83.0",
     "date": "2026-05-15",
     "type": "minor",
