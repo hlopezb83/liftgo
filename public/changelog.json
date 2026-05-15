@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.82.0",
+    "date": "2026-05-15",
+    "type": "minor",
+    "title": "Limpieza de 15 dependencias sin uso",
+    "category": "performance"
+  },
+  {
     "version": "5.81.9",
     "date": "2026-05-15",
     "type": "patch",
