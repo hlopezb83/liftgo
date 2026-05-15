@@ -1,0 +1,30 @@
+{
+  "version": "5.81.3",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Endurecimiento de RLS: documentos, flota y configuración de empresa",
+  "description": "Cuatro hallazgos del scanner cerrados: bucket documents con escritura solo para personal interno, clientes solo ven sus equipos rentados, auditor con acceso a recordatorios de cobranza y se elimina la lectura anónima de company_settings.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Bucket documents: escritura restringida a personal interno",
+      "description": "Se reemplazaron las políticas 'Authenticated upload/update/delete documents' por políticas 'Staff ...' que limitan INSERT/UPDATE/DELETE a admin, administrativo, despachador, ventas, mecánico y auditor. Los clientes ya no pueden subir archivos al bucket."
+    },
+    {
+      "type": "security",
+      "title": "Clientes solo ven sus equipos rentados",
+      "description": "La política 'Customers read forklifts' exponía toda la flota (costo, seguro, número de serie) a cualquier cliente. Ahora 'Customers read own rented forklifts' filtra por bookings del propio customer_id."
+    },
+    {
+      "type": "security",
+      "title": "Auditor con acceso a collection_reminders_log",
+      "description": "Se agregó política SELECT para el rol auditor en el log de recordatorios de cobranza, alineando con el modelo documentado de logs sensibles."
+    },
+    {
+      "type": "security",
+      "title": "Sin lectura anónima de company_settings",
+      "description": "Se eliminó la política anon+authenticated USING true. La marca pública (logo, razón social) sigue disponible vía la RPC get_public_branding(); el resto de la configuración fiscal solo es legible por personal interno."
+    }
+  ]
+}
