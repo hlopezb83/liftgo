@@ -1,115 +1,97 @@
-## Sistema de Feedback con Leaderboard
+## Resumen
 
-Un módulo nuevo para que cualquier usuario (interno o cliente del portal) reporte bugs y proponga mejoras. Los reportes válidos suman puntos y aparecen en una tabla de honor pública. Sin dinero, sin integraciones externas.
+Revisé las utilidades y componentes "caseros" del ERP comparándolos con librerías maduras. **La conclusión honesta: el código actual está bien arquitecturizado y la mayoría de "reinventos" son intencionales y mínimos.** Solo encontré **2 candidatos con beneficio real** y varios donde migrar **empeoraría** las cosas.
 
-### Experiencia de usuario
+---
 
-**Botón flotante "Reportar"** visible en toda la app (esquina inferior derecha, tanto en `MainLayout` como `CustomerPortalLayout`). Al hacer clic abre un diálogo con:
+## Vale la pena migrar (2)
 
-- Tipo: Bug / Mejora
-- Módulo afectado: dropdown con los ~25 módulos del ERP (Reservas, CRM, Flota, Mantenimiento, Facturación, etc.) Con el Módulo donde se encuentran como opción sugerida. Para clientes del portal, lista reducida (Mis Rentas, Mis Facturas, Mis Contratos, Dashboard, General).
-- Severidad (solo bugs): Crítica / Alta / Media / Baja
-- Título corto + descripción larga (Zod: 5–120 / 10–2000 chars)
-- Screenshot opcional (drag-and-drop, reusa `DragDropImageUploader`)
-- Auto-captura silenciosa: ruta actual, viewport, user agent, versión del changelog, user_id, timestamp en `America/Monterrey`
+### 1. `exportToCsv` → `papaparse` (recomendado)
 
-Confirmación con `sonner`: "Reporte enviado. ¡Gracias!" + número folio (FB-XXXX).
+**Hoy** (`src/lib/exportCsv.ts`, 21 LOC): serializador CSV propio.
 
-### Página de gestión `/feedback` (admin)
+**Problemas reales**:
+- No escapa saltos de línea dentro de celdas (rompe Excel si una nota tiene `\n`).
+- No agrega BOM UTF-8 → caracteres con acentos se ven mal en Excel español.
+- Convierte fechas/objetos con `String()` sin formato controlado.
 
-Kanban estilo Mantenimiento con columnas: **Nuevo → Triage → Aceptado → En Progreso → Resuelto → Cerrado / Rechazado**.
+**Beneficio**: exports de clientes, facturas, gastos, etc. abren correctamente en Excel mexicano sin caracteres rotos. Papaparse pesa ~45 KB minified pero solo se usa al exportar (puede ir lazy-loaded).
 
-Click en una tarjeta abre un drill-down panel (patrón estándar del proyecto) con: descripción, contexto técnico capturado, screenshot, historial de cambios de estado, comentarios internos, y botones para mover de estado o asignar puntos al cerrar.
+**Trade-off**: agregamos una dependencia para resolver bugs reales que ya nos van a morder cuando un cliente con `ñ` o una nota multilínea aparezca en un export.
 
-Filtros por: tipo, módulo, severidad, estado, autor.
+### 2. `DataTable` + `useSort` + `usePagination` → `@tanstack/react-table` (opcional, mediano plazo)
 
-### Página `/mis-reportes` (todos los usuarios)
+**Hoy**: `DataTable.tsx` (170 LOC) + `useSort` (61 LOC) + `usePagination` (29 LOC) + `SortableTableHead` + `TablePagination`. Todo client-side.
 
-Lista paginada (25 ítems vía `usePagination`) de los reportes del usuario logueado, con estado actual y puntos otorgados. En el portal de clientes vive en `/portal/mis-reportes`.
+**Cuándo conviene migrar**:
+- Cuando agreguemos **column resizing**, **column visibility toggle**, **multi-sort**, o **virtualización** para listas grandes.
+- Cuando empiece a doler que las tablas no comparten lógica de filtros con `useListFilters`.
 
-### Página pública `/leaderboard`
+**Cuándo NO**: hoy. El sistema actual cumple Power of 10, es predecible y bajo en LOC. Migrar ahora es deuda sin retorno claro.
 
-Tabla de honor visible para todos los usuarios autenticados (incluyendo portal):
+**Recomendación**: dejarlo como **regla de oro a futuro**: la próxima vez que una tabla pida features avanzadas, migrar **esa** primero como prueba y evaluar.
 
-- Top 20 contribuyentes del mes / del año / histórico (tabs)
-- Columnas: Posición, Nombre, Reportes aceptados, Reportes resueltos, Puntos
-- Medallas visuales para top 3 (oro / plata / bronce)
-- Sin mostrar correos ni datos sensibles
+---
 
-### Reglas de puntuación
+## NO vale la pena migrar (lo verifiqué)
 
-Definidas en código (`src/features/feedback/lib/scoring.ts`), no editables desde UI:
+| Código actual | Alternativa rechazada | Razón |
+|---|---|---|
+| `ImageGalleryLightbox` (126 LOC) | `yet-another-react-lightbox` | Ya cubre teclado, swipe táctil, zoom, miniaturas. Migrar añade ~30 KB sin nuevas features. |
+| `useDebouncedValue` (14 LOC) | `use-debounce` | 14 líneas vs nueva dependencia. Cero ganancia. |
+| `useSort` / `usePagination` por separado | `@tanstack/react-table` | Ver arriba: solo si DataTable evoluciona. |
+| `formatCurrency` (27 LOC) | librería externa | `Intl.NumberFormat` nativo es más que suficiente. |
+| `nowMty()` y helpers de fecha | librería extra | Ya usamos `date-fns` + `date-fns-tz`. |
+| PDFs de cotización/factura/contrato | template engine | Diseño A4 brand-specific, intencionalmente custom. |
+| `GlobalSearch` (Ctrl+K) | re-añadir `cmdk` | Ya usa `@/components/ui/command` que envuelve cmdk vía shadcn. **Funciona**, no migrar. |
+| Validación de formularios | otra lib | `react-hook-form` + `zod` ya es el estándar. |
+| Kanban (CRM, Mantenimiento) | otra lib DnD | `@hello-pangea/dnd` ya cumple, sin razón para cambiar. |
 
-- Bug aceptado: +5
-- Bug resuelto: +15 (severidad crítica ×2, alta ×1.5)
-- Mejora aceptada: +3
-- Mejora implementada: +10
-- Reporte rechazado o duplicado: 0
+---
 
-Los puntos se asignan automáticamente al cambiar el estado vía RPC.
+## Plan de acción propuesto
 
-### Detalles técnicos
+**Fase 1 — Inmediata (recomendada):**
+1. `bun add papaparse @types/papaparse`
+2. Reescribir `src/lib/exportCsv.ts` para usar `Papa.unparse` con BOM UTF-8 y escape correcto de saltos de línea.
+3. Verificar exports actuales (clientes, facturas, gastos, proveedores) abren bien en Excel.
+4. Entrada en changelog v5.82.1 (patch, category: "fix").
 
-**Rutas:**
+**Fase 2 — Diferida (no hacer hoy):**
+- Dejar documentado en memoria que **`DataTable` se migrará a `@tanstack/react-table` cuando aparezca el primer requerimiento de features avanzadas** (resize, virtualización, etc.), no antes.
 
-- `/feedback` — gestión admin (RoleGuard: admin/administrativo)
-- `/mis-reportes` — historial propio
-- `/leaderboard` — pública para autenticados
-- `/portal/mis-reportes` — portal de clientes
+---
 
-**Tablas nuevas (Lovable Cloud):**
+## Detalles técnicos (Fase 1)
 
-- `feedback_reports`: id, folio (FB-XXXX vía RPC `generate_doc_number`), reporter_id, reporter_type ('internal' | 'customer'), type ('bug' | 'improvement'), module, severity, title, description, screenshot_url, status, context_json (ruta, viewport, UA, app version), points_awarded, created_at, resolved_at
-- `feedback_status_history`: id, report_id, from_status, to_status, changed_by, comment, changed_at
-- `feedback_points`: vista materializada o RPC que agrega puntos por usuario/periodo
+```ts
+// src/lib/exportCsv.ts
+import Papa from "papaparse";
 
-**RLS:**
+export function exportToCsv<T extends Record<string, unknown>>(
+  filename: string,
+  rows: T[]
+): void {
+  if (rows.length === 0) return;
+  const csv = Papa.unparse(rows, { header: true, newline: "\r\n" });
+  // BOM para que Excel español detecte UTF-8
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+```
 
-- Internos ven sus propios reportes; admin/administrativo ven todos
-- Clientes del portal ven solo los suyos (filtro por `customer_id` derivado de su sesión)
-- Leaderboard expuesto vía RPC `SECURITY DEFINER` que devuelve solo nombre + puntos agregados (no expone PII)
+Papaparse maneja automáticamente:
+- Comillas dentro de campos
+- Saltos de línea dentro de celdas
+- Valores `null` / `undefined`
+- Headers a partir de keys del objeto
 
-**Storage:**
+**Impacto en bundle**: solo en chunks que importan `exportToCsv` (páginas de listado). Si preocupa, se puede `await import('papaparse')` dentro del handler de "Exportar".
 
-- Bucket nuevo `feedback-screenshots` (privado, lectura vía signed URLs en el panel admin)
+---
 
-**Captura de contexto:** hook `useFeedbackContext()` que lee `useLocation()`, `window.innerWidth/innerHeight`, `navigator.userAgent`, y `currentChangelogVersion` de `src/lib/changelog.ts`.
-
-**Componentes nuevos** (todos ≤150 LOC, hooks ≤80 LOC, conformes a Power of 10):
-
-- `FeedbackFab` (botón flotante)
-- `FeedbackFormDialog` (formulario)
-- `FeedbackKanban` + `FeedbackKanbanCard` + `FeedbackDetailSheet`
-- `MyReportsPage` + `LeaderboardPage`
-- Hooks: `useFeedbackReports`, `useCreateFeedback`, `useUpdateFeedbackStatus`, `useLeaderboard`, `useFeedbackContext`
-
-**Navegación:** entradas nuevas en sidebar (`MainLayout`) bajo nueva sección "Comunidad": "Mis Reportes", "Leaderboard", "Gestión de Feedback" (admin). En `CustomerPortalLayout` agregar "Mis Reportes" y "Leaderboard".
-
-**Numeración:** RPC `generate_feedback_number()` siguiendo el patrón existente de FAC-, COT-, CTR-.
-
-**Permisos:** agregar `feedback:manage` a la matriz de roles (`useRolePermissions`) — solo admin/administrativo.
-
-**Changelog:** entrada nueva v5.81.0 (minor) describiendo el módulo.
-
-### Lo que NO incluye este plan
-
-- No hay pagos monetarios ni tracking de bonos en MXN
-- No hay notificaciones por email (todo dentro de la app)
-- No hay integraciones externas (GitHub, Slack, Linear)
-- No hay edición de reglas de puntuación desde UI
-- No hay sistema de votación o duplicación inteligente (admin marca duplicados manualmente en v1)
-
-Estas extensiones se pueden agregar después sin tocar el esquema base.
-
-### Implementación por etapas
-
-1. Migración SQL: tablas, RLS, RPC de numeración, RPC de leaderboard
-2. Hooks de datos + tipo Zod + scoring
-3. `FeedbackFab` + `FeedbackFormDialog` montados en ambos layouts
-4. `/mis-reportes` + `/portal/mis-reportes`
-5. `/feedback` (Kanban admin con drill-down y cambio de estados que asigna puntos)
-6. `/leaderboard` con tabs y medallas
-7. Entradas en sidebar + matriz de permisos
-8. Memoria del proyecto (`mem://features/feedback`) + changelog v5.81.0
-
-Tiempo estimado: una iteración mediana, sin dependencias externas ni configuración de secretos.
+¿Procedo solo con la Fase 1 (papaparse), o prefieres que también deje la nota en memoria sobre la regla diferida para `DataTable`?

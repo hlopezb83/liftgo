@@ -1,0 +1,14 @@
+{
+  "version": "5.82.1",
+  "date": "2026-05-15",
+  "type": "patch",
+  "title": "Exports CSV robustos con papaparse",
+  "category": "fix",
+  "description": "Se reemplazó el serializador CSV propio por papaparse para evitar bugs reales en exports.",
+  "changes": [
+    "Se agregó BOM UTF-8 para que Excel en español detecte correctamente acentos y caracteres con ñ.",
+    "Se escapan correctamente comillas, comas y saltos de línea dentro de celdas (notas multilínea ya no rompen el CSV).",
+    "Se usa CRLF como newline, estándar esperado por Excel.",
+    "Sin cambios en la API pública: exportToCsv(filename, rows) sigue funcionando igual en todos los listados (clientes, facturas, gastos, proveedores, etc.)."
+  ]
+}

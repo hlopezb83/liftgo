@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.82.1",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Exports CSV robustos con papaparse",
+    "category": "fix"
+  },
+  {
     "version": "5.82.0",
     "date": "2026-05-15",
     "type": "minor",
