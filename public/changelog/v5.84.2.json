@@ -1,0 +1,11 @@
+{
+  "version": "5.84.2",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Modelos de equipo: ocultar tarifas internas a clientes del portal",
+  "description": "Se reemplazó la policy permisiva 'Others read equipment_models' (USING true) por una allowlist de roles internos. Los clientes del portal ya no pueden leer tarifas por defecto (diaria/semanal/mensual) ni especificaciones de equipment_models.",
+  "changes": [
+    { "type": "security", "title": "RLS de equipment_models restringida a personal interno", "description": "SELECT solo para admin, administrativo, dispatcher, mechanic, ventas y auditor." }
+  ]
+}
