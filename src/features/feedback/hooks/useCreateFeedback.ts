@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import type { FeedbackFormValues } from "@/features/feedback/lib/schema";
 import type { FeedbackContext } from "./useFeedbackContext";
 
