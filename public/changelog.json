@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.81.7",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Llaves Facturapi solo en servidor y mecánicos sin acceso a documentos sensibles",
+    "category": "security"
+  },
+  {
     "version": "5.81.6",
     "date": "2026-05-15",
     "type": "patch",
