@@ -16,6 +16,8 @@ interface Props {
   form: PacFormValues;
   set: <K extends keyof PacFormValues>(key: K, value: PacFormValues[K]) => void;
   isPending: boolean;
+  hasTestKey?: boolean;
+  hasLiveKey?: boolean;
 }
 
 interface KeyFieldProps {
@@ -23,9 +25,10 @@ interface KeyFieldProps {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
+  isConfigured?: boolean;
 }
 
-function ApiKeyField({ label, value, onChange, placeholder }: KeyFieldProps) {
+function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyFieldProps) {
   const [show, setShow] = useState(false);
   return (
     <div className="space-y-1.5">
