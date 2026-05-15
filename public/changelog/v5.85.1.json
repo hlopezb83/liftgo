@@ -1,0 +1,12 @@
+{
+  "version": "5.85.1",
+  "date": "2026-05-15",
+  "type": "patch",
+  "title": "billing_secrets admin-only y borrado de capturas de feedback",
+  "category": "security",
+  "description": "Las llaves de Facturapi en billing_secrets ahora son exclusivamente accesibles por administradores. El bucket feedback-screenshots permite a los usuarios borrar sus propias capturas y a admins borrar cualquiera.",
+  "changes": [
+    "billing_secrets: políticas RLS restringidas únicamente al rol admin (lectura/escritura/borrado)",
+    "feedback-screenshots: nueva política DELETE para dueño de la captura y para admin/administrativo"
+  ]
+}

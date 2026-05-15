@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.85.1",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "billing_secrets admin-only y borrado de capturas de feedback",
+    "category": "security"
+  },
+  {
     "version": "5.85.0",
     "date": "2026-05-15",
     "type": "minor",
