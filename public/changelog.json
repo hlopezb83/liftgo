@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.81.2",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Bucket 'documents' privado y mecánicos sin acceso a datos financieros",
+    "category": "security"
+  },
+  {
     "version": "5.81.1",
     "date": "2026-05-15",
     "type": "patch",
