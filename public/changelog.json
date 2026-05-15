@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.84.4",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Edge Function generate-invoice-pdf: filtrar campos sensibles",
+    "category": "security"
+  },
+  {
     "version": "5.84.3",
     "date": "2026-05-15",
     "type": "patch",
