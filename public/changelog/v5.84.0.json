@@ -1,0 +1,14 @@
+{
+  "version": "5.84.0",
+  "date": "2026-05-15",
+  "type": "minor",
+  "title": "DataTable: selección múltiple de filas (Fase 3)",
+  "category": "feature",
+  "description": "DataTable ahora soporta selección múltiple opt-in. Las páginas pueden activar checkbox por fila + 'seleccionar todo' + un toolbar contextual con acciones masivas (marcar facturas pagadas, exportar selección, eliminar lotes). Backward compatible: sin cambios para consumidores que no la activen.",
+  "changes": [
+    "Nuevas props en DataTable: enableRowSelection, isRowSelectable, onSelectionChange, selectionToolbar.",
+    "Selección persistente al ordenar (getRowId basado en keyExtractor) y limpieza automática al cambiar el dataset filtrado.",
+    "Nuevo componente DataTableSelectionToolbar con contador, slot de acciones y botón limpiar.",
+    "El click en checkbox no dispara onRowClick (stopPropagation)."
+  ]
+}
