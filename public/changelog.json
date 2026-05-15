@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.84.1",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Tabla de honor: ocultar identidad del personal a clientes del portal",
+    "category": "security"
+  },
+  {
     "version": "5.84.0",
     "date": "2026-05-15",
     "type": "minor",
