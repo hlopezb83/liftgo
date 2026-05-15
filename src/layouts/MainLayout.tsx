@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { TopbarBreadcrumbs } from "@/components/TopbarBreadcrumbs";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { FeedbackFab } from "@/features/feedback/components/FeedbackFab";
 
 export default function MainLayout() {
   return (
@@ -22,6 +23,7 @@ export default function MainLayout() {
             <Outlet />
           </ErrorBoundary>
         </main>
+        <FeedbackFab />
       </div>
     </SidebarProvider>
   );

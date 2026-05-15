@@ -1,0 +1,19 @@
+{
+  "version": "5.81.0",
+  "date": "2026-05-15",
+  "type": "minor",
+  "title": "Sistema de Feedback con Tabla de Honor",
+  "category": "feature",
+  "changes": [
+    "Nuevo botón flotante 'Reportar' visible en toda la app (interna y portal de clientes) para enviar bugs o proponer mejoras en segundos.",
+    "Formulario con tipo (Bug/Mejora), módulo afectado (~25 módulos en ERP, lista reducida en portal), severidad, título, descripción y captura opcional.",
+    "Auto-captura de contexto técnico: ruta, viewport, user agent, versión del changelog y timestamp en zona America/Monterrey.",
+    "Página `/mis-reportes` con historial paginado y total de puntos del usuario.",
+    "Página `/leaderboard` (tabla de honor) con tabs Mes / Año / Histórico y medallas para top 3, sin exponer datos sensibles.",
+    "Nuevo Kanban admin `/feedback` con columnas Nuevo → Triage → Aceptado → En Progreso → Resuelto → Cerrado. Drill-down con historial, contexto, screenshot firmado y cambio de estado con comentarios.",
+    "Reglas de puntuación automáticas: Bug aceptado +5, Bug resuelto +15 (×2 crítico, ×1.5 alto), Mejora aceptada +3, Mejora implementada +10. Asignación atómica vía RPC `change_feedback_status`.",
+    "Numeración secuencial FB-XXXX vía RPC. Storage privado `feedback-screenshots` con signed URLs.",
+    "RLS: cada usuario ve solo sus reportes; admin/administrativo ven todos. Leaderboard expuesto vía `SECURITY DEFINER` sin PII.",
+    "Nuevo módulo de permisos 'Feedback' agregado a todos los roles."
+  ]
+}

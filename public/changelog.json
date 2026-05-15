@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.81.0",
+    "date": "2026-05-15",
+    "type": "minor",
+    "title": "Sistema de Feedback con Tabla de Honor",
+    "category": "feature"
+  },
+  {
     "version": "5.80.2",
     "date": "2026-05-14",
     "type": "patch",

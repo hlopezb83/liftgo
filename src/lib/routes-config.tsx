@@ -44,6 +44,9 @@ const CRMClosedPage = lazy(() => import("@/features/crm/pages/CRMClosedPage"));
 const SuppliersPage = lazy(() => import("@/features/suppliers/pages/SuppliersPage"));
 const SupplierDetailPage = lazy(() => import("@/features/suppliers/pages/SupplierDetailPage"));
 const MrrDetailPage = lazy(() => import("@/features/dashboard/pages/MrrDetailPage"));
+const MyReportsPage = lazy(() => import("@/features/feedback/pages/MyReportsPage"));
+const LeaderboardPage = lazy(() => import("@/features/feedback/pages/LeaderboardPage"));
+const FeedbackManagementPage = lazy(() => import("@/features/feedback/pages/FeedbackManagementPage"));
 
 // Shared fallback con timeout: si tras 10s sigue cargando, sugerimos recargar.
 export const PageFallback = () => {
@@ -124,4 +127,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/users/permissions", component: RolePermissionsPage, module: "Gestión de Usuarios" },
   { path: "/changelog", component: ChangelogPage },
   { path: "/help", component: HelpPage },
+  { path: "/mis-reportes", component: MyReportsPage },
+  { path: "/leaderboard", component: LeaderboardPage },
+  { path: "/feedback", component: FeedbackManagementPage, module: "Feedback" },
 ];

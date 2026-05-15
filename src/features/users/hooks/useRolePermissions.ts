@@ -13,6 +13,7 @@ export const MODULES = [
   "Facturas", "Pagos", "Contratos", "Cotizaciones", "Clientes",
   "CRM / Prospectos", "Mantenimiento", "Daños", "Refacciones",
   "Gastos", "Proveedores", "Reportes", "Configuración", "Gestión de Usuarios",
+  "Feedback",
 ] as const;
 
 /** Map sidebar route → module name */
@@ -38,6 +39,7 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/users": "Gestión de Usuarios",
   "/returns": "Entregas",
   "/income-statement": "Reportes",
+  "/feedback": "Feedback",
 };
 
 /**

@@ -2,14 +2,17 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/hooks/usePublicBranding";
-import { LogOut, LayoutDashboard, CalendarDays, Receipt, FileText } from "lucide-react";
+import { LogOut, LayoutDashboard, CalendarDays, Receipt, FileText, MessageSquare, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FeedbackFab } from "@/features/feedback/components/FeedbackFab";
 
 const tabs = [
   { path: "/portal", label: "Panel", icon: LayoutDashboard },
   { path: "/portal/rentals", label: "Rentas", icon: CalendarDays },
   { path: "/portal/invoices", label: "Facturas", icon: Receipt },
   { path: "/portal/contracts", label: "Contratos", icon: FileText },
+  { path: "/portal/mis-reportes", label: "Mis Reportes", icon: MessageSquare },
+  { path: "/portal/leaderboard", label: "Tabla de Honor", icon: Trophy },
 ];
 
 export default function CustomerPortalLayout() {
@@ -75,6 +78,7 @@ export default function CustomerPortalLayout() {
       <main className="flex-1 overflow-auto p-6">
         <Outlet />
       </main>
+      <FeedbackFab />
     </div>
   );
 }
