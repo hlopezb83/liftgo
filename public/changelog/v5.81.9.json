@@ -1,0 +1,7 @@
+{
+  "description": "Restringido el acceso a la tabla de proveedores. Solo roles internos (admin, administrativo, dispatcher, ventas, auditor, mecánico) pueden consultarla; los clientes ya no tienen acceso vía API.",
+  "changes": [
+    "Eliminada política RLS permisiva 'Authenticated users can read suppliers' en suppliers",
+    "Nueva política 'Staff read suppliers' restringida a roles internos"
+  ]
+}
