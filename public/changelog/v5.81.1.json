@@ -1,0 +1,45 @@
+{
+  "version": "5.81.1",
+  "date": "2026-05-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Endurecimiento de seguridad en RPCs y políticas RLS",
+  "description": "Se cierran 10 hallazgos del scanner de seguridad: guardas de rol en funciones SECURITY DEFINER, restricciones de RLS en activity_feed, contract_templates y audit_logs, y endurecimiento de dos edge functions.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Guardas de rol en funciones de dashboard y reportes",
+      "description": "get_dashboard_stats, get_insurance_alerts, get_financial_kpis, get_mrr_detail y get_forklift_financials ahora exigen rol interno (admin/administrativo/auditor/dispatcher/ventas). Clientes del portal ya no pueden leer KPIs financieros, MRR ni ROI por equipo."
+    },
+    {
+      "type": "security",
+      "title": "Validación de propiedad en get_customer_summary",
+      "description": "Los clientes del portal solo pueden consultar su propio resumen; el personal interno conserva acceso completo. Se cierra IDOR cross-customer."
+    },
+    {
+      "type": "security",
+      "title": "activity_feed restringido a personal interno",
+      "description": "Se eliminó la política 'Authenticated read activity_feed' (USING true) y se reemplazó por una política limitada a admin/administrativo/dispatcher/mecánico."
+    },
+    {
+      "type": "security",
+      "title": "contract_templates ya no es público",
+      "description": "Se reemplazó la política TO public por una TO authenticated restringida a roles internos. Anónimos y clientes ya no pueden leer plantillas de contratos ni texto del pagaré."
+    },
+    {
+      "type": "security",
+      "title": "audit_logs sin lectura para despachador y ventas",
+      "description": "Se quitaron las políticas de SELECT para dispatcher y ventas. Los snapshots JSONB de audit_logs solo son legibles por admin/administrativo/auditor."
+    },
+    {
+      "type": "security",
+      "title": "generate-manual usa CORS estricto",
+      "description": "Se reemplazó Access-Control-Allow-Origin: * por el helper compartido getCorsHeaders/handleCors, alineando la función con el resto del backend."
+    },
+    {
+      "type": "security",
+      "title": "parse-csf con rol y rate limit",
+      "description": "parse-csf ahora requiere rol admin/administrativo/dispatcher/ventas vía requireRole y aplica enforceRateLimit (5 peticiones / 60s por usuario), evitando abuso del gateway de IA por clientes del portal."
+    }
+  ]
+}
