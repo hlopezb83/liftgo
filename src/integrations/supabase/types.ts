@@ -2137,6 +2137,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_billing_secrets_status: {
+        Args: never
+        Returns: {
+          has_live_key: boolean
+          has_test_key: boolean
+          id: string
+        }[]
+      }
       get_customer_forklifts_brief: {
         Args: never
         Returns: {

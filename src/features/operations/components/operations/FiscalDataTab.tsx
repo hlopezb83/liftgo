@@ -24,8 +24,8 @@ export function FiscalDataTab() {
   const { form, set, setForm } = useFormState(empty);
 
   useEffect(() => {
-    if (!settings && !secrets) return;
-    const s = (settings ?? {}) as Record<string, unknown>;
+    if (!settings) return;
+    const s = settings as Record<string, unknown>;
     setForm({
       rfc: (s.rfc as string) || "",
       razon_social: (s.razon_social as string) || "",
@@ -33,10 +33,12 @@ export function FiscalDataTab() {
       lugar_expedicion: (s.lugar_expedicion as string) || "",
       logo_url: (s.logo_url as string) || "",
       facturapi_mode: (s.facturapi_mode as string) || "test",
-      facturapi_test_key: (secrets?.facturapi_test_key as string | null | undefined) ?? "",
-      facturapi_live_key: (secrets?.facturapi_live_key as string | null | undefined) ?? "",
+      // Las llaves nunca se devuelven al cliente: arrancan vacías y solo
+      // se envían al backend si el usuario captura un valor nuevo.
+      facturapi_test_key: "",
+      facturapi_live_key: "",
     });
-  }, [settings, secrets, setForm]);
+  }, [settings, setForm]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,11 +56,16 @@ export function FiscalDataTab() {
         logo_url: form.logo_url || null,
         facturapi_mode: form.facturapi_mode || "test",
       });
-      await upsertSecrets.mutateAsync({
-        ...(secrets?.id ? { id: secrets.id } : {}),
-        facturapi_test_key: form.facturapi_test_key || null,
-        facturapi_live_key: form.facturapi_live_key || null,
-      });
+      const hasNewTest = form.facturapi_test_key.length > 0;
+      const hasNewLive = form.facturapi_live_key.length > 0;
+      if (hasNewTest || hasNewLive) {
+        await upsertSecrets.mutateAsync({
+          ...(secrets?.id ? { id: secrets.id } : {}),
+          facturapi_test_key: hasNewTest ? form.facturapi_test_key : null,
+          facturapi_live_key: hasNewLive ? form.facturapi_live_key : null,
+        });
+        setForm({ ...form, facturapi_test_key: "", facturapi_live_key: "" });
+      }
       toast.success("Datos fiscales guardados");
     } catch (_err) {
       toast.error("No se pudieron guardar los datos fiscales");
@@ -72,7 +79,13 @@ export function FiscalDataTab() {
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       <CompanyFiscalForm form={form} set={set} isPending={isPending} />
-      <PacConfigForm form={form} set={set} isPending={isPending} />
+      <PacConfigForm
+        form={form}
+        set={set}
+        isPending={isPending}
+        hasTestKey={!!secrets?.has_test_key}
+        hasLiveKey={!!secrets?.has_live_key}
+      />
     </form>
   );
 }
