@@ -6,7 +6,7 @@ import { useMyFeedbackReports } from "@/features/feedback/hooks/useFeedbackRepor
 import { FeedbackStatusBadge } from "@/features/feedback/components/FeedbackStatusBadge";
 import { FEEDBACK_TYPE_LABELS } from "@/features/feedback/lib/constants";
 import { usePagination } from "@/hooks/usePagination";
-import { PaginationControls } from "@/components/PaginationControls";
+import { TablePagination } from "@/components/TablePagination";
 import { format } from "date-fns";
 
 export default function MyReportsPage() {
@@ -70,7 +70,7 @@ export default function MyReportsPage() {
         </CardContent>
         {totalPages > 1 && (
           <div className="border-t p-3">
-            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+            <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
       </Card>
