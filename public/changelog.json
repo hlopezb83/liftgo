@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.82.2",
+    "date": "2026-05-15",
+    "type": "patch",
+    "title": "Fix crítico: Panel cargaba indefinidamente para Ventas",
+    "category": "bugfix"
+  },
+  {
     "version": "5.82.1",
     "date": "2026-05-15",
     "type": "patch",
