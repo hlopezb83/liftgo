@@ -60,12 +60,9 @@ export function usePortalInvoices() {
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invoices")
-        .select("*")
-        .order("issued_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_portal_invoices");
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
 }
@@ -78,10 +75,7 @@ export function usePortalContracts() {
     staleTime: 60_000,
     queryFn: async () => {
       const [{ data, error }, forkliftMap] = await Promise.all([
-        supabase
-          .from("contracts")
-          .select("*")
-          .order("created_at", { ascending: false }),
+        supabase.rpc("get_portal_contracts"),
         fetchForkliftsBriefMap(),
       ]);
       if (error) throw error;
