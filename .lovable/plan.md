@@ -1,104 +1,47 @@
-# Fase 1: Migración de DataTable a @tanstack/react-table
+## Limpieza de código sin uso
 
-## Objetivo
+Ejecuté `knip` sobre el proyecto y encontré **269 archivos sin referencias**, **35 exports sin uso** y **40 tipos exportados sin uso**. La gran mayoría son *shims* de retrocompatibilidad creados durante la migración a la estructura `src/features/...` que ya nadie importa (el router y los features apuntan directo a `@/features/...`).
 
-Reemplazar el motor interno de ordenamiento de `DataTable` (`useSort`) por `@tanstack/react-table` **sin cambiar la API pública**. Los 19 consumidores actuales no requieren cambios.
+### Qué se eliminaría (resumen por bloques)
 
-## Alcance
+1. **Shims de páginas — `src/pages/*.tsx`** (~38 archivos)
+   Todos son `export { default } from "@/features/.../pages/..."`. El router (`src/lib/routes-config.tsx`) ya importa directo de `@/features/...`. Se conservan los que sí se usan: `AuthPage.tsx`, `HelpPage.tsx`, `NotFound.tsx`, `portal/*`, y `__tests__/InvoicesPage.test.tsx`.
 
-- ✅ Refactor de `src/components/DataTable.tsx` para usar `useReactTable`
-- ✅ Mantener exactamente: `columns`, `data`, `isLoading`, `keyExtractor`, `emptyMessage`, `onRowClick`, `rowClassName`, `mobileCardRender`, `defaultSortKey`, `defaultSortDirection`, `footer`, `className`
-- ✅ Mantener `DataTableColumn<T>` con `key`, `label`, `sortable`, `accessor`, `render`, `align`, `className`, `headClassName`, `hideOnMobile`
-- ✅ Mantener integración con `MobileCardList`, `TableSkeleton`, `EmptyRow`, `SortableTableHead`
-- ❌ NO se tocan los 19 consumidores
-- ❌ NO se elimina `useSort` (sigue usándose en `useListPage`, `BookingsPage`, `DeliveriesPage`, etc. que NO pasan por `DataTable`)
-- ❌ NO se agregan features nuevas (selección, resize, visibility, virtualization) — eso es Fase 3
+2. **Shims de componentes — `src/components/<feature>/*`** (~90 archivos)
+   Re-exports de `@/features/.../components/...` sin consumidores. Incluye: `bookings/`, `booking-detail/`, `calendar/`, `changelog/`, `contracts/`, `crm/`, `customer-detail/`, `customers/`, `damage/`, `dashboard/`, `deliveries/`, `expenses/`, `forklift-detail/`, `forklift-form/`, `inventory/`, `invoice-detail/`, `invoice-form/`, `invoices/`, `maintenance/`, `users/`, `auditTrail/`, además de `DataTableSelectionToolbar.tsx`.
 
-## Pasos
+3. **Shims de hooks — `src/hooks/<subdir>/*` y algunos `src/hooks/use*.ts`** (~55 archivos)
+   Re-exports de hooks que ya viven dentro de `src/features/.../hooks/...`. Solo se eliminan los que knip marca sin referencias (los `src/hooks/use*.ts` que sí son usados como `@/hooks/useFoo` se conservan).
 
-1. **Instalar dependencia**
-   - `bun add @tanstack/react-table`
+4. **Duplicados reales**
+   - `src/lib/pdf/invoice/build.ts` — versión vieja, la activa es `src/features/invoices/lib/pdf/build.ts`.
+   - `src/features/fleet/hooks/forklifts/useForkliftOptions.ts` — sin referencias.
+   - `src/features/users/components/users/RolePermissionsMatrix.tsx` — sin referencias (el módulo activo vive en otra ruta).
+   - `src/features/feedback/lib/scoring.ts` — sin referencias (el cómputo se hace por RPC).
+   - `scripts/split-changelog.ts` — script one-shot ya ejecutado, sin npm script asociado.
+   - `src/App.css` — sin imports (los estilos viven en `src/index.css`).
 
-2. **Refactor `src/components/DataTable.tsx`**
-   - Construir `ColumnDef<T>[]` a partir de `DataTableColumn<T>[]`:
-     - `id: col.key`
-     - `accessorFn: col.accessor ?? (row) => (row as Record<string, unknown>)[col.key]`
-     - `header: col.label` (renderizado por `SortableTableHead` cuando `sortable`)
-     - `cell: ({ row, index }) => col.render(row.original, index)`
-     - `enableSorting: !!col.sortable`
-   - Configurar `useReactTable`:
-     - `data: data ?? []`
-     - `columns: columnDefs`
-     - `getCoreRowModel`, `getSortedRowModel`
-     - `state.sorting` controlado, `onSortingChange`
-     - `initialState.sorting` desde `defaultSortKey`/`defaultSortDirection`
-   - Render: iterar `table.getHeaderGroups()` y `table.getRowModel().rows`
-   - Conservar lógica `isMobile + mobileCardRender → MobileCardList` exactamente igual
-   - Conservar `memo` en row interno y `DataTable`
+5. **Exports y tipos sin uso dentro de archivos vivos** (~75 símbolos)
+   Eliminar exports y tipos huérfanos en `src/components/ui/*` (alert-dialog, badge, card, chart, command, dialog, dropdown-menu, form, etc.) y en hooks/utilidades. Solo se quita lo no referenciado; los componentes se mantienen.
 
-3. **Mapping de sorting al header**
-   - `SortableTableHead` sigue recibiendo `sortKey/currentSort/currentDirection/onSort`
-   - Adaptar: leer `state.sorting[0]` y exponer `toggleSort(key)` que llame a `table.setSorting`
+### Qué NO se toca
 
-4. **Comparador de orden**
-   - `useSort` actual usa `localeCompare` con `sensitivity: "base", numeric: true` para strings y resta para números
-   - Implementar `sortingFn` custom equivalente y aplicarlo por defecto a todas las columnas para preservar comportamiento (acentos, números embebidos en strings, nulls al final)
+- **Edge functions** (`supabase/functions/*`) — knip las marca como huérfanas porque se invocan vía `supabase.functions.invoke(...)` en runtime. Quedan intactas.
+- `src/integrations/supabase/*` (auto-generado).
+- Cualquier archivo bajo `src/features/`, `src/layouts/`, `src/contexts/` que knip no marque.
+- Páginas y hooks shims que sigan teniendo al menos una referencia detectada.
 
-5. **Validación**
-   - Correr `vitest` (`InvoicesPage.test.tsx`, `bookingFlow.test.ts`, etc.)
-   - Smoke test visual de 3 páginas representativas: `InvoicesPage`, `QuotesPage`, `CustomersPage`
+### Verificación post-cambio
 
-6. **Changelog**
-   - Crear `public/changelog/v5.83.0.json` (minor: dependencia nueva + refactor interno, sin cambios visibles)
-   - Agregar entrada al inicio de `public/changelog.json`
+1. Verificar que el typecheck/build pasa (lo hará el harness al guardar).
+2. Re-ejecutar `npx knip --reporter compact` para confirmar la reducción.
+3. Smoke test del preview: navegar dashboard, reservas, facturas, CRM (rutas críticas que usan lazy imports).
 
-7. **Memoria**
-   - Actualizar `mem://arch/ui/tables` indicando que `DataTable` ya usa TanStack internamente y que Fase 2/3 (selección, resize, virtualization) queda lista para activarse on-demand
+### Changelog
 
-## Detalles técnicos
+Agregar `v5.86.0` (minor — limpieza grande de deuda técnica) a `public/changelog.json` y `public/changelog/v5.86.0.json` describiendo:
+"Eliminados ~270 archivos shim de retrocompatibilidad y exports sin uso. Sin cambios funcionales."
 
-### Equivalencia de sorting (clave para no romper UX)
+### Riesgo
 
-```ts
-const liftgoSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) => {
-  const a = rowA.getValue(columnId);
-  const b = rowB.getValue(columnId);
-  if (a == null && b == null) return 0;
-  if (a == null) return 1;
-  if (b == null) return -1;
-  if (typeof a === "number" && typeof b === "number") return a - b;
-  return String(a).localeCompare(String(b), undefined, { sensitivity: "base", numeric: true });
-};
-```
-
-### Estado de sorting controlado
-
-```ts
-const [sorting, setSorting] = useState<SortingState>(
-  defaultSortKey ? [{ id: defaultSortKey, desc: defaultSortDirection === "desc" }] : []
-);
-```
-
-### Riesgos y mitigaciones
-
-| Riesgo | Mitigación |
-|---|---|
-| Cambio sutil en orden de nulls/acentos | `sortingFn` custom espejo de `useSort` |
-| Re-render extra al pasar `columns` inline | Mantener `columnsKey` memo basado en `col.key` |
-| Romper `mobileCardRender` | No se toca esa rama, se ejecuta antes de `useReactTable` con los items ya ordenados vía `table.getRowModel()` o usando `useSort` solo para el branch mobile (decisión: usar `table` también en mobile leyendo `getSortedRowModel`) |
-| Bundle size | `@tanstack/react-table` headless ≈ 14 KB gzip, aceptable |
-
-## Estimación
-
-- Implementación: ~30 min
-- Tests + smoke: ~15 min
-- Changelog + memoria: ~5 min
-- **Total: ~1 sesión corta**
-
-## Fuera de alcance (Fase 2/3)
-
-- Selección de filas con checkbox
-- Column visibility / resize
-- Filtros por columna (`getFilteredRowModel`)
-- Virtualización (`@tanstack/react-virtual`)
-- Migrar `BookingsPage` / `DeliveriesPage` (usan `ListPageLayout` + `useListPage`, no `DataTable`)
+Bajo. Todos los archivos a eliminar son re-exports sin consumidores verificados con `rg` cruzado contra todo `src/`. Si algún import dinámico oculto rompe, se restaura el shim puntual.

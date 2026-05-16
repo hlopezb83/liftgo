@@ -1,0 +1,14 @@
+{
+  "description": "Limpieza grande de deuda técnica: eliminados 254 archivos sin referencias detectados con knip.",
+  "changes": [
+    "Eliminados ~38 shims de páginas en src/pages/* (re-exports de @/features/*/pages/* sin consumidores; el router ya importa directo)",
+    "Eliminados ~90 shims de componentes en src/components/<feature>/* (bookings, crm, dashboard, deliveries, customers, inventory, invoices, maintenance, users, etc.)",
+    "Eliminados ~55 shims de hooks en src/hooks/<subdir>/* y src/hooks/use*.ts sin uso",
+    "Eliminado src/lib/pdf/invoice/build.ts (versión vieja, la activa vive en src/features/invoices/lib/pdf/build.ts)",
+    "Eliminado src/features/feedback/lib/scoring.ts (cómputo se hace por RPC)",
+    "Eliminado src/features/fleet/hooks/forklifts/useForkliftOptions.ts (sin referencias)",
+    "Eliminado src/features/users/components/users/RolePermissionsMatrix.tsx (módulo activo vive en otra ruta)",
+    "Eliminado scripts/split-changelog.ts (script one-shot ya ejecutado) y src/App.css (sin imports)",
+    "Sin cambios funcionales: edge functions, integrations/supabase y pages activas (Auth, Help, NotFound, portal/*) intactas"
+  ]
+}
