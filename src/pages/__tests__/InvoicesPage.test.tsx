@@ -59,8 +59,8 @@ describe("InvoicesPage smoke tests", () => {
     const container = renderPage();
     expect(container.textContent).toContain("FAC-0001");
     expect(container.textContent).toContain("FAC-0002");
-    expect(container.textContent).toContain("Enviada");
-    expect(container.textContent).toContain("Pagada");
+    expect(container.textContent).toContain("Enviado");
+    expect(container.textContent).toContain("Pagado");
   });
 
   it("paid status persists and is displayed correctly", () => {
@@ -68,7 +68,7 @@ describe("InvoicesPage smoke tests", () => {
     const rows = container.querySelectorAll("tbody tr") as NodeListOf<HTMLElement>;
     const paidRow = Array.from(rows).find((r) => r.textContent?.includes("FAC-0002"));
     expect(paidRow).toBeTruthy();
-    expect(paidRow?.textContent).toContain("Pagada");
+    expect(paidRow?.textContent).toContain("Pagado");
     expect(paidRow?.textContent).toMatch(/2,000\.00/);
   });
 
