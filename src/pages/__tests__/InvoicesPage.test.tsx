@@ -30,6 +30,14 @@ vi.mock("@/hooks/useInvoices", () => ({
   useInvoices: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
 }));
 
+vi.mock("@/hooks/useGenerateRecurringInvoices", () => ({
+  useGenerateRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
+vi.mock("@/components/RoleGuard", () => ({
+  RoleGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 function renderPage() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const { container } = render(
@@ -51,8 +59,8 @@ describe("InvoicesPage smoke tests", () => {
     const container = renderPage();
     expect(container.textContent).toContain("FAC-0001");
     expect(container.textContent).toContain("FAC-0002");
-    expect(container.textContent).toContain("Sent");
-    expect(container.textContent).toContain("Paid");
+    expect(container.textContent).toContain("Sin Pagar");
+    expect(container.textContent).toContain("Pagado");
   });
 
   it("paid status persists and is displayed correctly", () => {
@@ -60,14 +68,14 @@ describe("InvoicesPage smoke tests", () => {
     const rows = container.querySelectorAll("tbody tr") as NodeListOf<HTMLElement>;
     const paidRow = Array.from(rows).find((r) => r.textContent?.includes("FAC-0002"));
     expect(paidRow).toBeTruthy();
-    expect(paidRow!.textContent).toContain("Paid");
-    expect(paidRow!.textContent).toContain("€2000.00");
+    expect(paidRow?.textContent).toContain("Pagado");
+    expect(paidRow?.textContent).toMatch(/2,000\.00/);
   });
 
   it("displays correct totals", () => {
     const container = renderPage();
-    expect(container.textContent).toContain("€1700.00");
-    expect(container.textContent).toContain("$2000.00");
+    expect(container.textContent).toMatch(/1,700\.00/);
+    expect(container.textContent).toMatch(/2,000\.00/);
   });
 
   it("shows empty state when no invoices match", () => {

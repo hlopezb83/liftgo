@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.88.2",
+    "date": "2026-05-16",
+    "type": "patch",
+    "title": "Fix CI: reparar tests de InvoicesPage",
+    "category": "fix"
+  },
+  {
     "version": "5.88.1",
     "date": "2026-05-16",
     "type": "patch",
