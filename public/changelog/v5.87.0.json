@@ -1,0 +1,9 @@
+{
+  "description": "Pipeline de CI en GitHub Actions que corre ESLint, Knip, tests y build en cada PR a main.",
+  "changes": [
+    "Agregado .github/workflows/ci.yml: job 'quality' con ESLint, Knip, Vitest y build sobre Bun (ubuntu-latest, 15 min timeout, concurrency cancelable)",
+    "Agregado knip.json: entry points (main.tsx, configs, *.test.*), proyecto src/**, ignora supabase/functions, integrations/supabase, components/ui y scripts",
+    "Knip dividido en dos pasos: estricto (files/dependencies/binaries) rompe el PR, informativo (exports/types) solo reporta",
+    "knip@6 agregado a devDependencies"
+  ]
+}
