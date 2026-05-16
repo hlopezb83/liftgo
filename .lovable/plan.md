@@ -1,47 +1,99 @@
-## Limpieza de código sin uso
+# Módulo de Actividad — Vista del Dueño
 
-Ejecuté `knip` sobre el proyecto y encontré **269 archivos sin referencias**, **35 exports sin uso** y **40 tipos exportados sin uso**. La gran mayoría son *shims* de retrocompatibilidad creados durante la migración a la estructura `src/features/...` que ya nadie importa (el router y los features apuntan directo a `@/features/...`).
+## Problema actual
 
-### Qué se eliminaría (resumen por bloques)
+La página `/activity` muestra un listado plano de eventos sin responder la pregunta clave del dueño: **¿quién hizo qué?**.
 
-1. **Shims de páginas — `src/pages/*.tsx`** (~38 archivos)
-   Todos son `export { default } from "@/features/.../pages/..."`. El router (`src/lib/routes-config.tsx`) ya importa directo de `@/features/...`. Se conservan los que sí se usan: `AuthPage.tsx`, `HelpPage.tsx`, `NotFound.tsx`, `portal/*`, y `__tests__/InvoicesPage.test.tsx`.
+- `activity_feed` no guarda el usuario que originó el evento (solo `event_type`, `entity_type`, `entity_id`, `title`, `description`).
+- No hay agregaciones (totales por persona, por módulo, por día).
+- Sin filtros por usuario ni rango de fechas.
+- Los títulos son genéricos ("Actualización de Facturas") sin contexto del registro afectado (folio, cliente, monto).
 
-2. **Shims de componentes — `src/components/<feature>/*`** (~90 archivos)
-   Re-exports de `@/features/.../components/...` sin consumidores. Incluye: `bookings/`, `booking-detail/`, `calendar/`, `changelog/`, `contracts/`, `crm/`, `customer-detail/`, `customers/`, `damage/`, `dashboard/`, `deliveries/`, `expenses/`, `forklift-detail/`, `forklift-form/`, `inventory/`, `invoice-detail/`, `invoice-form/`, `invoices/`, `maintenance/`, `users/`, `auditTrail/`, además de `DataTableSelectionToolbar.tsx`.
+## Objetivo
 
-3. **Shims de hooks — `src/hooks/<subdir>/*` y algunos `src/hooks/use*.ts`** (~55 archivos)
-   Re-exports de hooks que ya viven dentro de `src/features/.../hooks/...`. Solo se eliminan los que knip marca sin referencias (los `src/hooks/use*.ts` que sí son usados como `@/hooks/useFoo` se conservan).
+Convertir `/activity` en un **panel ejecutivo de productividad del equipo** que el dueño revise en 30 segundos:
 
-4. **Duplicados reales**
-   - `src/lib/pdf/invoice/build.ts` — versión vieja, la activa es `src/features/invoices/lib/pdf/build.ts`.
-   - `src/features/fleet/hooks/forklifts/useForkliftOptions.ts` — sin referencias.
-   - `src/features/users/components/users/RolePermissionsMatrix.tsx` — sin referencias (el módulo activo vive en otra ruta).
-   - `src/features/feedback/lib/scoring.ts` — sin referencias (el cómputo se hace por RPC).
-   - `scripts/split-changelog.ts` — script one-shot ya ejecutado, sin npm script asociado.
-   - `src/App.css` — sin imports (los estilos viven en `src/index.css`).
+1. Saber qué hizo cada miembro hoy / esta semana / este mes.
+2. Detectar inactividad o cuellos de botella.
+3. Drill-down al registro afectado con un clic.
 
-5. **Exports y tipos sin uso dentro de archivos vivos** (~75 símbolos)
-   Eliminar exports y tipos huérfanos en `src/components/ui/*` (alert-dialog, badge, card, chart, command, dialog, dropdown-menu, form, etc.) y en hooks/utilidades. Solo se quita lo no referenciado; los componentes se mantienen.
+## Cambios propuestos
 
-### Qué NO se toca
+### 1. Backend — enriquecer `activity_feed` con actor
 
-- **Edge functions** (`supabase/functions/*`) — knip las marca como huérfanas porque se invocan vía `supabase.functions.invoke(...)` en runtime. Quedan intactas.
-- `src/integrations/supabase/*` (auto-generado).
-- Cualquier archivo bajo `src/features/`, `src/layouts/`, `src/contexts/` que knip no marque.
-- Páginas y hooks shims que sigan teniendo al menos una referencia detectada.
+Migración:
 
-### Verificación post-cambio
+- Agregar columnas a `activity_feed`:
+  - `actor_id uuid` (FK lógica a `auth.users`)
+  - `actor_name text` (snapshot, sobrevive si el usuario se elimina)
+  - `actor_role app_role` (snapshot)
+- Modificar el trigger `log_activity()` para capturar `auth.uid()` y resolver nombre/rol desde `profiles` + `user_roles`.
+- Backfill: para registros existentes, hacer JOIN con `audit_logs` por `(table_name, record_id, created_at ±2s)` y rellenar `actor_id` cuando sea posible.
+- Mejorar `title`/`description` para incluir un identificador legible cuando exista en `NEW`/`OLD` (ej. `folio`, `quote_number`, `name`). Solo para las tablas con campo evidente; el resto queda con el formato actual.
+- RLS: lectura solo para `admin` y `administrativo` (es vista de dirección).
 
-1. Verificar que el typecheck/build pasa (lo hará el harness al guardar).
-2. Re-ejecutar `npx knip --reporter compact` para confirmar la reducción.
-3. Smoke test del preview: navegar dashboard, reservas, facturas, CRM (rutas críticas que usan lazy imports).
+### 2. Frontend — rediseño de `/activity`
 
-### Changelog
+Reemplazar `ActivityPage.tsx` por un layout de dashboard ejecutivo desktop-first (densidad alta, alineado con el design system):
 
-Agregar `v5.86.0` (minor — limpieza grande de deuda técnica) a `public/changelog.json` y `public/changelog/v5.86.0.json` describiendo:
-"Eliminados ~270 archivos shim de retrocompatibilidad y exports sin uso. Sin cambios funcionales."
+```text
+┌─────────────────────────────────────────────────────────┐
+│ Actividad del Equipo                  [Hoy|7d|30d|Rango]│
+├─────────────────────────────────────────────────────────┤
+│ KPIs:  Acciones hoy · Usuarios activos · Pico de hora   │
+│        Módulo más usado · % vs semana anterior          │
+├──────────────────────────┬──────────────────────────────┤
+│ Ranking por miembro      │ Acciones por módulo          │
+│ (barra horizontal con    │ (barras: facturas, reservas, │
+│ avatar, total, último    │  CRM, flota, mantenimiento)  │
+│ visto)                   │                              │
+├──────────────────────────┴──────────────────────────────┤
+│ Timeline filtrable                                       │
+│  [Usuario ▾] [Módulo ▾] [Acción ▾] [Buscar...]          │
+│  ─ 10:42  María García (Ventas)                         │
+│           Creó cotización COT-0123 — Cliente ACME       │
+│  ─ 10:31  Juan Pérez (Despachador)                      │
+│           Actualizó reserva RSV-0456 → "entregada"      │
+│  ...      (paginado 25)                                 │
+└─────────────────────────────────────────────────────────┘
+```
 
-### Riesgo
+Componentes nuevos (cada uno ≤150 LOC):
 
-Bajo. Todos los archivos a eliminar son re-exports sin consumidores verificados con `rg` cruzado contra todo `src/`. Si algún import dinámico oculto rompe, se restaura el shim puntual.
+- `ActivityKPIs.tsx` — 5 tarjetas compactas con comparativa vs periodo anterior.
+- `ActivityByMember.tsx` — ranking con avatar, total y "última actividad hace X".
+- `ActivityByModule.tsx` — barras horizontales por `entity_type`.
+- `ActivityTimeline.tsx` — lista densa zebra con actor, badge de rol, descripción y link al registro.
+- `ActivityFilters.tsx` — selector de rango, usuario, módulo, acción.
+
+Hooks:
+
+- `useActivityFeed` extendido con filtros `{ from, to, actorId, entityType, eventType }` y paginación.
+- `useActivityMetrics(range)` — agrega KPIs y rankings (una sola query con `group by`).
+
+### 3. Navegación
+
+- Mantener la ruta `/activity`.
+- Protegerla con `RoleGuard module="activity"` (solo admin/administrativo).
+- Quitar la entrada del sidebar para usuarios sin permiso.
+
+### 4. Changelog
+
+Añadir `public/changelog/v5.88.0.json` + entrada en `public/changelog.json`:
+
+> **v5.88.0 — Actividad ejecutiva**: ahora cada acción registra quién la hizo. Nueva vista con KPIs, ranking del equipo y timeline filtrable por usuario, módulo y fecha.
+
+## Fuera de alcance
+
+- No se toca `audit_trail` (sigue siendo el detalle técnico con diffs por campo).
+- No se agregan notificaciones push ni reportes por email (puede ser una iteración futura).
+- No se cambia el trigger de `audit_logs`.
+
+## Detalles técnicos
+
+- Migración SQL idempotente; trigger `log_activity` actualizado con `SET search_path = public` y `SECURITY DEFINER`.
+- `auth.uid()` puede ser `NULL` en triggers de jobs (ej. `generate-recurring-invoices`); en ese caso `actor_name = 'Sistema'`, `actor_role = NULL`.
+- Backfill en una sola sentencia `UPDATE ... FROM audit_logs` con tolerancia de 2 segundos.
+- KPIs cacheados con TanStack Query (`staleTime: 60s`).
+- Zona horaria `America/Monterrey` para agrupaciones por día/hora (usar `nowMty()`).
+- Sin `any`, sin `!`, validación con Zod en filtros.
