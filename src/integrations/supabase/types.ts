@@ -16,6 +16,9 @@ export type Database = {
     Tables: {
       activity_feed: {
         Row: {
+          actor_id: string | null
+          actor_name: string | null
+          actor_role: Database["public"]["Enums"]["app_role"] | null
           created_at: string
           description: string | null
           entity_id: string
@@ -25,6 +28,9 @@ export type Database = {
           title: string
         }
         Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string
           description?: string | null
           entity_id: string
@@ -34,6 +40,9 @@ export type Database = {
           title: string
         }
         Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: Database["public"]["Enums"]["app_role"] | null
           created_at?: string
           description?: string | null
           entity_id?: string
