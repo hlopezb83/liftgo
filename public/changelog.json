@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.87.0",
+    "date": "2026-05-16",
+    "type": "minor",
+    "title": "CI con ESLint, Knip y tests en cada PR",
+    "category": "infra"
+  },
+  {
     "version": "5.86.0",
     "date": "2026-05-16",
     "type": "minor",

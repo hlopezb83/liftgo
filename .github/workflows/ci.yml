@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, Knip, Tests, Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: ESLint
+        run: bun run lint
+
+      # Falla el PR si aparecen archivos huérfanos o dependencias sin uso.
+      - name: Knip (archivos y dependencias sin uso)
+        run: bunx knip --include files,dependencies,binaries --reporter compact
+
+      # Solo informativo: exports y tipos sin uso (no rompen el PR).
+      - name: Knip (exports/tipos sin uso, informativo)
+        run: bunx knip --include exports,types --reporter compact || true
+
+      - name: Tests (Vitest)
+        run: bun run test
+
+      - name: Build
+        run: bun run build

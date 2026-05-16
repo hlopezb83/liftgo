@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.tsx",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "tailwind.config.ts",
+    "src/**/*.{test,spec}.{ts,tsx}"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": [
+    "supabase/functions/**",
+    "src/integrations/supabase/**",
+    "src/components/ui/**",
+    "scripts/**"
+  ],
+  "ignoreDependencies": ["@types/node"],
+  "ignoreExportsUsedInFile": true
+}
