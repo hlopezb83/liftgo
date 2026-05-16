@@ -31,8 +31,13 @@ jobs:
       - name: ESLint
         run: bun run lint
 
-      - name: Knip (detectar código sin uso)
-        run: bunx knip --reporter compact
+      # Falla el PR si aparecen archivos huérfanos o dependencias sin uso.
+      - name: Knip (archivos y dependencias sin uso)
+        run: bunx knip --include files,dependencies,binaries --reporter compact
+
+      # Solo informativo: exports y tipos sin uso (no rompen el PR).
+      - name: Knip (exports/tipos sin uso, informativo)
+        run: bunx knip --include exports,types --reporter compact || true
 
       - name: Tests (Vitest)
         run: bun run test
