@@ -1,0 +1,17 @@
+{
+  "version": "5.88.0",
+  "date": "2026-05-16",
+  "type": "minor",
+  "title": "Actividad ejecutiva: quién hizo qué",
+  "category": "feature",
+  "description": "El módulo /actividad ahora muestra quién realizó cada acción, con KPIs comparativos, ranking del equipo, distribución por módulo y línea de tiempo filtrable por usuario, módulo y tipo de acción.",
+  "changes": [
+    "Cada evento del feed ahora guarda al usuario, su nombre y rol al momento de la acción (los procesos automáticos se etiquetan como 'Sistema').",
+    "Backfill histórico: se rellenaron los registros existentes cruzándolos con la bitácora técnica.",
+    "Nueva vista ejecutiva con 4 KPIs (acciones del periodo, usuarios activos, módulo más usado, hora pico) y comparación vs. periodo anterior.",
+    "Ranking del equipo con avatar, total de acciones y 'última actividad hace…'.",
+    "Distribución de acciones por módulo (Reservas, Facturas, CRM, Flota, etc.).",
+    "Línea de tiempo densa con filtros por usuario, módulo, tipo de acción y búsqueda de texto, con drill-down al registro afectado.",
+    "Selector de rango: Hoy / 7 días / 30 días."
+  ]
+}
