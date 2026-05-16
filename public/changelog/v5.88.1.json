@@ -1,0 +1,7 @@
+{
+  "description": "Se eliminó el shim huérfano src/features/audit/hooks/useActivityFeed.ts detectado por knip, que estaba haciendo fallar el workflow de CI.",
+  "changes": [
+    "Eliminado src/features/audit/hooks/useActivityFeed.ts (re-export sin consumidores)",
+    "CI (Lint, Knip, Tests, Build) vuelve a verde"
+  ]
+}

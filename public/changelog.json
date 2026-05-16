@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.88.1",
+    "date": "2026-05-16",
+    "type": "patch",
+    "title": "Fix CI: eliminar shim huérfano de useActivityFeed",
+    "category": "fix"
+  },
+  {
     "version": "5.88.0",
     "date": "2026-05-16",
     "type": "minor",
