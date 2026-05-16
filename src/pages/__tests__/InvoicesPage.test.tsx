@@ -59,7 +59,7 @@ describe("InvoicesPage smoke tests", () => {
     const container = renderPage();
     expect(container.textContent).toContain("FAC-0001");
     expect(container.textContent).toContain("FAC-0002");
-    expect(container.textContent).toContain("Enviado");
+    expect(container.textContent).toContain("Sin Pagar");
     expect(container.textContent).toContain("Pagado");
   });
 
