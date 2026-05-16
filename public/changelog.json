@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.86.0",
+    "date": "2026-05-16",
+    "type": "minor",
+    "title": "Limpieza de 254 archivos shim y código sin uso",
+    "category": "refactor"
+  },
+  {
     "version": "5.85.1",
     "date": "2026-05-15",
     "type": "patch",
