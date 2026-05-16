@@ -1,0 +1,8 @@
+{
+  "description": "Se repararon los tests de InvoicesPage que rompían el CI: faltaba mockear RoleGuard/useGenerateRecurringInvoices y las aserciones esperaban strings en inglés/EUR en lugar de español/MXN.",
+  "changes": [
+    "Mock de RoleGuard y useGenerateRecurringInvoices en InvoicesPage.test.tsx para evitar error 'useAuth must be used within AuthProvider'",
+    "Aserciones actualizadas a labels reales en español ('Sin Pagar', 'Pagado') y formato MXN ('$1,700.00', '$2,000.00')",
+    "Suite completa de Vitest vuelve a verde (48/48 tests)"
+  ]
+}
