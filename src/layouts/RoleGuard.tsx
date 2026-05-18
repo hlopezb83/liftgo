@@ -42,10 +42,9 @@ export function RoleGuard({ module, minAccess = "read", children, fallback }: Ro
   if (reason === "error") return renderFallback(fallback, <NoAccess module={module} reason="error" />);
   if (reason === "no-role") return renderFallback(fallback, <NoAccess module={module} reason="no-role" />);
 
-  const canCheckModule = Boolean(module && perms && role);
-  if (!canCheckModule) return <>{children}</>;
+  if (!module || !perms || !role) return <>{children}</>;
 
-  const level = getAccessLevel(perms!, role!, module!);
+  const level = getAccessLevel(perms, role, module);
   if (!hasSufficientAccess(level, minAccess)) {
     return renderFallback(
       fallback,
