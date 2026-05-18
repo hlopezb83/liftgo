@@ -53,7 +53,7 @@ export function useQuoteFormLogic() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm({ customerId, quoteType, startDate, endDate, rentalLines, saleLines })) return;
+    if (!validateQuoteForm({ customerId, quoteType, startDate, endDate, rentalLines, saleLines })) return;
 
     const today = format(nowMty(), "yyyy-MM-dd");
     const firstModelId = quoteType === "sale"
