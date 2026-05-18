@@ -6,7 +6,7 @@ import { es } from "date-fns/locale";
 import { FileText, StickyNote } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
-import type { Prospect } from "@/hooks/useProspects";
+import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 interface Props {
   prospect: Prospect;

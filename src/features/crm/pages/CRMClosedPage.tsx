@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
-import { useUpdateProspect, type Prospect } from "@/hooks/useProspects";
+import { useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
 import { format } from "date-fns";

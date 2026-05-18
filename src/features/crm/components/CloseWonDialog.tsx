@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Trophy } from "lucide-react";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
-import type { Prospect } from "@/hooks/useProspects";
+import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 interface Props {
   prospect: Prospect | null;

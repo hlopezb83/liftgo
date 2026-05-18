@@ -6,7 +6,7 @@ import { ProspectFormFields } from "./prospect-form/ProspectFormFields";
 import {
   ProspectDialogHeader, ProspectCreatorBlock, ProspectDialogFooter,
 } from "./prospect-form/ProspectDialogParts";
-import type { Prospect } from "@/hooks/useProspects";
+import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 interface Props {
   open: boolean;

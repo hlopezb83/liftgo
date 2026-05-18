@@ -14,7 +14,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useUpdateProspect } from "@/hooks/useProspects";
+import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
 import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
 import type { CustomerFormData } from "@/lib/formSchemas";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";

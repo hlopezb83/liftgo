@@ -5,20 +5,18 @@ import { useContracts } from "@/features/contracts/hooks/useContracts";
 import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 
-import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TableCell, TableHead, TableRow } from "@/components/ui/table";
+import { TableHead, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { PlusCircle, Download, ChevronRight, Forklift, ShieldCheck } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { PlusCircle, Download, Forklift } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
-import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
+import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
+import { FleetMobileCard, FleetTableRow } from "@/features/fleet/components/fleet/FleetRowAndCard";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
@@ -107,25 +105,11 @@ export default function Fleet() {
       keyExtractor={(f) => f.id}
       emptyMessage="No se encontraron montacargas"
       renderCard={(f) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/fleet/${f.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-mono font-semibold text-sm flex items-center gap-1.5">
-                {f.name}
-                {activePolicyForkliftIds.has(f.id) && <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
-              </span>
-              <StatusBadge status={f.status} />
-            </div>
-            <p className="text-sm text-muted-foreground">{f.model}</p>
-            {f.serial_number && <p className="text-xs text-muted-foreground font-mono">S/N: {f.serial_number}</p>}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <div className="flex gap-4 text-xs text-muted-foreground">
-                {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+        <FleetMobileCard
+          forklift={f}
+          hasActivePolicy={activePolicyForkliftIds.has(f.id)}
+          onClick={() => navigate(`/fleet/${f.id}`)}
+        />
       )}
     />
   ) : undefined;
@@ -158,21 +142,13 @@ export default function Fleet() {
         </TableRow>
       }
       renderRow={(f) => (
-        <TableRow key={f.id} className="cursor-pointer hover:bg-muted/50 transition-colors border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/fleet/${f.id}`)}>
-          <TableCell className="font-mono font-medium">
-            <span className="flex items-center gap-1.5">
-              {f.name}
-              {activePolicyForkliftIds.has(f.id) && (
-                <Tooltip><TooltipTrigger asChild><ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" /></TooltipTrigger><TooltipContent>Póliza de mantenimiento activa</TooltipContent></Tooltip>
-              )}
-            </span>
-          </TableCell>
-          <TableCell>{f.model}</TableCell>
-          <TableCell className="font-mono text-xs">{f.serial_number || "—"}</TableCell>
-          <TableCell>{f.fuel_type ? (FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type) : "—"}</TableCell>
-          <TableCell><StatusBadge status={f.status} /></TableCell>
-          <TableCell className="hidden lg:table-cell text-xs text-muted-foreground max-w-[200px] truncate">{locationMap.get(f.id) || "—"}</TableCell>
-        </TableRow>
+        <FleetTableRow
+          key={f.id}
+          forklift={f}
+          hasActivePolicy={activePolicyForkliftIds.has(f.id)}
+          location={locationMap.get(f.id) || ""}
+          onClick={() => navigate(`/fleet/${f.id}`)}
+        />
       )}
     />
   );

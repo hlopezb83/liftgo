@@ -37,15 +37,3 @@ export const buildDeliverySubtitle = (
   const label = type === "delivery" ? "Entrega" : "Recolección";
   return `${name} · ${label}`;
 };
-
-export const canPromptPickup = (
-  delivery: Pick<Delivery, "type" | "booking_id">,
-  linkedBooking: { end_date: string } | null | undefined,
-  forklift: { name: string } | null | undefined,
-): boolean => {
-  if (delivery.type !== "delivery") return false;
-  if (!delivery.booking_id) return false;
-  if (!linkedBooking) return false;
-  if (!forklift) return false;
-  return true;
-};

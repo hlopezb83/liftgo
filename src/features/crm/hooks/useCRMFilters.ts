@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { Prospect } from "@/hooks/useProspects";
+import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 export type ValueRange = "all" | "lt100k" | "100k-500k" | "gt500k";
 export type AgeRange = "all" | "week" | "month" | "stale";

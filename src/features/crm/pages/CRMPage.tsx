@@ -1,12 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import { type DropResult } from "@hello-pangea/dnd";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PageTransition } from "@/components/PageTransition";
-import { ProspectFormDialog } from "@/features/crm/components/ProspectFormDialog";
-import { ProspectDetailSheet } from "@/features/crm/components/ProspectDetailSheet";
-import { KanbanColumn } from "@/features/crm/components/KanbanColumn";
+import { CRMPageDialogs } from "@/features/crm/components/CRMPageDialogs";
+import { CRMKanbanGrid } from "@/features/crm/components/CRMKanbanGrid";
 import { CRMToolbar } from "@/features/crm/components/CRMToolbar";
-import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
+import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/features/crm/hooks/useProspects";
 import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useProspectGuard } from "@/features/crm/hooks/useProspectGuard";
 import { useCRMFilters } from "@/features/crm/hooks/useCRMFilters";
@@ -86,39 +85,6 @@ export default function CRMPage() {
     }
   }, [updateProspect, prospects, assertCanClose, dialogs]);
 
-  const renderKanban = () => {
-    if (isLoading) {
-      return (
-        <div className="flex gap-4">
-          {ACTIVE_STAGES.map((s) => (
-            <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
-          ))}
-        </div>
-      );
-    }
-    return (
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-3 h-full min-w-max">
-          {stagesData.map((stage) => (
-            <KanbanColumn
-              key={stage.key}
-              stageKey={stage.key}
-              label={stage.label}
-              color={stage.color}
-              items={stage.items}
-              total={stage.total}
-              pipelineTotal={pipelineTotal}
-              density={density}
-              quoteMap={quoteMap}
-              onAdd={() => openCreate(stage.key)}
-              onCardClick={dialogs.setDetailProspect}
-            />
-          ))}
-        </div>
-      </DragDropContext>
-    );
-  };
-
   return (
     <TooltipProvider delayDuration={300}>
       <PageTransition>
@@ -140,41 +106,29 @@ export default function CRMPage() {
           <div className="flex-1 relative">
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
             <div className="h-full overflow-x-auto p-4 scroll-smooth">
-              {renderKanban()}
+              <CRMKanbanGrid
+                isLoading={isLoading}
+                stagesData={stagesData}
+                pipelineTotal={pipelineTotal}
+                density={density}
+                quoteMap={quoteMap}
+                onDragEnd={onDragEnd}
+                onAdd={openCreate}
+                onCardClick={dialogs.setDetailProspect}
+              />
             </div>
           </div>
         </div>
 
-        <ProspectDetailSheet
-          prospect={dialogs.detailProspect}
-          open={!!dialogs.detailProspect}
-          onOpenChange={(open) => { if (!open) dialogs.setDetailProspect(null); }}
-          onEdit={(p) => {
-            dialogs.setDetailProspect(null);
-            openEdit(p);
-          }}
-          quoteNumber={dialogs.detailProspect?.quote_id ? quoteMap.get(dialogs.detailProspect.quote_id) : undefined}
-        />
-
-        <ProspectFormDialog
-          open={dialogs.dialogOpen}
-          onOpenChange={(open) => {
-            dialogs.setDialogOpen(open);
-            if (!open) dialogs.setOverrideStage(undefined);
-          }}
-          prospect={dialogs.editingProspect}
-          defaultStage={dialogs.defaultStage}
-          overrideStage={dialogs.overrideStage}
+        <CRMPageDialogs
+          dialogs={dialogs}
+          quoteMap={quoteMap}
           canCloseDeal={canCloseDeal}
-          onSave={(data) => {
-            if (data.stage === "cerrado_ganado" && !assertCanClose("save")) return;
-            if (dialogs.editingProspect) {
-              updateProspect.mutate({ id: dialogs.editingProspect.id, ...data });
-            } else {
-              createProspect.mutate(data);
-            }
-          }}
-          onDelete={dialogs.editingProspect ? (() => { const target = dialogs.editingProspect; if (target) deleteProspect.mutate(target.id); }) : undefined}
+          assertCanClose={assertCanClose}
+          openEdit={openEdit}
+          onCreate={(data) => createProspect.mutate(data)}
+          onUpdate={(id, data) => updateProspect.mutate({ id, ...data })}
+          onDelete={(id) => deleteProspect.mutate(id)}
         />
       </PageTransition>
     </TooltipProvider>
