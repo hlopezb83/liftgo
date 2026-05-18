@@ -7,7 +7,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import MainLayout from "@/layouts/MainLayout";
 
 
-const PortalLogin = lazy(() => import("./pages/portal/PortalLogin"));
+const PortalLogin = lazy(() => import("@/features/portal/pages/PortalLogin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const App = () => (
