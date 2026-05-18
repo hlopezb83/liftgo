@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import { type DropResult } from "@hello-pangea/dnd";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PageTransition } from "@/components/PageTransition";
 import { ProspectFormDialog } from "@/features/crm/components/ProspectFormDialog";
 import { ProspectDetailSheet } from "@/features/crm/components/ProspectDetailSheet";
-import { KanbanColumn } from "@/features/crm/components/KanbanColumn";
+import { CRMKanbanGrid } from "@/features/crm/components/CRMKanbanGrid";
 import { CRMToolbar } from "@/features/crm/components/CRMToolbar";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/features/crm/hooks/useProspects";
 import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
