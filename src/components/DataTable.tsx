@@ -1,81 +1,24 @@
-import { ReactNode, useMemo, useState, useEffect, useRef, memo } from "react";
+import { useMemo, useState, useEffect, useRef, memo } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  flexRender,
   type ColumnDef,
   type SortingState,
   type SortingFn,
-  type Row,
   type RowSelectionState,
 } from "@tanstack/react-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { SortableTableHead } from "@/components/SortableTableHead";
+import { Table } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyRow } from "@/components/EmptyRow";
 import { MobileCardList } from "@/components/MobileCardList";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
+import { liftgoSortingFn } from "./dataTable/sorting";
+import { DataTableHeader } from "./dataTable/DataTableHeader";
+import { DataTableBody } from "./dataTable/DataTableBody";
+import type { DataTableProps } from "./dataTable/types";
 
-export type ColumnAlign = "left" | "right" | "center";
-
-export interface DataTableColumn<T> {
-  key: string;
-  label: ReactNode;
-  sortable?: boolean;
-  accessor?: (item: T) => unknown;
-  render: (item: T, index: number) => ReactNode;
-  align?: ColumnAlign;
-  className?: string;
-  headClassName?: string;
-  hideOnMobile?: boolean;
-}
-
-export interface DataTableSelectionContext<T> {
-  selectedIds: string[];
-  selectedRows: T[];
-  clearSelection: () => void;
-}
-
-export interface DataTableProps<T> {
-  columns: DataTableColumn<T>[];
-  data: T[] | undefined;
-  isLoading?: boolean;
-  keyExtractor: (item: T, index: number) => string;
-  emptyMessage?: string;
-  onRowClick?: (item: T) => void;
-  rowClassName?: (item: T) => string | undefined;
-  mobileCardRender?: (item: T) => ReactNode;
-  defaultSortKey?: string;
-  defaultSortDirection?: "asc" | "desc";
-  footer?: ReactNode;
-  className?: string;
-  // --- Selección múltiple (opt-in) ---
-  enableRowSelection?: boolean;
-  isRowSelectable?: (item: T) => boolean;
-  onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
-  selectionToolbar?: (ctx: DataTableSelectionContext<T>) => ReactNode;
-}
-
-const alignClass: Record<ColumnAlign, string> = {
-  left: "text-left",
-  right: "text-right",
-  center: "text-center",
-};
-
-// Espejo del comparador anterior de useSort: nulls al final, números nativos,
-// strings con localeCompare insensible a acentos y numeric:true.
-const liftgoSortingFn: SortingFn<unknown> = (rowA: Row<unknown>, rowB: Row<unknown>, columnId: string) => {
-  const a = rowA.getValue(columnId);
-  const b = rowB.getValue(columnId);
-  if (a == null && b == null) return 0;
-  if (a == null) return 1;
-  if (b == null) return -1;
-  if (typeof a === "number" && typeof b === "number") return a - b;
-  return String(a).localeCompare(String(b), undefined, { sensitivity: "base", numeric: true });
-};
+export type { DataTableColumn, DataTableProps, DataTableSelectionContext } from "./dataTable/types";
+export type { ColumnAlign } from "./dataTable/sorting";
 
 function DataTableInner<T>({
   columns,
@@ -214,84 +157,23 @@ function DataTableInner<T>({
     <div className="space-y-2">
       {toolbar}
       <Table className={className}>
-        <TableHeader>
-          <TableRow>
-            {showSelection && (
-              <TableHead className="w-10 px-3">
-                <Checkbox
-                  checked={headerCheckedState}
-                  onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
-                  aria-label="Seleccionar todas las filas"
-                />
-              </TableHead>
-            )}
-            {columns.map((col) =>
-              col.sortable ? (
-                <SortableTableHead
-                  key={col.key}
-                  sortKey={col.key}
-                  currentSort={sortKey}
-                  currentDirection={sortDirection}
-                  onSort={toggleSort}
-                  className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.headClassName)}
-                >
-                  {col.label}
-                </SortableTableHead>
-              ) : (
-                <TableHead
-                  key={col.key}
-                  className={cn(alignClass[col.align ?? "left"], col.hideOnMobile && "hidden md:table-cell", col.headClassName)}
-                >
-                  {col.label}
-                </TableHead>
-              ),
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedRows.length === 0 ? (
-            <EmptyRow colSpan={columns.length + (showSelection ? 1 : 0)} message={emptyMessage} />
-          ) : (
-            sortedRows.map((row) => {
-              const item = row.original;
-              const isSelected = row.getIsSelected();
-              return (
-                <TableRow
-                  key={row.id}
-                  data-state={isSelected ? "selected" : undefined}
-                  className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
-                  onClick={onRowClick ? () => onRowClick(item) : undefined}
-                >
-                  {showSelection && (
-                    <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        checked={isSelected}
-                        disabled={!row.getCanSelect()}
-                        onCheckedChange={(value) => row.toggleSelected(!!value)}
-                        aria-label="Seleccionar fila"
-                      />
-                    </TableCell>
-                  )}
-                  {row.getVisibleCells().map((cell) => {
-                    const col = columns.find((c) => c.key === cell.column.id);
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          alignClass[col?.align ?? "left"],
-                          col?.hideOnMobile && "hidden md:table-cell",
-                          col?.className,
-                        )}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
+        <DataTableHeader
+          columns={columns}
+          sortKey={sortKey}
+          sortDirection={sortDirection}
+          onToggleSort={toggleSort}
+          showSelection={showSelection}
+          headerCheckedState={headerCheckedState}
+          onToggleAll={(value) => table.toggleAllRowsSelected(value)}
+        />
+        <DataTableBody
+          rows={sortedRows}
+          columns={columns}
+          emptyMessage={emptyMessage}
+          showSelection={showSelection}
+          onRowClick={onRowClick}
+          rowClassName={rowClassName}
+        />
         {footer}
       </Table>
     </div>

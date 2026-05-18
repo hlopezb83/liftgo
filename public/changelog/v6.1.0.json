@@ -1,0 +1,13 @@
+{
+  "description": "Segunda ola del plan de auditoría: bajar complejidad ciclomática y tamaños de archivo dividiendo hooks, componentes y secciones de PDF en piezas con una sola responsabilidad. Sin cambios de comportamiento ni de UI; sólo se mueven límites de módulos.",
+  "changes": [
+    "Quotes: extraído useQuoteBookingCreator (creación atómica de bookings + tarifas) desde useQuoteConversionActions, que queda como orquestador del flujo UI",
+    "Quotes: extraídos buildSaleItems, buildRentalItems y validateQuoteForm de useQuoteFormLogic a quoteForm/quoteFormHelpers.ts",
+    "DataTable: dividido en DataTableHeader, DataTableBody, sorting y types bajo src/components/dataTable/; el archivo público re-exporta los tipos",
+    "Users: useUserManagement ahora es un façade que re-exporta users/useUsersQuery, users/useUserMutations y lib/PasswordValidationError",
+    "Help: movido HelpPage a src/features/help/ y dividido en HelpPageHeader, ManualStateCards, ManualSections y lib/markdown",
+    "Portal: movidas las 6 páginas de src/pages/portal/ → src/features/portal/pages/; PortalDashboard extrae PortalStatCard y PortalSections",
+    "Auth: extraído AuthForm a src/pages/auth/AuthForm con getAuthSubmitLabel y tipo AuthMode compartido",
+    "PDF Quote: drawPremiumTable dividido en computeColumns, drawTableHeader, drawDescription y drawRow para bajar la complejidad ciclomática"
+  ]
+}

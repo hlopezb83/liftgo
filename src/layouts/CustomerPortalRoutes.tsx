@@ -1,10 +1,10 @@
 import { Routes, Route } from "react-router-dom";
 import CustomerPortalLayout from "@/layouts/CustomerPortalLayout";
-import PortalDashboard from "@/pages/portal/PortalDashboard";
-import PortalRentals from "@/pages/portal/PortalRentals";
-import PortalInvoices from "@/pages/portal/PortalInvoices";
-import PortalInvoiceDetail from "@/pages/portal/PortalInvoiceDetail";
-import PortalContracts from "@/pages/portal/PortalContracts";
+import PortalDashboard from "@/features/portal/pages/PortalDashboard";
+import PortalRentals from "@/features/portal/pages/PortalRentals";
+import PortalInvoices from "@/features/portal/pages/PortalInvoices";
+import PortalInvoiceDetail from "@/features/portal/pages/PortalInvoiceDetail";
+import PortalContracts from "@/features/portal/pages/PortalContracts";
 import MyReportsPage from "@/features/feedback/pages/MyReportsPage";
 import LeaderboardPage from "@/features/feedback/pages/LeaderboardPage";
 
