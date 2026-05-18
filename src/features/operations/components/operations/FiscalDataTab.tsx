@@ -2,9 +2,11 @@ import { useEffect } from "react";
 import {
   useCompanySettings,
   useUpsertCompanySettings,
+} from "@/features/company-settings/hooks/useCompanySettings";
+import {
   useBillingSecrets,
   useUpsertBillingSecrets,
-} from "@/features/company-settings/hooks/useCompanySettings";
+} from "@/features/company-settings/hooks/useBillingSecrets";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFormState } from "@/hooks/useFormState";
 import { toast } from "sonner";
