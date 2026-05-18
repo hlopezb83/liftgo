@@ -22,6 +22,22 @@ const INVOICE_STATUS_COLORS: Record<string, string> = {
   paid: "hsl(var(--status-available))",
 };
 
+function bucketFor(days: number): "0-30" | "31-60" | "61-90" | "90+" {
+  if (days <= 30) return "0-30";
+  if (days <= 60) return "31-60";
+  if (days <= 90) return "61-90";
+  return "90+";
+}
+
+function computeAgingBuckets(overdueInvoices: Array<{ due_date: string; total: number | string }>) {
+  const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+  for (const inv of overdueInvoices) {
+    const days = differenceInDays(nowMty(), parseISO(inv.due_date));
+    buckets[bucketFor(days)] += Number(inv.total);
+  }
+  return Object.entries(buckets).map(([range, total]) => ({ range, total })).filter((b) => b.total > 0);
+}
+
 /**
  * Centraliza todas las derivaciones del dashboard (counts, agings, charts)
  * para que la página sea declarativa y se reduzca su complejidad ciclomática.
