@@ -107,7 +107,16 @@ export default function CRMPage() {
           <div className="flex-1 relative">
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10" />
             <div className="h-full overflow-x-auto p-4 scroll-smooth">
-              {renderKanban()}
+              <CRMKanbanGrid
+                isLoading={isLoading}
+                stagesData={stagesData}
+                pipelineTotal={pipelineTotal}
+                density={density}
+                quoteMap={quoteMap}
+                onDragEnd={onDragEnd}
+                onAdd={openCreate}
+                onCardClick={dialogs.setDetailProspect}
+              />
             </div>
           </div>
         </div>
