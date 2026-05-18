@@ -7,6 +7,7 @@ export interface FeedbackContext {
   user_agent: string;
   app_version: string | null;
   captured_at: string;
+  [key: string]: unknown;
 }
 
 /**

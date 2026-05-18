@@ -1,12 +1,7 @@
 import { z } from "zod";
-import { FEEDBACK_INTERNAL_MODULES, FEEDBACK_PORTAL_MODULES } from "./constants";
-
-const allModules = [...FEEDBACK_INTERNAL_MODULES, ...FEEDBACK_PORTAL_MODULES] as const;
 
 export const feedbackFormSchema = z.object({
   type: z.enum(["bug", "improvement"]),
-  module: z.enum(allModules as unknown as [string, ...string[]]),
-  severity: z.enum(["critical", "high", "medium", "low"]).optional(),
   title: z
     .string()
     .trim()

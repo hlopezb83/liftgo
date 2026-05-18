@@ -4,6 +4,7 @@
  */
 
 export const FEEDBACK_INTERNAL_MODULES = [
+  "Sin clasificar",
   "Dashboard",
   "Calendario",
   "CRM",
@@ -32,6 +33,7 @@ export const FEEDBACK_INTERNAL_MODULES = [
 ] as const;
 
 export const FEEDBACK_PORTAL_MODULES = [
+  "Sin clasificar",
   "Panel del Cliente",
   "Mis Rentas",
   "Mis Facturas",

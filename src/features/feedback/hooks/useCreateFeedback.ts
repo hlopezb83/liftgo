@@ -5,10 +5,15 @@ import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { FeedbackFormValues } from "@/features/feedback/lib/schema";
 import type { FeedbackContext } from "./useFeedbackContext";
+import type { SelectedElementInfo } from "@/features/feedback/lib/cssPath";
+
+interface ExtendedContext extends FeedbackContext {
+  selected_element: SelectedElementInfo | null;
+}
 
 interface CreateFeedbackInput {
   values: FeedbackFormValues;
-  context: FeedbackContext;
+  context: ExtendedContext;
   reporterType: "internal" | "customer";
   reporterName: string | null;
   screenshot: File | null;
@@ -37,13 +42,14 @@ export function useCreateFeedback() {
         screenshotUrl = await uploadScreenshot(user.id, input.screenshot);
       }
 
+      // module y severity se omiten: el AI los asigna del lado admin.
+      // module usa default 'Sin clasificar' de la columna.
       const payload: TablesInsert<"feedback_reports"> = {
         reporter_id: user.id,
         reporter_type: input.reporterType,
         reporter_name: input.reporterName,
         type: input.values.type,
-        module: input.values.module,
-        severity: input.values.type === "bug" ? input.values.severity ?? "medium" : null,
+        module: "Sin clasificar",
         title: input.values.title,
         description: input.values.description,
         screenshot_url: screenshotUrl,

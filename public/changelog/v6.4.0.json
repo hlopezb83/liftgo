@@ -1,0 +1,19 @@
+{
+  "version": "6.4.0",
+  "date": "2026-05-18",
+  "type": "minor",
+  "title": "Feedback: picker de elemento + clasificación AI de severidad y módulo",
+  "category": "feature",
+  "description": "El modal de Reportar se simplifica para el usuario y aumenta su valor para el equipo. Ahora cualquier reporte incluye URL automática, screenshot completo de la pantalla, y opcionalmente permite señalar con un picker visual el elemento exacto del problema. El usuario ya no elige módulo ni severidad: un AI los clasifica automáticamente cuando el admin abre el reporte en el Kanban.",
+  "changes": [
+    "Botón 'Señalar elemento' con overlay full-screen estilo inspector (hover highlight + click)",
+    "Captura automática de screenshot con html2canvas, resaltando el elemento seleccionado con marco rojo",
+    "URL actual visible como chip read-only en el formulario",
+    "Eliminados los dropdowns de Módulo y Severidad del lado del usuario",
+    "Nueva edge function classify-feedback-report con Lovable AI (Gemini 2.5 Flash)",
+    "Auto-clasificación al abrir un reporte sin clasificar en el panel admin",
+    "Badge 'AI' + razonamiento del modelo visible en el detalle del reporte",
+    "Botón 'Reclasificar' para forzar nueva clasificación",
+    "Módulo default 'Sin clasificar' hasta que el AI lo procese"
+  ]
+}
