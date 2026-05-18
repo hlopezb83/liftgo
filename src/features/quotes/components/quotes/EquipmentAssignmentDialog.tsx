@@ -27,7 +27,20 @@ interface AssignmentSlot {
   monthlyRate: number;
 }
 
-interface EquipmentAssignmentDialogProps {
+function buildAssignmentSlots(rentalMeta: RentalLineMeta[], models: EquipmentModel[]): AssignmentSlot[] {
+  const result: AssignmentSlot[] = [];
+  for (const line of rentalMeta) {
+    const model = models.find((m) => m.id === line.modelId);
+    const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
+    const daily = line.dailyRate ?? model?.default_daily_rate ?? 0;
+    const weekly = line.weeklyRate ?? model?.default_weekly_rate ?? 0;
+    const monthly = line.monthlyRate ?? model?.default_monthly_rate ?? 0;
+    for (let i = 0; i < line.quantity; i++) {
+      result.push({ modelId: line.modelId, modelName, forkliftId: "", dailyRate: daily, weeklyRate: weekly, monthlyRate: monthly });
+    }
+  }
+  return result;
+}
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rentalMeta: RentalLineMeta[];
