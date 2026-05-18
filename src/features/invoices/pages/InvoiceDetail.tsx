@@ -51,12 +51,14 @@ export default function InvoiceDetail() {
   const actions = useInvoiceDetailActions(invoice, refetch);
 
   if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
-  if (!invoice) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
+  if (!invoice || !id) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
 
   const lineItems = parseLineItems<LineItem>(invoice.line_items);
   const cfdiStatus = invoice.cfdi_status || "pending";
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
   const balance = Number(invoice.total) - totalPaid;
+  const showCfdiError = Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped";
+  const showCollectionNotes = invoice.status !== "paid" && invoice.status !== "draft";
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
