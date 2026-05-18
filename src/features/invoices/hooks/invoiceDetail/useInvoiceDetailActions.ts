@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useUpdateInvoice, useDeleteInvoice } from "@/hooks/useInvoices";
-import { useUpdateBooking } from "@/hooks/useBookings";
-import { useStampCfdi } from "@/hooks/useStampCfdi";
+import { useUpdateInvoice, useDeleteInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useUpdateBooking } from "@/features/bookings/hooks/useBookings";
+import { useStampCfdi } from "@/features/invoices/hooks/invoices/useStampCfdi";
 import { nowMty } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 

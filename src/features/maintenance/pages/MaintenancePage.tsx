@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useDialogState } from "@/hooks/useDialogState";
-import { useForkliftMap } from "@/hooks/useForkliftMap";
-import { useMaintenanceLogs, type MaintenanceLog } from "@/hooks/useMaintenanceLogs";
-import { useGenerateRecurringMaintenance } from "@/hooks/useGenerateRecurringMaintenance";
+import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
+import { useMaintenanceLogs, type MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useGenerateRecurringMaintenance } from "@/features/maintenance/hooks/maintenance/useGenerateRecurringMaintenance";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -17,7 +17,7 @@ import { MaintenanceFormDialog } from "@/features/maintenance/components/mainten
 import { MaintenanceFiltersBar } from "@/features/maintenance/components/maintenance/MaintenanceFiltersBar";
 import { MaintenanceKanban } from "@/features/maintenance/components/maintenance/MaintenanceKanban";
 import { MaintenanceTableRow, MaintenanceMobileCard } from "@/features/maintenance/components/maintenance/MaintenanceRow";
-import { useActiveMechanics } from "@/hooks/useMechanics";
+import { useActiveMechanics } from "@/features/maintenance/hooks/maintenance/useMechanics";
 import { useMaintenanceForm } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";

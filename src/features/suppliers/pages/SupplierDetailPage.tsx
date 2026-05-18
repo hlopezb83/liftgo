@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
-import { useOperatingExpenses } from "@/hooks/useOperatingExpenses";
-import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
-import { useForkliftMap } from "@/hooks/useForkliftMap";
+import { useOperatingExpenses } from "@/features/expenses/hooks/useOperatingExpenses";
+import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { NotesCard } from "@/components/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

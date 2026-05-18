@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
-import type { MaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 
 interface Props {
   log: MaintenanceLog & { forklift_name: string };

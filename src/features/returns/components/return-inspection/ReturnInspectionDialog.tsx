@@ -10,8 +10,8 @@ import { FormActions } from "@/components/FormActions";
 import { DragDropImageUploader } from "@/components/DragDropImageUploader";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
-import type { Booking } from "@/hooks/useBookings";
-import type { Forklift } from "@/hooks/useForklifts";
+import type { Booking } from "@/features/bookings/hooks/useBookings";
+import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 
 export interface ReturnInspectionFormState {
   bookingId: string;

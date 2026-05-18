@@ -7,11 +7,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from "recharts";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
 import { isWithinInterval } from "date-fns";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useBookings } from "@/hooks/useBookings";
-import { useInvoices } from "@/hooks/useInvoices";
-import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
-import { useDamageRecords } from "@/hooks/useDamageRecords";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useBookings } from "@/features/bookings/hooks/useBookings";
+import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useDamageRecords } from "@/features/damage/hooks/useDamageRecords";
 import { DataTable } from "@/components/DataTable";
 import { cn } from "@/lib/utils";
 

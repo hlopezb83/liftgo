@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useForklift, useDeleteForklift, useStatusLogs } from "@/hooks/useForklifts";
-import { useBookings } from "@/hooks/useBookings";
-import { useMaintenanceLogs } from "@/hooks/useMaintenanceLogs";
-import { useForkliftFinancials } from "@/hooks/useForkliftFinancials";
-import { useForkliftLocation } from "@/hooks/useForkliftLocation";
+import { useForklift, useDeleteForklift, useStatusLogs } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useBookings } from "@/features/bookings/hooks/useBookings";
+import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useForkliftFinancials } from "@/features/fleet/hooks/forklifts/useForkliftFinancials";
+import { useForkliftLocation } from "@/features/fleet/hooks/forklifts/useForkliftLocation";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";

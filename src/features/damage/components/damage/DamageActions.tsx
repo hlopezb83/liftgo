@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useUpdateDamageRecord } from "@/features/damage/hooks/useDamageRecords";
 import type { DamageRecordWithJoins } from "@/types/rental";
-import { useCreateMaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import { useCreateMaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { Wrench, Receipt } from "lucide-react";
 import { toast } from "sonner";
 

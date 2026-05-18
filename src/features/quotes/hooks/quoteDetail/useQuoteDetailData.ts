@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { differenceInDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { useQuote } from "@/hooks/useQuotes";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useEquipmentModels } from "@/hooks/useEquipmentModels";
+import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useEquipmentModels } from "@/features/fleet/hooks/useEquipmentModels";
 import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/domain/invoiceUtils";
 import { parseLineItems, parseRentalMeta } from "@/lib/lineItems";

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import {
   useUpdateBooking,
   useDeleteBooking,
@@ -10,7 +10,7 @@ import {
   type BookingWithForklift,
 } from "@/features/bookings/hooks/useBookings";
 import { generateLineItems, computeTotals } from "@/lib/domain/invoiceUtils";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 
 export const STATUS_LABELS: Record<string, string> = {
   confirmed: "Confirmada",

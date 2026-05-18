@@ -3,7 +3,7 @@ import { History, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuditLogs, type AuditLog } from "@/hooks/useAuditLogs";
+import { useAuditLogs, type AuditLog } from "@/features/audit/hooks/useAuditLogs";
 import { AuditLogDetailDialog } from "@/components/auditTrail/AuditLogDetailDialog";
 import {
   translateAction,

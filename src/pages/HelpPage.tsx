@@ -10,7 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserManual } from "@/hooks/useUserManual";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 
 function getManualButtonLabel(isGenerating: boolean, hasManual: boolean): string {
   if (isGenerating) return "Generando…";

@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useForklift } from "@/hooks/useForklifts";
+import { useForklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useForkliftFormState } from "./forkliftForm/useForkliftFormState";
 import { useForkliftPrefill } from "./forkliftForm/useForkliftPrefill";
 import { useForkliftFormSubmit } from "./forkliftForm/useForkliftFormSubmit";

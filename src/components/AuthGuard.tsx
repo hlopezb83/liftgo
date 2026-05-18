@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 import AuthPage from "@/pages/AuthPage";
 import { CustomerPortalRoutes } from "@/layouts/CustomerPortalRoutes";
 

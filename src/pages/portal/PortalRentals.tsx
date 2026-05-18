@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { usePortalBookings } from "@/hooks/useCustomerPortal";
+import { usePortalBookings } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 import { DataTable, type DataTableColumn } from "@/components/DataTable";

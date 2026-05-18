@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
-import { useInvoicePdfDownload } from "@/hooks/useInvoicePdfDownload";
+import { useInvoicePdfDownload } from "@/features/invoices/hooks/invoices/useInvoicePdfDownload";
 
 interface InvoicePDFButtonProps {
   invoiceId: string;

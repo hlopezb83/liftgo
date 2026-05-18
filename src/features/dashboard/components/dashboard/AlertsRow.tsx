@@ -1,7 +1,7 @@
 import { AlertTriangle, Wrench, CheckCircle, ClipboardList, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useUpdateInvoice } from "@/hooks/useInvoices";
-import { useUpdateBooking } from "@/hooks/useBookings";
+import { useUpdateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useUpdateBooking } from "@/features/bookings/hooks/useBookings";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { toast } from "sonner";
 import { formatDateDisplay, nowMty } from "@/lib/utils";

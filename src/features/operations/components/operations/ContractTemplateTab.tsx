@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/hooks/useContractTemplates";
+import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts/hooks/useContractTemplates";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

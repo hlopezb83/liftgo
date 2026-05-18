@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCollectionNotes, useCreateCollectionNote } from "@/hooks/useCollectionNotes";
+import { useCollectionNotes, useCreateCollectionNote } from "@/features/invoices/hooks/invoices/useCollectionNotes";
 import { PhoneCall, Plus, Calendar } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils";
 import { format } from "date-fns";

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { usePortalContracts } from "@/hooks/useCustomerPortal";
+import { usePortalContracts } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable, type DataTableColumn } from "@/components/DataTable";
 

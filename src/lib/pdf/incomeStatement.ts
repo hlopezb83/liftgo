@@ -1,6 +1,6 @@
 import type { jsPDF } from "jspdf";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
-import type { StatementRow, ComparisonRow, YearTotals, MonthData } from "@/hooks/useIncomeStatementData";
+import type { StatementRow, ComparisonRow, YearTotals, MonthData } from "@/features/reports/hooks/useIncomeStatementData";
 import { MARGIN } from "@/lib/pdf/quote/constants";
 import { drawAccentBar } from "@/lib/pdf/quote/header";
 import {

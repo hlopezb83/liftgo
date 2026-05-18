@@ -1,8 +1,8 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useContract, useCreateContract, useUpdateContract } from "@/features/contracts/hooks/useContracts";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useContractFormState } from "./contractForm/useContractFormState";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
 import { buildContractPayload } from "@/lib/forms/contractPayload";

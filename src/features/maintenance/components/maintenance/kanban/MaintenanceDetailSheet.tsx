@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
-import type { MaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { MaintenancePartsSection } from "../MaintenancePartsSection";
 
 interface Props {

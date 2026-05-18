@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
-import { useContracts } from "@/hooks/useContracts";
-import { useDeliveries } from "@/hooks/useDeliveries";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useMaintenancePolicies } from "@/features/maintenance/hooks/maintenance/useMaintenancePolicies";
+import { useContracts } from "@/features/contracts/hooks/useContracts";
+import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 
 import { StatusBadge } from "@/components/StatusBadge";

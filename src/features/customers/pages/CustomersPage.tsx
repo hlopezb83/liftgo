@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
-import type { Customer } from "@/hooks/useCustomers";
+import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/features/customers/hooks/customers/useCustomers";
+import type { Customer } from "@/features/customers/hooks/customers/useCustomers";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";

@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Eye, EyeOff } from "lucide-react";
-import { useCurrentVersion } from "@/hooks/useChangelog";
-import { usePublicBranding } from "@/hooks/usePublicBranding";
+import { useCurrentVersion } from "@/features/changelog/hooks/useChangelog";
+import { usePublicBranding } from "@/features/company-settings/hooks/usePublicBranding";
 
 type Mode = "sign-in" | "forgot" | "reset";
 

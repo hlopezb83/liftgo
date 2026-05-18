@@ -7,7 +7,7 @@ import { SidebarFooter } from "@/components/ui/sidebar";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
 import { ThemeToggle } from "./ThemeToggle";
 import { ROLE_LABELS } from "@/lib/constants";
-import type { AppRole } from "@/hooks/useUserRole";
+import type { AppRole } from "@/features/users/hooks/useUserRole";
 
 interface SidebarUserFooterProps {
   email?: string | null;

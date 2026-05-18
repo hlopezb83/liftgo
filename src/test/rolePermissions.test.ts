@@ -10,7 +10,7 @@ async function waitUntil(predicate: () => boolean, timeout = 3000) {
 }
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
-import { getAccessLevel, type PermissionsMap } from "@/hooks/useRolePermissions";
+import { getAccessLevel, type PermissionsMap } from "@/features/users/hooks/useRolePermissions";
 
 // ---- Supabase + Auth mocks ----
 const selectMock = vi.fn();
@@ -29,7 +29,7 @@ vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => ({ user: { id: "user-non-admin" } }),
 }));
 
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

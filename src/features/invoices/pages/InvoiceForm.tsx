@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import type { BookingWithForklift } from "@/hooks/useBookings";
+import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import { useInvoiceFormLogic } from "@/features/invoices/hooks/useInvoiceFormLogic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { CfdiFieldsCard } from "@/features/invoices/components/invoice-form/Cfdi
 import { EditableLineItemsTable } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
-import { useNextInvoiceNumber } from "@/hooks/useNextInvoiceNumber";
+import { useNextInvoiceNumber } from "@/features/invoices/hooks/invoices/useNextInvoiceNumber";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();

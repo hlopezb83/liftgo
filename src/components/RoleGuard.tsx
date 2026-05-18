@@ -1,5 +1,5 @@
-import { useUserRole } from "@/hooks/useUserRole";
-import { useRolePermissions, getAccessLevel, type AccessLevel } from "@/hooks/useRolePermissions";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useRolePermissions, getAccessLevel, type AccessLevel } from "@/features/users/hooks/useRolePermissions";
 import { NoAccess } from "@/components/NoAccess";
 
 interface RoleGuardProps {

@@ -1,5 +1,5 @@
-import type { ExpenseCategory } from "@/hooks/useOperatingExpenses";
-import { EXPENSE_CATEGORY_LABELS } from "@/hooks/useOperatingExpenses";
+import type { ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
+import { EXPENSE_CATEGORY_LABELS } from "@/features/expenses/hooks/useOperatingExpenses";
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
 export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];

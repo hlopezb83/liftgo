@@ -4,7 +4,7 @@ import {
   useUpsertCompanySettings,
   useBillingSecrets,
   useUpsertBillingSecrets,
-} from "@/hooks/useCompanySettings";
+} from "@/features/company-settings/hooks/useCompanySettings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFormState } from "@/hooks/useFormState";
 import { toast } from "sonner";

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useForkliftMap } from "@/hooks/useForkliftMap";
+import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";

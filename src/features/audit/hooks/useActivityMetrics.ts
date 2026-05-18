@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { AppRole } from "@/hooks/useUserRole";
+import type { AppRole } from "@/features/users/hooks/useUserRole";
 
 export interface ActivityRange {
   from: Date;

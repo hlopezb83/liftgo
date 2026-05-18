@@ -1,4 +1,4 @@
-import type { ContractClause, ChecklistSection } from "@/hooks/useContractTemplates";
+import type { ContractClause, ChecklistSection } from "@/features/contracts/hooks/useContractTemplates";
 
 export const DEFAULT_INTRO = 'Contrato de arrendamiento que celebran por una parte {arrendador}, en lo sucesivo "EL ARRENDADOR", y por la otra parte {arrendatario}, en lo sucesivo "EL ARRENDATARIO", de conformidad con las siguientes declaraciones y cláusulas:';
 

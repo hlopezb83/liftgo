@@ -1,6 +1,6 @@
 import { formatCurrency } from "@/lib/formatCurrency";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
-import type { CustomerSummary } from "@/hooks/useCustomerSummary";
+import type { CustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
 import type { Tables } from "@/integrations/supabase/types";
 import { differenceInDays, parseISO } from "date-fns";
 import { nowMty } from "@/lib/utils";

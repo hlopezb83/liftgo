@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { X } from "lucide-react";
 import type { MemberStat } from "@/features/audit/hooks/useActivityMetrics";
-import type { AppRole } from "@/hooks/useUserRole";
+import type { AppRole } from "@/features/users/hooks/useUserRole";
 
 interface Props {
   filters: ActivityFilters;

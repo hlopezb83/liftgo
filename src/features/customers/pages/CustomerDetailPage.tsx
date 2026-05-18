@@ -13,7 +13,7 @@ import { CustomerInvoicesList } from "@/features/customers/components/customer-d
 import { CustomerDeleteDialog } from "@/features/customers/components/customer-detail/CustomerDeleteDialog";
 import { CustomerInviteDialog } from "@/features/customers/components/customer-detail/CustomerInviteDialog";
 import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
-import { useCustomerDetailPage } from "@/hooks/useCustomerDetailPage";
+import { useCustomerDetailPage } from "@/features/customers/hooks/customers/useCustomerDetailPage";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();

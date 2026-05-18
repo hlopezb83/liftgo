@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useCreateBooking } from "@/hooks/useBookings";
-import { useMaintenancePolicies } from "@/hooks/useMaintenancePolicies";
+import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
+import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
+import { useMaintenancePolicies } from "@/features/maintenance/hooks/maintenance/useMaintenancePolicies";
 import type { BookingFormData } from "@/lib/formSchemas";
 
 interface PostBookingState {

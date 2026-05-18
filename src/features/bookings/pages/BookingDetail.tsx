@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { useBooking } from "@/features/bookings/hooks/useBookings";
-import { useDeliveries } from "@/hooks/useDeliveries";
+import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import { useBookingExtensions } from "@/features/bookings/hooks/useBookingExtensions";
 import { useBookingHourometer } from "@/hooks/bookingDetail/useBookingHourometer";
 

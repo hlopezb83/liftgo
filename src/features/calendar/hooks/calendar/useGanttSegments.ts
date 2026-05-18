@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { eachDayOfInterval, parseISO, differenceInDays } from "date-fns";
-import type { BookingWithForklift } from "@/hooks/useBookings";
+import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 
 const BOOKING_COLORS = [
   "hsl(var(--gantt-1))", "hsl(var(--gantt-2))", "hsl(var(--gantt-3))", "hsl(var(--gantt-4))",

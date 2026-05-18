@@ -1,4 +1,4 @@
-import type { Forklift } from "@/hooks/useForklifts";
+import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
 
 export interface LineItem {

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { usePortalInvoices } from "@/hooks/useCustomerPortal";
+import { usePortalInvoices } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";

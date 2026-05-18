@@ -1,4 +1,4 @@
-import { useInvoices } from "@/hooks/useInvoices";
+import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";

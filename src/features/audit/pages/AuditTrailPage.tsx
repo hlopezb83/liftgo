@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "@/features/audit/hooks/useAuditLogs";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";

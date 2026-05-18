@@ -1,4 +1,4 @@
-import type { BookingWithForklift } from "@/hooks/useBookings";
+import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { useGanttSegments } from "@/features/calendar/hooks/calendar/useGanttSegments";
 import { GanttHeader } from "./GanttHeader";

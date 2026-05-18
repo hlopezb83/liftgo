@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useCreateForklift, useUpdateForklift, useForklifts } from "@/hooks/useForklifts";
+import { useCreateForklift, useUpdateForklift, useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { forkliftFormSchema, type ForkliftFormData } from "@/lib/formSchemas";
 import {
   buildForkliftPayload,

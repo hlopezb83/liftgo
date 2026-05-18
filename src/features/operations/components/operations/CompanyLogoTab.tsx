@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useCompanySettings, useUpsertCompanySettings } from "@/hooks/useCompanySettings";
+import { useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

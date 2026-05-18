@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 
-import type { BookingWithForklift } from "@/hooks/useBookings";
+import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
 
