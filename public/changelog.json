@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.3.0",
+    "date": "2026-05-18",
+    "type": "minor",
+    "title": "Refactor: extracción de helpers y sub-componentes para cumplir Power of 10",
+    "category": "refactor"
+  },
+  {
     "version": "6.2.2",
     "date": "2026-05-18",
     "type": "patch",

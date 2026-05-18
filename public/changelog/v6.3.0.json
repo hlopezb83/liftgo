@@ -1,0 +1,20 @@
+{
+  "version": "6.3.0",
+  "date": "2026-05-18",
+  "type": "minor",
+  "title": "Extracción de helpers y sub-componentes",
+  "category": "refactor",
+  "description": "Tercera oleada de auditoría arquitectónica: hooks y componentes >límite descompuestos sin cambios funcionales.",
+  "changes": [
+    "useActivityMetrics: extraídas agregaciones puras a src/features/audit/lib/activityMetricsCalculators.ts y tipos a activityMetricsTypes.ts (130 → 32 LOC)",
+    "useProspectForm: extraído sortQuotesByCompanyMatch y validateDealValue a src/features/crm/lib/prospectFormSchema.ts (127 → 100 LOC)",
+    "useInvoiceFormLogic: extraídos handlers de line items a useInvoiceLineItemHandlers (122 → 98 LOC)",
+    "MaintenancePoliciesTab: extraído MaintenancePolicyForm + maintenancePolicyFormTypes (178 → 130 LOC)",
+    "CustomersPage: extraídos CustomersActions y CustomersFilters en CustomersToolbar (165 → 145 LOC)",
+    "FeedbackFormDialog: extraído FeedbackFormFields (162 → 78 LOC)"
+  ],
+  "verification": {
+    "eslint": "0 warnings",
+    "tests": "48/48 PASS"
+  }
+}

@@ -8,26 +8,14 @@ import {
 } from "@/features/maintenance/hooks/maintenance/useMaintenancePolicies";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable } from "@/components/DataTable";
-
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-const emptyForm = {
-  forklift_id: "",
-  provider_name: "",
-  monthly_cost: "",
-  service_type: "Póliza de Mantenimiento",
-  description: "",
-};
+import { MaintenancePolicyForm } from "./MaintenancePolicyForm";
+import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
 
 export function MaintenancePoliciesTab() {
   const { data: policies, isLoading } = useMaintenancePolicies();
@@ -37,8 +25,9 @@ export function MaintenancePoliciesTab() {
   const del = useDeleteMaintenancePolicy();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
+  const [form, setForm] = useState<MaintenancePolicyFormValues>(EMPTY_POLICY_FORM);
+  const set = (key: keyof MaintenancePolicyFormValues, value: string) =>
+    setForm((p) => ({ ...p, [key]: value }));
 
   const rentedForklifts = forklifts?.filter(
     (f) => f.status === "rented" || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)
@@ -48,7 +37,7 @@ export function MaintenancePoliciesTab() {
     (f) => !existingForkliftIds.includes(f.id) || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)
   );
 
-  const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
+  const openNew = () => { setEditId(null); setForm(EMPTY_POLICY_FORM); setOpen(true); };
   const openEdit = (p: MaintenancePolicy) => {
     setEditId(p.id);
     setForm({
@@ -131,48 +120,16 @@ export function MaintenancePoliciesTab() {
         />
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>{editId ? "Editar" : "Nueva"} Póliza de Mantenimiento</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Montacargas *</Label>
-              <Select value={form.forklift_id} onValueChange={(v) => set("forklift_id", v)}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar montacargas rentado" /></SelectTrigger>
-                <SelectContent>
-                  {availableForSelect?.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Proveedor *</Label>
-              <Input value={form.provider_name} onChange={(e) => set("provider_name", e.target.value)} placeholder="Nombre del proveedor externo" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Costo Mensual ($)</Label>
-                <Input type="number" value={form.monthly_cost} onChange={(e) => set("monthly_cost", e.target.value)} placeholder="0" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Tipo de Servicio</Label>
-                <Input value={form.service_type} onChange={(e) => set("service_type", e.target.value)} placeholder="Póliza de Mantenimiento" />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Descripción</Label>
-              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={2} placeholder="Detalles de la póliza..." />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={create.isPending || update.isPending}>
-              {editId ? "Guardar" : "Crear"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <MaintenancePolicyForm
+        open={open}
+        onOpenChange={setOpen}
+        isEdit={!!editId}
+        isPending={create.isPending || update.isPending}
+        form={form}
+        availableForklifts={availableForSelect}
+        onChange={set}
+        onSave={handleSave}
+      />
     </div>
   );
 }

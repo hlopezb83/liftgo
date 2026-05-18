@@ -1,33 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
 import type { Prospect } from "@/features/crm/hooks/useProspects";
+import {
+  STAGES_REQUIRING_DEAL_VALUE,
+  sortQuotesByCompanyMatch,
+  validateDealValue,
+  type ProspectFormPayload,
+} from "@/features/crm/lib/prospectFormSchema";
 
-export const STAGE_LABELS: Record<string, string> = {
-  nuevo_prospecto: "Nuevo Prospecto",
-  contactado: "Contactado",
-  cotizacion_enviada: "Cotización Enviada",
-  negociacion: "Negociación",
-  cerrado_ganado: "Cerrado Ganado",
-  cerrado_perdido: "Cerrado Perdido",
-};
-
-export const STAGES_REQUIRING_DEAL_VALUE = [
-  "cotizacion_enviada",
-  "negociacion",
-  "cerrado_ganado",
-  "cerrado_perdido",
-];
-
-export interface ProspectFormPayload {
-  company_name: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  deal_value: number;
-  notes: string;
-  stage: string;
-  quote_id: string | null;
-}
+export { STAGE_LABELS, STAGES_REQUIRING_DEAL_VALUE } from "@/features/crm/lib/prospectFormSchema";
+export type { ProspectFormPayload } from "@/features/crm/lib/prospectFormSchema";
 
 interface UseProspectFormParams {
   prospect: Prospect | null | undefined;
@@ -50,15 +32,10 @@ export function useProspectForm({
 
   const { data: allQuotes = [] } = useQuotes();
 
-  const matchingQuotes = useMemo(() => {
-    if (!company.trim()) return allQuotes;
-    const lowerCompany = company.toLowerCase();
-    const matches = (name: string | null | undefined): boolean => {
-      const n = name?.toLowerCase() ?? "";
-      return n.includes(lowerCompany) || lowerCompany.includes(n);
-    };
-    return [...allQuotes].sort((a, b) => Number(matches(b.customer_name)) - Number(matches(a.customer_name)));
-  }, [allQuotes, company]);
+  const matchingQuotes = useMemo(
+    () => sortQuotesByCompanyMatch(allQuotes, company),
+    [allQuotes, company],
+  );
 
   const effectiveStage = overrideStage ?? prospect?.stage ?? defaultStage;
   const requiresDealValue = STAGES_REQUIRING_DEAL_VALUE.includes(effectiveStage);
@@ -92,16 +69,16 @@ export function useProspectForm({
   };
 
   const buildPayload = (): ProspectFormPayload | null => {
-    const parsedValue = parseFloat(dealValue) || 0;
-    if (requiresDealValue && parsedValue <= 0) {
-      setDealValueError("El valor del trato debe ser mayor a $0 para esta etapa");
+    const { value, error } = validateDealValue(dealValue, requiresDealValue);
+    if (error) {
+      setDealValueError(error);
       return null;
     }
     return {
       company_name: company,
       contact_person: contact,
       email, phone,
-      deal_value: parsedValue,
+      deal_value: value,
       notes,
       stage: effectiveStage,
       quote_id: quoteId,

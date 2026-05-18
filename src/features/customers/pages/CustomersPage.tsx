@@ -1,21 +1,18 @@
 import { useState, useEffect } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/features/customers/hooks/customers/useCustomers";
-import type { Customer } from "@/features/customers/hooks/customers/useCustomers";
-import { Button } from "@/components/ui/button";
-import { TableCell, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { useListPage } from "@/hooks/useListPage";
 import { useListFilters } from "@/hooks/useListFilters";
-import { PlusCircle, Download, ChevronRight } from "lucide-react";
-import { SearchBar } from "@/components/SearchBar";
-import { exportToCsv } from "@/lib/exportCsv";
+import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
 import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
+import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";
 import type { CustomerFormData } from "@/lib/formSchemas";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
 
@@ -115,15 +112,8 @@ export default function CustomersPage() {
       <ListPageLayout
         title="Clientes"
         subtitle={`${customers?.length || 0} clientes`}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportToCsv("clientes.csv", (filtered || []).map(c => ({ Nombre: c.name, Correo: c.email || "", Teléfono: c.phone || "", Contacto: c.contact_person || "", Dirección: c.address || "" })))}><Download className="h-4 w-4 mr-1" />Exportar CSV</Button>
-            <Button onClick={openCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Cliente</Button>
-          </div>
-        }
-        filters={
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar clientes..." />
-        }
+        actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
+        filters={<CustomersFilters search={search} onSearchChange={setSearch} />}
         isLoading={isLoading}
         items={paginatedItems}
         page={page}
