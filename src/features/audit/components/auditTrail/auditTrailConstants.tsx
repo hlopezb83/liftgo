@@ -117,6 +117,25 @@ const ENUM_LABEL_FIELDS: Record<string, Record<string, string>> = {
   service_type: MAINTENANCE_WORK_STATUS_LABELS,
 };
 
+function formatDateString(field: string, value: string): string | null {
+  if (DATETIME_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy HH:mm");
+  }
+  if (DATE_ONLY_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy");
+  }
+  return null;
+}
+
+function formatStringValue(field: string, value: string): string {
+  if (ENUM_LABEL_FIELDS[field]?.[value]) return ENUM_LABEL_FIELDS[field][value];
+  const formattedDate = formatDateString(field, value);
+  if (formattedDate) return formattedDate;
+  return value.length > 80 ? `${value.slice(0, 80)}…` : value;
+}
+
 export function formatAuditValue(field: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
   if (typeof value === "boolean") return value ? "Sí" : "No";
@@ -126,21 +145,7 @@ export function formatAuditValue(field: string, value: unknown): string {
     if (Number.isFinite(num)) return formatCurrency(num);
   }
 
-  if (typeof value === "string") {
-    if (ENUM_LABEL_FIELDS[field]?.[value]) return ENUM_LABEL_FIELDS[field][value];
-
-    if (DATETIME_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-      const d = new Date(value);
-      if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy HH:mm");
-    }
-    if (DATE_ONLY_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      const d = new Date(value);
-      if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy");
-    }
-
-    return value.length > 80 ? `${value.slice(0, 80)}…` : value;
-  }
-
+  if (typeof value === "string") return formatStringValue(field, value);
   if (typeof value === "object") return "(estructura actualizada)";
   return String(value);
 }
