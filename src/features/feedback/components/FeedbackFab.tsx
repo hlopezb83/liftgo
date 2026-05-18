@@ -9,13 +9,14 @@ export function FeedbackFab() {
     <>
       <Button
         type="button"
+        variant="outline"
+        size="sm"
         onClick={() => setOpen(true)}
-        size="lg"
-        className="fixed bottom-5 right-5 z-40 h-12 rounded-full shadow-lg gap-2"
+        className="h-8 gap-2 px-2.5"
         aria-label="Reportar bug o sugerir mejora"
       >
-        <MessageSquarePlus className="h-5 w-5" />
-        <span className="hidden sm:inline">Reportar</span>
+        <MessageSquarePlus className="h-3.5 w-3.5" />
+        <span className="hidden md:inline text-xs">Reportar</span>
       </Button>
       <FeedbackFormDialog open={open} onOpenChange={setOpen} />
     </>

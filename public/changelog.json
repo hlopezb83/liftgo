@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.3.3",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "UI: botón Reportar reubicado al header junto al buscador",
+    "category": "ui"
+  },
+  {
     "version": "6.3.2",
     "date": "2026-05-18",
     "type": "patch",
