@@ -36,6 +36,18 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
   if (!report) return null;
   const ctx = (report.context_json ?? {}) as Record<string, unknown>;
+  const severityLabel = report.severity
+    ? FEEDBACK_SEVERITY_LABELS[report.severity as keyof typeof FEEDBACK_SEVERITY_LABELS]
+    : null;
+  const applyDisabled = !newStatus || update.isPending;
+
+  const handleApply = () => {
+    if (!newStatus) return;
+    update.mutate(
+      { reportId: report.id, newStatus, comment: comment.trim() || undefined },
+      { onSuccess: () => { setNewStatus(""); setComment(""); } },
+    );
+  };
 
   return (
     <Sheet open={!!report} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -51,7 +63,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">{FEEDBACK_TYPE_LABELS[report.type as "bug" | "improvement"]}</Badge>
             <Badge variant="outline">{report.module}</Badge>
-            {report.severity && <Badge variant="outline">{FEEDBACK_SEVERITY_LABELS[report.severity as keyof typeof FEEDBACK_SEVERITY_LABELS]}</Badge>}
+            {severityLabel && <Badge variant="outline">{severityLabel}</Badge>}
             <Badge variant="secondary">{report.points_awarded} pts</Badge>
           </div>
 
@@ -68,14 +80,12 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <Separator />
 
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <div><strong className="text-foreground">Reportado por:</strong> {report.reporter_name ?? "—"} ({report.reporter_type})</div>
-            <div><strong className="text-foreground">Fecha:</strong> {format(new Date(report.created_at), "dd/MM/yyyy HH:mm")}</div>
-            {ctx.route ? <div><strong className="text-foreground">Ruta:</strong> {String(ctx.route)}</div> : null}
-            {ctx.viewport ? <div><strong className="text-foreground">Viewport:</strong> {String(ctx.viewport)}</div> : null}
-            {ctx.app_version ? <div><strong className="text-foreground">Versión:</strong> {String(ctx.app_version)}</div> : null}
-            {ctx.user_agent ? <div className="break-all"><strong className="text-foreground">UA:</strong> {String(ctx.user_agent)}</div> : null}
-          </div>
+          <FeedbackMetaList
+            reporterName={report.reporter_name}
+            reporterType={report.reporter_type}
+            createdAt={report.created_at}
+            ctx={ctx}
+          />
 
           <Separator />
 
@@ -90,16 +100,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
                     .map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button
-                disabled={!newStatus || update.isPending}
-                onClick={() => {
-                  if (!newStatus) return;
-                  update.mutate(
-                    { reportId: report.id, newStatus, comment: comment.trim() || undefined },
-                    { onSuccess: () => { setNewStatus(""); setComment(""); } },
-                  );
-                }}
-              >
+              <Button disabled={applyDisabled} onClick={handleApply}>
                 {update.isPending ? "Guardando…" : "Aplicar"}
               </Button>
             </div>
@@ -108,22 +109,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <Separator />
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Historial</h4>
-            {(history ?? []).length === 0 && <p className="text-xs text-muted-foreground">Sin cambios todavía.</p>}
-            <ul className="space-y-2">
-              {(history ?? []).map((h) => (
-                <li key={h.id} className="text-xs border-l-2 border-border pl-3 py-1">
-                  <div className="font-medium">
-                    {h.from_status ? `${FEEDBACK_STATUS_LABELS[h.from_status as FeedbackStatus] ?? h.from_status} → ` : ""}
-                    {FEEDBACK_STATUS_LABELS[h.to_status as FeedbackStatus] ?? h.to_status}
-                  </div>
-                  <div className="text-muted-foreground">{format(new Date(h.changed_at), "dd/MM/yyyy HH:mm")}</div>
-                  {h.comment && <div className="text-muted-foreground italic mt-0.5">{h.comment}</div>}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <FeedbackHistoryList history={history} />
         </div>
       </SheetContent>
     </Sheet>
