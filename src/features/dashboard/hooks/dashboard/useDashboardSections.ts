@@ -11,6 +11,12 @@ import {
   buildStatCards,
   mapMaintenanceAlerts,
   mapInvoiceBreakdown,
+  mapWeeklyUtilization,
+  mapRevenuePerUnit,
+  mapCashFlow,
+  buildFinancials,
+  buildAlertsProps,
+  computeUtilizationPercent,
 } from "@/features/dashboard/lib/dashboardSectionHelpers";
 
 function bucketFor(days: number): "0-30" | "31-60" | "61-90" | "90+" {
@@ -30,8 +36,8 @@ function computeAgingBuckets(overdueInvoices: Array<{ due_date: string; total: n
 }
 
 /**
- * Centraliza derivaciones del dashboard (counts, agings, charts) para que la
- * página sea declarativa.
+ * Centraliza derivaciones del dashboard. Toda la lógica de mapping pura vive
+ * en `dashboardSectionHelpers` para mantener este hook declarativo.
  */
 export function useDashboardSections() {
   const { data: stats, isLoading } = useDashboardStats();
@@ -41,57 +47,25 @@ export function useDashboardSections() {
 
   const counts = useMemo(() => stats?.fleet_counts ?? EMPTY_COUNTS, [stats?.fleet_counts]);
   const activeFleet = counts.total - counts.retired - counts.sold;
-  const utilizationPercent = activeFleet > 0 ? Math.round((counts.rented / activeFleet) * 100) : 0;
-
-  const pieData = useMemo(() => buildPieData(counts), [counts]);
-  const statCards = useMemo(() => buildStatCards(counts, activeFleet), [counts, activeFleet]);
+  const utilizationPercent = computeUtilizationPercent(counts, activeFleet);
 
   const overdueInvoices = useMemo(() => stats?.overdue_invoices ?? [], [stats?.overdue_invoices]);
-  const agingBuckets = useMemo(() => computeAgingBuckets(overdueInvoices), [overdueInvoices]);
-
-  const maintenanceAlerts = useMemo(
-    () => mapMaintenanceAlerts(stats?.maintenance_alerts),
-    [stats?.maintenance_alerts],
-  );
-  const weeklyUtilization = useMemo(
-    () => (stats?.weekly_utilization ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization })),
-    [stats?.weekly_utilization],
-  );
-  const revenuePerUnit = useMemo(
-    () => (stats?.utilization ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue })),
-    [stats?.utilization],
-  );
-  const invoiceBreakdown = useMemo(
-    () => mapInvoiceBreakdown(stats?.invoice_stats?.breakdown),
-    [stats?.invoice_stats?.breakdown],
-  );
-  const cashFlowData = useMemo(
-    () => (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid })),
-    [stats?.cash_flow],
-  );
-
-  const financials = {
-    mrr: kpis?.mrr ?? 0,
-    dso: kpis?.dso ?? 0,
-    overdueTotal: kpis?.overdue_total ?? 0,
-  };
-
-  const alertsProps = {
-    overdueBookings: stats?.overdue_bookings ?? [],
-    upcomingInvoices: upcomingInvoices ?? [],
-    expiringContracts: kpis?.expiring_contracts ?? [],
-  };
 
   return {
     isLoading,
     insuranceData,
-    statCards,
     utilizationPercent,
-    pieData, agingBuckets, maintenanceAlerts,
-    weeklyUtilization, revenuePerUnit, invoiceBreakdown, cashFlowData,
     overdueInvoices,
     outstandingRevenue: stats?.invoice_stats?.outstanding_revenue ?? 0,
-    financials,
-    alertsProps,
+    statCards: useMemo(() => buildStatCards(counts, activeFleet), [counts, activeFleet]),
+    pieData: useMemo(() => buildPieData(counts), [counts]),
+    agingBuckets: useMemo(() => computeAgingBuckets(overdueInvoices), [overdueInvoices]),
+    maintenanceAlerts: useMemo(() => mapMaintenanceAlerts(stats?.maintenance_alerts), [stats?.maintenance_alerts]),
+    weeklyUtilization: useMemo(() => mapWeeklyUtilization(stats), [stats]),
+    revenuePerUnit: useMemo(() => mapRevenuePerUnit(stats), [stats]),
+    invoiceBreakdown: useMemo(() => mapInvoiceBreakdown(stats?.invoice_stats?.breakdown), [stats?.invoice_stats?.breakdown]),
+    cashFlowData: useMemo(() => mapCashFlow(stats), [stats]),
+    financials: buildFinancials(kpis),
+    alertsProps: buildAlertsProps(stats, upcomingInvoices, kpis),
   };
 }
