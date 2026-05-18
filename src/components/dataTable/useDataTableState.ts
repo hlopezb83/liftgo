@@ -87,21 +87,9 @@ export function useDataTableState<T>({
   const sortKey = currentSort?.id ?? null;
   const sortDirection: "asc" | "desc" = currentSort?.desc ? "desc" : "asc";
 
-  const toggleSort = (key: string) => {
-    setSorting((prev) => {
-      const cur = prev[0];
-      if (!cur || cur.id !== key) return [{ id: key, desc: false }];
-      if (!cur.desc) return [{ id: key, desc: true }];
-      return [{ id: key, desc: false }];
-    });
-  };
+  const toggleSort = (key: string) => setSorting((prev) => cycleSorting(prev, key));
 
-  const selectableRows = enableRowSelection ? sortedRows.filter((r) => r.getCanSelect()) : [];
-  const allSelected = selectableRows.length > 0 && selectableRows.every((r) => r.getIsSelected());
-  const someSelected = selectableRows.some((r) => r.getIsSelected()) && !allSelected;
-  const headerCheckedState: boolean | "indeterminate" = allSelected
-    ? true
-    : someSelected ? "indeterminate" : false;
+  const { headerCheckedState } = computeHeaderCheckedState(enableRowSelection, sortedRows);
 
   return {
     table,
