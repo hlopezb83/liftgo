@@ -1,0 +1,40 @@
+{
+  "version": "6.1.4",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Refactor: descomposición de páginas detail y reducción de complejidad",
+  "category": "refactor",
+  "summary": "Cuarta oleada del plan de auditoría: 5 archivos llevados por debajo del límite de complejidad 12 mediante extracción de sub-componentes puros.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "InvoiceDetail.tsx — complejidad 23 → 11",
+      "description": "Extraídos InvoiceSummaryCards (UUID/error/cliente/fechas) e InvoiceDetailDialogs (record payment, cancel CFDI, delete, notes, collection)."
+    },
+    {
+      "type": "refactor",
+      "title": "SupplierDetailPage.tsx — complejidad 19 → ok",
+      "description": "Bloque de contacto + datos fiscales extraído a SupplierContactCard reutilizable."
+    },
+    {
+      "type": "refactor",
+      "title": "AuditLogDetailDialog.tsx — complejidad 16 → ok",
+      "description": "Cuerpo del dialog extraído a AuditLogDetailBody con helper renderDataBlock por acción (UPDATE/INSERT/DELETE)."
+    },
+    {
+      "type": "refactor",
+      "title": "PortalDashboard.tsx — complejidad 17 → ok",
+      "description": "Skeleton aislado, normalización con ?? y derivación previa de welcome/balanceClass."
+    },
+    {
+      "type": "refactor",
+      "title": "FeedbackDetailSheet.tsx — complejidad 18 → ok",
+      "description": "Metadatos de contexto e historial extraídos a FeedbackMetaList y FeedbackHistoryList."
+    }
+  ],
+  "metrics": {
+    "eslint_warnings_before": 27,
+    "eslint_warnings_after": 22,
+    "tests_passing": "48/48"
+  }
+}
