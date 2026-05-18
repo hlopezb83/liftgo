@@ -41,10 +41,10 @@ export function InvoiceDetailActions({
 
   return (
     <>
-      {invoice.status === "draft" && (
+      {isDraft && (
         <Button size="sm" onClick={onSent}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
       )}
-      {(invoice.status === "sent" || invoice.status === "overdue") && (
+      {isPayable && (
         <Popover open={paidPopoverOpen} onOpenChange={setPaidPopoverOpen}>
           <PopoverTrigger asChild>
             <Button size="sm"><CheckCircle className="h-4 w-4 mr-1" />Marcar Pagada</Button>
@@ -62,7 +62,7 @@ export function InvoiceDetailActions({
           </PopoverContent>
         </Popover>
       )}
-      {(invoice.status === "sent" || invoice.status === "overdue" || invoice.status === "partial") && (
+      {showPaymentBtn && (
         <Button variant="outline" size="sm" onClick={onOpenPayment}>
           <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
         </Button>
@@ -72,15 +72,15 @@ export function InvoiceDetailActions({
           <Button variant="outline" size="sm"><MoreHorizontal className="h-4 w-4 mr-1" /> Acciones</Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {(invoice.status === "draft" || userRole === "admin") && (
+          {canEdit && (
             <DropdownMenuItem onClick={onEdit}><Edit className="h-4 w-4 mr-2" /> Editar</DropdownMenuItem>
           )}
-          {cfdiStatus === "pending" && invoice.status !== "draft" && (
+          {canStamp && (
             <DropdownMenuItem onClick={onStamp} disabled={isStamping}>
               <Stamp className="h-4 w-4 mr-2" /> {isStamping ? "Timbrando..." : "Timbrar CFDI"}
             </DropdownMenuItem>
           )}
-          {cfdiStatus === "stamped" && (
+          {isStamped && (
             <>
               <DropdownMenuItem onClick={onDownloadXml}><Download className="h-4 w-4 mr-2" /> Descargar XML</DropdownMenuItem>
               <DropdownMenuItem onClick={onCancelCfdi} className="text-destructive focus:text-destructive">
