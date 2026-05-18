@@ -7,13 +7,12 @@ import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap"
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NotesCard } from "@/components/NotesCard";
-import { DeliverySignatureDialog } from "@/features/deliveries/components/deliveries/DeliverySignatureDialog";
-import { PostDeliveryPickupDialog } from "@/features/deliveries/components/deliveries/PostDeliveryPickupDialog";
+import { DeliveryDetailDialogs } from "@/features/deliveries/components/deliveries/DeliveryDetailDialogs";
+import { DeliverySignatureCard } from "@/features/deliveries/components/deliveries/DeliverySignatureCard";
 import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "@/features/deliveries/components/deliveries/DeliveryInfoCards";
 import { DeliveryActions } from "@/features/deliveries/components/deliveries/DeliveryActions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { nowMty } from "@/lib/utils";
