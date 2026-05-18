@@ -7,7 +7,7 @@ import {
   useMaintenanceParts,
   useAddMaintenancePart,
   type PartInventory,
-} from "@/hooks/usePartsInventory";
+} from "@/features/inventory/hooks/usePartsInventory";
 import { toast } from "sonner";
 import { AddMaintenancePartForm } from "@/features/maintenance/components/maintenance/AddMaintenancePartForm";
 

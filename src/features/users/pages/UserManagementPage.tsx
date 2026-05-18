@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { useListPage } from "@/hooks/useListPage";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
-import type { AppRole } from "@/hooks/useUserRole";
+import type { AppRole } from "@/features/users/hooks/useUserRole";
 
 import { useUsersWithRoles, useToggleStatus, type UserRow } from "@/features/users/hooks/useUserManagement";
 import { useUserManagementDialogs } from "@/features/users/hooks/users/useUserManagementDialogs";

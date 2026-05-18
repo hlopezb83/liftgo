@@ -5,7 +5,7 @@ import { nowMty, formatDateDisplay } from "@/lib/utils";
 import { GRAY_700, GRAY_500, MARGIN } from "@/lib/pdf/quote/constants";
 import { drawAccentBar } from "@/lib/pdf/quote/header";
 import { STATEMENT_TABLE_STYLES } from "./parts";
-import type { CustomerSummary } from "@/hooks/useCustomerSummary";
+import type { CustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Borrador",

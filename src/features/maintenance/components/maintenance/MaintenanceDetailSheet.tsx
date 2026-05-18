@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { MaintenancePartsSection } from "@/features/maintenance/components/maintenance/MaintenancePartsSection";
-import { useDeleteMaintenanceLog } from "@/hooks/useMaintenanceLogs";
-import { useSuppliers } from "@/hooks/useSuppliers";
+import { useDeleteMaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { Pencil, Trash2, Wrench, Calendar, User, DollarSign, Truck, FileText } from "lucide-react";
 import { toast } from "sonner";
-import type { MaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pendiente", variant: "secondary" },

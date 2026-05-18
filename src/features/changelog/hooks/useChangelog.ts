@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useEffect } from "react";
-import { fetchChangelogIndex, fetchChangelogDetail, getCurrentVersion } from "@/lib/changelog";
+import { fetchChangelogIndex, fetchChangelogDetail, getCurrentVersion } from "@/features/changelog/lib/changelog";
 
 export function useChangelog() {
   const query = useQuery({

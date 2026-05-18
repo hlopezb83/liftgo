@@ -1,4 +1,4 @@
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
 
 /**

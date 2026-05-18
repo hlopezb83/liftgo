@@ -5,8 +5,8 @@ import { ArrowLeft, Check, Eye, Minus, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { useRolePermissions, useUpdatePermission, MODULES, type AccessLevel } from "@/features/users/hooks/useRolePermissions";
-import { useUserRole } from "@/hooks/useUserRole";
-import type { AppRole } from "@/hooks/useUserRole";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
+import type { AppRole } from "@/features/users/hooks/useUserRole";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 

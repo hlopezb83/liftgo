@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EditableList } from "./EditableList";
-import type { ChecklistSection } from "@/hooks/useContractTemplates";
+import type { ChecklistSection } from "@/features/contracts/hooks/useContractTemplates";
 
 interface Props {
   sections: ChecklistSection[];

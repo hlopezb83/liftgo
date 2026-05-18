@@ -3,8 +3,8 @@ import { differenceInDays, parseISO } from "date-fns";
 import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useDashboardStats } from "@/features/dashboard/hooks/useDashboardStats";
 import { useFinancialKpis } from "@/features/dashboard/hooks/useFinancialKpis";
-import { useInsuranceAlerts } from "@/hooks/useInsuranceAlerts";
-import { useUpcomingInvoices } from "@/hooks/useUpcomingInvoices";
+import { useInsuranceAlerts } from "@/features/fleet/hooks/useInsuranceAlerts";
+import { useUpcomingInvoices } from "@/features/invoices/hooks/invoices/useUpcomingInvoices";
 import { nowMty } from "@/lib/utils";
 
 const STATUS_COLORS = {

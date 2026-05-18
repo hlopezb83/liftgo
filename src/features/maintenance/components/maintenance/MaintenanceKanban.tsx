@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { useUpdateMaintenanceLog, type MaintenanceLog } from "@/hooks/useMaintenanceLogs";
+import { useUpdateMaintenanceLog, type MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { Wrench, Clock, Package, CheckCircle2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";

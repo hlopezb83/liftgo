@@ -7,7 +7,7 @@ import { ProspectDetailSheet } from "@/features/crm/components/ProspectDetailShe
 import { KanbanColumn } from "@/features/crm/components/KanbanColumn";
 import { CRMToolbar } from "@/features/crm/components/CRMToolbar";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/hooks/useProspects";
-import { useQuotes } from "@/hooks/useQuotes";
+import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useProspectGuard } from "@/features/crm/hooks/useProspectGuard";
 import { useCRMFilters } from "@/features/crm/hooks/useCRMFilters";
 import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";

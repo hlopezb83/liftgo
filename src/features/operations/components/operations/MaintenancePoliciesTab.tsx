@@ -5,8 +5,8 @@ import {
   useUpdateMaintenancePolicy,
   useDeleteMaintenancePolicy,
   MaintenancePolicy,
-} from "@/hooks/useMaintenancePolicies";
-import { useForklifts } from "@/hooks/useForklifts";
+} from "@/features/maintenance/hooks/maintenance/useMaintenancePolicies";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -5,8 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { exportToCsv } from "@/lib/exportCsv";
 import { differenceInDays, parseISO, max, min } from "date-fns";
 import { Download } from "lucide-react";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useBookings } from "@/hooks/useBookings";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useBookings } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { DataTable } from "@/components/DataTable";
 

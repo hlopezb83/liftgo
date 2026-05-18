@@ -4,12 +4,12 @@ import {
   useUpsertCompanySettings,
   useBillingSecrets,
   useUpsertBillingSecrets,
-} from "@/hooks/useCompanySettings";
+} from "@/features/company-settings/hooks/useCompanySettings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFormState } from "@/hooks/useFormState";
 import { toast } from "sonner";
-import { CompanyFiscalForm } from "@/components/company-settings/CompanyFiscalForm";
-import { PacConfigForm } from "@/components/company-settings/PacConfigForm";
+import { CompanyFiscalForm } from "@/features/company-settings/components/company-settings/CompanyFiscalForm";
+import { PacConfigForm } from "@/features/company-settings/components/company-settings/PacConfigForm";
 
 const empty = {
   rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "",

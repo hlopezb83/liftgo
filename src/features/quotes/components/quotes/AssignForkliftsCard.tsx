@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { PackageCheck, Unlink, AlertTriangle } from "lucide-react";
-import { useForklifts } from "@/hooks/useForklifts";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import {
   useQuoteAssignments,
   useAssignForklift,
   useUnassignForklift,
-} from "@/hooks/useAssignForklifts";
+} from "@/features/fleet/hooks/forklifts/useAssignForklifts";
 import type { LineItem } from "@/lib/domain/invoiceUtils";
 
 interface Props {

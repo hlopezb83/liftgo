@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { StatCards } from "@/components/dashboard/StatCards";
+import { StatCards } from "@/features/dashboard/components/dashboard/StatCards";
 import { Truck, CheckCircle, Wrench, BarChart3 } from "lucide-react";
-import type { BookingWithForklift } from "@/hooks/useBookings";
+import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";
 import { nowMty } from "@/lib/utils";

@@ -1,10 +1,10 @@
 import { useParams, useSearchParams } from "react-router-dom";
-import { useBookings, type BookingWithForklift } from "@/hooks/useBookings";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useInvoice, useInvoices } from "@/hooks/useInvoices";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useQuote } from "@/hooks/useQuotes";
-import { useQuoteAssignments } from "@/hooks/useAssignForklifts";
+import { useBookings, type BookingWithForklift } from "@/features/bookings/hooks/useBookings";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useInvoice, useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
+import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useQuoteAssignments } from "@/features/fleet/hooks/forklifts/useAssignForklifts";
 import { generateLineItems, computeTotals } from "@/features/invoices/lib/invoiceUtils";
 import { useInvoiceFormState, type CfdiFormState } from "./invoiceForm/useInvoiceFormState";
 import { useInvoicePrefill, applyCustomerCfdi } from "./invoiceForm/useInvoicePrefill";

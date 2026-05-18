@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.0.0",
+    "date": "2026-05-18",
+    "type": "major",
+    "title": "Refactor arquitectónico: feature-folders puros, sin shims",
+    "category": "refactor"
+  },
+  {
     "version": "5.89.0",
     "date": "2026-05-18",
     "type": "minor",

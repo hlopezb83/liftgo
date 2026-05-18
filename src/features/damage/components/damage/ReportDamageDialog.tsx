@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { useForklifts } from "@/hooks/useForklifts";
-import { useCustomers } from "@/hooks/useCustomers";
+import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 import { useReportDamageForm } from "@/features/damage/hooks/useReportDamageForm";
 import { DamageEvidenceSection } from "@/features/damage/components/damage/DamageEvidenceSection";
 

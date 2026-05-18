@@ -1,6 +1,6 @@
 import type { jsPDF } from "jspdf";
 import { formatCurrency } from "@/lib/formatCurrency";
-import type { StatementRow, ComparisonRow } from "@/hooks/useIncomeStatementData";
+import type { StatementRow, ComparisonRow } from "@/features/reports/hooks/useIncomeStatementData";
 import {
   GRAY_900, GRAY_700, GRAY_500, GRAY_100, GRAY_50,
   FONT_SM, MARGIN,

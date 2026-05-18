@@ -4,7 +4,7 @@ import { format, parseISO } from "date-fns";
 import { useFormState } from "@/hooks/useFormState";
 import {
   useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog,
-} from "@/hooks/useMaintenanceLogs";
+} from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import type { MaintenanceFormShape } from "@/features/maintenance/components/maintenance/MaintenanceFormDialog";
 import type { Tables } from "@/integrations/supabase/types";
 

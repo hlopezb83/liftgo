@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePublicBranding } from "@/hooks/usePublicBranding";
+import { usePublicBranding } from "@/features/company-settings/hooks/usePublicBranding";
 import { LogOut, LayoutDashboard, CalendarDays, Receipt, FileText, MessageSquare, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FeedbackFab } from "@/features/feedback/components/FeedbackFab";

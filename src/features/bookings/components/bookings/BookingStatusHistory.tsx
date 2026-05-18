@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { History } from "lucide-react";
 import { format } from "date-fns";
-import { useBookingStatusHistory } from "@/hooks/bookingDetail/useBookingStatusHistory";
+import { useBookingStatusHistory } from "@/features/bookings/hooks/bookingDetail/useBookingStatusHistory";
 
 interface BookingStatusHistoryProps {
   bookingId: string;

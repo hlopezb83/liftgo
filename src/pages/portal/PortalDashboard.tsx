@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/hooks/useCustomerPortal";
+import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { CalendarDays, Receipt, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

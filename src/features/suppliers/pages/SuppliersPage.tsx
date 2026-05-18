@@ -13,7 +13,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { SupplierFormDialog } from "@/features/suppliers/components/suppliers/SupplierFormDialog";
 
 export default function SuppliersPage() {

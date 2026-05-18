@@ -1,14 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { CustomerSelector } from "@/components/customers/CustomerSelector";
+import { CustomerSelector } from "@/features/customers/components/customers/CustomerSelector";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
-import { ForkliftSelector } from "@/components/fleet/ForkliftSelector";
+import { ForkliftSelector } from "@/features/fleet/components/fleet/ForkliftSelector";
 import { PostBookingDeliveryDialog } from "@/features/bookings/components/bookings/PostBookingDeliveryDialog";
 import { PostBookingPolicyDialog } from "@/features/bookings/components/bookings/PostBookingPolicyDialog";
 import { differenceInDays } from "date-fns";
-import { useBookingFormLogic } from "@/hooks/bookingForm/useBookingFormLogic";
+import { useBookingFormLogic } from "@/features/bookings/hooks/bookingForm/useBookingFormLogic";
 
 export default function BookingForm() {
   const {

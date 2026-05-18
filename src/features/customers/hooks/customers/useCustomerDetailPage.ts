@@ -1,7 +1,7 @@
-import { useCustomers } from "@/hooks/useCustomers";
-import { useCustomerSummary } from "@/hooks/useCustomerSummary";
-import { useCustomerProfitability } from "@/hooks/useCustomerProfitability";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
+import { useCustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
+import { useCustomerProfitability } from "@/features/customers/hooks/customers/useCustomerProfitability";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { useCustomerDetailDialogs } from "@/features/customers/hooks/customerDetail/useCustomerDetailDialogs";
 import { useCustomerDetailActions } from "@/features/customers/hooks/customerDetail/useCustomerDetailActions";
 import type { Tables } from "@/integrations/supabase/types";

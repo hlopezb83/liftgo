@@ -1,4 +1,4 @@
-import { useQuotes } from "@/hooks/useQuotes";
+import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useNavigate } from "react-router-dom";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useListPage } from "@/hooks/useListPage";

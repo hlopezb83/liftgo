@@ -8,7 +8,7 @@ import { ContractTemplateTab } from "@/features/operations/components/operations
 import { MaintenancePoliciesTab } from "@/features/operations/components/operations/MaintenancePoliciesTab";
 import { FiscalDataTab } from "@/features/operations/components/operations/FiscalDataTab";
 import { CompanyLogoTab } from "@/features/operations/components/operations/CompanyLogoTab";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 
 export default function OperationsSetupPage() {
   return (

@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useFormState } from "@/hooks/useFormState";
 import { useCreateReturnInspection } from "@/features/returns/hooks/useReturnInspections";
-import type { Booking } from "@/hooks/useBookings";
+import type { Booking } from "@/features/bookings/hooks/useBookings";
 
 export const initialReturnInspectionForm = {
   bookingId: "" as string,

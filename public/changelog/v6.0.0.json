@@ -1,0 +1,13 @@
+{
+  "description": "Refactor arquitectónico mayor: eliminación de capas de shims, reubicación de componentes de dominio a sus feature-folders y separación del app-shell. Versión major porque mueve paths públicos internos (no afecta UI ni datos).",
+  "changes": [
+    "Eliminados 44 shims raíz en src/hooks/use*.ts y 5 subdirs de shims (invoices/, customers/, forklifts/, maintenance/, quotes/); todos los consumidores apuntan ahora directamente a @/features/<x>/hooks/...",
+    "Movidos hooks de booking detail y form a src/features/bookings/hooks/",
+    "Movidos componentes de dominio fuera de src/components/ a su feature: auditTrail, bookings, contracts, customers, damage, dashboard, fleet, suppliers, company-settings",
+    "Movido app-shell (AppSidebar, AppProviders, AuthGuard, RoleGuard, NoAccess, TopbarBreadcrumbs, GlobalSearch, ErrorBoundary, NavLink, sidebar/*) a src/layouts/",
+    "Extraído hook useFeedbackScreenshotUrl para sacar la llamada a supabase.storage del componente FeedbackDetailSheet",
+    "Movido src/lib/changelog.ts y changelogConstants.ts a src/features/changelog/lib/",
+    "Eliminado re-export src/pages/InvoicesPage.tsx y movido su test a src/features/invoices/pages/__tests__/",
+    "src/components/ queda con sólo primitivos genuinos de UI (DataTable, PageHeader, EmptyState, etc.) más ui/"
+  ]
+}

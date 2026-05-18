@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuotes } from "@/hooks/useQuotes";
+import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
 import type { Prospect } from "@/hooks/useProspects";
 
 export const STAGE_LABELS: Record<string, string> = {

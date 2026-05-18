@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils";
-import type { ForkliftFinancials } from "@/hooks/useForkliftFinancials";
+import type { ForkliftFinancials } from "@/features/fleet/hooks/forklifts/useForkliftFinancials";
 import { DataTable } from "@/components/DataTable";
 
 interface ForkliftHourometerHistoryProps {

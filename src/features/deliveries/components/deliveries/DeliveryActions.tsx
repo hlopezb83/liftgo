@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { QuotePDFButton } from "@/features/quotes/components/quotes/QuotePDFButton";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,

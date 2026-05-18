@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
-import { useInvoice } from "@/hooks/useInvoices";
-import { useBooking } from "@/hooks/useBookings";
+import { useInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useBooking } from "@/features/bookings/hooks/useBookings";
 import { usePayments } from "@/hooks/usePayments";
-import { useQuote } from "@/hooks/useQuotes";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { useInvoiceDetailActions } from "@/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";

@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchBar } from "@/components/SearchBar";
 import { useChangelog } from "@/features/changelog/hooks/useChangelog";
-import { getCurrentVersion } from "@/lib/changelog";
+import { getCurrentVersion } from "@/features/changelog/lib/changelog";
 import { useListPage } from "@/hooks/useListPage";
 import { TablePagination } from "@/components/TablePagination";
 import { ChangelogEntryCard } from "@/features/changelog/components/changelog/ChangelogEntryCard";
 import { useChangelogDeepLink } from "@/features/changelog/hooks/useChangelogDeepLink";
 import {
   TYPE_FILTERS, CATEGORY_FILTERS, type FilterType, type FilterCategory,
-} from "@/lib/changelogConstants";
+} from "@/features/changelog/lib/changelogConstants";
 
 export default function ChangelogPage() {
   const { data: changelog = [], isLoading, error } = useChangelog();

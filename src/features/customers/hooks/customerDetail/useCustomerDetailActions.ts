@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useUpdateCustomer, useDeleteCustomer } from "@/hooks/useCustomers";
-import { useInviteCustomer } from "@/hooks/useInviteCustomer";
+import { useUpdateCustomer, useDeleteCustomer } from "@/features/customers/hooks/customers/useCustomers";
+import { useInviteCustomer } from "@/features/customers/hooks/customers/useInviteCustomer";
 import type { CustomerFormData } from "@/lib/formSchemas";
 
 interface Params {
