@@ -35,7 +35,7 @@ const UserManagementPage = lazy(() => import("@/features/users/pages/UserManagem
 const RolePermissionsPage = lazy(() => import("@/features/users/pages/RolePermissionsPage"));
 const CompanySettingsPage = lazy(() => import("@/features/company-settings/pages/CompanySettingsPage"));
 const ChangelogPage = lazy(() => import("@/features/changelog/pages/ChangelogPage"));
-const HelpPage = lazy(() => import("@/pages/HelpPage"));
+const HelpPage = lazy(() => import("@/features/help/pages/HelpPage"));
 const OperatingExpensesPage = lazy(() => import("@/features/expenses/pages/OperatingExpensesPage"));
 const IncomeStatementPage = lazy(() => import("@/features/reports/pages/IncomeStatementPage"));
 const InventoryPage = lazy(() => import("@/features/inventory/pages/InventoryPage"));
