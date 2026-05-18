@@ -66,3 +66,55 @@ export function validateQuoteForm(opts: {
   }
   return true;
 }
+
+export interface BuildQuotePayloadArgs {
+  existingQuote: { quote_number?: string | null; status?: string | null } | null | undefined;
+  nextNumber: string | null | undefined;
+  customerId: string;
+  customerName: string;
+  quoteType: "rental" | "sale" | string;
+  rentalLines: RentalLine[];
+  saleLines: SaleLine[];
+  startDate?: Date;
+  endDate?: Date;
+  lineItems: LineItem[];
+  subtotal: number;
+  taxRate: number | string;
+  taxAmount: number;
+  total: number;
+  validUntil?: Date | null;
+  notes: string;
+  currency: string;
+}
+
+export function buildQuotePayload(a: BuildQuotePayloadArgs) {
+  const today = format(nowMty(), "yyyy-MM-dd");
+  const firstModelId =
+    a.quoteType === "sale"
+      ? a.saleLines.find((l) => l.modelId)?.modelId ?? null
+      : a.rentalLines.find((l) => l.modelId)?.modelId ?? null;
+
+  const startStr = a.quoteType === "rental" && a.startDate ? format(a.startDate, "yyyy-MM-dd") : today;
+  const endStr = a.quoteType === "rental" && a.endDate ? format(a.endDate, "yyyy-MM-dd") : today;
+
+  return {
+    quote_number: a.existingQuote?.quote_number || a.nextNumber || "COT-0001",
+    customer_id: a.customerId || null,
+    customer_name: a.customerName || null,
+    forklift_id: null,
+    equipment_model_id: firstModelId,
+    start_date: startStr,
+    end_date: endStr,
+    line_items: toJsonArray(a.lineItems),
+    subtotal: a.subtotal,
+    tax_rate: Number(a.taxRate),
+    tax_amount: a.taxAmount,
+    total: a.total,
+    status: a.existingQuote?.status || "draft",
+    valid_until: a.validUntil ? format(a.validUntil, "yyyy-MM-dd") : null,
+    notes: a.notes || null,
+    quote_type: a.quoteType,
+    currency: a.currency,
+    rental_meta: a.quoteType === "rental" ? toJsonArray(a.rentalLines) : null,
+  };
+}
