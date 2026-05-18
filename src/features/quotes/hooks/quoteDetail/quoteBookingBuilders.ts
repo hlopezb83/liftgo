@@ -15,7 +15,7 @@ type QuoteLike = {
   customer_id?: string | null;
   start_date?: string | null;
   forklift_id?: string | null;
-  line_items?: unknown;
+  line_items?: Json | null;
 };
 type CustomerLike = { id: string; address?: string | null };
 type ForkliftLike = { id: string; name: string };
