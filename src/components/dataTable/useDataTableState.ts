@@ -11,6 +11,7 @@ import {
 import { liftgoSortingFn } from "./sorting";
 import type { DataTableColumn, DataTableSelectionContext } from "./types";
 import { useNotifySelection, usePruneRowSelection } from "./dataTableEffects";
+import { cycleSorting, computeHeaderCheckedState } from "./dataTableHelpers";
 
 interface Args<T> {
   columns: DataTableColumn<T>[];
