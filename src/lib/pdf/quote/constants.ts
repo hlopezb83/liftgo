@@ -2,7 +2,7 @@
 export const GRAY_900 = { r: 17, g: 24, b: 39 };
 export const GRAY_700 = { r: 55, g: 65, b: 81 };
 export const GRAY_500 = { r: 107, g: 114, b: 128 };
-export const GRAY_400 = { r: 156, g: 163, b: 175 };
+
 
 export const GRAY_200 = { r: 229, g: 231, b: 235 };
 export const GRAY_100 = { r: 243, g: 244, b: 246 };
