@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 import { useEquipmentModels } from "@/features/fleet/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/features/quotes/hooks/quotes/useQuotes";
-import { computeTotals, type LineItem } from "@/lib/domain/invoiceUtils";
+import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toast } from "sonner";
 import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
 import { useQuotePrefill } from "./quoteForm/useQuotePrefill";

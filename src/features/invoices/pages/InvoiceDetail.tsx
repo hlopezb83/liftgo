@@ -19,7 +19,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { parseLineItems } from "@/lib/lineItems";
-import type { LineItem } from "@/features/invoices/lib/invoiceUtils";
+import type { LineItem } from "@/features/invoices/lib/invoiceHelpers";
 
 const cfdiBadgeClass = (status: string) =>
   status === "stamped"

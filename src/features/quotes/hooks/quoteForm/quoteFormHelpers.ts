@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceUtils";
+import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { nowMty } from "@/lib/utils";
 

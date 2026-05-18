@@ -1,6 +1,6 @@
 import { jsPDF } from "jspdf";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/formatCurrency";
-import { applyDiscount } from "@/lib/domain/invoiceUtils";
+import { applyDiscount } from "@/lib/domain/invoiceHelpers";
 import type { PdfLineItem } from "@/lib/pdf/shared";
 import {
   GRAY_900, GRAY_700, GRAY_500, GRAY_200, GRAY_100, GRAY_50,

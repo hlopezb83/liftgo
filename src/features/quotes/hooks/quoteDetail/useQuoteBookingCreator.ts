@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { parseLineItems } from "@/lib/lineItems";
-import type { LineItem } from "@/lib/domain/invoiceUtils";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
 import type { useQuoteConversionState, DeliveryInfo } from "./useQuoteConversionState";
 

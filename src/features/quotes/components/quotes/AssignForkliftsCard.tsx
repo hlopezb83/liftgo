@@ -7,7 +7,7 @@ import {
   useAssignForklift,
   useUnassignForklift,
 } from "@/features/fleet/hooks/forklifts/useAssignForklifts";
-import type { LineItem } from "@/lib/domain/invoiceUtils";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
 
 interface Props {
