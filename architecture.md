@@ -67,44 +67,51 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 
 ## 4. Estructura de carpetas
 
+El código del cliente está organizado **por feature** (vertical slicing). Cada feature es autocontenida: páginas, componentes, hooks y helpers viven juntos. `src/pages/` ya no existe — toda página vive en su feature.
+
 ```text
 src/
-├── pages/              Orquestadores de ruta (thin containers)
-├── components/         UI agrupada por dominio
-│   ├── ui/             Primitivas shadcn
-│   ├── bookings/       · invoice-detail/ · contracts/ · damage/ ...
-│   └── *Shared.tsx     DetailPageHeader, EmptyState, TotalsSummary, ...
-├── hooks/              Hooks de dominio (datos + lógica) — granulares
-│   ├── bookingDetail/  · contractForm/ · incomeStatement/ ...
-│   └── use*.ts         useBookings, useInvoices, useListPage, ...
-├── contexts/           AuthContext (sesión global)
-├── layouts/            MainLayout, CustomerPortalLayout
+├── features/                       Feature slices (una carpeta por dominio)
+│   └── <feature>/                  bookings, invoices, quotes, crm, fleet, ...
+│       ├── pages/                  Orquestadores de ruta (thin containers)
+│       ├── components/             UI específica de la feature
+│       ├── hooks/                  Hooks de datos + lógica (TanStack Query)
+│       │   └── <entity>/           Sub-hooks por entidad (Query / Mutations / Builders)
+│       └── lib/                    Helpers puros (*Helpers.ts) y builders (*Builder.ts)
+├── components/                     UI verdaderamente compartida entre features
+│   ├── ui/                         Primitivas shadcn (no editar)
+│   └── *.tsx                       DetailPageHeader, EmptyState, TotalsSummary, ...
+├── hooks/                          Hooks transversales (useListPage, usePagination, ...)
+├── contexts/                       AuthContext (sesión global)
+├── layouts/                        MainLayout, CustomerPortalLayout, AuthGuard, RoleGuard
 ├── lib/
-│   ├── pdf/            Generación modular de documentos
-│   ├── forms/          Mapeo de formularios → payloads de DB
-│   ├── constants.ts    Etiquetas, colores, estados de dominio
-│   ├── config.ts       Configuración global (tasas IVA, monedas)
-│   ├── routes.ts       Constantes de rutas (`ROUTES.invoices.detail(id)`)
-│   ├── routes-config.tsx  Registro central de rutas + módulo (lazy)
-│   ├── formatCurrency.ts · activityTranslations.ts · utils.ts · changelog.ts
-├── integrations/supabase/   Cliente y types AUTOGENERADOS — no editar
-├── types/              Tipos de dominio compartidos (rental.ts, ...)
-├── test/               Tests + helpers/mocks de Supabase
-├── App.tsx             Composición de providers, guards y router
+│   ├── pdf/                        Generación modular de documentos
+│   ├── forms/                      Mapeo formulario → payload (coerce, payloads compartidos)
+│   ├── domain/                     Helpers de dominio cross-feature (invoiceHelpers, satCatalogs)
+│   ├── constants.ts                Etiquetas, colores, estados de dominio
+│   ├── config.ts                   Configuración global (tasas IVA, monedas)
+│   ├── routes.ts                   Constantes de rutas (`ROUTES.invoices.detail(id)`)
+│   ├── routes-config.tsx           Registro central de rutas + módulo (lazy)
+│   └── formatCurrency.ts · utils.ts · rpc.ts · telemetry.ts · ...
+├── integrations/supabase/          Cliente y types AUTOGENERADOS — no editar
+├── types/                          Tipos de dominio compartidos (rental.ts, ...)
+├── test/                           Tests + helpers/mocks de Supabase
+├── App.tsx                         Composición de providers, guards y router
 └── main.tsx
 supabase/
-├── functions/          Edge Functions (CFDI, invitaciones, jobs)
-├── migrations/         Migraciones SQL (timestamp + slug)
-└── config.toml         Configuración de funciones (verify_jwt, etc.)
+├── functions/                      Edge Functions (CFDI, invitaciones, jobs)
+├── migrations/                     Migraciones SQL (timestamp + slug)
+└── config.toml                     Configuración de funciones (verify_jwt, etc.)
 public/
-└── changelog.json      Historial funcional (ver §12)
+├── changelog.json                  Índice del historial funcional (ver §16)
+└── changelog/v<X.Y.Z>.json         Detalle por versión
 ```
 
 **Reglas de ubicación**:
-- Lógica de datos → `hooks/` (nunca dentro de componentes).
-- Utilidades puras (sin React) → `lib/`.
-- Tipos compartidos entre dominios → `types/`. Tipos locales a un componente viven con el componente.
-- Cuando un componente crece > 150 líneas o supera complejidad ciclomática 15, se modulariza extrayendo hook + sub-componentes.
+- Toda lógica/UI/hook específica de un dominio → `src/features/<feature>/`.
+- Solo lo verdaderamente compartido entre 2+ features sube a `src/components/`, `src/hooks/` o `src/lib/`.
+- Tipos locales a un componente viven con el componente; tipos cross-feature → `src/types/`.
+- Cuando un componente > 150 LOC o un hook > 80 LOC, se modulariza extrayendo sub-componentes/hooks (ver §19).
 
 ---
 
@@ -298,7 +305,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 - Vitest + jsdom + @testing-library/react.
 - Mocks de Supabase reutilizables en `src/test/helpers/mockSupabase.ts`.
-- Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceUtils`, `constants`.
+- Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`.
 - Comandos: `bun run test` (CI), `bun run test:watch` (desarrollo).
 
 ---
@@ -314,15 +321,16 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ## 17. Cómo evolucionar la arquitectura
 
-**Añadir un nuevo módulo**:
-1. Crear página en `src/pages/MyModulePage.tsx` (orquestador).
-2. Crear hook(s) de dominio en `src/hooks/useMyModule.ts` con TanStack Query.
-3. Componentes UI en `src/components/myModule/`.
-4. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"`.
-5. Agregar la URL a `src/lib/routes.ts`.
-6. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
-7. Agregar test mínimo en `src/test/`.
-8. Agregar entrada al inicio de `public/changelog.json` (versión semántica).
+**Añadir un nuevo módulo** (feature slice):
+1. Crear carpeta `src/features/<feature>/` con sub-carpetas `pages/`, `components/`, `hooks/`, `lib/`.
+2. Página orquestadora en `src/features/<feature>/pages/<Feature>Page.tsx`.
+3. Hook(s) de dominio en `src/features/<feature>/hooks/use<Feature>.ts` con TanStack Query. Si supera 80 LOC, divide en `*Query.ts` + `*Mutations.ts`.
+4. Componentes UI en `src/features/<feature>/components/`. Helpers puros en `src/features/<feature>/lib/` con sufijo `*Helpers.ts`.
+5. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"` y `lazy()`.
+6. Agregar la URL a `src/lib/routes.ts`.
+7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
+8. Agregar test mínimo en `src/test/`.
+9. Agregar entrada al inicio de `public/changelog.json` **y** crear el detalle en `public/changelog/v<X.Y.Z>.json`.
 
 **Cuándo extraer**:
 - **Hook** si hay estado/efectos compartidos o lógica > 30 líneas en un componente.
