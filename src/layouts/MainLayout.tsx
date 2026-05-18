@@ -17,13 +17,13 @@ export default function MainLayout() {
             <div className="flex-1 min-w-0">
               <TopbarBreadcrumbs />
             </div>
+            <FeedbackFab />
             <GlobalSearch />
           </header>
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>
         </main>
-        <FeedbackFab />
       </div>
     </SidebarProvider>
   );
