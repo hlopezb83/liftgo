@@ -7,17 +7,16 @@ import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap"
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NotesCard } from "@/components/NotesCard";
-import { DeliverySignatureDialog } from "@/features/deliveries/components/deliveries/DeliverySignatureDialog";
-import { PostDeliveryPickupDialog } from "@/features/deliveries/components/deliveries/PostDeliveryPickupDialog";
+import { DeliveryDetailDialogs } from "@/features/deliveries/components/deliveries/DeliveryDetailDialogs";
+import { DeliverySignatureCard } from "@/features/deliveries/components/deliveries/DeliverySignatureCard";
 import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "@/features/deliveries/components/deliveries/DeliveryInfoCards";
 import { DeliveryActions } from "@/features/deliveries/components/deliveries/DeliveryActions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { nowMty } from "@/lib/utils";
-import { buildCompletionPayload, computeHoursUsed } from "@/features/deliveries/lib/deliveryDetailHelpers";
+import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "@/features/deliveries/lib/deliveryDetailHelpers";
 
 type PickupPrompt = {
   delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
@@ -55,14 +54,15 @@ export default function DeliveryDetail() {
   const forklift = forkliftMap.get(delivery.forklift_id);
   const linkedBooking = delivery.booking_id ? bookings?.find((b) => b.id === delivery.booking_id) : null;
   const hoursUsed = computeHoursUsed(delivery.booking_id, siblingDeliveries);
-  const subtitle = `${forklift?.name ?? "Equipo"} · ${delivery.type === "delivery" ? "Entrega" : "Recolección"}`;
+  const subtitle = buildDeliverySubtitle(forklift?.name, delivery.type);
 
   const promptPickupIfNeeded = () => {
-    if (delivery.type !== "delivery" || !delivery.booking_id || !linkedBooking || !forklift) return;
+    const bookingId = delivery.booking_id;
+    if (delivery.type !== "delivery" || !bookingId || !linkedBooking || !forklift) return;
     setPickupPrompt({
       delivery: {
         forklift_id: delivery.forklift_id,
-        booking_id: delivery.booking_id,
+        booking_id: bookingId,
         address: delivery.address,
         driver_name: delivery.driver_name,
         driver_phone: delivery.driver_phone,
@@ -140,33 +140,18 @@ export default function DeliveryDetail() {
 
         {delivery.notes && <NotesCard value={delivery.notes} readOnly title="Notas" />}
 
-        {delivery.signature_base64 && (
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-base">Firma del Cliente</CardTitle></CardHeader>
-            <CardContent>
-              <img src={delivery.signature_base64} alt="Firma" className="max-h-32 border rounded-md bg-white" />
-            </CardContent>
-          </Card>
-        )}
+        <DeliverySignatureCard signatureBase64={delivery.signature_base64} />
       </div>
 
-      <DeliverySignatureDialog
-        open={signatureOpen}
-        onOpenChange={setSignatureOpen}
+      <DeliveryDetailDialogs
+        signatureOpen={signatureOpen}
+        setSignatureOpen={setSignatureOpen}
         hoursReading={hoursReading}
-        onHoursReadingChange={setHoursReading}
+        setHoursReading={setHoursReading}
         onComplete={markComplete}
+        pickupPrompt={pickupPrompt}
+        onPickupClose={() => setPickupPrompt(null)}
       />
-
-      {pickupPrompt && (
-        <PostDeliveryPickupDialog
-          open={!!pickupPrompt}
-          onOpenChange={(open) => { if (!open) setPickupPrompt(null); }}
-          delivery={pickupPrompt.delivery}
-          bookingEndDate={pickupPrompt.bookingEndDate}
-          forkliftName={pickupPrompt.forkliftName}
-        />
-      )}
     </>
   );
 }

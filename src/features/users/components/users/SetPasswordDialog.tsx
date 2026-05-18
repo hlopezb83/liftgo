@@ -1,67 +1,29 @@
-import { useEffect, useState } from "react";
 import { KeyRound, Eye, EyeOff, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useResetPassword, type UserRow } from "@/features/users/hooks/useUserManagement";
+import { useSetPasswordForm } from "@/features/users/hooks/useSetPasswordForm";
+import type { UserRow } from "@/features/users/hooks/useUserManagement";
 
 interface Props {
   user: UserRow | null;
   onClose: () => void;
 }
 
-function generatePassword(length = 16): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
-  const values = new Uint8Array(length);
-  crypto.getRandomValues(values);
-  return Array.from(values, (v) => charset[v % charset.length]).join("");
+function describeUser(user: UserRow | null): string {
+  if (!user) return "Usuario";
+  const name = user.full_name ?? user.email ?? "Usuario";
+  const suffix = user.email && user.full_name ? ` — ${user.email}` : "";
+  return `${name}${suffix}`;
 }
 
 export function SetPasswordDialog({ user, onClose }: Props) {
-  const resetPassword = useResetPassword();
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      setPassword("");
-      setConfirm("");
-      setShow(false);
-      setErrorMsg(null);
-    }
-  }, [user]);
-
-  const handleGenerate = () => {
-    const pwd = generatePassword();
-    setPassword(pwd);
-    setConfirm(pwd);
-    setShow(true);
-    setErrorMsg(null);
-  };
-
-  const validatePassword = (): string | null => {
-    if (password.length < 8) return "La contraseña debe tener al menos 8 caracteres";
-    if (password.length > 72) return "La contraseña no puede exceder 72 caracteres";
-    if (password !== confirm) return "Las contraseñas no coinciden";
-    return null;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    setErrorMsg(null);
-    const validationError = validatePassword();
-    if (validationError) { setErrorMsg(validationError); return; }
-    try {
-      await resetPassword.mutateAsync({ userId: user.user_id, newPassword: password });
-      onClose();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Error al actualizar contraseña");
-    }
-  };
+  const {
+    password, confirm, show, errorMsg, isPending,
+    onPasswordChange, onConfirmChange, toggleShow,
+    handleGenerate, handleSubmit,
+  } = useSetPasswordForm(user, onClose);
 
   return (
     <Dialog open={!!user} onOpenChange={(v) => !v && onClose()}>
@@ -71,10 +33,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
             <KeyRound className="h-5 w-5" />
             Asignar nueva contraseña
           </DialogTitle>
-          <DialogDescription>
-            {user?.full_name ?? user?.email ?? "Usuario"}
-            {user?.email && user?.full_name ? ` — ${user.email}` : ""}
-          </DialogDescription>
+          <DialogDescription>{describeUser(user)}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -84,7 +43,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
                 id="set-password"
                 type={show ? "text" : "password"}
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrorMsg(null); }}
+                onChange={(e) => onPasswordChange(e.target.value)}
                 required
                 minLength={8}
                 maxLength={72}
@@ -94,7 +53,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
               <button
                 type="button"
                 aria-label={show ? "Ocultar" : "Mostrar"}
-                onClick={() => setShow((v) => !v)}
+                onClick={toggleShow}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -107,7 +66,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
               id="confirm-password"
               type={show ? "text" : "password"}
               value={confirm}
-              onChange={(e) => { setConfirm(e.target.value); setErrorMsg(null); }}
+              onChange={(e) => onConfirmChange(e.target.value)}
               required
               minLength={8}
               maxLength={72}
@@ -128,8 +87,8 @@ export function SetPasswordDialog({ user, onClose }: Props) {
           </p>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" disabled={resetPassword.isPending}>
-              {resetPassword.isPending ? "Guardando..." : "Guardar"}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </form>

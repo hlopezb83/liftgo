@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.1.6",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "Refactor: BookingForm, Prospect*, QuoteDetail, SetPassword, UserManagement, RoleGuard, DeliveryDetail",
+    "category": "refactor"
+  },
+  {
     "version": "6.1.5",
     "date": "2026-05-18",
     "type": "patch",
