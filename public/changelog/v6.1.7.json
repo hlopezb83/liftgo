@@ -1,0 +1,47 @@
+{
+  "version": "6.1.7",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Refactor: cero warnings de ESLint",
+  "category": "refactor",
+  "summary": "Séptima oleada del plan de calidad: se elimina la totalidad de warnings de complejidad ciclomática reportados por ESLint en el repositorio (de 22 → 0 en cuatro oleadas), y se estabiliza un test de roles que era flaky por timeout de backoff de React Query.",
+  "changes": [
+    {
+      "area": "Dashboard",
+      "detail": "useDashboardSections.ts pasó de complejidad 24 a <12. Se extrajeron todas las derivaciones puras (counts → pie/cards, mappers de utilización/cash-flow, financials, alertsProps) a src/features/dashboard/lib/dashboardSectionHelpers.ts."
+    },
+    {
+      "area": "Contracts",
+      "detail": "ContractPDFButton.tsx pasó de complejidad 13 a <12 moviendo el armado del PDF a src/features/contracts/lib/contractPdfBuilder.ts (buildContractPdf)."
+    },
+    {
+      "area": "DataTable / Audit",
+      "detail": "Se consolidaron helpers de selección y diff (dataTableHelpers.ts, auditDiffHelpers.ts) y se simplificó DeleteAuditLogDialog usando flags derivados."
+    },
+    {
+      "area": "Bookings / Invoices / Quotes / Reports",
+      "detail": "Reducciones puntuales de complejidad: BookingDetail (subtitle/equipment naming), InvoiceDetailActions (flags isDraft/isPayable), EquipmentAssignmentDialog (resolveRates) y ReportsPage (REPORT_COMPONENTS dispatch map)."
+    },
+    {
+      "area": "Testing",
+      "detail": "Se ajustó el test 'propagates errors instead of defaulting to dispatcher' en rolePermissions.test.ts para esperar isError === true con timeout extendido (15s), respetando el backoff de retry: 2 de useUserRole. 48/48 tests PASS."
+    }
+  ],
+  "metrics": {
+    "eslint_warnings_before": 22,
+    "eslint_warnings_after": 0,
+    "eslint_errors": 0,
+    "tests": "48/48 PASS"
+  },
+  "files_created": [
+    "src/features/dashboard/lib/dashboardSectionHelpers.ts",
+    "src/features/contracts/lib/contractPdfBuilder.ts",
+    "src/components/dataTable/dataTableHelpers.ts",
+    "src/features/audit/components/auditTrail/auditDiffHelpers.ts"
+  ],
+  "files_edited": [
+    "src/features/dashboard/hooks/dashboard/useDashboardSections.ts",
+    "src/features/contracts/components/contracts/ContractPDFButton.tsx",
+    "src/test/rolePermissions.test.ts"
+  ]
+}
