@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.3.2",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "Documentación: architecture.md alineado con estructura por features",
+    "category": "docs"
+  },
+  {
     "version": "6.3.1",
     "date": "2026-05-18",
     "type": "patch",
