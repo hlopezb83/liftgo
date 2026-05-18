@@ -1,110 +1,96 @@
-# Auditoría arquitectónica v6.2 (read-only)
+# Auditoría arquitectónica v6.3 (read-only)
 
-## Estado de salud
+## Veredicto: codebase sano
 
 | Métrica | Resultado |
 |---|---|
 | ESLint | **0 warnings, 0 errores** |
 | Tests | **48/48 PASS** |
-| Type safety (`any` / `!` / `as X`) | 0 violaciones fuera de tipos generados |
-| Archivos >150 LOC (excl. UI/types) | **19** |
-| Hooks >80 LOC (Power of 10) | **20** |
-| Knip — exports muertos | 1 (`canPromptPickup`) |
+| `any` / `!` / `as X` fuera de tipos generados | **0** |
+| Knip — exports muertos | **0** |
+| Archivos >150 LOC (excl. UI/types) | **20** (todos 150-189, ninguno crítico) |
+| Hooks >80 LOC | **24** |
+| Pages fuera de `src/features/` | **0** (NotFound es el único en `src/pages/`) |
 
-El proyecto está **arquitectónicamente sano**. Las siete oleadas v6.0.x–v6.1.7 cerraron la deuda crítica. Lo que queda son refinamientos de **ubicación** y **encapsulamiento de límites de feature**, no defectos.
+Las oleadas v6.0.x–v6.2.2 cerraron toda la deuda crítica. No hay misplacement obvio, ni acoplamiento severo, ni lógica fuera de lugar. Lo que queda son **refinamientos incrementales**, no defectos.
 
 ---
 
-## Hallazgos clave
+## Hallazgos
 
-### 1. Lógica de dominio en `src/hooks/` que debería vivir en su feature
-Cuatro hooks son claramente "dueños" de una feature, pero viven en el barril global:
+### 1. Hooks que exceden 80 LOC (Power of 10)
+24 hooks. Los 8 más relevantes para dividir en `*Query` + `*Mutations` o extraer lógica:
 
-| Hook | Feature dueña | Importadores cross-feature |
+| Hook | LOC | Estrategia sugerida |
 |---|---|---|
-| `src/hooks/useProspects.ts` (123 LOC) | `crm` | 10 archivos, **todos en crm/customers** |
-| `src/hooks/usePayments.ts` (103 LOC) | `invoices` | 3 archivos, todos en `invoices` |
-| `src/hooks/useUserManual.ts` (106 LOC) | `help` | 1 archivo en `help` |
-| `src/hooks/useDocuments.ts` | compartido (`damage` + 2 componentes globales) | mixto — **mantener en `src/hooks`** |
+| `useActivityMetrics.ts` | 130 | Extraer agregaciones a `activityMetricsCalculators.ts` |
+| `useProspectForm.ts` | 127 | Extraer validación a `prospectFormSchema.ts` |
+| `quoteFormHelpers.ts` | 126 | Ya es helper puro; dividir por concern (lineItems vs totals) |
+| `useInvoiceFormLogic.ts` | 122 | Separar submit + state |
+| `useCompanySettings.ts` | 122 | Query + mutations |
+| `useQuotePrefill.ts` | 120 | Extraer mapeo line_items a helper |
+| `useInvoicePrefill.ts` | 120 | Idem |
+| `useQuoteBookingCreator.ts` | 119 | Extraer side-effects (audit, recurring) |
 
-Esto contradice la regla "Domain Hooks" del memory (hooks granulares por feature).
+**Hooks legítimamente largos** (no dividir): `use-toast.ts` (186) es shadcn upstream, no tocar.
 
-### 2. Hooks que exceden el límite de 80 LOC (Power of 10)
-20 hooks lo violan. Los 5 más severos:
+### 2. Archivos UI 150-189 LOC
+20 archivos en el rango 150-189. Solo **3 vale la pena dividir** por densidad de responsabilidades; el resto son tablas/PDFs coherentes:
 
-- `useForklifts.ts` (155) — query + 4 mutations, separar en `useForkliftMutations`
-- `useOperatingExpenses.ts` (149) — query + filtros + agregaciones
-- `useBookings.ts` (139)
-- `usePartsInventory.ts` (136)
-- `useActivityMetrics.ts` (130)
+- `MaintenancePoliciesTab.tsx` (178) — formulario inline largo, extraer `MaintenancePolicyForm.tsx`
+- `CustomersPage.tsx` (165) — mezcla filtros + tabla + diálogos, extraer `CustomersToolbar.tsx`
+- `FeedbackFormDialog.tsx` (162) — extraer `FeedbackFormFields.tsx`
 
-### 3. Archivos >150 LOC (regla "≤150 LOC")
-19 candidatos. Los 6 que vale la pena dividir:
+**No tocar** (cohesivos): `IncomeStatementTable`, `ProfitabilityByModelReport`, todos los `pdf/*` (lógica jsPDF secuencial), `auditTrailConstants` (constantes).
 
-- `CRMPage.tsx` (182) — extraer `CRMPageHeader` + `CRMKanbanGrid`
-- `Fleet.tsx` (179) — extraer `FleetFiltersBar`
-- `AssignForkliftsCard.tsx` (178)
-- `MaintenancePoliciesTab.tsx` (178) — formulario inline largo
-- `SupplierFormDialog.tsx` (171) — split en `SupplierFormFields`
-- `BookingActions.tsx` (166) — múltiples diálogos inline
+### 3. `src/hooks/` root
+12 archivos. Todos son **genuinamente compartidos** (UI/layout hooks: `usePagination`, `useListPage`, `useDialogState`, `useDocuments`, etc.). **No mover ninguno.**
 
-Los `IncomeStatementTable.tsx` (189) y `ProfitabilityByModelReport.tsx` (182) son tablas grandes pero coherentes; **no tocar**.
-
-### 4. Acoplamiento cross-feature alto
-Top 5 features que importan de otras: `reports` (15), `invoices` (15), `quotes` (13), `operations` (13), `bookings` (10). Es aceptable porque la mayoría son tipos compartidos (`Customer`, `Forklift`), pero indica que faltan **barriles públicos** (`features/<x>/index.ts`) que documenten qué es API pública vs interno.
-
-### 5. Knip — código muerto
-- `canPromptPickup` en `deliveryDetailHelpers.ts:41` no se usa.
-- `knip.json` tiene 7 entradas redundantes/obsoletas.
-
-### 6. Estructura `src/lib/`
-Está limpia y bien segmentada (`domain/`, `forms/`, `pdf/`, `constants/`). **No requiere acción.**
-
-### 7. `src/components/` raíz
-26 componentes verdaderamente compartidos (DataTable, MobileCardList, PageHeader, etc.). Todos justificados. **No mover.**
+### 4. Lo que NO encontré (estado sano)
+- ✅ Ninguna feature fuera de `src/features/` (solo `NotFound` en `src/pages/`).
+- ✅ Cero violaciones de tipo (`any`/`!`/`as`).
+- ✅ Cero exports muertos (knip limpio).
+- ✅ Convención `*Helpers.ts` / `*Builder.ts` aplicada uniformemente.
+- ✅ Sin lógica de negocio en componentes UI (separación clara mantenida en v6.1.x).
+- ✅ RLS + RPCs siguen el patrón `SET search_path = public`.
 
 ---
 
-## Plan de acción priorizado (de crítico a opcional)
+## Plan priorizado (de crítico a opcional)
 
-### Crítico (alto ROI, bajo riesgo)
-1. **Mover hooks de dominio a su feature**
-   - `useProspects.ts` → `src/features/crm/hooks/useProspects.ts`
-   - `usePayments.ts` → `src/features/invoices/hooks/usePayments.ts`
-   - `useUserManual.ts` → `src/features/help/hooks/useUserManual.ts`
-   - Actualizar ~14 imports. `useDocuments` se queda (compartido real).
+### Alto valor (recomendado)
+1. **Dividir los 3 hooks más severos** (>120 LOC) extrayendo helpers/schemas puros:
+   - `useActivityMetrics` → extraer `activityMetricsCalculators.ts`
+   - `useProspectForm` → extraer `prospectFormSchema.ts`
+   - `useInvoiceFormLogic` → separar submit en hook propio
 
-2. **Eliminar export muerto** `canPromptPickup` y limpiar `knip.json` (7 hints).
+2. **Dividir 3 archivos UI** mencionados arriba en sub-componentes:
+   - `MaintenancePoliciesTab` → `MaintenancePolicyForm`
+   - `CustomersPage` → `CustomersToolbar`
+   - `FeedbackFormDialog` → `FeedbackFormFields`
 
-### Alto valor
-3. **Dividir hooks >120 LOC** siguiendo el patrón ya usado en `useBookingFormLogic`:
-   - `useForklifts` → `useForkliftsQuery` + `useForkliftMutations`
-   - `useOperatingExpenses` → query / filters / aggregations
-   - `useBookings` → query + mutations
-   - `usePartsInventory` → query + mutations
-   - `useProspects` (tras mover) → query + mutations
+### Valor medio
+3. **Normalizar hooks de prefill** (`useQuotePrefill`, `useInvoicePrefill`) extrayendo el mapeo de `line_items` a un helper compartido en `src/lib/domain/lineItemsMapper.ts` — elimina ~40 LOC duplicados.
 
-4. **Dividir 6 archivos UI >150 LOC** mencionados arriba en sub-componentes presentacionales puros. Patrón idéntico a v6.1.5/6.
+4. **Dividir `useCompanySettings` y `useQuoteBookingCreator`** siguiendo el patrón query/mutations ya establecido en `useForklifts`/`useBookings`.
 
-### Mejora estructural
-5. **Crear barriles públicos por feature** (`src/features/<x>/index.ts`) que re-exporten solo los tipos/hooks/componentes que otras features pueden usar. Permite detectar imports "internos" rotos y reducir el acoplamiento medido.
+### Opcional / cosmético
+5. **Mover `NotFound.tsx`** a `src/features/system/pages/` o documentar `src/pages/` como reservado para páginas globales del sistema. Decisión de bajo impacto.
 
-6. **Convención de nombres** para `lib/` por feature: hoy coexisten `*Helpers.ts`, `*Utils.ts`, `*Builder.ts`. Estandarizar a `*Helpers.ts` (puros) y `*Builder.ts` (efectos como PDF).
+6. **Crear barriles públicos por feature** (`src/features/<x>/index.ts`) — paso aplazado de v6.2. Aditivo, sin riesgo, pero requiere disciplina futura para mantener.
 
-### Opcional
-7. **Migrar a alias de barrel imports** dentro de cada feature (`@/features/crm` en vez de paths profundos) una vez existan los `index.ts` del paso 5.
-
-8. **Considerar mover** `src/pages/AuthPage.tsx` + `src/pages/auth/` a `src/features/auth/` para coherencia (única feature fuera de `features/`).
-
-9. **Documentar la regla "domain hooks"** en `architecture.md` con ejemplos del antes/después del paso 1, para prevenir regresiones.
+7. **Documentar reglas de tamaño** (≤150 LOC componentes, ≤80 hooks) en `architecture.md` §19 con criterios de excepción (tablas/PDFs cohesivos) para evitar refactors innecesarios futuros.
 
 ---
 
 ## Verificación tras implementación
 - `npx eslint src` → 0 warnings
 - `bunx vitest run` → 48/48 PASS
-- `npx knip` → 0 exports muertos
-- Agregar entrada `v6.2.0` (minor — reorganización notable) al changelog.
+- `npx knip` → 0 dead exports
+- Cada paso obtiene su entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`.
 
 ## Riesgo
-**Bajo.** Pasos 1–4 son mecánicos (mover archivo + actualizar imports + split presentacional). Pasos 5–9 son aditivos.
+**Muy bajo.** Los pasos 1-4 son mecánicos (extracción de helpers/sub-componentes con el patrón ya aplicado en 6 oleadas previas). 5-7 son aditivos.
+
+## Recomendación
+Ejecutar **pasos 1, 2 y 3** como v6.3.0 (minor). Pasos 4-7 quedan como backlog opcional ya que el codebase no muestra fricción real en su estado actual.
