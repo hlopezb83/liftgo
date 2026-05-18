@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LogOut, KeyRound } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
+import { NavLink } from "@/layouts/NavLink";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarFooter } from "@/components/ui/sidebar";

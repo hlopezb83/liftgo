@@ -1,9 +1,9 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { TopbarBreadcrumbs } from "@/components/TopbarBreadcrumbs";
-import { GlobalSearch } from "@/components/GlobalSearch";
+import { AppSidebar } from "@/layouts/AppSidebar";
+import { ErrorBoundary } from "@/layouts/ErrorBoundary";
+import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
+import { GlobalSearch } from "@/layouts/GlobalSearch";
 import { FeedbackFab } from "@/features/feedback/components/FeedbackFab";
 
 export default function MainLayout() {

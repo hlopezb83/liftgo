@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import { AppProviders } from "@/components/AppProviders";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AppProviders } from "@/layouts/AppProviders";
+import { AuthGuard } from "@/layouts/AuthGuard";
 import { appRoutes, PageFallback } from "@/lib/routes-config";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import MainLayout from "@/layouts/MainLayout";
 
 

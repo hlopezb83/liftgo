@@ -4,9 +4,9 @@ import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { useCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
 import { useCurrentVersion } from "@/features/changelog/hooks/useChangelog";
 import { useVisibleNavGroups } from "@/hooks/useVisibleNavGroups";
-import { SidebarBranding } from "@/components/sidebar/SidebarBranding";
-import { SidebarNavSection } from "@/components/sidebar/SidebarNavSection";
-import { SidebarUserFooter } from "@/components/sidebar/SidebarUserFooter";
+import { SidebarBranding } from "@/layouts/sidebar/SidebarBranding";
+import { SidebarNavSection } from "@/layouts/sidebar/SidebarNavSection";
+import { SidebarUserFooter } from "@/layouts/sidebar/SidebarUserFooter";
 
 export function AppSidebar() {
   const { user, signOut } = useAuth();

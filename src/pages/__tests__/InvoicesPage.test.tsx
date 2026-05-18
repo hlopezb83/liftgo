@@ -34,7 +34,7 @@ vi.mock("@/features/invoices/hooks/invoices/useGenerateRecurringInvoices", () =>
   useGenerateRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-vi.mock("@/components/RoleGuard", () => ({
+vi.mock("@/layouts/RoleGuard", () => ({
   RoleGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 

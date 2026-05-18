@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { useDeleteExpense, EXPENSE_CATEGORY_LABELS, type OperatingExpense } from "@/features/expenses/hooks/useOperatingExpenses";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { parseDateLocal } from "@/lib/utils";

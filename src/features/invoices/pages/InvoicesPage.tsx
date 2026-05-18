@@ -17,7 +17,7 @@ import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt, X } from "lucide
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;

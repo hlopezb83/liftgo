@@ -1,6 +1,6 @@
 import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { useRolePermissions, getAccessLevel, type AccessLevel } from "@/features/users/hooks/useRolePermissions";
-import { NoAccess } from "@/components/NoAccess";
+import { NoAccess } from "@/layouts/NoAccess";
 
 interface RoleGuardProps {
   module?: string;
