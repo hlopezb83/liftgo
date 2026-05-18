@@ -1,28 +1,35 @@
 import type { ContractFormShape } from "@/features/contracts/hooks/contractForm/contractFormDefaults";
 
+const nn = (v: string): string | null => v || null;
+const numOrNull = (v: string | null | undefined, fallback: number | null = null): number | null => {
+  if (v === null || v === undefined || v === "") return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+};
+
 export function buildContractPayload(form: ContractFormShape, bookingId: string | null) {
   return {
     customer_id: form.customer_id,
     forklift_id: form.forklift_id,
-    start_date: form.start_date || null,
-    end_date: form.end_date || null,
+    start_date: nn(form.start_date),
+    end_date: nn(form.end_date),
     daily_rate: Number(form.daily_rate),
     weekly_rate: Number(form.weekly_rate),
     monthly_rate: Number(form.monthly_rate),
     deposit_amount: Number(form.deposit_amount),
-    terms_text: form.terms_text || null,
-    signed_by: form.signed_by || null,
-    notes: form.notes || null,
+    terms_text: nn(form.terms_text),
+    signed_by: nn(form.signed_by),
+    notes: nn(form.notes),
     booking_id: bookingId || null,
     status: "draft",
     signed_at: null,
-    usage_location: form.usage_location || null,
-    max_hours_per_month: form.max_hours_per_month ? Number(form.max_hours_per_month) : null,
-    extra_hour_rate: form.extra_hour_rate ? Number(form.extra_hour_rate) : null,
+    usage_location: nn(form.usage_location),
+    max_hours_per_month: numOrNull(form.max_hours_per_month),
+    extra_hour_rate: numOrNull(form.extra_hour_rate),
     payment_frequency: form.payment_frequency || "Mensual",
-    late_interest_rate: form.late_interest_rate ? Number(form.late_interest_rate) : 5,
+    late_interest_rate: numOrNull(form.late_interest_rate, 5),
     contract_city: form.contract_city || "San Pedro Garza García, N.L.",
-    witness_1: form.witness_1 || null,
-    witness_2: form.witness_2 || null,
+    witness_1: nn(form.witness_1),
+    witness_2: nn(form.witness_2),
   };
 }
