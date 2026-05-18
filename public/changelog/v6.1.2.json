@@ -1,0 +1,54 @@
+{
+  "version": "6.1.2",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Refactor: DataTable hook, audit/CRM/Quote/Invoice helpers",
+  "category": "refactor",
+  "summary": "Continuación del paso 12 de auditoría: extracción de hooks y helpers puros para reducir complejidad ciclomática. Warnings 43 → 37, 0 errores, 48/48 tests.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "useDataTableState hook extraído",
+      "description": "Toda la lógica de TanStack Table (sorting, selection, effects de limpieza) se movió de `DataTable.tsx` a `dataTable/useDataTableState.ts`. El componente baja de 183 LOC / 21 cx a 84 LOC / <10 cx y queda como puro contenedor JSX."
+    },
+    {
+      "type": "refactor",
+      "title": "formatAuditValue dividido",
+      "description": "Helpers `formatDateString` y `formatStringValue` extraídos para separar el matching de enums, formatos de fecha y truncado de strings. Complejidad 20 → <10."
+    },
+    {
+      "type": "refactor",
+      "title": "useCRMFilters — predicados puros",
+      "description": "Filtros divididos en `matchesValue`, `matchesAge`, `matchesSearch`. El reducer principal queda lineal con early returns. Complejidad 21 → 6."
+    },
+    {
+      "type": "refactor",
+      "title": "useQuotePrefill — rentalLines en 3 helpers",
+      "description": "`applyRentalLines` se separó en `getRentalMeta`, `rebuildRentalLinesFromItems` y `lineToRentalLine`. Complejidad 16 → <10."
+    },
+    {
+      "type": "refactor",
+      "title": "useActivityMetrics — fetch + aggregate separados",
+      "description": "`fetchActivityRanges`, `aggregateActivity` y `upsertMember` aislan la consulta de la transformación. queryFn baja de 15 cx a 4."
+    },
+    {
+      "type": "refactor",
+      "title": "useInvoiceFormSubmit — CFDI payload extraído",
+      "description": "`buildCfdiPayload` y helper `nn` reemplazan la cadena de `cfdi.xxx || null`. Complejidad 20 → <10. Reutiliza `orEmpty` del módulo de coerción."
+    },
+    {
+      "type": "refactor",
+      "title": "buildInvoicePdf modular",
+      "description": "Extracción de `fetchInvoice`, `resolveCustomerFiscal`, `drawSatBadge`, `drawDetailsAndStatus` y `drawCfdiQrBox`. La función principal queda como orquestador de pasos. Complejidad 17 → <10."
+    }
+  ],
+  "metrics": {
+    "warnings_before": 43,
+    "warnings_after": 37,
+    "errors": 0,
+    "tests": "48/48 ✓",
+    "files_created": 1,
+    "files_refactored": 7
+  },
+  "notes": "Warnings restantes son páginas de detalle (BookingForm, InvoiceDetail, ContractDetail, DeliveryDetail, QuoteDetail, MaintenancePage, PortalDashboard, SupplierDetailPage, FeedbackDetailSheet, FiscalDataTab) que requieren extracción de secciones JSX más invasiva. Se difieren para mantener estabilidad visual."
+}

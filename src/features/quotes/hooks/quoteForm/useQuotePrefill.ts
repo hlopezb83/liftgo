@@ -58,30 +58,45 @@ function applySaleLines(items: LineItem[], models: EquipmentModel[], state: Stat
   state.setSaleLines(rebuilt);
 }
 
+function lineToRentalLine(item: LineItem, found: EquipmentModel): RentalLine {
+  return {
+    modelId: found.id,
+    quantity: 1,
+    dailyRate: found.default_daily_rate ?? 0,
+    weeklyRate: found.default_weekly_rate ?? 0,
+    monthlyRate: found.default_monthly_rate ?? 0,
+    discount: item.discount || 0,
+    discountType: (item.discount_type || "%") as "%" | "$",
+  };
+}
+
+function getRentalMeta(q: ExistingQuote, items: LineItem[]): RentalLine[] | undefined {
+  const direct = q.rental_meta as RentalLine[] | undefined;
+  if (direct) return direct;
+  const firstItem = (items as Array<LineItem & { _rentalMeta?: RentalLine[] }>)?.[0];
+  return firstItem?._rentalMeta;
+}
+
+function rebuildRentalLinesFromItems(items: LineItem[], models: EquipmentModel[]): RentalLine[] {
+  const matched = new Map<string, RentalLine>();
+  for (const item of items) {
+    const found = matchModel(item, models);
+    if (found && !matched.has(found.id)) {
+      matched.set(found.id, lineToRentalLine(item, found));
+    }
+  }
+  return Array.from(matched.values());
+}
+
 function applyRentalLines(items: LineItem[], q: ExistingQuote, models: EquipmentModel[], state: State) {
-  const meta = (q.rental_meta as RentalLine[] | undefined)
-    || ((items as Array<LineItem & { _rentalMeta?: RentalLine[] }>)?.[0]?._rentalMeta);
+  const meta = getRentalMeta(q, items);
   if (meta && meta.length > 0) {
     state.setRentalLines(meta);
     return;
   }
   if (items.length === 0) return;
-  const matched = new Map<string, RentalLine>();
-  for (const item of items) {
-    const found = matchModel(item, models);
-    if (found && !matched.has(found.id)) {
-      matched.set(found.id, {
-        modelId: found.id,
-        quantity: 1,
-        dailyRate: found.default_daily_rate ?? 0,
-        weeklyRate: found.default_weekly_rate ?? 0,
-        monthlyRate: found.default_monthly_rate ?? 0,
-        discount: item.discount || 0,
-        discountType: (item.discount_type || "%") as "%" | "$",
-      });
-    }
-  }
-  if (matched.size > 0) state.setRentalLines(Array.from(matched.values()));
+  const rebuilt = rebuildRentalLinesFromItems(items, models);
+  if (rebuilt.length > 0) state.setRentalLines(rebuilt);
 }
 
 export function useQuotePrefill({ existingQuote, equipmentModels, state }: Props) {

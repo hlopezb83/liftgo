@@ -12,37 +12,40 @@ export interface CRMFilters {
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_FILTERS: CRMFilters = { creator: "all", search: "", valueRange: "all", ageRange: "all" };
+
+function matchesValue(value: number, range: ValueRange): boolean {
+  if (range === "all") return true;
+  if (range === "lt100k") return value < 100_000;
+  if (range === "100k-500k") return value >= 100_000 && value <= 500_000;
+  return value > 500_000;
+}
+
+function matchesAge(updatedAt: string, range: AgeRange, now: number): boolean {
+  if (range === "all") return true;
+  const age = (now - new Date(updatedAt).getTime()) / DAY_MS;
+  if (range === "week") return age <= 7;
+  if (range === "month") return age <= 30;
+  return age > 30;
+}
+
+function matchesSearch(p: Prospect, query: string): boolean {
+  if (!query) return true;
+  const hay = `${p.company_name} ${p.contact_person ?? ""}`.toLowerCase();
+  return hay.includes(query);
+}
 
 export function useCRMFilters(prospects: Prospect[]) {
-  const [filters, setFilters] = useState<CRMFilters>({
-    creator: "all",
-    search: "",
-    valueRange: "all",
-    ageRange: "all",
-  });
+  const [filters, setFilters] = useState<CRMFilters>(DEFAULT_FILTERS);
 
   const filtered = useMemo(() => {
     const now = Date.now();
     const q = filters.search.trim().toLowerCase();
     return prospects.filter((p) => {
       if (filters.creator !== "all" && p.created_by !== filters.creator) return false;
-
-      if (q) {
-        const hay = `${p.company_name} ${p.contact_person ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-
-      const v = p.deal_value ?? 0;
-      if (filters.valueRange === "lt100k" && v >= 100_000) return false;
-      if (filters.valueRange === "100k-500k" && (v < 100_000 || v > 500_000)) return false;
-      if (filters.valueRange === "gt500k" && v <= 500_000) return false;
-
-      if (filters.ageRange !== "all") {
-        const age = (now - new Date(p.updated_at).getTime()) / DAY_MS;
-        if (filters.ageRange === "week" && age > 7) return false;
-        if (filters.ageRange === "month" && age > 30) return false;
-        if (filters.ageRange === "stale" && age <= 30) return false;
-      }
+      if (!matchesSearch(p, q)) return false;
+      if (!matchesValue(p.deal_value ?? 0, filters.valueRange)) return false;
+      if (!matchesAge(p.updated_at, filters.ageRange, now)) return false;
       return true;
     });
   }, [prospects, filters]);
@@ -50,8 +53,7 @@ export function useCRMFilters(prospects: Prospect[]) {
   const update = <K extends keyof CRMFilters>(key: K, value: CRMFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: value }));
 
-  const reset = () =>
-    setFilters({ creator: "all", search: "", valueRange: "all", ageRange: "all" });
+  const reset = () => setFilters(DEFAULT_FILTERS);
 
   const hasActive =
     filters.creator !== "all" ||
