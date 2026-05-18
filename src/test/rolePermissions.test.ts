@@ -67,10 +67,11 @@ describe("useUserRole — RLS visibility of own role", () => {
   it("propagates errors instead of defaulting to dispatcher", async () => {
     selectMock.mockResolvedValue({ data: null, error: { message: "RLS denied" } });
     const { result } = renderHook(() => useUserRole(), { wrapper });
-    await waitUntil(() => !result.current.isFetching);
+    // useUserRole usa retry: 2 con backoff; esperamos hasta que se asiente.
+    await waitUntil(() => result.current.isError === true, 10000);
     expect(result.current.isError).toBe(true);
     expect(result.current.data).not.toBe("dispatcher");
-  });
+  }, 15000);
 });
 
 describe("RoleGuard access enforcement via getAccessLevel", () => {
