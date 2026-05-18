@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.2.0",
+    "date": "2026-05-18",
+    "type": "minor",
+    "title": "Auditoría arquitectónica: hooks de dominio reubicados y splits estructurales",
+    "category": "refactor"
+  },
+  {
     "version": "6.1.7",
     "date": "2026-05-18",
     "type": "patch",
