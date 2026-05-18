@@ -52,28 +52,11 @@ export function useQuoteFormLogic() {
     e.preventDefault();
     if (!validateQuoteForm({ customerId, quoteType, startDate, endDate, rentalLines, saleLines })) return;
 
-    const today = format(nowMty(), "yyyy-MM-dd");
-    const firstModelId = quoteType === "sale"
-      ? (saleLines.find((l) => l.modelId)?.modelId || null)
-      : (rentalLines.find((l) => l.modelId)?.modelId || null);
-
-    const payload = {
-      quote_number: existingQuote?.quote_number || nextNumber || "COT-0001",
-      customer_id: customerId || null,
-      customer_name: customerName || null,
-      forklift_id: null,
-      equipment_model_id: firstModelId,
-      start_date: quoteType === "rental" && startDate ? format(startDate, "yyyy-MM-dd") : today,
-      end_date: quoteType === "rental" && endDate ? format(endDate, "yyyy-MM-dd") : today,
-      line_items: toJsonArray(lineItems),
-      subtotal, tax_rate: Number(taxRate), tax_amount: taxAmount, total,
-      status: existingQuote?.status || "draft",
-      valid_until: validUntil ? format(validUntil, "yyyy-MM-dd") : null,
-      notes: notes || null,
-      quote_type: quoteType,
-      currency,
-      rental_meta: quoteType === "rental" ? toJsonArray(rentalLines) : null,
-    };
+    const payload = buildQuotePayload({
+      existingQuote, nextNumber, customerId, customerName, quoteType,
+      rentalLines, saleLines, startDate, endDate, lineItems,
+      subtotal, taxRate, taxAmount, total, validUntil, notes, currency,
+    });
 
     if (id) {
       updateQuote.mutate({ id, ...payload }, { onSuccess: () => { toast.success("Cotización actualizada"); navigate(`/quotes/${id}`); } });
