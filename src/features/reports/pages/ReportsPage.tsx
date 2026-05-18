@@ -71,27 +71,10 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {reportType === "utilization" && (
-        <UtilizationReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "utilization-model" && (
-        <UtilizationByModelReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "revenue" && (
-        <RevenueReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "maintenance" && (
-        <MaintenanceCostReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "profitability" && (
-        <ProfitabilityByModelReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "income-statement" && (
-        <IncomeStatementReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "aging" && (
-        <AgingReport startDate={startDate} endDate={endDate} />
-      )}
+      {(() => {
+        const Comp = REPORT_COMPONENTS[reportType];
+        return Comp ? <Comp startDate={startDate} endDate={endDate} /> : null;
+      })()}
     </div>
     </PageTransition>
   );
