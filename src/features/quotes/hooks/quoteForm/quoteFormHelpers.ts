@@ -87,22 +87,28 @@ export interface BuildQuotePayloadArgs {
   currency: string;
 }
 
-export function buildQuotePayload(a: BuildQuotePayloadArgs) {
+function pickFirstModelId(a: BuildQuotePayloadArgs): string | null {
+  const lines = a.quoteType === "sale" ? a.saleLines : a.rentalLines;
+  return lines.find((l) => l.modelId)?.modelId ?? null;
+}
+
+function resolveDateStrings(a: BuildQuotePayloadArgs): { startStr: string; endStr: string } {
   const today = format(nowMty(), "yyyy-MM-dd");
-  const firstModelId =
-    a.quoteType === "sale"
-      ? a.saleLines.find((l) => l.modelId)?.modelId ?? null
-      : a.rentalLines.find((l) => l.modelId)?.modelId ?? null;
+  const isRental = a.quoteType === "rental";
+  return {
+    startStr: isRental && a.startDate ? format(a.startDate, "yyyy-MM-dd") : today,
+    endStr: isRental && a.endDate ? format(a.endDate, "yyyy-MM-dd") : today,
+  };
+}
 
-  const startStr = a.quoteType === "rental" && a.startDate ? format(a.startDate, "yyyy-MM-dd") : today;
-  const endStr = a.quoteType === "rental" && a.endDate ? format(a.endDate, "yyyy-MM-dd") : today;
-
+export function buildQuotePayload(a: BuildQuotePayloadArgs) {
+  const { startStr, endStr } = resolveDateStrings(a);
   return {
     quote_number: a.existingQuote?.quote_number || a.nextNumber || "COT-0001",
     customer_id: a.customerId || null,
     customer_name: a.customerName || null,
     forklift_id: null,
-    equipment_model_id: firstModelId,
+    equipment_model_id: pickFirstModelId(a),
     start_date: startStr,
     end_date: endStr,
     line_items: toJsonArray(a.lineItems),
