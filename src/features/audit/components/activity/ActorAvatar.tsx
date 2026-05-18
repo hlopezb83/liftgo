@@ -16,7 +16,7 @@ function actorInitials(name: string): string {
     .join("") || "·";
 }
 
-export function actorColor(name: string): string {
+function actorColor(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
   return PALETTE[Math.abs(hash) % PALETTE.length];
