@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ActorAvatar } from "./ActorAvatar";
 import { useActivityFeed, type ActivityFilters } from "@/features/dashboard/hooks/useActivityFeed";
 import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "@/features/audit/lib/activityConstants";
-import { translateActivityTitle, translateActivityDescription } from "@/lib/activityTranslations";
+import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { X } from "lucide-react";

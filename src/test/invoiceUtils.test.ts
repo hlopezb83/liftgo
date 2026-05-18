@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateRentalCost, computeTotals } from "@/lib/invoiceUtils";
+import { calculateRentalCost, computeTotals } from "@/lib/domain/invoiceUtils";
 import { parseDateLocal, formatDateDisplay } from "@/lib/utils";
 
 describe("calculateRentalCost", () => {

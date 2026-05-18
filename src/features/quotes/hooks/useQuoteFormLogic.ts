@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/hooks/useQuotes";
-import { generateLineItemsFromModel, computeTotals, type LineItem } from "@/lib/invoiceUtils";
+import { generateLineItemsFromModel, computeTotals, type LineItem } from "@/lib/domain/invoiceUtils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";

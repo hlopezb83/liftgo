@@ -1,5 +1,12 @@
 [
   {
+    "version": "5.89.0",
+    "date": "2026-05-18",
+    "type": "minor",
+    "title": "Refactor: consolidar utilidades de dominio en @/lib/domain",
+    "category": "refactor"
+  },
+  {
     "version": "5.88.2",
     "date": "2026-05-16",
     "type": "patch",

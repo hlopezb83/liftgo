@@ -2,7 +2,7 @@ import { useDashboardStats } from "@/features/dashboard/hooks/useDashboardStats"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Activity } from "lucide-react";
-import { translateActivityTitle, translateActivityDescription } from "@/lib/activityTranslations";
+import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
 import { useNavigate } from "react-router-dom";
 
 const ENTITY_ROUTES: Record<string, string> = {

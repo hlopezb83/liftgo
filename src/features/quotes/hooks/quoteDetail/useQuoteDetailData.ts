@@ -6,7 +6,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useForklifts } from "@/hooks/useForklifts";
 import { useEquipmentModels } from "@/hooks/useEquipmentModels";
 import { supabase } from "@/integrations/supabase/client";
-import type { LineItem } from "@/lib/invoiceUtils";
+import type { LineItem } from "@/lib/domain/invoiceUtils";
 import { parseLineItems, parseRentalMeta } from "@/lib/lineItems";
 
 export const isPublicoGeneral = (name?: string | null) =>

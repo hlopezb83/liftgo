@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatCurrencyWithCode } from "@/lib/formatCurrency";
-import { applyDiscount } from "@/lib/invoiceUtils";
-import type { LineItem } from "@/lib/invoiceUtils";
+import { applyDiscount } from "@/lib/domain/invoiceUtils";
+import type { LineItem } from "@/lib/domain/invoiceUtils";
 
 interface CostSummaryCardProps {
   lineItems: LineItem[];

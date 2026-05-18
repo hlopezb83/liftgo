@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/satCatalogs";
+import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/domain/satCatalogs";
 import type { CustomerFormData } from "@/lib/formSchemas";
 
 type Setter = <K extends keyof CustomerFormData>(key: K, value: CustomerFormData[K]) => void;

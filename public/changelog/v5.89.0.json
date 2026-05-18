@@ -1,0 +1,8 @@
+{
+  "description": "Consolidación de utilidades duplicadas de src/lib en su ubicación canónica src/lib/domain. Se eliminaron los shims de re-export y se migraron todos los imports al path canónico.",
+  "changes": [
+    "Eliminados shims: src/lib/activityTranslations.ts, src/lib/invoiceUtils.ts, src/lib/satCatalogs.ts, src/lib/templateUtils.ts",
+    "Migrados ~20 archivos a importar desde @/lib/domain/* directamente",
+    "Una sola fuente de verdad por utilidad, reduce confusión y riesgo de divergencia futura"
+  ]
+}

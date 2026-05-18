@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CANCELLATION_REASONS } from "@/lib/satCatalogs";
+import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
 import { useCancelCfdi } from "@/hooks/useCancelCfdi";
 
 interface CancelCfdiDialogProps {
