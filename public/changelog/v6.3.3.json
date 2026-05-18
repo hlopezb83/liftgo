@@ -1,0 +1,13 @@
+{
+  "version": "6.3.3",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "UI: botón Reportar reubicado al header junto al buscador",
+  "category": "ui",
+  "description": "El botón flotante 'Reportar' se movió al header principal, justo a la izquierda del buscador global (Ctrl+K). Ahora es un botón compacto consistente con el resto de la barra superior, deja de tapar contenido en mobile y mantiene la misma funcionalidad de feedback.",
+  "changes": [
+    "FeedbackFab convertido a botón outline pequeño (h-8) en lugar de FAB flotante",
+    "Integrado en MainLayout.header antes de GlobalSearch",
+    "Etiqueta 'Reportar' visible en desktop, solo ícono en mobile"
+  ]
+}
