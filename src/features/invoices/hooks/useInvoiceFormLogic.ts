@@ -9,6 +9,7 @@ import { generateLineItems, computeTotals } from "@/features/invoices/lib/invoic
 import { useInvoiceFormState, type CfdiFormState } from "./invoiceForm/useInvoiceFormState";
 import { useInvoicePrefill, applyCustomerCfdi } from "./invoiceForm/useInvoicePrefill";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
+import { useInvoiceLineItemHandlers } from "./invoiceForm/useInvoiceLineItemHandlers";
 
 export type { CfdiFormState };
 
@@ -29,6 +30,7 @@ export function useInvoiceFormLogic() {
   const state = useInvoiceFormState();
   useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, state });
   const submit = useInvoiceFormSubmit();
+  const lineHandlers = useInvoiceLineItemHandlers(state);
 
   const {
     bookingId, customerName, customerId, lineItems, taxRate, dueDate, issueDate, notes, cfdi,
@@ -67,28 +69,6 @@ export function useInvoiceFormLogic() {
     }
   };
 
-  const updateLineItem = (index: number, field: string, value: string | number) => {
-    setLineItems((previous) => previous.map((item, i) => {
-      if (i !== index) return item;
-      const updated = { ...item, [field]: value };
-      if (field === "quantity" || field === "unit_price") {
-        updated.total = Math.round(Number(updated.quantity) * Number(updated.unit_price) * 100) / 100;
-      }
-      return updated;
-    }));
-  };
-
-  const addLineItem = () => setLineItems((previous) => [...previous, {
-    description: "", quantity: 1, unit_price: 0, total: 0,
-    clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
-  }]);
-
-  const removeLineItem = (index: number) => setLineItems((previous) => previous.filter((_, i) => i !== index));
-
-  const handleCfdiUpdate = (field: string, value: string | number) => {
-    setCfdi(field as keyof CfdiFormState, value as CfdiFormState[keyof CfdiFormState]);
-  };
-
   const { subtotal, taxAmount, total } = computeTotals(lineItems, taxRate);
 
   const availableBookings = bookings?.filter(
@@ -111,7 +91,7 @@ export function useInvoiceFormLogic() {
     cfdi,
     customers, availableBookings,
     handleCustomerSelect, handleBookingSelect,
-    updateLineItem, addLineItem, removeLineItem, handleCfdiUpdate,
+    ...lineHandlers,
     buildPayload,
     createInvoice: submit.createInvoice,
     updateInvoice: submit.updateInvoice,
