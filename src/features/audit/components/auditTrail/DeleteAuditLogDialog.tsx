@@ -61,7 +61,7 @@ export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, on
                 <Button
                   variant="destructive"
                   className="w-full justify-start"
-                  disabled={isPending || (log.action === 'DELETE' && !log.old_data) || (log.action === 'UPDATE' && !log.old_data)}
+                  disabled={isPending || isRevertDisabled(log)}
                   onClick={() => onRevert(log)}
                 >
                   <Undo2 className="h-4 w-4 mr-2" />
@@ -69,12 +69,7 @@ export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, on
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
                   <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-amber-500" />
-                  {log.action === 'INSERT' && "Esto eliminará el registro creado de la tabla original."}
-                  {log.action === 'UPDATE' && "Esto restaurará los valores anteriores en la base de datos."}
-                  {log.action === 'DELETE' && (log.old_data
-                    ? "Esto re-creará el registro eliminado en la base de datos."
-                    : "No se puede revertir: no hay datos anteriores disponibles."
-                  )}
+                  {revertHint(log)}
                 </p>
               </div>
             </div>
