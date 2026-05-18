@@ -1,0 +1,82 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+export interface MaintenancePolicyFormValues {
+  forklift_id: string;
+  provider_name: string;
+  monthly_cost: string;
+  service_type: string;
+  description: string;
+}
+
+export const EMPTY_POLICY_FORM: MaintenancePolicyFormValues = {
+  forklift_id: "",
+  provider_name: "",
+  monthly_cost: "",
+  service_type: "Póliza de Mantenimiento",
+  description: "",
+};
+
+interface Props {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  isEdit: boolean;
+  isPending: boolean;
+  form: MaintenancePolicyFormValues;
+  availableForklifts: Array<{ id: string; name: string; model: string }> | undefined;
+  onChange: (key: keyof MaintenancePolicyFormValues, value: string) => void;
+  onSave: () => void;
+}
+
+export function MaintenancePolicyForm({
+  open, onOpenChange, isEdit, isPending, form, availableForklifts, onChange, onSave,
+}: Props) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>{isEdit ? "Editar" : "Nueva"} Póliza de Mantenimiento</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Montacargas *</Label>
+            <Select value={form.forklift_id} onValueChange={(v) => onChange("forklift_id", v)}>
+              <SelectTrigger><SelectValue placeholder="Seleccionar montacargas rentado" /></SelectTrigger>
+              <SelectContent>
+                {availableForklifts?.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Proveedor *</Label>
+            <Input value={form.provider_name} onChange={(e) => onChange("provider_name", e.target.value)} placeholder="Nombre del proveedor externo" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Costo Mensual ($)</Label>
+              <Input type="number" value={form.monthly_cost} onChange={(e) => onChange("monthly_cost", e.target.value)} placeholder="0" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Servicio</Label>
+              <Input value={form.service_type} onChange={(e) => onChange("service_type", e.target.value)} placeholder="Póliza de Mantenimiento" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Descripción</Label>
+            <Textarea value={form.description} onChange={(e) => onChange("description", e.target.value)} rows={2} placeholder="Detalles de la póliza..." />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={onSave} disabled={isPending}>
+            {isEdit ? "Guardar" : "Crear"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
