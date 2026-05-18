@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.1.7",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "Refactor: cero warnings de ESLint (Dashboard, ContractPDF, DataTable, Audit)",
+    "category": "refactor"
+  },
+  {
     "version": "6.1.6",
     "date": "2026-05-18",
     "type": "patch",
