@@ -14,7 +14,8 @@ import { DataTable } from "@/components/DataTable";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { MaintenancePolicyForm, EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./MaintenancePolicyForm";
+import { MaintenancePolicyForm } from "./MaintenancePolicyForm";
+import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
 
 export function MaintenancePoliciesTab() {
   const { data: policies, isLoading } = useMaintenancePolicies();
