@@ -1,0 +1,1 @@
+ALTER TABLE public.feedback_reports ALTER COLUMN module SET DEFAULT 'Sin clasificar';

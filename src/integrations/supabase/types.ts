@@ -876,7 +876,7 @@ export type Database = {
           description: string
           folio?: string
           id?: string
-          module: string
+          module?: string
           points_awarded?: number
           reporter_id: string
           reporter_name?: string | null
