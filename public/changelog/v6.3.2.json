@@ -1,0 +1,35 @@
+{
+  "version": "6.3.2",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Documentación: architecture.md alineado con estructura por features",
+  "category": "docs",
+  "summary": "Se actualiza architecture.md para reflejar la organización vertical por features (src/features/<feature>/...) introducida en olas previas. Sin cambios de código.",
+  "changes": [
+    {
+      "area": "§4 Estructura de carpetas",
+      "items": [
+        "Reemplazada la descripción legacy (src/pages, src/components/<domain>, src/hooks/<entity>) por el modelo de feature slices con sub-carpetas pages/, components/, hooks/, lib/.",
+        "Documentadas las carpetas transversales (src/components, src/hooks, src/lib/domain, src/lib/forms) como excepciones compartidas.",
+        "Añadida la nueva ubicación de changelogs (public/changelog/v<X.Y.Z>.json)."
+      ]
+    },
+    {
+      "area": "§15 Testing",
+      "items": [
+        "Actualizado el listado de suites: invoiceUtils → invoiceHelpers, añadido rolePermissions."
+      ]
+    },
+    {
+      "area": "§17 Cómo evolucionar",
+      "items": [
+        "Reescritos los 9 pasos para crear un módulo: ahora viven dentro de src/features/<feature>/.",
+        "Incluida la obligación de crear tanto el índice (public/changelog.json) como el detalle (public/changelog/v<X.Y.Z>.json)."
+      ]
+    }
+  ],
+  "verification": {
+    "scope": "Solo documentación. No se modifican archivos .ts/.tsx ni migraciones."
+  },
+  "risk": "Nulo. Cambio exclusivo de documentación."
+}
