@@ -111,7 +111,7 @@ export default function InvoiceDetail() {
 
       {notes && <NotesCard value={notes} readOnly />}
 
-      <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
+      <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={paymentList} />
       <InvoiceHistoryCard invoiceId={id} />
       {showCollectionNotes && <CollectionNotesCard invoiceId={id} />}
 
