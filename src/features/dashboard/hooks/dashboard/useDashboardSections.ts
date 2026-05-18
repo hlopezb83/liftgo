@@ -48,9 +48,10 @@ export function useDashboardSections() {
   const { data: insuranceData } = useInsuranceAlerts();
   const { data: upcomingInvoices } = useUpcomingInvoices();
 
+  const fleetCounts = stats?.fleet_counts;
   const counts = useMemo(
-    () => stats?.fleet_counts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 },
-    [stats?.fleet_counts]
+    () => fleetCounts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 },
+    [fleetCounts],
   );
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = activeFleet > 0 ? Math.round((counts.rented / activeFleet) * 100) : 0;
@@ -62,36 +63,41 @@ export function useDashboardSections() {
     { name: "Vendidos", value: counts.sold, color: STATUS_COLORS.sold },
   ].filter((d) => d.value > 0), [counts]);
 
-  const overdueInvoices = useMemo(() => stats?.overdue_invoices ?? [], [stats?.overdue_invoices]);
-
+  const overdueRaw = stats?.overdue_invoices;
+  const overdueInvoices = useMemo(() => overdueRaw ?? [], [overdueRaw]);
   const agingBuckets = useMemo(() => computeAgingBuckets(overdueInvoices), [overdueInvoices]);
 
+  const maintenanceRaw = stats?.maintenance_alerts;
   const maintenanceAlerts = useMemo(() =>
-    (stats?.maintenance_alerts ?? []).map((a) => ({
+    (maintenanceRaw ?? []).map((a) => ({
       forkliftName: a.forklift_name,
       nextDate: a.next_date,
       forkliftId: a.forklift_id,
-    })), [stats?.maintenance_alerts]);
+    })), [maintenanceRaw]);
 
+  const weeklyRaw = stats?.weekly_utilization;
   const weeklyUtilization = useMemo(() =>
-    (stats?.weekly_utilization ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization })),
-    [stats?.weekly_utilization]);
+    (weeklyRaw ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization })),
+    [weeklyRaw]);
 
+  const utilizationRaw = stats?.utilization;
   const revenuePerUnit = useMemo(() =>
-    (stats?.utilization ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue })),
-    [stats?.utilization]);
+    (utilizationRaw ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue })),
+    [utilizationRaw]);
 
+  const breakdownRaw = stats?.invoice_stats?.breakdown;
   const invoiceBreakdown = useMemo(() =>
-    (stats?.invoice_stats?.breakdown ?? []).map((b) => ({
+    (breakdownRaw ?? []).map((b) => ({
       status: b.status,
       count: b.count,
       total: b.total,
-      color: INVOICE_STATUS_COLORS[b.status] || "hsl(var(--status-draft))",
-    })), [stats?.invoice_stats?.breakdown]);
+      color: INVOICE_STATUS_COLORS[b.status] ?? "hsl(var(--status-draft))",
+    })), [breakdownRaw]);
 
+  const cashFlowRaw = stats?.cash_flow;
   const cashFlowData = useMemo(() =>
-    (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid })),
-    [stats?.cash_flow]);
+    (cashFlowRaw ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid })),
+    [cashFlowRaw]);
 
   const statCards = useMemo(() => [
     { label: "Flota Activa", value: activeFleet, icon: Truck, color: "text-primary" },
