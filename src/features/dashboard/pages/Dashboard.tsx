@@ -10,11 +10,12 @@ import { useDashboardSections } from "@/features/dashboard/hooks/dashboard/useDa
 
 export default function Dashboard() {
   const {
-    isLoading, stats, kpis, insuranceData, upcomingInvoices,
+    isLoading, insuranceData,
     statCards, utilizationPercent,
     pieData, agingBuckets, maintenanceAlerts,
     weeklyUtilization, revenuePerUnit, invoiceBreakdown, cashFlowData,
     overdueInvoices, outstandingRevenue,
+    financials, alertsProps,
   } = useDashboardSections();
 
   if (isLoading) {
@@ -27,17 +28,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const financials = {
-    mrr: kpis?.mrr ?? 0,
-    dso: kpis?.dso ?? 0,
-    overdueTotal: kpis?.overdue_total ?? 0,
-  };
-  const alertsProps = {
-    overdueBookings: stats?.overdue_bookings ?? [],
-    upcomingInvoices: upcomingInvoices ?? [],
-    expiringContracts: kpis?.expiring_contracts ?? [],
-  };
 
   return (
     <PageTransition>
