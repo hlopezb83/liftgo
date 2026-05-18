@@ -4,7 +4,8 @@ import type { Supplier } from "@/features/suppliers/hooks/useSuppliers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormActions } from "@/components/FormActions";
 import { toast } from "sonner";
-import { SupplierFormFields, emptySupplierForm, type SupplierForm } from "./SupplierFormFields";
+import { SupplierFormFields } from "./SupplierFormFields";
+import { emptySupplierForm, type SupplierForm } from "./supplierFormTypes";
 
 interface SupplierFormDialogProps {
   open: boolean;
