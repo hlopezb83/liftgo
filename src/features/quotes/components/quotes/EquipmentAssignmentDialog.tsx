@@ -27,6 +27,21 @@ interface AssignmentSlot {
   monthlyRate: number;
 }
 
+function buildAssignmentSlots(rentalMeta: RentalLineMeta[], models: EquipmentModel[]): AssignmentSlot[] {
+  const result: AssignmentSlot[] = [];
+  for (const line of rentalMeta) {
+    const model = models.find((m) => m.id === line.modelId);
+    const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
+    const daily = line.dailyRate ?? model?.default_daily_rate ?? 0;
+    const weekly = line.weeklyRate ?? model?.default_weekly_rate ?? 0;
+    const monthly = line.monthlyRate ?? model?.default_monthly_rate ?? 0;
+    for (let i = 0; i < line.quantity; i++) {
+      result.push({ modelId: line.modelId, modelName, forkliftId: "", dailyRate: daily, weeklyRate: weekly, monthlyRate: monthly });
+    }
+  }
+  return result;
+}
+
 interface EquipmentAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -40,24 +55,7 @@ interface EquipmentAssignmentDialogProps {
 export function EquipmentAssignmentDialog({
   open, onOpenChange, rentalMeta, models, forklifts, onConfirm, isLoading,
 }: EquipmentAssignmentDialogProps) {
-  const slots = useMemo(() => {
-    const result: AssignmentSlot[] = [];
-    for (const line of rentalMeta) {
-      const model = models.find((m) => m.id === line.modelId);
-      const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
-      for (let i = 0; i < line.quantity; i++) {
-        result.push({
-          modelId: line.modelId,
-          modelName,
-          forkliftId: "",
-          dailyRate: line.dailyRate ?? model?.default_daily_rate ?? 0,
-          weeklyRate: line.weeklyRate ?? model?.default_weekly_rate ?? 0,
-          monthlyRate: line.monthlyRate ?? model?.default_monthly_rate ?? 0,
-        });
-      }
-    }
-    return result;
-  }, [rentalMeta, models]);
+  const slots = useMemo(() => buildAssignmentSlots(rentalMeta, models), [rentalMeta, models]);
 
   const [assignments, setAssignments] = useState<AssignmentSlot[]>(slots);
 

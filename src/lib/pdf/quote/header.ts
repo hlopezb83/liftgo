@@ -73,6 +73,54 @@ export function drawPremiumHeader(
 }
 
 // ─── Info Section: EMISOR / CLIENTE ───────────────────
+function drawIssuerColumn(doc: jsPDF, col: number, startY: number, company: CompanyData | null): void {
+  const r2 = startY + 10;
+  doc.setFontSize(FONT_MD);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+  doc.text(company?.razon_social || "—", col, r2);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
+  doc.text(company ? `RFC: ${company.rfc}` : "", col, r2 + 5);
+  doc.text(company ? `C.P. ${company.lugar_expedicion}` : "", col, r2 + 9);
+  doc.text(company ? `Régimen: ${company.regimen_fiscal}` : "", col, r2 + 13);
+}
+
+function drawCustomerColumn(
+  doc: jsPDF, col: number, startY: number, name: string | null,
+  rfc?: string | null, cp?: string | null,
+): void {
+  const r2 = startY + 10;
+  doc.setFontSize(FONT_MD);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
+  doc.text(name || "—", col, r2);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
+  doc.text(rfc ? `RFC: ${rfc}` : "", col, r2 + 5);
+  doc.text(cp ? `C.P. ${cp}` : "", col, r2 + 9);
+}
+
+function drawDatesRow(
+  doc: jsPDF, col: number, baseY: number,
+  isSale: boolean, startDate: string | null, endDate: string | null, validUntil: string | null,
+): number {
+  const r5 = baseY + 13;
+  if (!isSale && startDate && endDate) {
+    doc.text(`Período: ${fmtDate(startDate)} — ${fmtDate(endDate)}`, col, r5);
+    if (validUntil) {
+      const r6 = r5 + 4;
+      doc.text(`Vigencia hasta: ${fmtDate(validUntil)}`, col, r6);
+      return r6;
+    }
+    return r5;
+  }
+  if (validUntil) doc.text(`Vigencia hasta: ${fmtDate(validUntil)}`, col, r5);
+  return r5;
+}
+
 export function drawInfoCardsAt(
   doc: jsPDF,
   startY: number,
@@ -89,45 +137,15 @@ export function drawInfoCardsAt(
   const col1 = MARGIN;
   const col2 = pw / 2 + 4;
 
-  const r1 = startY + 4;
   doc.setFontSize(FONT_SM);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(GRAY_500.r, GRAY_500.g, GRAY_500.b);
-  doc.text("EMISOR", col1, r1);
-  doc.text("CLIENTE", col2, r1);
+  doc.text("EMISOR", col1, startY + 4);
+  doc.text("CLIENTE", col2, startY + 4);
 
-  const r2 = startY + 10;
-  doc.setFontSize(FONT_MD);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(GRAY_900.r, GRAY_900.g, GRAY_900.b);
-  doc.text(company?.razon_social || "—", col1, r2);
-  doc.text(customerName || "—", col2, r2);
-
-  const r3 = r2 + 5;
-  doc.setFontSize(FONT_MD);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(GRAY_700.r, GRAY_700.g, GRAY_700.b);
-  doc.text(company ? `RFC: ${company.rfc}` : "", col1, r3);
-  doc.text(customerRfc ? `RFC: ${customerRfc}` : "", col2, r3);
-
-  const r4 = r3 + 4;
-  doc.text(company ? `C.P. ${company.lugar_expedicion}` : "", col1, r4);
-  doc.text(customerCp ? `C.P. ${customerCp}` : "", col2, r4);
-
-  const r5 = r4 + 4;
-  doc.text(company ? `Régimen: ${company.regimen_fiscal}` : "", col1, r5);
-  if (!isSale && startDate && endDate) {
-    doc.text(`Período: ${fmtDate(startDate)} — ${fmtDate(endDate)}`, col2, r5);
-  } else if (validUntil) {
-    doc.text(`Vigencia hasta: ${fmtDate(validUntil)}`, col2, r5);
-  }
-
-  let lastRow = r5;
-  if (!isSale && startDate && endDate && validUntil) {
-    const r6 = r5 + 4;
-    doc.text(`Vigencia hasta: ${fmtDate(validUntil)}`, col2, r6);
-    lastRow = r6;
-  }
+  drawIssuerColumn(doc, col1, startY, company ?? null);
+  drawCustomerColumn(doc, col2, startY, customerName, customerRfc, customerCp);
+  const lastRow = drawDatesRow(doc, col2, startY + 10, isSale, startDate, endDate, validUntil);
 
   return lastRow + 8;
 }

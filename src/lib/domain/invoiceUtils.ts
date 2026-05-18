@@ -17,6 +17,29 @@ export function applyDiscount(item: LineItem): number {
   return Math.max(0, base * (1 - item.discount / 100));
 }
 
+function calcMonths(monthlyRate: number, startDate: Date, effectiveEnd: Date): number {
+  if (monthlyRate <= 0) return 0;
+  let months = differenceInCalendarMonths(effectiveEnd, startDate);
+  if (months > 0 && addMonths(startDate, months) > effectiveEnd) months -= 1;
+  return Math.max(0, months);
+}
+
+function buildDailyRemainder(
+  remaining: number,
+  dailyRate: number,
+  weeklyRate: number,
+  monthlyRate: number,
+): LineItem | null {
+  if (remaining <= 0) return null;
+  if (dailyRate > 0) {
+    return { description: "Renta diaria", quantity: remaining, unit_price: dailyRate, total: remaining * dailyRate };
+  }
+  const fallback = weeklyRate > 0 ? weeklyRate / 7 : monthlyRate > 0 ? monthlyRate / 30 : 0;
+  if (fallback <= 0) return null;
+  const unit = Math.round(fallback * 100) / 100;
+  return { description: "Renta diaria", quantity: remaining, unit_price: unit, total: Math.round(remaining * fallback * 100) / 100 };
+}
+
 export function calculateRentalCost(
   dailyRate: number | null,
   weeklyRate: number | null,
@@ -25,48 +48,27 @@ export function calculateRentalCost(
   endDate: Date
 ): LineItem[] {
   const items: LineItem[] = [];
-  const effectiveDailyRate = dailyRate || 0;
-  const effectiveWeeklyRate = weeklyRate || 0;
-  const effectiveMonthlyRate = monthlyRate || 0;
+  const d = dailyRate || 0;
+  const w = weeklyRate || 0;
+  const m = monthlyRate || 0;
 
-  // Treat end date as inclusive: effective end = endDate + 1 day
   const effectiveEnd = addDays(endDate, 1);
-
-  // Calendar months using inclusive end
-  let months = 0;
-  if (effectiveMonthlyRate > 0) {
-    months = differenceInCalendarMonths(effectiveEnd, startDate);
-    // Verify addMonths(startDate, months) doesn't exceed effectiveEnd
-    if (months > 0 && addMonths(startDate, months) > effectiveEnd) {
-      months -= 1;
-    }
-    if (months > 0) {
-      items.push({ description: "Renta mensual", quantity: months, unit_price: effectiveMonthlyRate, total: months * effectiveMonthlyRate });
-    }
+  const months = calcMonths(m, startDate, effectiveEnd);
+  if (months > 0) {
+    items.push({ description: "Renta mensual", quantity: months, unit_price: m, total: months * m });
   }
 
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
-  // Remaining days = difference to effectiveEnd (no +1 needed, already inclusive)
-  let remaining = differenceInDays(effectiveEnd, remainderStart);
-  // If months consumed the entire range, remaining = 0
-  if (remaining < 0) remaining = 0;
+  let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
 
-  // Weekly blocks (7 days)
-  if (effectiveWeeklyRate > 0 && remaining >= 7) {
+  if (w > 0 && remaining >= 7) {
     const weeks = Math.floor(remaining / 7);
-    items.push({ description: "Renta semanal", quantity: weeks, unit_price: effectiveWeeklyRate, total: weeks * effectiveWeeklyRate });
+    items.push({ description: "Renta semanal", quantity: weeks, unit_price: w, total: weeks * w });
     remaining -= weeks * 7;
   }
 
-  // Remaining days
-  if (remaining > 0 && effectiveDailyRate > 0) {
-    items.push({ description: "Renta diaria", quantity: remaining, unit_price: effectiveDailyRate, total: remaining * effectiveDailyRate });
-  } else if (remaining > 0 && effectiveDailyRate === 0) {
-    const fallback = effectiveWeeklyRate > 0 ? effectiveWeeklyRate / 7 : effectiveMonthlyRate > 0 ? effectiveMonthlyRate / 30 : 0;
-    if (fallback > 0) {
-      items.push({ description: "Renta diaria", quantity: remaining, unit_price: Math.round(fallback * 100) / 100, total: Math.round(remaining * fallback * 100) / 100 });
-    }
-  }
+  const dailyItem = buildDailyRemainder(remaining, d, w, m);
+  if (dailyItem) items.push(dailyItem);
 
   return items;
 }

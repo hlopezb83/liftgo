@@ -53,15 +53,11 @@ export function useProspectForm({
   const matchingQuotes = useMemo(() => {
     if (!company.trim()) return allQuotes;
     const lowerCompany = company.toLowerCase();
-    return [...allQuotes].sort((a, b) => {
-      const aMatch = a.customer_name?.toLowerCase().includes(lowerCompany)
-        || lowerCompany.includes(a.customer_name?.toLowerCase() ?? "");
-      const bMatch = b.customer_name?.toLowerCase().includes(lowerCompany)
-        || lowerCompany.includes(b.customer_name?.toLowerCase() ?? "");
-      if (aMatch && !bMatch) return -1;
-      if (!aMatch && bMatch) return 1;
-      return 0;
-    });
+    const matches = (name: string | null | undefined): boolean => {
+      const n = name?.toLowerCase() ?? "";
+      return n.includes(lowerCompany) || lowerCompany.includes(n);
+    };
+    return [...allQuotes].sort((a, b) => Number(matches(b.customer_name)) - Number(matches(a.customer_name)));
   }, [allQuotes, company]);
 
   const effectiveStage = overrideStage ?? prospect?.stage ?? defaultStage;

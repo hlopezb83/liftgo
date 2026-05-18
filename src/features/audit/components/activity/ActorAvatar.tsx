@@ -7,7 +7,7 @@ const PALETTE = [
   "bg-purple-500", "bg-teal-500", "bg-indigo-500", "bg-orange-500",
 ];
 
-export function actorInitials(name: string): string {
+function actorInitials(name: string): string {
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -16,7 +16,7 @@ export function actorInitials(name: string): string {
     .join("") || "·";
 }
 
-export function actorColor(name: string): string {
+function actorColor(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
   return PALETTE[Math.abs(hash) % PALETTE.length];

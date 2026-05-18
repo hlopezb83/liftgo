@@ -28,25 +28,34 @@ export default function Dashboard() {
     );
   }
 
+  const financials = {
+    mrr: kpis?.mrr ?? 0,
+    dso: kpis?.dso ?? 0,
+    overdueTotal: kpis?.overdue_total ?? 0,
+  };
+  const alertsProps = {
+    overdueBookings: stats?.overdue_bookings ?? [],
+    upcomingInvoices: upcomingInvoices ?? [],
+    expiringContracts: kpis?.expiring_contracts ?? [],
+  };
+
   return (
     <PageTransition>
       <div className="p-6 space-y-6">
         <PageHeader title="Panel" subtitle="Vista general de la flota" />
         <StatCards cards={statCards} />
         <FinancialKpiCards
-          mrr={kpis?.mrr ?? 0}
+          mrr={financials.mrr}
           utilizationPercent={utilizationPercent}
-          dso={kpis?.dso ?? 0}
-          overdueTotal={kpis?.overdue_total ?? 0}
+          dso={financials.dso}
+          overdueTotal={financials.overdueTotal}
         />
         <DashboardAlertsSection
           overdueInvoices={overdueInvoices}
           maintenanceAlerts={maintenanceAlerts}
           agingBuckets={agingBuckets}
-          overdueBookings={stats?.overdue_bookings ?? []}
-          upcomingInvoices={upcomingInvoices ?? []}
-          expiringContracts={kpis?.expiring_contracts ?? []}
           insuranceData={insuranceData}
+          {...alertsProps}
         />
         <DashboardChartsSection
           pieData={pieData}

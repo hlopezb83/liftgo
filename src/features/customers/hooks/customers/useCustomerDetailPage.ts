@@ -8,22 +8,21 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Customer = Tables<"customers">;
 
-function buildEditInitialData(customer: Customer | undefined) {
+const EDIT_FIELDS = [
+  "name", "email", "phone", "address", "notes", "website", "contact_person",
+  "rfc", "regimen_fiscal", "uso_cfdi", "domicilio_fiscal_cp", "representante_legal",
+] as const;
+
+type EditField = (typeof EDIT_FIELDS)[number];
+
+function buildEditInitialData(customer: Customer | undefined): Record<EditField, string> | undefined {
   if (!customer) return undefined;
-  return {
-    name: customer.name || "",
-    email: customer.email || "",
-    phone: customer.phone || "",
-    address: customer.address || "",
-    notes: customer.notes || "",
-    website: customer.website || "",
-    contact_person: customer.contact_person || "",
-    rfc: customer.rfc || "",
-    regimen_fiscal: customer.regimen_fiscal || "",
-    uso_cfdi: customer.uso_cfdi || "",
-    domicilio_fiscal_cp: customer.domicilio_fiscal_cp || "",
-    representante_legal: customer.representante_legal || "",
-  };
+  const result = {} as Record<EditField, string>;
+  for (const k of EDIT_FIELDS) {
+    const v = customer[k as keyof Customer];
+    result[k] = typeof v === "string" ? v : "";
+  }
+  return result;
 }
 
 export function useCustomerDetailPage(id: string | undefined) {

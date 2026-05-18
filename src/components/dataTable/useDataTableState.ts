@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-table";
 import { liftgoSortingFn } from "./sorting";
 import type { DataTableColumn, DataTableSelectionContext } from "./types";
+import { useNotifySelection, usePruneRowSelection } from "./dataTableEffects";
 
 interface Args<T> {
   columns: DataTableColumn<T>[];
@@ -78,30 +79,8 @@ export function useDataTableState<T>({
 
   const clearSelection = () => setRowSelection({});
 
-  // Notificar selección al padre con stable signature
-  const lastNotifiedRef = useRef<string>("");
-  useEffect(() => {
-    if (!enableRowSelection || !onSelectionChange) return;
-    const sig = selectedIds.join("|");
-    if (sig === lastNotifiedRef.current) return;
-    lastNotifiedRef.current = sig;
-    onSelectionChange({ selectedIds, selectedRows, clearSelection });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedIds, selectedRows, enableRowSelection]);
-
-  // Limpiar selección de filas que ya no existen en el dataset
-  useEffect(() => {
-    if (!enableRowSelection) return;
-    const validIds = new Set(tableData.map((row, i) => keyExtractor(row, i)));
-    const next: RowSelectionState = {};
-    let changed = false;
-    for (const id of Object.keys(rowSelection)) {
-      if (validIds.has(id) && rowSelection[id]) next[id] = true;
-      else changed = true;
-    }
-    if (changed) setRowSelection(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableData, enableRowSelection]);
+  useNotifySelection({ enableRowSelection, onSelectionChange, selectedIds, selectedRows, clearSelection });
+  usePruneRowSelection({ enableRowSelection, tableData, keyExtractor, rowSelection, setRowSelection });
 
   const currentSort = sorting[0];
   const sortKey = currentSort?.id ?? null;

@@ -4,6 +4,20 @@ import { useUpdateCustomer, useDeleteCustomer } from "@/features/customers/hooks
 import { useInviteCustomer } from "@/features/customers/hooks/customers/useInviteCustomer";
 import type { CustomerFormData } from "@/lib/formSchemas";
 
+const OPTIONAL_NULL_FIELDS = [
+  "email", "phone", "address", "notes", "website", "contact_person",
+  "rfc", "regimen_fiscal", "uso_cfdi", "domicilio_fiscal_cp", "representante_legal",
+] as const;
+
+function customerFormToUpdate(form: CustomerFormData) {
+  const base: Record<string, string | null> = { name: form.name, company: form.name };
+  for (const k of OPTIONAL_NULL_FIELDS) {
+    const v = form[k as keyof CustomerFormData];
+    base[k] = (typeof v === "string" ? v : "") || null;
+  }
+  return base;
+}
+
 interface Params {
   id: string | undefined;
   inviteEmail: string;
@@ -30,17 +44,7 @@ export function useCustomerDetailActions({
 
   const handleEditSubmit = (form: CustomerFormData) => {
     if (!id) return;
-    updateCustomer.mutate({
-      id,
-      name: form.name, company: form.name,
-      email: form.email || null, phone: form.phone || null,
-      address: form.address || null, notes: form.notes || null,
-      website: form.website || null,
-      contact_person: form.contact_person || null,
-      rfc: form.rfc || null, regimen_fiscal: form.regimen_fiscal || null,
-      uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
-      representante_legal: form.representante_legal || null,
-    }, {
+    updateCustomer.mutate({ id, ...customerFormToUpdate(form) }, {
       onSuccess: () => { toast.success("Cliente actualizado"); setEditOpen(false); },
     });
   };

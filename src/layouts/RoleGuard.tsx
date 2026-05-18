@@ -9,29 +9,40 @@ interface RoleGuardProps {
   fallback?: React.ReactNode;
 }
 
+const ACCESS_HIERARCHY: AccessLevel[] = ["none", "read", "full"];
+
+function hasSufficientAccess(level: AccessLevel, required: AccessLevel): boolean {
+  return ACCESS_HIERARCHY.indexOf(level) >= ACCESS_HIERARCHY.indexOf(required);
+}
+
+function resolveGuardReason(args: {
+  loading: boolean;
+  error: boolean;
+  role: string | null | undefined;
+}): "loading" | "error" | "no-role" | "ok" {
+  if (args.loading) return "loading";
+  if (args.error) return "error";
+  if (!args.role) return "no-role";
+  return "ok";
+}
+
 export function RoleGuard({ module, minAccess = "read", children, fallback }: RoleGuardProps) {
   const { data: role, isLoading: roleLoading, isError: roleError } = useUserRole();
   const { data: perms, isLoading: permsLoading, isError: permsError } = useRolePermissions();
 
-  // Still loading — render nothing to avoid flicker (AuthGuard already shows spinner on first load)
-  if (roleLoading || permsLoading) return null;
+  const reason = resolveGuardReason({
+    loading: roleLoading || permsLoading,
+    error: roleError || permsError,
+    role,
+  });
+  if (reason === "loading") return null;
+  if (reason === "error") return <>{fallback ?? <NoAccess module={module} reason="error" />}</>;
+  if (reason === "no-role") return <>{fallback ?? <NoAccess module={module} reason="no-role" />}</>;
 
-  // Failed to fetch role/permissions
-  if (roleError || permsError) {
-    return fallback ?? <NoAccess module={module} reason="error" />;
-  }
-
-  // Authenticated but no role assigned
-  if (!role) {
-    return fallback ?? <NoAccess module={module} reason="no-role" />;
-  }
-
-  // Role exists but lacks required access for this module
-  if (module && perms) {
+  if (module && perms && role) {
     const level = getAccessLevel(perms, role, module);
-    const hierarchy: AccessLevel[] = ["none", "read", "full"];
-    if (hierarchy.indexOf(level) < hierarchy.indexOf(minAccess)) {
-      return fallback ?? <NoAccess module={module} reason="forbidden" requiredAccess={minAccess} currentAccess={level} />;
+    if (!hasSufficientAccess(level, minAccess)) {
+      return <>{fallback ?? <NoAccess module={module} reason="forbidden" requiredAccess={minAccess} currentAccess={level} />}</>;
     }
   }
 
