@@ -8,21 +8,18 @@ import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
-import { Button } from "@/components/ui/button";
 import { TableRow } from "@/components/ui/table";
 import { MarkAvailableDialog } from "@/features/fleet/components/fleet/MarkAvailableDialog";
-import { RoleGuard } from "@/layouts/RoleGuard";
 import { MaintenanceDetailSheet } from "@/features/maintenance/components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFormDialog } from "@/features/maintenance/components/maintenance/MaintenanceFormDialog";
 import { MaintenanceFiltersBar } from "@/features/maintenance/components/maintenance/MaintenanceFiltersBar";
 import { MaintenanceKanban } from "@/features/maintenance/components/maintenance/MaintenanceKanban";
 import { MaintenanceTableRow, MaintenanceMobileCard } from "@/features/maintenance/components/maintenance/MaintenanceRow";
+import { MaintenancePageActions } from "@/features/maintenance/components/maintenance/MaintenancePageActions";
 import { useActiveMechanics } from "@/features/maintenance/hooks/maintenance/useMechanics";
 import { useMaintenanceForm } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
-import { PlusCircle, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
