@@ -88,24 +88,14 @@ export default function MaintenancePage() {
         title="Mantenimiento"
         subtitle={`${logs?.length || 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
         actions={
-          <div className="flex gap-2 items-center">
-            <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "list" | "board")} size="sm">
-              <ToggleGroupItem value="list" aria-label="Vista de lista"><List className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="board" aria-label="Vista de tablero"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
-            </ToggleGroup>
-            <Button variant="outline" size="sm" onClick={exportCsv}>
-              <Download className="h-4 w-4 mr-1" />Exportar CSV
-            </Button>
-            <RoleGuard module="Mantenimiento" minAccess="full">
-              <Button variant="outline" size="sm" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
-                <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />
-                Generar Recurrente
-              </Button>
-            </RoleGuard>
-            <Button onClick={formCtl.openCreate} size="sm">
-              <PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio
-            </Button>
-          </div>
+          <MaintenancePageActions
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onExport={exportCsv}
+            onGenerateRecurring={() => generateRecurring.mutate()}
+            isGenerating={generateRecurring.isPending}
+            onCreate={formCtl.openCreate}
+          />
         }
         filters={
           <MaintenanceFiltersBar
