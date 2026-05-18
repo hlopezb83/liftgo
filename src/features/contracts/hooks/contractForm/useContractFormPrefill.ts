@@ -5,6 +5,7 @@ import { useDefaultContractTemplate } from "@/features/contracts/hooks/useContra
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import type { ContractFormShape } from "./contractFormDefaults";
 import type { Database } from "@/integrations/supabase/types";
+import { buildTemplateReplacements } from "./contractTemplateReplacements";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type Forklift = Database["public"]["Tables"]["forklifts"]["Row"];
@@ -29,68 +30,48 @@ export function useContractFormPrefill({
 
   // Pre-fill from booking
   useEffect(() => {
-    if (!isEdit && bookingId && bookings && forklifts) {
-      const booking = bookings.find((b) => b.id === bookingId);
-      if (booking) {
-        const forklift = forklifts.find((f) => f.id === booking.forklift_id);
-        setForm((prev) => ({
-          ...prev,
-          customer_id: booking.customer_id || prev.customer_id,
-          forklift_id: booking.forklift_id,
-          start_date: booking.start_date || prev.start_date,
-          end_date: booking.end_date || prev.end_date,
-          daily_rate: String(forklift?.daily_rate || 0),
-          weekly_rate: String(forklift?.weekly_rate || 0),
-          monthly_rate: String(forklift?.monthly_rate || 0),
-        }));
-      }
-    }
+    if (isEdit || !bookingId || !bookings || !forklifts) return;
+    const booking = bookings.find((b) => b.id === bookingId);
+    if (!booking) return;
+    const forklift = forklifts.find((f) => f.id === booking.forklift_id);
+    setForm((prev) => ({
+      ...prev,
+      customer_id: booking.customer_id || prev.customer_id,
+      forklift_id: booking.forklift_id,
+      start_date: booking.start_date || prev.start_date,
+      end_date: booking.end_date || prev.end_date,
+      daily_rate: String(forklift?.daily_rate || 0),
+      weekly_rate: String(forklift?.weekly_rate || 0),
+      monthly_rate: String(forklift?.monthly_rate || 0),
+    }));
   }, [bookingId, bookings, forklifts, isEdit, setForm]);
 
   // Auto-fill rates from forklift
   useEffect(() => {
-    if (!isEdit && !bookingId && form.forklift_id && forklifts) {
-      const forklift = forklifts.find((f) => f.id === form.forklift_id);
-      if (forklift) {
-        setForm((prev) => ({
-          ...prev,
-          daily_rate: String(forklift.daily_rate || 0),
-          weekly_rate: String(forklift.weekly_rate || 0),
-          monthly_rate: String(forklift.monthly_rate || 0),
-        }));
-      }
-    }
+    if (isEdit || bookingId || !form.forklift_id || !forklifts) return;
+    const forklift = forklifts.find((f) => f.id === form.forklift_id);
+    if (!forklift) return;
+    setForm((prev) => ({
+      ...prev,
+      daily_rate: String(forklift.daily_rate || 0),
+      weekly_rate: String(forklift.weekly_rate || 0),
+      monthly_rate: String(forklift.monthly_rate || 0),
+    }));
   }, [form.forklift_id, forklifts, isEdit, bookingId, setForm]);
 
   // Auto-fill template
   useEffect(() => {
     if (isEdit || templateApplied || !template?.body_text) return;
     if (!form.customer_id || !form.forklift_id) return;
-
     const customer = customers?.find((c) => c.id === form.customer_id);
     const forklift = forklifts?.find((f) => f.id === form.forklift_id);
     if (!customer || !forklift) return;
 
-    const text = replacePlaceholders(template.body_text, {
-      EMPRESA_ARRENDADOR: company?.razon_social || "[Nombre de tu empresa]",
-      NOMBRE_CLIENTE: customer.name,
-      DOMICILIO_CLIENTE: customer.address || "[Domicilio del cliente]",
-      MARCA_EQUIPO: forklift.manufacturer || "—",
-      MODELO_EQUIPO: forklift.model || "—",
-      SERIE_EQUIPO: forklift.serial_number || "—",
-      CAPACIDAD_EQUIPO: forklift.capacity_kg ? `${forklift.capacity_kg} kg` : "—",
-      COMBUSTIBLE_EQUIPO: forklift.fuel_type || "—",
-      UBICACION_USO: form.usage_location || "[Dirección]",
-      HORAS_MAX: form.max_hours_per_month || "[Número]",
-      TARIFA_HORA_EXTRA: form.extra_hour_rate || "[Monto]",
-      FECHA_INICIO: form.start_date || "[Fecha de inicio]",
-      FECHA_FIN: form.end_date || "[Fecha de término]",
-      MONTO_RENTA: form.monthly_rate || form.weekly_rate || form.daily_rate || "[Monto]",
-      FRECUENCIA_PAGO: form.payment_frequency || "Mensual",
-      INTERES_MORATORIO: form.late_interest_rate || "5",
-      REPRESENTANTE_LEGAL: customer.representante_legal || "",
-    }, "bracket");
-
+    const text = replacePlaceholders(
+      template.body_text,
+      buildTemplateReplacements({ company, customer, forklift, form }),
+      "bracket",
+    );
     setForm((prev) => ({ ...prev, terms_text: text }));
     setTemplateApplied(true);
   }, [
