@@ -139,33 +139,18 @@ export default function DeliveryDetail() {
 
         {delivery.notes && <NotesCard value={delivery.notes} readOnly title="Notas" />}
 
-        {delivery.signature_base64 && (
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-base">Firma del Cliente</CardTitle></CardHeader>
-            <CardContent>
-              <img src={delivery.signature_base64} alt="Firma" className="max-h-32 border rounded-md bg-white" />
-            </CardContent>
-          </Card>
-        )}
+        <DeliverySignatureCard signatureBase64={delivery.signature_base64} />
       </div>
 
-      <DeliverySignatureDialog
-        open={signatureOpen}
-        onOpenChange={setSignatureOpen}
+      <DeliveryDetailDialogs
+        signatureOpen={signatureOpen}
+        setSignatureOpen={setSignatureOpen}
         hoursReading={hoursReading}
-        onHoursReadingChange={setHoursReading}
+        setHoursReading={setHoursReading}
         onComplete={markComplete}
+        pickupPrompt={pickupPrompt}
+        onPickupClose={() => setPickupPrompt(null)}
       />
-
-      {pickupPrompt && (
-        <PostDeliveryPickupDialog
-          open={!!pickupPrompt}
-          onOpenChange={(open) => { if (!open) setPickupPrompt(null); }}
-          delivery={pickupPrompt.delivery}
-          bookingEndDate={pickupPrompt.bookingEndDate}
-          forkliftName={pickupPrompt.forkliftName}
-        />
-      )}
     </>
   );
 }
