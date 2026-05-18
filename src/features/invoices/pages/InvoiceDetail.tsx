@@ -8,21 +8,18 @@ import { useInvoiceDetailActions } from "@/features/invoices/hooks/invoiceDetail
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
-import { RecordPaymentDialog } from "@/features/invoices/components/invoices/RecordPaymentDialog";
 import { InvoiceFiscalDataCard } from "@/features/invoices/components/invoice-detail/InvoiceFiscalDataCard";
 import { InvoicePaymentSummary } from "@/features/invoices/components/invoice-detail/InvoicePaymentSummary";
-import { CancelCfdiDialog } from "@/features/invoices/components/invoice-detail/CancelCfdiDialog";
 import { CollectionNotesCard } from "@/features/invoices/components/invoice-detail/CollectionNotesCard";
 import { InvoiceHistoryCard } from "@/features/invoices/components/invoice-detail/InvoiceHistoryCard";
 import { InvoiceDetailActions } from "@/features/invoices/components/invoice-detail/InvoiceDetailActions";
 import { InvoiceSourceLinks } from "@/features/invoices/components/invoice-detail/InvoiceSourceLinks";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InvoiceSummaryCards } from "@/features/invoices/components/invoice-detail/InvoiceSummaryCards";
+import { InvoiceDetailDialogs } from "@/features/invoices/components/invoice-detail/InvoiceDetailDialogs";
 import { NotesCard } from "@/components/NotesCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { formatDateDisplay } from "@/lib/utils";
 import { parseLineItems } from "@/lib/lineItems";
 import type { LineItem } from "@/features/invoices/lib/invoiceUtils";
 
@@ -56,9 +53,11 @@ export default function InvoiceDetail() {
   const lineItems = parseLineItems<LineItem>(invoice.line_items);
   const cfdiStatus = invoice.cfdi_status || "pending";
   const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
-  const balance = Number(invoice.total) - totalPaid;
+  const total = Number(invoice.total);
+  const balance = total - totalPaid;
   const showCfdiError = Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped";
   const showCollectionNotes = invoice.status !== "paid" && invoice.status !== "draft";
+  const notes = invoice.notes;
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -93,76 +92,42 @@ export default function InvoiceDetail() {
         }
       />
 
-      {invoice.cfdi_uuid && (
-        <Card>
-          <CardContent className="py-3">
-            <p className="text-xs text-muted-foreground">UUID CFDI</p>
-            <p className="font-mono text-sm">{invoice.cfdi_uuid}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {showCfdiError && (
-        <Card className="border-destructive/50 bg-destructive/5">
-          <CardContent className="py-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Error de timbrado</p>
-            <p className="text-sm text-destructive/90 mt-1 whitespace-pre-wrap break-words">{invoice.cfdi_error_message}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <p className="font-medium">{invoice.customer_name || "—"}</p>
-            {invoice.receptor_rfc && <p><span className="text-muted-foreground">RFC:</span> {invoice.receptor_rfc}</p>}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <p><span className="text-muted-foreground">Emitida:</span> {formatDateDisplay(invoice.issued_at)}</p>
-            <p><span className="text-muted-foreground">Vencimiento:</span> {formatDateDisplay(invoice.due_date)}</p>
-            {invoice.paid_at && <p><span className="text-muted-foreground">Pagada:</span> {formatDateDisplay(invoice.paid_at)}</p>}
-          </CardContent>
-        </Card>
-      </div>
+      <InvoiceSummaryCards
+        customerName={invoice.customer_name}
+        rfc={invoice.receptor_rfc}
+        issuedAt={invoice.issued_at}
+        dueDate={invoice.due_date}
+        paidAt={invoice.paid_at}
+        cfdiUuid={invoice.cfdi_uuid}
+        cfdiErrorMessage={invoice.cfdi_error_message}
+        showCfdiError={showCfdiError}
+      />
 
       <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBooking={sourceBooking} />
-
       <InvoiceFiscalDataCard invoice={invoice} />
       <ReadOnlyLineItemsTable lineItems={lineItems} />
-      <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={Number(invoice.total)} />
+      <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={total} />
 
-      {invoice.notes && <NotesCard value={invoice.notes} readOnly />}
+      {notes && <NotesCard value={notes} readOnly />}
 
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
-
       <InvoiceHistoryCard invoiceId={id} />
-
       {showCollectionNotes && <CollectionNotesCard invoiceId={id} />}
 
-      <RecordPaymentDialog open={actions.paymentDialogOpen} onOpenChange={actions.setPaymentDialogOpen} invoiceId={id} balance={balance} />
-      <CancelCfdiDialog open={actions.cancelDialogOpen} onOpenChange={actions.setCancelDialogOpen} invoiceId={id} invoiceTotal={Number(invoice.total)} onSuccess={refetch} />
-
-      <AlertDialog open={actions.deleteDialogOpen} onOpenChange={actions.setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar factura {invoice.invoice_number}?</AlertDialogTitle>
-            <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará la factura y sus datos asociados permanentemente.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={actions.handleDelete}
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <InvoiceDetailDialogs
+        invoiceId={id}
+        invoiceNumber={invoice.invoice_number}
+        invoiceTotal={total}
+        balance={balance}
+        paymentOpen={actions.paymentDialogOpen}
+        setPaymentOpen={actions.setPaymentDialogOpen}
+        cancelOpen={actions.cancelDialogOpen}
+        setCancelOpen={actions.setCancelDialogOpen}
+        deleteOpen={actions.deleteDialogOpen}
+        setDeleteOpen={actions.setDeleteDialogOpen}
+        onCancelSuccess={refetch}
+        onDelete={actions.handleDelete}
+      />
     </div>
   );
 }
