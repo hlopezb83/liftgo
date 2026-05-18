@@ -42,28 +42,24 @@ export function SetPasswordDialog({ user, onClose }: Props) {
     setErrorMsg(null);
   };
 
+  const validatePassword = (): string | null => {
+    if (password.length < 8) return "La contraseña debe tener al menos 8 caracteres";
+    if (password.length > 72) return "La contraseña no puede exceder 72 caracteres";
+    if (password !== confirm) return "Las contraseñas no coinciden";
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     setErrorMsg(null);
-    if (password.length < 8) {
-      setErrorMsg("La contraseña debe tener al menos 8 caracteres");
-      return;
-    }
-    if (password.length > 72) {
-      setErrorMsg("La contraseña no puede exceder 72 caracteres");
-      return;
-    }
-    if (password !== confirm) {
-      setErrorMsg("Las contraseñas no coinciden");
-      return;
-    }
+    const validationError = validatePassword();
+    if (validationError) { setErrorMsg(validationError); return; }
     try {
       await resetPassword.mutateAsync({ userId: user.user_id, newPassword: password });
       onClose();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al actualizar contraseña";
-      setErrorMsg(msg);
+      setErrorMsg(err instanceof Error ? err.message : "Error al actualizar contraseña");
     }
   };
 
