@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-table";
 import { liftgoSortingFn } from "./sorting";
 import type { DataTableColumn, DataTableSelectionContext } from "./types";
+import { useNotifySelection, usePruneRowSelection } from "./dataTableEffects";
 
 interface Args<T> {
   columns: DataTableColumn<T>[];
