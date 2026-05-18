@@ -321,15 +321,16 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ## 17. Cómo evolucionar la arquitectura
 
-**Añadir un nuevo módulo**:
-1. Crear página en `src/pages/MyModulePage.tsx` (orquestador).
-2. Crear hook(s) de dominio en `src/hooks/useMyModule.ts` con TanStack Query.
-3. Componentes UI en `src/components/myModule/`.
-4. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"`.
-5. Agregar la URL a `src/lib/routes.ts`.
-6. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
-7. Agregar test mínimo en `src/test/`.
-8. Agregar entrada al inicio de `public/changelog.json` (versión semántica).
+**Añadir un nuevo módulo** (feature slice):
+1. Crear carpeta `src/features/<feature>/` con sub-carpetas `pages/`, `components/`, `hooks/`, `lib/`.
+2. Página orquestadora en `src/features/<feature>/pages/<Feature>Page.tsx`.
+3. Hook(s) de dominio en `src/features/<feature>/hooks/use<Feature>.ts` con TanStack Query. Si supera 80 LOC, divide en `*Query.ts` + `*Mutations.ts`.
+4. Componentes UI en `src/features/<feature>/components/`. Helpers puros en `src/features/<feature>/lib/` con sufijo `*Helpers.ts`.
+5. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"` y `lazy()`.
+6. Agregar la URL a `src/lib/routes.ts`.
+7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
+8. Agregar test mínimo en `src/test/`.
+9. Agregar entrada al inicio de `public/changelog.json` **y** crear el detalle en `public/changelog/v<X.Y.Z>.json`.
 
 **Cuándo extraer**:
 - **Hook** si hay estado/efectos compartidos o lógica > 30 líneas en un componente.
