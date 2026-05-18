@@ -1,0 +1,32 @@
+{
+  "version": "6.1.3",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Reducción de complejidad: payments, contractPayload, quote payload, audit dialog y más",
+  "category": "refactor",
+  "summary": "Cuarta oleada de refactor de complejidad (paso 12 del plan de auditoría). Warnings 37 → 27, 0 errores, 48/48 tests.",
+  "changes": [
+    { "type": "refactor", "title": "calculateRentalCost dividido", "description": "Extraídos `calcMonths` y `buildDailyRemainder` en invoiceUtils. Complejidad 19 → <12." },
+    { "type": "refactor", "title": "usePayments — syncInvoiceStatus", "description": "Lógica de recálculo de estado de factura unificada en `syncInvoiceStatus` reutilizada por create/update. Complejidad 15 → <12." },
+    { "type": "refactor", "title": "buildContractPayload con helpers", "description": "Reemplazadas cadenas `|| null` con helpers `nn`/`numOrNull`. Complejidad 15 → <12." },
+    { "type": "refactor", "title": "useQuoteFormLogic — buildQuotePayload", "description": "Payload extraído a `quoteFormHelpers` con `pickFirstModelId` y `resolveDateStrings`. handleSubmit 22 → <12." },
+    { "type": "refactor", "title": "drawInfoCardsAt modular", "description": "PDF quote header dividido en `drawIssuerColumn`, `drawCustomerColumn`, `drawDatesRow`. Complejidad 17 → <12." },
+    { "type": "refactor", "title": "AuditLogDetailDialog dividido", "description": "Subcomponentes `AuditUpdateDiffTable` y `AuditSnapshotTable` extraídos a `AuditDiffTables.tsx`. Complejidad 19 → <12." },
+    { "type": "refactor", "title": "useDataTableState — efectos extraídos", "description": "`useNotifySelection` y `usePruneRowSelection` en `dataTableEffects.ts`. Complejidad 14 → <12." },
+    { "type": "refactor", "title": "RoleGuard con resolveGuardReason", "description": "Guard centralizado en un helper de razón. Complejidad reducida." },
+    { "type": "refactor", "title": "SetPasswordDialog — validatePassword", "description": "Validación extraída a helper puro. Complejidad 15 → <12." },
+    { "type": "refactor", "title": "checklistPage PDF modular", "description": "`drawChecklistItem`, `drawGeneralInfoBlock`, `drawChecklistSection` extraídos." },
+    { "type": "refactor", "title": "EquipmentAssignmentDialog — buildAssignmentSlots", "description": "Generación de slots fuera del componente." },
+    { "type": "refactor", "title": "useCustomerDetailPage / Actions con maps de campos", "description": "`EDIT_FIELDS` y `OPTIONAL_NULL_FIELDS` eliminan cadenas de `|| \"\"` y `|| null`." },
+    { "type": "refactor", "title": "useDashboardSections — computeAgingBuckets", "description": "Función pura `bucketFor` + `computeAgingBuckets` reemplaza if-else encadenado." },
+    { "type": "refactor", "title": "useProspectForm — matchingQuotes simplificado", "description": "Sort con helper `matches` único." },
+    { "type": "refactor", "title": "Dashboard — props agrupados", "description": "Defaults `?? 0` y `?? []` consolidados en objetos `financials`/`alertsProps`." },
+    { "type": "refactor", "title": "ActorAvatar privatizado", "description": "`actorInitials`/`actorColor` ya no se exportan, satisfaciendo `react-refresh/only-export-components`." }
+  ],
+  "metrics": {
+    "warnings_before": 37,
+    "warnings_after": 27,
+    "errors": 0,
+    "tests": "48/48 ✓"
+  }
+}
