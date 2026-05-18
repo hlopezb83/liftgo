@@ -31,6 +31,14 @@ export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole, paidDate, setPaidDate, paidPopoverOpen, setPaidPopoverOpen,
   isStamping, onSent, onConfirmPaid, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
+  const status = invoice.status;
+  const isDraft = status === "draft";
+  const isPayable = status === "sent" || status === "overdue";
+  const showPaymentBtn = isPayable || status === "partial";
+  const canEdit = isDraft || userRole === "admin";
+  const canStamp = cfdiStatus === "pending" && !isDraft;
+  const isStamped = cfdiStatus === "stamped";
+
   return (
     <>
       {invoice.status === "draft" && (
