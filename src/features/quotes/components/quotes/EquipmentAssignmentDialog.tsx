@@ -41,6 +41,8 @@ function buildAssignmentSlots(rentalMeta: RentalLineMeta[], models: EquipmentMod
   }
   return result;
 }
+
+interface EquipmentAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rentalMeta: RentalLineMeta[];
