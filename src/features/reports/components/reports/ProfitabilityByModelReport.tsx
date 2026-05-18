@@ -30,6 +30,12 @@ interface ModelRow {
   margin: number;
 }
 
+interface Forklift { id: string; name: string; manufacturer?: string | null; model?: string | null }
+interface Booking { id: string; forklift_id: string }
+interface Invoice { status: string; paid_at: string | null; booking_id: string | null; total: number | string }
+interface MaintLog { forklift_id: string; performed_at: string | null; cost: number | string | null }
+interface DamageRec { forklift_id: string; created_at: string | null; actual_cost: number | string | null }
+
 function inRange(dateStr: string | null | undefined, start: Date, end: Date) {
   if (!dateStr) return false;
   try {
@@ -39,54 +45,69 @@ function inRange(dateStr: string | null | undefined, start: Date, end: Date) {
   }
 }
 
+function buildModelUnitsMap(forklifts: Forklift[]) {
+  const forkliftModel = new Map<string, string>();
+  const modelUnits = new Map<string, Set<string>>();
+  for (const f of forklifts) {
+    const key = [f.manufacturer, f.model].filter(Boolean).join(" ") || f.name;
+    forkliftModel.set(f.id, key);
+    if (!modelUnits.has(key)) modelUnits.set(key, new Set());
+    modelUnits.get(key)?.add(f.id);
+  }
+  return { forkliftModel, modelUnits };
+}
+
+function buildRevenueMap(invoices: Invoice[], bookings: Booking[], start: Date, end: Date) {
+  const bookingForklift = new Map<string, string>();
+  for (const b of bookings) bookingForklift.set(b.id, b.forklift_id);
+  const map = new Map<string, number>();
+  for (const inv of invoices) {
+    if (inv.status !== "paid" || !inRange(inv.paid_at, start, end)) continue;
+    const fId = inv.booking_id ? bookingForklift.get(inv.booking_id) : undefined;
+    if (!fId) continue;
+    map.set(fId, (map.get(fId) || 0) + Number(inv.total));
+  }
+  return map;
+}
+
+function buildCostMap<T extends { forklift_id: string }>(items: T[], dateOf: (i: T) => string | null, costOf: (i: T) => number, start: Date, end: Date) {
+  const map = new Map<string, number>();
+  for (const it of items) {
+    if (!inRange(dateOf(it), start, end)) continue;
+    map.set(it.forklift_id, (map.get(it.forklift_id) || 0) + costOf(it));
+  }
+  return map;
+}
+
+function aggregateRows(modelUnits: Map<string, Set<string>>, revenueByForklift: Map<string, number>, maintByForklift: Map<string, number>, dmgByForklift: Map<string, number>): ModelRow[] {
+  const result: ModelRow[] = [];
+  for (const [model, ids] of modelUnits) {
+    let revenue = 0, maintenance = 0, damages = 0;
+    for (const fId of ids) {
+      revenue += revenueByForklift.get(fId) || 0;
+      maintenance += maintByForklift.get(fId) || 0;
+      damages += dmgByForklift.get(fId) || 0;
+    }
+    const profit = revenue - maintenance - damages;
+    const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+    result.push({ model, units: ids.size, revenue, maintenance, damages, profit, margin });
+  }
+  return result.sort((a, b) => b.profit - a.profit);
+}
+
 export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
   const { data: forklifts = [] } = useForklifts();
   const { data: bookings = [] } = useBookings();
   const { data: invoices = [] } = useInvoices();
   const { data: maintenanceLogs = [] } = useMaintenanceLogs();
   const { data: damageRecords = [] } = useDamageRecords();
+
   const rows = useMemo<ModelRow[]>(() => {
-    const forkliftModel = new Map<string, string>();
-    const modelUnits = new Map<string, Set<string>>();
-    for (const f of forklifts) {
-      const key = [f.manufacturer, f.model].filter(Boolean).join(" ") || f.name;
-      forkliftModel.set(f.id, key);
-      if (!modelUnits.has(key)) modelUnits.set(key, new Set());
-      const set = modelUnits.get(key);
-      if (set) set.add(f.id);
-    }
-    const bookingForklift = new Map<string, string>();
-    for (const b of bookings) bookingForklift.set(b.id, b.forklift_id);
-    const revenueByForklift = new Map<string, number>();
-    for (const inv of invoices) {
-      if (inv.status !== "paid" || !inRange(inv.paid_at, startDate, endDate)) continue;
-      const fId = inv.booking_id ? bookingForklift.get(inv.booking_id) : undefined;
-      if (!fId) continue;
-      revenueByForklift.set(fId, (revenueByForklift.get(fId) || 0) + Number(inv.total));
-    }
-    const maintByForklift = new Map<string, number>();
-    for (const log of maintenanceLogs) {
-      if (!inRange(log.performed_at, startDate, endDate)) continue;
-      maintByForklift.set(log.forklift_id, (maintByForklift.get(log.forklift_id) || 0) + Number(log.cost || 0));
-    }
-    const dmgByForklift = new Map<string, number>();
-    for (const d of damageRecords) {
-      if (!inRange(d.created_at, startDate, endDate)) continue;
-      dmgByForklift.set(d.forklift_id, (dmgByForklift.get(d.forklift_id) || 0) + Number(d.actual_cost || 0));
-    }
-    const result: ModelRow[] = [];
-    for (const [model, ids] of modelUnits) {
-      let revenue = 0, maintenance = 0, damages = 0;
-      for (const fId of ids) {
-        revenue += revenueByForklift.get(fId) || 0;
-        maintenance += maintByForklift.get(fId) || 0;
-        damages += dmgByForklift.get(fId) || 0;
-      }
-      const profit = revenue - maintenance - damages;
-      const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-      result.push({ model, units: ids.size, revenue, maintenance, damages, profit, margin });
-    }
-    return result.sort((a, b) => b.profit - a.profit);
+    const { modelUnits } = buildModelUnitsMap(forklifts as Forklift[]);
+    const revenueByForklift = buildRevenueMap(invoices as Invoice[], bookings as Booking[], startDate, endDate);
+    const maintByForklift = buildCostMap(maintenanceLogs as MaintLog[], (l) => l.performed_at, (l) => Number(l.cost || 0), startDate, endDate);
+    const dmgByForklift = buildCostMap(damageRecords as DamageRec[], (d) => d.created_at, (d) => Number(d.actual_cost || 0), startDate, endDate);
+    return aggregateRows(modelUnits, revenueByForklift, maintByForklift, dmgByForklift);
   }, [forklifts, invoices, bookings, maintenanceLogs, damageRecords, startDate, endDate]);
 
   const columns = useMemo(() => [
@@ -131,10 +152,7 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" tickFormatter={(v: number) => formatCurrency(v)} />
                 <YAxis type="category" dataKey="model" width={160} tick={{ fontSize: 12 }} />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  formatter={(value: number) => formatCurrency(value)}
-                />
+                <ChartTooltip content={<ChartTooltipContent />} formatter={(value: number) => formatCurrency(value)} />
                 <Bar dataKey="profit" name="Ganancia Neta" radius={[0, 4, 4, 0]}>
                   {rows.map((r, i) => (
                     <Cell key={i} fill={r.profit >= 0 ? "hsl(var(--chart-2))" : "hsl(var(--destructive))"} />
@@ -147,9 +165,7 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Detalle por Modelo</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Detalle por Modelo</CardTitle></CardHeader>
         <CardContent>
           <DataTable
             data={rows}
