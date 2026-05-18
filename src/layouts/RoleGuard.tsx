@@ -15,18 +15,34 @@ function hasSufficientAccess(level: AccessLevel, required: AccessLevel): boolean
   return ACCESS_HIERARCHY.indexOf(level) >= ACCESS_HIERARCHY.indexOf(required);
 }
 
+function resolveGuardReason(args: {
+  loading: boolean;
+  error: boolean;
+  role: string | null | undefined;
+}): "loading" | "error" | "no-role" | "ok" {
+  if (args.loading) return "loading";
+  if (args.error) return "error";
+  if (!args.role) return "no-role";
+  return "ok";
+}
+
 export function RoleGuard({ module, minAccess = "read", children, fallback }: RoleGuardProps) {
   const { data: role, isLoading: roleLoading, isError: roleError } = useUserRole();
   const { data: perms, isLoading: permsLoading, isError: permsError } = useRolePermissions();
 
-  if (roleLoading || permsLoading) return null;
-  if (roleError || permsError) return fallback ?? <NoAccess module={module} reason="error" />;
-  if (!role) return fallback ?? <NoAccess module={module} reason="no-role" />;
+  const reason = resolveGuardReason({
+    loading: roleLoading || permsLoading,
+    error: roleError || permsError,
+    role,
+  });
+  if (reason === "loading") return null;
+  if (reason === "error") return <>{fallback ?? <NoAccess module={module} reason="error" />}</>;
+  if (reason === "no-role") return <>{fallback ?? <NoAccess module={module} reason="no-role" />}</>;
 
-  if (module && perms) {
+  if (module && perms && role) {
     const level = getAccessLevel(perms, role, module);
     if (!hasSufficientAccess(level, minAccess)) {
-      return fallback ?? <NoAccess module={module} reason="forbidden" requiredAccess={minAccess} currentAccess={level} />;
+      return <>{fallback ?? <NoAccess module={module} reason="forbidden" requiredAccess={minAccess} currentAccess={level} />}</>;
     }
   }
 
