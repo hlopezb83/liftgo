@@ -81,4 +81,4 @@ export function AuditSnapshotTable({
   );
 }
 
-export { visibleFields };
+
