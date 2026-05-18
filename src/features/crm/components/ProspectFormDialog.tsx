@@ -8,6 +8,12 @@ import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActio
 import { ProspectFormFields } from "./prospect-form/ProspectFormFields";
 import type { Prospect } from "@/hooks/useProspects";
 
+function buildDescription(prospect: Prospect | null | undefined, overrideStage?: string) {
+  if (overrideStage && prospect) return "Confirma los datos antes de mover el prospecto de etapa.";
+  if (prospect) return "Actualiza la información del prospecto.";
+  return "Agrega un nuevo prospecto al pipeline.";
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
