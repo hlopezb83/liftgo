@@ -4,6 +4,20 @@ import { useUpdateCustomer, useDeleteCustomer } from "@/features/customers/hooks
 import { useInviteCustomer } from "@/features/customers/hooks/customers/useInviteCustomer";
 import type { CustomerFormData } from "@/lib/formSchemas";
 
+const OPTIONAL_NULL_FIELDS = [
+  "email", "phone", "address", "notes", "website", "contact_person",
+  "rfc", "regimen_fiscal", "uso_cfdi", "domicilio_fiscal_cp", "representante_legal",
+] as const;
+
+function customerFormToUpdate(form: CustomerFormData) {
+  const base: Record<string, string | null> = { name: form.name, company: form.name };
+  for (const k of OPTIONAL_NULL_FIELDS) {
+    const v = form[k as keyof CustomerFormData];
+    base[k] = (typeof v === "string" ? v : "") || null;
+  }
+  return base;
+}
+
 interface Params {
   id: string | undefined;
   inviteEmail: string;
