@@ -1,4 +1,4 @@
-import type { CustomerFormData } from "@/features/customers/components/customers/CustomerForm";
+import type { CustomerFormData } from "@/lib/formSchemas";
 
 export function buildCustomerPayload(form: CustomerFormData) {
   return {
