@@ -102,7 +102,7 @@ export default function InvoiceDetail() {
         </Card>
       )}
 
-      {invoice.cfdi_error_message && cfdiStatus !== "stamped" && (
+      {showCfdiError && (
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="py-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Error de timbrado</p>
@@ -139,14 +139,12 @@ export default function InvoiceDetail() {
 
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={payments || []} />
 
-      {id && <InvoiceHistoryCard invoiceId={id} />}
+      <InvoiceHistoryCard invoiceId={id} />
 
-      {id && invoice.status !== "paid" && invoice.status !== "draft" && (
-        <CollectionNotesCard invoiceId={id} />
-      )}
+      {showCollectionNotes && <CollectionNotesCard invoiceId={id} />}
 
-      {id && <RecordPaymentDialog open={actions.paymentDialogOpen} onOpenChange={actions.setPaymentDialogOpen} invoiceId={id} balance={balance} />}
-      {id && <CancelCfdiDialog open={actions.cancelDialogOpen} onOpenChange={actions.setCancelDialogOpen} invoiceId={id} invoiceTotal={Number(invoice.total)} onSuccess={refetch} />}
+      <RecordPaymentDialog open={actions.paymentDialogOpen} onOpenChange={actions.setPaymentDialogOpen} invoiceId={id} balance={balance} />
+      <CancelCfdiDialog open={actions.cancelDialogOpen} onOpenChange={actions.setCancelDialogOpen} invoiceId={id} invoiceTotal={Number(invoice.total)} onSuccess={refetch} />
 
       <AlertDialog open={actions.deleteDialogOpen} onOpenChange={actions.setDeleteDialogOpen}>
         <AlertDialogContent>
