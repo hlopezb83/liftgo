@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useFormState } from "@/hooks/useFormState";
 import { toast } from "sonner";
 import { Image as ImageIcon, Save, CheckCircle2, AlertCircle, ImageOff } from "lucide-react";
-import { LogoUploader } from "@/components/company-settings/LogoUploader";
+import { LogoUploader } from "@/features/company-settings/components/company-settings/LogoUploader";
 
 export function CompanyLogoTab() {
   const { data: settings, isLoading } = useCompanySettings();

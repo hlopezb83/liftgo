@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { APP_CONFIG } from "@/lib/config";
-import { CustomerSelector } from "@/components/customers/CustomerSelector";
+import { CustomerSelector } from "@/features/customers/components/customers/CustomerSelector";
 import { DatePickerField } from "@/components/DatePickerField";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { FormActions } from "@/components/FormActions";

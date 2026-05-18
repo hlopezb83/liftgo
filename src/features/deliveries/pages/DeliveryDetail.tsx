@@ -8,7 +8,7 @@ import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap"
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NotesCard } from "@/components/NotesCard";
-import { SignaturePad } from "@/components/contracts/SignaturePad";
+import { SignaturePad } from "@/features/contracts/components/contracts/SignaturePad";
 import { PostDeliveryPickupDialog } from "@/features/deliveries/components/deliveries/PostDeliveryPickupDialog";
 import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,

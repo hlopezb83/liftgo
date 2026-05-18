@@ -10,7 +10,7 @@ import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
 import { TableRow } from "@/components/ui/table";
-import { MarkAvailableDialog } from "@/components/fleet/MarkAvailableDialog";
+import { MarkAvailableDialog } from "@/features/fleet/components/fleet/MarkAvailableDialog";
 import { RoleGuard } from "@/components/RoleGuard";
 import { MaintenanceDetailSheet } from "@/features/maintenance/components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFormDialog } from "@/features/maintenance/components/maintenance/MaintenanceFormDialog";

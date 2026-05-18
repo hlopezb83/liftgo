@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
+import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
 import {
   EXPENSE_CATEGORY_LABELS, useUpdateExpense, type ExpenseCategory, type OperatingExpense,
 } from "@/features/expenses/hooks/useOperatingExpenses";

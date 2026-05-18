@@ -13,7 +13,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DocumentAttachments } from "@/components/DocumentAttachments";
 import { NotesCard } from "@/components/NotesCard";
-import { DamagePhotosSection } from "@/components/damage/DamagePhotosSection";
+import { DamagePhotosSection } from "@/features/damage/components/damage/DamagePhotosSection";
 import { ForkliftSpecsCard } from "@/features/fleet/components/forklift-detail/ForkliftSpecsCard";
 import { ForkliftRatesCard } from "@/features/fleet/components/forklift-detail/ForkliftRatesCard";
 import { ForkliftBookingsList } from "@/features/fleet/components/forklift-detail/ForkliftBookingsList";

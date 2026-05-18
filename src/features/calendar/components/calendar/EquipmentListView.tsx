@@ -7,7 +7,7 @@ import { nowMty, formatMtyDate } from "@/lib/utils";
 
 import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
-import { RecurringBillingBadge } from "@/components/bookings/RecurringBillingBadge";
+import { RecurringBillingBadge } from "@/features/bookings/components/bookings/RecurringBillingBadge";
 
 type Forklift = Tables<"forklifts">;
 

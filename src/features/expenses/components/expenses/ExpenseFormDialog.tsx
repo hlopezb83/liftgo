@@ -14,7 +14,7 @@ import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { expenseFormSchema, type ExpenseFormData } from "@/lib/formSchemas";
 import { useCreateExpense, EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
-import { SupplierSelector } from "@/components/suppliers/SupplierSelector";
+import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
 
 const EXCLUDED_CATEGORIES = ["software", "depreciacion"];
 
