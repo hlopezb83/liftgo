@@ -27,14 +27,20 @@ interface AssignmentSlot {
   monthlyRate: number;
 }
 
+function resolveRates(line: RentalLineMeta, model: EquipmentModel | undefined) {
+  return {
+    daily: line.dailyRate ?? model?.default_daily_rate ?? 0,
+    weekly: line.weeklyRate ?? model?.default_weekly_rate ?? 0,
+    monthly: line.monthlyRate ?? model?.default_monthly_rate ?? 0,
+  };
+}
+
 function buildAssignmentSlots(rentalMeta: RentalLineMeta[], models: EquipmentModel[]): AssignmentSlot[] {
   const result: AssignmentSlot[] = [];
   for (const line of rentalMeta) {
     const model = models.find((m) => m.id === line.modelId);
     const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
-    const daily = line.dailyRate ?? model?.default_daily_rate ?? 0;
-    const weekly = line.weeklyRate ?? model?.default_weekly_rate ?? 0;
-    const monthly = line.monthlyRate ?? model?.default_monthly_rate ?? 0;
+    const { daily, weekly, monthly } = resolveRates(line, model);
     for (let i = 0; i < line.quantity; i++) {
       result.push({ modelId: line.modelId, modelName, forkliftId: "", dailyRate: daily, weeklyRate: weekly, monthlyRate: monthly });
     }

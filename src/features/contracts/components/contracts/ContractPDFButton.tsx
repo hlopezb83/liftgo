@@ -29,24 +29,20 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
       const logoBase64 = await fetchLogoBase64(company?.logo_url);
       const doc = new jsPDF();
 
-      if (mode === "full" || mode === "contract") {
+      const wantsContract = mode === "full" || mode === "contract";
+      const wantsChecklist = mode === "full" || mode === "checklist";
+      const wantsPagare = mode === "full" || mode === "pagare";
+
+      if (wantsContract) {
         generateContractPages(doc, contract, company, customer, forklift, logoBase64, tpl, vars);
       }
-      if (mode === "full" || mode === "checklist") {
-        if (mode === "checklist") {
-          generateChecklistPage(doc, contract, company, customer, forklift, tpl);
-          doc.deletePage(1);
-        } else {
-          generateChecklistPage(doc, contract, company, customer, forklift, tpl);
-        }
+      if (wantsChecklist) {
+        generateChecklistPage(doc, contract, company, customer, forklift, tpl);
+        if (mode === "checklist") doc.deletePage(1);
       }
-      if (mode === "full" || mode === "pagare") {
-        if (mode === "pagare") {
-          generatePagarePage(doc, contract, company, customer, tpl, vars);
-          doc.deletePage(1);
-        } else {
-          generatePagarePage(doc, contract, company, customer, tpl, vars);
-        }
+      if (wantsPagare) {
+        generatePagarePage(doc, contract, company, customer, tpl, vars);
+        if (mode === "pagare") doc.deletePage(1);
       }
 
       const suffix = mode === "full" ? "" : `-${mode}`;

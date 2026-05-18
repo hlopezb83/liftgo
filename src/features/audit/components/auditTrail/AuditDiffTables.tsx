@@ -2,19 +2,8 @@ import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@
 import {
   translateField,
   formatAuditValue,
-  HIDDEN_DIFF_FIELDS,
 } from "./auditTrailConstants";
-
-function visibleFields(fields: string[] | null | undefined): string[] {
-  return (fields ?? []).filter((f) => !HIDDEN_DIFF_FIELDS.has(f));
-}
-
-function visibleSnapshot(data: Record<string, unknown> | null | undefined): [string, unknown][] {
-  if (!data) return [];
-  return Object.entries(data)
-    .filter(([k, v]) => !HIDDEN_DIFF_FIELDS.has(k) && v !== null && v !== "")
-    .sort(([a], [b]) => translateField(a).localeCompare(translateField(b)));
-}
+import { visibleFields, visibleSnapshot } from "./auditDiffHelpers";
 
 export function AuditUpdateDiffTable({
   changedFields, oldData, newData,
@@ -92,4 +81,4 @@ export function AuditSnapshotTable({
   );
 }
 
-export { visibleFields };
+

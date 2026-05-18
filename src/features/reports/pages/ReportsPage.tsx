@@ -16,6 +16,20 @@ import { AgingReport } from "@/features/reports/components/reports/AgingReport";
 import { subMonths } from "date-fns";
 import { nowMty } from "@/lib/utils";
 
+import type { ComponentType } from "react";
+
+interface ReportProps { startDate: Date; endDate: Date }
+
+const REPORT_COMPONENTS: Record<string, ComponentType<ReportProps>> = {
+  utilization: UtilizationReport,
+  "utilization-model": UtilizationByModelReport,
+  revenue: RevenueReport,
+  maintenance: MaintenanceCostReport,
+  profitability: ProfitabilityByModelReport,
+  "income-statement": IncomeStatementReport,
+  aging: AgingReport,
+};
+
 const REPORT_TYPES = [
   { value: "utilization", label: "Utilización de Flota" },
   { value: "utilization-model", label: "Utilización por Modelo" },
@@ -57,27 +71,10 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {reportType === "utilization" && (
-        <UtilizationReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "utilization-model" && (
-        <UtilizationByModelReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "revenue" && (
-        <RevenueReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "maintenance" && (
-        <MaintenanceCostReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "profitability" && (
-        <ProfitabilityByModelReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "income-statement" && (
-        <IncomeStatementReport startDate={startDate} endDate={endDate} />
-      )}
-      {reportType === "aging" && (
-        <AgingReport startDate={startDate} endDate={endDate} />
-      )}
+      {(() => {
+        const Comp = REPORT_COMPONENTS[reportType];
+        return Comp ? <Comp startDate={startDate} endDate={endDate} /> : null;
+      })()}
     </div>
     </PageTransition>
   );
