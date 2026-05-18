@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
-import AuthPage from "@/pages/AuthPage";
+import AuthPage from "@/features/auth/pages/AuthPage";
 import { CustomerPortalRoutes } from "@/layouts/CustomerPortalRoutes";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
