@@ -20,6 +20,7 @@ import { useActiveMechanics } from "@/features/maintenance/hooks/maintenance/use
 import { useMaintenanceForm } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
+import { enrichLogs, maintenanceSortAccessors, maintenanceCsvRows, sumCost, forkliftName } from "@/features/maintenance/lib/maintenancePageHelpers";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
