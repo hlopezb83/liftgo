@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable, type DataTableColumn } from "@/components/DataTable";
+import { SupplierContactCard } from "@/features/suppliers/components/suppliers/SupplierContactCard";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { Mail, Phone, Globe, MapPin, FileText, Wrench, DollarSign } from "lucide-react";
+import { FileText, Wrench, DollarSign } from "lucide-react";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
 type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string; service_type: string; cost: number | null };
