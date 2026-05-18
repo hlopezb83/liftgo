@@ -107,14 +107,28 @@ export function useDashboardSections() {
     { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
   ], [counts, activeFleet]);
 
+  const financials = {
+    mrr: kpis?.mrr ?? 0,
+    dso: kpis?.dso ?? 0,
+    overdueTotal: kpis?.overdue_total ?? 0,
+  };
+
+  const alertsProps = {
+    overdueBookings: stats?.overdue_bookings ?? [],
+    upcomingInvoices: upcomingInvoices ?? [],
+    expiringContracts: kpis?.expiring_contracts ?? [],
+  };
+
   return {
     isLoading,
-    stats, kpis, insuranceData, upcomingInvoices,
+    insuranceData,
     statCards,
     utilizationPercent,
     pieData, agingBuckets, maintenanceAlerts,
     weeklyUtilization, revenuePerUnit, invoiceBreakdown, cashFlowData,
     overdueInvoices,
     outstandingRevenue: stats?.invoice_stats?.outstanding_revenue ?? 0,
+    financials,
+    alertsProps,
   };
 }
