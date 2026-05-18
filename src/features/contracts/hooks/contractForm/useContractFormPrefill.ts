@@ -67,6 +67,7 @@ export function useContractFormPrefill({
     const forklift = forklifts?.find((f) => f.id === form.forklift_id);
     if (!customer || !forklift) return;
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- form fields enumerated explicitly below
     const text = replacePlaceholders(
       template.body_text,
       buildTemplateReplacements({ company, customer, forklift, form }),
