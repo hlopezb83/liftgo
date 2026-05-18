@@ -48,17 +48,7 @@ export function useDashboardSections() {
 
   const overdueInvoices = useMemo(() => stats?.overdue_invoices ?? [], [stats?.overdue_invoices]);
 
-  const agingBuckets = useMemo(() => {
-    const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
-    overdueInvoices.forEach((inv) => {
-      const days = differenceInDays(nowMty(), parseISO(inv.due_date));
-      if (days <= 30) buckets["0-30"] += Number(inv.total);
-      else if (days <= 60) buckets["31-60"] += Number(inv.total);
-      else if (days <= 90) buckets["61-90"] += Number(inv.total);
-      else buckets["90+"] += Number(inv.total);
-    });
-    return Object.entries(buckets).map(([range, total]) => ({ range, total })).filter((b) => b.total > 0);
-  }, [overdueInvoices]);
+  const agingBuckets = useMemo(() => computeAgingBuckets(overdueInvoices), [overdueInvoices]);
 
   const maintenanceAlerts = useMemo(() =>
     (stats?.maintenance_alerts ?? []).map((a) => ({
