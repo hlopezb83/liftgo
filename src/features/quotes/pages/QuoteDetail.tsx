@@ -2,16 +2,14 @@ import { useParams } from "react-router-dom";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NotesCard } from "@/components/NotesCard";
-import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { STATUS_LABELS } from "@/lib/constants";
 import { AssignForkliftsCard } from "@/features/quotes/components/quotes/AssignForkliftsCard";
 import { QuoteDetailActions } from "@/features/quotes/components/quotes/QuoteDetailActions";
 import { QuoteConversionDialogs } from "@/features/quotes/components/quotes/QuoteConversionDialogs";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { QuoteCustomerCard } from "@/features/quotes/components/quotes/QuoteCustomerCard";
+import { QuoteDatesCard } from "@/features/quotes/components/quotes/QuoteDatesCard";
+import { QuoteHeaderBadges } from "@/features/quotes/components/quotes/QuoteHeaderBadges";
 import { useQuoteDetailLogic } from "@/features/quotes/hooks/useQuoteDetailLogic";
 
 export default function QuoteDetail() {
@@ -28,6 +26,7 @@ export default function QuoteDetail() {
   if (!quote) return <div className="p-6 text-muted-foreground">Cotización no encontrada</div>;
 
   const currency = (quote as unknown as { currency?: string }).currency;
+  const showAssignCard = isSale && quote.status === "accepted";
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -35,11 +34,12 @@ export default function QuoteDetail() {
         title={quote.quote_number}
         backTo="/quotes"
         badges={
-          <div className="flex gap-2 items-center">
-            <StatusBadge status={quote.status} />
-            <Badge variant={isSale ? "default" : "secondary"}>{STATUS_LABELS[quoteType] || quoteType}</Badge>
-            {currency && currency !== "MXN" && <Badge variant="outline">{currency}</Badge>}
-          </div>
+          <QuoteHeaderBadges
+            status={quote.status}
+            quoteType={quoteType}
+            isSale={isSale}
+            currency={currency}
+          />
         }
         actions={
           <QuoteDetailActions
@@ -55,30 +55,17 @@ export default function QuoteDetail() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-          <CardContent>
-            <p className="font-medium">{quote.customer_name || "—"}</p>
-            {customerMatch?.rfc && <p className="text-sm text-muted-foreground">RFC: {customerMatch.rfc}</p>}
-            {customerMatch?.domicilio_fiscal_cp && <p className="text-sm text-muted-foreground">C.P. {customerMatch.domicilio_fiscal_cp}</p>}
-          </CardContent>
-        </Card>
-        {!isSale ? (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              <p><span className="text-muted-foreground">Periodo:</span> {formatDateRange(quote.start_date, quote.end_date)}</p>
-              <p><span className="text-muted-foreground">Válida Hasta:</span> {formatDateDisplay(quote.valid_until)}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Vigencia</CardTitle></CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              <p><span className="text-muted-foreground">Válida Hasta:</span> {formatDateDisplay(quote.valid_until)}</p>
-            </CardContent>
-          </Card>
-        )}
+        <QuoteCustomerCard
+          customerName={quote.customer_name}
+          rfc={customerMatch?.rfc}
+          cp={customerMatch?.domicilio_fiscal_cp}
+        />
+        <QuoteDatesCard
+          isSale={isSale}
+          startDate={quote.start_date}
+          endDate={quote.end_date}
+          validUntil={quote.valid_until}
+        />
       </div>
 
       <ReadOnlyLineItemsTable lineItems={lineItems} />
@@ -93,7 +80,7 @@ export default function QuoteDetail() {
 
       {quote.notes && <NotesCard value={quote.notes} readOnly />}
 
-      {isSale && quote.status === "accepted" && (
+      {showAssignCard && (
         <AssignForkliftsCard quoteId={quote.id} lineItems={lineItems} />
       )}
 
