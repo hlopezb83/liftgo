@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "@/features/feedback/hooks/useFeedbackReports";
+import { useFeedbackScreenshotUrl } from "@/features/feedback/hooks/useFeedbackScreenshotUrl";
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import {
   FEEDBACK_STATUS_LABELS,
@@ -25,19 +25,13 @@ interface Props {
 export function FeedbackDetailSheet({ report, onClose }: Props) {
   const [newStatus, setNewStatus] = useState<FeedbackStatus | "">("");
   const [comment, setComment] = useState("");
-  const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const update = useUpdateFeedbackStatus();
   const { data: history } = useFeedbackHistory(report?.id ?? null);
+  const { data: signedUrl } = useFeedbackScreenshotUrl(report?.screenshot_url);
 
   useEffect(() => {
     setNewStatus("");
     setComment("");
-    setSignedUrl(null);
-    if (!report?.screenshot_url) return;
-    let active = true;
-    supabase.storage.from("feedback-screenshots").createSignedUrl(report.screenshot_url, 600)
-      .then(({ data }) => { if (active && data) setSignedUrl(data.signedUrl); });
-    return () => { active = false; };
   }, [report]);
 
   if (!report) return null;
