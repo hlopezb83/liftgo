@@ -35,6 +35,8 @@ export function InvoiceDetailDialogs({
   invoiceNumber,
   invoiceTotal,
   balance,
+  notes,
+  showCollectionNotes,
   paymentOpen,
   setPaymentOpen,
   cancelOpen,
@@ -46,6 +48,8 @@ export function InvoiceDetailDialogs({
 }: Props) {
   return (
     <>
+      {notes && <NotesCard value={notes} readOnly />}
+      {showCollectionNotes && <CollectionNotesCard invoiceId={invoiceId} />}
       <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} />
       <CancelCfdiDialog open={cancelOpen} onOpenChange={setCancelOpen} invoiceId={invoiceId} invoiceTotal={invoiceTotal} onSuccess={onCancelSuccess} />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
