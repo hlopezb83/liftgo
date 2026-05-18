@@ -1,0 +1,18 @@
+{
+  "version": "6.2.0",
+  "date": "2026-05-18",
+  "type": "minor",
+  "title": "Auditoría arquitectónica: hooks de dominio reubicados y splits estructurales",
+  "category": "refactor",
+  "highlights": [
+    "Hooks de dominio movidos a su feature dueña: useProspects → crm, usePayments → invoices, useUserManual → help.",
+    "Hooks >120 LOC divididos en query + mutations: useForklifts, useOperatingExpenses, useBookings, usePartsInventory, useProspects.",
+    "Componentes UI >150 LOC modularizados: CRMPage, Fleet, AssignForkliftsCard, SupplierFormDialog, BookingActions.",
+    "Código muerto eliminado (canPromptPickup) y knip.json simplificado (7 entradas redundantes)."
+  ],
+  "metrics": {
+    "eslint_warnings": 0,
+    "tests": "48/48 PASS",
+    "knip_dead_exports": 0
+  }
+}
