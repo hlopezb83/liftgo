@@ -387,6 +387,20 @@ Cuando un hook supera ~80 LOC, divídelo en `<entity>Query.ts` + `<entity>Mutati
 
 No usar el sufijo `*Utils.ts` en código nuevo.
 
+### Límites de tamaño (Power of 10 aplicado)
+
+- **Componentes React: ≤150 LOC.** Si excede, extrae sub-componentes por responsabilidad (toolbar, fields, dialogs) al mismo directorio.
+- **Hooks: ≤80 LOC.** Si excede, divide en `*Query` + `*Mutations` o extrae helpers puros a un archivo hermano (`*Builders.ts`, `*Validation.ts`, `*Payload.ts`).
+- **Archivos en `lib/`: sin tope estricto** mientras cada función pública sea ≤40 LOC y de responsabilidad única.
+
+**Excepciones permitidas** (no requieren división):
+1. Tablas densas read-only con muchas columnas (UI plana sin lógica).
+2. Generadores de PDF (`src/lib/pdf/**`) donde la coherencia visual exige mantener el flujo en un único archivo.
+3. Componentes shadcn upstream (`src/components/ui/**`) — no se tocan para preservar compatibilidad con actualizaciones.
+4. Archivos de tipos puros o constantes sin lógica ejecutable.
+
+Toda excepción debe ser justificable por una de las cuatro razones anteriores. En PR, prefiere dividir antes que excepcionar.
+
 ---
 
 ## 20. Referencias
