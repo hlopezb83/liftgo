@@ -59,3 +59,45 @@ export function mapInvoiceBreakdown(raw?: Array<{ status: string; count: number;
     color: INVOICE_STATUS_COLORS[b.status] ?? "hsl(var(--status-draft))",
   }));
 }
+
+type StatsLike = {
+  weekly_utilization?: Array<{ week_label: string; utilization: number }>;
+  utilization?: Array<{ name: string; revenue: number }>;
+  cash_flow?: Array<{ month: string; invoiced: number; paid: number }>;
+  invoice_stats?: { outstanding_revenue?: number };
+  overdue_bookings?: unknown[];
+};
+
+export function mapWeeklyUtilization(stats?: StatsLike) {
+  return (stats?.weekly_utilization ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization }));
+}
+
+export function mapRevenuePerUnit(stats?: StatsLike) {
+  return (stats?.utilization ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue }));
+}
+
+export function mapCashFlow(stats?: StatsLike) {
+  return (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid }));
+}
+
+type KpisLike = { mrr?: number; dso?: number; overdue_total?: number; expiring_contracts?: unknown[] };
+
+export function buildFinancials(kpis?: KpisLike) {
+  return {
+    mrr: kpis?.mrr ?? 0,
+    dso: kpis?.dso ?? 0,
+    overdueTotal: kpis?.overdue_total ?? 0,
+  };
+}
+
+export function buildAlertsProps(stats: StatsLike | undefined, upcomingInvoices: unknown[] | undefined, kpis: KpisLike | undefined) {
+  return {
+    overdueBookings: stats?.overdue_bookings ?? [],
+    upcomingInvoices: upcomingInvoices ?? [],
+    expiringContracts: kpis?.expiring_contracts ?? [],
+  };
+}
+
+export function computeUtilizationPercent(counts: FleetCounts, activeFleet: number) {
+  return activeFleet > 0 ? Math.round((counts.rented / activeFleet) * 100) : 0;
+}
