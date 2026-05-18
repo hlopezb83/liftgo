@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "@/features/feedback/hooks/useFeedbackReports";
 import { useFeedbackScreenshotUrl } from "@/features/feedback/hooks/useFeedbackScreenshotUrl";
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
+import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
 import {
   FEEDBACK_STATUS_LABELS,
   FEEDBACK_TYPE_LABELS,
