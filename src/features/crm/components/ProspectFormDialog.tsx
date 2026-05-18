@@ -48,13 +48,7 @@ export function ProspectFormDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{prospect ? "Editar Prospecto" : "Nuevo Prospecto"}</DialogTitle>
-          <DialogDescription>
-            {overrideStage && prospect
-              ? "Confirma los datos antes de mover el prospecto de etapa."
-              : prospect
-                ? "Actualiza la información del prospecto."
-                : "Agrega un nuevo prospecto al pipeline."}
-          </DialogDescription>
+          <DialogDescription>{buildDescription(prospect, overrideStage)}</DialogDescription>
           {overrideStage && prospect && (
             <ProspectStageBadge fromStage={prospect.stage} toStage={overrideStage} />
           )}
