@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { addDays } from "date-fns";
 import { nowMty, parseDateLocal } from "@/lib/utils";
-import type { LineItem } from "@/lib/domain/invoiceUtils";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { RentalLine } from "@/features/quotes/components/quotes/RentalLineItems";
 import type { useQuoteFormState } from "./useQuoteFormState";
 

@@ -5,7 +5,7 @@ import { useInvoice, useInvoices } from "@/features/invoices/hooks/invoices/useI
 import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useQuoteAssignments } from "@/features/fleet/hooks/forklifts/useAssignForklifts";
-import { generateLineItems, computeTotals } from "@/features/invoices/lib/invoiceUtils";
+import { generateLineItems, computeTotals } from "@/features/invoices/lib/invoiceHelpers";
 import { useInvoiceFormState, type CfdiFormState } from "./invoiceForm/useInvoiceFormState";
 import { useInvoicePrefill, applyCustomerCfdi } from "./invoiceForm/useInvoicePrefill";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";

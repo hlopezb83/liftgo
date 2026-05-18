@@ -9,7 +9,7 @@ import {
   useCancelBooking,
   type BookingWithForklift,
 } from "@/features/bookings/hooks/useBookings";
-import { generateLineItems, computeTotals } from "@/lib/domain/invoiceUtils";
+import { generateLineItems, computeTotals } from "@/lib/domain/invoiceHelpers";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
 
 export const STATUS_LABELS: Record<string, string> = {

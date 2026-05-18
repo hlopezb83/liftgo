@@ -1,5 +1,5 @@
 import { useContractFinancialSummary } from "@/features/contracts/hooks/contractDetail/useContractFinancialSummary";
-import { calculateRentalCost } from "@/lib/domain/invoiceUtils";
+import { calculateRentalCost } from "@/lib/domain/invoiceHelpers";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { differenceInDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";

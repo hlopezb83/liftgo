@@ -7,7 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Plus, Trash2 } from "lucide-react";
 import type { EquipmentModel } from "@/features/fleet/hooks/useEquipmentModels";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { calculateRentalCost } from "@/lib/domain/invoiceUtils";
+import { calculateRentalCost } from "@/lib/domain/invoiceHelpers";
 
 export interface RentalLine {
   modelId: string;

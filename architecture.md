@@ -369,7 +369,27 @@ Inspirado en las "Power of 10 Rules" de la NASA, adaptado al contexto de un ERP 
 
 ---
 
-## 19. Referencias
+## 19. Convenciones de código por feature
+
+### Domain Hooks
+Los hooks específicos de un dominio viven en `src/features/<feature>/hooks/`. `src/hooks/` se reserva para hooks **verdaderamente compartidos** entre múltiples features (p.ej. `useDocuments`, `useRolePermissions`). Si un hook es importado mayoritariamente por una sola feature, debe vivir dentro de ella.
+
+Ejemplos correctos:
+- `src/features/crm/hooks/useProspects.ts`
+- `src/features/invoices/hooks/usePayments.ts`
+- `src/features/help/hooks/useUserManual.ts`
+
+Cuando un hook supera ~80 LOC, divídelo en `<entity>Query.ts` + `<entity>Mutations.ts` y deja el archivo original como barril que re-exporta ambos (patrón usado en `useForklifts`, `useBookings`, `useProspects`).
+
+### Nomenclatura de `lib/`
+- `*Helpers.ts` — funciones puras, sin efectos secundarios (`deliveryDetailHelpers.ts`, `invoiceHelpers.ts`).
+- `*Builder.ts` — generadores con efectos colaterales (creación de PDF, side effects): `contractPdfBuilder.ts`.
+
+No usar el sufijo `*Utils.ts` en código nuevo.
+
+---
+
+## 20. Referencias
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
