@@ -16,7 +16,7 @@ import { DeliveryActions } from "@/features/deliveries/components/deliveries/Del
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { nowMty } from "@/lib/utils";
-import { buildCompletionPayload, buildDeliverySubtitle, canPromptPickup, computeHoursUsed } from "@/features/deliveries/lib/deliveryDetailHelpers";
+import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "@/features/deliveries/lib/deliveryDetailHelpers";
 
 type PickupPrompt = {
   delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
