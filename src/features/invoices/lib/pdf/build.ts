@@ -1,24 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCompanyDataAndLogo, fmtDate, type PdfLineItem } from "@/lib/pdf/shared";
 import { parseLineItems } from "@/lib/lineItems";
+import type jsPDF from "jspdf";
 
 const GREEN = { r: 22, g: 163, b: 74 };
 type RGB = { r: number; g: number; b: number };
 type Invoice = Awaited<ReturnType<typeof fetchInvoice>>;
-// jsPDF dynamic import — typing as any not allowed by lint; use unknown then narrow.
-type Doc = {
-  setFillColor: (r: number, g: number, b: number) => void;
-  roundedRect: (...a: number[]) => void;
-  setFontSize: (n: number) => void;
-  setFont: (f: string, s: string) => void;
-  setTextColor: (r: number, g: number, b: number) => void;
-  text: (s: string, x: number, y: number, o?: { align?: string }) => void;
-  setDrawColor: (r: number, g: number, b: number) => void;
-  setLineWidth: (n: number) => void;
-  addPage: () => void;
-  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
-  save: (n: string) => void;
-};
 
 function getInvoicePdfStatusLabel(status: string): string {
   if (status === "paid") return "PAGADA";
@@ -58,10 +45,10 @@ interface PdfHelpers {
   GRAY_500: RGB; GRAY_200: RGB; GRAY_900: RGB; MARGIN: number;
 }
 
-function drawSatBadge(doc: Doc, invoice: Invoice, y: number, pw: number, h: PdfHelpers): number {
+function drawSatBadge(doc: jsPDF, invoice: Invoice, y: number, pw: number, h: PdfHelpers): number {
   if (!(invoice.cfdi_status === "stamped" && invoice.cfdi_uuid)) return y;
   doc.setFillColor(GREEN.r, GREEN.g, GREEN.b);
-  doc.roundedRect(pw - h.MARGIN - 70, y - 6, 70, 8, 2, 2, "F" as unknown as number);
+  doc.roundedRect(pw - h.MARGIN - 70, y - 6, 70, 8, 2, 2, "F");
   doc.setFontSize(6);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
@@ -75,7 +62,7 @@ function drawSatBadge(doc: Doc, invoice: Invoice, y: number, pw: number, h: PdfH
   return nextY;
 }
 
-function drawDetailsAndStatus(doc: Doc, invoice: Invoice, detailY: number, pw: number, h: PdfHelpers) {
+function drawDetailsAndStatus(doc: jsPDF, invoice: Invoice, detailY: number, pw: number, h: PdfHelpers) {
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(h.GRAY_500.r, h.GRAY_500.g, h.GRAY_500.b);
@@ -94,7 +81,7 @@ function drawDetailsAndStatus(doc: Doc, invoice: Invoice, detailY: number, pw: n
   const statusLabel = getInvoicePdfStatusLabel(invoice.status);
   const statusColor = getInvoicePdfStatusColor(invoice.status, GREEN);
   doc.setFillColor(statusColor.r, statusColor.g, statusColor.b);
-  doc.roundedRect(h.MARGIN + 80, detailY - 3.5, 22, 5, 1, 1, "F" as unknown as number);
+  doc.roundedRect(h.MARGIN + 80, detailY - 3.5, 22, 5, 1, 1, "F");
   doc.setFontSize(5.5);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
@@ -109,7 +96,7 @@ function drawDetailsAndStatus(doc: Doc, invoice: Invoice, detailY: number, pw: n
   }
 }
 
-function drawCfdiQrBox(doc: Doc, invoice: Invoice, y: number, h: PdfHelpers, drawAccentBar: (d: Doc) => void): void {
+function drawCfdiQrBox(doc: jsPDF, invoice: Invoice, y: number, h: PdfHelpers, drawAccentBar: (d: jsPDF) => void): void {
   if (!invoice.cfdi_uuid) return;
   const ph = doc.internal.pageSize.getHeight();
   let yy = y;
@@ -120,7 +107,7 @@ function drawCfdiQrBox(doc: Doc, invoice: Invoice, y: number, h: PdfHelpers, dra
   }
   doc.setDrawColor(h.GRAY_200.r, h.GRAY_200.g, h.GRAY_200.b);
   doc.setLineWidth(0.5);
-  doc.roundedRect(h.MARGIN, yy, 28, 28, 2, 2, "S" as unknown as number);
+  doc.roundedRect(h.MARGIN, yy, 28, 28, 2, 2, "S");
   doc.setFontSize(6);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(h.GRAY_500.r, h.GRAY_500.g, h.GRAY_500.b);
@@ -134,7 +121,7 @@ export async function buildInvoicePdf(invoiceId: string): Promise<void> {
   const { company, logoBase64 } = await fetchCompanyDataAndLogo();
   const { customerRfc, customerCp } = await resolveCustomerFiscal(invoice);
 
-  const { jsPDF } = await import("jspdf");
+  const { jsPDF: JsPDF } = await import("jspdf");
   const {
     drawAccentBar, drawPremiumHeader, drawInfoCardsAt,
     drawPremiumTable, drawBottomSection, drawFooter,
@@ -142,20 +129,20 @@ export async function buildInvoicePdf(invoiceId: string): Promise<void> {
   } = await import("@/lib/pdf/quoteGenerator");
   const h: PdfHelpers = { GRAY_500, GRAY_200, GRAY_900, MARGIN };
 
-  const doc = new jsPDF() as unknown as Doc;
+  const doc = new JsPDF();
   const pw = doc.internal.pageSize.getWidth();
 
-  drawAccentBar(doc as never);
+  drawAccentBar(doc);
 
   const invoiceLabel = invoice.serie && invoice.folio
     ? `${invoice.serie}-${invoice.folio}`
     : invoice.invoice_number;
 
-  let y = drawPremiumHeader(doc as never, company, logoBase64, invoiceLabel, "FACTURA");
+  let y = drawPremiumHeader(doc, company, logoBase64, invoiceLabel, "FACTURA");
   y = drawSatBadge(doc, invoice, y, pw, h);
 
   y = drawInfoCardsAt(
-    doc as never, y,
+    doc, y,
     invoice.customer_name,
     null, null, null,
     true,
@@ -167,10 +154,10 @@ export async function buildInvoicePdf(invoiceId: string): Promise<void> {
 
   const lineItems = parseLineItems<PdfLineItem>(invoice.line_items);
   const invoiceCurrency = invoice.moneda || "MXN";
-  y = drawPremiumTable(doc as never, lineItems, y, invoiceCurrency);
+  y = drawPremiumTable(doc, lineItems, y, invoiceCurrency);
 
   y = drawBottomSection(
-    doc as never, y,
+    doc, y,
     Number(invoice.subtotal), Number(invoice.tax_rate),
     Number(invoice.tax_amount), Number(invoice.total),
     invoiceCurrency,
@@ -179,8 +166,8 @@ export async function buildInvoicePdf(invoiceId: string): Promise<void> {
     false,
   );
 
-  drawCfdiQrBox(doc, invoice, y, h, drawAccentBar as unknown as (d: Doc) => void);
-  drawFooter(doc as never, company);
+  drawCfdiQrBox(doc, invoice, y, h, drawAccentBar);
+  drawFooter(doc, company);
 
   doc.save(`${invoice.invoice_number}.pdf`);
 }
