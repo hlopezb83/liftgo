@@ -1,8 +1,32 @@
 import { useEffect, type Dispatch, type SetStateAction } from "react";
 import type { ForkliftFormData } from "@/lib/formSchemas";
 import type { Tables } from "@/integrations/supabase/types";
+import { toStr, toNumStr } from "@/lib/forms/coerce";
 
 type ExistingForklift = Tables<"forklifts"> | null | undefined;
+
+function mapForkliftToForm(f: Tables<"forklifts">): ForkliftFormData {
+  return {
+    name: f.name,
+    model: f.model,
+    manufacturer: toStr(f.manufacturer),
+    year: toNumStr(f.year),
+    capacity_kg: toNumStr(f.capacity_kg),
+    mast_height_m: toNumStr(f.mast_height_m),
+    fuel_type: toStr(f.fuel_type, "Diesel"),
+    serial_number: toStr(f.serial_number),
+    status: f.status,
+    daily_rate: toNumStr(f.daily_rate),
+    weekly_rate: toNumStr(f.weekly_rate),
+    monthly_rate: toNumStr(f.monthly_rate),
+    acquisition_cost: toNumStr(f.acquisition_cost),
+    notes: toStr(f.notes),
+    insurance_provider: toStr(f.insurance_provider),
+    insurance_policy_number: toStr(f.insurance_policy_number),
+    insurance_expiry: toStr(f.insurance_expiry),
+    insurance_cost: toNumStr(f.insurance_cost),
+  };
+}
 
 export function useForkliftPrefill(
   existing: ExistingForklift,
@@ -10,26 +34,7 @@ export function useForkliftPrefill(
 ) {
   useEffect(() => {
     if (!existing) return;
-    setForm({
-      name: existing.name,
-      model: existing.model,
-      manufacturer: existing.manufacturer || "",
-      year: existing.year?.toString() || "",
-      capacity_kg: existing.capacity_kg?.toString() || "",
-      mast_height_m: existing.mast_height_m?.toString() || "",
-      fuel_type: existing.fuel_type || "Diesel",
-      serial_number: existing.serial_number || "",
-      status: existing.status,
-      daily_rate: existing.daily_rate?.toString() || "",
-      weekly_rate: existing.weekly_rate?.toString() || "",
-      monthly_rate: existing.monthly_rate?.toString() || "",
-      acquisition_cost: existing.acquisition_cost?.toString() || "",
-      notes: existing.notes || "",
-      insurance_provider: existing.insurance_provider || "",
-      insurance_policy_number: existing.insurance_policy_number || "",
-      insurance_expiry: existing.insurance_expiry || "",
-      insurance_cost: existing.insurance_cost?.toString() || "",
-    });
+    setForm(mapForkliftToForm(existing));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existing]);
 }
