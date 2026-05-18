@@ -2,15 +2,9 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getAuthSubmitLabel, type AuthMode } from "./authTypes";
 
-export type AuthMode = "sign-in" | "forgot" | "reset";
-
-export function getAuthSubmitLabel(loading: boolean, mode: AuthMode): string {
-  if (loading) return "Cargando...";
-  if (mode === "forgot") return "Enviar Enlace";
-  if (mode === "reset") return "Actualizar Contraseña";
-  return "Iniciar Sesión";
-}
+export type { AuthMode };
 
 interface Props {
   mode: AuthMode;
