@@ -1,0 +1,41 @@
+{
+  "version": "6.3.1",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Refactor: separación de hooks por dominio y documentación de límites de tamaño",
+  "category": "refactor",
+  "summary": "Continuación de v6.3.0. Se separan hooks que mezclaban dominios distintos, se reduce useQuoteBookingCreator extrayendo helpers puros, se divide quoteFormHelpers por responsabilidad y se documentan los límites de tamaño en architecture.md §19.",
+  "changes": [
+    {
+      "area": "Configuración fiscal",
+      "items": [
+        "Se separa useBillingSecrets / useUpsertBillingSecrets a su propio archivo (`src/features/company-settings/hooks/useBillingSecrets.ts`). useCompanySettings queda limitado a un único dominio (datos fiscales de la empresa), reduciendo el acoplamiento entre `company_settings` y `billing_secrets`."
+      ]
+    },
+    {
+      "area": "Cotizaciones",
+      "items": [
+        "useQuoteBookingCreator (119 LOC → 81 LOC) ahora delega en `quoteBookingBuilders.ts` los helpers puros: aplicación de tarifas, construcción de DeliveryInfo y resolución de IDs de montacargas en cotizaciones legacy.",
+        "quoteFormHelpers (126 LOC) se divide en tres archivos por responsabilidad: `quoteFormBuilders.ts` (buildSaleItems, buildRentalItems), `quoteFormValidation.ts` (validateQuoteForm) y `quoteFormPayload.ts` (buildQuotePayload). El archivo original queda como barrel para preservar imports existentes."
+      ]
+    },
+    {
+      "area": "Routing",
+      "items": [
+        "NotFound.tsx se mueve de `src/pages/` a `src/features/system/pages/NotFound.tsx`. `src/pages/` queda completamente vacío; todas las páginas viven ahora bajo `src/features/`."
+      ]
+    },
+    {
+      "area": "Documentación",
+      "items": [
+        "architecture.md §19 documenta límites de tamaño formales: componentes ≤150 LOC, hooks ≤80 LOC, funciones públicas en `lib/` ≤40 LOC. Se enumeran las cuatro excepciones permitidas (tablas densas, PDFs, shadcn upstream, archivos de tipos)."
+      ]
+    }
+  ],
+  "verification": {
+    "eslint": "0 warnings, 0 errors",
+    "tests": "48/48 PASS",
+    "knip": "sin exports muertos nuevos"
+  },
+  "risk": "Muy bajo. Cambios mecánicos sin tocar lógica de negocio, BD ni edge functions. Los barriles preservan compatibilidad de imports."
+}

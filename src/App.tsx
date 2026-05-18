@@ -8,7 +8,7 @@ import MainLayout from "@/layouts/MainLayout";
 
 
 const PortalLogin = lazy(() => import("@/features/portal/pages/PortalLogin"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const NotFound = lazy(() => import("./features/system/pages/NotFound"));
 
 const App = () => (
   <AppProviders>

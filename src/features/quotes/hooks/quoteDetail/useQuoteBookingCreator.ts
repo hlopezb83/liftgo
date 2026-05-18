@@ -2,17 +2,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
-import { parseLineItems } from "@/lib/lineItems";
-import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
-import type { useQuoteConversionState, DeliveryInfo } from "./useQuoteConversionState";
+import type { useQuoteConversionState } from "./useQuoteConversionState";
+import {
+  applyRatesToForklifts,
+  buildDeliveryInfos,
+  resolveLegacyForkliftIds,
+  type Assignment,
+} from "./quoteBookingBuilders";
 
-export type Assignment = {
-  forkliftId: string;
-  dailyRate: number;
-  weeklyRate: number;
-  monthlyRate: number;
-};
+export type { Assignment } from "./quoteBookingBuilders";
 
 type DataResult = ReturnType<typeof useQuoteDetailData>;
 type StateResult = ReturnType<typeof useQuoteConversionState>;
@@ -27,42 +26,11 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
   const createBooking = useCreateBooking();
   const { quote, customers, forklifts } = data;
 
-  const buildDeliveryInfos = (forkliftIds: string[], bookingIds: string[]): DeliveryInfo[] => {
-    const cust = customers?.find((c) => c.id === quote?.customer_id);
-    return forkliftIds.map((fId, i) => {
-      const fl = forklifts?.find((f) => f.id === fId);
-      return {
-        bookingId: bookingIds[i],
-        forkliftId: fId,
-        forkliftName: fl?.name || "Montacargas",
-        startDate: quote?.start_date ?? "",
-        customerAddress: cust?.address || null,
-      };
-    });
-  };
-
-  const applyRates = async (assignments: Assignment[]) => {
-    const updates = assignments
-      .map((a) => {
-        const u: Record<string, number> = {};
-        if (a.dailyRate > 0) u.daily_rate = a.dailyRate;
-        if (a.weeklyRate > 0) u.weekly_rate = a.weeklyRate;
-        if (a.monthlyRate > 0) u.monthly_rate = a.monthlyRate;
-        return { forkliftId: a.forkliftId, payload: u };
-      })
-      .filter((u) => Object.keys(u.payload).length > 0);
-
-    const results = await Promise.all(
-      updates.map((u) => supabase.from("forklifts").update(u.payload).eq("id", u.forkliftId)),
-    );
-    return results.filter((r) => !r.error).length;
-  };
-
   const createBookingsFor = async (assignments: Assignment[], recurring: boolean) => {
     if (!quote) return;
     state.setIsConverting(true);
     try {
-      const ratesApplied = await applyRates(assignments);
+      const ratesApplied = await applyRatesToForklifts(assignments);
 
       const bookingIds: string[] = await Promise.all(
         assignments.map((a) =>
@@ -89,7 +57,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
       state.setShowAssignmentDialog(false);
       state.setCurrentDeliveryIndex(0);
       state.setPendingDeliveries(
-        buildDeliveryInfos(assignments.map((a) => a.forkliftId), bookingIds),
+        buildDeliveryInfos(quote, customers, forklifts, assignments.map((a) => a.forkliftId), bookingIds),
       );
     } catch (err: unknown) {
       toast.error(`Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}`);
@@ -100,13 +68,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
 
   const convertLegacy = async (recurring: boolean) => {
     if (!quote || !forklifts) return;
-    const items = parseLineItems<LineItem>(quote.line_items);
-    const ids: string[] = [];
-    for (const item of items) {
-      const matched = forklifts.find((f) => item.description?.includes(f.name));
-      if (matched && !ids.includes(matched.id)) ids.push(matched.id);
-    }
-    if (ids.length === 0 && quote.forklift_id) ids.push(quote.forklift_id);
+    const ids = resolveLegacyForkliftIds(quote, forklifts);
     if (ids.length === 0) {
       toast.error("No se encontraron montacargas para crear reservas");
       return;

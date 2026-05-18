@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.3.1",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "Refactor: separación de hooks por dominio y documentación de límites de tamaño",
+    "category": "refactor"
+  },
+  {
     "version": "6.3.0",
     "date": "2026-05-18",
     "type": "minor",
