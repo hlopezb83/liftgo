@@ -73,17 +73,3 @@ export function useUpdateSupplier() {
   });
 }
 
-export function useDeleteSupplier() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("suppliers").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      toast.success("Proveedor eliminado");
-    },
-    onError: (err: Error) => toast.error(`Error al eliminar proveedor: ${err.message}`),
-  });
-}

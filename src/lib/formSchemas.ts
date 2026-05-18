@@ -74,7 +74,6 @@ export const bookingFormSchema = z
     path: ["date_range"],
   });
 
-export type BookingFormInput = z.input<typeof bookingFormSchema>;
 export type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 // ─── Expense Form ────────────────────────────────────────────────────────────
@@ -121,4 +120,4 @@ export const supplierFormSchema = z.object({
   notes: z.string().default(""),
 });
 
-export type SupplierFormData = z.infer<typeof supplierFormSchema>;
+

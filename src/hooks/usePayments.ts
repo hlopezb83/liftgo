@@ -22,12 +22,6 @@ export function usePayments(invoiceId: string | undefined) {
   });
 }
 
-export function useInvoicePaymentsTotal(invoiceId: string | undefined) {
-  const { data: payments } = usePayments(invoiceId);
-  const total = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
-  return total;
-}
-
 export function useCreatePayment() {
   const queryClient = useQueryClient();
   return useMutation({

@@ -17,7 +17,6 @@ export type Quote = Tables<"quotes">;
 export type Invoice = Tables<"invoices">;
 export type DamageRecord = Tables<"damage_records">;
 export type ReturnInspection = Tables<"return_inspections">;
-export type StatusLog = Tables<"status_logs">;
 
 // ─── Joined forklift snippet (reused across many views) ──────────────────────
 export interface ForkliftSnippet {

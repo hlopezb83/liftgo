@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import type { Tables } from "@/integrations/supabase/types";
 
-export type AssignedForklift = Tables<"quote_assigned_forklifts">;
+type AssignedForklift = Tables<"quote_assigned_forklifts">;
 
 export function useQuoteAssignments(quoteId: string | undefined) {
   return useQuery({
