@@ -1,0 +1,28 @@
+{
+  "version": "6.1.6",
+  "date": "2026-05-18",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Sexta oleada — descomposición de formularios y guards",
+  "summary": "Reducción de complejidad ciclomática en BookingForm, ProspectFormDialog/Card, QuoteDetail, SetPasswordDialog, UserManagementPage, RoleGuard, CustomersPage y DeliveryDetail.",
+  "metrics": {
+    "eslint_warnings_before": 19,
+    "eslint_warnings_after": 10,
+    "tests": "48/48 PASS"
+  },
+  "files_created": [
+    "src/features/bookings/components/bookings/BookingPostDialogs.tsx",
+    "src/features/crm/components/ProspectCardParts.tsx",
+    "src/features/crm/components/prospect-form/ProspectDialogParts.tsx",
+    "src/features/customers/lib/customerPayload.ts",
+    "src/features/deliveries/components/deliveries/DeliveryDetailDialogs.tsx",
+    "src/features/deliveries/components/deliveries/DeliverySignatureCard.tsx",
+    "src/features/quotes/components/quotes/QuoteCustomerCard.tsx",
+    "src/features/quotes/components/quotes/QuoteDatesCard.tsx",
+    "src/features/quotes/components/quotes/QuoteHeaderBadges.tsx",
+    "src/features/users/components/users/RoleBadge.tsx",
+    "src/features/users/components/users/UserDesktopRow.tsx",
+    "src/features/users/components/users/UserMobileCard.tsx",
+    "src/features/users/hooks/useSetPasswordForm.ts"
+  ]
+}
