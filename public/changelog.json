@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.4.0",
+    "date": "2026-05-18",
+    "type": "minor",
+    "title": "Feedback: picker de elemento + clasificación AI de severidad y módulo",
+    "category": "feature"
+  },
+  {
     "version": "6.3.3",
     "date": "2026-05-18",
     "type": "patch",
