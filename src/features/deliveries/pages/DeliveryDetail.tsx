@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 
 import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "@/features/deliveries/hooks/useDeliveries";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
@@ -8,21 +7,23 @@ import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap"
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { NotesCard } from "@/components/NotesCard";
-import { SignaturePad } from "@/features/contracts/components/contracts/SignaturePad";
+import { DeliverySignatureDialog } from "@/features/deliveries/components/deliveries/DeliverySignatureDialog";
 import { PostDeliveryPickupDialog } from "@/features/deliveries/components/deliveries/PostDeliveryPickupDialog";
 import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "@/features/deliveries/components/deliveries/DeliveryInfoCards";
 import { DeliveryActions } from "@/features/deliveries/components/deliveries/DeliveryActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { nowMty } from "@/lib/utils";
+import { buildCompletionPayload, computeHoursUsed } from "@/features/deliveries/lib/deliveryDetailHelpers";
+
+type PickupPrompt = {
+  delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
+  bookingEndDate: string;
+  forkliftName: string;
+};
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -36,10 +37,7 @@ export default function DeliveryDetail() {
 
   const [signatureOpen, setSignatureOpen] = useState(false);
   const [hoursReading, setHoursReading] = useState("");
-  const [pickupPrompt, setPickupPrompt] = useState<{
-    delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
-    bookingEndDate: string; forkliftName: string;
-  } | null>(null);
+  const [pickupPrompt, setPickupPrompt] = useState<PickupPrompt | null>(null);
 
   if (isLoading) {
     return (
@@ -56,33 +54,34 @@ export default function DeliveryDetail() {
 
   const forklift = forkliftMap.get(delivery.forklift_id);
   const linkedBooking = delivery.booking_id ? bookings?.find((b) => b.id === delivery.booking_id) : null;
+  const hoursUsed = computeHoursUsed(delivery.booking_id, siblingDeliveries);
+  const subtitle = `${forklift?.name ?? "Equipo"} · ${delivery.type === "delivery" ? "Entrega" : "Recolección"}`;
 
-  const hoursUsed = (() => {
-    if (!delivery.booking_id || !siblingDeliveries) return null;
-    const deliveryRecord = siblingDeliveries.find((d) => d.type === "delivery" && d.hours_reading != null);
-    const pickupRecord = siblingDeliveries.find((d) => d.type === "pickup" && d.hours_reading != null);
-    if (deliveryRecord?.hours_reading != null && pickupRecord?.hours_reading != null) {
-      return Math.round((pickupRecord.hours_reading - deliveryRecord.hours_reading) * 10) / 10;
-    }
-    return null;
-  })();
+  const promptPickupIfNeeded = () => {
+    if (delivery.type !== "delivery" || !delivery.booking_id || !linkedBooking || !forklift) return;
+    setPickupPrompt({
+      delivery: {
+        forklift_id: delivery.forklift_id,
+        booking_id: delivery.booking_id,
+        address: delivery.address,
+        driver_name: delivery.driver_name,
+        driver_phone: delivery.driver_phone,
+      },
+      bookingEndDate: linkedBooking.end_date,
+      forkliftName: forklift.name,
+    });
+  };
 
-  const markComplete = (signatureBase64?: string) => {
-    const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
+  const markComplete = (signature?: string) => {
     updateDelivery.mutate(
-      { id: delivery.id, status: "completed", completed_at: nowMty().toISOString(), ...(signatureBase64 ? { signature_base64: signatureBase64 } : {}), ...(hrs !== undefined ? { hours_reading: hrs } : {}) },
+      buildCompletionPayload(delivery.id, nowMty().toISOString(), signature, hoursReading),
       {
         onSuccess: () => {
           toast.success("Marcado como completado");
           setSignatureOpen(false);
-          if (delivery.type === "delivery" && delivery.booking_id && linkedBooking && forklift) {
-            setPickupPrompt({
-              delivery: { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, address: delivery.address, driver_name: delivery.driver_name, driver_phone: delivery.driver_phone },
-              bookingEndDate: linkedBooking.end_date, forkliftName: forklift.name,
-            });
-          }
+          promptPickupIfNeeded();
         },
-      }
+      },
     );
   };
 
@@ -97,7 +96,7 @@ export default function DeliveryDetail() {
       <div className="space-y-6">
         <DetailPageHeader
           title={delivery.delivery_number}
-          subtitle={`${forklift?.name || "Equipo"} · ${delivery.type === "delivery" ? "Entrega" : "Recolección"}`}
+          subtitle={subtitle}
           badges={<StatusBadge status={delivery.status} />}
           backTo="/deliveries"
           actions={
@@ -151,20 +150,13 @@ export default function DeliveryDetail() {
         )}
       </div>
 
-      <Dialog open={signatureOpen} onOpenChange={setSignatureOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5 text-primary" /> Firma del Cliente</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">Solicite la firma del cliente para confirmar la entrega.</p>
-          <div className="space-y-1.5">
-            <Label htmlFor="hours-reading">Lectura de Horómetro (horas)</Label>
-            <Input id="hours-reading" type="number" step="0.1" min="0" placeholder="Ej: 1250.5" value={hoursReading} onChange={(e) => setHoursReading(e.target.value)} />
-          </div>
-          <SignaturePad onSave={(base64) => markComplete(base64)} />
-          <Button variant="link" size="sm" className="text-muted-foreground" onClick={() => markComplete()}>Omitir Firma</Button>
-        </DialogContent>
-      </Dialog>
+      <DeliverySignatureDialog
+        open={signatureOpen}
+        onOpenChange={setSignatureOpen}
+        hoursReading={hoursReading}
+        onHoursReadingChange={setHoursReading}
+        onComplete={markComplete}
+      />
 
       {pickupPrompt && (
         <PostDeliveryPickupDialog

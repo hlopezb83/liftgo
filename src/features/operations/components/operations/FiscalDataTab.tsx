@@ -40,30 +40,43 @@ export function FiscalDataTab() {
     });
   }, [settings, setForm]);
 
+  const validateForm = () => {
+    const required: Array<keyof typeof form> = ["rfc", "razon_social", "regimen_fiscal", "lugar_expedicion"];
+    return required.every((key) => form[key]);
+  };
+
+  const buildSettingsPayload = () => ({
+    ...(settings?.id ? { id: settings.id } : {}),
+    rfc: form.rfc,
+    razon_social: form.razon_social,
+    regimen_fiscal: form.regimen_fiscal,
+    lugar_expedicion: form.lugar_expedicion,
+    logo_url: form.logo_url || null,
+    facturapi_mode: form.facturapi_mode || "test",
+  });
+
+  const buildSecretsPayload = () => {
+    const hasNewTest = form.facturapi_test_key.length > 0;
+    const hasNewLive = form.facturapi_live_key.length > 0;
+    if (!hasNewTest && !hasNewLive) return null;
+    return {
+      ...(secrets?.id ? { id: secrets.id } : {}),
+      facturapi_test_key: hasNewTest ? form.facturapi_test_key : null,
+      facturapi_live_key: hasNewLive ? form.facturapi_live_key : null,
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.rfc || !form.razon_social || !form.regimen_fiscal || !form.lugar_expedicion) {
+    if (!validateForm()) {
       toast.error("Todos los campos obligatorios deben llenarse");
       return;
     }
     try {
-      await upsert.mutateAsync({
-        ...(settings?.id ? { id: settings.id } : {}),
-        rfc: form.rfc,
-        razon_social: form.razon_social,
-        regimen_fiscal: form.regimen_fiscal,
-        lugar_expedicion: form.lugar_expedicion,
-        logo_url: form.logo_url || null,
-        facturapi_mode: form.facturapi_mode || "test",
-      });
-      const hasNewTest = form.facturapi_test_key.length > 0;
-      const hasNewLive = form.facturapi_live_key.length > 0;
-      if (hasNewTest || hasNewLive) {
-        await upsertSecrets.mutateAsync({
-          ...(secrets?.id ? { id: secrets.id } : {}),
-          facturapi_test_key: hasNewTest ? form.facturapi_test_key : null,
-          facturapi_live_key: hasNewLive ? form.facturapi_live_key : null,
-        });
+      await upsert.mutateAsync(buildSettingsPayload());
+      const secretsPayload = buildSecretsPayload();
+      if (secretsPayload) {
+        await upsertSecrets.mutateAsync(secretsPayload);
         setForm({ ...form, facturapi_test_key: "", facturapi_live_key: "" });
       }
       toast.success("Datos fiscales guardados");

@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.1.5",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "Refactor: descomposición de páginas (Maintenance, Contract, Delivery) y FiscalDataTab",
+    "category": "refactor"
+  },
+  {
     "version": "6.1.4",
     "date": "2026-05-18",
     "type": "patch",

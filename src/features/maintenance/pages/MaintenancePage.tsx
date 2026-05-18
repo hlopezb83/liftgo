@@ -8,21 +8,19 @@ import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
-import { Button } from "@/components/ui/button";
 import { TableRow } from "@/components/ui/table";
 import { MarkAvailableDialog } from "@/features/fleet/components/fleet/MarkAvailableDialog";
-import { RoleGuard } from "@/layouts/RoleGuard";
 import { MaintenanceDetailSheet } from "@/features/maintenance/components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFormDialog } from "@/features/maintenance/components/maintenance/MaintenanceFormDialog";
 import { MaintenanceFiltersBar } from "@/features/maintenance/components/maintenance/MaintenanceFiltersBar";
 import { MaintenanceKanban } from "@/features/maintenance/components/maintenance/MaintenanceKanban";
 import { MaintenanceTableRow, MaintenanceMobileCard } from "@/features/maintenance/components/maintenance/MaintenanceRow";
+import { MaintenancePageActions } from "@/features/maintenance/components/maintenance/MaintenancePageActions";
 import { useActiveMechanics } from "@/features/maintenance/hooks/maintenance/useMechanics";
 import { useMaintenanceForm } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
-import { PlusCircle, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { enrichLogs, maintenanceSortAccessors, maintenanceCsvRows, sumCost } from "@/features/maintenance/lib/maintenancePageHelpers";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
@@ -35,35 +33,26 @@ export default function MaintenancePage() {
 
   const formCtl = useMaintenanceForm(forkliftMap);
 
-  const enrichedLogs = logs?.map((log) => ({
-    ...log,
-    forklift_name: forkliftMap.get(log.forklift_id)?.name || "",
-  }));
+  const enrichedLogs = enrichLogs(logs, forkliftMap);
 
   const { search, setSearch, filtered: searchFiltered } = useListFilters(enrichedLogs, {
     searchFields: ["service_type", "performed_by", "description", "forklift_name"],
   });
 
-  const filtered = searchFiltered?.filter((log) =>
-    forkliftFilter === "all" || log.forklift_id === forkliftFilter
+  const filtered = (searchFiltered ?? []).filter(
+    (log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter,
   );
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
-    accessors: {
-      performed_at: (l) => l.performed_at,
-      forklift_name: (l) => forkliftMap.get(l.forklift_id)?.name || "",
-      service_type: (l) => l.service_type,
-      performed_by: (l) => l.performed_by || "",
-      cost: (l) => l.cost || 0,
-      next_service_date: (l) => l.next_service_date || "",
-    },
+    accessors: maintenanceSortAccessors(forkliftMap),
   });
 
-  const kanbanContent = viewMode === "board" ? (
-    <MaintenanceKanban logs={filtered?.map(l => ({ ...l, forklift_name: forkliftMap.get(l.forklift_id)?.name || "" })) || []} />
+  const isBoard = viewMode === "board";
+  const kanbanContent = isBoard ? (
+    <MaintenanceKanban logs={filtered} />
   ) : undefined;
 
-  const mobileContent = isMobile && viewMode === "list" ? (
+  const mobileContent = isMobile && !isBoard ? (
     <MobileCardList
       items={paginatedItems}
       keyExtractor={(log) => log.id}
@@ -74,41 +63,23 @@ export default function MaintenancePage() {
     />
   ) : undefined;
 
-  const totalCost = logs?.reduce((sum, l) => sum + (l.cost || 0), 0) || 0;
-
-  const exportCsv = () => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({
-    Fecha: l.performed_at,
-    Montacargas: forkliftMap.get(l.forklift_id)?.name || "",
-    Servicio: l.service_type,
-    "Realizado Por": l.performed_by || "",
-    Costo: l.cost || 0,
-    "Próximo Servicio": l.next_service_date || "",
-  })));
+  const totalCost = sumCost(logs);
+  const exportCsv = () => exportToCsv("mantenimiento.csv", maintenanceCsvRows(logs, forkliftMap));
 
   return (
     <>
       <ListPageLayout
         title="Mantenimiento"
-        subtitle={`${logs?.length || 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
+        subtitle={`${logs?.length ?? 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
         actions={
-          <div className="flex gap-2 items-center">
-            <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "list" | "board")} size="sm">
-              <ToggleGroupItem value="list" aria-label="Vista de lista"><List className="h-4 w-4" /></ToggleGroupItem>
-              <ToggleGroupItem value="board" aria-label="Vista de tablero"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
-            </ToggleGroup>
-            <Button variant="outline" size="sm" onClick={exportCsv}>
-              <Download className="h-4 w-4 mr-1" />Exportar CSV
-            </Button>
-            <RoleGuard module="Mantenimiento" minAccess="full">
-              <Button variant="outline" size="sm" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
-                <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />
-                Generar Recurrente
-              </Button>
-            </RoleGuard>
-            <Button onClick={formCtl.openCreate} size="sm">
-              <PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio
-            </Button>
-          </div>
+          <MaintenancePageActions
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onExport={exportCsv}
+            onGenerateRecurring={() => generateRecurring.mutate()}
+            isGenerating={generateRecurring.isPending}
+            onCreate={formCtl.openCreate}
+          />
         }
         filters={
           <MaintenanceFiltersBar
