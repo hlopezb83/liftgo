@@ -1,4 +1,4 @@
-import type { ContractFormShape } from "@/hooks/contractForm/contractFormDefaults";
+import type { ContractFormShape } from "@/features/contracts/hooks/contractForm/contractFormDefaults";
 
 export function buildContractPayload(form: ContractFormShape, bookingId: string | null) {
   return {

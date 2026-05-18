@@ -8,7 +8,7 @@ import { ForkliftSelector } from "@/components/fleet/ForkliftSelector";
 import { PostBookingDeliveryDialog } from "@/features/bookings/components/bookings/PostBookingDeliveryDialog";
 import { PostBookingPolicyDialog } from "@/features/bookings/components/bookings/PostBookingPolicyDialog";
 import { differenceInDays } from "date-fns";
-import { useBookingFormLogic } from "@/hooks/bookingForm/useBookingFormLogic";
+import { useBookingFormLogic } from "@/features/bookings/hooks/bookingForm/useBookingFormLogic";
 
 export default function BookingForm() {
   const {
