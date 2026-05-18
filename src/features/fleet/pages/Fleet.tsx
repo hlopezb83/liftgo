@@ -5,20 +5,18 @@ import { useContracts } from "@/features/contracts/hooks/useContracts";
 import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import { useListPage } from "@/hooks/useListPage";
 
-import { StatusBadge } from "@/components/StatusBadge";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TableCell, TableHead, TableRow } from "@/components/ui/table";
+import { TableHead, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { PlusCircle, Download, ChevronRight, Forklift, ShieldCheck } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { PlusCircle, Download, Forklift } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
-import { FORKLIFT_STATUSES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
+import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
+import { FleetMobileCard, FleetTableRow } from "@/features/fleet/components/fleet/FleetRowAndCard";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
