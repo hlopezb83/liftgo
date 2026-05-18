@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { ROUTES } from "@/lib/routes";
-import type { Prospect } from "@/hooks/useProspects";
+import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 export function ProspectCardCompact({ prospect }: { prospect: Prospect }) {
   return (

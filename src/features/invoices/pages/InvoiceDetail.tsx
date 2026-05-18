@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useBooking } from "@/features/bookings/hooks/useBookings";
-import { usePayments } from "@/hooks/usePayments";
+import { usePayments } from "@/features/invoices/hooks/usePayments";
 import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { useInvoiceDetailActions } from "@/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions";

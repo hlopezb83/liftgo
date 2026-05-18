@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getStaleDays } from "@/features/crm/hooks/useCRMFilters";
 import { ProspectCardCompact, ProspectCardExpanded } from "@/features/crm/components/ProspectCardParts";
-import type { Prospect } from "@/hooks/useProspects";
+import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 interface ProspectCardProps {
   prospect: Prospect;

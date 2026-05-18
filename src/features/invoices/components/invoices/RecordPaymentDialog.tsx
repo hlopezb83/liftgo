@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreatePayment } from "@/hooks/usePayments";
+import { useCreatePayment } from "@/features/invoices/hooks/usePayments";
 import { toast } from "sonner";
 import { DatePickerField } from "@/components/DatePickerField";
 import { format } from "date-fns";

@@ -2,7 +2,7 @@ import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/co
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ProspectStageBadge } from "@/features/crm/components/prospect-form/ProspectStageBadge";
-import type { Prospect } from "@/hooks/useProspects";
+import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 export function ProspectDialogHeader({
   prospect, overrideStage,
