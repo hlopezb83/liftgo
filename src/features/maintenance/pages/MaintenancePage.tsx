@@ -70,7 +70,7 @@ export default function MaintenancePage() {
     <>
       <ListPageLayout
         title="Mantenimiento"
-        subtitle={`${logs?.length || 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
+        subtitle={`${logs?.length ?? 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
         actions={
           <MaintenancePageActions
             viewMode={viewMode}
