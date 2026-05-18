@@ -33,35 +33,26 @@ export default function MaintenancePage() {
 
   const formCtl = useMaintenanceForm(forkliftMap);
 
-  const enrichedLogs = logs?.map((log) => ({
-    ...log,
-    forklift_name: forkliftMap.get(log.forklift_id)?.name || "",
-  }));
+  const enrichedLogs = enrichLogs(logs, forkliftMap);
 
   const { search, setSearch, filtered: searchFiltered } = useListFilters(enrichedLogs, {
     searchFields: ["service_type", "performed_by", "description", "forklift_name"],
   });
 
-  const filtered = searchFiltered?.filter((log) =>
-    forkliftFilter === "all" || log.forklift_id === forkliftFilter
+  const filtered = (searchFiltered ?? []).filter(
+    (log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter,
   );
 
   const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
-    accessors: {
-      performed_at: (l) => l.performed_at,
-      forklift_name: (l) => forkliftMap.get(l.forklift_id)?.name || "",
-      service_type: (l) => l.service_type,
-      performed_by: (l) => l.performed_by || "",
-      cost: (l) => l.cost || 0,
-      next_service_date: (l) => l.next_service_date || "",
-    },
+    accessors: maintenanceSortAccessors(forkliftMap),
   });
 
-  const kanbanContent = viewMode === "board" ? (
-    <MaintenanceKanban logs={filtered?.map(l => ({ ...l, forklift_name: forkliftMap.get(l.forklift_id)?.name || "" })) || []} />
+  const isBoard = viewMode === "board";
+  const kanbanContent = isBoard ? (
+    <MaintenanceKanban logs={filtered} />
   ) : undefined;
 
-  const mobileContent = isMobile && viewMode === "list" ? (
+  const mobileContent = isMobile && !isBoard ? (
     <MobileCardList
       items={paginatedItems}
       keyExtractor={(log) => log.id}
@@ -72,16 +63,8 @@ export default function MaintenancePage() {
     />
   ) : undefined;
 
-  const totalCost = logs?.reduce((sum, l) => sum + (l.cost || 0), 0) || 0;
-
-  const exportCsv = () => exportToCsv("mantenimiento.csv", (logs || []).map(l => ({
-    Fecha: l.performed_at,
-    Montacargas: forkliftMap.get(l.forklift_id)?.name || "",
-    Servicio: l.service_type,
-    "Realizado Por": l.performed_by || "",
-    Costo: l.cost || 0,
-    "Próximo Servicio": l.next_service_date || "",
-  })));
+  const totalCost = sumCost(logs);
+  const exportCsv = () => exportToCsv("mantenimiento.csv", maintenanceCsvRows(logs, forkliftMap));
 
   return (
     <>
