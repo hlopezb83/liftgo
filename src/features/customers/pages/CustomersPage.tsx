@@ -17,6 +17,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/hooks/useProspects";
 import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
 import type { CustomerFormData } from "@/lib/formSchemas";
+import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
 
 export default function CustomersPage() {
   const { data: customers, isLoading } = useCustomers();
