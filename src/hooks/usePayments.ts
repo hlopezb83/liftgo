@@ -5,6 +5,45 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type Payment = Tables<"payments">;
 
+interface PaymentLite { amount: number | string; payment_date?: string }
+
+async function fetchPaymentsSum(invoiceId: string): Promise<{ rows: PaymentLite[]; total: number }> {
+  const { data } = await supabase
+    .from("payments")
+    .select("amount, payment_date")
+    .eq("invoice_id", invoiceId);
+  const rows = (data || []) as PaymentLite[];
+  const total = rows.reduce((s, p) => s + Number(p.amount), 0);
+  return { rows, total };
+}
+
+async function syncInvoiceStatus(invoiceId: string, paidAtFallback: string | null) {
+  const { rows, total: totalPaid } = await fetchPaymentsSum(invoiceId);
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("total, status")
+    .eq("id", invoiceId)
+    .single();
+  if (!invoice) return;
+
+  const balance = Number(invoice.total) - totalPaid;
+  if (balance <= 0 && invoice.status !== "paid") {
+    const latestDate = rows.reduce<string>(
+      (latest, p) => (p.payment_date && p.payment_date > latest ? p.payment_date : latest),
+      paidAtFallback ?? rows[0]?.payment_date ?? "",
+    );
+    await supabase.from("invoices").update({ status: "paid", paid_at: latestDate }).eq("id", invoiceId);
+    return;
+  }
+  if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
+    await supabase.from("invoices").update({ status: "partial", paid_at: null }).eq("id", invoiceId);
+    return;
+  }
+  if (totalPaid === 0 && invoice.status !== "sent") {
+    await supabase.from("invoices").update({ status: "sent", paid_at: null }).eq("id", invoiceId);
+  }
+}
+
 export function usePayments(invoiceId: string | undefined) {
   return useQuery({
     queryKey: ["payments", invoiceId],
@@ -32,28 +71,7 @@ export function useCreatePayment() {
         .select()
         .single();
       if (error) throw error;
-
-      const { data: allPayments } = await supabase
-        .from("payments")
-        .select("amount")
-        .eq("invoice_id", payment.invoice_id);
-      const totalPaid = (allPayments || []).reduce((s: number, p) => s + Number(p.amount), 0);
-
-      const { data: invoice } = await supabase
-        .from("invoices")
-        .select("total, status")
-        .eq("id", payment.invoice_id)
-        .single();
-
-      if (invoice) {
-        const balance = Number(invoice.total) - totalPaid;
-        if (balance <= 0 && invoice.status !== "paid") {
-          await supabase.from("invoices").update({ status: "paid", paid_at: payment.payment_date }).eq("id", payment.invoice_id);
-        } else if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
-          await supabase.from("invoices").update({ status: "partial" }).eq("id", payment.invoice_id);
-        }
-      }
-
+      await syncInvoiceStatus(payment.invoice_id, payment.payment_date);
       return data;
     },
     onSuccess: (_d, vars) => {
@@ -74,32 +92,7 @@ export function useUpdatePayment() {
         .select()
         .single();
       if (error) throw error;
-
-      const { data: allPayments } = await supabase
-        .from("payments")
-        .select("amount, payment_date")
-        .eq("invoice_id", invoice_id);
-      const totalPaid = (allPayments || []).reduce((s: number, p) => s + Number(p.amount), 0);
-
-      const { data: invoice } = await supabase
-        .from("invoices")
-        .select("total, status")
-        .eq("id", invoice_id)
-        .single();
-
-      if (invoice) {
-        const balance = Number(invoice.total) - totalPaid;
-        if (balance <= 0 && invoice.status !== "paid") {
-          const latestDate = (allPayments || []).reduce((latest, p) =>
-            p.payment_date > latest ? p.payment_date : latest, allPayments?.[0]?.payment_date ?? "");
-          await supabase.from("invoices").update({ status: "paid", paid_at: latestDate }).eq("id", invoice_id);
-        } else if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
-          await supabase.from("invoices").update({ status: "partial", paid_at: null }).eq("id", invoice_id);
-        } else if (totalPaid === 0 && invoice.status !== "sent") {
-          await supabase.from("invoices").update({ status: "sent", paid_at: null }).eq("id", invoice_id);
-        }
-      }
-
+      await syncInvoiceStatus(invoice_id, null);
       return data;
     },
     onSuccess: (_d, vars) => {
