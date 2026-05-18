@@ -1,6 +1,8 @@
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceUtils";
+import { toJsonArray } from "@/lib/lineItems";
+import { nowMty } from "@/lib/utils";
 
 export type EquipmentModel = { id: string; manufacturer: string; model: string };
 export type SaleLine = { modelId: string; quantity: number; unitPrice: number; discount?: number; discountType?: "%" | "$" };
