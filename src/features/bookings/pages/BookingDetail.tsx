@@ -50,16 +50,24 @@ export default function BookingDetail() {
     );
   }
 
+  const forkliftName = booking.forklifts?.name ?? "";
+  const forkliftModel = booking.forklifts?.model ?? "";
+  const subtitleName = forkliftName || "Equipo";
+  const subtitleCustomer = booking.customer_name ?? "Sin cliente";
+  const subtitle = `${subtitleName} · ${subtitleCustomer}`;
+  const canExtend = booking.status === "confirmed";
+  const extensionsList = extensions ?? [];
+
   return (
     <div className="space-y-6">
       <DetailPageHeader
         title={booking.booking_number}
-        subtitle={`${booking.forklifts?.name || "Equipo"} · ${booking.customer_name || "Sin cliente"}`}
+        subtitle={subtitle}
         badges={<StatusBadge status={booking.status} />}
         backTo="/bookings"
         actions={
           <div className="flex gap-2">
-            {booking.status === "confirmed" && (
+            {canExtend && (
               <Button variant="outline" size="sm" onClick={() => setExtendOpen(true)}>
                 <CalendarPlus className="h-4 w-4 mr-1" /> Extender Renta
               </Button>
@@ -70,10 +78,7 @@ export default function BookingDetail() {
       />
 
       <div className="grid gap-6 md:grid-cols-2">
-        <BookingEquipmentCard
-          name={booking.forklifts?.name || ""}
-          model={booking.forklifts?.model || ""}
-        />
+        <BookingEquipmentCard name={forkliftName} model={forkliftModel} />
         <BookingCustomerCard
           customerName={booking.customer_name}
           customerContact={booking.customer_contact}
@@ -85,7 +90,7 @@ export default function BookingDetail() {
       </div>
 
       <BookingHourometerCard {...hourometer} />
-      <BookingExtensionsCard extensions={extensions || []} />
+      <BookingExtensionsCard extensions={extensionsList} />
 
       <BookingStatusHistory bookingId={booking.id} />
 
