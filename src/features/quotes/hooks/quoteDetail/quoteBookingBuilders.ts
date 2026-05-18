@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { parseLineItems } from "@/lib/lineItems";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { DeliveryInfo } from "./useQuoteConversionState";
