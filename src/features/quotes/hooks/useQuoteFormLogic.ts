@@ -5,12 +5,9 @@ import { useEquipmentModels } from "@/features/fleet/hooks/useEquipmentModels";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/features/quotes/hooks/quotes/useQuotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceUtils";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { nowMty } from "@/lib/utils";
-import { toJsonArray } from "@/lib/lineItems";
 import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
 import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
-import { buildSaleItems, buildRentalItems, validateQuoteForm } from "./quoteForm/quoteFormHelpers";
+import { buildSaleItems, buildRentalItems, validateQuoteForm, buildQuotePayload } from "./quoteForm/quoteFormHelpers";
 
 export function useQuoteFormLogic() {
   const { id } = useParams();
