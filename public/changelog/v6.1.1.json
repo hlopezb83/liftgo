@@ -1,0 +1,54 @@
+{
+  "version": "6.1.1",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Reducción de complejidad: prefill mappers, IncomeStatement y ProspectDetail",
+  "category": "refactor",
+  "summary": "Continuación del plan de auditoría (paso 12). Extracción de mappers puros con helpers de coerción, división de tablas/sheets grandes y fix del último error de lint. Warnings 52 → 43, 0 errores.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Helpers de coerción para form prefill",
+      "description": "Nuevo módulo `src/lib/forms/coerce.ts` con `toStr`, `toNumStr`, `orEmpty`. Reemplaza cadenas de `String(x || '')` en mappers, reduciendo complejidad ciclomática (cada `||` cuenta como rama según Power-of-10 #1)."
+    },
+    {
+      "type": "refactor",
+      "title": "useForkliftPrefill, useContractFormState, useInvoicePrefill",
+      "description": "Cada uno ahora delega en mapper puro (`mapForkliftToForm`, `mapContractToForm`, `applyInvoiceToState`, `buildCfdiFromInvoice`, `enrichLineItem`, `applyQuoteToState`). Hooks bajan de 22–25 a ≤8 de complejidad."
+    },
+    {
+      "type": "refactor",
+      "title": "useContractFormPrefill — separación del template",
+      "description": "Diccionario de placeholders extraído a `contractTemplateReplacements.ts` (`buildTemplateReplacements`). El hook orquesta efectos, la función pura arma el reemplazo."
+    },
+    {
+      "type": "refactor",
+      "title": "IncomeStatementTable dividido",
+      "description": "Subcomponentes internos `ComparisonTable` y `StatementTableRow`, helper `getBreakdownFor` y estado de expansión unificado en un solo `useState<Record>`. Elimina las 3 banderas booleanas y la complejidad 22 en el render."
+    },
+    {
+      "type": "refactor",
+      "title": "ProfitabilityByModelReport — agregación modular",
+      "description": "useMemo de 40 LOC dividido en helpers puros: `buildModelUnitsMap`, `buildRevenueMap`, `buildCostMap` (genérico), `aggregateRows`. Complejidad 26 → <10."
+    },
+    {
+      "type": "refactor",
+      "title": "ProspectDetailSheet (244 LOC) dividido",
+      "description": "Extraídos `prospectDetail/ProspectInfoBlocks` (QuoteLink, Notes, ClosureInfo) y `prospectDetail/ProspectActions` (toda la lógica de cerrar/reabrir/eliminar con sus dialogs). Sheet principal queda en ~80 LOC y solo orquesta presentación."
+    },
+    {
+      "type": "refactor",
+      "title": "AuthForm — separación de tipos para Fast Refresh",
+      "description": "`AuthMode` y `getAuthSubmitLabel` movidos a `src/pages/auth/authTypes.ts`. AuthForm.tsx ya solo exporta el componente, eliminando el warning de `react-refresh/only-export-components`."
+    }
+  ],
+  "metrics": {
+    "warnings_before": 52,
+    "warnings_after": 43,
+    "errors": 0,
+    "tests": "48/48 ✓",
+    "files_created": 6,
+    "files_refactored": 6
+  },
+  "notes": "Resto del plan optativo (paso 13: aplanar `features/<x>/components/<x>/`) se posterga: alto churn de imports, valor marginal. Warnings restantes son mayormente complejidad de páginas de detalle (BookingForm, InvoiceDetail, QuoteDetail) que requieren extracción de secciones más invasiva."
+}

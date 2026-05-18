@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.1.1",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "Reducción de complejidad: prefill mappers, IncomeStatement y ProspectDetail",
+    "category": "refactor"
+  },
+  {
     "version": "6.1.0",
     "date": "2026-05-18",
     "type": "minor",
