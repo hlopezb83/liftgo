@@ -43,23 +43,29 @@ export function ProspectFormDialog({
 
   const isClosingWonBlocked = effectiveStage === "cerrado_ganado" && !canCloseDeal;
 
+  const showStageBadge = Boolean(overrideStage && prospect);
+  const showCreator = Boolean(prospect?.created_by_name);
+  const showCloseDeal = Boolean(prospect && effectiveStage === "cerrado_ganado");
+  const showDelete = Boolean(prospect && onDelete);
+  const title = prospect ? "Editar Prospecto" : "Nuevo Prospecto";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{prospect ? "Editar Prospecto" : "Nuevo Prospecto"}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{buildDescription(prospect, overrideStage)}</DialogDescription>
-          {overrideStage && prospect && (
+          {showStageBadge && prospect && overrideStage && (
             <ProspectStageBadge fromStage={prospect.stage} toStage={overrideStage} />
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col">
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-4 pb-1 pr-4">
-              {prospect?.created_by_name && (
+              {showCreator && (
                 <div className="space-y-1">
                   <Label className="text-muted-foreground">Creado por</Label>
-                  <p className="text-sm font-medium">{prospect.created_by_name}</p>
+                  <p className="text-sm font-medium">{prospect?.created_by_name}</p>
                 </div>
               )}
               <ProspectFormFields
@@ -69,7 +75,7 @@ export function ProspectFormDialog({
                 selectedQuote={selectedQuote}
                 requiresDealValue={requiresDealValue}
               />
-              {prospect && effectiveStage === "cerrado_ganado" && (
+              {showCloseDeal && prospect && (
                 <ProspectCloseDealActions
                   prospect={prospect}
                   canCloseDeal={canCloseDeal}
@@ -80,7 +86,7 @@ export function ProspectFormDialog({
           </ScrollArea>
 
           <DialogFooter className="flex justify-between sm:justify-between pt-4">
-            {prospect && onDelete && (
+            {showDelete && onDelete && (
               <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(); onOpenChange(false); }}>
                 Eliminar
               </Button>
