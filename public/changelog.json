@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.2.2",
+    "date": "2026-05-18",
+    "type": "patch",
+    "title": "AuthPage migrado a src/features/auth/ para coherencia arquitectónica",
+    "category": "refactor"
+  },
+  {
     "version": "6.2.1",
     "date": "2026-05-18",
     "type": "patch",

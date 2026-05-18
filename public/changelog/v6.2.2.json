@@ -1,0 +1,19 @@
+{
+  "version": "6.2.2",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "AuthPage migrado a src/features/auth/",
+  "category": "refactor",
+  "description": "Última feature fuera de src/features/ relocalizada para coherencia estructural.",
+  "changes": [
+    "Movido src/pages/AuthPage.tsx → src/features/auth/pages/AuthPage.tsx",
+    "Movido src/pages/auth/AuthForm.tsx → src/features/auth/components/AuthForm.tsx",
+    "Movido src/pages/auth/authTypes.ts → src/features/auth/lib/authTypes.ts",
+    "Actualizados imports en AuthGuard y archivos internos de la feature",
+    "Eliminada carpeta src/pages/auth/"
+  ],
+  "verification": {
+    "eslint": "0 warnings",
+    "tests": "48/48 PASS"
+  }
+}
