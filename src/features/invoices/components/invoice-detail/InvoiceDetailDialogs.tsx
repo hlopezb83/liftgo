@@ -10,12 +10,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RecordPaymentDialog } from "@/features/invoices/components/invoices/RecordPaymentDialog";
 import { CancelCfdiDialog } from "@/features/invoices/components/invoice-detail/CancelCfdiDialog";
+import { CollectionNotesCard } from "@/features/invoices/components/invoice-detail/CollectionNotesCard";
+import { NotesCard } from "@/components/NotesCard";
 
 type Props = {
   invoiceId: string;
   invoiceNumber: string;
   invoiceTotal: number;
   balance: number;
+  notes: string | null;
+  showCollectionNotes: boolean;
   paymentOpen: boolean;
   setPaymentOpen: (open: boolean) => void;
   cancelOpen: boolean;
