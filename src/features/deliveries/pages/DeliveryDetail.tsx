@@ -57,17 +57,18 @@ export default function DeliveryDetail() {
   const subtitle = buildDeliverySubtitle(forklift?.name, delivery.type);
 
   const promptPickupIfNeeded = () => {
-    if (!canPromptPickup(delivery, linkedBooking, forklift)) return;
+    const bookingId = delivery.booking_id;
+    if (delivery.type !== "delivery" || !bookingId || !linkedBooking || !forklift) return;
     setPickupPrompt({
       delivery: {
         forklift_id: delivery.forklift_id,
-        booking_id: delivery.booking_id as string,
+        booking_id: bookingId,
         address: delivery.address,
         driver_name: delivery.driver_name,
         driver_phone: delivery.driver_phone,
       },
-      bookingEndDate: (linkedBooking as { end_date: string }).end_date,
-      forkliftName: (forklift as { name: string }).name,
+      bookingEndDate: linkedBooking.end_date,
+      forkliftName: forklift.name,
     });
   };
 
