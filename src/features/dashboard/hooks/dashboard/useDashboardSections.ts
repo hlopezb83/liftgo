@@ -1,26 +1,17 @@
 import { useMemo } from "react";
 import { differenceInDays, parseISO } from "date-fns";
-import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
 import { useDashboardStats } from "@/features/dashboard/hooks/useDashboardStats";
 import { useFinancialKpis } from "@/features/dashboard/hooks/useFinancialKpis";
 import { useInsuranceAlerts } from "@/features/fleet/hooks/useInsuranceAlerts";
 import { useUpcomingInvoices } from "@/features/invoices/hooks/invoices/useUpcomingInvoices";
 import { nowMty } from "@/lib/utils";
-
-const STATUS_COLORS = {
-  available: "hsl(var(--status-available))",
-  rented: "hsl(var(--status-rented))",
-  maintenance: "hsl(var(--status-maintenance))",
-  retired: "hsl(var(--status-retired))",
-  sold: "hsl(var(--status-sold))",
-};
-
-const INVOICE_STATUS_COLORS: Record<string, string> = {
-  draft: "hsl(var(--status-draft))",
-  sent: "hsl(var(--status-rented))",
-  overdue: "hsl(var(--status-overdue))",
-  paid: "hsl(var(--status-available))",
-};
+import {
+  EMPTY_COUNTS,
+  buildPieData,
+  buildStatCards,
+  mapMaintenanceAlerts,
+  mapInvoiceBreakdown,
+} from "@/features/dashboard/lib/dashboardSectionHelpers";
 
 function bucketFor(days: number): "0-30" | "31-60" | "61-90" | "90+" {
   if (days <= 30) return "0-30";
@@ -39,8 +30,8 @@ function computeAgingBuckets(overdueInvoices: Array<{ due_date: string; total: n
 }
 
 /**
- * Centraliza todas las derivaciones del dashboard (counts, agings, charts)
- * para que la página sea declarativa y se reduzca su complejidad ciclomática.
+ * Centraliza derivaciones del dashboard (counts, agings, charts) para que la
+ * página sea declarativa.
  */
 export function useDashboardSections() {
   const { data: stats, isLoading } = useDashboardStats();
@@ -48,64 +39,36 @@ export function useDashboardSections() {
   const { data: insuranceData } = useInsuranceAlerts();
   const { data: upcomingInvoices } = useUpcomingInvoices();
 
-  const fleetCounts = stats?.fleet_counts;
-  const counts = useMemo(
-    () => fleetCounts ?? { total: 0, available: 0, rented: 0, maintenance: 0, retired: 0, sold: 0 },
-    [fleetCounts],
-  );
+  const counts = useMemo(() => stats?.fleet_counts ?? EMPTY_COUNTS, [stats?.fleet_counts]);
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = activeFleet > 0 ? Math.round((counts.rented / activeFleet) * 100) : 0;
 
-  const pieData = useMemo(() => [
-    { name: "Disponibles", value: counts.available, color: STATUS_COLORS.available },
-    { name: "Rentados", value: counts.rented, color: STATUS_COLORS.rented },
-    { name: "Mantenimiento", value: counts.maintenance, color: STATUS_COLORS.maintenance },
-    { name: "Vendidos", value: counts.sold, color: STATUS_COLORS.sold },
-  ].filter((d) => d.value > 0), [counts]);
+  const pieData = useMemo(() => buildPieData(counts), [counts]);
+  const statCards = useMemo(() => buildStatCards(counts, activeFleet), [counts, activeFleet]);
 
-  const overdueRaw = stats?.overdue_invoices;
-  const overdueInvoices = useMemo(() => overdueRaw ?? [], [overdueRaw]);
+  const overdueInvoices = useMemo(() => stats?.overdue_invoices ?? [], [stats?.overdue_invoices]);
   const agingBuckets = useMemo(() => computeAgingBuckets(overdueInvoices), [overdueInvoices]);
 
-  const maintenanceRaw = stats?.maintenance_alerts;
-  const maintenanceAlerts = useMemo(() =>
-    (maintenanceRaw ?? []).map((a) => ({
-      forkliftName: a.forklift_name,
-      nextDate: a.next_date,
-      forkliftId: a.forklift_id,
-    })), [maintenanceRaw]);
-
-  const weeklyRaw = stats?.weekly_utilization;
-  const weeklyUtilization = useMemo(() =>
-    (weeklyRaw ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization })),
-    [weeklyRaw]);
-
-  const utilizationRaw = stats?.utilization;
-  const revenuePerUnit = useMemo(() =>
-    (utilizationRaw ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue })),
-    [utilizationRaw]);
-
-  const breakdownRaw = stats?.invoice_stats?.breakdown;
-  const invoiceBreakdown = useMemo(() =>
-    (breakdownRaw ?? []).map((b) => ({
-      status: b.status,
-      count: b.count,
-      total: b.total,
-      color: INVOICE_STATUS_COLORS[b.status] ?? "hsl(var(--status-draft))",
-    })), [breakdownRaw]);
-
-  const cashFlowRaw = stats?.cash_flow;
-  const cashFlowData = useMemo(() =>
-    (cashFlowRaw ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid })),
-    [cashFlowRaw]);
-
-  const statCards = useMemo(() => [
-    { label: "Flota Activa", value: activeFleet, icon: Truck, color: "text-primary" },
-    { label: "Disponibles", value: counts.available, icon: CheckCircle, color: "text-status-available" },
-    { label: "Rentados", value: counts.rented, icon: Clock, color: "text-status-rented" },
-    { label: "Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
-    { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
-  ], [counts, activeFleet]);
+  const maintenanceAlerts = useMemo(
+    () => mapMaintenanceAlerts(stats?.maintenance_alerts),
+    [stats?.maintenance_alerts],
+  );
+  const weeklyUtilization = useMemo(
+    () => (stats?.weekly_utilization ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization })),
+    [stats?.weekly_utilization],
+  );
+  const revenuePerUnit = useMemo(
+    () => (stats?.utilization ?? []).filter((u) => u.revenue > 0).map((u) => ({ name: u.name, revenue: u.revenue })),
+    [stats?.utilization],
+  );
+  const invoiceBreakdown = useMemo(
+    () => mapInvoiceBreakdown(stats?.invoice_stats?.breakdown),
+    [stats?.invoice_stats?.breakdown],
+  );
+  const cashFlowData = useMemo(
+    () => (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid })),
+    [stats?.cash_flow],
+  );
 
   const financials = {
     mrr: kpis?.mrr ?? 0,
