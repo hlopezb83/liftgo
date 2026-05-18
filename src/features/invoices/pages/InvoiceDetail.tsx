@@ -42,21 +42,22 @@ export default function InvoiceDetail() {
   const { data: invoice, isLoading, refetch } = useInvoice(id);
   const { data: payments } = usePayments(id);
   const { data: userRole } = useUserRole();
-  const { data: sourceQuote } = useQuote(invoice?.quote_id || undefined);
-  const { data: sourceBooking } = useBooking(invoice?.booking_id || undefined);
+  const { data: sourceQuote } = useQuote(invoice?.quote_id ?? undefined);
+  const { data: sourceBooking } = useBooking(invoice?.booking_id ?? undefined);
 
   const actions = useInvoiceDetailActions(invoice, refetch);
 
   if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
   if (!invoice || !id) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
 
+  const paymentList = payments ?? [];
   const lineItems = parseLineItems<LineItem>(invoice.line_items);
-  const cfdiStatus = invoice.cfdi_status || "pending";
-  const totalPaid = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
+  const cfdiStatus = invoice.cfdi_status ?? "pending";
+  const totalPaid = paymentList.reduce((sum, p) => sum + Number(p.amount), 0);
   const total = Number(invoice.total);
   const balance = total - totalPaid;
   const showCfdiError = Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped";
-  const showCollectionNotes = invoice.status !== "paid" && invoice.status !== "draft";
+  const showCollectionNotes = !["paid", "draft"].includes(invoice.status);
   const notes = invoice.notes;
 
   return (
