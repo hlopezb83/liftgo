@@ -50,34 +50,11 @@ export function generateChecklistPage(
   doc.text("I. Datos Generales", margin, cursorY); cursorY += 6;
 
   doc.setFontSize(9); doc.setFont("helvetica", "normal");
-  const generalInfo: Array<[string, string]> = [
-    ["Fecha y Hora de Entrega:", "______________________"],
-    ["Lugar de Entrega:", contract.usage_location || "______________________"],
-    ["Marca y Modelo:", `${forklift?.manufacturer || ""} ${forklift?.model || ""}`],
-    ["Número de Serie:", forklift?.serial_number || "______________________"],
-    ["Horómetro Inicial:", "____________  Final: ____________"],
-    ["Tipo de Combustible:", forklift?.fuel_type || "______________________"],
-    ["Nivel de Combustible Inicial:", "______________________"],
-  ];
-  for (const [label, val] of generalInfo) {
-    doc.setFont("helvetica", "bold"); doc.text(label, margin, cursorY);
-    doc.setFont("helvetica", "normal"); doc.text(val, margin + 50, cursorY);
-    cursorY += 5;
-  }
-  cursorY += 3;
+  drawGeneralInfoBlock(doc, margin, cursorY, contract, forklift);
+  cursorY += 7 * 5 + 3;
 
   for (const section of tpl.checklist_sections) {
-    cursorY = checkPage(doc, cursorY, 15);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-    doc.text(section.title, margin, cursorY); cursorY += 5;
-
-    doc.setFontSize(9); doc.setFont("helvetica", "normal");
-    for (const item of section.items) {
-      cursorY = checkPage(doc, cursorY);
-      drawChecklistItem(doc, item, cursorY, margin, pageWidth);
-      cursorY += 5;
-    }
-    cursorY += 2;
+    cursorY = drawChecklistSection(doc, section, cursorY, margin, pageWidth);
   }
 
   cursorY = checkPage(doc, cursorY, 35);
