@@ -1,0 +1,35 @@
+{
+  "version": "6.1.5",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Refactor: descomposición de páginas y reducción de complejidad (oleada 5)",
+  "category": "refactor",
+  "summary": "Quinta oleada del plan de auditoría: 4 archivos críticos llevados por debajo del límite de complejidad 12 mediante extracción de sub-componentes y helpers puros.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "MaintenancePage.tsx — complejidad 18 → ok",
+      "description": "Extraído MaintenancePageActions (toggle/export/recurrente/crear) y helpers puros (enrichLogs, maintenanceSortAccessors, maintenanceCsvRows, sumCost) a maintenancePageHelpers.ts."
+    },
+    {
+      "type": "refactor",
+      "title": "ContractDetail.tsx — complejidad 17 → ok",
+      "description": "Extraído ContractDetailsCard y ContractTextCard. Guard `!id` unificado; uso de ?? en placeholders."
+    },
+    {
+      "type": "refactor",
+      "title": "FiscalDataTab.tsx — complejidad 16 → ok",
+      "description": "handleSubmit dividido en validateForm, buildSettingsPayload y buildSecretsPayload (puros)."
+    },
+    {
+      "type": "refactor",
+      "title": "DeliveryDetail.tsx — complejidad 16 → 16",
+      "description": "Extraído DeliverySignatureDialog + helpers buildCompletionPayload/computeHoursUsed; promptPickupIfNeeded aislado. Queda 1 warning residual para próxima oleada."
+    }
+  ],
+  "metrics": {
+    "eslint_warnings_before": 22,
+    "eslint_warnings_after": 19,
+    "tests_passing": "48/48"
+  }
+}
