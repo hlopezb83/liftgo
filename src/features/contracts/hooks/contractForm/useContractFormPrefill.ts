@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useBookings } from "@/hooks/useBookings";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { useDefaultContractTemplate } from "@/features/contracts/hooks/useContractTemplates";
-import { replacePlaceholders } from "@/lib/templateUtils";
+import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import type { ContractFormShape } from "./contractFormDefaults";
 import type { Database } from "@/integrations/supabase/types";
 

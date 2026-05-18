@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormActions } from "@/components/FormActions";
 import { toast } from "sonner";
-import { REGIMEN_FISCAL } from "@/lib/satCatalogs";
+import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 
 interface SupplierForm {
   name: string;

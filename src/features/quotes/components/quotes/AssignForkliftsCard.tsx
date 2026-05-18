@@ -10,7 +10,7 @@ import {
   useAssignForklift,
   useUnassignForklift,
 } from "@/hooks/useAssignForklifts";
-import type { LineItem } from "@/lib/invoiceUtils";
+import type { LineItem } from "@/lib/domain/invoiceUtils";
 
 interface Props {
   quoteId: string;

@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/satCatalogs";
+import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
 import type { LineItem } from "@/features/invoices/lib/invoiceUtils";
 
 export interface CfdiLineItem extends LineItem {

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUpdateQuote, useDeleteQuote } from "@/hooks/useQuotes";
 import { useCreateBooking } from "@/hooks/useBookings";
-import type { LineItem } from "@/lib/invoiceUtils";
+import type { LineItem } from "@/lib/domain/invoiceUtils";
 import { parseLineItems } from "@/lib/lineItems";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
 import type { useQuoteConversionState, DeliveryInfo } from "./useQuoteConversionState";

@@ -1,5 +1,5 @@
 import type jsPDF from "jspdf";
-import { replacePlaceholders } from "@/lib/templateUtils";
+import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import { addWrappedText, checkPage } from "@/lib/pdf/shared";
 import type { TemplateData } from "../fetchers";
 

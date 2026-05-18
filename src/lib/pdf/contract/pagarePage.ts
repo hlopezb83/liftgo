@@ -1,7 +1,7 @@
 import type jsPDF from "jspdf";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
-import { replacePlaceholders } from "@/lib/templateUtils";
+import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import { addWrappedText, checkPage } from "@/lib/pdf/shared";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import type { ContractData, TemplateData } from "./data";
