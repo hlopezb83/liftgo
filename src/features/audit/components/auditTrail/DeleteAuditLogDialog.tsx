@@ -13,6 +13,19 @@ interface Props {
   onRevert: (log: AuditLog) => void;
 }
 
+function isRevertDisabled(log: AuditLog): boolean {
+  if (log.action === "DELETE" && !log.old_data) return true;
+  if (log.action === "UPDATE" && !log.old_data) return true;
+  return false;
+}
+
+function revertHint(log: AuditLog): string {
+  if (log.action === "INSERT") return "Esto eliminará el registro creado de la tabla original.";
+  if (log.action === "UPDATE") return "Esto restaurará los valores anteriores en la base de datos.";
+  if (log.old_data) return "Esto re-creará el registro eliminado en la base de datos.";
+  return "No se puede revertir: no hay datos anteriores disponibles.";
+}
+
 export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, onDelete, onRevert }: Props) {
   const isPending = isDeleting || isReverting;
   return (
