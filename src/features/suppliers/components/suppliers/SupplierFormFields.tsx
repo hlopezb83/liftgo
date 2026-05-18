@@ -6,7 +6,6 @@ import { SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 
 import { type SupplierForm } from "./supplierFormTypes";
-export { emptySupplierForm, type SupplierForm } from "./supplierFormTypes";
 
 interface Props {
   form: SupplierForm;
