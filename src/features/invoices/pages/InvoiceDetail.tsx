@@ -109,17 +109,16 @@ export default function InvoiceDetail() {
       <ReadOnlyLineItemsTable lineItems={lineItems} />
       <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={total} />
 
-      {notes && <NotesCard value={notes} readOnly />}
-
       <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={paymentList} />
       <InvoiceHistoryCard invoiceId={id} />
-      {showCollectionNotes && <CollectionNotesCard invoiceId={id} />}
 
       <InvoiceDetailDialogs
         invoiceId={id}
         invoiceNumber={invoice.invoice_number}
         invoiceTotal={total}
         balance={balance}
+        notes={notes}
+        showCollectionNotes={showCollectionNotes}
         paymentOpen={actions.paymentDialogOpen}
         setPaymentOpen={actions.setPaymentDialogOpen}
         cancelOpen={actions.cancelDialogOpen}
