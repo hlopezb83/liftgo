@@ -5,23 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 
-export interface SupplierForm {
-  name: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  website: string;
-  address: string;
-  rfc: string;
-  regimen_fiscal: string;
-  category: string;
-  notes: string;
-}
-
-export const emptySupplierForm: SupplierForm = {
-  name: "", contact_person: "", email: "", phone: "", website: "",
-  address: "", rfc: "", regimen_fiscal: "", category: "", notes: "",
-};
+import { type SupplierForm } from "./supplierFormTypes";
+export { emptySupplierForm, type SupplierForm } from "./supplierFormTypes";
 
 interface Props {
   form: SupplierForm;
