@@ -67,7 +67,6 @@ export function useContractFormPrefill({
     const forklift = forklifts?.find((f) => f.id === form.forklift_id);
     if (!customer || !forklift) return;
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- form fields enumerated explicitly below
     const text = replacePlaceholders(
       template.body_text,
       buildTemplateReplacements({ company, customer, forklift, form }),
@@ -75,11 +74,5 @@ export function useContractFormPrefill({
     );
     setForm((prev) => ({ ...prev, terms_text: text }));
     setTemplateApplied(true);
-  }, [
-    isEdit, templateApplied, template, form.customer_id, form.forklift_id,
-    form.usage_location, form.max_hours_per_month, form.extra_hour_rate,
-    form.start_date, form.end_date, form.monthly_rate, form.weekly_rate,
-    form.daily_rate, form.payment_frequency, form.late_interest_rate,
-    customers, forklifts, company, setForm, setTemplateApplied,
-  ]);
+  }, [isEdit, templateApplied, template, form, customers, forklifts, company, setForm, setTemplateApplied]);
 }
