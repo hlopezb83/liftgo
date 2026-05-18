@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export type PartInventory = Tables<"parts_inventory">;
-export type MaintenancePart = Tables<"maintenance_parts">;
+type MaintenancePart = Tables<"maintenance_parts">;
 
 // ─── Parts Inventory CRUD ────────────────────────────────────────────────────
 

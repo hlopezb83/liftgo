@@ -1,0 +1,14 @@
+{
+  "version": "6.0.1",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Limpieza post-auditoría: hook kanban + exports muertos",
+  "category": "refactor",
+  "description": "Pasos críticos del plan de auditoría: extracción del optimistic update de MaintenanceKanban a useMaintenanceKanban y eliminación de 9 exports y 9 tipos sin uso reportados por Knip.",
+  "changes": [
+    "Nuevo hook useMaintenanceKanban encapsula el onDragEnd y el setQueryData del kanban; el componente queda como vista pura.",
+    "Eliminados exports muertos: ACTIVE_STAGE_KEYS, CLOSED_STAGE_KEYS (crm), FINAL_STATUSES (feedback), MultiForkliftSelector (fleet), useDeleteSupplier, getModuleForPath, useInvoicePaymentsTotal, GRAY_400, createChainableQuery.",
+    "Eliminados tipos sin consumidores: ChangelogEntry, FeedbackHistoryEntry, ReporterType, BookingFormInput, SupplierFormData, MockSupabaseClient, StatusLog (y su re-export), AssignedForklift, MaintenancePart, ActivityEntry pasados a privados o eliminados.",
+    "Cero cambios de comportamiento: solo poda de superficie pública."
+  ]
+}

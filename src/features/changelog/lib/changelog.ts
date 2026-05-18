@@ -14,8 +14,6 @@ export interface ChangelogDetail {
   changes: string[];
 }
 
-export type ChangelogEntry = ChangelogIndexEntry & Partial<ChangelogDetail>;
-
 const SEMVER = /^\d+\.\d+\.\d+$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TYPES: ChangelogType[] = ["major", "minor", "patch"];

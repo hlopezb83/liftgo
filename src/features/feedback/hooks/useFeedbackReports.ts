@@ -6,7 +6,6 @@ import type { Tables } from "@/integrations/supabase/types";
 import type { FeedbackStatus } from "@/features/feedback/lib/constants";
 
 export type FeedbackReport = Tables<"feedback_reports">;
-export type FeedbackHistoryEntry = Tables<"feedback_status_history">;
 
 const QUERY_KEY = ["feedback_reports"] as const;
 const MY_KEY = ["feedback_reports", "mine"] as const;

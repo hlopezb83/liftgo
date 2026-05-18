@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { useUpdateMaintenanceLog, type MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { DragDropContext } from "@hello-pangea/dnd";
+import { type MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useMaintenanceKanban } from "@/features/maintenance/hooks/maintenance/useMaintenanceKanban";
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { Wrench, Clock, Package, CheckCircle2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { MaintenanceKanbanColumn } from "./kanban/MaintenanceKanbanColumn";
 import { MaintenanceDetailSheet } from "./kanban/MaintenanceDetailSheet";
 
@@ -21,8 +20,7 @@ interface Props {
 
 export function MaintenanceKanban({ logs }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
-  const updateLog = useUpdateMaintenanceLog();
-  const queryClient = useQueryClient();
+  const { onDragEnd } = useMaintenanceKanban();
 
   const columns = MAINTENANCE_WORK_STATUSES.map((status) => ({
     id: status,
@@ -30,26 +28,6 @@ export function MaintenanceKanban({ logs }: Props) {
     items: logs.filter((l) => (l.work_status || "pending") === status),
     ...COLUMN_CONFIG[status],
   }));
-
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination || result.source.droppableId === result.destination.droppableId) return;
-    const logId = result.draggableId;
-    const newStatus = result.destination.droppableId;
-
-    queryClient.setQueryData<MaintenanceLog[]>(["maintenance_logs", undefined], (old) =>
-      old?.map((l) => (l.id === logId ? { ...l, work_status: newStatus } : l))
-    );
-
-    updateLog.mutate(
-      { id: logId, work_status: newStatus },
-      {
-        onError: () => {
-          queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
-          toast.error("Error al actualizar estado");
-        },
-      }
-    );
-  };
 
   const currentLog = selectedLog
     ? logs.find((l) => l.id === selectedLog.id) || selectedLog

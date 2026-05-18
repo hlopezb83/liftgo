@@ -50,7 +50,6 @@ export type FeedbackStatus =
   | "closed"
   | "rejected"
   | "duplicate";
-export type ReporterType = "internal" | "customer";
 
 export const FEEDBACK_TYPE_LABELS: Record<FeedbackType, string> = {
   bug: "Bug",
@@ -83,5 +82,3 @@ export const KANBAN_COLUMNS: FeedbackStatus[] = [
   "resolved",
   "closed",
 ];
-
-export const FINAL_STATUSES: FeedbackStatus[] = ["closed", "rejected", "duplicate"];

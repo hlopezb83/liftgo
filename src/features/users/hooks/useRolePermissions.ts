@@ -42,23 +42,6 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/feedback": "Feedback",
 };
 
-/**
- * Resuelve el módulo para una ruta arbitraria (ej: `/fleet/abc-123/edit`).
- * Hace match por prefijo del segmento más largo. Devuelve `null` si no aplica
- * permisos (ej: rutas internas como `/activity`, `/changelog`).
- */
-export function getModuleForPath(pathname: string): string | null {
-  if (ROUTE_TO_MODULE[pathname]) return ROUTE_TO_MODULE[pathname];
-  // Ordenamos por longitud descendente para que "/fleet/new" gane sobre "/fleet"
-  const candidates = Object.keys(ROUTE_TO_MODULE).sort((a, b) => b.length - a.length);
-  for (const route of candidates) {
-    if (route === "/") continue;
-    if (pathname === route || pathname.startsWith(route + "/")) {
-      return ROUTE_TO_MODULE[route];
-    }
-  }
-  return null;
-}
 export function useRolePermissions() {
   const { user } = useAuth();
 
