@@ -53,6 +53,19 @@ export function generateChecklistPage(
   }
   cursorY += 3;
 
+function drawChecklistItem(doc: jsPDF, item: string, cursorY: number, margin: number, pageWidth: number): void {
+  doc.rect(margin + 2, cursorY - 3, 3, 3);
+  doc.text(item, margin + 8, cursorY);
+  doc.setFontSize(7);
+  doc.text("B", pageWidth - margin - 30, cursorY);
+  doc.rect(pageWidth - margin - 27, cursorY - 3, 3, 3);
+  doc.text("M", pageWidth - margin - 20, cursorY);
+  doc.rect(pageWidth - margin - 17, cursorY - 3, 3, 3);
+  doc.text("N/A", pageWidth - margin - 10, cursorY);
+  doc.rect(pageWidth - margin - 4, cursorY - 3, 3, 3);
+  doc.setFontSize(9);
+}
+
   for (const section of tpl.checklist_sections) {
     cursorY = checkPage(doc, cursorY, 15);
     doc.setFont("helvetica", "bold"); doc.setFontSize(10);
@@ -61,16 +74,7 @@ export function generateChecklistPage(
     doc.setFontSize(9); doc.setFont("helvetica", "normal");
     for (const item of section.items) {
       cursorY = checkPage(doc, cursorY);
-      doc.rect(margin + 2, cursorY - 3, 3, 3);
-      doc.text(item, margin + 8, cursorY);
-      doc.setFontSize(7);
-      doc.text("B", pageWidth - margin - 30, cursorY);
-      doc.rect(pageWidth - margin - 27, cursorY - 3, 3, 3);
-      doc.text("M", pageWidth - margin - 20, cursorY);
-      doc.rect(pageWidth - margin - 17, cursorY - 3, 3, 3);
-      doc.text("N/A", pageWidth - margin - 10, cursorY);
-      doc.rect(pageWidth - margin - 4, cursorY - 3, 3, 3);
-      doc.setFontSize(9);
+      drawChecklistItem(doc, item, cursorY, margin, pageWidth);
       cursorY += 5;
     }
     cursorY += 2;
