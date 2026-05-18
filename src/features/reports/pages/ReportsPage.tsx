@@ -16,6 +16,20 @@ import { AgingReport } from "@/features/reports/components/reports/AgingReport";
 import { subMonths } from "date-fns";
 import { nowMty } from "@/lib/utils";
 
+import type { ComponentType } from "react";
+
+interface ReportProps { startDate: Date; endDate: Date }
+
+const REPORT_COMPONENTS: Record<string, ComponentType<ReportProps>> = {
+  utilization: UtilizationReport,
+  "utilization-model": UtilizationByModelReport,
+  revenue: RevenueReport,
+  maintenance: MaintenanceCostReport,
+  profitability: ProfitabilityByModelReport,
+  "income-statement": IncomeStatementReport,
+  aging: AgingReport,
+};
+
 const REPORT_TYPES = [
   { value: "utilization", label: "Utilización de Flota" },
   { value: "utilization-model", label: "Utilización por Modelo" },
