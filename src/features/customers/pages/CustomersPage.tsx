@@ -89,32 +89,24 @@ export default function CustomersPage() {
 
   const openCreate = () => { setEditId(null); setInitialData(undefined); setDialogOpen(true); };
 
-  const handleSubmit = (form: CustomerFormData) => {
-    const payload = {
-      name: form.name, company: form.name, email: form.email || null, phone: form.phone || null,
-      address: form.address || null, notes: form.notes || null,
-      website: form.website || null,
-      contact_person: form.contact_person || null,
-      rfc: form.rfc || null, razon_social: form.razon_social || null, regimen_fiscal: form.regimen_fiscal || null,
-      uso_cfdi: form.uso_cfdi || null, domicilio_fiscal_cp: form.domicilio_fiscal_cp || null,
-      representante_legal: form.representante_legal || null,
-    };
+  const handleCreateSuccess = (newCustomer: { id?: string } | null | undefined) => {
+    toast.success("Cliente agregado");
+    setDialogOpen(false);
+    if (!prospectId || !newCustomer?.id) return;
+    updateProspect.mutate({ id: prospectId, customer_id: newCustomer.id });
+    setProspectId(null);
+    toast.success("Prospecto vinculado al nuevo cliente");
+  };
 
+  const handleSubmit = (form: CustomerFormData) => {
+    const payload = buildCustomerPayload(form);
     if (editId) {
-      updateCustomer.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Cliente actualizado"); setDialogOpen(false); } });
-    } else {
-      createCustomer.mutate(payload, {
-        onSuccess: (newCustomer) => {
-          toast.success("Cliente agregado");
-          setDialogOpen(false);
-          if (prospectId && newCustomer?.id) {
-            updateProspect.mutate({ id: prospectId, customer_id: newCustomer.id });
-            setProspectId(null);
-            toast.success("Prospecto vinculado al nuevo cliente");
-          }
-        },
+      updateCustomer.mutate({ id: editId, ...payload }, {
+        onSuccess: () => { toast.success("Cliente actualizado"); setDialogOpen(false); },
       });
+      return;
     }
+    createCustomer.mutate(payload, { onSuccess: handleCreateSuccess });
   };
 
   return (
