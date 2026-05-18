@@ -65,7 +65,7 @@ type StatsLike = {
   utilization?: Array<{ name: string; revenue: number }>;
   cash_flow?: Array<{ month: string; invoiced: number; paid: number }>;
   invoice_stats?: { outstanding_revenue?: number };
-  overdue_bookings?: unknown[];
+  overdue_bookings?: unknown;
 };
 
 export function mapWeeklyUtilization(stats?: StatsLike) {
@@ -80,7 +80,7 @@ export function mapCashFlow(stats?: StatsLike) {
   return (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid }));
 }
 
-type KpisLike = { mrr?: number; dso?: number; overdue_total?: number; expiring_contracts?: unknown[] };
+type KpisLike = { mrr?: number; dso?: number; overdue_total?: number; expiring_contracts?: unknown };
 
 export function buildFinancials(kpis?: KpisLike) {
   return {
@@ -90,11 +90,15 @@ export function buildFinancials(kpis?: KpisLike) {
   };
 }
 
-export function buildAlertsProps(stats: StatsLike | undefined, upcomingInvoices: unknown[] | undefined, kpis: KpisLike | undefined) {
+export function buildAlertsProps<B, I, C>(
+  stats: { overdue_bookings?: B[] } | undefined,
+  upcomingInvoices: I[] | undefined,
+  kpis: { expiring_contracts?: C[] } | undefined,
+) {
   return {
-    overdueBookings: stats?.overdue_bookings ?? [],
-    upcomingInvoices: upcomingInvoices ?? [],
-    expiringContracts: kpis?.expiring_contracts ?? [],
+    overdueBookings: stats?.overdue_bookings ?? ([] as B[]),
+    upcomingInvoices: upcomingInvoices ?? ([] as I[]),
+    expiringContracts: kpis?.expiring_contracts ?? ([] as C[]),
   };
 }
 
