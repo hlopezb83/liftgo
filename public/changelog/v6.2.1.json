@@ -1,0 +1,20 @@
+{
+  "version": "6.2.1",
+  "date": "2026-05-18",
+  "type": "patch",
+  "title": "Convención de nombres en lib/ y documentación de Domain Hooks",
+  "category": "refactor",
+  "description": "Estandarización de la convención de nombres en src/lib/ y documentación arquitectónica.",
+  "changes": [
+    "Renombrado src/lib/domain/invoiceUtils.ts → invoiceHelpers.ts",
+    "Renombrado src/features/invoices/lib/invoiceUtils.ts → invoiceHelpers.ts",
+    "Renombrado src/test/invoiceUtils.test.ts → invoiceHelpers.test.ts",
+    "Actualizados todos los imports (~15 archivos) a la nueva nomenclatura *Helpers.ts",
+    "Añadida §19 a architecture.md: convenciones de Domain Hooks y nomenclatura de lib/ (*Helpers.ts para puros, *Builder.ts para efectos)",
+    "Eliminado uso del sufijo *Utils.ts en código de features"
+  ],
+  "verification": {
+    "eslint": "0 warnings",
+    "tests": "48/48 PASS"
+  }
+}
