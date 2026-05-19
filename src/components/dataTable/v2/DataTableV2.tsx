@@ -24,6 +24,23 @@ interface Props<T> {
   virtualizationThreshold?: number;
 }
 
+function buildToolbar<T>(
+  table: TanstackTable<T>,
+  enabled: boolean,
+  render: ((ctx: DataTableSelectionContext<T>) => ReactNode) | undefined,
+): ReactNode {
+  if (!enabled || !render) return null;
+  const sel = table.getState().rowSelection;
+  const selectedIds = Object.keys(sel).filter((k) => sel[k]);
+  if (selectedIds.length === 0) return null;
+  const ctx: DataTableSelectionContext<T> = {
+    selectedIds,
+    selectedRows: table.getSelectedRowModel().rows.map((r) => r.original),
+    clearSelection: () => table.resetRowSelection(),
+  };
+  return render(ctx);
+}
+
 function Inner<T>({
   table,
   isLoading,
@@ -45,56 +62,34 @@ function Inner<T>({
   if (isLoading) return <TableSkeleton columnCount={columnCount} rows={5} />;
 
   if (isMobile && mobileCardRender) {
+    const items = rows.map((r) => r.original);
     return (
       <MobileCardList
-        items={rows.map((r) => r.original)}
-        keyExtractor={(_item) => rows.find((r) => r.original === _item)?.id ?? ""}
+        items={items}
+        keyExtractor={(item) => rows.find((r) => r.original === item)?.id ?? ""}
         emptyMessage={emptyMessage}
         renderCard={mobileCardRender}
       />
     );
   }
 
-  const selectedIds = Object.keys(table.getState().rowSelection).filter(
-    (k) => table.getState().rowSelection[k],
-  );
-  const toolbarCtx: DataTableSelectionContext<T> = {
-    selectedIds,
-    selectedRows: table.getSelectedRowModel().rows.map((r) => r.original),
-    clearSelection: () => table.resetRowSelection(),
-  };
-  const toolbar =
-    enableRowSelection && selectionToolbar && selectedIds.length > 0
-      ? selectionToolbar(toolbarCtx)
-      : null;
-
-
+  const toolbar = buildToolbar(table, enableRowSelection, selectionToolbar);
   const useVirtual = virtualized && rows.length > virtualizationThreshold;
+  const bodyProps = {
+    rows,
+    columnCount,
+    emptyMessage,
+    showSelection: enableRowSelection,
+    onRowClick,
+    rowClassName,
+  };
 
   return (
     <div className="space-y-2">
       {toolbar}
       <Table className={className}>
         <DataTableHeaderV2 table={table} showSelection={enableRowSelection} />
-        {useVirtual ? (
-          <VirtualBody
-            rows={rows}
-            columnCount={columnCount}
-            emptyMessage={emptyMessage}
-            showSelection={enableRowSelection}
-            onRowClick={onRowClick}
-            rowClassName={rowClassName}
-          />
-        ) : (
-          <DataTableBodyV2
-            rows={rows}
-            columnCount={columnCount}
-            emptyMessage={emptyMessage}
-            showSelection={enableRowSelection}
-            onRowClick={onRowClick}
-            rowClassName={rowClassName}
-          />
-        )}
+        {useVirtual ? <VirtualBody {...bodyProps} /> : <DataTableBodyV2 {...bodyProps} />}
         {footer}
       </Table>
     </div>
