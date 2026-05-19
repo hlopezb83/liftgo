@@ -90,6 +90,33 @@ describe("computeTotals", () => {
     expect(result.subtotal).toBe(0);
     expect(result.total).toBe(0);
   });
+
+  it("avoids floating-point drift on classic 0.1 + 0.2 case", () => {
+    const items = [
+      { description: "A", quantity: 1, unit_price: 0.1, total: 0.1 },
+      { description: "B", quantity: 1, unit_price: 0.2, total: 0.2 },
+    ];
+    const result = computeTotals(items, 0);
+    expect(result.subtotal).toBe(0.3);
+    expect(result.total).toBe(0.3);
+  });
+
+  it("computes VAT 16% on 19.99 without drift", () => {
+    const items = [{ description: "A", quantity: 1, unit_price: 19.99, total: 19.99 }];
+    const result = computeTotals(items, 16);
+    expect(result.subtotal).toBe(19.99);
+    expect(result.taxAmount).toBe(3.2);
+    expect(result.total).toBe(23.19);
+  });
+});
+
+describe("currency.js floating-point safety", () => {
+  it("weekly/7 fallback returns clean decimals", () => {
+    const items = calculateRentalCost(0, 100, 0, new Date("2025-01-01"), new Date("2025-01-03"));
+    // 100 / 7 ≈ 14.29 (currency.js rounds to 2 decimals)
+    expect(items[0].unit_price).toBe(14.29);
+    expect(items[0].total).toBe(42.86);
+  });
 });
 
 describe("parseDateLocal", () => {
