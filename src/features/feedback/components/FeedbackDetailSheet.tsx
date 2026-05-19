@@ -48,7 +48,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
   const selectedEl = ctx.selected_element as
     | { tagName: string; text: string; cssPath: string }
     | undefined;
-  const applyDisabled = !newStatus || update.isPending;
+  
 
   const handleApply = () => {
     if (!newStatus) return;
