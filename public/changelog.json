@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.5.0-alpha.6",
+    "date": "2026-05-19",
+    "type": "minor",
+    "title": "DataTables: migración total a @tanstack/react-table + react-virtual",
+    "category": "refactor"
+  },
+  {
     "version": "6.5.0-alpha.5",
     "date": "2026-05-19",
     "type": "patch",
