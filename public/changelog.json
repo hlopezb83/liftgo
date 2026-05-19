@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.5.0-alpha.5",
+    "date": "2026-05-19",
+    "type": "patch",
+    "title": "Lint CI: 0 errores / 0 warnings (complexity y empty interface)",
+    "category": "fix"
+  },
+  {
     "version": "6.5.0-alpha.4",
     "date": "2026-05-19",
     "type": "patch",
