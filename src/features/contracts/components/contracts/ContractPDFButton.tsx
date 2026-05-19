@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FileDown, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import type { ContractData, PDFMode } from "@/lib/pdf/contractGenerator";
+import type { ContractData } from "@/lib/pdf/contract/data";
+import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
 import { buildContractPdf } from "@/features/contracts/lib/contractPdfBuilder";
 
-export type { ContractData } from "@/lib/pdf/contractGenerator";
+export type { ContractData } from "@/lib/pdf/contract/data";
 
 export function ContractPDFButton({ contract }: { contract: ContractData }) {
   const [loading, setLoading] = useState(false);
