@@ -53,9 +53,6 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
   const selectedEl = ctx.selected_element as
     | { tagName: string; text: string; cssPath: string }
     | undefined;
-  const severityLabel = report.severity
-    ? FEEDBACK_SEVERITY_LABELS[report.severity as keyof typeof FEEDBACK_SEVERITY_LABELS]
-    : null;
   const applyDisabled = !newStatus || update.isPending;
 
   const handleApply = () => {
@@ -77,43 +74,23 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
         </SheetHeader>
 
         <div className="mt-4 space-y-4">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Badge variant="outline">{FEEDBACK_TYPE_LABELS[report.type as "bug" | "improvement"]}</Badge>
-            <Badge variant={report.module === "Sin clasificar" ? "secondary" : "outline"}>
-              {report.module}
-            </Badge>
-            {severityLabel && <Badge variant="outline">{severityLabel}</Badge>}
-            {aiClass && (
-              <Badge variant="secondary" className="gap-1">
-                <Sparkles className="h-3 w-3" /> AI
-              </Badge>
-            )}
-            {classify.isPending && (
-              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" /> Clasificando con AI…
-              </span>
-            )}
-            <Badge variant="secondary" className="ml-auto">{report.points_awarded} pts</Badge>
-          </div>
+          <FeedbackChipsRow
+            type={report.type}
+            module={report.module}
+            severity={report.severity}
+            hasAi={!!aiClass}
+            classifying={classify.isPending}
+            points={report.points_awarded}
+          />
 
           {aiClass && (
-            <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2 border">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Razonamiento del AI
-                </span>
-                <Button
-                  type="button" size="sm" variant="ghost"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => classify.mutate(report.id)}
-                  disabled={classify.isPending}
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" /> Reclasificar
-                </Button>
-              </div>
-              <p>{aiClass.reasoning}</p>
-            </div>
+            <AiReasoningCard
+              reasoning={aiClass.reasoning}
+              onReclassify={() => classify.mutate(report.id)}
+              reclassifying={classify.isPending}
+            />
           )}
+
 
           <div>
             <h3 className="font-medium">{report.title}</h3>
