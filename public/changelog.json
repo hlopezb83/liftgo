@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.5.0-alpha.2",
+    "date": "2026-05-19",
+    "type": "patch",
+    "title": "DataTable v2: consumidor piloto en Portal Contratos para validar API",
+    "category": "refactor"
+  },
+  {
     "version": "6.5.0-alpha.1",
     "date": "2026-05-19",
     "type": "minor",
