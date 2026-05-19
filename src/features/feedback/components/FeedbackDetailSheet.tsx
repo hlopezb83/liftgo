@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "@/features/feedback/hooks/useFeedbackReports";
@@ -11,10 +8,8 @@ import { useClassifyFeedback } from "@/features/feedback/hooks/useClassifyFeedba
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
 import { FeedbackChipsRow, AiReasoningCard } from "./FeedbackDetailChips";
-import {
-  FEEDBACK_STATUS_LABELS,
-  type FeedbackStatus,
-} from "@/features/feedback/lib/constants";
+import { FeedbackStatusChanger } from "./FeedbackStatusChanger";
+import { type FeedbackStatus } from "@/features/feedback/lib/constants";
 
 interface Props {
   report: FeedbackReport | null;
