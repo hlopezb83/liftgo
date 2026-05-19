@@ -17,24 +17,31 @@ function SortIcon({ dir }: { dir: false | "asc" | "desc" }): ReactNode {
   return <ArrowUpDown className="h-3.5 w-3.5 shrink-0 opacity-40" />;
 }
 
-function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
-  const meta = header.column.columnDef.meta;
-  const canSort = header.column.getCanSort();
-  const sortDir = header.column.getIsSorted();
-  const className = cn(
+function buildHeaderClass(
+  meta: { align?: "left" | "right" | "center"; hideOnMobile?: boolean; headClassName?: string } | undefined,
+  canSort: boolean,
+  sorted: false | "asc" | "desc",
+): string {
+  return cn(
     alignClass[meta?.align ?? "left"],
     meta?.hideOnMobile && "hidden md:table-cell",
     meta?.headClassName,
     canSort && "cursor-pointer select-none hover:text-foreground transition-colors",
-    sortDir && "text-foreground",
+    sorted && "text-foreground",
   );
+}
+
+function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
+  const meta = header.column.columnDef.meta;
+  const canSort = header.column.getCanSort();
+  const sortDir = header.column.getIsSorted();
+  const className = buildHeaderClass(meta, canSort, sortDir);
   if (header.isPlaceholder) return <TableHead key={header.id} className={className} />;
+  const onClick = canSort ? header.column.getToggleSortingHandler() : undefined;
+  const innerClass = cn("flex items-center gap-1", meta?.align === "right" && "justify-end");
   return (
-    <TableHead
-      className={className}
-      onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
-    >
-      <div className={cn("flex items-center gap-1", meta?.align === "right" && "justify-end")}>
+    <TableHead className={className} onClick={onClick}>
+      <div className={innerClass}>
         {flexRender(header.column.columnDef.header, header.getContext())}
         {canSort && <SortIcon dir={sortDir} />}
       </div>
