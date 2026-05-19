@@ -1,3 +1,4 @@
+import currency from "currency.js";
 import type { CfdiLineItem } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 import type { useInvoiceFormState, CfdiFormState } from "./useInvoiceFormState";
 
