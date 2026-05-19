@@ -5,6 +5,7 @@ import type {
   PaginationState,
   Table as TanstackTable,
   Row,
+  RowData,
 } from "@tanstack/react-table";
 
 export type {
