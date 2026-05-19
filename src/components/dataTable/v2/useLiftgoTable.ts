@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,10 +10,10 @@ import {
   type RowSelectionState,
   type PaginationState,
   type Table,
+  type Updater,
 } from "@tanstack/react-table";
 import { APP_CONFIG } from "@/lib/config";
 import { liftgoSortingFn } from "./sorting";
-
 import type { DataTableSelectionContext } from "./types";
 
 interface Options<T> {
@@ -28,6 +28,13 @@ interface Options<T> {
   onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
 }
 
+/**
+ * Hook único para tablas LiftGo. Todo el estado (sort, filtro, paginación,
+ * selección) lo administra TanStack. Sin `useEffect`s para sincronizar
+ * arreglos: el sort lo hace `getSortedRowModel`, el filtro `getFilteredRowModel`,
+ * la paginación `getPaginationRowModel`, y la selección la poda TanStack
+ * automáticamente al cambiar `data` si `getRowId` es estable.
+ */
 export function useLiftgoTable<T>({
   data,
   columns,
@@ -48,35 +55,20 @@ export function useLiftgoTable<T>({
 
   const tableData = useMemo(() => data ?? [], [data]);
 
-  const columnsWithSortFn = useMemo<ColumnDef<T>[]>(
-    () =>
-      columns.map((col) => ({
-        sortingFn: liftgoSortingFn<T>,
-        ...col,
-      })),
-    [columns],
-  );
-
   const resolveSelectable =
     typeof enableRowSelection === "function"
-      ? (row: { original: T }) => {
+      ? (row: { original: T }): boolean => {
           const fn: (r: T) => boolean = enableRowSelection;
           return fn(row.original);
         }
       : enableRowSelection;
 
-  // Ref para acceder a la data más reciente sin causar re-render del callback
-  const dataRef = useRef(tableData);
-  dataRef.current = tableData;
-
-  const handleSelectionChange = (
-    updater: RowSelectionState | ((old: RowSelectionState) => RowSelectionState),
-  ) => {
+  const handleSelectionChange = (updater: Updater<RowSelectionState>): void => {
     setRowSelection((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
       if (onSelectionChange) {
         const ids = Object.keys(next).filter((k) => next[k]);
-        const rows = dataRef.current.filter((r, i) => ids.includes(getRowId(r, i)));
+        const rows = tableData.filter((r, i) => ids.includes(getRowId(r, i)));
         onSelectionChange({
           selectedIds: ids,
           selectedRows: rows,
@@ -89,7 +81,8 @@ export function useLiftgoTable<T>({
 
   return useReactTable<T>({
     data: tableData,
-    columns: columnsWithSortFn,
+    columns,
+    defaultColumn: { sortingFn: liftgoSortingFn },
     state: {
       sorting,
       rowSelection,
