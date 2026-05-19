@@ -14,7 +14,7 @@ export interface ChangelogDetail {
   changes: string[];
 }
 
-const SEMVER = /^\d+\.\d+\.\d+$/;
+const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TYPES: ChangelogType[] = ["major", "minor", "patch"];
 const CATEGORIES: ChangelogCategory[] = ["feature", "fix", "docs", "refactor", "security"];
