@@ -8,7 +8,12 @@ import { differenceInDays, parseISO } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useMemo } from "react";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 
 interface AgingReportProps {
   startDate: Date;
@@ -33,8 +38,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
         ...i,
         days_overdue: differenceInDays(nowMty(), parseISO(i.due_date as string)),
         bucket: getAgingBucket(differenceInDays(nowMty(), parseISO(i.due_date as string))),
-      }))
-      .sort((a, b) => b.days_overdue - a.days_overdue);
+      }));
   }, [invoices]);
 
   const bucketTotals = useMemo(() => {
@@ -46,14 +50,26 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   const grandTotal = Object.values(bucketTotals).reduce((s, v) => s + v, 0);
 
   type Row = typeof overdueInvoices[number];
-  const columns = useMemo(() => [
-    { key: "invoice_number", label: "Factura", sortable: true, render: (i: Row) => <span className="font-mono font-medium">{i.invoice_number}</span> },
-    { key: "customer_name", label: "Cliente", sortable: true, render: (i: Row) => i.customer_name || "—" },
-    { key: "total", label: "Monto", align: "right" as const, sortable: true, accessor: (i: Row) => Number(i.total), render: (i: Row) => <span className="font-mono">{formatCurrency(Number(i.total))}</span> },
-    { key: "due_date", label: "Vencimiento", sortable: true, render: (i: Row) => formatDateDisplay(i.due_date) },
-    { key: "days_overdue", label: "Días", align: "right" as const, sortable: true, render: (i: Row) => <span className="font-mono font-semibold text-destructive">{i.days_overdue}</span> },
-    { key: "bucket", label: "Bucket", sortable: true, render: (i: Row) => `${i.bucket}d` },
-  ], []);
+  const columns = useMemo(
+    () =>
+      toColumnDefs<Row>([
+        { key: "invoice_number", label: "Factura", sortable: true, render: (i) => <span className="font-mono font-medium">{i.invoice_number}</span> },
+        { key: "customer_name", label: "Cliente", sortable: true, render: (i) => i.customer_name || "—" },
+        { key: "total", label: "Monto", align: "right", sortable: true, accessor: (i) => Number(i.total), render: (i) => <span className="font-mono">{formatCurrency(Number(i.total))}</span> },
+        { key: "due_date", label: "Vencimiento", sortable: true, render: (i) => formatDateDisplay(i.due_date) },
+        { key: "days_overdue", label: "Días", align: "right", sortable: true, render: (i) => <span className="font-mono font-semibold text-destructive">{i.days_overdue}</span> },
+        { key: "bucket", label: "Bucket", sortable: true, render: (i) => `${i.bucket}d` },
+      ] satisfies LegacyColumn<Row>[]),
+    [],
+  );
+
+  const table = useLiftgoTable<Row>({
+    data: overdueInvoices,
+    columns,
+    getRowId: (i) => i.id,
+    initialSorting: [{ id: "days_overdue", desc: true }],
+    paginated: false,
+  });
 
   const handleExport = () => {
     exportToCsv("antiguedad_cartera.csv", overdueInvoices.map((i) => ({
@@ -92,14 +108,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
           </div>
         </CardHeader>
         <CardContent>
-          <DataTable
-            data={overdueInvoices}
-            keyExtractor={(i) => i.id}
-            emptyMessage="No hay facturas vencidas"
-            defaultSortKey="days_overdue"
-            defaultSortDirection="desc"
-            columns={columns}
-          />
+          <DataTableV2 table={table} emptyMessage="No hay facturas vencidas" />
         </CardContent>
       </Card>
     </div>

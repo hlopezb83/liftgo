@@ -1,13 +1,22 @@
+import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DataTable, type DataTableColumn } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePortalInvoices, usePortalPayments } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
+
+type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
+type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
 export default function PortalInvoiceDetail() {
   const { id } = useParams();
@@ -16,16 +25,56 @@ export default function PortalInvoiceDetail() {
   const { data: payments, isLoading: paymentsLoading } = usePortalPayments();
   const isLoading = invoicesLoading || paymentsLoading;
 
-  if (isLoading) return <Skeleton className="h-96" />;
-
   const invoice = invoices?.find((i) => i.id === id);
-  const invoicePayments = payments?.filter((p) => p.invoice_id === id) || [];
+  const invoicePayments = useMemo<Payment[]>(
+    () => (payments?.filter((p) => p.invoice_id === id) || []) as Payment[],
+    [payments, id],
+  );
+  const lineItems = useMemo<LineItem[]>(
+    () => (Array.isArray(invoice?.line_items) ? (invoice?.line_items as LineItem[]) : []),
+    [invoice],
+  );
 
-  if (!invoice) {
-    return <p className="text-muted-foreground">Factura no encontrada</p>;
-  }
+  const lineColumns = useMemo(
+    () =>
+      toColumnDefs<LineItem>([
+        { key: "description", label: "Descripción", render: (item) => item.description || "—" },
+        { key: "quantity", label: "Cant.", align: "right", render: (item) => item.quantity || 1 },
+        { key: "unit_price", label: "Precio Unit.", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.unit_price || 0))}</span> },
+        { key: "amount", label: "Importe", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.amount || 0))}</span> },
+      ] satisfies LegacyColumn<LineItem>[]),
+    [],
+  );
 
-  const lineItems = Array.isArray(invoice.line_items) ? invoice.line_items : [];
+  const paymentColumns = useMemo(
+    () =>
+      toColumnDefs<Payment>([
+        { key: "payment_date", label: "Fecha", sortable: true, render: (p) => formatDateDisplay(p.payment_date) },
+        { key: "payment_method", label: "Método", render: (p) => p.payment_method || "—" },
+        { key: "reference_number", label: "Referencia", render: (p) => p.reference_number || "—" },
+        { key: "amount", label: "Monto", sortable: true, align: "right", accessor: (p) => Number(p.amount), render: (p) => <span className="font-mono">{formatCurrency(Number(p.amount))}</span> },
+      ] satisfies LegacyColumn<Payment>[]),
+    [],
+  );
+
+  const lineTable = useLiftgoTable<LineItem>({
+    data: lineItems,
+    columns: lineColumns,
+    getRowId: (_, idx) => String(idx),
+    paginated: false,
+  });
+
+  const paymentsTable = useLiftgoTable<Payment>({
+    data: invoicePayments,
+    columns: paymentColumns,
+    getRowId: (p) => p.id,
+    initialSorting: [{ id: "payment_date", desc: true }],
+    paginated: false,
+  });
+
+  if (isLoading) return <Skeleton className="h-96" />;
+  if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
+
   const totalPaid = invoicePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const balance = Number(invoice.total) - totalPaid;
 
@@ -72,17 +121,7 @@ export default function PortalInvoiceDetail() {
           <CardTitle className="text-base">Partidas</CardTitle>
         </CardHeader>
         <CardContent className="p-0 pt-0">
-          <DataTable<{ description?: string; quantity?: number; unit_price?: number; amount?: number }>
-            data={lineItems as Array<{ description?: string; quantity?: number; unit_price?: number; amount?: number }>}
-            keyExtractor={(_, idx) => String(idx)}
-            emptyMessage="Sin partidas"
-            columns={[
-              { key: "description", label: "Descripción", render: (item) => item.description || "—" },
-              { key: "quantity", label: "Cant.", align: "right", render: (item) => item.quantity || 1 },
-              { key: "unit_price", label: "Precio Unit.", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.unit_price || 0))}</span> },
-              { key: "amount", label: "Importe", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.amount || 0))}</span> },
-            ]}
-          />
+          <DataTableV2 table={lineTable} emptyMessage="Sin partidas" />
           <div className="mt-4 border-t pt-3 space-y-1 text-sm text-right">
             <div className="flex justify-end gap-8">
               <span className="text-muted-foreground">Subtotal</span>
@@ -105,19 +144,7 @@ export default function PortalInvoiceDetail() {
           <CardTitle className="text-base">Historial de Pagos</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <DataTable
-            data={invoicePayments}
-            keyExtractor={(p) => p.id}
-            emptyMessage="Sin pagos registrados"
-            defaultSortKey="payment_date"
-            defaultSortDirection="desc"
-            columns={[
-              { key: "payment_date", label: "Fecha", sortable: true, render: (p) => formatDateDisplay(p.payment_date) },
-              { key: "payment_method", label: "Método", render: (p) => p.payment_method || "—" },
-              { key: "reference_number", label: "Referencia", render: (p) => p.reference_number || "—" },
-              { key: "amount", label: "Monto", sortable: true, align: "right", accessor: (p) => Number(p.amount), render: (p) => <span className="font-mono">{formatCurrency(Number(p.amount))}</span> },
-            ]}
-          />
+          <DataTableV2 table={paymentsTable} emptyMessage="Sin pagos registrados" />
         </CardContent>
       </Card>
     </div>

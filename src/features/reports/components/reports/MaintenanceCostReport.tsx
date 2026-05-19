@@ -8,49 +8,70 @@ import { parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
+type Row = { name: string; totalCost: number; count: number };
+
 export function MaintenanceCostReport({ startDate, endDate }: Props) {
   const { data: forklifts = [] } = useForklifts();
   const { data: maintenanceLogs = [] } = useMaintenanceLogs();
   const forkliftMap = useMemo(() => new Map(forklifts.map((f) => [f.id, f.name])), [forklifts]);
 
-  const data = useMemo(() => {
+  const data = useMemo<Row[]>(() => {
     const filtered = maintenanceLogs.filter((m) => isWithinInterval(parseISO(m.performed_at), { start: startDate, end: endDate }));
-    const byForklift: Record<string, { name: string; totalCost: number; count: number }> = {};
+    const byForklift: Record<string, Row> = {};
     filtered.forEach((m) => {
       const name = forkliftMap.get(m.forklift_id) || "Desconocido";
       if (!byForklift[m.forklift_id]) byForklift[m.forklift_id] = { name, totalCost: 0, count: 0 };
       byForklift[m.forklift_id].totalCost += Number(m.cost || 0);
       byForklift[m.forklift_id].count++;
     });
-    return Object.values(byForklift).sort((a, b) => b.totalCost - a.totalCost);
+    return Object.values(byForklift);
   }, [maintenanceLogs, startDate, endDate, forkliftMap]);
 
-  const columns = useMemo(() => [
-    { key: "name", label: "Montacargas", sortable: true, render: (r: typeof data[number]) => <span className="font-medium">{r.name}</span> },
-    { key: "count", label: "Trabajos", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.count },
-    { key: "totalCost", label: "Costo Total", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{formatCurrency(r.totalCost)}</span> },
-  ], []);
+  const chartData = useMemo(() => [...data].sort((a, b) => b.totalCost - a.totalCost), [data]);
+
+  const columns = useMemo(
+    () =>
+      toColumnDefs<Row>([
+        { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
+        { key: "count", label: "Trabajos", align: "right", sortable: true, render: (r) => r.count },
+        { key: "totalCost", label: "Costo Total", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.totalCost)}</span> },
+      ] satisfies LegacyColumn<Row>[]),
+    [],
+  );
+
+  const table = useLiftgoTable<Row>({
+    data,
+    columns,
+    getRowId: (r) => r.name,
+    initialSorting: [{ id: "totalCost", desc: true }],
+    paginated: false,
+  });
 
   return (
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Costos de Mantenimiento por Unidad</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("costos-mantenimiento.csv", data)}>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("costos-mantenimiento.csv", chartData)}>
             <Download className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
+              <BarChart data={chartData}>
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis />
                 <Tooltip formatter={(val: number) => formatCurrency(val)} />
@@ -62,14 +83,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <DataTable
-            data={data}
-            keyExtractor={(r) => r.name}
-            emptyMessage="Sin mantenimientos en el rango"
-            defaultSortKey="totalCost"
-            defaultSortDirection="desc"
-            columns={columns}
-          />
+          <DataTableV2 table={table} emptyMessage="Sin mantenimientos en el rango" />
         </CardContent>
       </Card>
     </>

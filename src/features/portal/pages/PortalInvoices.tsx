@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -5,7 +6,12 @@ import { usePortalInvoices } from "@/features/customers/hooks/customers/useCusto
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
-import { DataTable, type DataTableColumn } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 
 type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
 
@@ -13,15 +19,27 @@ export default function PortalInvoices() {
   const { data: invoices, isLoading } = usePortalInvoices();
   const navigate = useNavigate();
 
-  if (isLoading) return <Skeleton className="h-96" />;
+  const columns = useMemo(
+    () =>
+      toColumnDefs<Invoice>([
+        { key: "invoice_number", label: "Factura #", sortable: true, render: (inv) => <span className="font-medium">{inv.invoice_number}</span> },
+        { key: "issued_at", label: "Fecha", sortable: true, render: (inv) => formatDateDisplay(inv.issued_at) },
+        { key: "due_date", label: "Vencimiento", sortable: true, render: (inv) => formatDateDisplay(inv.due_date) },
+        { key: "total", label: "Total", sortable: true, align: "right", accessor: (i) => Number(i.total), render: (i) => <span className="font-mono">{formatCurrency(Number(i.total))}</span> },
+        { key: "status", label: "Estado", sortable: true, render: (inv) => <StatusBadge status={inv.status} /> },
+      ] satisfies LegacyColumn<Invoice>[]),
+    [],
+  );
 
-  const columns: DataTableColumn<Invoice>[] = [
-    { key: "invoice_number", label: "Factura #", sortable: true, render: (inv) => <span className="font-medium">{inv.invoice_number}</span> },
-    { key: "issued_at", label: "Fecha", sortable: true, render: (inv) => formatDateDisplay(inv.issued_at) },
-    { key: "due_date", label: "Vencimiento", sortable: true, render: (inv) => formatDateDisplay(inv.due_date) },
-    { key: "total", label: "Total", sortable: true, align: "right", accessor: (i) => Number(i.total), render: (i) => <span className="font-mono">{formatCurrency(Number(i.total))}</span> },
-    { key: "status", label: "Estado", sortable: true, render: (inv) => <StatusBadge status={inv.status} /> },
-  ];
+  const table = useLiftgoTable<Invoice>({
+    data: invoices,
+    columns,
+    getRowId: (i) => i.id,
+    initialSorting: [{ id: "issued_at", desc: true }],
+    paginated: false,
+  });
+
+  if (isLoading) return <Skeleton className="h-96" />;
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -29,13 +47,9 @@ export default function PortalInvoices() {
       <Card>
         <CardHeader><CardTitle className="text-base">Todas las Facturas</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={invoices}
-            keyExtractor={(i) => i.id}
+          <DataTableV2
+            table={table}
             emptyMessage="No se encontraron facturas"
-            defaultSortKey="issued_at"
-            defaultSortDirection="desc"
             onRowClick={(inv) => navigate(`/portal/invoices/${inv.id}`)}
           />
         </CardContent>
