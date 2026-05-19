@@ -7,18 +7,25 @@ import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
+type Row = { name: string; bookedDays: number; totalDays: number; utilization: number };
+
 export function UtilizationReport({ startDate, endDate }: Props) {
   const { data: forklifts = [] } = useForklifts();
   const { data: bookings = [] } = useBookings();
 
-  const data = useMemo(() => {
+  const data = useMemo<Row[]>(() => {
     const totalDays = Math.max(differenceInDays(endDate, startDate), 1);
     return forklifts.map((fl) => {
       const flBookings = bookings.filter((b) => b.forklift_id === fl.id &&
@@ -29,12 +36,24 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     });
   }, [forklifts, bookings, startDate, endDate]);
 
-  const columns = useMemo(() => [
-    { key: "name", label: "Montacargas", sortable: true, render: (r: typeof data[number]) => <span className="font-medium">{r.name}</span> },
-    { key: "bookedDays", label: "Días Reservados", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.bookedDays },
-    { key: "totalDays", label: "Días Totales", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.totalDays },
-    { key: "utilization", label: "Utilización", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{r.utilization}%</span> },
-  ], []);
+  const columns = useMemo(
+    () =>
+      toColumnDefs<Row>([
+        { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
+        { key: "bookedDays", label: "Días Reservados", align: "right", sortable: true, render: (r) => r.bookedDays },
+        { key: "totalDays", label: "Días Totales", align: "right", sortable: true, render: (r) => r.totalDays },
+        { key: "utilization", label: "Utilización", align: "right", sortable: true, render: (r) => <span className="font-mono">{r.utilization}%</span> },
+      ] satisfies LegacyColumn<Row>[]),
+    [],
+  );
+
+  const table = useLiftgoTable<Row>({
+    data,
+    columns,
+    getRowId: (r) => r.name,
+    initialSorting: [{ id: "utilization", desc: true }],
+    paginated: false,
+  });
 
   return (
     <>
@@ -60,14 +79,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <DataTable
-            data={data}
-            keyExtractor={(r) => r.name}
-            emptyMessage="Sin datos en el rango"
-            defaultSortKey="utilization"
-            defaultSortDirection="desc"
-            columns={columns}
-          />
+          <DataTableV2 table={table} emptyMessage="Sin datos en el rango" />
         </CardContent>
       </Card>
     </>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useMaintenancePolicies,
   useCreateMaintenancePolicy,
@@ -10,7 +10,12 @@ import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -73,6 +78,48 @@ export function MaintenancePoliciesTab() {
     update.mutate({ id: p.id, is_active: !p.is_active });
   };
 
+  const columns = useMemo(
+    () =>
+      toColumnDefs<MaintenancePolicy>([
+        { key: "forklift_name", label: "Montacargas", sortable: true, render: (p) => <span className="font-medium">{p.forklift_name}</span> },
+        { key: "provider_name", label: "Proveedor", sortable: true, render: (p) => p.provider_name },
+        { key: "service_type", label: "Tipo de Servicio", sortable: true, render: (p) => p.service_type },
+        { key: "monthly_cost", label: "Costo Mensual", align: "right", sortable: true, render: (p) => <span className="font-mono">{formatCurrency(p.monthly_cost)}</span> },
+        { key: "is_active", label: "Estado", render: (p) => <Switch checked={p.is_active} onCheckedChange={() => toggleActive(p)} /> },
+        { key: "last_generated_month", label: "Último Mes Generado", sortable: true, render: (p) => <span className="text-sm text-muted-foreground">{p.last_generated_month ?? "—"}</span> },
+        { key: "actions", label: "", render: (p) => (
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Eliminar póliza?</AlertDialogTitle>
+                  <AlertDialogDescription>Se eliminará la póliza de {p.forklift_name}. Los registros de mantenimiento ya generados no se afectarán.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => del.mutate(p.id)}>Eliminar</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        ) },
+      ] satisfies LegacyColumn<MaintenancePolicy>[]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const table = useLiftgoTable<MaintenancePolicy>({
+    data: policies,
+    columns,
+    getRowId: (p) => p.id,
+    initialSorting: [{ id: "forklift_name", desc: false }],
+    paginated: false,
+  });
+
   return (
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
@@ -83,41 +130,7 @@ export function MaintenancePoliciesTab() {
       </div>
 
       <div className="border rounded-lg">
-        <DataTable
-          data={policies}
-          isLoading={isLoading}
-          keyExtractor={(p) => p.id}
-          emptyMessage="No hay pólizas de mantenimiento configuradas"
-          defaultSortKey="forklift_name"
-          columns={[
-            { key: "forklift_name", label: "Montacargas", sortable: true, render: (p) => <span className="font-medium">{p.forklift_name}</span> },
-            { key: "provider_name", label: "Proveedor", sortable: true, render: (p) => p.provider_name },
-            { key: "service_type", label: "Tipo de Servicio", sortable: true, render: (p) => p.service_type },
-            { key: "monthly_cost", label: "Costo Mensual", align: "right", sortable: true, render: (p) => <span className="font-mono">{formatCurrency(p.monthly_cost)}</span> },
-            { key: "is_active", label: "Estado", render: (p) => <Switch checked={p.is_active} onCheckedChange={() => toggleActive(p)} /> },
-            { key: "last_generated_month", label: "Último Mes Generado", sortable: true, render: (p) => <span className="text-sm text-muted-foreground">{p.last_generated_month ?? "—"}</span> },
-            { key: "actions", label: "", render: (p) => (
-              <div className="flex gap-1">
-                <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar póliza?</AlertDialogTitle>
-                      <AlertDialogDescription>Se eliminará la póliza de {p.forklift_name}. Los registros de mantenimiento ya generados no se afectarán.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => del.mutate(p.id)}>Eliminar</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            ) },
-          ]}
-        />
+        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay pólizas de mantenimiento configuradas" />
       </div>
 
       <MaintenancePolicyForm

@@ -12,7 +12,12 @@ import { useBookings } from "@/features/bookings/hooks/useBookings";
 import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { useDamageRecords } from "@/features/damage/hooks/useDamageRecords";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -92,7 +97,7 @@ function aggregateRows(modelUnits: Map<string, Set<string>>, revenueByForklift: 
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
     result.push({ model, units: ids.size, revenue, maintenance, damages, profit, margin });
   }
-  return result.sort((a, b) => b.profit - a.profit);
+  return result;
 }
 
 export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
@@ -110,20 +115,34 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
     return aggregateRows(modelUnits, revenueByForklift, maintByForklift, dmgByForklift);
   }, [forklifts, invoices, bookings, maintenanceLogs, damageRecords, startDate, endDate]);
 
-  const columns = useMemo(() => [
-    { key: "model", label: "Modelo", sortable: true, render: (r: ModelRow) => <span className="font-medium">{r.model}</span> },
-    { key: "units", label: "Unidades", align: "right" as const, sortable: true, render: (r: ModelRow) => r.units },
-    { key: "revenue", label: "Ingresos", align: "right" as const, sortable: true, render: (r: ModelRow) => formatCurrency(r.revenue) },
-    { key: "maintenance", label: "Mantenimiento", align: "right" as const, sortable: true, render: (r: ModelRow) => formatCurrency(r.maintenance) },
-    { key: "damages", label: "Daños", align: "right" as const, sortable: true, render: (r: ModelRow) => formatCurrency(r.damages) },
-    { key: "profit", label: "Ganancia Neta", align: "right" as const, sortable: true, render: (r: ModelRow) => <span className={cn("font-semibold", r.profit >= 0 ? "text-chart-2" : "text-destructive")}>{formatCurrency(r.profit)}</span> },
-    { key: "margin", label: "Margen %", align: "right" as const, sortable: true, render: (r: ModelRow) => `${r.margin.toFixed(1)}%` },
-  ], []);
+  const chartRows = useMemo(() => [...rows].sort((a, b) => b.profit - a.profit), [rows]);
+
+  const columns = useMemo(
+    () =>
+      toColumnDefs<ModelRow>([
+        { key: "model", label: "Modelo", sortable: true, render: (r) => <span className="font-medium">{r.model}</span> },
+        { key: "units", label: "Unidades", align: "right", sortable: true, render: (r) => r.units },
+        { key: "revenue", label: "Ingresos", align: "right", sortable: true, render: (r) => formatCurrency(r.revenue) },
+        { key: "maintenance", label: "Mantenimiento", align: "right", sortable: true, render: (r) => formatCurrency(r.maintenance) },
+        { key: "damages", label: "Daños", align: "right", sortable: true, render: (r) => formatCurrency(r.damages) },
+        { key: "profit", label: "Ganancia Neta", align: "right", sortable: true, render: (r) => <span className={cn("font-semibold", r.profit >= 0 ? "text-chart-2" : "text-destructive")}>{formatCurrency(r.profit)}</span> },
+        { key: "margin", label: "Margen %", align: "right", sortable: true, render: (r) => `${r.margin.toFixed(1)}%` },
+      ] satisfies LegacyColumn<ModelRow>[]),
+    [],
+  );
+
+  const table = useLiftgoTable<ModelRow>({
+    data: rows,
+    columns,
+    getRowId: (r) => r.model,
+    initialSorting: [{ id: "profit", desc: true }],
+    paginated: false,
+  });
 
   const chartConfig = { profit: { label: "Ganancia Neta" } };
 
   const handleExport = () => {
-    exportToCsv("rentabilidad_por_modelo.csv", rows.map(r => ({
+    exportToCsv("rentabilidad_por_modelo.csv", chartRows.map(r => ({
       Modelo: r.model,
       Unidades: r.units,
       Ingresos: r.revenue.toFixed(2),
@@ -144,17 +163,17 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
           </Button>
         </CardHeader>
         <CardContent>
-          {rows.length === 0 ? (
+          {chartRows.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">No hay datos para el rango seleccionado.</p>
           ) : (
             <ChartContainer config={chartConfig} className="h-[400px] w-full">
-              <BarChart data={rows} layout="vertical" margin={{ left: 20, right: 20 }}>
+              <BarChart data={chartRows} layout="vertical" margin={{ left: 20, right: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" tickFormatter={(v: number) => formatCurrency(v)} />
                 <YAxis type="category" dataKey="model" width={160} tick={{ fontSize: 12 }} />
                 <ChartTooltip content={<ChartTooltipContent />} formatter={(value: number) => formatCurrency(value)} />
                 <Bar dataKey="profit" name="Ganancia Neta" radius={[0, 4, 4, 0]}>
-                  {rows.map((r, i) => (
+                  {chartRows.map((r, i) => (
                     <Cell key={i} fill={r.profit >= 0 ? "hsl(var(--chart-2))" : "hsl(var(--destructive))"} />
                   ))}
                 </Bar>
@@ -167,14 +186,7 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
       <Card>
         <CardHeader><CardTitle>Detalle por Modelo</CardTitle></CardHeader>
         <CardContent>
-          <DataTable
-            data={rows}
-            keyExtractor={(r) => r.model}
-            emptyMessage="No hay datos para el rango seleccionado."
-            defaultSortKey="profit"
-            defaultSortDirection="desc"
-            columns={columns}
-          />
+          <DataTableV2 table={table} emptyMessage="No hay datos para el rango seleccionado." />
         </CardContent>
       </Card>
     </div>

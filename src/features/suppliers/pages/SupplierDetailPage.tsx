@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
 import { useOperatingExpenses } from "@/features/expenses/hooks/useOperatingExpenses";
@@ -8,7 +9,12 @@ import { NotesCard } from "@/components/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DataTable, type DataTableColumn } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 import { SupplierContactCard } from "@/features/suppliers/components/suppliers/SupplierContactCard";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -26,11 +32,55 @@ export default function SupplierDetailPage() {
 
   const supplier = suppliers?.find((s) => s.id === id);
 
-  const linkedExpenses = (expenses || []).filter((e) => e.supplier_id === id);
-  const linkedMaintenance = (maintenanceLogs || []).filter((m) => m.supplier_id === id);
+  const linkedExpenses = useMemo(
+    () => (expenses || []).filter((e) => e.supplier_id === id),
+    [expenses, id],
+  );
+  const linkedMaintenance = useMemo(
+    () => (maintenanceLogs || []).filter((m) => m.supplier_id === id),
+    [maintenanceLogs, id],
+  );
 
   const totalExpenses = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
+
+  const expenseColumns = useMemo(
+    () =>
+      toColumnDefs<LinkedExpense>([
+        { key: "expense_date", label: "Fecha", sortable: true, render: (e) => <span className="font-mono text-sm">{formatDateDisplay(e.expense_date)}</span> },
+        { key: "category", label: "Categoría", sortable: true, render: (e) => <Badge variant="outline">{e.category}</Badge> },
+        { key: "description", label: "Descripción", render: (e) => <span className="text-muted-foreground">{e.description || "—"}</span> },
+        { key: "amount", label: "Monto", sortable: true, align: "right", render: (e) => <span className="font-mono">{formatCurrency(e.amount)}</span> },
+      ] satisfies LegacyColumn<LinkedExpense>[]),
+    [],
+  );
+
+  const maintenanceColumns = useMemo(
+    () =>
+      toColumnDefs<LinkedMaintenance>([
+        { key: "performed_at", label: "Fecha", sortable: true, render: (m) => <span className="font-mono text-sm">{formatDateDisplay(m.performed_at)}</span> },
+        { key: "forklift", label: "Montacargas", accessor: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", sortable: true, render: (m) => forkliftMap.get(m.forklift_id)?.name || "—" },
+        { key: "service_type", label: "Tipo de Servicio", sortable: true, render: (m) => m.service_type },
+        { key: "cost", label: "Costo", sortable: true, align: "right", accessor: (m) => m.cost ?? 0, render: (m) => <span className="font-mono">{formatCurrency(m.cost || 0)}</span> },
+      ] satisfies LegacyColumn<LinkedMaintenance>[]),
+    [forkliftMap],
+  );
+
+  const expensesTable = useLiftgoTable<LinkedExpense>({
+    data: linkedExpenses,
+    columns: expenseColumns,
+    getRowId: (e) => e.id,
+    initialSorting: [{ id: "expense_date", desc: true }],
+    paginated: false,
+  });
+
+  const maintenanceTable = useLiftgoTable<LinkedMaintenance>({
+    data: linkedMaintenance,
+    columns: maintenanceColumns,
+    getRowId: (m) => m.id,
+    initialSorting: [{ id: "performed_at", desc: true }],
+    paginated: false,
+  });
 
   if (isLoading) {
     return <div className="p-6 space-y-4"><Skeleton className="h-10 w-64" /><Skeleton className="h-48 w-full" /></div>;
@@ -53,13 +103,10 @@ export default function SupplierDetailPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Contact info */}
         <SupplierContactCard supplier={supplier} />
-
         <NotesCard value={supplier.notes || ""} readOnly />
       </div>
 
-      {/* Financial summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="flex items-center gap-4 py-5">
@@ -83,43 +130,17 @@ export default function SupplierDetailPage() {
         </Card>
       </div>
 
-      {/* Linked expenses */}
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" />Gastos Operativos Vinculados</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <DataTable<LinkedExpense>
-            data={linkedExpenses}
-            keyExtractor={(e) => e.id}
-            emptyMessage="Sin gastos vinculados"
-            defaultSortKey="expense_date"
-            defaultSortDirection="desc"
-            columns={[
-              { key: "expense_date", label: "Fecha", sortable: true, render: (e) => <span className="font-mono text-sm">{formatDateDisplay(e.expense_date)}</span> },
-              { key: "category", label: "Categoría", sortable: true, render: (e) => <Badge variant="outline">{e.category}</Badge> },
-              { key: "description", label: "Descripción", render: (e) => <span className="text-muted-foreground">{e.description || "—"}</span> },
-              { key: "amount", label: "Monto", sortable: true, align: "right", render: (e) => <span className="font-mono">{formatCurrency(e.amount)}</span> },
-            ]}
-          />
+          <DataTableV2 table={expensesTable} emptyMessage="Sin gastos vinculados" />
         </CardContent>
       </Card>
 
-      {/* Linked maintenance */}
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" />Mantenimiento Vinculado</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <DataTable<LinkedMaintenance>
-            data={linkedMaintenance}
-            keyExtractor={(m) => m.id}
-            emptyMessage="Sin mantenimiento vinculado"
-            defaultSortKey="performed_at"
-            defaultSortDirection="desc"
-            columns={[
-              { key: "performed_at", label: "Fecha", sortable: true, render: (m) => <span className="font-mono text-sm">{formatDateDisplay(m.performed_at)}</span> },
-              { key: "forklift", label: "Montacargas", accessor: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", sortable: true, render: (m) => forkliftMap.get(m.forklift_id)?.name || "—" },
-              { key: "service_type", label: "Tipo de Servicio", sortable: true, render: (m) => m.service_type },
-              { key: "cost", label: "Costo", sortable: true, align: "right", accessor: (m) => m.cost ?? 0, render: (m) => <span className="font-mono">{formatCurrency(m.cost || 0)}</span> },
-            ]}
-          />
+          <DataTableV2 table={maintenanceTable} emptyMessage="Sin mantenimiento vinculado" />
         </CardContent>
       </Card>
     </div>

@@ -1,9 +1,15 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { DollarSign, ArrowLeft, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
-import { DataTable, type DataTableColumn } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useMrrDetail } from "@/features/dashboard/hooks/useMrrDetail";
 import { EmptyState } from "@/components/EmptyState";
@@ -17,53 +23,65 @@ const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", es);
 export default function MrrDetailPage() {
   const { data, isLoading } = useMrrDetail();
 
-  const columns: DataTableColumn<MrrItem>[] = [
-    {
-      key: "forklift_name",
-      label: "Equipo",
-      sortable: true,
-      render: (item) => (
-        <Link to={`/fleet/${item.forklift_id}`} className="font-medium text-primary hover:underline inline-flex items-center gap-1">
-          {item.forklift_name}
-          <ExternalLink className="h-3 w-3" />
-        </Link>
-      ),
-    },
-    {
-      key: "model",
-      label: "Modelo",
-      sortable: true,
-      accessor: (i) => `${i.manufacturer ?? ""} ${i.model ?? ""}`.trim(),
-      render: (i) => [i.manufacturer, i.model].filter(Boolean).join(" ") || "—",
-    },
-    {
-      key: "customer_name",
-      label: "Cliente",
-      sortable: true,
-      render: (item) =>
-        item.customer_id ? (
-          <Link to={`/customers/${item.customer_id}`} className="text-primary hover:underline">
-            {item.customer_name}
-          </Link>
-        ) : (
-          <span className="text-muted-foreground">Sin cliente</span>
-        ),
-    },
-    { key: "booking_number", label: "Reserva", sortable: true, render: (i) => i.booking_number ?? "—" },
-    {
-      key: "start_date",
-      label: "Periodo",
-      sortable: true,
-      render: (i) => <span className="whitespace-nowrap">{fmt(i.start_date)} – {fmt(i.end_date)}</span>,
-    },
-    {
-      key: "monthly_rate",
-      label: "Tarifa Mensual",
-      sortable: true,
-      align: "right",
-      render: (i) => <span className="font-medium font-mono">{formatCurrency(i.monthly_rate)}</span>,
-    },
-  ];
+  const columns = useMemo(
+    () =>
+      toColumnDefs<MrrItem>([
+        {
+          key: "forklift_name",
+          label: "Equipo",
+          sortable: true,
+          render: (item) => (
+            <Link to={`/fleet/${item.forklift_id}`} className="font-medium text-primary hover:underline inline-flex items-center gap-1">
+              {item.forklift_name}
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          ),
+        },
+        {
+          key: "model",
+          label: "Modelo",
+          sortable: true,
+          accessor: (i) => `${i.manufacturer ?? ""} ${i.model ?? ""}`.trim(),
+          render: (i) => [i.manufacturer, i.model].filter(Boolean).join(" ") || "—",
+        },
+        {
+          key: "customer_name",
+          label: "Cliente",
+          sortable: true,
+          render: (item) =>
+            item.customer_id ? (
+              <Link to={`/customers/${item.customer_id}`} className="text-primary hover:underline">
+                {item.customer_name}
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">Sin cliente</span>
+            ),
+        },
+        { key: "booking_number", label: "Reserva", sortable: true, render: (i) => i.booking_number ?? "—" },
+        {
+          key: "start_date",
+          label: "Periodo",
+          sortable: true,
+          render: (i) => <span className="whitespace-nowrap">{fmt(i.start_date)} – {fmt(i.end_date)}</span>,
+        },
+        {
+          key: "monthly_rate",
+          label: "Tarifa Mensual",
+          sortable: true,
+          align: "right",
+          render: (i) => <span className="font-medium font-mono">{formatCurrency(i.monthly_rate)}</span>,
+        },
+      ] satisfies LegacyColumn<MrrItem>[]),
+    [],
+  );
+
+  const table = useLiftgoTable<MrrItem>({
+    data: data?.items,
+    columns,
+    getRowId: (item) => item.forklift_id,
+    initialSorting: [{ id: "monthly_rate", desc: true }],
+    paginated: false,
+  });
 
   return (
     <div className="space-y-6">
@@ -99,14 +117,10 @@ export default function MrrDetailPage() {
               <EmptyState icon={DollarSign} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
             </div>
           ) : (
-            <DataTable
-              columns={columns}
-              data={data?.items}
+            <DataTableV2
+              table={table}
               isLoading={isLoading}
-              keyExtractor={(item) => item.forklift_id}
               emptyMessage="Sin montacargas rentados"
-              defaultSortKey="monthly_rate"
-              defaultSortDirection="desc"
               footer={
                 data && data.items.length > 0 ? (
                   <TableFooter>

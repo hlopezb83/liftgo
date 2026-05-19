@@ -8,18 +8,25 @@ import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download } from "lucide-react";
 import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
+type Row = { month: string; invoiced: number; paid: number; count: number };
+
 export function RevenueReport({ startDate, endDate }: Props) {
   const { data: invoices = [] } = useInvoices();
-  const data = useMemo(() => {
+  const data = useMemo<Row[]>(() => {
     const filtered = invoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
-    const months: Record<string, { month: string; invoiced: number; paid: number; count: number }> = {};
+    const months: Record<string, Row> = {};
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
       const label = format(startOfMonth(parseISO(inv.issued_at)), "MMM yyyy", { locale: es });
@@ -31,12 +38,23 @@ export function RevenueReport({ startDate, endDate }: Props) {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
   }, [invoices, startDate, endDate]);
 
-  const columns = useMemo(() => [
-    { key: "month", label: "Mes", sortable: true, render: (r: typeof data[number]) => <span className="font-medium">{r.month}</span> },
-    { key: "count", label: "Facturas", align: "right" as const, sortable: true, render: (r: typeof data[number]) => r.count },
-    { key: "invoiced", label: "Facturado", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{formatCurrency(r.invoiced)}</span> },
-    { key: "paid", label: "Pagado", align: "right" as const, sortable: true, render: (r: typeof data[number]) => <span className="font-mono">{formatCurrency(r.paid)}</span> },
-  ], []);
+  const columns = useMemo(
+    () =>
+      toColumnDefs<Row>([
+        { key: "month", label: "Mes", sortable: true, render: (r) => <span className="font-medium">{r.month}</span> },
+        { key: "count", label: "Facturas", align: "right", sortable: true, render: (r) => r.count },
+        { key: "invoiced", label: "Facturado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.invoiced)}</span> },
+        { key: "paid", label: "Pagado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.paid)}</span> },
+      ] satisfies LegacyColumn<Row>[]),
+    [],
+  );
+
+  const table = useLiftgoTable<Row>({
+    data,
+    columns,
+    getRowId: (r) => r.month,
+    paginated: false,
+  });
 
   return (
     <>
@@ -63,12 +81,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <DataTable
-            data={data}
-            keyExtractor={(r) => r.month}
-            emptyMessage="Sin facturas en el rango"
-            columns={columns}
-          />
+          <DataTableV2 table={table} emptyMessage="Sin facturas en el rango" />
         </CardContent>
       </Card>
     </>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, EquipmentModel } from "@/features/fleet/hooks/useEquipmentModels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
@@ -39,37 +44,45 @@ export function EquipmentModelsTab() {
     }
   };
 
+  const columns = useMemo(
+    () =>
+      toColumnDefs<EquipmentModel>([
+        { key: "manufacturer", label: "Fabricante", sortable: true, render: (m) => <span className="font-medium">{m.manufacturer}</span> },
+        { key: "model", label: "Modelo", sortable: true, render: (m) => m.model },
+        { key: "default_capacity_kg", label: "Capacidad (kg)", align: "right", sortable: true, render: (m) => m.default_capacity_kg ?? "—" },
+        { key: "default_mast_height_m", label: "Altura Mástil (m)", align: "right", sortable: true, render: (m) => m.default_mast_height_m ?? "—" },
+        { key: "default_fuel_type", label: "Combustible", sortable: true, render: (m) => FUEL_TYPE_LABELS[m.default_fuel_type] || m.default_fuel_type },
+        { key: "actions", label: "", render: (m) => (
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>¿Eliminar {m.manufacturer} {m.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        ) },
+      ] satisfies LegacyColumn<EquipmentModel>[]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const table = useLiftgoTable<EquipmentModel>({
+    data: models,
+    columns,
+    getRowId: (m) => m.id,
+    initialSorting: [{ id: "manufacturer", desc: false }],
+    paginated: false,
+  });
+
   return (
     <div>
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Modelo</Button>
       </div>
-      <DataTable
-        data={models}
-        isLoading={isLoading}
-        keyExtractor={(m) => m.id}
-        emptyMessage="No hay modelos de equipo configurados"
-        defaultSortKey="manufacturer"
-        columns={[
-          { key: "manufacturer", label: "Fabricante", sortable: true, render: (m) => <span className="font-medium">{m.manufacturer}</span> },
-          { key: "model", label: "Modelo", sortable: true, render: (m) => m.model },
-          { key: "default_capacity_kg", label: "Capacidad (kg)", align: "right", sortable: true, render: (m) => m.default_capacity_kg ?? "—" },
-          { key: "default_mast_height_m", label: "Altura Mástil (m)", align: "right", sortable: true, render: (m) => m.default_mast_height_m ?? "—" },
-          { key: "default_fuel_type", label: "Combustible", sortable: true, render: (m) => FUEL_TYPE_LABELS[m.default_fuel_type] || m.default_fuel_type },
-          { key: "actions", label: "", render: (m) => (
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader><AlertDialogTitle>¿Eliminar {m.manufacturer} {m.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
-                  <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          ) },
-        ]}
-      />
+      <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay modelos de equipo configurados" />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Modelo de Equipo</DialogTitle><DialogDescription>Define una combinación de fabricante/modelo con especificaciones predeterminadas.</DialogDescription></DialogHeader>

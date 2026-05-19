@@ -8,7 +8,12 @@ import { Download } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
-import { DataTable } from "@/components/DataTable";
+import {
+  DataTableV2,
+  useLiftgoTable,
+  toColumnDefs,
+  type LegacyColumn,
+} from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
@@ -66,22 +71,38 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
         const totalDays = units.length * rangeDays;
         const utilization = totalDays > 0 ? Math.min(Math.round((bookedDays / totalDays) * 100), 100) : 0;
         return { model, units: units.length, available, rented, bookedDays, totalDays, utilization };
-      })
-      .sort((a, b) => b.utilization - a.utilization);
+      });
   }, [forklifts, bookings, startDate, endDate]);
 
-  const columns = useMemo(() => [
-    { key: "model", label: "Modelo", sortable: true, render: (r: ModelRow) => <span className="font-medium">{r.model}</span> },
-    { key: "units", label: "Unidades", align: "right" as const, sortable: true, render: (r: ModelRow) => r.units },
-    { key: "available", label: "Disponibles", align: "right" as const, sortable: true, render: (r: ModelRow) => r.available },
-    { key: "rented", label: "Rentados", align: "right" as const, sortable: true, render: (r: ModelRow) => r.rented },
-    { key: "bookedDays", label: "Días Reservados", align: "right" as const, sortable: true, render: (r: ModelRow) => r.bookedDays },
-    { key: "totalDays", label: "Días Totales", align: "right" as const, sortable: true, render: (r: ModelRow) => r.totalDays },
-    { key: "utilization", label: "Utilización", align: "right" as const, sortable: true, render: (r: ModelRow) => <span className="font-mono" style={{ color: getUtilColor(r.utilization) }}>{r.utilization}%</span> },
-  ], []);
+  const columns = useMemo(
+    () =>
+      toColumnDefs<ModelRow>([
+        { key: "model", label: "Modelo", sortable: true, render: (r) => <span className="font-medium">{r.model}</span> },
+        { key: "units", label: "Unidades", align: "right", sortable: true, render: (r) => r.units },
+        { key: "available", label: "Disponibles", align: "right", sortable: true, render: (r) => r.available },
+        { key: "rented", label: "Rentados", align: "right", sortable: true, render: (r) => r.rented },
+        { key: "bookedDays", label: "Días Reservados", align: "right", sortable: true, render: (r) => r.bookedDays },
+        { key: "totalDays", label: "Días Totales", align: "right", sortable: true, render: (r) => r.totalDays },
+        { key: "utilization", label: "Utilización", align: "right", sortable: true, render: (r) => <span className="font-mono" style={{ color: getUtilColor(r.utilization) }}>{r.utilization}%</span> },
+      ] satisfies LegacyColumn<ModelRow>[]),
+    [],
+  );
+
+  const table = useLiftgoTable<ModelRow>({
+    data,
+    columns,
+    getRowId: (r) => r.model,
+    initialSorting: [{ id: "utilization", desc: true }],
+    paginated: false,
+  });
+
+  const chartData = useMemo(
+    () => [...data].sort((a, b) => b.utilization - a.utilization),
+    [data],
+  );
 
   const handleExport = () => {
-    exportToCsv("reporte-utilizacion-modelo.csv", data.map((r) => ({
+    exportToCsv("reporte-utilizacion-modelo.csv", chartData.map((r) => ({
       Modelo: r.model,
       Unidades: r.units,
       Disponibles: r.available,
@@ -104,12 +125,12 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
         <CardContent>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+              <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
                 <XAxis type="number" unit="%" domain={[0, 100]} />
                 <YAxis type="category" dataKey="model" width={160} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val: number) => `${val}%`} />
                 <Bar dataKey="utilization" radius={[0, 4, 4, 0]}>
-                  {data.map((entry) => (
+                  {chartData.map((entry) => (
                     <Cell key={entry.model} fill={getUtilColor(entry.utilization)} />
                   ))}
                 </Bar>
@@ -121,14 +142,7 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
 
       <Card>
         <CardContent className="p-0">
-          <DataTable
-            data={data}
-            keyExtractor={(r) => r.model}
-            emptyMessage="No hay equipos activos para mostrar"
-            defaultSortKey="utilization"
-            defaultSortDirection="desc"
-            columns={columns}
-          />
+          <DataTableV2 table={table} emptyMessage="No hay equipos activos para mostrar" />
         </CardContent>
       </Card>
     </>
