@@ -120,23 +120,16 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <Separator />
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Cambiar estado</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <Select value={newStatus} onValueChange={(v) => setNewStatus(v as FeedbackStatus)}>
-                <SelectTrigger><SelectValue placeholder="Nuevo estado" /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(FEEDBACK_STATUS_LABELS)
-                    .filter(([k]) => k !== report.status)
-                    .map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Button disabled={applyDisabled} onClick={handleApply}>
-                {update.isPending ? "Guardando…" : "Aplicar"}
-              </Button>
-            </div>
-            <Textarea placeholder="Comentario (opcional)" value={comment} onChange={(e) => setComment(e.target.value)} rows={2} />
-          </div>
+          <FeedbackStatusChanger
+            currentStatus={report.status}
+            newStatus={newStatus}
+            onNewStatusChange={setNewStatus}
+            comment={comment}
+            onCommentChange={setComment}
+            onApply={handleApply}
+            pending={update.isPending}
+          />
+
 
           <Separator />
 
