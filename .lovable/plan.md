@@ -1,86 +1,70 @@
-## Estado actual
+## Origen
 
-- **v2 listo y validado** en `/portal/contracts` (`DataTableV2`, `useLiftgoTable`, `VirtualBody`, `sorting.ts`).
-- Consumidores reales (corrijo el conteo del plan original tras explorar):
-  - **Familia A — `useListPage` + `ListPageLayout`** (17 páginas de listado): Bookings, Contracts, Customers, Quotes, Invoices, Fleet, Maintenance, Inventory, Suppliers, Deliveries, Returns, Damage, Expenses, Audit, Changelog, Users, ReturnInspection. Estas **no** usan el `DataTable` v1: usan `ListPageLayout` con `SortableTableHead` + `renderRow` y derivan sort/paginación de `useListPage` (que envuelve `useSort` + `usePagination`).
-  - **Familia B — `DataTable` v1 directo** (17 componentes pequeños): `MrrDetailPage`, `ForkliftHourometerHistory`, `InvoicePaymentSummary`, ops tabs (Drivers, EquipmentModels, MaintenancePolicies, Mechanics), Portal (Invoices, InvoiceDetail, Rentals), 6 reportes, `SupplierDetailPage`.
+GitHub Actions corre `bun run lint` en cada push y el job falló por **1 error + 5 warnings** introducidos por los últimos cambios (DataTable v2, fix de changelog) más uno preexistente (`FeedbackDetailSheet`). ESLint en este proyecto está configurado con `complexity: 12` como límite estricto.
 
-## Fase 2 — Migrar Familia A (17 list pages)
+## Errores y warnings a resolver
 
-Construir un puente que permita reutilizar `ListPageLayout` con TanStack sin reescribir cada página dos veces.
+| # | Archivo | Tipo | Causa |
+|---|---------|------|-------|
+| 1 | `src/components/dataTable/v2/types.ts` (35) | **error** `@typescript-eslint/no-empty-object-type` | `interface ColumnMeta extends LiftgoColumnMeta {}` está vacía |
+| 2 | `src/components/dataTable/v2/types.ts` (34) | warning | `eslint-disable` sin uso (consecuencia del fix #1) |
+| 3 | `src/components/dataTable/v2/DataTableHeaderV2.tsx` (38) | warning | `complexity 15` en el `.map(header => …)` |
+| 4 | `src/components/dataTable/v2/DataTableV2.tsx` (27) | warning | `complexity 13` en `Inner` |
+| 5 | `src/features/changelog/lib/changelog.ts` (55) | warning | `complexity 13` en `comparePre` |
+| 6 | `src/features/feedback/components/FeedbackDetailSheet.tsx` (26) | warning | `complexity 18` (preexistente, agravado por chips/AI) |
 
-1. **`ListPageLayout` acepta un `table: Table<T>` opcional.**
-   - Cuando se pase `table`, ignora `tableHeader`, `renderRow`, `items`, `page`, `totalPages`, `onPageChange` y delega en `DataTableV2` + `DataTablePaginationV2`.
-   - `mobileCardRender`, `isLoading`, `emptyMessage`, `customContent`, `filters`, `actions`, `title`, `subtitle` se mantienen.
-   - Props legacy quedan opcionales para no romper consumidores aún no migrados durante la transición.
+## Cambios propuestos
 
-2. **Por cada página de Familia A:**
-   - Definir `columns: ColumnDef<T>[]` con `accessorKey`/`accessorFn` y `cell` (sin `useEffect`, sin `useSort`).
-   - Llamar `useLiftgoTable({ data: filtered, columns, getRowId: r => r.id, initialSorting })`.
-   - Quitar `useListPage`, `SortableTableHead`, `renderRow`, `tableHeader`, `paginatedItems`, `page`, `setPage`, `totalPages`.
-   - Conservar `useListFilters` (búsqueda + status tabs) tal cual; pasar `filtered` a `useLiftgoTable`.
-   - `mobileCardRender` migra al prop homónimo del `ListPageLayout` (ya soportado).
+### 1-2 · `types.ts`
+Reemplazar la interface vacía por la **augmentación con campos explícitos** (sin `extends`, sin disable). Mantiene el contrato exacto y elimina ambos hallazgos:
 
-3. **Páginas con detalles particulares:**
-   - `AuditTrailPage` → `virtualized: true` (potencialmente cientos de filas).
-   - `ChangelogPage` → tabla simple, sin selección.
-   - `UserManagementPage` → conservar acciones por fila vía `cell` render.
-   - `BookingsPage`, `MaintenancePage`, `QuotesPage` → revisar selección múltiple si la tenían (no aplica hoy).
+```ts
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    align?: ColumnAlign;
+    hideOnMobile?: boolean;
+    headClassName?: string;
+    cellClassName?: string;
+  }
+}
+```
 
-## Fase 3 — Migrar Familia B (17 consumidores directos)
+`LiftgoColumnMeta` sigue exportándose como tipo público (consumidores siguen importándolo).
 
-Conversión 1-a-1: `DataTableColumn<T>[]` → `ColumnDef<T>[]`, montar `useLiftgoTable` local, reemplazar `<DataTable>` por `<DataTableV2 table={table} />`.
+### 3 · `DataTableHeaderV2.tsx`
+Extraer el renderizado por columna a un sub-componente `<HeaderCell column={...} />` ≤80 LOC. El `.map` queda reducido a `headers.map(h => <HeaderCell key={h.id} header={h} />)` → complejidad cae a ≤4.
 
-- **`MrrDetailPage`** y reportes con datasets grandes → `virtualized: true`, `paginated: false` (los reportes muestran todo sin paginar).
-- **Reportes estáticos** (`AgingReport`, etc.) → `enableRowSelection: false`, sin paginación (usar `paginated: false`).
-- **Portal (Invoices, InvoiceDetail, Rentals)** → sin selección, sort por fecha desc.
-- **Ops tabs y SupplierDetailPage** → conservar `onRowClick` / drill-down.
+### 4 · `DataTableV2.tsx`
+Extraer:
+- el cálculo de `selectedIds` + `toolbarCtx` a un hook local `useToolbar(table)` (≤30 LOC), o a un componente `<SelectionToolbar />`.
+- el fallback móvil a un helper `renderMobile(...)`.
 
-## Fase 4 — Limpieza y endurecimiento
+Esto baja la ciclomática del `Inner` por debajo del umbral.
 
-1. **Eliminar archivos legacy:**
-   - `src/components/DataTable.tsx`
-   - `src/components/dataTable/{DataTableHeader,DataTableBody,useDataTableState,dataTableEffects,dataTableHelpers,types,sorting}.ts(x)` (los que no sean reutilizados por v2)
-   - `src/components/SortableTableHead.tsx`
-   - `src/hooks/useSort.ts`, `src/hooks/useListPage.ts`
-   - `src/hooks/usePagination.ts` **solo si** ya no quedan consumidores fuera del DataTable (verificar antes de borrar).
+### 5 · `changelog.ts comparePre`
+Extraer el paso "convertir token a `{ kind: "num"|"str", value }`" a un helper `parseToken(s)`. El bucle queda con un único `compareTokens(parseToken(x), parseToken(y))` → complejidad ≤6.
 
-2. **Promover v2 a ruta canónica:** mover `src/components/dataTable/v2/*` → `src/components/dataTable/*` y reexportar `DataTable`, `useDataTable`, `DataTablePagination` desde `src/components/DataTable.tsx` para conservar la API pública.
+### 6 · `FeedbackDetailSheet.tsx`
+Extraer dos sub-componentes (ya hay precedente con `FeedbackDetailParts`):
+- `FeedbackChipsRow` (badges tipo/módulo/severidad/AI).
+- `AiReasoningCard` (bloque "Razonamiento del AI" con botón Reclasificar).
 
-3. **Endurecer `useLiftgoTable`:**
-   - Eliminar el `as (r: T) => boolean` actual usando un type guard, cumpliendo Power of 10 (sin `as`).
-   - Reemplazar el `useEffect` de `DataTableV2` que notifica selección por `onRowSelectionChange` que dispare el callback inline (mantenemos cero `useEffect` para sort/selección).
+Esto baja la complejidad del cuerpo principal a ≤8 y mejora la legibilidad. No cambia comportamiento.
 
-4. **Tests (`vitest`):**
-   - Actualizar mocks/tests de páginas migradas (cualquier `getByRole("button", { name: /ordenar/i })` o assertions sobre `SortableTableHead` se reemplaza por interactuar con los headers de TanStack).
-   - Test unitario nuevo para `useLiftgoTable` (sort, paginación, selección, virtualización opt-in).
+## Verificación
 
-5. **Changelog:** entrada `7.0.0` (major: API pública de tablas cambia, `useListPage`/`useSort` desaparecen) con guía breve de migración para consumidores externos (no aplica, todo es interno).
+- `bun run lint` debe terminar con **0 errores y 0 warnings**.
+- `tsc` debe seguir verde (sin cambios de tipo público).
+- Probar visualmente:
+  - Cualquier list page con DataTable v2 (cabecera/sort).
+  - Apertura del sheet de feedback (chips + AI bloque).
+  - El modal del changelog ordena pre-release antes de la versión estable correspondiente.
 
-## Detalles técnicos clave
+## Changelog
 
-- Cero `useEffect` para ordenar arreglos. El sort vive en `table.getState().sorting` con `getSortedRowModel()`.
-- `liftgoSortingFn` ya maneja nulos y strings localizados.
-- Datos de Supabase fluyen sin cambios: cada hook (`useContracts`, `useBookings`, etc.) sigue devolviendo `T[]`; solo cambia cómo lo consume la vista.
-- `MobileCardList` se preserva vía `mobileCardRender` del v2 (`useIsMobile()` interno).
-- Power of 10: componentes ≤150 LOC, hooks ≤80 LOC, sin `any`/`!`/`as`, sin warnings, paginación obligatoria salvo cuando `paginated: false` (reportes).
-- Sin nuevas dependencias (`@tanstack/react-virtual` ya instalado en Fase 1).
+Entrada `6.5.0-alpha.5` patch / fix: "Lint CI: resolver complexity warnings y empty interface en augmentación de TanStack".
 
 ## Fuera de alcance
 
-- No reescribir `useListFilters` (filtros + tabs siguen igual).
-- No introducir filtros por columna ni faceted filters.
-- No tocar `MobileCardList` ni `PageHeader`.
-- No migrar `MrrDetailPage` a server-side pagination (sigue cliente, solo añade virtualización).
-
-## Orden de ejecución sugerido
-
-1. Endurecer v2 (quitar `as` y `useEffect` de selección), entrada `6.5.0-alpha.4`.
-2. Adaptar `ListPageLayout` para aceptar `table`, entrada `6.5.0-alpha.5`.
-3. Migrar Familia A en 3 tandas de ~6 páginas (commits/alpha por tanda).
-4. Migrar Familia B en 2 tandas.
-5. Cleanup + tests + cambio mayor `7.0.0`.
-
-## Pregunta
-
-¿Procedo con esta secuencia (1 → 5) o prefieres pausar después de la Fase 2 (Familia A migrada) para validar UX antes de tocar reportes y portal?
+- No subir el umbral de `complexity` global ni añadir `eslint-disable`.
+- No tocar lógica funcional de feedback ni de v2; solo descomposición y tipado.
