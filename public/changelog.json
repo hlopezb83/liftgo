@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.5.0-alpha.1",
+    "date": "2026-05-19",
+    "type": "minor",
+    "title": "DataTable v2: API nativa de @tanstack/react-table + virtualización opt-in (Fase 1)",
+    "category": "refactor"
+  },
+  {
     "version": "6.4.0",
     "date": "2026-05-18",
     "type": "minor",

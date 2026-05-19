@@ -1,0 +1,12 @@
+{
+  "description": "Fase 1 del refactor a una sola API de tabla basada en @tanstack/react-table. Sin romper el DataTable actual: se introduce DataTable v2 + useLiftgoTable + VirtualBody en paralelo. Las fases 2–4 migrarán los ~36 consumidores y eliminarán useSort/useListPage/usePagination.",
+  "changes": [
+    "Nuevo componente DataTableV2 con API nativa basada en ColumnDef<T> de @tanstack/react-table",
+    "Nuevo hook useLiftgoTable que centraliza sort, selección y paginación cliente (25 por página)",
+    "VirtualBody con @tanstack/react-virtual para listados largos (opt-in vía prop virtualized)",
+    "DataTableHeaderV2 con sort indicator integrado (sin SortableTableHead externo)",
+    "DataTablePaginationV2 que se conecta directo al state del table",
+    "Tipos extendidos: LiftgoColumnMeta para align/hideOnMobile/headClassName/cellClassName",
+    "El DataTable v1 sigue funcionando sin cambios; ningún consumidor migrado todavía"
+  ]
+}
