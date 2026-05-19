@@ -1,4 +1,4 @@
-import { memo, type ReactNode, useEffect, useRef } from "react";
+import { memo, type ReactNode } from "react";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import { Table } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/TableSkeleton";
@@ -19,7 +19,6 @@ interface Props<T> {
   footer?: ReactNode;
   className?: string;
   enableRowSelection?: boolean;
-  onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
   selectionToolbar?: (ctx: DataTableSelectionContext<T>) => ReactNode;
   virtualized?: boolean;
   virtualizationThreshold?: number;
@@ -35,7 +34,6 @@ function Inner<T>({
   footer,
   className,
   enableRowSelection = false,
-  onSelectionChange,
   selectionToolbar,
   virtualized = false,
   virtualizationThreshold = 100,
@@ -43,23 +41,6 @@ function Inner<T>({
   const isMobile = useIsMobile();
   const rows = table.getRowModel().rows;
   const columnCount = table.getAllLeafColumns().length;
-
-  // Notificar selección sin useEffect propio: usar ref para evitar dispatch redundante
-  const lastSigRef = useRef("");
-  const selectedIds = Object.keys(table.getState().rowSelection).filter(
-    (k) => table.getState().rowSelection[k],
-  );
-  useEffect(() => {
-    if (!enableRowSelection || !onSelectionChange) return;
-    const sig = selectedIds.join("|");
-    if (sig === lastSigRef.current) return;
-    lastSigRef.current = sig;
-    onSelectionChange({
-      selectedIds,
-      selectedRows: table.getSelectedRowModel().rows.map((r) => r.original),
-      clearSelection: () => table.resetRowSelection(),
-    });
-  }, [selectedIds, enableRowSelection, onSelectionChange, table]);
 
   if (isLoading) return <TableSkeleton columnCount={columnCount} rows={5} />;
 
@@ -74,6 +55,9 @@ function Inner<T>({
     );
   }
 
+  const selectedIds = Object.keys(table.getState().rowSelection).filter(
+    (k) => table.getState().rowSelection[k],
+  );
   const toolbarCtx: DataTableSelectionContext<T> = {
     selectedIds,
     selectedRows: table.getSelectedRowModel().rows.map((r) => r.original),
@@ -83,6 +67,7 @@ function Inner<T>({
     enableRowSelection && selectionToolbar && selectedIds.length > 0
       ? selectionToolbar(toolbarCtx)
       : null;
+
 
   const useVirtual = virtualized && rows.length > virtualizationThreshold;
 

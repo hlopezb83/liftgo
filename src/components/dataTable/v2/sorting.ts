@@ -3,12 +3,13 @@ import type { Row, SortingFn } from "@tanstack/react-table";
 /**
  * Comparador estándar LiftGo: nulls al final, números nativos,
  * strings con localeCompare insensible a acentos y numeric:true.
+ * Genérico para alinear con `SortingFn<T>` que pide TanStack por columna.
  */
-export const liftgoSortingFn: SortingFn<unknown> = (
-  rowA: Row<unknown>,
-  rowB: Row<unknown>,
+export function liftgoSortingFn<T>(
+  rowA: Row<T>,
+  rowB: Row<T>,
   columnId: string,
-) => {
+): number {
   const a = rowA.getValue(columnId);
   const b = rowB.getValue(columnId);
   if (a == null && b == null) return 0;
@@ -19,7 +20,9 @@ export const liftgoSortingFn: SortingFn<unknown> = (
     sensitivity: "base",
     numeric: true,
   });
-};
+}
+// Exporta también con la firma "anchurada" cuando se necesite el tipo SortingFn<unknown>.
+export const liftgoSortingFnUnknown: SortingFn<unknown> = liftgoSortingFn;
 
 export const alignClass: Record<"left" | "right" | "center", string> = {
   left: "text-left",

@@ -1,0 +1,8 @@
+{
+  "description": "Endurecimiento de DataTable v2 previo a la migración masiva. Elimina la única casteo `as` y el useEffect que notificaba selección, cumpliendo Power of 10.",
+  "changes": [
+    "useLiftgoTable: la notificación de selección se dispara dentro de onRowSelectionChange (sin useEffect) y acepta onSelectionChange opcional.",
+    "liftgoSortingFn ahora es genérico <T> para alinearse con SortingFn<T> de TanStack y evitar errores TS al asignarlo por columna.",
+    "DataTableV2: removidos useEffect y useRef de notificación; el render queda puro."
+  ]
+}

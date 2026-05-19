@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -14,6 +14,8 @@ import {
 import { APP_CONFIG } from "@/lib/config";
 import { liftgoSortingFn } from "./sorting";
 
+import type { DataTableSelectionContext } from "./types";
+
 interface Options<T> {
   data: T[] | undefined;
   columns: ColumnDef<T>[];
@@ -23,6 +25,7 @@ interface Options<T> {
   enableRowSelection?: boolean | ((row: T) => boolean);
   globalFilter?: string;
   paginated?: boolean;
+  onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
 }
 
 export function useLiftgoTable<T>({
@@ -34,6 +37,7 @@ export function useLiftgoTable<T>({
   enableRowSelection = false,
   globalFilter,
   paginated = true,
+  onSelectionChange,
 }: Options<T>): Table<T> {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -47,11 +51,41 @@ export function useLiftgoTable<T>({
   const columnsWithSortFn = useMemo<ColumnDef<T>[]>(
     () =>
       columns.map((col) => ({
-        sortingFn: liftgoSortingFn,
+        sortingFn: liftgoSortingFn<T>,
         ...col,
       })),
     [columns],
   );
+
+  const resolveSelectable =
+    typeof enableRowSelection === "function"
+      ? (row: { original: T }) => {
+          const fn: (r: T) => boolean = enableRowSelection;
+          return fn(row.original);
+        }
+      : enableRowSelection;
+
+  // Ref para acceder a la data más reciente sin causar re-render del callback
+  const dataRef = useRef(tableData);
+  dataRef.current = tableData;
+
+  const handleSelectionChange = (
+    updater: RowSelectionState | ((old: RowSelectionState) => RowSelectionState),
+  ) => {
+    setRowSelection((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      if (onSelectionChange) {
+        const ids = Object.keys(next).filter((k) => next[k]);
+        const rows = dataRef.current.filter((r, i) => ids.includes(getRowId(r, i)));
+        onSelectionChange({
+          selectedIds: ids,
+          selectedRows: rows,
+          clearSelection: () => setRowSelection({}),
+        });
+      }
+      return next;
+    });
+  };
 
   return useReactTable<T>({
     data: tableData,
@@ -63,12 +97,9 @@ export function useLiftgoTable<T>({
       ...(globalFilter !== undefined ? { globalFilter } : {}),
     },
     onSortingChange: setSorting,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: handleSelectionChange,
     onPaginationChange: paginated ? setPagination : undefined,
-    enableRowSelection:
-      typeof enableRowSelection === "function"
-        ? (row) => (enableRowSelection as (r: T) => boolean)(row.original)
-        : enableRowSelection,
+    enableRowSelection: resolveSelectable,
     getRowId,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
