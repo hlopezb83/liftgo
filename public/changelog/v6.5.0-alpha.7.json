@@ -1,0 +1,16 @@
+{
+  "version": "6.5.0-alpha.7",
+  "date": "2026-05-19",
+  "type": "minor",
+  "title": "DataTable v2: eliminación de legacyAdapter, useSort y usePagination",
+  "category": "refactor",
+  "description": "Refactor completo de tablas a ColumnDef nativo de @tanstack/react-table. Se eliminó el legacyAdapter y los hooks useSort/usePagination, reemplazados internamente por el modelo headless de TanStack en useListPage. Se agregó useServerLiftgoTable como infraestructura lista para paginación/orden/filtrado server-side cuando el volumen de datos lo amerite.",
+  "changes": [
+    "Eliminado src/components/dataTable/v2/legacyAdapter.ts",
+    "Eliminados src/hooks/useSort.ts y src/hooks/usePagination.ts",
+    "useListPage refactorizado a TanStack headless preservando API pública",
+    "17 consumidores migrados a ColumnDef<T>[] nativo con meta.align",
+    "Nuevo hook useServerLiftgoTable con manualSorting/Pagination/Filtering",
+    "Migración de Bookings/Invoices a server-side diferida hasta >1000 filas activas"
+  ]
+}
