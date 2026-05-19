@@ -52,26 +52,27 @@ function splitVersion(v: string): { core: number[]; pre: string | null } {
   return { core, pre };
 }
 
+type Token = { kind: "num"; value: number } | { kind: "str"; value: string };
+
+function parseToken(s: string): Token {
+  return /^\d+$/.test(s) ? { kind: "num", value: Number(s) } : { kind: "str", value: s };
+}
+
+function compareTokens(a: Token, b: Token): number {
+  if (a.kind === "num" && b.kind === "num") return a.value - b.value;
+  if (a.kind !== b.kind) return a.kind === "num" ? -1 : 1;
+  return a.value < b.value ? -1 : a.value > b.value ? 1 : 0;
+}
+
 function comparePre(a: string, b: string): number {
   const pa = a.split(".");
   const pb = b.split(".");
   const len = Math.max(pa.length, pb.length);
   for (let i = 0; i < len; i++) {
-    const x = pa[i];
-    const y = pb[i];
-    if (x === undefined) return -1;
-    if (y === undefined) return 1;
-    const nx = Number(x);
-    const ny = Number(y);
-    const xn = !Number.isNaN(nx) && /^\d+$/.test(x);
-    const yn = !Number.isNaN(ny) && /^\d+$/.test(y);
-    if (xn && yn) {
-      if (nx !== ny) return nx - ny;
-    } else if (xn !== yn) {
-      return xn ? -1 : 1;
-    } else if (x !== y) {
-      return x < y ? -1 : 1;
-    }
+    if (pa[i] === undefined) return -1;
+    if (pb[i] === undefined) return 1;
+    const diff = compareTokens(parseToken(pa[i]), parseToken(pb[i]));
+    if (diff !== 0) return diff;
   }
   return 0;
 }

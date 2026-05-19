@@ -31,8 +31,12 @@ export interface LiftgoColumnMeta {
 }
 
 declare module "@tanstack/react-table" {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends RowData, TValue> extends LiftgoColumnMeta {}
+  interface ColumnMeta<TData extends RowData, TValue> {
+    align?: ColumnAlign;
+    hideOnMobile?: boolean;
+    headClassName?: string;
+    cellClassName?: string;
+  }
 }
 
 export interface DataTableSelectionContext<T> {

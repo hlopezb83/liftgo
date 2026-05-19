@@ -1,22 +1,15 @@
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "@/features/feedback/hooks/useFeedbackReports";
 import { useFeedbackScreenshotUrl } from "@/features/feedback/hooks/useFeedbackScreenshotUrl";
 import { useClassifyFeedback } from "@/features/feedback/hooks/useClassifyFeedback";
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
-import {
-  FEEDBACK_STATUS_LABELS,
-  FEEDBACK_TYPE_LABELS,
-  FEEDBACK_SEVERITY_LABELS,
-  type FeedbackStatus,
-} from "@/features/feedback/lib/constants";
+import { FeedbackChipsRow, AiReasoningCard } from "./FeedbackDetailChips";
+import { FeedbackStatusChanger } from "./FeedbackStatusChanger";
+import { type FeedbackStatus } from "@/features/feedback/lib/constants";
 
 interface Props {
   report: FeedbackReport | null;
@@ -55,10 +48,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
   const selectedEl = ctx.selected_element as
     | { tagName: string; text: string; cssPath: string }
     | undefined;
-  const severityLabel = report.severity
-    ? FEEDBACK_SEVERITY_LABELS[report.severity as keyof typeof FEEDBACK_SEVERITY_LABELS]
-    : null;
-  const applyDisabled = !newStatus || update.isPending;
+  
 
   const handleApply = () => {
     if (!newStatus) return;
@@ -79,43 +69,23 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
         </SheetHeader>
 
         <div className="mt-4 space-y-4">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Badge variant="outline">{FEEDBACK_TYPE_LABELS[report.type as "bug" | "improvement"]}</Badge>
-            <Badge variant={report.module === "Sin clasificar" ? "secondary" : "outline"}>
-              {report.module}
-            </Badge>
-            {severityLabel && <Badge variant="outline">{severityLabel}</Badge>}
-            {aiClass && (
-              <Badge variant="secondary" className="gap-1">
-                <Sparkles className="h-3 w-3" /> AI
-              </Badge>
-            )}
-            {classify.isPending && (
-              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" /> Clasificando con AI…
-              </span>
-            )}
-            <Badge variant="secondary" className="ml-auto">{report.points_awarded} pts</Badge>
-          </div>
+          <FeedbackChipsRow
+            type={report.type}
+            module={report.module}
+            severity={report.severity}
+            hasAi={!!aiClass}
+            classifying={classify.isPending}
+            points={report.points_awarded}
+          />
 
           {aiClass && (
-            <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2 border">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Razonamiento del AI
-                </span>
-                <Button
-                  type="button" size="sm" variant="ghost"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => classify.mutate(report.id)}
-                  disabled={classify.isPending}
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" /> Reclasificar
-                </Button>
-              </div>
-              <p>{aiClass.reasoning}</p>
-            </div>
+            <AiReasoningCard
+              reasoning={aiClass.reasoning}
+              onReclassify={() => classify.mutate(report.id)}
+              reclassifying={classify.isPending}
+            />
           )}
+
 
           <div>
             <h3 className="font-medium">{report.title}</h3>
@@ -150,23 +120,16 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <Separator />
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium">Cambiar estado</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <Select value={newStatus} onValueChange={(v) => setNewStatus(v as FeedbackStatus)}>
-                <SelectTrigger><SelectValue placeholder="Nuevo estado" /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(FEEDBACK_STATUS_LABELS)
-                    .filter(([k]) => k !== report.status)
-                    .map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Button disabled={applyDisabled} onClick={handleApply}>
-                {update.isPending ? "Guardando…" : "Aplicar"}
-              </Button>
-            </div>
-            <Textarea placeholder="Comentario (opcional)" value={comment} onChange={(e) => setComment(e.target.value)} rows={2} />
-          </div>
+          <FeedbackStatusChanger
+            currentStatus={report.status}
+            newStatus={newStatus}
+            onNewStatusChange={setNewStatus}
+            comment={comment}
+            onCommentChange={setComment}
+            onApply={handleApply}
+            pending={update.isPending}
+          />
+
 
           <Separator />
 

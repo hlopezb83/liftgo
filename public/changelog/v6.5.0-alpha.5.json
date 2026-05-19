@@ -1,0 +1,10 @@
+{
+  "description": "Resuelve el job de lint en GitHub Actions que fallaba por un error de tipos vacíos y cinco warnings de complejidad ciclomática. Sin cambios funcionales.",
+  "changes": [
+    "DataTable v2 types.ts: módulo de TanStack augmentado con campos explícitos (sin interface vacía ni eslint-disable).",
+    "DataTableHeaderV2: extraído HeaderCell + buildHeaderClass + SortIcon para bajar complejidad.",
+    "DataTableV2: buildToolbar y bodyProps factorizados; Inner queda lineal.",
+    "changelog.ts: comparePre usa parseToken + compareTokens.",
+    "FeedbackDetailSheet: nuevos FeedbackChipsRow, AiReasoningCard y FeedbackStatusChanger; sheet principal queda como composición."
+  ]
+}

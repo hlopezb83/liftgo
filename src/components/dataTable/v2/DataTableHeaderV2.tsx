@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
+import { flexRender, type Header, type Table as TanstackTable } from "@tanstack/react-table";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,6 +9,44 @@ import { alignClass } from "./sorting";
 interface Props<T> {
   table: TanstackTable<T>;
   showSelection: boolean;
+}
+
+function SortIcon({ dir }: { dir: false | "asc" | "desc" }): ReactNode {
+  if (dir === "asc") return <ArrowUp className="h-3.5 w-3.5 shrink-0" />;
+  if (dir === "desc") return <ArrowDown className="h-3.5 w-3.5 shrink-0" />;
+  return <ArrowUpDown className="h-3.5 w-3.5 shrink-0 opacity-40" />;
+}
+
+function buildHeaderClass(
+  meta: { align?: "left" | "right" | "center"; hideOnMobile?: boolean; headClassName?: string } | undefined,
+  canSort: boolean,
+  sorted: false | "asc" | "desc",
+): string {
+  return cn(
+    alignClass[meta?.align ?? "left"],
+    meta?.hideOnMobile && "hidden md:table-cell",
+    meta?.headClassName,
+    canSort && "cursor-pointer select-none hover:text-foreground transition-colors",
+    sorted && "text-foreground",
+  );
+}
+
+function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
+  const meta = header.column.columnDef.meta;
+  const canSort = header.column.getCanSort();
+  const sortDir = header.column.getIsSorted();
+  const className = buildHeaderClass(meta, canSort, sortDir);
+  if (header.isPlaceholder) return <TableHead key={header.id} className={className} />;
+  const onClick = canSort ? header.column.getToggleSortingHandler() : undefined;
+  const innerClass = cn("flex items-center gap-1", meta?.align === "right" && "justify-end");
+  return (
+    <TableHead className={className} onClick={onClick}>
+      <div className={innerClass}>
+        {flexRender(header.column.columnDef.header, header.getContext())}
+        {canSort && <SortIcon dir={sortDir} />}
+      </div>
+    </TableHead>
+  );
 }
 
 export function DataTableHeaderV2<T>({ table, showSelection }: Props<T>): ReactNode {
@@ -35,39 +73,9 @@ export function DataTableHeaderV2<T>({ table, showSelection }: Props<T>): ReactN
               />
             </TableHead>
           )}
-          {group.headers.map((header) => {
-            const meta = header.column.columnDef.meta;
-            const canSort = header.column.getCanSort();
-            const sortDir = header.column.getIsSorted();
-            const className = cn(
-              alignClass[meta?.align ?? "left"],
-              meta?.hideOnMobile && "hidden md:table-cell",
-              meta?.headClassName,
-              canSort && "cursor-pointer select-none hover:text-foreground transition-colors",
-              sortDir && "text-foreground",
-            );
-            return (
-              <TableHead
-                key={header.id}
-                className={className}
-                onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
-              >
-                {header.isPlaceholder ? null : (
-                  <div className={cn("flex items-center gap-1", meta?.align === "right" && "justify-end")}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {canSort &&
-                      (sortDir === "asc" ? (
-                        <ArrowUp className="h-3.5 w-3.5 shrink-0" />
-                      ) : sortDir === "desc" ? (
-                        <ArrowDown className="h-3.5 w-3.5 shrink-0" />
-                      ) : (
-                        <ArrowUpDown className="h-3.5 w-3.5 shrink-0 opacity-40" />
-                      ))}
-                  </div>
-                )}
-              </TableHead>
-            );
-          })}
+          {group.headers.map((header) => (
+            <HeaderCell key={header.id} header={header} />
+          ))}
         </TableRow>
       ))}
     </TableHeader>
