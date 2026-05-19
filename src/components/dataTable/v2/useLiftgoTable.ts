@@ -53,6 +53,14 @@ export function useLiftgoTable<T>({
     [columns],
   );
 
+  const resolveSelectable =
+    typeof enableRowSelection === "function"
+      ? (row: { original: T }) => {
+          const fn: (r: T) => boolean = enableRowSelection;
+          return fn(row.original);
+        }
+      : enableRowSelection;
+
   return useReactTable<T>({
     data: tableData,
     columns: columnsWithSortFn,
@@ -65,10 +73,7 @@ export function useLiftgoTable<T>({
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
     onPaginationChange: paginated ? setPagination : undefined,
-    enableRowSelection:
-      typeof enableRowSelection === "function"
-        ? (row) => (enableRowSelection as (r: T) => boolean)(row.original)
-        : enableRowSelection,
+    enableRowSelection: resolveSelectable,
     getRowId,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
