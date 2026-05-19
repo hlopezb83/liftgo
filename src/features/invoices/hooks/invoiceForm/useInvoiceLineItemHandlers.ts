@@ -15,7 +15,7 @@ export function useInvoiceLineItemHandlers(state: State) {
       if (i !== index) return item;
       const updated = { ...item, [field]: value };
       if (field === "quantity" || field === "unit_price") {
-        updated.total = Math.round(Number(updated.quantity) * Number(updated.unit_price) * 100) / 100;
+        updated.total = currency(Number(updated.unit_price)).multiply(Number(updated.quantity)).value;
       }
       return updated;
     }));
