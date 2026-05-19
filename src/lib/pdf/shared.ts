@@ -1,4 +1,3 @@
-import type jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
 import { formatDateDisplay } from "@/lib/utils";
@@ -43,24 +42,6 @@ export async function fetchCompanyDataAndLogo(): Promise<{
 }
 
 // ─── Shared date formatter ────────────────────────────
-
-// ─── PDF text helpers (shared across contract/quote/invoice PDFs) ──
-
-export function addWrappedText(doc: jsPDF, text: string, x: number, cursorY: number, maxWidth: number, lineHeight: number): number {
-  const lines = doc.splitTextToSize(text, maxWidth) as string[];
-  let y = cursorY;
-  for (const line of lines) {
-    if (y > doc.internal.pageSize.getHeight() - 25) { doc.addPage(); y = 20; }
-    doc.text(line, x, y);
-    y += lineHeight;
-  }
-  return y;
-}
-
-export function checkPage(doc: jsPDF, cursorY: number, needed: number = 15): number {
-  if (cursorY + needed > doc.internal.pageSize.getHeight() - 20) { doc.addPage(); return 20; }
-  return cursorY;
-}
 
 export function fmtDate(d: string | null): string {
   if (!d) return "—";
