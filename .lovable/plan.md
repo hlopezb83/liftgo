@@ -1,42 +1,48 @@
-# Plan: TanStack puro end-to-end (opcional)
+# Refactor a currency.js para cálculos financieros
 
-El refactor base ya está hecho. Este plan endurece lo restante.
+## Hallazgos de exploración
 
-## Contexto actual (verificado)
+1. **`currency.js` no está instalado.** Hay que agregarlo (`bun add currency.js`).
+2. **No existe lógica de conversión USD → MXN en el código.** Busqué `exchange_rate` / `exchangeRate` / `USD→MXN` y no hay nada. Las cotizaciones soportan multi-moneda solo a nivel de etiqueta (MXN/USD), no se hace conversión aritmética. → **Aclaración abajo.**
+3. La aritmética financiera real vive en pocos archivos. El resto de los hits de `toFixed` / `Math.round` son **formato de presentación** (PDFs, tablas, KPIs) o **horómetro** (no dinero) y NO deben migrarse.
 
-- `DataTableV2` + `useLiftgoTable` + `VirtualBody` ya usan `@tanstack/react-table` y `@tanstack/react-virtual` nativos.
-- Sorting via `getSortedRowModel` + `liftgoSortingFn` como `defaultColumn.sortingFn`.
-- Filtrado via `getFilteredRowModel` (globalFilter).
-- Paginación via `getPaginationRowModel`.
-- Selección via `onRowSelectionChange` con `getRowId` estable (poda automática de TanStack).
-- Cero `useEffect` para sincronizar arreglos en `src/components/dataTable/v2/`.
-- 17 consumidores migrados; legacy `DataTable.tsx` y 7 auxiliares eliminados.
-- Lint: 0 errores / 0 warnings.
+## Archivos a refactorizar
 
-## Pasos propuestos (opcionales, elige cuáles ejecutar)
+### 1. `src/lib/domain/invoiceHelpers.ts` (núcleo)
+Único archivo con aritmética monetaria real. Firmas se preservan idénticas.
 
-### Paso 1 — Eliminar `legacyAdapter.ts`
-Reescribir los 17 consumidores con `ColumnDef<T>[]` nativo de TanStack (usando `accessorFn`, `cell`, `header`, `meta`). Más verboso pero 100% idiomático y borra el último puente al DSL viejo.
+- **`applyDiscount(item)`** → reemplazar `base - item.discount`, `base * (1 - item.discount/100)` por `currency(base).subtract(item.discount).value` y `currency(base).multiply(1 - item.discount/100).value`. Mantener `Math.max(0, …)` (no es redondeo, es clamp).
+- **`buildDailyRemainder`** → eliminar `Math.round(... * 100)/100`. Usar `currency(weeklyRate).divide(7)`, `currency(monthlyRate).divide(30)`, `currency(remaining).multiply(fallback).value`.
+- **`calculateRentalCost`** → reemplazar `months * m`, `weeks * w`, `remaining * dailyRate` con `currency(m).multiply(months).value`, etc.
+- **`generateLineItemsFromModel`** → reemplazar `item.unit_price * quantity`, `item.total * quantity` con `currency(...).multiply(quantity).value`.
+- **`computeTotals(lineItems, taxRate)`** → reemplazar `reduce((sum, item) => sum + applyDiscount(item), 0)` por `currency` acumulador; `subtotal * (taxRate/100)` por `currency(subtotal).multiply(taxRate).divide(100).value`; `subtotal + taxAmount` por `currency(subtotal).add(taxAmount).value`. **Eliminar los `Math.round(...*100)/100`.**
 
-### Paso 2 — Auditar `src/hooks/useSort.ts` y `usePagination.ts`
-Estos hooks viven fuera de DataTable pero implementan sort/paginación manual. Identificar usos restantes y migrarlos a `useReactTable` headless cuando aplique, o documentarlos como utilidades no-tabla.
+Configuración: usar `currency(x, { precision: 2 })` por defecto en MXN. Devolver siempre `.value` (number) para no romper consumidores.
 
-### Paso 3 — Modo server-side para listas grandes (Supabase)
-Para tablas con >1000 filas potenciales (bookings, invoices, audit logs), activar:
-- `manualSorting: true` + traducir `SortingState` a `.order()` de Supabase.
-- `manualPagination: true` + `range(from, to)` + `count: 'exact'`.
-- `manualFiltering: true` + `.ilike()` sobre columnas relevantes.
-- Hook nuevo `useServerLiftgoTable<T>({ queryKey, fetcher })` que envuelve `useQuery` + `useReactTable` y expone la misma API que `useLiftgoTable`.
+### 2. `src/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers.ts`
+- Línea 17: `Math.round(Number(qty) * Number(unit_price) * 100) / 100` → `currency(unit_price).multiply(qty).value`. Firma del handler intacta.
 
-### Paso 4 — Changelog
-Agregar `v6.5.0-alpha.7` (patch o minor según pasos elegidos).
+## Archivos NO migrados (justificación)
 
-## Fuera de alcance
+| Archivo | Motivo |
+|---|---|
+| `useBookingHourometer.ts`, `deliveryDetailHelpers.ts` | Calculan **horas de horómetro**, no dinero. `Math.round(x*10)/10` es redondeo a décima de hora, no precisión monetaria. |
+| `statementRowFactories.ts`, `pdf/incomeStatement/rows.ts` | Usan `.toFixed()` solo para **renderizado de texto** (PDF / tabla). No hay aritmética; sustituirlo no aporta precisión. |
+| `formatCurrency.ts` | Solo formateo `Intl.NumberFormat`. Ya correcto. |
+| `CalendarStatCards.tsx`, `ActivityKPIs.tsx`, `useCRMMetrics.ts`, `UtilizationReport.tsx`, etc. | Cálculos de **porcentajes / utilización / conteos**, no de moneda. |
 
-- Cambios visuales (zebra, drill-down panels, sticky headers — ya cumplen Core memory).
-- RLS / schema / edge functions.
-- Tests nuevos más allá de regresión de listados ya cubiertos.
+## Pasos de ejecución
 
-## Decisión requerida
+1. `bun add currency.js`
+2. Refactor `src/lib/domain/invoiceHelpers.ts` (5 funciones internas, firmas públicas idénticas).
+3. Refactor `src/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers.ts` (1 línea).
+4. Validar con `src/test/invoiceHelpers.test.ts` existente; agregar 2-3 casos de borde de floating-point clásicos (`0.1 + 0.2`, `19.99 * 0.16`, división de tarifa semanal).
+5. Entrada en `public/changelog.json` + `public/changelog/v6.5.0-alpha.8.json` (patch, categoría refactor).
 
-¿Cuáles pasos ejecuto? Mi recomendación: **Paso 1 + Paso 3 sólo para `bookings` e `invoices`** (mayor volumen real). Paso 2 sólo si el lint/knip marca código muerto.
+## Aclaración pendiente
+
+**Conversión USD → MXN no existe hoy en el código.** Opciones:
+- **(A)** Ejecutar solo lo anterior (núcleo de invoices/rentas). Recomendado: alineado al directorio actual.
+- **(B)** Además, crear `src/lib/fx.ts` con `convertUsdToMxn(amount, rate)` basado en currency.js, listo para integrarse cuando se añada el campo `exchange_rate`. Útil como infraestructura, pero sin consumidores hoy.
+
+Si no respondes, asumo **(A)**.
