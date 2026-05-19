@@ -1,0 +1,19 @@
+{
+  "version": "6.6.0-alpha.1",
+  "date": "2026-05-19",
+  "type": "major",
+  "title": "Arquitectura PDF: migración total a @react-pdf/renderer",
+  "category": "refactor",
+  "description": "Se reemplaza por completo el motor imperativo jsPDF/jspdf-autotable por un pipeline declarativo basado en componentes de @react-pdf/renderer. Los 5 generadores (Cotización, Factura, Contrato, Estado de Cuenta y Estado de Resultados) ahora son árboles React puros con StyleSheet centralizado, layout Flexbox y wrapping nativo de texto largo. Se elimina cualquier coordenada X/Y manual.",
+  "changes": [
+    "Instaladas dependencias @react-pdf/renderer y file-saver; eliminadas jspdf y jspdf-autotable",
+    "src/lib/pdf/theme/: tokens.ts y styles.ts con StyleSheet.create() compartido (colores, tipografía, spacing, bordes de tabla)",
+    "src/lib/pdf/components/: AccentBar, Header, InfoCards, LineItemsTable (flexGrow para descripciones largas), TotalsBox y Footer (paginado con render fixed) reutilizables",
+    "src/lib/pdf/documents/: QuoteDocument, InvoiceDocument, CustomerStatementDocument, IncomeStatementDocument (landscape) y ContractDocument (ContractBody + Anexo A Checklist + Anexo B Pagaré) como componentes puros",
+    "Builders reescritos: src/lib/pdf/quote/build.tsx, src/features/invoices/lib/pdf/build.tsx, src/lib/pdf/customerStatement.tsx, src/lib/pdf/incomeStatement.tsx y src/features/contracts/lib/contractPdfBuilder.tsx usando pdf().toBlob() + saveAs()",
+    "Eliminados módulos legacy: src/lib/pdf/contract/sections/*, contractPage.ts, checklistPage.ts, pagarePage.ts, contractGenerator.ts, quoteGenerator.ts, quote/{header,table,totals,constants}.ts, customerStatement/{parts,tables}.ts e incomeStatement/{header,rows}.ts",
+    "QuotePreviewDialog: nuevo botón Previsualizar en QuoteDetailActions abre Dialog 95vw×92vh con <PDFViewer> lazy-loaded para inspección directa antes de descargar",
+    "shared.ts: limpieza de imports residuales a jsPDF (helpers addWrappedText/checkPage eliminados; se conservan tipos y fetchCompanyDataAndLogo)",
+    "ContractPDFButton: imports actualizados a @/lib/pdf/contract/data y @/lib/pdf/documents/ContractDocument"
+  ]
+}
