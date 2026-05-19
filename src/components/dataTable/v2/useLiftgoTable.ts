@@ -14,6 +14,8 @@ import {
 import { APP_CONFIG } from "@/lib/config";
 import { liftgoSortingFn } from "./sorting";
 
+import type { DataTableSelectionContext } from "./types";
+
 interface Options<T> {
   data: T[] | undefined;
   columns: ColumnDef<T>[];
@@ -23,6 +25,7 @@ interface Options<T> {
   enableRowSelection?: boolean | ((row: T) => boolean);
   globalFilter?: string;
   paginated?: boolean;
+  onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
 }
 
 export function useLiftgoTable<T>({
