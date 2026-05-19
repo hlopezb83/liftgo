@@ -1,44 +1,84 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePortalContracts } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DataTable, type DataTableColumn } from "@/components/DataTable";
+import {
+  DataTableV2,
+  DataTablePaginationV2,
+  useLiftgoTable,
+  type ColumnDef,
+} from "@/components/dataTable/v2";
 
 type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
 
 export default function PortalContracts() {
   const { data: contracts, isLoading } = usePortalContracts();
 
-  if (isLoading) return <Skeleton className="h-96" />;
+  const columns = useMemo<ColumnDef<Contract>[]>(
+    () => [
+      {
+        id: "contract_number",
+        accessorKey: "contract_number",
+        header: "Contrato #",
+        cell: ({ row }) => <span className="font-medium">{row.original.contract_number}</span>,
+      },
+      {
+        id: "equipo",
+        header: "Equipo",
+        accessorFn: (c) => `${c.forklifts?.name ?? ""} ${c.forklifts?.model ?? ""}`.trim(),
+        cell: ({ row }) => (
+          <>
+            {row.original.forklifts?.name || "—"} — {row.original.forklifts?.model || ""}
+          </>
+        ),
+      },
+      {
+        id: "start_date",
+        accessorKey: "start_date",
+        header: "Inicio",
+        cell: ({ row }) => row.original.start_date || "—",
+      },
+      {
+        id: "end_date",
+        accessorKey: "end_date",
+        header: "Fin",
+        cell: ({ row }) => row.original.end_date || "—",
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: "Estado",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+    ],
+    [],
+  );
 
-  const columns: DataTableColumn<Contract>[] = [
-    { key: "contract_number", label: "Contrato #", sortable: true, render: (c) => <span className="font-medium">{c.contract_number}</span> },
-    {
-      key: "equipo",
-      label: "Equipo",
-      sortable: true,
-      accessor: (c) => `${c.forklifts?.name ?? ""} ${c.forklifts?.model ?? ""}`.trim(),
-      render: (c) => <>{c.forklifts?.name || "—"} — {c.forklifts?.model || ""}</>,
-    },
-    { key: "start_date", label: "Inicio", sortable: true, render: (c) => c.start_date || "—" },
-    { key: "end_date", label: "Fin", sortable: true, render: (c) => c.end_date || "—" },
-    { key: "status", label: "Estado", sortable: true, render: (c) => <StatusBadge status={c.status} /> },
-  ];
+  const table = useLiftgoTable<Contract>({
+    data: contracts,
+    columns,
+    getRowId: (c) => c.id,
+    initialSorting: [{ id: "start_date", desc: true }],
+  });
+
+  if (isLoading) return <Skeleton className="h-96" />;
 
   return (
     <div className="space-y-6 max-w-5xl">
       <h1 className="text-2xl font-bold">Mis Contratos</h1>
       <Card>
-        <CardHeader><CardTitle className="text-base">Todos los Contratos</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">Todos los Contratos</CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={contracts}
-            keyExtractor={(c) => c.id}
+          <DataTableV2
+            table={table}
             emptyMessage="No se encontraron contratos"
-            defaultSortKey="start_date"
-            defaultSortDirection="desc"
           />
+          <div className="px-4">
+            <DataTablePaginationV2 table={table} />
+          </div>
         </CardContent>
       </Card>
     </div>

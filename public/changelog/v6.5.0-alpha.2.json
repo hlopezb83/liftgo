@@ -1,0 +1,14 @@
+{
+  "version": "6.5.0-alpha.2",
+  "date": "2026-05-19",
+  "type": "patch",
+  "title": "DataTable v2: consumidor piloto en Portal Contratos",
+  "category": "refactor",
+  "description": "Migración de PortalContracts a la nueva API DataTableV2 + useLiftgoTable como prueba de concepto antes del rollout masivo.",
+  "changes": [
+    "PortalContracts ahora usa ColumnDef de @tanstack/react-table",
+    "Sin useEffect ni useSort: sort vive en el state de TanStack vía getSortedRowModel",
+    "Paginación client-side via getPaginationRowModel + DataTablePaginationV2",
+    "Validación visual del header con flechas, ordenamiento por columnas y sort inicial por start_date desc"
+  ]
+}
