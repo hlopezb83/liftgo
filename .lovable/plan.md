@@ -1,70 +1,87 @@
-## Origen
+## Goal
 
-GitHub Actions corre `bun run lint` en cada push y el job falló por **1 error + 5 warnings** introducidos por los últimos cambios (DataTable v2, fix de changelog) más uno preexistente (`FeedbackDetailSheet`). ESLint en este proyecto está configurado con `complexity: 12` como límite estricto.
+Consolidate to **a single TanStack-only data table** (`DataTableV2`), remove the legacy `DataTable` wrapper and its custom `useEffect`/state-sync helpers, and standardize virtualization on `@tanstack/react-virtual`. No custom array sorting, no `useEffect` syncing sort/selection state.
 
-## Errores y warnings a resolver
+## Current state (audit)
 
-| # | Archivo | Tipo | Causa |
-|---|---------|------|-------|
-| 1 | `src/components/dataTable/v2/types.ts` (35) | **error** `@typescript-eslint/no-empty-object-type` | `interface ColumnMeta extends LiftgoColumnMeta {}` está vacía |
-| 2 | `src/components/dataTable/v2/types.ts` (34) | warning | `eslint-disable` sin uso (consecuencia del fix #1) |
-| 3 | `src/components/dataTable/v2/DataTableHeaderV2.tsx` (38) | warning | `complexity 15` en el `.map(header => …)` |
-| 4 | `src/components/dataTable/v2/DataTableV2.tsx` (27) | warning | `complexity 13` en `Inner` |
-| 5 | `src/features/changelog/lib/changelog.ts` (55) | warning | `complexity 13` en `comparePre` |
-| 6 | `src/features/feedback/components/FeedbackDetailSheet.tsx` (26) | warning | `complexity 18` (preexistente, agravado por chips/AI) |
+Two parallel systems live in `src/components/`:
 
-## Cambios propuestos
+| System | Files | TanStack usage | Custom logic to remove |
+|---|---|---|---|
+| Legacy `DataTable` | `DataTable.tsx` + `dataTable/{useDataTableState,dataTableEffects,dataTableHelpers,sorting,types,DataTableHeader,DataTableBody}.ts(x)` | Uses `useReactTable` already | `useNotifySelection` (useEffect syncing selection out), `usePruneRowSelection` (useEffect pruning selection on data change), `cycleSorting` (manual sort toggle), custom `DataTableColumn` DSL that re-wraps `ColumnDef` |
+| V2 `DataTableV2` | `dataTable/v2/*` | `useReactTable` + `@tanstack/react-virtual` (`VirtualBody.tsx`) | None of consequence — already TanStack-native |
 
-### 1-2 · `types.ts`
-Reemplazar la interface vacía por la **augmentación con campos explícitos** (sin `extends`, sin disable). Mantiene el contrato exacto y elimina ambos hallazgos:
+**Consumers**: 17 files still import the legacy `DataTable` (reports, operations tabs, portal pages, supplier/MRR/forklift detail, invoice payment summary). 1 file (`PortalContracts`) already uses V2 directly.
 
-```ts
-declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData extends RowData, TValue> {
-    align?: ColumnAlign;
-    hideOnMobile?: boolean;
-    headClassName?: string;
-    cellClassName?: string;
-  }
-}
+## Target architecture
+
+```text
+src/components/dataTable/v2/
+  useLiftgoTable.ts     ← single source of truth: state, sorting, filtering, pagination, selection
+  DataTableV2.tsx       ← presentational, accepts a TanStack Table<T>
+  DataTableHeaderV2.tsx ← native flexRender, header.column.getToggleSortingHandler()
+  DataTableBodyV2.tsx   ← native flexRender
+  VirtualBody.tsx       ← @tanstack/react-virtual when row count > threshold
+  DataTablePaginationV2 ← table.previousPage/nextPage
+  sorting.ts            ← single SortingFn<T> (es-MX locale, accents-insensitive) — registered as the default sortingFn via useLiftgoTable; columns can override
+  types.ts              ← re-exports TanStack types + LiftgoColumnMeta (align, hideOnMobile, cellClassName)
 ```
 
-`LiftgoColumnMeta` sigue exportándose como tipo público (consumidores siguen importándolo).
+Everything legacy under `src/components/dataTable/` (the seven files outside `v2/`) and `src/components/DataTable.tsx` is **deleted**.
 
-### 3 · `DataTableHeaderV2.tsx`
-Extraer el renderizado por columna a un sub-componente `<HeaderCell column={...} />` ≤80 LOC. El `.map` queda reducido a `headers.map(h => <HeaderCell key={h.id} header={h} />)` → complejidad cae a ≤4.
+## Step-by-step changes
 
-### 4 · `DataTableV2.tsx`
-Extraer:
-- el cálculo de `selectedIds` + `toolbarCtx` a un hook local `useToolbar(table)` (≤30 LOC), o a un componente `<SelectionToolbar />`.
-- el fallback móvil a un helper `renderMobile(...)`.
+**1. Migrate the 17 legacy consumers to the V2 API.**
+Each file currently builds `DataTableColumn<T>[]` (key/label/render/sortable/accessor). Rewrite each as `ColumnDef<T>[]` plus a `useLiftgoTable({ data, columns, getRowId })` call, then render `<DataTableV2 table={table} ... />`. Mechanical 1-to-1 mapping:
 
-Esto baja la ciclomática del `Inner` por debajo del umbral.
+```text
+{ key, label, sortable, accessor, render, align, hideOnMobile, className }
+→ { id: key, header: label, enableSorting: sortable, accessorFn/accessorKey, cell: ({row}) => render(row.original, row.index), meta: { align, hideOnMobile, cellClassName: className } }
+```
 
-### 5 · `changelog.ts comparePre`
-Extraer el paso "convertir token a `{ kind: "num"|"str", value }`" a un helper `parseToken(s)`. El bucle queda con un único `compareTokens(parseToken(x), parseToken(y))` → complejidad ≤6.
+Files touched (17): all under `src/features/{reports,operations,portal,suppliers,dashboard,fleet,invoices}/...` listed in the audit. No behavior changes — same columns, same sort defaults, same mobile cards.
 
-### 6 · `FeedbackDetailSheet.tsx`
-Extraer dos sub-componentes (ya hay precedente con `FeedbackDetailParts`):
-- `FeedbackChipsRow` (badges tipo/módulo/severidad/AI).
-- `AiReasoningCard` (bloque "Razonamiento del AI" con botón Reclasificar).
+**2. Delete legacy implementation.** Remove:
+- `src/components/DataTable.tsx`
+- `src/components/dataTable/DataTableHeader.tsx`
+- `src/components/dataTable/DataTableBody.tsx`
+- `src/components/dataTable/useDataTableState.ts`
+- `src/components/dataTable/dataTableEffects.ts` ← kills `useNotifySelection` + `usePruneRowSelection` (the offending `useEffect`s)
+- `src/components/dataTable/dataTableHelpers.ts` ← kills `cycleSorting`
+- `src/components/dataTable/sorting.ts` (duplicate of v2)
+- `src/components/dataTable/types.ts`
 
-Esto baja la complejidad del cuerpo principal a ≤8 y mejora la legibilidad. No cambia comportamiento.
+**3. Harden `useLiftgoTable` so V2 needs no `useEffect`s.**
+- Selection pruning on data change: rely on TanStack's built-in behavior — when `getRowId` is stable, removed rows are auto-pruned by `getRowModel`. Add a small `selectedRows` computation derived from `table.getSelectedRowModel()` rather than re-syncing into local state.
+- `onSelectionChange` consumer callback already fires inside `onRowSelectionChange` (no `useEffect`) — keep as is; remove the `dataRef`/manual lookup in favor of `table.getSelectedRowModel().rows.map(r => r.original)` computed lazily inside the callback.
+- Register `liftgoSortingFn` as a default via `defaultColumn.sortingFn` instead of mapping over every column.
 
-## Verificación
+**4. Virtualization stays TanStack-only.**
+`VirtualBody` already uses `@tanstack/react-virtual`. Verify the threshold prop (`virtualizationThreshold`, default 100) is honored and the path is opt-in via `<DataTableV2 virtualized />`. No custom windowing logic anywhere else.
 
-- `bun run lint` debe terminar con **0 errores y 0 warnings**.
-- `tsc` debe seguir verde (sin cambios de tipo público).
-- Probar visualmente:
-  - Cualquier list page con DataTable v2 (cabecera/sort).
-  - Apertura del sheet de feedback (chips + AI bloque).
-  - El modal del changelog ordena pre-release antes de la versión estable correspondiente.
+**5. Supabase plug-in.**
+No changes — `useLiftgoTable` receives `data: T[] | undefined` from any `useQuery` hook backed by Supabase. Row id stays `getRowId: (row) => row.id`. Documented in the V2 `index.ts` JSDoc.
 
-## Changelog
+**6. Lint + complexity gates.**
+Run `bun run lint` and `bun run build`. Expected: 0 errors / 0 warnings (complexity caps already tuned in v2 components).
 
-Entrada `6.5.0-alpha.5` patch / fix: "Lint CI: resolver complexity warnings y empty interface en augmentación de TanStack".
+**7. Changelog.**
+Add `6.5.0-alpha.6` (minor — public API of legacy `DataTable` removed) to `public/changelog.json` + `public/changelog/v6.5.0-alpha.6.json` describing the consolidation.
 
-## Fuera de alcance
+## Verification checklist
 
-- No subir el umbral de `complexity` global ni añadir `eslint-disable`.
-- No tocar lógica funcional de feedback ni de v2; solo descomposición y tipado.
+- `rg "from \"@/components/DataTable\"|components/dataTable/(useDataTableState|dataTableEffects|dataTableHelpers)"` → 0 hits.
+- `rg "useEffect" src/components/dataTable` → 0 hits.
+- Manual smoke per consumer family: reports (sorting), operations tabs (row click + mobile cards), portal pages (pagination), supplier detail (selection + toolbar if any), invoice payment summary (footer).
+- `bun run lint` green, `tsc` green.
+
+## Out of scope
+
+- No changes to server-side queries, RLS, or Supabase schema.
+- No new features (column visibility menus, faceted filters, drag reorder) — same UX, cleaner core.
+- No styling changes to header/body/pagination.
+
+## Risks
+
+- The 17-file mechanical migration is the largest surface; a missed `accessor`/`align` translation could change a column's sort order or alignment. Mitigation: do consumers in batches of 4–5, eyeball each table in preview before moving on.
+- Some legacy consumers may rely on `defaultSortKey` + `defaultSortDirection`; map directly to `initialSorting: [{ id, desc }]`.
