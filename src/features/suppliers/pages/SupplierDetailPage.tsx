@@ -9,12 +9,7 @@ import { NotesCard } from "@/components/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { SupplierContactCard } from "@/features/suppliers/components/suppliers/SupplierContactCard";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -44,25 +39,23 @@ export default function SupplierDetailPage() {
   const totalExpenses = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
 
-  const expenseColumns = useMemo(
-    () =>
-      toColumnDefs<LinkedExpense>([
-        { key: "expense_date", label: "Fecha", sortable: true, render: (e) => <span className="font-mono text-sm">{formatDateDisplay(e.expense_date)}</span> },
-        { key: "category", label: "Categoría", sortable: true, render: (e) => <Badge variant="outline">{e.category}</Badge> },
-        { key: "description", label: "Descripción", render: (e) => <span className="text-muted-foreground">{e.description || "—"}</span> },
-        { key: "amount", label: "Monto", sortable: true, align: "right", render: (e) => <span className="font-mono">{formatCurrency(e.amount)}</span> },
-      ] satisfies LegacyColumn<LinkedExpense>[]),
+  const expenseColumns = useMemo<ColumnDef<LinkedExpense>[]>(
+    () => [
+      { id: "expense_date", header: "Fecha", accessorKey: "expense_date", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.expense_date)}</span> },
+      { id: "category", header: "Categoría", accessorKey: "category", cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge> },
+      { id: "description", header: "Descripción", accessorKey: "description", cell: ({ row }) => <span className="text-muted-foreground">{row.original.description || "—"}</span> },
+      { id: "amount", header: "Monto", accessorKey: "amount", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.amount)}</span> },
+    ],
     [],
   );
 
-  const maintenanceColumns = useMemo(
-    () =>
-      toColumnDefs<LinkedMaintenance>([
-        { key: "performed_at", label: "Fecha", sortable: true, render: (m) => <span className="font-mono text-sm">{formatDateDisplay(m.performed_at)}</span> },
-        { key: "forklift", label: "Montacargas", accessor: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", sortable: true, render: (m) => forkliftMap.get(m.forklift_id)?.name || "—" },
-        { key: "service_type", label: "Tipo de Servicio", sortable: true, render: (m) => m.service_type },
-        { key: "cost", label: "Costo", sortable: true, align: "right", accessor: (m) => m.cost ?? 0, render: (m) => <span className="font-mono">{formatCurrency(m.cost || 0)}</span> },
-      ] satisfies LegacyColumn<LinkedMaintenance>[]),
+  const maintenanceColumns = useMemo<ColumnDef<LinkedMaintenance>[]>(
+    () => [
+      { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span> },
+      { id: "forklift", header: "Montacargas", accessorFn: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", cell: ({ row }) => forkliftMap.get(row.original.forklift_id)?.name || "—" },
+      { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
+      { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.cost || 0)}</span> },
+    ],
     [forkliftMap],
   );
 

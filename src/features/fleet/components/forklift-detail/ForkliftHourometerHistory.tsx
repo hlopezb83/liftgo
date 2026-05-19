@@ -3,12 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils";
 import type { ForkliftFinancials } from "@/features/fleet/hooks/forklifts/useForkliftFinancials";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface ForkliftHourometerHistoryProps {
   history: ForkliftFinancials["hourometer_history"];
@@ -17,14 +12,36 @@ interface ForkliftHourometerHistoryProps {
 type Entry = ForkliftFinancials["hourometer_history"][number];
 
 export function ForkliftHourometerHistory({ history }: ForkliftHourometerHistoryProps) {
-  const columns = useMemo(
-    () =>
-      toColumnDefs<Entry>([
-        { key: "date", label: "Fecha", sortable: true, render: (e) => <span className="text-sm">{formatDateDisplay(e.date)}</span> },
-        { key: "delivery_number", label: "Entrega", sortable: true, render: (e) => <span className="text-sm font-mono">{e.delivery_number}</span> },
-        { key: "type", label: "Tipo", sortable: true, render: (e) => <span className="text-sm">{e.type === "delivery" ? "Entrega" : "Recolección"}</span> },
-        { key: "hours_reading", label: "Lectura (hrs)", align: "right", sortable: true, render: (e) => <span className="font-mono font-semibold">{e.hours_reading}</span> },
-      ] satisfies LegacyColumn<Entry>[]),
+  const columns = useMemo<ColumnDef<Entry>[]>(
+    () => [
+      {
+        id: "date",
+        header: "Fecha",
+        accessorKey: "date",
+        cell: ({ row }) => <span className="text-sm">{formatDateDisplay(row.original.date)}</span>,
+      },
+      {
+        id: "delivery_number",
+        header: "Entrega",
+        accessorKey: "delivery_number",
+        cell: ({ row }) => <span className="text-sm font-mono">{row.original.delivery_number}</span>,
+      },
+      {
+        id: "type",
+        header: "Tipo",
+        accessorKey: "type",
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.type === "delivery" ? "Entrega" : "Recolección"}</span>
+        ),
+      },
+      {
+        id: "hours_reading",
+        header: "Lectura (hrs)",
+        accessorKey: "hours_reading",
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="font-mono font-semibold">{row.original.hours_reading}</span>,
+      },
+    ],
     [],
   );
 

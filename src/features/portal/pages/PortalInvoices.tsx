@@ -6,12 +6,7 @@ import { usePortalInvoices } from "@/features/customers/hooks/customers/useCusto
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
 
@@ -19,15 +14,40 @@ export default function PortalInvoices() {
   const { data: invoices, isLoading } = usePortalInvoices();
   const navigate = useNavigate();
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<Invoice>([
-        { key: "invoice_number", label: "Factura #", sortable: true, render: (inv) => <span className="font-medium">{inv.invoice_number}</span> },
-        { key: "issued_at", label: "Fecha", sortable: true, render: (inv) => formatDateDisplay(inv.issued_at) },
-        { key: "due_date", label: "Vencimiento", sortable: true, render: (inv) => formatDateDisplay(inv.due_date) },
-        { key: "total", label: "Total", sortable: true, align: "right", accessor: (i) => Number(i.total), render: (i) => <span className="font-mono">{formatCurrency(Number(i.total))}</span> },
-        { key: "status", label: "Estado", sortable: true, render: (inv) => <StatusBadge status={inv.status} /> },
-      ] satisfies LegacyColumn<Invoice>[]),
+  const columns = useMemo<ColumnDef<Invoice>[]>(
+    () => [
+      {
+        id: "invoice_number",
+        header: "Factura #",
+        accessorKey: "invoice_number",
+        cell: ({ row }) => <span className="font-medium">{row.original.invoice_number}</span>,
+      },
+      {
+        id: "issued_at",
+        header: "Fecha",
+        accessorKey: "issued_at",
+        cell: ({ row }) => formatDateDisplay(row.original.issued_at),
+      },
+      {
+        id: "due_date",
+        header: "Vencimiento",
+        accessorKey: "due_date",
+        cell: ({ row }) => formatDateDisplay(row.original.due_date),
+      },
+      {
+        id: "total",
+        header: "Total",
+        accessorFn: (i) => Number(i.total),
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total))}</span>,
+      },
+      {
+        id: "status",
+        header: "Estado",
+        accessorKey: "status",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+    ],
     [],
   );
 

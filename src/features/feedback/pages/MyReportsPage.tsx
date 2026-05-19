@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { useMyFeedbackReports } from "@/features/feedback/hooks/useFeedbackReports";
 import { FeedbackStatusBadge } from "@/features/feedback/components/FeedbackStatusBadge";
 import { FEEDBACK_TYPE_LABELS } from "@/features/feedback/lib/constants";
-import { usePagination } from "@/hooks/usePagination";
+import { useListPage } from "@/hooks/useListPage";
 import { TablePagination } from "@/components/TablePagination";
 import { format } from "date-fns";
 
 export default function MyReportsPage() {
   const { data: reports, isLoading } = useMyFeedbackReports();
-  const { paginatedItems, page, setPage, totalPages } = usePagination(reports ?? []);
+  const { paginatedItems, page, setPage, totalPages } = useListPage(reports ?? []);
 
   const totalPoints = useMemo(
     () => (reports ?? []).reduce((sum, r) => sum + (r.points_awarded ?? 0), 0),

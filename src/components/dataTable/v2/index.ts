@@ -1,8 +1,8 @@
 export { DataTableV2 } from "./DataTableV2";
 export { DataTablePaginationV2 } from "./DataTablePaginationV2";
 export { useLiftgoTable } from "./useLiftgoTable";
+export { useServerLiftgoTable } from "./useServerLiftgoTable";
 export { liftgoSortingFn, alignClass } from "./sorting";
-export { toColumnDefs, type LegacyColumn } from "./legacyAdapter";
 export type {
   ColumnDef,
   SortingState,
@@ -14,3 +14,4 @@ export type {
   LiftgoColumnMeta,
   DataTableSelectionContext,
 } from "./types";
+export type { ServerLiftgoTableFetcher, ServerLiftgoTableQuery, ServerLiftgoTableResult } from "./useServerLiftgoTable";

@@ -6,12 +6,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { EditPaymentDialog } from "./EditPaymentDialog";
 import type { Tables } from "@/integrations/supabase/types";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface InvoicePaymentSummaryProps {
   totalPaid: number;
@@ -24,19 +19,46 @@ type Payment = Tables<"payments">;
 export function InvoicePaymentSummary({ totalPaid, balance, payments }: InvoicePaymentSummaryProps) {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<Payment>([
-        { key: "payment_date", label: "Fecha", sortable: true, render: (p) => <span className="text-sm">{formatDateDisplay(p.payment_date)}</span> },
-        { key: "payment_method", label: "Método", sortable: true, render: (p) => <span className="text-sm capitalize">{p.payment_method || "—"}</span> },
-        { key: "reference_number", label: "Referencia", sortable: true, render: (p) => <span className="text-sm text-muted-foreground">{p.reference_number || "—"}</span> },
-        { key: "amount", label: "Monto", align: "right", sortable: true, accessor: (p) => Number(p.amount), render: (p) => <span className="font-mono">{formatCurrency(Number(p.amount))}</span> },
-        { key: "actions", label: "", render: (p) => (
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(p)}>
+  const columns = useMemo<ColumnDef<Payment>[]>(
+    () => [
+      {
+        id: "payment_date",
+        header: "Fecha",
+        accessorKey: "payment_date",
+        cell: ({ row }) => <span className="text-sm">{formatDateDisplay(row.original.payment_date)}</span>,
+      },
+      {
+        id: "payment_method",
+        header: "Método",
+        accessorKey: "payment_method",
+        cell: ({ row }) => <span className="text-sm capitalize">{row.original.payment_method || "—"}</span>,
+      },
+      {
+        id: "reference_number",
+        header: "Referencia",
+        accessorKey: "reference_number",
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">{row.original.reference_number || "—"}</span>
+        ),
+      },
+      {
+        id: "amount",
+        header: "Monto",
+        accessorFn: (p) => Number(p.amount),
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span>,
+      },
+      {
+        id: "actions",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(row.original)}>
             <Pencil className="h-3.5 w-3.5" />
           </Button>
-        ) },
-      ] satisfies LegacyColumn<Payment>[]),
+        ),
+      },
+    ],
     [],
   );
 
