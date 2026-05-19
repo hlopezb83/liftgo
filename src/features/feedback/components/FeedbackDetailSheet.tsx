@@ -5,16 +5,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "@/features/feedback/hooks/useFeedbackReports";
 import { useFeedbackScreenshotUrl } from "@/features/feedback/hooks/useFeedbackScreenshotUrl";
 import { useClassifyFeedback } from "@/features/feedback/hooks/useClassifyFeedback";
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
+import { FeedbackChipsRow, AiReasoningCard } from "./FeedbackDetailChips";
 import {
   FEEDBACK_STATUS_LABELS,
-  FEEDBACK_TYPE_LABELS,
-  FEEDBACK_SEVERITY_LABELS,
   type FeedbackStatus,
 } from "@/features/feedback/lib/constants";
 
