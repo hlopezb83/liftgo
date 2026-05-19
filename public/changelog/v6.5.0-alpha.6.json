@@ -1,0 +1,16 @@
+{
+  "version": "6.5.0-alpha.6",
+  "date": "2026-05-19",
+  "type": "minor",
+  "title": "DataTables: migración total a @tanstack/react-table + react-virtual",
+  "category": "refactor",
+  "description": "Refactor completo de tablas para usar estrictamente @tanstack/react-table (estado, sorting, filtrado, selección) y @tanstack/react-virtual (virtualización). Eliminado el DataTable legacy y toda su lógica custom de useEffect para sincronizar sorting y selección.",
+  "changes": [
+    "Migrados 17 consumidores del DataTable legacy a DataTableV2 (Portal, Reportes, Operaciones, MRR, Proveedor, Forklift, Invoice).",
+    "Eliminados src/components/DataTable.tsx y 7 archivos auxiliares (useDataTableState, dataTableEffects, sorting, types, helpers, header, body).",
+    "Endurecido useLiftgoTable: liftgoSortingFn registrado como defaultColumn.sortingFn; selección manejada nativamente por TanStack vía onRowSelectionChange con getRowId estable (sin useEffect de pruning).",
+    "Creado legacyAdapter (toColumnDefs) para mapeo declarativo de DSL antigua a ColumnDef<T> con accessorFn y meta.",
+    "Virtualización unificada en @tanstack/react-virtual (VirtualBody) con threshold configurable.",
+    "Lint: 0 errores / 0 warnings."
+  ]
+}
