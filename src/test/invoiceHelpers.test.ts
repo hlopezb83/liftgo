@@ -113,9 +113,9 @@ describe("computeTotals", () => {
 describe("currency.js floating-point safety", () => {
   it("weekly/7 fallback returns clean decimals", () => {
     const items = calculateRentalCost(0, 100, 0, new Date("2025-01-01"), new Date("2025-01-03"));
-    // 100 / 7 ≈ 14.29 (currency.js rounds to 2 decimals)
+    // 100 / 7 ≈ 14.29 (currency.js rounds to 2 decimals); 14.29 × 3 = 42.87
     expect(items[0].unit_price).toBe(14.29);
-    expect(items[0].total).toBe(42.86);
+    expect(items[0].total).toBe(42.87);
   });
 });
 
