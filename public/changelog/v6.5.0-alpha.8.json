@@ -1,0 +1,15 @@
+{
+  "version": "6.5.0-alpha.8",
+  "date": "2026-05-19",
+  "type": "patch",
+  "title": "Cálculos financieros: migración a currency.js (precisión decimal)",
+  "category": "refactor",
+  "description": "Toda la aritmética monetaria del núcleo de facturación y rentas pasa por currency.js. Se eliminan los hacks de Math.round(x*100)/100 en favor de .add()/.subtract()/.multiply()/.divide(). Firmas públicas intactas; consumidores siguen recibiendo number puro vía .value.",
+  "changes": [
+    "Instalada dependencia currency.js@2.0.4",
+    "src/lib/domain/invoiceHelpers.ts: applyDiscount, buildDailyRemainder, calculateRentalCost, generateLineItemsFromModel y computeTotals migrados a currency.js",
+    "src/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers.ts: cálculo de total de línea con currency().multiply()",
+    "Añadidos tests de borde para 0.1+0.2, IVA 16% sobre 19.99 y división tarifa semanal/7",
+    "No se migran horómetros (no son dinero) ni formateo de PDFs/KPIs (solo .toFixed de presentación)"
+  ]
+}
