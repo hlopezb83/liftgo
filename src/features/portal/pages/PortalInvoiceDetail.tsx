@@ -2,12 +2,7 @@ import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/StatusBadge";
 import { usePortalInvoices, usePortalPayments } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -35,25 +30,23 @@ export default function PortalInvoiceDetail() {
     [invoice],
   );
 
-  const lineColumns = useMemo(
-    () =>
-      toColumnDefs<LineItem>([
-        { key: "description", label: "Descripción", render: (item) => item.description || "—" },
-        { key: "quantity", label: "Cant.", align: "right", render: (item) => item.quantity || 1 },
-        { key: "unit_price", label: "Precio Unit.", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.unit_price || 0))}</span> },
-        { key: "amount", label: "Importe", align: "right", render: (item) => <span className="font-mono">{formatCurrency(Number(item.amount || 0))}</span> },
-      ] satisfies LegacyColumn<LineItem>[]),
+  const lineColumns = useMemo<ColumnDef<LineItem>[]>(
+    () => [
+      { id: "description", header: "Descripción", accessorKey: "description", enableSorting: false, cell: ({ row }) => row.original.description || "—" },
+      { id: "quantity", header: "Cant.", accessorKey: "quantity", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => row.original.quantity || 1 },
+      { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.unit_price || 0))}</span> },
+      { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount || 0))}</span> },
+    ],
     [],
   );
 
-  const paymentColumns = useMemo(
-    () =>
-      toColumnDefs<Payment>([
-        { key: "payment_date", label: "Fecha", sortable: true, render: (p) => formatDateDisplay(p.payment_date) },
-        { key: "payment_method", label: "Método", render: (p) => p.payment_method || "—" },
-        { key: "reference_number", label: "Referencia", render: (p) => p.reference_number || "—" },
-        { key: "amount", label: "Monto", sortable: true, align: "right", accessor: (p) => Number(p.amount), render: (p) => <span className="font-mono">{formatCurrency(Number(p.amount))}</span> },
-      ] satisfies LegacyColumn<Payment>[]),
+  const paymentColumns = useMemo<ColumnDef<Payment>[]>(
+    () => [
+      { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateDisplay(row.original.payment_date) },
+      { id: "payment_method", header: "Método", accessorKey: "payment_method", enableSorting: false, cell: ({ row }) => row.original.payment_method || "—" },
+      { id: "reference_number", header: "Referencia", accessorKey: "reference_number", enableSorting: false, cell: ({ row }) => row.original.reference_number || "—" },
+      { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span> },
+    ],
     [],
   );
 

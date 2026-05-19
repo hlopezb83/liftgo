@@ -6,12 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
@@ -44,27 +39,31 @@ export function EquipmentModelsTab() {
     }
   };
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<EquipmentModel>([
-        { key: "manufacturer", label: "Fabricante", sortable: true, render: (m) => <span className="font-medium">{m.manufacturer}</span> },
-        { key: "model", label: "Modelo", sortable: true, render: (m) => m.model },
-        { key: "default_capacity_kg", label: "Capacidad (kg)", align: "right", sortable: true, render: (m) => m.default_capacity_kg ?? "—" },
-        { key: "default_mast_height_m", label: "Altura Mástil (m)", align: "right", sortable: true, render: (m) => m.default_mast_height_m ?? "—" },
-        { key: "default_fuel_type", label: "Combustible", sortable: true, render: (m) => FUEL_TYPE_LABELS[m.default_fuel_type] || m.default_fuel_type },
-        { key: "actions", label: "", render: (m) => (
+  const columns = useMemo<ColumnDef<EquipmentModel>[]>(
+    () => [
+      { id: "manufacturer", header: "Fabricante", accessorKey: "manufacturer", cell: ({ row }) => <span className="font-medium">{row.original.manufacturer}</span> },
+      { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => row.original.model },
+      { id: "default_capacity_kg", header: "Capacidad (kg)", accessorKey: "default_capacity_kg", meta: { align: "right" }, cell: ({ row }) => row.original.default_capacity_kg ?? "—" },
+      { id: "default_mast_height_m", header: "Altura Mástil (m)", accessorKey: "default_mast_height_m", meta: { align: "right" }, cell: ({ row }) => row.original.default_mast_height_m ?? "—" },
+      { id: "default_fuel_type", header: "Combustible", accessorKey: "default_fuel_type", cell: ({ row }) => FUEL_TYPE_LABELS[row.original.default_fuel_type] || row.original.default_fuel_type },
+      {
+        id: "actions",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => (
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}><Pencil className="h-4 w-4" /></Button>
             <AlertDialog>
               <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
               <AlertDialogContent>
-                <AlertDialogHeader><AlertDialogTitle>¿Eliminar {m.manufacturer} {m.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
+                <AlertDialogHeader><AlertDialogTitle>¿Eliminar {row.original.manufacturer} {row.original.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
-        ) },
-      ] satisfies LegacyColumn<EquipmentModel>[]),
+        ),
+      },
+    ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );

@@ -8,12 +8,7 @@ import { parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
@@ -41,13 +36,12 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
 
   const chartData = useMemo(() => [...data].sort((a, b) => b.totalCost - a.totalCost), [data]);
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<Row>([
-        { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
-        { key: "count", label: "Trabajos", align: "right", sortable: true, render: (r) => r.count },
-        { key: "totalCost", label: "Costo Total", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.totalCost)}</span> },
-      ] satisfies LegacyColumn<Row>[]),
+  const columns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+      { id: "count", header: "Trabajos", accessorKey: "count", meta: { align: "right" }, cell: ({ row }) => row.original.count },
+      { id: "totalCost", header: "Costo Total", accessorKey: "totalCost", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.totalCost)}</span> },
+    ],
     [],
   );
 

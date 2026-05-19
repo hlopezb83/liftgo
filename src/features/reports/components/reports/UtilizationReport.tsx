@@ -7,12 +7,7 @@ import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
@@ -36,14 +31,13 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     });
   }, [forklifts, bookings, startDate, endDate]);
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<Row>([
-        { key: "name", label: "Montacargas", sortable: true, render: (r) => <span className="font-medium">{r.name}</span> },
-        { key: "bookedDays", label: "Días Reservados", align: "right", sortable: true, render: (r) => r.bookedDays },
-        { key: "totalDays", label: "Días Totales", align: "right", sortable: true, render: (r) => r.totalDays },
-        { key: "utilization", label: "Utilización", align: "right", sortable: true, render: (r) => <span className="font-mono">{r.utilization}%</span> },
-      ] satisfies LegacyColumn<Row>[]),
+  const columns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+      { id: "bookedDays", header: "Días Reservados", accessorKey: "bookedDays", meta: { align: "right" }, cell: ({ row }) => row.original.bookedDays },
+      { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { align: "right" }, cell: ({ row }) => row.original.totalDays },
+      { id: "utilization", header: "Utilización", accessorKey: "utilization", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{row.original.utilization}%</span> },
+    ],
     [],
   );
 

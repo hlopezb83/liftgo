@@ -8,12 +8,7 @@ import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download } from "lucide-react";
 import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
@@ -38,14 +33,13 @@ export function RevenueReport({ startDate, endDate }: Props) {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
   }, [invoices, startDate, endDate]);
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<Row>([
-        { key: "month", label: "Mes", sortable: true, render: (r) => <span className="font-medium">{r.month}</span> },
-        { key: "count", label: "Facturas", align: "right", sortable: true, render: (r) => r.count },
-        { key: "invoiced", label: "Facturado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.invoiced)}</span> },
-        { key: "paid", label: "Pagado", align: "right", sortable: true, render: (r) => <span className="font-mono">{formatCurrency(r.paid)}</span> },
-      ] satisfies LegacyColumn<Row>[]),
+  const columns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
+      { id: "count", header: "Facturas", accessorKey: "count", meta: { align: "right" }, cell: ({ row }) => row.original.count },
+      { id: "invoiced", header: "Facturado", accessorKey: "invoiced", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.invoiced)}</span> },
+      { id: "paid", header: "Pagado", accessorKey: "paid", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.paid)}</span> },
+    ],
     [],
   );
 

@@ -7,12 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { StatusBadge } from "@/components/StatusBadge";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -48,27 +43,31 @@ export function MechanicsTab() {
     }
   };
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<Mechanic>([
-        { key: "name", label: "Nombre", sortable: true, render: (m) => <span className="font-medium">{m.name}</span> },
-        { key: "phone", label: "Teléfono", render: (m) => m.phone || "—" },
-        { key: "email", label: "Correo", render: (m) => m.email || "—" },
-        { key: "specialization", label: "Especialización", sortable: true, render: (m) => m.specialization || "—" },
-        { key: "is_active", label: "Estado", sortable: true, render: (m) => <StatusBadge status={m.is_active ? "active" : "inactive"} /> },
-        { key: "actions", label: "", render: (m) => (
+  const columns = useMemo<ColumnDef<Mechanic>[]>(
+    () => [
+      { id: "name", header: "Nombre", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+      { id: "phone", header: "Teléfono", accessorKey: "phone", enableSorting: false, cell: ({ row }) => row.original.phone || "—" },
+      { id: "email", header: "Correo", accessorKey: "email", enableSorting: false, cell: ({ row }) => row.original.email || "—" },
+      { id: "specialization", header: "Especialización", accessorKey: "specialization", cell: ({ row }) => row.original.specialization || "—" },
+      { id: "is_active", header: "Estado", accessorKey: "is_active", cell: ({ row }) => <StatusBadge status={row.original.is_active ? "active" : "inactive"} /> },
+      {
+        id: "actions",
+        header: "",
+        enableSorting: false,
+        cell: ({ row }) => (
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => openEdit(m)}><Pencil className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}><Pencil className="h-4 w-4" /></Button>
             <AlertDialog>
               <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
               <AlertDialogContent>
-                <AlertDialogHeader><AlertDialogTitle>¿Eliminar {m.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(m.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
+                <AlertDialogHeader><AlertDialogTitle>¿Eliminar {row.original.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
-        ) },
-      ] satisfies LegacyColumn<Mechanic>[]),
+        ),
+      },
+    ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );

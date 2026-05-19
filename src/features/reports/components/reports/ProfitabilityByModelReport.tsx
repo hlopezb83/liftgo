@@ -12,12 +12,7 @@ import { useBookings } from "@/features/bookings/hooks/useBookings";
 import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { useDamageRecords } from "@/features/damage/hooks/useDamageRecords";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -117,17 +112,26 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
 
   const chartRows = useMemo(() => [...rows].sort((a, b) => b.profit - a.profit), [rows]);
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<ModelRow>([
-        { key: "model", label: "Modelo", sortable: true, render: (r) => <span className="font-medium">{r.model}</span> },
-        { key: "units", label: "Unidades", align: "right", sortable: true, render: (r) => r.units },
-        { key: "revenue", label: "Ingresos", align: "right", sortable: true, render: (r) => formatCurrency(r.revenue) },
-        { key: "maintenance", label: "Mantenimiento", align: "right", sortable: true, render: (r) => formatCurrency(r.maintenance) },
-        { key: "damages", label: "Daños", align: "right", sortable: true, render: (r) => formatCurrency(r.damages) },
-        { key: "profit", label: "Ganancia Neta", align: "right", sortable: true, render: (r) => <span className={cn("font-semibold", r.profit >= 0 ? "text-chart-2" : "text-destructive")}>{formatCurrency(r.profit)}</span> },
-        { key: "margin", label: "Margen %", align: "right", sortable: true, render: (r) => `${r.margin.toFixed(1)}%` },
-      ] satisfies LegacyColumn<ModelRow>[]),
+  const columns = useMemo<ColumnDef<ModelRow>[]>(
+    () => [
+      { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => <span className="font-medium">{row.original.model}</span> },
+      { id: "units", header: "Unidades", accessorKey: "units", meta: { align: "right" }, cell: ({ row }) => row.original.units },
+      { id: "revenue", header: "Ingresos", accessorKey: "revenue", meta: { align: "right" }, cell: ({ row }) => formatCurrency(row.original.revenue) },
+      { id: "maintenance", header: "Mantenimiento", accessorKey: "maintenance", meta: { align: "right" }, cell: ({ row }) => formatCurrency(row.original.maintenance) },
+      { id: "damages", header: "Daños", accessorKey: "damages", meta: { align: "right" }, cell: ({ row }) => formatCurrency(row.original.damages) },
+      {
+        id: "profit",
+        header: "Ganancia Neta",
+        accessorKey: "profit",
+        meta: { align: "right" },
+        cell: ({ row }) => (
+          <span className={cn("font-semibold", row.original.profit >= 0 ? "text-chart-2" : "text-destructive")}>
+            {formatCurrency(row.original.profit)}
+          </span>
+        ),
+      },
+      { id: "margin", header: "Margen %", accessorKey: "margin", meta: { align: "right" }, cell: ({ row }) => `${row.original.margin.toFixed(1)}%` },
+    ],
     [],
   );
 

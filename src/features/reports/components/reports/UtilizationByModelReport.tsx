@@ -8,12 +8,7 @@ import { Download } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
-import {
-  DataTableV2,
-  useLiftgoTable,
-  toColumnDefs,
-  type LegacyColumn,
-} from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;
@@ -74,17 +69,26 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
       });
   }, [forklifts, bookings, startDate, endDate]);
 
-  const columns = useMemo(
-    () =>
-      toColumnDefs<ModelRow>([
-        { key: "model", label: "Modelo", sortable: true, render: (r) => <span className="font-medium">{r.model}</span> },
-        { key: "units", label: "Unidades", align: "right", sortable: true, render: (r) => r.units },
-        { key: "available", label: "Disponibles", align: "right", sortable: true, render: (r) => r.available },
-        { key: "rented", label: "Rentados", align: "right", sortable: true, render: (r) => r.rented },
-        { key: "bookedDays", label: "Días Reservados", align: "right", sortable: true, render: (r) => r.bookedDays },
-        { key: "totalDays", label: "Días Totales", align: "right", sortable: true, render: (r) => r.totalDays },
-        { key: "utilization", label: "Utilización", align: "right", sortable: true, render: (r) => <span className="font-mono" style={{ color: getUtilColor(r.utilization) }}>{r.utilization}%</span> },
-      ] satisfies LegacyColumn<ModelRow>[]),
+  const columns = useMemo<ColumnDef<ModelRow>[]>(
+    () => [
+      { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => <span className="font-medium">{row.original.model}</span> },
+      { id: "units", header: "Unidades", accessorKey: "units", meta: { align: "right" }, cell: ({ row }) => row.original.units },
+      { id: "available", header: "Disponibles", accessorKey: "available", meta: { align: "right" }, cell: ({ row }) => row.original.available },
+      { id: "rented", header: "Rentados", accessorKey: "rented", meta: { align: "right" }, cell: ({ row }) => row.original.rented },
+      { id: "bookedDays", header: "Días Reservados", accessorKey: "bookedDays", meta: { align: "right" }, cell: ({ row }) => row.original.bookedDays },
+      { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { align: "right" }, cell: ({ row }) => row.original.totalDays },
+      {
+        id: "utilization",
+        header: "Utilización",
+        accessorKey: "utilization",
+        meta: { align: "right" },
+        cell: ({ row }) => (
+          <span className="font-mono" style={{ color: getUtilColor(row.original.utilization) }}>
+            {row.original.utilization}%
+          </span>
+        ),
+      },
+    ],
     [],
   );
 
