@@ -1,0 +1,8 @@
+{
+  "description": "Corrige el parser del changelog para aceptar versiones pre-release (e.g. 6.5.0-alpha.1) y elimina el toast de error 'No se pudo cargar el historial de cambios' que aparecía durante el refactor de DataTable v2.",
+  "changes": [
+    "SEMVER regex acepta sufijos -alpha/-beta/-rc según semver.org.",
+    "compareSemver ordena pre-release antes de la versión estable correspondiente.",
+    "Sin cambios funcionales en consumidores; los archivos de detalle alpha existentes siguen siendo accesibles."
+  ]
+}

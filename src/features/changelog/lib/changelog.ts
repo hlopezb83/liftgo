@@ -14,7 +14,7 @@ export interface ChangelogDetail {
   changes: string[];
 }
 
-const SEMVER = /^\d+\.\d+\.\d+$/;
+const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TYPES: ChangelogType[] = ["major", "minor", "patch"];
 const CATEGORIES: ChangelogCategory[] = ["feature", "fix", "docs", "refactor", "security"];
@@ -45,11 +45,45 @@ function parseDetail(raw: unknown): ChangelogDetail {
   return { description, changes };
 }
 
-function compareSemver(a: string, b: string): number {
-  const pa = a.split(".").map(Number);
-  const pb = b.split(".").map(Number);
-  for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pb[i] - pa[i];
+function splitVersion(v: string): { core: number[]; pre: string | null } {
+  const dash = v.indexOf("-");
+  const core = (dash === -1 ? v : v.slice(0, dash)).split(".").map(Number);
+  const pre = dash === -1 ? null : v.slice(dash + 1);
+  return { core, pre };
+}
+
+function comparePre(a: string, b: string): number {
+  const pa = a.split(".");
+  const pb = b.split(".");
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const x = pa[i];
+    const y = pb[i];
+    if (x === undefined) return -1;
+    if (y === undefined) return 1;
+    const nx = Number(x);
+    const ny = Number(y);
+    const xn = !Number.isNaN(nx) && /^\d+$/.test(x);
+    const yn = !Number.isNaN(ny) && /^\d+$/.test(y);
+    if (xn && yn) {
+      if (nx !== ny) return nx - ny;
+    } else if (xn !== yn) {
+      return xn ? -1 : 1;
+    } else if (x !== y) {
+      return x < y ? -1 : 1;
+    }
+  }
   return 0;
+}
+
+function compareSemver(a: string, b: string): number {
+  const sa = splitVersion(a);
+  const sb = splitVersion(b);
+  for (let i = 0; i < 3; i++) if (sa.core[i] !== sb.core[i]) return sb.core[i] - sa.core[i];
+  if (sa.pre === sb.pre) return 0;
+  if (sa.pre === null) return -1;
+  if (sb.pre === null) return 1;
+  return comparePre(sb.pre, sa.pre);
 }
 
 export function sortEntries<T extends { date: string; version: string }>(entries: T[]): T[] {
