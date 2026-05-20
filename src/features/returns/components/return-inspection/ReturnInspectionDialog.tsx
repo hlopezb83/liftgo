@@ -14,9 +14,6 @@ import type { Booking } from "@/features/bookings/hooks/useBookings";
 import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 import type { ReturnInspectionFormValues } from "@/features/returns/hooks/returnInspection/useReturnInspectionDialog";
 
-// Alias mantenido por compatibilidad con consumidores legados.
-export type ReturnInspectionFormState = ReturnInspectionFormValues;
-
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;

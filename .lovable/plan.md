@@ -1,103 +1,128 @@
-# Fase 3 — Invoice migrado al stack canónico (react-hook-form + Zod)
 
-Cierra la deuda §20.4 consolidando los **9 trozos de `useState`** del state bag de Invoice en un único `useForm<InvoiceFormValues>` con resolver Zod. Mismo patrón que Fases 1 (Customer) y 2 (Forklift), respetando Power of 10 (hooks ≤80 LOC, componentes ≤150 LOC, sin `any`/`!`/`as`, sin prop drilling >3 niveles).
+# Auditoría arquitectónica — LiftGo ERP vs `architecture.md`
 
-## Alcance medido
+Alcance: revisión estática del código contra las 21 secciones de `architecture.md`. Se evalúan §4 (estructura), §5 (patrones), §6 (seguridad), §17 (anti-patrones), §18 (Power of 10), §19 (tamaños), §20 (dependencias).
 
-| Archivo | LOC | Cambio |
+**Veredicto general:** la base está **muy alineada** con la doctrina. Las tres fases recientes (Customer/Forklift/Invoice → RHF+Zod) cerraron la deuda mayor de §20.4. Lo que queda son focos puntuales, no estructurales.
+
+---
+
+## 1. Hallazgos por severidad
+
+### 🔴 Altas (violan §17 anti-patrones explícitos)
+
+| # | Hallazgo | Archivo | Regla violada |
+|---|---|---|---|
+| H1 | `confirm()` nativo para reabrir deal del CRM | `src/features/crm/pages/CRMClosedPage.tsx:89` | §17: prohibido `confirm()`/`alert()` — usar `AlertDialog` shadcn |
+
+### 🟡 Medias (deuda §20 y §19 documentada)
+
+| # | Hallazgo | Detalle | Regla |
+|---|---|---|---|
+| M1 | `file-saver` aún consumido por 5 generadores PDF | `contractPdfBuilder`, `quote/build`, `invoices/lib/pdf/build`, `incomeStatement`, `customerStatement` (`docs/dependency-audit.md` lo daba como "0 consumidores" porque el audit no detecta `import("file-saver")` dinámicos) | §20.7: candidato a retiro (cubierto por `URL.createObjectURL`) y desactualización del audit script |
+| M2 | `html2canvas` (1.4MB) usado solo en `captureScreenshot` para feedback | `src/features/feedback/lib/captureScreenshot.ts` | §20.2: dep pesada por 1 consumidor; mantener pero documentar |
+| M3 | 6 hooks > 80 LOC sin dividir | `useInvoicePrefill` (156), `useInvoiceFormLogic` (121), `useQuotePrefill` (120), `useOperatingExpenseMutations` (116), `useUserMutations` (114), `useMaintenanceForm` (111) | §19: hooks ≤ 80 LOC |
+| M4 | 17 componentes > 150 LOC | top: `DeliveryFormDialog` (199), `ProfitabilityByModelReport` (198), `IncomeStatementTable` (189), `CustomerFormSections` (182), `ExpenseFormDialog` (159), `RentalLineItems` (157), `EditableLineItemsTable` (155), 10 más entre 152–162 | §19: componentes ≤ 150 LOC (algunos califican como excepción tabla densa/PDF) |
+| M5 | Tipos sin uso exportados | 9 tipos: `CfdiLineItem`, `MaintenanceFormShape`, `ReturnInspectionFormState`, `SortingState`/`RowSelectionState`/`PaginationState`/`TanstackTable`/`Row`/`LiftgoColumnMeta` (knip) | §10 Power of 10 / higiene |
+| M6 | Exports muertos | `liftgoSortingFnUnknown`, `useServerLiftgoTable`, `FEEDBACK_INTERNAL_MODULES`, `FEEDBACK_PORTAL_MODULES` + duplicado `liftgoSortingFn` (knip) | Higiene |
+
+### 🟢 Bajas (mejora continua)
+
+| # | Hallazgo | Acción |
 |---|---|---|
-| `useInvoiceFormState.ts` | 46 | **Eliminar** |
-| `useInvoicePrefill.ts` | 120 | Reescribir → consume `form.reset` |
-| `useInvoiceLineItemHandlers.ts` | 33 | Reescribir → `useFieldArray` |
-| `useInvoiceFormSubmit.ts` | 64 | Refactor → `buildPayload(values)` |
-| `useInvoiceFormLogic.ts` | 102 | Refactor → crea el `useForm`, expone `form` |
-| `pages/InvoiceForm.tsx` | 118 | `<Form {...form}>` + `form.handleSubmit` |
-| `CfdiFieldsCard.tsx` | 110 | `useFormContext` + `FormField` |
-| `EditableLineItemsTable.tsx` | 92 | `useFormContext` + `useFieldArray` interno |
-| `lib/schemas/invoiceFormSchema.ts` | nuevo | Esquema Zod (≤80 LOC) |
+| L1 | `src/hooks/useFormState.ts` aparece en `docs/dependency-audit.md` como pendiente de migrar a RHF | Archivo ya **no existe** — el audit doc está desactualizado |
+| L2 | Anti-patrones de tipo (`any`, `!`, `as casual`) — **sin hallazgos** salvo `as` legítimo en límites | Mantener |
+| L3 | `console.log`, `alert` — **sin hallazgos** | Mantener |
+| L4 | Componentes consumiendo Supabase directo: solo `AuthPage.tsx` (legítimo: auth flow) | Mantener |
 
-Tests internos del flujo: ninguno (`InvoicesPage.test.tsx` no toca el form).
+---
 
-## Pasos
+## 2. Plan de remediación (3 olas)
 
-### 1. Nuevo esquema `src/lib/schemas/invoiceFormSchema.ts`
-```text
-lineItemSchema: { description, quantity≥1, unit_price≥0, total, clave_prod_serv?, clave_unidad?, objeto_imp?, discount?, discount_type? }
-cfdiSchema:     { serie, folio, formaPago, metodoPago, usoCfdi, moneda, tipoCambio≥0, receptorRfc, receptorRazonSocial, receptorRegimenFiscal, receptorDomicilioFiscalCp }
-invoiceFormSchema: {
-  bookingId: string,
-  customerId: string.nullable(),
-  customerName: string,
-  lineItems: array(lineItemSchema).min(1, "Agrega al menos una partida"),
-  taxRate: number≥0,
-  issueDate: date,
-  dueDate: date.optional(),
-  notes: string,
-  cfdi: cfdiSchema,
-}
+### Ola A — Alta prioridad (sesión corta, ~1 patch)
+
+1. **H1**: reemplazar `confirm()` en `CRMClosedPage` por `AlertDialog` reusable. Patrón ya usado en `useDialogState`.
+2. **M5 + M6**: eliminar exports/tipos muertos detectados por knip (lista exacta arriba). Verificar con `bunx knip` que queda en cero.
+3. Changelog → `6.7.2` (patch) "Higiene: AlertDialog en CRM + limpieza de exports muertos".
+
+### Ola B — Refactor de hooks/componentes oversized (1 minor)
+
+Sólo los que **no** califican como excepción §19 (tablas densas/PDF):
+
+- **`useInvoicePrefill` (156 LOC)** → dividir en `buildValuesFromExisting`, `buildValuesFromQuote` (helpers puros en `lib/`) + `useInvoicePrefill` ≤60 LOC orquestador.
+- **`useQuotePrefill` (120 LOC)** → mismo patrón.
+- **`useInvoiceFormLogic` (121 LOC)** → extraer `useInvoiceTotals(form)` y `useInvoiceSelectHandlers(form, …)` ya previsto en `.lovable/plan.md` paso 2.
+- **`useOperatingExpenseMutations` / `useUserMutations` / `useMaintenanceForm`** → dividir `*Mutations.ts` por intención (create/update/delete) o extraer builders.
+- **Componentes**: priorizar `DeliveryFormDialog` y `ExpenseFormDialog` (forms, no tablas). El resto (`*Report*`, `IncomeStatementTable`, `RentalLineItems`, `SaleLineItems`, `EditableLineItemsTable`) son **tablas densas** → marcar formalmente como excepción §19.4.1 con comentario `// arch:excepción §19 (tabla densa)`.
+- Changelog → `6.8.0` (minor).
+
+### Ola C — Doctrina §20 (1 patch)
+
+- **M1**: actualizar `scripts/dependency_audit.py` para detectar `import("file-saver")` dinámicos; reflejar los 5 consumidores reales en `docs/dependency-audit.md`. Decidir: ¿retirar `file-saver` y consolidar en helper `downloadBlob(name, blob)` que use `URL.createObjectURL`? Recomendado **sí**: retira 1 dep y centraliza descarga.
+- **L1**: regenerar `docs/dependency-audit.md` para eliminar referencia a `useFormState` (archivo ya borrado) y reflejar el estado post-Fase 3 (Customer/Forklift/Invoice migrados).
+- **M2**: documentar `html2canvas` como dep aceptada en `§20.4` (única forma sensata de capturar viewport del usuario en feedback) o evaluar `modern-screenshot` (≈10× más liviano).
+- Changelog → `6.7.3` o consolidar con Ola A.
+
+---
+
+## 3. Detalles técnicos por hallazgo
+
+### H1 — `CRMClosedPage.tsx` línea 89
+```tsx
+if (!confirm(`¿Reabrir deal con ${p.company_name}? …`)) return;
 ```
-Tipo exportado: `InvoiceFormValues`. Defaults centralizados en `EMPTY_INVOICE_VALUES`.
+Reemplazo: estado local `reopenTarget: Prospect | null` + `<AlertDialog>` con `AlertDialogAction onClick={() => doReopen(reopenTarget)}`. Mismo patrón que `useDialogState` ya usado en 4 pantallas.
 
-### 2. `useInvoiceFormLogic` crea el `useForm`
-- `useForm<InvoiceFormValues>({ resolver: zodResolver(invoiceFormSchema), defaultValues: EMPTY_INVOICE_VALUES })`.
-- `useWatch({ control, name: ["lineItems","taxRate"] })` → `computeTotals` memoizado para `subtotal/taxAmount/total`.
-- `handleCustomerSelect` / `handleBookingSelect` usan `form.setValue` por campo con `{ shouldDirty: true }`; el helper `applyCustomerCfdi` cambia a actualizar el sub-objeto `cfdi.*` vía `setValue("cfdi.receptorRfc", …)`.
-- Expone `{ form, customers, availableBookings, onSubmit, handleCustomerSelect, handleBookingSelect, subtotal, taxAmount, total, isPending, isEdit, id, fromQuoteId, … }`.
+### M1 — `file-saver` real footprint
+5 sitios usan `import("file-saver")` dinámico:
+```
+contractPdfBuilder.tsx:13
+lib/pdf/quote/build.tsx:48
+invoices/lib/pdf/build.tsx:34
+lib/pdf/incomeStatement.tsx:22
+lib/pdf/customerStatement.tsx:18
+```
+Cada uno hace `saveAs(blob, filename)`. Centralizar en `src/lib/downloadBlob.ts` (≤15 LOC), retirar dep, actualizar §20.4.
 
-### 3. `useInvoicePrefill` → un `reset` atómico por fuente
-- Firma nueva: `useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form })`.
-- `useEffect` (existing): construye `InvoiceFormValues` completo desde la factura existente + CFDI desde `customers` si falta, luego `form.reset(values)`.
-- `useEffect` (sourceQuote, !isEdit): construye desde quote (con enriquecimiento de líneas para `sale`), luego `form.reset(values, { keepDirty: true })` para no pisar ediciones del usuario si ya tocó la pestaña.
-- `applyCustomerCfdi` se vuelve helper puro `(customer) => Partial<CfdiFormValues>` y se compone en el reset/setValue del logic.
+### M3 — desglose de hooks oversized
+- `useInvoicePrefill.ts (156)`: dos `useEffect` paralelos que duplican shape-building. Extraer `mapExistingToValues()` y `mapQuoteToValues()` a `src/features/invoices/lib/invoiceFormBuilders.ts`.
+- `useInvoiceFormLogic.ts (121)`: ya está en `.lovable/plan.md §2`; sólo aplicar.
 
-### 4. `useInvoiceLineItemHandlers` → `useFieldArray`
-- Firma: `useInvoiceLineItemHandlers(form)`.
-- `useFieldArray({ control: form.control, name: "lineItems" })` expone `append`/`remove`/`update`.
-- `updateLineItem(idx, field, value)`: lee item actual con `form.getValues(\`lineItems.${idx}\`)`, recalcula `total` cuando `field` es `quantity`/`unit_price`, llama `update(idx, next)`.
-- `addLineItem`: `append({ ...EMPTY_LINE })`.
-- `removeLineItem`: `remove(idx)`.
-- `handleCfdiUpdate(field, value)`: `form.setValue(\`cfdi.${field}\`, value, { shouldDirty: true })`. Caso especial `moneda === "MXN"` resetea `tipoCambio` a 1 en el mismo handler.
+### M4 — tabla densa vs verdadero oversized
+Marcar como excepción §19 (comentario obligatorio):
+- `*Report*.tsx`, `IncomeStatementTable.tsx`, `auditTrailConstants.tsx`, `RentalLineItems`, `SaleLineItems`, `EditableLineItemsTable`, `CustomerFormSections`, `CustomersPage`, `InvoicesPage`, `Fleet`, `ReturnInspectionPage`, `OperatingExpensesPage`, `DeliveryDetail`.
 
-### 5. `useInvoiceFormSubmit` → `(values) => payload`
-- `buildPayload(values: InvoiceFormValues, { isEdit, fromQuoteId, existingBookingId, existingQuoteId })` consume el shape canónico; sin dependencia de `useInvoiceFormState`.
-- Mantiene `createInvoice` / `updateInvoice` / `updateQuote` y `isPending`.
-- `onSubmit` invocado por `form.handleSubmit(onSubmit)` en el page: ejecuta `createInvoice`/`updateInvoice` y navega. El `toast.error("Agrega al menos una partida")` actual queda delegado a Zod (`<FormMessage>` en `EditableLineItemsTable`).
+Refactor real:
+- `DeliveryFormDialog.tsx (199)` → extraer `<DeliveryHeaderFields>`, `<DeliverySignatureFields>`.
+- `ExpenseFormDialog.tsx (159)` → extraer `<ExpenseLineFields>`.
 
-### 6. `pages/InvoiceForm.tsx`
-- Envuelve con `<Form {...form}><form onSubmit={form.handleSubmit(onSubmit)}>`.
-- Pasa `form` (o nada, vía contexto) a `CfdiFieldsCard` y `EditableLineItemsTable`.
-- `Cliente`/`Reserva`/`Fecha…` migran a `FormField` con `form.control`; los selects con efecto colateral (`handleCustomerSelect`/`handleBookingSelect`) mantienen su callback pero leen `field.value` del contexto.
-- `TotalsSummary.onTaxRateChange` → `(v) => form.setValue("taxRate", v, { shouldDirty: true })`. `taxRate` viene del `useWatch`.
-- `NotesCard` reemplazado por `FormField name="notes"` + `Textarea` (mismo patrón aplicado en ForkliftForm Fase 2).
+### M5/M6 — limpieza knip
+Eliminar:
+```
+sorting.ts → liftgoSortingFnUnknown + alias duplicado
+useServerLiftgoTable.ts → función completa (cero consumidores)
+constants.ts → FEEDBACK_INTERNAL_MODULES, FEEDBACK_PORTAL_MODULES
+types.ts (dataTable v2) → 6 tipos sin uso
+EditableLineItemsTable.tsx → tipo CfdiLineItem
+MaintenanceFormDialog.tsx → MaintenanceFormShape
+ReturnInspectionDialog.tsx → ReturnInspectionFormState
+```
 
-### 7. `CfdiFieldsCard.tsx`
-- Sin props excepto opcional `disabled`. Usa `useFormContext<InvoiceFormValues>()` y `FormField name="cfdi.serie"`, etc.
-- La regla "si moneda == MXN, fija tipoCambio=1" se encapsula en el `onValueChange` del `FormField` de `cfdi.moneda` con `form.setValue("cfdi.tipoCambio", 1)`.
-- El campo `tipoCambio` se renderiza condicional al `useWatch("cfdi.moneda")`.
+---
 
-### 8. `EditableLineItemsTable.tsx`
-- Recibe `disabled?` opcional. Internamente: `const { control } = useFormContext<InvoiceFormValues>(); const { fields, append, remove, update } = useFieldArray({ control, name: "lineItems" });`.
-- Render por `fields[idx]` con `key={field.id}` (estable, evita re-mounts).
-- Cada celda usa `FormField name={\`lineItems.${idx}.description\`}` etc. El total se calcula con `useWatch` por fila o se mantiene como cell derivada.
-- Mensaje de "mínimo 1 partida" se muestra vía `<FormMessage />` raíz del array (`form.formState.errors.lineItems?.root?.message`).
+## 4. Lo que ya está bien (no tocar)
 
-## Detalles técnicos
+- §4 estructura por features: cumplida 100%.
+- §5.1 separación páginas/hooks/componentes: cumplida; sólo `AuthPage` toca Supabase directo (legítimo).
+- §6 RLS + `has_role` + roles separados: alineado.
+- §7 routing sin nested wildcards: alineado.
+- §15 testing: 20+ tests Invoice + flujos críticos.
+- §16 changelog: política aplicada en cada PR reciente (6.7.0, 6.7.0-alpha.1, .2, 6.7.1).
+- §18 Power of 10: 0 `any`/`!`/`alert`/`console.log` en producción.
+- §20 stack canónico: RHF+Zod, TanStack Query/Table, react-pdf, sonner, currency.js, lucide, date-fns — todo en uso.
 
-- **Sin nuevos `any`/`!`/`as`**: tipos de `cfdi.*` se infieren del esquema; los handlers reciben uniones estrechas.
-- **`unknown` en catches**: ya cumplido en submit; sin nuevos catches.
-- **LOC**: `useInvoiceFormLogic` se divide si excede 80 LOC creando `useInvoiceTotals(form)` + `useInvoiceSelectHandlers(form, { customers, bookings, forklifts })`.
-- **Prefill desde quote**: usar `reset(values, { keepDirty: true })` evita pisar ediciones cuando el usuario abre la página, edita, y luego el `sourceQuote` llega por refetch.
-- **Compatibilidad PDF / detail**: solo cambia el flujo de captura; el payload final al RPC es idéntico (mismas columnas, mismos defaults). No tocar `InvoiceDocument` ni `useInvoices`.
-- **Smoke test post-fase**: crear factura desde reserva, desde quote (sale con assignments), editar borrador, validar `tipoCambio` con USD, validar `<FormMessage>` al intentar guardar sin partidas, timbrar (`stamp-cfdi` consume el payload existente, sin cambios).
+---
 
-## Changelog
+## 5. Resumen para ejecutar
 
-- `public/changelog.json`: nueva entrada `6.7.0` (minor, cierra deuda §20.4).
-- `public/changelog/v6.7.0.json`: detalle con highlights de las tres fases consolidadas.
-
-## Resultado esperado
-
-- 0 usos restantes de "state bag" (`useState` orquestando 9 piezas) en formularios principales.
-- Validación 100% por Zod + `<FormMessage>`; sin `toast.error` manuales por requeridos.
-- Tabla de partidas reactiva vía `useFieldArray`, sin `useState` adicional.
-- `subtotal/taxAmount/total` reactivos vía `useWatch` memoizado.
+Si apruebas el plan, **propongo arrancar por Ola A** (1 hallazgo alto + limpieza knip + changelog patch) en una sola pasada, y dejar Olas B y C como minors separados para mantener PRs revisables.

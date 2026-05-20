@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
 import { useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -66,6 +70,7 @@ export default function CRMClosedPage() {
   const { data: metrics, isLoading } = useCRMMetrics();
   const updateProspect = useUpdateProspect();
   const [search, setSearch] = useState("");
+  const [reopenTarget, setReopenTarget] = useState<Prospect | null>(null);
 
   const filterRows = useCallback((rows: Prospect[]) => {
     const q = search.trim().toLowerCase();
@@ -85,9 +90,12 @@ export default function CRMClosedPage() {
   const wonRows = useMemo(() => filterRows(metrics.won), [metrics.won, filterRows]);
   const lostRows = useMemo(() => filterRows(metrics.lost), [metrics.lost, filterRows]);
 
-  const handleReopen = (p: Prospect) => {
-    if (!confirm(`¿Reabrir deal con ${p.company_name}? Volverá a la columna de Negociación.`)) return;
-    updateProspect.mutate({ id: p.id, stage: "negociacion" });
+  const handleReopen = (p: Prospect) => setReopenTarget(p);
+
+  const confirmReopen = () => {
+    if (!reopenTarget) return;
+    updateProspect.mutate({ id: reopenTarget.id, stage: "negociacion" });
+    setReopenTarget(null);
   };
 
   return (
@@ -133,6 +141,21 @@ export default function CRMClosedPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={reopenTarget !== null} onOpenChange={(open) => !open && setReopenTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reabrir deal</AlertDialogTitle>
+            <AlertDialogDescription>
+              {reopenTarget ? `¿Reabrir deal con ${reopenTarget.company_name}? Volverá a la columna de Negociación.` : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReopen}>Reabrir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageTransition>
   );
 }

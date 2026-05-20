@@ -1,0 +1,13 @@
+{
+  "description": "Ola A de la auditoría arquitectónica vs architecture.md: elimina el último anti-patrón §17 (confirm() nativo) y purga exports muertos detectados por knip.",
+  "changes": [
+    "CRMClosedPage: reabrir deal usa <AlertDialog> shadcn en lugar de confirm() nativo (§17 anti-patrón)",
+    "dataTable v2: eliminado useServerLiftgoTable.ts (0 consumidores) y sus tipos asociados (ServerLiftgoTableFetcher/Query/Result)",
+    "dataTable v2: eliminado alias duplicado liftgoSortingFnUnknown y re-exports de tipos no usados (SortingState, RowSelectionState, PaginationState, TanstackTable, Row, LiftgoColumnMeta)",
+    "Feedback: eliminadas constantes FEEDBACK_INTERNAL_MODULES y FEEDBACK_PORTAL_MODULES (sin consumidores)",
+    "EditableLineItemsTable: eliminado tipo CfdiLineItem (sin consumidores)",
+    "MaintenanceFormDialog: eliminado alias MaintenanceFormShape",
+    "ReturnInspectionDialog: eliminado alias ReturnInspectionFormState",
+    "Resultado knip: 0 exports muertos, 0 tipos exportados sin uso, 0 duplicados"
+  ]
+}
