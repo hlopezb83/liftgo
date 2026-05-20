@@ -1,68 +1,35 @@
-## Reducir excepciones §19 — Ola D
+## Migrar `cssPath.ts` a `@medv/finder`
 
-9 archivos llevan `// arch:excepción §19`. Tras analizar cada uno, **todos son reducibles** sin cambios funcionales: 7 son splits triviales (mismas exports, sólo se mueven a archivos por entidad), 2 son extracciones de sub-componente.
+### Cambios
 
-### Plan por archivo
+**1. `src/features/feedback/lib/cssPath.ts`** — Reemplazar `computeCssPath` por wrapper de `finder()`:
+- Mantener firma idéntica: `computeCssPath(el: Element): string`
+- Mantener `describeElement` y `SelectedElementInfo` sin cambios (API pública intacta)
+- Configurar `finder` para ignorar clases Tailwind con prefijos de estado (`hover:`, `focus:`, `active:`)
+- Fallback a `el.tagName.toLowerCase()` si finder lanza
 
-**1. `src/features/expenses/hooks/useOperatingExpenseMutations.ts` (89 LOC, 4 mutaciones)**
-→ Convertir en carpeta `useOperatingExpenseMutations/` con un archivo por hook (~25 LOC c/u) + `index.ts` que reexporta. Sin cambios en imports externos (la carpeta resuelve por `index.ts`).
+### Por qué
 
-**2. `src/features/users/hooks/users/useUserAdminMutations.ts` (84 LOC, 4 mutaciones)**
-→ Mismo patrón: carpeta + 4 archivos (`useInviteUser.ts`, `useDeleteUser.ts`, `useResetPassword.ts`, `useToggleStatus.ts`) + `index.ts`.
+- Selectores **verificadamente únicos** (finder valida con `querySelectorAll`)
+- Más cortos y estables: prioriza `id` → atributos → clases → `:nth-child`
+- ~3 KB, batalla-probado (usado por Chrome DevTools recorder)
+- Reduce `cssPath.ts` de 57 → ~30 LOC
 
-**3. `src/features/customers/components/customers/CustomerFormSections.tsx` (183 LOC, 4 secciones)**
-→ Splitear en 4 archivos junto al actual + helper compartido para `SectionHeading`:
-- `customerSections/SectionHeading.tsx` (~6 LOC)
-- `customerSections/IdentitySection.tsx` (~20 LOC)
-- `customerSections/FiscalSection.tsx` (~95 LOC)
-- `customerSections/ContactSection.tsx` (~25 LOC)
-- `customerSections/AddressNotesSection.tsx` (~18 LOC)
-- `CustomerFormSections.tsx` se vuelve barrel (re-exports + `export { Form }`).
+### Sin cambios
 
-**4. `src/features/audit/components/auditTrail/auditTrailConstants.tsx` (160 LOC)**
-→ Trocear por responsabilidad:
-- `auditTrailLabels.ts` — `TABLES`, `ACTION_LABELS`, `TABLE_LABELS`, `FIELD_LABELS`, `translateField/Action/Table`, `formatTimestamp` (~80 LOC).
-- `auditTrailValueFormatters.ts` — `formatAuditValue`, `formatDateString`, `formatStringValue`, sets `CURRENCY_FIELDS`/`DATETIME_FIELDS`/`DATE_ONLY_FIELDS`/`ENUM_LABEL_FIELDS`, `HIDDEN_DIFF_FIELDS`, `getRecordLabel` (~70 LOC).
-- `auditTrailIcons.tsx` — `actionIcon`, `actionBadgeVariant` (~20 LOC).
-- `auditTrailConstants.tsx` queda como barrel para no romper consumidores.
-
-**5. `src/features/quotes/components/quotes/SaleLineItems.tsx` (153 LOC)**
-→ Extraer `SaleLineRow` (la fila editable) a `SaleLineRow.tsx` (~85 LOC). `SaleLineItems.tsx` queda <70 LOC.
-
-**6. `src/features/quotes/components/quotes/RentalLineItems.tsx` (158 LOC)**
-→ Extraer `RentalLineRow` a `RentalLineRow.tsx` (~95 LOC). `RentalLineItems.tsx` queda <65 LOC.
-
-**7. `src/features/reports/components/reports/IncomeStatementTable.tsx` (190 LOC)**
-→ Ya tiene `ComparisonTable` y `StatementTableRow` internos: extraerlos a archivos hermanos.
-- `incomeStatement/ComparisonTable.tsx` (~40 LOC)
-- `incomeStatement/StatementTableRow.tsx` (~50 LOC)
-- `incomeStatement/incomeStatementHelpers.ts` — `formatCell`, `formatRowDelta`, `cellColor`, `getBreakdownFor` (~25 LOC).
-- `IncomeStatementTable.tsx` orquesta (~60 LOC).
-
-**8. `src/features/reports/components/reports/ProfitabilityByModelReport.tsx` (199 LOC)**
-→ Extraer:
-- `profitabilityByModel/profitabilityHelpers.ts` — `inRange`, `buildModelUnitsMap`, `buildRevenueMap`, `buildCostMap`, `aggregateRows`, tipos `ModelRow` y `Forklift/Booking/Invoice/MaintLog/DamageRec` (~75 LOC).
-- `profitabilityByModel/ProfitabilityChart.tsx` — el `BarChart` recharts (~40 LOC).
-- `profitabilityByModel/profitabilityColumns.tsx` — definición `ColumnDef<ModelRow>[]` (~30 LOC).
-- Componente principal queda <80 LOC.
-
-**9. `src/features/reports/components/reports/UtilizationByModelReport.tsx` (155 LOC)**
-→ Extraer:
-- `utilizationByModel/utilizationHelpers.ts` — agregación + `EXCLUDED_STATUSES` + `getUtilColor` + tipo `ModelRow` (~50 LOC).
-- `utilizationByModel/utilizationColumns.tsx` — columnas (~30 LOC).
-- `utilizationByModel/UtilizationChart.tsx` — chart (~30 LOC).
-- Componente principal <75 LOC.
+- `ElementPicker.tsx`, `FeedbackFormFields.tsx`, `FeedbackDetailSheet.tsx`, `useCreateFeedback.ts`: siguen importando `describeElement` / `SelectedElementInfo` con la misma firma
+- DB: `selected_element` JSONB sin migración (mismo shape)
+- Reportes antiguos siguen funcionando (es solo display de string)
 
 ### Verificación
-- Sin cambios de comportamiento ni de UI.
-- Imports externos preservados gracias a barrels en los 4 archivos que tienen consumidores (`CustomerFormSections`, `auditTrailConstants`, `SaleLineItems`, `RentalLineItems`).
-- `bunx knip --no-progress` → 0 dead exports.
-- Eliminar los 9 marcadores `// arch:excepción §19`.
+
+- `bunx vitest run` (esperado: 71/71 pasan)
+- Smoke manual: abrir FAB → "Seleccionar elemento" → confirmar que el `cssPath` mostrado es válido y único
 
 ### Changelog
-- `public/changelog/v6.7.5.json` (patch): "Eliminadas las 9 excepciones §19 — splits por entidad/responsabilidad".
-- Actualizar `public/changelog.json` al inicio del array.
 
-### Fuera de alcance
-- Sin cambios en lógica de negocio, RPCs, RLS, ni rendering.
-- Sin cambios en firmas públicas (mismas exports en mismos paths).
+- `public/changelog.json` + `public/changelog/v6.7.6.json` (patch): "Mejora de robustez en selectores CSS del reporte de feedback usando `@medv/finder`."
+
+### Nota
+
+Ya instalé `@medv/finder@4.0.2` durante exploración. Al pasar a build mode aplico el cambio en `cssPath.ts` y el changelog.

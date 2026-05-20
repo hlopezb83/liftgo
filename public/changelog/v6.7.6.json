@@ -1,0 +1,15 @@
+{
+  "version": "6.7.6",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Selectores CSS del feedback migrados a @medv/finder",
+  "category": "refactor",
+  "summary": "El módulo de feedback ahora genera selectores CSS verificadamente únicos usando la librería @medv/finder en lugar de una implementación casera.",
+  "changes": [
+    "Reemplazado `computeCssPath` casero por wrapper de `finder()` (@medv/finder 4.0.2).",
+    "Selectores ahora son verificados con `querySelectorAll` para garantizar unicidad en el DOM.",
+    "Se ignoran clases Tailwind con prefijos de estado (`hover:`, `focus:`, `active:`, `group-`, `peer-`) para selectores más estables.",
+    "API pública intacta: `describeElement` y `SelectedElementInfo` conservan su firma; consumidores (`ElementPicker`, `FeedbackFormFields`, `FeedbackDetailSheet`) sin cambios.",
+    "Reportes históricos siguen funcionando: el shape de `selected_element` en DB no cambia."
+  ]
+}
