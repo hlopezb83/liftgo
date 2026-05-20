@@ -1,0 +1,15 @@
+{
+  "version": "6.7.7",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Modal de feedback cabe en pantallas pequeñas",
+  "category": "fix",
+  "summary": "El modal de Reportar bug/sugerir mejora ya no se desborda verticalmente al adjuntar la captura del elemento señalado en laptops con altura limitada.",
+  "changes": [
+    "`DialogContent` ahora limita altura a `max-h-[90vh]` y usa layout flex columnar.",
+    "El cuerpo del formulario hace scroll interno (`overflow-y-auto`) manteniendo el header y el footer fijos.",
+    "Botones Cancelar/Enviar siempre visibles, separados por borde superior.",
+    "Preview del screenshot reducido de `max-h-48` a `max-h-32` para minimizar presión vertical.",
+    "Sin cambios en la lógica de captura, picker, schema ni persistencia."
+  ]
+}
