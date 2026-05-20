@@ -1,0 +1,30 @@
+{
+  "version": "6.6.0-alpha.6",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Migración useFormState → react-hook-form (Fase 1: 3 formularios)",
+  "category": "refactor",
+  "description": "Fase 1 de la migración del helper duplicado `useFormState` al stack canónico §20.4 (`react-hook-form` + `zod`). 3 formularios standalone migrados, ningún cambio funcional.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "CompanyLogoTab migrado a useForm",
+      "description": "Reemplaza useFormState por useForm con zodResolver. Schema mínimo de 1 campo. UI sin cambios; preview de logo y badge de estado intactos."
+    },
+    {
+      "type": "refactor",
+      "title": "DeliveryFormDialog migrado a useForm",
+      "description": "9 campos convertidos a FormField + zodResolver con mensajes en español MX. Validación de montacargas y fecha ahora vía esquema. Auto-fill de teléfono al seleccionar operador preservado via form.setValue."
+    },
+    {
+      "type": "refactor",
+      "title": "FiscalDataTab + hijos (CompanyFiscalForm, PacConfigForm) migrados",
+      "description": "Schema combinado fiscal+PAC. Hijos refactorizados para consumir useFormContext en lugar de props form/set. Manejo de llaves Facturapi (envío solo si capturadas) preservado."
+    }
+  ],
+  "highlights": [
+    "5 consumidores restantes de useFormState (Fases 2-4 pendientes)",
+    "Validación con Zod elimina llamadas manuales a validateForm",
+    "Tipos derivados con z.infer eliminan genéricos manuales"
+  ]
+}

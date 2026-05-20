@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.6.0-alpha.6",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Migración useFormState → react-hook-form (Fase 1: 3 formularios)",
+    "category": "refactor"
+  },
+  {
     "version": "6.6.0-alpha.5",
     "date": "2026-05-20",
     "type": "patch",
