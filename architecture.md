@@ -412,6 +412,80 @@ Toda excepción debe ser justificable por una de las cuatro razones anteriores. 
 
 ---
 
+## 21. Dependencias antes que código propio
+
+LiftGo prefiere **librerías públicas maduras** sobre helpers internos o snippets generados por IA. Este principio es de primera clase: complementa la regla #8 de Power of 10 (§18) y rige cada PR.
+
+### 21.1 Principio
+
+- Las dependencias públicas tienen tests upstream, ecosistema de issues, documentación y mantenimiento compartido.
+- El código generado por IA es **punto de partida**, nunca sustituto de una librería probada.
+- Cada "utility" propia que reimplementa algo que ya existe en npm es deuda: superficie de bugs, sin tests upstream, fricción de onboarding.
+- Caso de referencia: migración de jsPDF imperativo (dibujo X/Y manual, helpers internos) a `@react-pdf/renderer` declarativo en `v6.6.0-alpha.1`.
+
+### 21.2 Criterios para adoptar una dependencia (checklist)
+
+- Mantenimiento activo (último release < 12 meses, issues atendidos).
+- Tipos TS oficiales o `@types/*` de calidad.
+- Tamaño razonable (medir con bundlephobia; carga diferida vía `lazy()` si > 50 KB gzip).
+- Licencia permisiva (MIT / Apache-2.0 / ISC / BSD).
+- Sin vulnerabilidades altas/críticas abiertas.
+- Ecosistema: usada por React / Vite / shadcn mainstream cuando aplica.
+
+### 21.3 Cuándo sí escribir código propio
+
+Solo cuando se cumple **al menos uno**:
+
+- Regla de negocio específica de LiftGo (numeración de documentos, MRR, buffer GiST, RLS).
+- La dependencia disponible es 10× más pesada que el problema.
+- Requisito de seguridad que exige RPC en Postgres, no cliente.
+- Glue muy delgado (< 30 LOC) entre dos librerías ya adoptadas.
+
+### 21.4 Stack canónico (qué usar — no reinventar)
+
+| Necesidad | Usar | NO reimplementar |
+|---|---|---|
+| Fechas / zonas horarias | `date-fns` + `date-fns-tz` (vía `nowMty`) | Aritmética manual con `Date` |
+| Validación | `zod` | Validadores ad-hoc |
+| Formularios | `react-hook-form` + `@hookform/resolvers` | Estado manual con `useState` para forms complejos |
+| Estado servidor | `@tanstack/react-query` | `useEffect` + `fetch` |
+| Tablas | `@tanstack/react-table` (vía `DataTableV2`) | Lógica de sort/filter/paginate manual |
+| UI primitives | `shadcn/ui` sobre Radix | Componentes accesibles desde cero |
+| Iconos | `lucide-react` | SVGs inline duplicados |
+| PDF | `@react-pdf/renderer` | jsPDF imperativo / dibujo X-Y |
+| Cálculos monetarios | `currency.js` | Aritmética flotante directa |
+| CSV | helper `exportCsv.ts`; escalar a `papaparse` si crece | Concatenación manual de strings |
+| Toasts | `sonner` | `alert()` / banners propios |
+| Drag & drop archivos | `react-dropzone` | Listeners HTML5 manuales |
+| Markdown | `react-markdown` + `remark-gfm` | Regex / parsers propios |
+| Class merging | `clsx` + `tailwind-merge` (vía `cn`) | Concatenación de strings |
+| Animaciones | `tailwindcss-animate` (+ `framer-motion` puntual) | `setTimeout` + clases |
+| Testing | `vitest` + `@testing-library/react` | Asserts manuales |
+
+### 21.5 Proceso para introducir una dependencia nueva
+
+1. Verificar que no exista ya algo equivalente en el stack canónico (§21.4).
+2. Aplicar checklist 21.2.
+3. Instalar con `bun add`; añadir nota al changelog (`type: refactor` o `feature`).
+4. Si pasa a ser canónica, documentarla en §2 (Stack tecnológico) y en §21.4.
+5. Si reemplaza código propio: **eliminar el archivo legacy en el mismo PR** (no dejar código muerto).
+
+### 21.6 Proceso para retirar código generado / hand-rolled
+
+- Cuando un helper interno duplica una librería canónica → marcarlo `@deprecated` con `// TODO(deps): migrar a <lib>` y abrir entrada de changelog.
+- Migración **incremental**: features nuevas usan la dependencia; el legacy se migra cuando se toca por otra razón.
+- Migraciones grandes (jsPDF → react-pdf, cálculos → currency.js) se hacen como olas dedicadas y se registran como `major` o `minor` con resumen en `public/changelog/v<X.Y.Z>.json`.
+
+### 21.7 Anti-patrones
+
+- "Lo escribo yo, así sé qué hace" — más mantenimiento, sin tests upstream.
+- Copiar un snippet de IA que reimplementa algo de `date-fns` / `zod` / `tanstack` / `currency.js`.
+- Wrappers triviales sobre una librería que solo renombran su API.
+- Forks internos de librerías sin razón documentada.
+- Dependencias one-off que duplican algo del stack canónico.
+
+---
+
 ## 20. Referencias
 
 - `README.md` — instrucciones de desarrollo.
