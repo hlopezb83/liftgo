@@ -1,128 +1,46 @@
+# Ola B — Refactor de tamaño (§19 Power of 10)
 
-# Auditoría arquitectónica — LiftGo ERP vs `architecture.md`
+Objetivo: bajar 6 hooks por debajo de 80 LOC y 2 diálogos por debajo de 150 LOC, marcando las tablas densas como excepción documentada §19. Sólo refactor estructural, sin cambios funcionales ni de UI.
 
-Alcance: revisión estática del código contra las 21 secciones de `architecture.md`. Se evalúan §4 (estructura), §5 (patrones), §6 (seguridad), §17 (anti-patrones), §18 (Power of 10), §19 (tamaños), §20 (dependencias).
+## 1. Hooks oversized (>80 LOC)
 
-**Veredicto general:** la base está **muy alineada** con la doctrina. Las tres fases recientes (Customer/Forklift/Invoice → RHF+Zod) cerraron la deuda mayor de §20.4. Lo que queda son focos puntuales, no estructurales.
-
----
-
-## 1. Hallazgos por severidad
-
-### 🔴 Altas (violan §17 anti-patrones explícitos)
-
-| # | Hallazgo | Archivo | Regla violada |
-|---|---|---|---|
-| H1 | `confirm()` nativo para reabrir deal del CRM | `src/features/crm/pages/CRMClosedPage.tsx:89` | §17: prohibido `confirm()`/`alert()` — usar `AlertDialog` shadcn |
-
-### 🟡 Medias (deuda §20 y §19 documentada)
-
-| # | Hallazgo | Detalle | Regla |
-|---|---|---|---|
-| M1 | `file-saver` aún consumido por 5 generadores PDF | `contractPdfBuilder`, `quote/build`, `invoices/lib/pdf/build`, `incomeStatement`, `customerStatement` (`docs/dependency-audit.md` lo daba como "0 consumidores" porque el audit no detecta `import("file-saver")` dinámicos) | §20.7: candidato a retiro (cubierto por `URL.createObjectURL`) y desactualización del audit script |
-| M2 | `html2canvas` (1.4MB) usado solo en `captureScreenshot` para feedback | `src/features/feedback/lib/captureScreenshot.ts` | §20.2: dep pesada por 1 consumidor; mantener pero documentar |
-| M3 | 6 hooks > 80 LOC sin dividir | `useInvoicePrefill` (156), `useInvoiceFormLogic` (121), `useQuotePrefill` (120), `useOperatingExpenseMutations` (116), `useUserMutations` (114), `useMaintenanceForm` (111) | §19: hooks ≤ 80 LOC |
-| M4 | 17 componentes > 150 LOC | top: `DeliveryFormDialog` (199), `ProfitabilityByModelReport` (198), `IncomeStatementTable` (189), `CustomerFormSections` (182), `ExpenseFormDialog` (159), `RentalLineItems` (157), `EditableLineItemsTable` (155), 10 más entre 152–162 | §19: componentes ≤ 150 LOC (algunos califican como excepción tabla densa/PDF) |
-| M5 | Tipos sin uso exportados | 9 tipos: `CfdiLineItem`, `MaintenanceFormShape`, `ReturnInspectionFormState`, `SortingState`/`RowSelectionState`/`PaginationState`/`TanstackTable`/`Row`/`LiftgoColumnMeta` (knip) | §10 Power of 10 / higiene |
-| M6 | Exports muertos | `liftgoSortingFnUnknown`, `useServerLiftgoTable`, `FEEDBACK_INTERNAL_MODULES`, `FEEDBACK_PORTAL_MODULES` + duplicado `liftgoSortingFn` (knip) | Higiene |
-
-### 🟢 Bajas (mejora continua)
-
-| # | Hallazgo | Acción |
+| Archivo | LOC | Acción |
 |---|---|---|
-| L1 | `src/hooks/useFormState.ts` aparece en `docs/dependency-audit.md` como pendiente de migrar a RHF | Archivo ya **no existe** — el audit doc está desactualizado |
-| L2 | Anti-patrones de tipo (`any`, `!`, `as casual`) — **sin hallazgos** salvo `as` legítimo en límites | Mantener |
-| L3 | `console.log`, `alert` — **sin hallazgos** | Mantener |
-| L4 | Componentes consumiendo Supabase directo: solo `AuthPage.tsx` (legítimo: auth flow) | Mantener |
+| `useInvoicePrefill.ts` | 156 | Mover `cfdiFromInvoice`, `enrichLineItem`, `buildFromInvoice`, `buildFromQuote` → nuevo `invoiceForm/invoiceFormBuilders.ts`. Hook queda con sólo 2 `useEffect`. |
+| `useInvoiceFormLogic.ts` | 121 | Extraer `useInvoiceFormHandlers(form, customers, bookings, forklifts)` (handleCustomerSelect + handleBookingSelect) y `useInvoiceFormTotals(form)` → nuevos archivos en `hooks/invoiceForm/`. |
+| `useQuotePrefill.ts` | 120 | Mover `applyBaseFields`, `applyLogistics`, `applySaleLines`, `applyRentalLines`, `matchModel`, `lineToRentalLine`, `getRentalMeta`, `rebuildRentalLinesFromItems` → nuevo `quoteForm/quoteFormPrefillHelpers.ts`. |
+| `useOperatingExpenseMutations.ts` | 116 | Mover `buildRecurringInserts` → `expenses/lib/recurringExpensesHelpers.ts`. |
+| `useUserMutations.ts` | 114 | Dividir por concern: `useUserMutations.ts` mantiene `useUpdateRole`, `useUpdateName`. Nuevo `useUserAdminMutations.ts` con `useInviteUser`, `useDeleteUser`, `useResetPassword`, `useToggleStatus`. Actualizar barrel/imports. |
+| `useMaintenanceForm.ts` | 111 | Mover `buildMaintenancePayload` + `initialForm` + schema → `maintenance/lib/maintenanceFormHelpers.ts`. Hook conserva sólo estado y handlers. |
 
----
+## 2. Componentes oversized (>150 LOC)
 
-## 2. Plan de remediación (3 olas)
+| Archivo | LOC | Acción |
+|---|---|---|
+| `DeliveryFormDialog.tsx` | 199 | Extraer JSX de los `FormField` a `DeliveryFormFields.tsx` (recibe `form`, `forklifts`, `bookings`, `activeDrivers`). Dialog queda <80 LOC. |
+| `ExpenseFormDialog.tsx` | 159 | Extraer `ExpenseFormFields.tsx` (recibe `form`, `supplierId`, `setSupplierId`). |
+| `CustomerFormSections.tsx` | 182 | Excepción §19 — ya es un conjunto de secciones. Marcar con `// arch:excepción §19 (secciones agrupadas de un mismo formulario)`. |
+| `RentalLineItems.tsx` (157) / `SaleLineItems.tsx` (152) | | Excepción §19 — tabla densa editable. Marcar con `// arch:excepción §19 (tabla densa editable)`. |
+| `ProfitabilityByModelReport.tsx` (198), `IncomeStatementTable.tsx` (189), `UtilizationByModelReport.tsx` (154) | | Excepción §19 — tabla densa de reporte. Marcar con `// arch:excepción §19 (tabla densa de reporte)`. |
+| `auditTrailConstants.tsx` (159) | | Excepción §19 — archivo de constantes/labels. Marcar comentario. |
 
-### Ola A — Alta prioridad (sesión corta, ~1 patch)
+## 3. Changelog
 
-1. **H1**: reemplazar `confirm()` en `CRMClosedPage` por `AlertDialog` reusable. Patrón ya usado en `useDialogState`.
-2. **M5 + M6**: eliminar exports/tipos muertos detectados por knip (lista exacta arriba). Verificar con `bunx knip` que queda en cero.
-3. Changelog → `6.7.2` (patch) "Higiene: AlertDialog en CRM + limpieza de exports muertos".
+Crear `public/changelog/v6.7.3.json` (patch) + entrada en `public/changelog.json`:
+- "Refactor estructural — hooks ≤80 LOC, diálogos ≤150 LOC"
+- Listar archivos divididos y excepciones documentadas.
 
-### Ola B — Refactor de hooks/componentes oversized (1 minor)
+## 4. Verificación
 
-Sólo los que **no** califican como excepción §19 (tablas densas/PDF):
+- `bunx knip --no-progress` → 0 dead exports tras la división.
+- Lectura visual de los archivos divididos para confirmar imports correctos.
+- Sin cambios de comportamiento esperados: el typecheck del harness cubre regresiones.
 
-- **`useInvoicePrefill` (156 LOC)** → dividir en `buildValuesFromExisting`, `buildValuesFromQuote` (helpers puros en `lib/`) + `useInvoicePrefill` ≤60 LOC orquestador.
-- **`useQuotePrefill` (120 LOC)** → mismo patrón.
-- **`useInvoiceFormLogic` (121 LOC)** → extraer `useInvoiceTotals(form)` y `useInvoiceSelectHandlers(form, …)` ya previsto en `.lovable/plan.md` paso 2.
-- **`useOperatingExpenseMutations` / `useUserMutations` / `useMaintenanceForm`** → dividir `*Mutations.ts` por intención (create/update/delete) o extraer builders.
-- **Componentes**: priorizar `DeliveryFormDialog` y `ExpenseFormDialog` (forms, no tablas). El resto (`*Report*`, `IncomeStatementTable`, `RentalLineItems`, `SaleLineItems`, `EditableLineItemsTable`) son **tablas densas** → marcar formalmente como excepción §19.4.1 con comentario `// arch:excepción §19 (tabla densa)`.
-- Changelog → `6.8.0` (minor).
+## Detalles técnicos
 
-### Ola C — Doctrina §20 (1 patch)
+- Cada helper extraído es función pura tipada (sin `any`/`!`/`as`).
+- Los nuevos archivos respetan ≤150 LOC componentes / ≤80 LOC hooks.
+- Mantener las firmas públicas: ningún consumidor cambia su import salvo `useUserMutations` (4 hooks migran al nuevo `useUserAdminMutations`); ajustar consumidores en la misma pasada.
+- Comentarios `// arch:excepción §19 (...)` justifican los archivos que conscientemente quedan sobre el límite.
 
-- **M1**: actualizar `scripts/dependency_audit.py` para detectar `import("file-saver")` dinámicos; reflejar los 5 consumidores reales en `docs/dependency-audit.md`. Decidir: ¿retirar `file-saver` y consolidar en helper `downloadBlob(name, blob)` que use `URL.createObjectURL`? Recomendado **sí**: retira 1 dep y centraliza descarga.
-- **L1**: regenerar `docs/dependency-audit.md` para eliminar referencia a `useFormState` (archivo ya borrado) y reflejar el estado post-Fase 3 (Customer/Forklift/Invoice migrados).
-- **M2**: documentar `html2canvas` como dep aceptada en `§20.4` (única forma sensata de capturar viewport del usuario en feedback) o evaluar `modern-screenshot` (≈10× más liviano).
-- Changelog → `6.7.3` o consolidar con Ola A.
-
----
-
-## 3. Detalles técnicos por hallazgo
-
-### H1 — `CRMClosedPage.tsx` línea 89
-```tsx
-if (!confirm(`¿Reabrir deal con ${p.company_name}? …`)) return;
-```
-Reemplazo: estado local `reopenTarget: Prospect | null` + `<AlertDialog>` con `AlertDialogAction onClick={() => doReopen(reopenTarget)}`. Mismo patrón que `useDialogState` ya usado en 4 pantallas.
-
-### M1 — `file-saver` real footprint
-5 sitios usan `import("file-saver")` dinámico:
-```
-contractPdfBuilder.tsx:13
-lib/pdf/quote/build.tsx:48
-invoices/lib/pdf/build.tsx:34
-lib/pdf/incomeStatement.tsx:22
-lib/pdf/customerStatement.tsx:18
-```
-Cada uno hace `saveAs(blob, filename)`. Centralizar en `src/lib/downloadBlob.ts` (≤15 LOC), retirar dep, actualizar §20.4.
-
-### M3 — desglose de hooks oversized
-- `useInvoicePrefill.ts (156)`: dos `useEffect` paralelos que duplican shape-building. Extraer `mapExistingToValues()` y `mapQuoteToValues()` a `src/features/invoices/lib/invoiceFormBuilders.ts`.
-- `useInvoiceFormLogic.ts (121)`: ya está en `.lovable/plan.md §2`; sólo aplicar.
-
-### M4 — tabla densa vs verdadero oversized
-Marcar como excepción §19 (comentario obligatorio):
-- `*Report*.tsx`, `IncomeStatementTable.tsx`, `auditTrailConstants.tsx`, `RentalLineItems`, `SaleLineItems`, `EditableLineItemsTable`, `CustomerFormSections`, `CustomersPage`, `InvoicesPage`, `Fleet`, `ReturnInspectionPage`, `OperatingExpensesPage`, `DeliveryDetail`.
-
-Refactor real:
-- `DeliveryFormDialog.tsx (199)` → extraer `<DeliveryHeaderFields>`, `<DeliverySignatureFields>`.
-- `ExpenseFormDialog.tsx (159)` → extraer `<ExpenseLineFields>`.
-
-### M5/M6 — limpieza knip
-Eliminar:
-```
-sorting.ts → liftgoSortingFnUnknown + alias duplicado
-useServerLiftgoTable.ts → función completa (cero consumidores)
-constants.ts → FEEDBACK_INTERNAL_MODULES, FEEDBACK_PORTAL_MODULES
-types.ts (dataTable v2) → 6 tipos sin uso
-EditableLineItemsTable.tsx → tipo CfdiLineItem
-MaintenanceFormDialog.tsx → MaintenanceFormShape
-ReturnInspectionDialog.tsx → ReturnInspectionFormState
-```
-
----
-
-## 4. Lo que ya está bien (no tocar)
-
-- §4 estructura por features: cumplida 100%.
-- §5.1 separación páginas/hooks/componentes: cumplida; sólo `AuthPage` toca Supabase directo (legítimo).
-- §6 RLS + `has_role` + roles separados: alineado.
-- §7 routing sin nested wildcards: alineado.
-- §15 testing: 20+ tests Invoice + flujos críticos.
-- §16 changelog: política aplicada en cada PR reciente (6.7.0, 6.7.0-alpha.1, .2, 6.7.1).
-- §18 Power of 10: 0 `any`/`!`/`alert`/`console.log` en producción.
-- §20 stack canónico: RHF+Zod, TanStack Query/Table, react-pdf, sonner, currency.js, lucide, date-fns — todo en uso.
-
----
-
-## 5. Resumen para ejecutar
-
-Si apruebas el plan, **propongo arrancar por Ola A** (1 hallazgo alto + limpieza knip + changelog patch) en una sola pasada, y dejar Olas B y C como minors separados para mantener PRs revisables.
+Ola C (siguiente, no incluida aquí): actualizar `dependency_audit.py` para detectar `file-saver` dinámico, regenerar `docs/dependency-audit.md` y documentar `html2canvas` en §20.4.
