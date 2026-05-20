@@ -70,6 +70,7 @@ export default function CRMClosedPage() {
   const { data: metrics, isLoading } = useCRMMetrics();
   const updateProspect = useUpdateProspect();
   const [search, setSearch] = useState("");
+  const [reopenTarget, setReopenTarget] = useState<Prospect | null>(null);
 
   const filterRows = useCallback((rows: Prospect[]) => {
     const q = search.trim().toLowerCase();
@@ -89,9 +90,12 @@ export default function CRMClosedPage() {
   const wonRows = useMemo(() => filterRows(metrics.won), [metrics.won, filterRows]);
   const lostRows = useMemo(() => filterRows(metrics.lost), [metrics.lost, filterRows]);
 
-  const handleReopen = (p: Prospect) => {
-    if (!confirm(`¿Reabrir deal con ${p.company_name}? Volverá a la columna de Negociación.`)) return;
-    updateProspect.mutate({ id: p.id, stage: "negociacion" });
+  const handleReopen = (p: Prospect) => setReopenTarget(p);
+
+  const confirmReopen = () => {
+    if (!reopenTarget) return;
+    updateProspect.mutate({ id: reopenTarget.id, stage: "negociacion" });
+    setReopenTarget(null);
   };
 
   return (
