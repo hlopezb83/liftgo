@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.3",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Auditoría arquitectónica Ola B: hooks ≤80 LOC, diálogos ≤150 LOC",
+    "category": "refactor"
+  },
+  {
     "version": "6.7.2",
     "date": "2026-05-20",
     "type": "patch",

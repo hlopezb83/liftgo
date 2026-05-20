@@ -1,0 +1,42 @@
+{
+  "version": "6.7.3",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Auditoría arquitectónica Ola B: hooks ≤80 LOC, diálogos ≤150 LOC",
+  "category": "refactor",
+  "description": "Refactor estructural para cumplir Power of 10 §19. Sin cambios funcionales ni de UI.",
+  "changes": [
+    {
+      "area": "Hooks divididos (≤80 LOC)",
+      "items": [
+        "useInvoicePrefill (156→33): builders movidos a invoiceForm/invoiceFormBuilders.ts",
+        "useInvoiceFormLogic (121→74): extraídos useInvoiceFormHandlers y useInvoiceFormTotals",
+        "useQuotePrefill (120→32): helpers movidos a quoteForm/quoteFormPrefillHelpers.ts",
+        "useOperatingExpenseMutations (116→88): buildRecurringInserts a expenses/lib/recurringExpensesHelpers.ts",
+        "useUserMutations (114→35): admin mutations a useUserAdminMutations (invite/delete/reset/toggle)",
+        "useMaintenanceForm (111→76): schema, defaults y payload builder a maintenance/lib/maintenanceFormHelpers.ts"
+      ]
+    },
+    {
+      "area": "Componentes divididos (≤150 LOC)",
+      "items": [
+        "DeliveryFormDialog (199→88): campos extraídos a DeliveryFormFields.tsx",
+        "ExpenseFormDialog (159→74): campos extraídos a ExpenseFormFields.tsx"
+      ]
+    },
+    {
+      "area": "Excepciones §19 documentadas",
+      "items": [
+        "Tablas densas de reporte: ProfitabilityByModelReport, IncomeStatementTable, UtilizationByModelReport",
+        "Tablas densas editables: RentalLineItems, SaleLineItems",
+        "Secciones agrupadas de un formulario: CustomerFormSections",
+        "Archivo de constantes: auditTrailConstants",
+        "Colecciones de mutaciones: useOperatingExpenseMutations, useUserAdminMutations"
+      ]
+    }
+  ],
+  "notes": [
+    "Cero cambios de comportamiento; el typecheck valida regresiones.",
+    "Eliminado el único `as never` introducido en la pasada anterior (handlers de invoice)."
+  ]
+}
