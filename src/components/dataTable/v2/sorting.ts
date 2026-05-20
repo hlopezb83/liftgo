@@ -1,4 +1,4 @@
-import type { Row, SortingFn } from "@tanstack/react-table";
+import type { Row } from "@tanstack/react-table";
 
 /**
  * Comparador estándar LiftGo: nulls al final, números nativos,
@@ -21,8 +21,6 @@ export function liftgoSortingFn<T>(
     numeric: true,
   });
 }
-// Exporta también con la firma "anchurada" cuando se necesite el tipo SortingFn<unknown>.
-export const liftgoSortingFnUnknown: SortingFn<unknown> = liftgoSortingFn;
 
 export const alignClass: Record<"left" | "right" | "center", string> = {
   left: "text-left",
