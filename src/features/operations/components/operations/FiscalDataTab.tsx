@@ -1,4 +1,7 @@
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   useCompanySettings,
   useUpsertCompanySettings,
@@ -8,12 +11,25 @@ import {
   useUpsertBillingSecrets,
 } from "@/features/company-settings/hooks/useBillingSecrets";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useFormState } from "@/hooks/useFormState";
+import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import { CompanyFiscalForm } from "@/features/company-settings/components/company-settings/CompanyFiscalForm";
 import { PacConfigForm } from "@/features/company-settings/components/company-settings/PacConfigForm";
 
-const empty = {
+const fiscalSchema = z.object({
+  rfc: z.string().min(1, "RFC requerido"),
+  razon_social: z.string().min(1, "Razón social requerida"),
+  regimen_fiscal: z.string().min(1, "Régimen fiscal requerido"),
+  lugar_expedicion: z.string().min(1, "Lugar de expedición requerido"),
+  logo_url: z.string(),
+  facturapi_mode: z.string(),
+  facturapi_test_key: z.string(),
+  facturapi_live_key: z.string(),
+});
+
+type FiscalDataValues = z.infer<typeof fiscalSchema>;
+
+const defaultValues: FiscalDataValues = {
   rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "",
   logo_url: "", facturapi_mode: "test", facturapi_test_key: "", facturapi_live_key: "",
 };
@@ -23,12 +39,15 @@ export function FiscalDataTab() {
   const { data: secrets, isLoading: isLoadingSecrets } = useBillingSecrets();
   const upsert = useUpsertCompanySettings();
   const upsertSecrets = useUpsertBillingSecrets();
-  const { form, set, setForm } = useFormState(empty);
+  const form = useForm<FiscalDataValues>({
+    resolver: zodResolver(fiscalSchema),
+    defaultValues,
+  });
 
   useEffect(() => {
     if (!settings) return;
     const s = settings as Record<string, unknown>;
-    setForm({
+    form.reset({
       rfc: (s.rfc as string) || "",
       razon_social: (s.razon_social as string) || "",
       regimen_fiscal: (s.regimen_fiscal as string) || "",
@@ -40,46 +59,30 @@ export function FiscalDataTab() {
       facturapi_test_key: "",
       facturapi_live_key: "",
     });
-  }, [settings, setForm]);
+  }, [settings, form]);
 
-  const validateForm = () => {
-    const required: Array<keyof typeof form> = ["rfc", "razon_social", "regimen_fiscal", "lugar_expedicion"];
-    return required.every((key) => form[key]);
-  };
-
-  const buildSettingsPayload = () => ({
-    ...(settings?.id ? { id: settings.id } : {}),
-    rfc: form.rfc,
-    razon_social: form.razon_social,
-    regimen_fiscal: form.regimen_fiscal,
-    lugar_expedicion: form.lugar_expedicion,
-    logo_url: form.logo_url || null,
-    facturapi_mode: form.facturapi_mode || "test",
-  });
-
-  const buildSecretsPayload = () => {
-    const hasNewTest = form.facturapi_test_key.length > 0;
-    const hasNewLive = form.facturapi_live_key.length > 0;
-    if (!hasNewTest && !hasNewLive) return null;
-    return {
-      ...(secrets?.id ? { id: secrets.id } : {}),
-      facturapi_test_key: hasNewTest ? form.facturapi_test_key : null,
-      facturapi_live_key: hasNewLive ? form.facturapi_live_key : null,
-    };
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      toast.error("Todos los campos obligatorios deben llenarse");
-      return;
-    }
+  const onSubmit = async (values: FiscalDataValues) => {
     try {
-      await upsert.mutateAsync(buildSettingsPayload());
-      const secretsPayload = buildSecretsPayload();
-      if (secretsPayload) {
-        await upsertSecrets.mutateAsync(secretsPayload);
-        setForm({ ...form, facturapi_test_key: "", facturapi_live_key: "" });
+      await upsert.mutateAsync({
+        ...(settings?.id ? { id: settings.id } : {}),
+        rfc: values.rfc,
+        razon_social: values.razon_social,
+        regimen_fiscal: values.regimen_fiscal,
+        lugar_expedicion: values.lugar_expedicion,
+        logo_url: values.logo_url || null,
+        facturapi_mode: values.facturapi_mode || "test",
+      });
+
+      const hasNewTest = values.facturapi_test_key.length > 0;
+      const hasNewLive = values.facturapi_live_key.length > 0;
+      if (hasNewTest || hasNewLive) {
+        await upsertSecrets.mutateAsync({
+          ...(secrets?.id ? { id: secrets.id } : {}),
+          facturapi_test_key: hasNewTest ? values.facturapi_test_key : null,
+          facturapi_live_key: hasNewLive ? values.facturapi_live_key : null,
+        });
+        form.setValue("facturapi_test_key", "");
+        form.setValue("facturapi_live_key", "");
       }
       toast.success("Datos fiscales guardados");
     } catch (_err) {
@@ -92,15 +95,15 @@ export function FiscalDataTab() {
   const isPending = upsert.isPending || upsertSecrets.isPending;
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
-      <CompanyFiscalForm form={form} set={set} isPending={isPending} />
-      <PacConfigForm
-        form={form}
-        set={set}
-        isPending={isPending}
-        hasTestKey={!!secrets?.has_test_key}
-        hasLiveKey={!!secrets?.has_live_key}
-      />
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
+        <CompanyFiscalForm isPending={isPending} />
+        <PacConfigForm
+          isPending={isPending}
+          hasTestKey={!!secrets?.has_test_key}
+          hasLiveKey={!!secrets?.has_live_key}
+        />
+      </form>
+    </Form>
   );
 }
