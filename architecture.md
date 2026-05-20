@@ -350,6 +350,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - FK directa a `auth.users` — referenciar `user_id` y modelar perfiles en `profiles`.
 - Nested wildcards en rutas o re-montar `MainLayout` por ruta — usar `Suspense` por ruta.
 - Mostrar al usuario términos como “Supabase dashboard” — referirse a **Lovable Cloud**.
+- Reimplementar funcionalidad ya cubierta por una dependencia del stack canónico (ver §21.4).
 
 ---
 
