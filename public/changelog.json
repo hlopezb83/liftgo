@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.7",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Modal de feedback cabe en pantallas pequeñas",
+    "category": "fix"
+  },
+  {
     "version": "6.7.6",
     "date": "2026-05-20",
     "type": "patch",

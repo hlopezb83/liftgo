@@ -95,7 +95,7 @@ export function FeedbackFormFields({
               <img
                 src={screenshotPreview}
                 alt="Captura con elemento marcado"
-                className="w-full max-h-48 object-contain rounded border bg-muted/30"
+                className="w-full max-h-32 object-contain rounded border bg-muted/30"
               />
             )}
             <Button type="button" size="sm" variant="outline" onClick={onStartPicker} className="w-full" disabled={isCapturing}>
