@@ -2,7 +2,7 @@ import { addDays } from "date-fns";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { RentalLine } from "@/features/quotes/components/quotes/RentalLineItems";
-import type { useQuoteFormState } from "../useQuoteFormState";
+import type { useQuoteFormState } from "./useQuoteFormState";
 
 export type QuoteFormState = ReturnType<typeof useQuoteFormState>;
 
