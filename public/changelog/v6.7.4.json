@@ -1,0 +1,25 @@
+{
+  "version": "6.7.4",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Auditoría arquitectónica Ola C: cierre §20 — dependencias canónicas documentadas",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "scripts/dependency_audit.py ahora cuenta también imports dinámicos (await import(\"pkg\")), reflejando consumidores reales de librerías cargadas con lazy import."
+    },
+    {
+      "type": "improvement",
+      "description": "file-saver y html2canvas promovidas de 'no canónicas a evaluar' a 'Canónica activa': ambas se usan exclusivamente vía lazy import siguiendo §20.2 (libs > 50 KB)."
+    },
+    {
+      "type": "improvement",
+      "description": "architecture.md §20.4: se añaden dos filas al stack canónico — 'Descargas blob → file-saver (lazy)' y 'Captura screenshot DOM → html2canvas (lazy, solo feedback)'."
+    },
+    {
+      "type": "improvement",
+      "description": "docs/dependency-audit.md regenerado: 45 dependencias canónicas activas, solo 2 no canónicas pendientes (@hello-pangea/dnd y dompurify, ambas justificadas)."
+    }
+  ]
+}
