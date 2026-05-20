@@ -1,0 +1,37 @@
+{
+  "version": "6.7.5",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Auditoría arquitectónica Ola D: eliminadas las 9 excepciones §19",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "useOperatingExpenseMutations y useUserAdminMutations splitedos en carpetas con un archivo por mutación (~25 LOC c/u); barrels preservan imports externos."
+    },
+    {
+      "type": "improvement",
+      "description": "CustomerFormSections splitedo en customerSections/ (Identity, Fiscal, Contact, AddressNotes + SectionHeading); el archivo original es ahora un barrel."
+    },
+    {
+      "type": "improvement",
+      "description": "auditTrailConstants dividido por responsabilidad: auditTrailLabels.ts, auditTrailValueFormatters.ts, auditTrailIcons.tsx."
+    },
+    {
+      "type": "improvement",
+      "description": "SaleLineItems y RentalLineItems delegan la fila editable a SaleLineRow / RentalLineRow; contenedores quedan <70 LOC."
+    },
+    {
+      "type": "improvement",
+      "description": "IncomeStatementTable extrae ComparisonTable, StatementTableRow y incomeStatementHelpers; orquestador <70 LOC."
+    },
+    {
+      "type": "improvement",
+      "description": "ProfitabilityByModelReport y UtilizationByModelReport: agregación, columnas y chart extraídos a subcarpetas; componentes quedan <80 LOC."
+    },
+    {
+      "type": "improvement",
+      "description": "0 marcadores // arch:excepción §19 restantes; knip verde."
+    }
+  ]
+}
