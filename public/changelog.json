@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.0",
+    "date": "2026-05-20",
+    "type": "minor",
+    "title": "Invoice form migrado a react-hook-form + Zod (Fase 3 de 3) — deuda §20.4 cerrada",
+    "category": "refactor"
+  },
+  {
     "version": "6.7.0-alpha.2",
     "date": "2026-05-20",
     "type": "patch",

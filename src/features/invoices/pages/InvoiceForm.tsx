@@ -4,39 +4,35 @@ import { useInvoiceFormLogic } from "@/features/invoices/hooks/useInvoiceFormLog
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
-import { NotesCard } from "@/components/NotesCard";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { CfdiFieldsCard } from "@/features/invoices/components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { formatDateRange } from "@/lib/utils";
 import { useNextInvoiceNumber } from "@/features/invoices/hooks/invoices/useNextInvoiceNumber";
+import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
-  const form = useInvoiceFormLogic();
-  const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!form.isEdit);
+  const f = useInvoiceFormLogic();
+  const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.lineItems.length === 0) { toast.error("Agrega al menos una partida"); return; }
-
-    const payload = form.buildPayload();
-
-    if (form.isEdit && form.id) {
-      form.updateInvoice.mutate({ id: form.id, ...payload }, {
-        onSuccess: () => { toast.success("Factura actualizada"); navigate(`/invoices/${form.id}`); },
+  const onSubmit = (values: InvoiceFormValues) => {
+    const payload = f.onSubmit(values);
+    if (f.isEdit && f.id) {
+      f.updateInvoice.mutate({ id: f.id, ...payload }, {
+        onSuccess: () => { toast.success("Factura actualizada"); navigate(`/invoices/${f.id}`); },
       });
     } else {
-      form.createInvoice.mutate(payload, {
+      f.createInvoice.mutate(payload, {
         onSuccess: (data) => {
           toast.success(`Factura ${data.invoice_number} creada`);
-          if (form.fromQuoteId) {
-            form.updateQuote.mutate({ id: form.fromQuoteId, status: "accepted" });
-          }
+          if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           navigate(`/invoices/${data.id}`);
         },
       });
@@ -45,74 +41,99 @@ export default function InvoiceForm() {
 
   return (
     <div className="p-6 max-w-4xl">
-      <FormPageHeader title={form.isEdit ? "Editar Factura" : "Nueva Factura"} />
+      <FormPageHeader title={f.isEdit ? "Editar Factura" : "Nueva Factura"} />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Detalles de Factura</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {!form.isEdit && (
-              <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
-                <span className="text-sm text-muted-foreground">Folio próximo</span>
-                <span className="font-semibold text-primary">
-                  {loadingNext ? "Calculando…" : (nextNumber ?? "—")}
-                </span>
+      <Form {...f.form}>
+        <form onSubmit={f.form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Detalles de Factura</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              {!f.isEdit && (
+                <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
+                  <span className="text-sm text-muted-foreground">Folio próximo</span>
+                  <span className="font-semibold text-primary">
+                    {loadingNext ? "Calculando…" : (nextNumber ?? "—")}
+                  </span>
+                </div>
+              )}
+              {!f.isEdit && (
+                <FormField control={f.form.control} name="bookingId" render={({ field }) => (
+                  <FormItem>
+                    <Label>Generar desde Reserva</Label>
+                    <Select value={field.value} onValueChange={f.handleBookingSelect}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar reserva (opcional)" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {f.availableBookings?.map((booking) => (
+                          <SelectItem key={booking.id} value={booking.id}>
+                            {(booking as BookingWithForklift).forklifts?.name} — {booking.customer_name || "Sin cliente"} ({formatDateRange(booking.start_date, booking.end_date)})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <FormField control={f.form.control} name="customerId" render={({ field }) => (
+                  <FormItem>
+                    <Label>Cliente</Label>
+                    <Select value={field.value || ""} onValueChange={f.handleCustomerSelect}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {f.customers?.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}{c.company && c.company !== c.name ? ` — ${c.company}` : ""}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={f.form.control} name="issueDate" render={({ field }) => (
+                  <FormItem>
+                    <DatePickerField label="Fecha de Factura" date={field.value} onSelect={(d) => field.onChange(d || new Date())} placeholder="Seleccionar fecha" />
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={f.form.control} name="dueDate" render={({ field }) => (
+                  <FormItem>
+                    <DatePickerField label="Fecha de Vencimiento" date={field.value} onSelect={field.onChange} placeholder="Seleccionar fecha" />
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </div>
-            )}
-            {!form.isEdit && (
-              <div className="space-y-1.5">
-                <Label>Generar desde Reserva</Label>
-                <Select value={form.bookingId} onValueChange={form.handleBookingSelect}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar reserva (opcional)" /></SelectTrigger>
-                  <SelectContent>
-                    {form.availableBookings?.map((booking) => (
-                      <SelectItem key={booking.id} value={booking.id}>
-                        {(booking as BookingWithForklift).forklifts?.name} — {booking.customer_name || "Sin cliente"} ({formatDateRange(booking.start_date, booking.end_date)})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label>Cliente</Label>
-                <Select value={form.customerId || ""} onValueChange={form.handleCustomerSelect}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger>
-                  <SelectContent>
-                    {form.customers?.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>{customer.name}{customer.company && customer.company !== customer.name ? ` — ${customer.company}` : ""}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <DatePickerField label="Fecha de Factura" date={form.issueDate} onSelect={(d) => form.setIssueDate(d || new Date())} placeholder="Seleccionar fecha" />
-              <DatePickerField label="Fecha de Vencimiento" date={form.dueDate} onSelect={form.setDueDate} placeholder="Seleccionar fecha" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <CfdiFieldsCard
-          serie={form.cfdi.serie} folio={form.cfdi.folio} formaPago={form.cfdi.formaPago} metodoPago={form.cfdi.metodoPago}
-          usoCfdi={form.cfdi.usoCfdi} moneda={form.cfdi.moneda} tipoCambio={form.cfdi.tipoCambio}
-          receptorRfc={form.cfdi.receptorRfc} receptorRazonSocial={form.cfdi.receptorRazonSocial}
-          receptorRegimenFiscal={form.cfdi.receptorRegimenFiscal} receptorDomicilioFiscalCp={form.cfdi.receptorDomicilioFiscalCp}
-          onUpdate={form.handleCfdiUpdate}
-        />
+          <CfdiFieldsCard />
 
-        <EditableLineItemsTable
-          lineItems={form.lineItems}
-          onUpdateItem={form.updateLineItem}
-          onAddItem={form.addLineItem}
-          onRemoveItem={form.removeLineItem}
-        />
+          <EditableLineItemsTable />
 
-        <TotalsSummary subtotal={form.subtotal} taxRate={form.taxRate} taxAmount={form.taxAmount} total={form.total} onTaxRateChange={form.setTaxRate} />
+          <TotalsSummary
+            subtotal={f.subtotal}
+            taxRate={f.form.watch("taxRate")}
+            taxAmount={f.taxAmount}
+            total={f.total}
+            onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}
+          />
 
-        <NotesCard value={form.notes} onChange={form.setNotes} placeholder="Notas adicionales…" />
+          <Card>
+            <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
+            <CardContent>
+              <FormField control={f.form.control} name="notes" render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea placeholder="Notas adicionales…" rows={3} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </CardContent>
+          </Card>
 
-        <FormActions submitLabel={form.isEdit ? "Actualizar Factura" : "Crear Factura"} isPending={form.isPending} onCancel={() => navigate(-1)} />
-      </form>
+          <FormActions submitLabel={f.isEdit ? "Actualizar Factura" : "Crear Factura"} isPending={f.isPending} onCancel={() => navigate(-1)} />
+        </form>
+      </Form>
     </div>
   );
 }

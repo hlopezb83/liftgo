@@ -1,34 +1,28 @@
 import currency from "currency.js";
-import type { CfdiLineItem } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
-import type { useInvoiceFormState, CfdiFormState } from "./useInvoiceFormState";
+import { useCallback } from "react";
+import { useFieldArray, type UseFormReturn } from "react-hook-form";
+import {
+  type InvoiceFormValues,
+  type LineItemValues,
+  EMPTY_LINE,
+} from "@/lib/schemas/invoiceFormSchema";
 
-type State = ReturnType<typeof useInvoiceFormState>;
+export function useInvoiceLineItemHandlers(form: UseFormReturn<InvoiceFormValues>) {
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control, name: "lineItems",
+  });
 
-const EMPTY_LINE: CfdiLineItem = {
-  description: "", quantity: 1, unit_price: 0, total: 0,
-  clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
-};
+  const updateLineItem = useCallback((index: number, field: string, value: string | number) => {
+    const current = form.getValues(`lineItems.${index}`);
+    const next: LineItemValues = { ...current, [field]: value };
+    if (field === "quantity" || field === "unit_price") {
+      next.total = currency(Number(next.unit_price)).multiply(Number(next.quantity)).value;
+    }
+    update(index, next);
+  }, [form, update]);
 
-export function useInvoiceLineItemHandlers(state: State) {
-  const updateLineItem = (index: number, field: string, value: string | number) => {
-    state.setLineItems((previous) => previous.map((item, i) => {
-      if (i !== index) return item;
-      const updated = { ...item, [field]: value };
-      if (field === "quantity" || field === "unit_price") {
-        updated.total = currency(Number(updated.unit_price)).multiply(Number(updated.quantity)).value;
-      }
-      return updated;
-    }));
-  };
+  const addLineItem = useCallback(() => append({ ...EMPTY_LINE }), [append]);
+  const removeLineItem = useCallback((index: number) => remove(index), [remove]);
 
-  const addLineItem = () => state.setLineItems((previous) => [...previous, { ...EMPTY_LINE }]);
-
-  const removeLineItem = (index: number) =>
-    state.setLineItems((previous) => previous.filter((_, i) => i !== index));
-
-  const handleCfdiUpdate = (field: string, value: string | number) => {
-    state.setCfdi(field as keyof CfdiFormState, value as CfdiFormState[keyof CfdiFormState]);
-  };
-
-  return { updateLineItem, addLineItem, removeLineItem, handleCfdiUpdate };
+  return { fields, updateLineItem, addLineItem, removeLineItem };
 }
