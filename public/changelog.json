@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.6",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Selectores CSS del feedback migrados a @medv/finder",
+    "category": "refactor"
+  },
+  {
     "version": "6.7.5",
     "date": "2026-05-20",
     "type": "patch",
