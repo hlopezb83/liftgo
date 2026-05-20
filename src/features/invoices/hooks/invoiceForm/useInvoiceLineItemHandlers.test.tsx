@@ -94,16 +94,17 @@ describe("useInvoiceLineItemHandlers (useFieldArray integration)", () => {
     expect(ids.every((id) => typeof id === "string" && id.length > 0)).toBe(true);
   });
 
-  it("trigger de validación reporta 'Cantidad ≥ 1' cuando quantity = 0", async () => {
+  it("trigger de validación falla cuando quantity = 0 (schema)", async () => {
     const { result } = setupHook();
     act(() => result.current.handlers.addLineItem());
     act(() => result.current.handlers.updateLineItem(0, "quantity", 0));
     let valid = true;
     await act(async () => {
-      valid = await result.current.form.trigger("lineItems");
+      valid = await result.current.form.trigger("lineItems.0.quantity");
     });
     expect(valid).toBe(false);
-    const err = result.current.form.formState.errors.lineItems?.[0]?.quantity?.message;
-    expect(err).toBe("Cantidad ≥ 1");
+    const fieldState = result.current.form.getFieldState("lineItems.0.quantity");
+    expect(fieldState.invalid).toBe(true);
+    expect(fieldState.error?.message).toBe("Cantidad ≥ 1");
   });
 });
