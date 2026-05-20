@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.5",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Auditoría arquitectónica Ola D: eliminadas las 9 excepciones §19",
+    "category": "refactor"
+  },
+  {
     "version": "6.7.4",
     "date": "2026-05-20",
     "type": "patch",
