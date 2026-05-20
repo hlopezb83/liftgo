@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormActions } from "@/components/FormActions";
 import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
-import { toast } from "sonner";
 import {
+  Form,
   IdentitySection,
   FiscalSection,
   ContactSection,
@@ -29,49 +31,44 @@ interface CustomerFormDialogProps {
 }
 
 export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, isPending, onSubmit }: CustomerFormDialogProps) {
-  const [form, setForm] = useState<CustomerFormData>(emptyCustomer);
-  const set = useCallback(<K extends keyof CustomerFormData>(key: K, value: CustomerFormData[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  const form = useForm<CustomerFormData>({
+    resolver: zodResolver(customerFormSchema),
+    defaultValues: emptyCustomer,
+  });
   const [tab, setTab] = useState("manual");
 
   useEffect(() => {
-    if (open && initialData) {
-      setForm({ ...emptyCustomer, ...initialData });
-    } else if (open && !initialData) {
-      setForm(emptyCustomer);
+    if (!open) return;
+    if (initialData) {
+      form.reset({ ...emptyCustomer, ...initialData });
+    } else {
+      form.reset(emptyCustomer);
       setTab("manual");
     }
-    // Solo reaccionar a la apertura del diálogo; ignorar cambios en initialData.
+    // Solo reaccionar a la apertura del diálogo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleCsfParsed = useCallback((patch: Partial<CustomerFormData>) => {
-    setForm((prev) => {
-      const next: CustomerFormData = { ...prev };
-      (Object.keys(patch) as (keyof CustomerFormData)[]).forEach((k) => {
-        const v = patch[k];
-        if (v !== undefined && v !== "") (next as Record<string, unknown>)[k] = v;
-      });
-      return next;
+    const current = form.getValues();
+    const next: CustomerFormData = { ...current };
+    (Object.keys(patch) as (keyof CustomerFormData)[]).forEach((k) => {
+      const v = patch[k];
+      if (v !== undefined && v !== "") (next as Record<string, unknown>)[k] = v;
     });
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsedResult = customerFormSchema.safeParse(form);
-    if (!parsedResult.success) { toast.error(parsedResult.error.issues[0].message); return; }
-    onSubmit(form);
-  };
+    form.reset(next, { keepDirty: true });
+  }, [form]);
 
   const formFields = (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <IdentitySection form={form} set={set} />
-      <FiscalSection form={form} set={set} />
-      <ContactSection form={form} set={set} />
-      <AddressNotesSection form={form} set={set} />
-      <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Agregar Cliente"} isPending={isPending} onCancel={() => onOpenChange(false)} />
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <IdentitySection />
+        <FiscalSection />
+        <ContactSection />
+        <AddressNotesSection />
+        <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Agregar Cliente"} isPending={isPending} onCancel={() => onOpenChange(false)} />
+      </form>
+    </Form>
   );
 
   return (
