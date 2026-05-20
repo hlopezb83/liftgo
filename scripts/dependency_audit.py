@@ -153,14 +153,17 @@ deps = load_deps()
 dep_rows = []
 for name, version in sorted(deps.items()):
     cat, note = classify_dep(name)
-    out = run(["rg", "-l", "--fixed-strings", f'from "{name}"', "src"])
-    consumers_count = len([f for f in out.strip().splitlines() if f])
+    static = run(["rg", "-l", "--fixed-strings", f'from "{name}"', "src"])
+    dynamic = run(["rg", "-l", "--fixed-strings", f'import("{name}")', "src"])
+    files = set(f for f in static.strip().splitlines() if f) | set(
+        f for f in dynamic.strip().splitlines() if f
+    )
     dep_rows.append({
         "Paquete":     name,
         "Versión":     version,
         "Categoría":   cat,
         "Mapeo §20.4": note,
-        "Consumidores": consumers_count,
+        "Consumidores": len(files),
     })
 
 # KPIs
