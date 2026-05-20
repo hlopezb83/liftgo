@@ -1,0 +1,30 @@
+{
+  "version": "6.7.0",
+  "date": "2026-05-20",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Invoice form migrado a react-hook-form + Zod (Fase 3 de 3) — deuda §20.4 cerrada",
+  "summary": "InvoiceForm adopta el stack canónico: las 9 piezas de useState del state bag se consolidan en un único useForm<InvoiceFormValues> con zodResolver. Tabla de partidas reactiva vía useFieldArray; totales reactivos vía useWatch memoizado.",
+  "highlights": [
+    "Nuevo esquema invoiceFormSchema con lineItemSchema + cfdiSchema (validación por campo y mínimo 1 partida).",
+    "useInvoiceFormState eliminado; useInvoicePrefill aplica form.reset atómico desde existing/sourceQuote (keepDirty desde quote).",
+    "EditableLineItemsTable usa useFieldArray con key estable (field.id), sin re-mounts; total por fila reactivo.",
+    "CfdiFieldsCard consume useFormContext; regla moneda→tipoCambio=1 inline; sin prop drilling.",
+    "Validación 100% por Zod + <FormMessage>; sin toast.error manuales por requeridos."
+  ],
+  "technical": {
+    "files_changed": [
+      "src/lib/schemas/invoiceFormSchema.ts (nuevo)",
+      "src/features/invoices/hooks/useInvoiceFormLogic.ts",
+      "src/features/invoices/hooks/invoiceForm/useInvoicePrefill.ts",
+      "src/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers.ts",
+      "src/features/invoices/hooks/invoiceForm/useInvoiceFormSubmit.ts",
+      "src/features/invoices/hooks/invoiceForm/useInvoiceFormState.ts (eliminado)",
+      "src/features/invoices/components/invoice-form/CfdiFieldsCard.tsx",
+      "src/features/invoices/components/invoice-form/EditableLineItemsTable.tsx",
+      "src/features/invoices/pages/InvoiceForm.tsx"
+    ],
+    "phase": "3/3 — Invoice (cierra Fases 1 Customer y 2 Forklift)",
+    "compatibility": "Payload al RPC idéntico (mismas columnas/defaults); InvoiceDocument PDF y stamp-cfdi sin cambios."
+  }
+}
