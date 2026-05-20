@@ -2,10 +2,10 @@ import { z } from "zod";
 import { nowMty } from "@/lib/utils";
 
 export const lineItemSchema = z.object({
-  description: z.string().default(""),
+  description: z.string(),
   quantity: z.number().min(1, "Cantidad ≥ 1"),
   unit_price: z.number().min(0, "Precio ≥ 0"),
-  total: z.number().default(0),
+  total: z.number(),
   clave_prod_serv: z.string().optional(),
   clave_unidad: z.string().optional(),
   objeto_imp: z.string().optional(),
@@ -14,28 +14,28 @@ export const lineItemSchema = z.object({
 });
 
 export const cfdiSchema = z.object({
-  serie: z.string().default(""),
-  folio: z.string().default(""),
-  formaPago: z.string().default("03"),
-  metodoPago: z.string().default("PUE"),
-  usoCfdi: z.string().default("G03"),
-  moneda: z.string().default("MXN"),
-  tipoCambio: z.number().min(0).default(1),
-  receptorRfc: z.string().default(""),
-  receptorRazonSocial: z.string().default(""),
-  receptorRegimenFiscal: z.string().default(""),
-  receptorDomicilioFiscalCp: z.string().default(""),
+  serie: z.string(),
+  folio: z.string(),
+  formaPago: z.string(),
+  metodoPago: z.string(),
+  usoCfdi: z.string(),
+  moneda: z.string(),
+  tipoCambio: z.number().min(0),
+  receptorRfc: z.string(),
+  receptorRazonSocial: z.string(),
+  receptorRegimenFiscal: z.string(),
+  receptorDomicilioFiscalCp: z.string(),
 });
 
 export const invoiceFormSchema = z.object({
-  bookingId: z.string().default(""),
-  customerId: z.string().nullable().default(null),
-  customerName: z.string().default(""),
+  bookingId: z.string(),
+  customerId: z.string().nullable(),
+  customerName: z.string(),
   lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
-  taxRate: z.number().min(0).default(16),
+  taxRate: z.number().min(0),
   issueDate: z.date(),
   dueDate: z.date().optional(),
-  notes: z.string().default(""),
+  notes: z.string(),
   cfdi: cfdiSchema,
 });
 
