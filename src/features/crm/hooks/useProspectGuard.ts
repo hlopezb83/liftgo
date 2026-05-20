@@ -1,5 +1,5 @@
 import { useUserRole } from "@/features/users/hooks/useUserRole";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 /**
  * Centralizes the "Cerrado Ganado" stage permission rule for prospects.
