@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.6.0-alpha.5",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Auditoría §20: reporte de dependencias vs helpers internos",
+    "category": "docs"
+  },
+  {
     "version": "6.6.0-alpha.4",
     "date": "2026-05-20",
     "type": "patch",

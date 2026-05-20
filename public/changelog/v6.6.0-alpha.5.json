@@ -1,0 +1,38 @@
+{
+  "version": "6.6.0-alpha.5",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Auditoría §20: reporte de dependencias vs helpers internos",
+  "category": "docs",
+  "summary": "Se añade un script reproducible y un reporte (Markdown + Excel) que mapea cada helper interno contra el stack canónico §20.4, con veredicto (KEEP/MIGRAR), prioridad y consumidores. Base para decidir migraciones futuras.",
+  "changes": [
+    {
+      "area": "Reporte",
+      "items": [
+        "Nuevo docs/dependency-audit.md con 16 helpers y 47 dependencias clasificados.",
+        "Artefacto descargable /mnt/documents/liftgo-dependency-audit.xlsx (3 hojas: Helpers, Dependencias, Resumen).",
+        "Script scripts/dependency_audit.py: cuenta LOC/consumidores en vivo y aplica clasificación manual §20."
+      ]
+    },
+    {
+      "area": "Hallazgos clave",
+      "items": [
+        "15 helpers KEEP (glue <30 LOC, sin equivalente, o ya delegan en una dep canónica).",
+        "1 helper a MIGRAR: useFormState (9 LOC, 8 consumidores) → react-hook-form. Prioridad media.",
+        "4 dependencias no canónicas a evaluar: @hello-pangea/dnd (de facto canónica), dompurify, file-saver, html2canvas.",
+        "43 dependencias canónicas activas alineadas con §20.4."
+      ]
+    },
+    {
+      "area": "architecture.md",
+      "items": [
+        "§20.6 enlaza al reporte y al script para regenerarlo."
+      ]
+    }
+  ],
+  "verification": {
+    "scope": "python3 scripts/dependency_audit.py corre limpio; markdown y xlsx generados con conteos en vivo.",
+    "manual": "Abrir docs/dependency-audit.md y el xlsx para confirmar formato."
+  },
+  "risk": "Nulo. Solo documentación y script de análisis; no toca código de producción."
+}
