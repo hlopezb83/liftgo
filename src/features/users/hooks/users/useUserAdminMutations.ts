@@ -1,3 +1,4 @@
+// arch:excepción §19 (colección de mutaciones independientes <30 LOC c/u)
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
