@@ -350,7 +350,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - FK directa a `auth.users` — referenciar `user_id` y modelar perfiles en `profiles`.
 - Nested wildcards en rutas o re-montar `MainLayout` por ruta — usar `Suspense` por ruta.
 - Mostrar al usuario términos como “Supabase dashboard” — referirse a **Lovable Cloud**.
-- Reimplementar funcionalidad ya cubierta por una dependencia del stack canónico (ver §21.4).
+- Reimplementar funcionalidad ya cubierta por una dependencia del stack canónico (ver §20.4).
 
 ---
 
@@ -416,14 +416,14 @@ Toda excepción debe ser justificable por una de las cuatro razones anteriores. 
 
 LiftGo prefiere **librerías públicas maduras** sobre helpers internos o snippets generados por IA. Este principio es de primera clase: complementa la regla #8 de Power of 10 (§18) y rige cada PR.
 
-### 21.1 Principio
+### 20.1 Principio
 
 - Las dependencias públicas tienen tests upstream, ecosistema de issues, documentación y mantenimiento compartido.
 - El código generado por IA es **punto de partida**, nunca sustituto de una librería probada.
 - Cada "utility" propia que reimplementa algo que ya existe en npm es deuda: superficie de bugs, sin tests upstream, fricción de onboarding.
 - Caso de referencia: migración de jsPDF imperativo (dibujo X/Y manual, helpers internos) a `@react-pdf/renderer` declarativo en `v6.6.0-alpha.1`.
 
-### 21.2 Criterios para adoptar una dependencia (checklist)
+### 20.2 Criterios para adoptar una dependencia (checklist)
 
 - Mantenimiento activo (último release < 12 meses, issues atendidos).
 - Tipos TS oficiales o `@types/*` de calidad.
@@ -432,7 +432,7 @@ LiftGo prefiere **librerías públicas maduras** sobre helpers internos o snippe
 - Sin vulnerabilidades altas/críticas abiertas.
 - Ecosistema: usada por React / Vite / shadcn mainstream cuando aplica.
 
-### 21.3 Cuándo sí escribir código propio
+### 20.3 Cuándo sí escribir código propio
 
 Solo cuando se cumple **al menos uno**:
 
@@ -441,7 +441,7 @@ Solo cuando se cumple **al menos uno**:
 - Requisito de seguridad que exige RPC en Postgres, no cliente.
 - Glue muy delgado (< 30 LOC) entre dos librerías ya adoptadas.
 
-### 21.4 Stack canónico (qué usar — no reinventar)
+### 20.4 Stack canónico (qué usar — no reinventar)
 
 | Necesidad | Usar | NO reimplementar |
 |---|---|---|
@@ -462,21 +462,21 @@ Solo cuando se cumple **al menos uno**:
 | Animaciones | `tailwindcss-animate` (+ `framer-motion` puntual) | `setTimeout` + clases |
 | Testing | `vitest` + `@testing-library/react` | Asserts manuales |
 
-### 21.5 Proceso para introducir una dependencia nueva
+### 20.5 Proceso para introducir una dependencia nueva
 
-1. Verificar que no exista ya algo equivalente en el stack canónico (§21.4).
+1. Verificar que no exista ya algo equivalente en el stack canónico (§20.4).
 2. Aplicar checklist 21.2.
 3. Instalar con `bun add`; añadir nota al changelog (`type: refactor` o `feature`).
-4. Si pasa a ser canónica, documentarla en §2 (Stack tecnológico) y en §21.4.
+4. Si pasa a ser canónica, documentarla en §2 (Stack tecnológico) y en §20.4.
 5. Si reemplaza código propio: **eliminar el archivo legacy en el mismo PR** (no dejar código muerto).
 
-### 21.6 Proceso para retirar código generado / hand-rolled
+### 20.6 Proceso para retirar código generado / hand-rolled
 
 - Cuando un helper interno duplica una librería canónica → marcarlo `@deprecated` con `// TODO(deps): migrar a <lib>` y abrir entrada de changelog.
 - Migración **incremental**: features nuevas usan la dependencia; el legacy se migra cuando se toca por otra razón.
 - Migraciones grandes (jsPDF → react-pdf, cálculos → currency.js) se hacen como olas dedicadas y se registran como `major` o `minor` con resumen en `public/changelog/v<X.Y.Z>.json`.
 
-### 21.7 Anti-patrones
+### 20.7 Anti-patrones
 
 - "Lo escribo yo, así sé qué hace" — más mantenimiento, sin tests upstream.
 - Copiar un snippet de IA que reimplementa algo de `date-fns` / `zod` / `tanstack` / `currency.js`.

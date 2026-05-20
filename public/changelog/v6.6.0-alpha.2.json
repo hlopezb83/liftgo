@@ -9,7 +9,7 @@
     {
       "area": "architecture.md §20 (nueva sección)",
       "items": [
-        "21.1 Principio: librerías públicas > código propio; IA es punto de partida, no sustituto.",
+        "20.1 Principio: librerías públicas > código propio; IA es punto de partida, no sustituto.",
         "20.2 Checklist para adoptar dependencias (mantenimiento, tipos, tamaño, licencia, vulnerabilidades, ecosistema).",
         "20.3 Cuándo sí escribir código propio (reglas de negocio LiftGo, RPC de seguridad, glue <30 LOC).",
         "20.4 Stack canónico tabulado: date-fns, zod, react-hook-form, tanstack/query, tanstack/react-table, shadcn, lucide, @react-pdf/renderer, currency.js, sonner, react-dropzone, react-markdown, clsx+tailwind-merge, vitest.",
