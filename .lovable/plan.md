@@ -1,41 +1,42 @@
-## Problema detectado
+## Objetivo
 
-En `architecture.md`, la sección **§20 "Dependencias antes que código propio"** tiene subsecciones numeradas como **21.1 … 21.7** (heredado del plan original que iba a ser §21). Además, varias referencias cruzadas apuntan a `§21.4` cuando el contenido está realmente bajo §20. La sección §21 actual es "Referencias" (otro contenido).
+Aplicar §20 al primer caso claro: **eliminar el sistema de toasts duplicado** (`shadcn/use-toast` + `@radix-ui/react-toast` + `<Toaster>`) consolidando todo en `sonner`, que ya es la dependencia canónica (§20.4) y se usa en 84 archivos.
 
-### Inconsistencias concretas
+## Hallazgo
 
-| Línea | Texto actual | Debe ser |
-|---|---|---|
-| 419 | `### 21.1 Principio` | `### 20.1 Principio` |
-| 426 | `### 21.2 Criterios para adoptar una dependencia (checklist)` | `### 20.2 …` |
-| 435 | `### 21.3 Cuándo sí escribir código propio` | `### 20.3 …` |
-| 444 | `### 21.4 Stack canónico (qué usar — no reinventar)` | `### 20.4 …` |
-| 465 | `### 21.5 Proceso para introducir una dependencia nueva` | `### 20.5 …` |
-| 473 | `### 21.6 Proceso para retirar código generado / hand-rolled` | `### 20.6 …` |
-| 479 | `### 21.7 Anti-patrones` | `### 20.7 …` |
-| 353 | `…stack canónico (ver §21.4).` | `…stack canónico (ver §20.4).` |
-| 467 | `…stack canónico (§21.4).` | `…stack canónico (§20.4).` |
-| 470 | `…documentarla en §2 (Stack tecnológico) y en §21.4.` | `…y en §20.4.` |
+Coexisten dos stacks de notificación:
 
-La referencia de la línea 370 (`Ver **§20**`) ya está correcta. La sección §21 "Referencias" (línea 489) queda intacta.
+- **Canónico (§20.4):** `sonner` — 84 consumidores, integrado vía `<Sonner />` en `AppProviders.tsx`.
+- **Residual (shadcn legacy):** `hooks/use-toast.ts` (186 LOC) + `components/ui/toast.tsx` + `components/ui/toaster.tsx` + `@radix-ui/react-toast`. Solo **1 consumidor real**: `src/features/crm/hooks/useProspectGuard.ts`.
 
-### Cambios en `public/changelog/v6.6.0-alpha.2.json`
-
-El detalle del changelog también mezcla numeración: contiene `21.1 Principio` mientras el resto usa `20.x`. Normalizar todos los bullets a `20.1 … 20.7` para que coincida con el documento corregido. El título ya dice `§20`, así que solo cambia el primer bullet.
+Mantener ambos viola §20.7 ("wrappers triviales / duplicación del stack canónico") y §17 (anti-patrón añadido en alpha.2).
 
 ## Acciones
 
-1. Renumerar los 7 encabezados de subsección de `21.x` → `20.x` en `architecture.md`.
-2. Corregir las 3 referencias cruzadas `§21.4` → `§20.4` (líneas 353, 467, 470).
-3. Normalizar el bullet `21.1 Principio` → `20.1 Principio` en `public/changelog/v6.6.0-alpha.2.json` (no se crea entrada nueva — es corrección del mismo registro de docs).
-4. Verificar con `grep -nE "§(20|21)|### 2[01]\."` que no queden referencias cruzadas o subsecciones con numeración incorrecta.
+1. **Migrar el único consumidor**: `src/features/crm/hooks/useProspectGuard.ts` cambia `import { toast } from "@/hooks/use-toast"` → `import { toast } from "sonner"` y adapta la(s) llamada(s) al API de sonner (`toast.error(title, { description })` en vez de `toast({ title, description, variant })`).
 
-## Fuera de alcance
+2. **Eliminar archivos legacy**:
+   - `src/hooks/use-toast.ts`
+   - `src/components/ui/toast.tsx`
+   - `src/components/ui/toaster.tsx`
 
-- No se cambia el contenido textual de las subsecciones, solo la numeración.
-- No se toca §21 "Referencias" ni ninguna otra sección.
-- No se añade una nueva entrada de changelog (es corrección menor del mismo alpha.2).
+3. **Limpiar render del Toaster legacy** si está montado en `AppProviders.tsx` (verificar y, si existe, remover `<Toaster />` shadcn dejando solo `<Sonner />`).
+
+4. **Remover dependencia**: `bun remove @radix-ui/react-toast`.
+
+5. **Verificar**:
+   - `rg "use-toast|@/components/ui/toast(er)?|@radix-ui/react-toast" src` → 0 resultados.
+   - Build limpio sin warnings.
+   - Test rápido en `/crm` que el toast de prospect-guard se renderice.
+
+6. **Changelog**: nueva entrada `refactor` `6.6.0-alpha.3` en `public/changelog.json` + `public/changelog/v6.6.0-alpha.3.json` documentando el primer caso de aplicación de §20 (retiro de wrapper legacy, consolidación en `sonner`).
+
+## Fuera de alcance (follow-ups posibles)
+
+- **`useFormState` → `react-hook-form`**: 7 dialogs/forms lo usan. Migración mayor, mejor en PR aparte.
+- **`useDebouncedValue` → `use-debounce`**: cabe en la excepción §20.3 (glue <30 LOC); no se migra.
+- **Resto de utilidades de `lib/` y `hooks/`**: auditadas — no duplican stack canónico (ver tabla en el mensaje previo).
 
 ## Riesgo
 
-Nulo — solo renumeración y referencias cruzadas en documentación.
+Bajo. Cambio mecánico: 1 import a migrar, 3 archivos a eliminar, 1 dependencia removida. Si algún archivo todavía importara los legacy, el typecheck del build los detecta.
