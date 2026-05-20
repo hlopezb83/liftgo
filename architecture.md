@@ -461,6 +461,8 @@ Solo cuando se cumple **al menos uno**:
 | Class merging | `clsx` + `tailwind-merge` (vía `cn`) | Concatenación de strings |
 | Animaciones | `tailwindcss-animate` (+ `framer-motion` puntual) | `setTimeout` + clases |
 | Testing | `vitest` + `@testing-library/react` | Asserts manuales |
+| Descargas blob | `file-saver` (lazy import) | `URL.createObjectURL` + `link.click` ad-hoc duplicado |
+| Captura screenshot DOM | `html2canvas` (lazy import, solo feedback) | Re-render manual a canvas |
 
 ### 20.5 Proceso para introducir una dependencia nueva
 

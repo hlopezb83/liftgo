@@ -1,46 +1,41 @@
-# Ola B — Refactor de tamaño (§19 Power of 10)
+## Ola C — Auditoría §20: cierre
 
-Objetivo: bajar 6 hooks por debajo de 80 LOC y 2 diálogos por debajo de 150 LOC, marcando las tablas densas como excepción documentada §19. Sólo refactor estructural, sin cambios funcionales ni de UI.
+Cierra la auditoría arquitectónica corrigiendo el script de auditoría (subcuenta usos dinámicos), documentando las dos dependencias actualmente fuera del stack canónico y dejando trazabilidad en el changelog.
 
-## 1. Hooks oversized (>80 LOC)
+### Hallazgo
 
-| Archivo | LOC | Acción |
-|---|---|---|
-| `useInvoicePrefill.ts` | 156 | Mover `cfdiFromInvoice`, `enrichLineItem`, `buildFromInvoice`, `buildFromQuote` → nuevo `invoiceForm/invoiceFormBuilders.ts`. Hook queda con sólo 2 `useEffect`. |
-| `useInvoiceFormLogic.ts` | 121 | Extraer `useInvoiceFormHandlers(form, customers, bookings, forklifts)` (handleCustomerSelect + handleBookingSelect) y `useInvoiceFormTotals(form)` → nuevos archivos en `hooks/invoiceForm/`. |
-| `useQuotePrefill.ts` | 120 | Mover `applyBaseFields`, `applyLogistics`, `applySaleLines`, `applyRentalLines`, `matchModel`, `lineToRentalLine`, `getRentalMeta`, `rebuildRentalLinesFromItems` → nuevo `quoteForm/quoteFormPrefillHelpers.ts`. |
-| `useOperatingExpenseMutations.ts` | 116 | Mover `buildRecurringInserts` → `expenses/lib/recurringExpensesHelpers.ts`. |
-| `useUserMutations.ts` | 114 | Dividir por concern: `useUserMutations.ts` mantiene `useUpdateRole`, `useUpdateName`. Nuevo `useUserAdminMutations.ts` con `useInviteUser`, `useDeleteUser`, `useResetPassword`, `useToggleStatus`. Actualizar barrel/imports. |
-| `useMaintenanceForm.ts` | 111 | Mover `buildMaintenancePayload` + `initialForm` + schema → `maintenance/lib/maintenanceFormHelpers.ts`. Hook conserva sólo estado y handlers. |
+`scripts/dependency_audit.py` solo cuenta imports estáticos (`from "pkg"`), por lo que `file-saver` y `html2canvas` aparecen con **0 consumidores** cuando en realidad se usan vía `await import("pkg")` (lazy, justamente como exige §20.2 para libs > 50 KB):
 
-## 2. Componentes oversized (>150 LOC)
+- `file-saver` (4 consumidores): `src/lib/pdf/quote/build.tsx`, `src/lib/pdf/incomeStatement.tsx`, `src/lib/pdf/customerStatement.tsx`, `src/features/contracts/lib/contractPdfBuilder.tsx`, `src/features/invoices/lib/pdf/build.tsx`.
+- `html2canvas` (1 consumidor): `src/features/feedback/lib/captureScreenshot.ts`.
 
-| Archivo | LOC | Acción |
-|---|---|---|
-| `DeliveryFormDialog.tsx` | 199 | Extraer JSX de los `FormField` a `DeliveryFormFields.tsx` (recibe `form`, `forklifts`, `bookings`, `activeDrivers`). Dialog queda <80 LOC. |
-| `ExpenseFormDialog.tsx` | 159 | Extraer `ExpenseFormFields.tsx` (recibe `form`, `supplierId`, `setSupplierId`). |
-| `CustomerFormSections.tsx` | 182 | Excepción §19 — ya es un conjunto de secciones. Marcar con `// arch:excepción §19 (secciones agrupadas de un mismo formulario)`. |
-| `RentalLineItems.tsx` (157) / `SaleLineItems.tsx` (152) | | Excepción §19 — tabla densa editable. Marcar con `// arch:excepción §19 (tabla densa editable)`. |
-| `ProfitabilityByModelReport.tsx` (198), `IncomeStatementTable.tsx` (189), `UtilizationByModelReport.tsx` (154) | | Excepción §19 — tabla densa de reporte. Marcar con `// arch:excepción §19 (tabla densa de reporte)`. |
-| `auditTrailConstants.tsx` (159) | | Excepción §19 — archivo de constantes/labels. Marcar comentario. |
+Ambas son **canónicas de facto** para su nicho (descarga de blobs PDF y captura DOM para feedback). Falta documentarlas en §20.4 y reclasificarlas como `Canónica activa`.
 
-## 3. Changelog
+### Cambios
 
-Crear `public/changelog/v6.7.3.json` (patch) + entrada en `public/changelog.json`:
-- "Refactor estructural — hooks ≤80 LOC, diálogos ≤150 LOC"
-- Listar archivos divididos y excepciones documentadas.
+**1. `scripts/dependency_audit.py`**
+- Nuevo helper `dynamic_consumers(name)` que cuenta `import("pkg")` con `rg`. Sumar al conteo estático en `consumers_count`.
+- Mover `file-saver` y `html2canvas` de `NON_CANONICAL_NOTES` a `CANONICAL`:
+  - `file-saver` → `"Descargas blob (lazy)"`
+  - `html2canvas` → `"Captura DOM (lazy, feedback)"`
 
-## 4. Verificación
+**2. `docs/dependency-audit.md`**
+- Regenerar ejecutando `python scripts/dependency_audit.py`.
+- Resultado esperado: 2 deps menos en "no canónicas", conteo correcto de consumidores.
 
-- `bunx knip --no-progress` → 0 dead exports tras la división.
-- Lectura visual de los archivos divididos para confirmar imports correctos.
-- Sin cambios de comportamiento esperados: el typecheck del harness cubre regresiones.
+**3. `architecture.md` §20.4**
+- Añadir dos filas a la tabla del stack canónico:
+  - `| Descargas blob | file-saver (lazy import) | URL.createObjectURL ad-hoc duplicado |`
+  - `| Captura screenshot DOM | html2canvas (lazy import) | Re-render manual a canvas |`
 
-## Detalles técnicos
+**4. Changelog**
+- `public/changelog/v6.7.4.json` (patch): "Cierre auditoría §20 — script cuenta lazy imports, file-saver/html2canvas promovidas a canónicas, §20.4 actualizado, reporte regenerado".
+- Actualizar `public/changelog.json` al inicio del array.
 
-- Cada helper extraído es función pura tipada (sin `any`/`!`/`as`).
-- Los nuevos archivos respetan ≤150 LOC componentes / ≤80 LOC hooks.
-- Mantener las firmas públicas: ningún consumidor cambia su import salvo `useUserMutations` (4 hooks migran al nuevo `useUserAdminMutations`); ajustar consumidores en la misma pasada.
-- Comentarios `// arch:excepción §19 (...)` justifican los archivos que conscientemente quedan sobre el límite.
+### Verificación
+- Re-ejecutar `python scripts/dependency_audit.py` y confirmar que `file-saver` y `html2canvas` aparecen como `Canónica activa` con consumidores > 0.
+- `bunx knip --no-progress` → 0 dead exports.
 
-Ola C (siguiente, no incluida aquí): actualizar `dependency_audit.py` para detectar `file-saver` dinámico, regenerar `docs/dependency-audit.md` y documentar `html2canvas` en §20.4.
+### Fuera de alcance
+- No se toca código de aplicación (sin cambios funcionales ni de UI).
+- `useFormState.ts` (única migración pendiente §20) sigue marcada como "MIGRAR media" para una ola posterior dedicada.
