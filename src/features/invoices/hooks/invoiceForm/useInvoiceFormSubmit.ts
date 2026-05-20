@@ -53,13 +53,14 @@ export function useInvoiceFormSubmit() {
 
   const buildPayload = ({ values, isEdit, fromQuoteId, existingBookingId, existingQuoteId }: BuildPayloadArgs) => {
     const { bookingId, customerId, customerName, lineItems, taxRate, dueDate, issueDate, notes, cfdi } = values;
-    const { subtotal, taxAmount, total } = computeTotals(lineItems, taxRate);
+    const items = toLineItems(lineItems);
+    const { subtotal, taxAmount, total } = computeTotals(items, taxRate);
     return {
       booking_id: bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null,
       customer_id: customerId,
       customer_name: nn(customerName),
       quote_id: fromQuoteId || (isEdit ? orEmpty(existingQuoteId, null) : null) || null,
-      line_items: toJsonArray(lineItems),
+      line_items: toJsonArray(items),
       subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
       issued_at: format(issueDate, "yyyy-MM-dd"),
