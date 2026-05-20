@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.2",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Auditoría arquitectónica Ola A: AlertDialog en CRM + limpieza de exports muertos",
+    "category": "refactor"
+  },
+  {
     "version": "6.7.1",
     "date": "2026-05-20",
     "type": "patch",
