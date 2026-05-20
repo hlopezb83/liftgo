@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { useFormState } from "@/hooks/useFormState";
+import { useCallback, useMemo, useState } from "react";
 import { useEquipmentModels } from "@/features/fleet/hooks/useEquipmentModels";
 import type { ForkliftFormData } from "@/lib/formSchemas";
 import type { Tables } from "@/integrations/supabase/types";
@@ -15,7 +14,10 @@ type ExistingForklift = Tables<"forklifts"> | null | undefined;
 
 export function useForkliftFormState(existing: ExistingForklift) {
   const { data: equipmentModels } = useEquipmentModels();
-  const { form, set, setForm } = useFormState(emptyForm);
+  const [form, setForm] = useState<ForkliftFormData>(emptyForm);
+  const set = useCallback(<K extends keyof ForkliftFormData>(key: K, value: ForkliftFormData[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const hasModels = !!(equipmentModels && equipmentModels.length > 0);
 
