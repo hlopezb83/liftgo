@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useFormState } from "@/hooks/useFormState";
+import { useCallback, useState } from "react";
 import { nowMty } from "@/lib/utils";
 import type { CfdiLineItem } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 
@@ -28,7 +27,10 @@ export function useInvoiceFormState() {
   const [dueDate, setDueDate] = useState<Date>();
   const [issueDate, setIssueDate] = useState<Date>(nowMty());
   const [notes, setNotes] = useState("");
-  const { form: cfdi, set: setCfdi, setForm: setCfdiForm } = useFormState(INITIAL_CFDI);
+  const [cfdi, setCfdiForm] = useState<CfdiFormState>(INITIAL_CFDI);
+  const setCfdi = useCallback(<K extends keyof CfdiFormState>(key: K, value: CfdiFormState[K]) => {
+    setCfdiForm((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   return {
     bookingId, setBookingId,

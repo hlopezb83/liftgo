@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormActions } from "@/components/FormActions";
-import { useFormState } from "@/hooks/useFormState";
 import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
 import { toast } from "sonner";
 import {
@@ -30,17 +29,20 @@ interface CustomerFormDialogProps {
 }
 
 export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, isPending, onSubmit }: CustomerFormDialogProps) {
-  const { form, set, setForm, reset } = useFormState(emptyCustomer);
+  const [form, setForm] = useState<CustomerFormData>(emptyCustomer);
+  const set = useCallback(<K extends keyof CustomerFormData>(key: K, value: CustomerFormData[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }, []);
   const [tab, setTab] = useState("manual");
 
   useEffect(() => {
     if (open && initialData) {
       setForm({ ...emptyCustomer, ...initialData });
     } else if (open && !initialData) {
-      reset();
+      setForm(emptyCustomer);
       setTab("manual");
     }
-    // Solo reaccionar a la apertura del diálogo; ignorar cambios en initialData/reset/setForm.
+    // Solo reaccionar a la apertura del diálogo; ignorar cambios en initialData.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -53,7 +55,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       });
       return next;
     });
-  }, [setForm]);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
