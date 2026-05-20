@@ -4,12 +4,10 @@ import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { computeTotals } from "@/features/invoices/lib/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { orEmpty } from "@/lib/forms/coerce";
-import type { useInvoiceFormState, CfdiFormState } from "./useInvoiceFormState";
-
-type State = ReturnType<typeof useInvoiceFormState>;
+import type { InvoiceFormValues, CfdiFormValues } from "@/lib/schemas/invoiceFormSchema";
 
 interface BuildPayloadArgs {
-  state: State;
+  values: InvoiceFormValues;
   isEdit: boolean;
   fromQuoteId: string | null;
   existingBookingId?: string | null;
@@ -18,7 +16,7 @@ interface BuildPayloadArgs {
 
 const nn = (s: string | null | undefined): string | null => (s ? s : null);
 
-function buildCfdiPayload(cfdi: CfdiFormState) {
+function buildCfdiPayload(cfdi: CfdiFormValues) {
   return {
     serie: nn(cfdi.serie),
     folio: nn(cfdi.folio),
@@ -39,8 +37,8 @@ export function useInvoiceFormSubmit() {
   const updateInvoice = useUpdateInvoice();
   const updateQuote = useUpdateQuote();
 
-  const buildPayload = ({ state, isEdit, fromQuoteId, existingBookingId, existingQuoteId }: BuildPayloadArgs) => {
-    const { bookingId, customerId, customerName, lineItems, taxRate, dueDate, issueDate, notes, cfdi } = state;
+  const buildPayload = ({ values, isEdit, fromQuoteId, existingBookingId, existingQuoteId }: BuildPayloadArgs) => {
+    const { bookingId, customerId, customerName, lineItems, taxRate, dueDate, issueDate, notes, cfdi } = values;
     const { subtotal, taxAmount, total } = computeTotals(lineItems, taxRate);
     return {
       booking_id: bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null,
