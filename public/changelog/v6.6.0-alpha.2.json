@@ -1,0 +1,38 @@
+{
+  "version": "6.6.0-alpha.2",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Doctrina: dependencias públicas antes que código propio (§20)",
+  "category": "docs",
+  "summary": "Se eleva a principio arquitectónico de primera clase la preferencia por dependencias públicas maduras sobre helpers internos o snippets generados por IA. Cambio exclusivo de documentación.",
+  "changes": [
+    {
+      "area": "architecture.md §20 (nueva sección)",
+      "items": [
+        "21.1 Principio: librerías públicas > código propio; IA es punto de partida, no sustituto.",
+        "20.2 Checklist para adoptar dependencias (mantenimiento, tipos, tamaño, licencia, vulnerabilidades, ecosistema).",
+        "20.3 Cuándo sí escribir código propio (reglas de negocio LiftGo, RPC de seguridad, glue <30 LOC).",
+        "20.4 Stack canónico tabulado: date-fns, zod, react-hook-form, tanstack/query, tanstack/react-table, shadcn, lucide, @react-pdf/renderer, currency.js, sonner, react-dropzone, react-markdown, clsx+tailwind-merge, vitest.",
+        "20.5 Proceso para introducir una dependencia nueva (verificar canónica → checklist → bun add → changelog → eliminar legacy).",
+        "20.6 Proceso para retirar código generado/hand-rolled (@deprecated + TODO(deps), migración incremental).",
+        "20.7 Anti-patrones (wrappers triviales, reimplementar date-fns/zod/tanstack, forks internos)."
+      ]
+    },
+    {
+      "area": "architecture.md §18 (Power of 10)",
+      "items": [
+        "Regla #8 ampliada: 'Herramientas estándar / dependencias antes que código propio' con referencia explícita a §20."
+      ]
+    },
+    {
+      "area": "architecture.md §17 (Anti-patrones a evitar)",
+      "items": [
+        "Nuevo bullet: 'Reimplementar funcionalidad ya cubierta por una dependencia del stack canónico (§20.4)'."
+      ]
+    }
+  ],
+  "verification": {
+    "scope": "Solo documentación. No se modifica package.json, código fuente ni migraciones."
+  },
+  "risk": "Nulo. Cambio exclusivo de documentación."
+}

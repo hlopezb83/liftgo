@@ -1,123 +1,103 @@
-# Migración PDF → @react-pdf/renderer
 
-Reemplazar el motor imperativo (jsPDF + jspdf-autotable + dibujo manual X/Y) por componentes React declarativos. Alcance: **todos** los generadores (Cotización, Factura, Contrato, Estado de Cuenta, Estado de Resultados) + preview en Dialog desde `QuoteDetail`.
+# Plan: complementar `architecture.md` con preferencia por dependencias públicas
 
-## Resultado esperado
+## Objetivo
 
-- Cero imports de `jspdf` o `jspdf-autotable` en `src/`.
-- Generadores expresados como `<Document><Page>…</Page></Document>`.
-- Una hoja de estilos central (`StyleSheet.create`) por tipo de documento, con tokens compartidos (colores, márgenes, tipografía).
-- Textos largos (descripciones de partidas, cláusulas) envuelven con `wrap` sin romper layout.
-- Botón **Previsualizar PDF** en `QuoteDetail` abre un Dialog con `<PDFViewer>` ocupando ~90vh.
-- Botón "Descargar PDF" pasa a usar `pdf(<QuoteDocument …/>).toBlob()` + `file-saver` (o `saveAs` nativo) en lugar de `doc.save()`.
+Hacer explícita la política de **"prefer mature public dependencies over hand-rolled/AI-generated code"** como principio arquitectónico de primera clase. Hoy el documento sólo lo insinúa en la regla #8 de Power of 10 ("Herramientas estándar"), pero no da criterios, ni lista qué adoptar/evitar, ni cómo evaluar una librería. La migración reciente de PDFs (jsPDF imperativo → `@react-pdf/renderer` declarativo) es justo el patrón que queremos institucionalizar.
 
-## Arquitectura nueva
+## Cambios propuestos en `architecture.md`
 
-```text
-src/lib/pdf/
-├── theme/
-│   ├── styles.ts         ← StyleSheet.create() compartido (colores, type scale, spacing, table)
-│   ├── tokens.ts         ← MARGIN, GRAY_*, font sizes
-│   └── fonts.ts          ← Font.register (Inter / Helvetica fallback)
-├── components/
-│   ├── Header.tsx        ← AccentBar + logo + folio
-│   ├── InfoCards.tsx     ← Tarjetas de cliente / emisor / vigencia
-│   ├── LineItemsTable.tsx← Tabla con header sticky, zebra, wrap en descripción
-│   ├── TotalsBox.tsx     ← Subtotal / IVA / Total
-│   └── Footer.tsx        ← Datos fiscales + paginación (render="…")
-└── documents/
-    ├── QuoteDocument.tsx
-    ├── InvoiceDocument.tsx
-    ├── ContractDocument.tsx        ← multi-Page: Contrato, Anexo A (Checklist), Anexo B (Pagaré)
-    ├── CustomerStatementDocument.tsx
-    └── IncomeStatementDocument.tsx ← Page orientation="landscape"
-```
+### 1. Nueva sección §21 — "Dependencias antes que código propio"
 
-Cada `documents/*.tsx` es una función pura `(props) => <Document>…</Document>`. Los datos se siguen obteniendo en los builders existentes (`buildQuotePdf`, etc.); el builder ahora se reduce a:
+Estructura:
 
-```ts
-const blob = await pdf(<QuoteDocument {...data} />).toBlob();
-saveAs(blob, `${quote.quote_number}.pdf`);
-```
+**21.1 Principio**
+- Preferir librerías públicas maduras, tipadas y mantenidas sobre helpers internos equivalentes.
+- Código generado por IA es punto de partida, **no** sustituto de una dependencia probada.
+- Cada "utility" propia que reimplementa algo que ya existe en npm es deuda técnica: superficie de bugs, falta de tests upstream, fricción de onboarding.
 
-## Pasos de implementación
+**21.2 Criterios para adoptar una dependencia (checklist)**
+- Mantenimiento activo (último release < 12 meses, issues atendidos).
+- Tipos TS oficiales o `@types/*` de calidad.
+- Tamaño razonable (medir con bundlephobia; carga diferida si >50 KB gzip).
+- Licencia permisiva (MIT/Apache-2.0/ISC/BSD).
+- Sin vulnerabilidades altas/críticas abiertas (`bun audit`).
+- Ecosistema: usada por shadcn/Vite/React mainstream cuando aplica.
 
-1. **Dependencias y limpieza**
-   - `bun add @react-pdf/renderer file-saver` + `bun add -d @types/file-saver`
-   - Pendiente al final: `bun remove jspdf jspdf-autotable` (solo cuando los 5 builders ya no los referencien).
-   - Quitar entrada de `jsPDF lazy loaded` y nota "jsPDF locked at 4.0.0 max" del memory una vez removido.
+**21.3 Criterios para escribir código propio**
+Sólo cuando se cumple **al menos uno**:
+- Regla de negocio específica de LiftGo (numeración de documentos, MRR, buffer GiST).
+- La dependencia disponible es 10× más pesada que el problema.
+- Requisito de seguridad/RLS que exige RPC en Postgres, no cliente.
+- Glue muy delgado (<30 LOC) entre dos librerías ya adoptadas.
 
-2. **Theme + componentes compartidos** (`src/lib/pdf/theme/`, `src/lib/pdf/components/`)
-   - Migrar paleta de `quote/constants.ts` (GRAY_50…900, MARGIN) a `tokens.ts` y exponerlos como `StyleSheet`.
-   - `Font.register` para una familia (Inter regular/bold) servida desde `/public/fonts/`. Helvetica como fallback automático.
-   - `LineItemsTable` usa `flexDirection: 'row'`, columna descripción con `flexGrow: 1` y `Text` sin `numberOfLines` para wrap natural.
-   - `Footer` usa `<Text fixed render={({ pageNumber, totalPages }) => …} />` para paginación.
+**21.4 Stack canónico (qué usar — no reinventar)**
 
-3. **Cotización (piloto + preview)**
-   - Crear `documents/QuoteDocument.tsx` que reproduce el layout actual (header con logo + folio, info cards cliente/emisor/vigencia, tabla, totales, notas, footer).
-   - Reescribir `src/lib/pdf/quote/build.ts`: mantiene fetch de `quotes`/`customers`/`company` y devuelve `<QuoteDocument />` → `pdf(...).toBlob()` → `saveAs`.
-   - Eliminar `quote/header.ts`, `quote/table.ts`, `quote/totals.ts`, `quote/constants.ts` (migrado a theme) y el barrel `quoteGenerator.ts`.
-   - **Preview**: nuevo `src/features/quotes/components/quotes/QuotePreviewDialog.tsx` con `<Dialog>` shadcn (max-w-6xl, h-[90vh]) que monta `<PDFViewer width="100%" height="100%"><QuoteDocument {...data} /></PDFViewer>`. Hook `useQuotePreviewData(quoteId)` reutiliza el fetch del builder.
-   - Botón **"Previsualizar"** en `QuoteDetail` junto al actual "Descargar PDF". Lazy import del dialog (`React.lazy`) para no cargar `@react-pdf/renderer` en bundle base.
+| Necesidad | Usar | NO reimplementar |
+|---|---|---|
+| Fechas / zonas horarias | `date-fns` + `date-fns-tz` | Aritmética manual con `Date` |
+| Validación | `zod` | Validadores ad-hoc |
+| Formularios | `react-hook-form` + `@hookform/resolvers` | Estado manual con `useState` para forms complejos |
+| Estado servidor | `@tanstack/react-query` | `useEffect` + `fetch` |
+| Tablas | `@tanstack/react-table` (vía `DataTableV2`) | Lógica de sort/filter/paginate manual |
+| UI primitives | `shadcn/ui` sobre Radix | Componentes accesibles desde cero |
+| Iconos | `lucide-react` | SVGs inline duplicados |
+| PDF | `@react-pdf/renderer` | jsPDF imperativo / dibujo X-Y |
+| CSV | `papaparse` (si crece más allá de `exportCsv.ts`) | Concatenación manual de strings |
+| Toasts | `sonner` | `alert()` / banners propios |
+| Drag & drop archivos | `react-dropzone` | Listeners HTML5 manuales |
+| Markdown | `react-markdown` + `remark-gfm` | Regex / parsers propios |
+| Class merging | `clsx` + `tailwind-merge` (vía `cn`) | Concatenación de strings |
+| Animaciones | `tailwindcss-animate` / `framer-motion` puntual | `setTimeout` + clases |
+| Testing | `vitest` + `@testing-library/react` | Asserts manuales |
 
-4. **Factura** (comparte 90% del layout)
-   - `documents/InvoiceDocument.tsx` reutiliza `Header`, `InfoCards`, `LineItemsTable`, `TotalsBox`, `Footer`.
-   - Reescribir `src/features/invoices/lib/pdf/build.ts`.
-   - Borrar referencias a `quoteGenerator` desde el flujo de factura.
+**21.5 Proceso para introducir una dependencia nueva**
+1. Verificar que no exista ya algo equivalente en el stack canónico.
+2. Aplicar checklist 21.2.
+3. Instalar con `bun add`; añadir nota en el changelog (`type: refactor` o `feature`).
+4. Documentar en §2 (stack tecnológico) si pasa a ser canónica.
+5. Si reemplaza código propio: eliminar el archivo legacy en el mismo PR (no dejar muerto).
 
-5. **Contrato** (3 secciones en un solo Document)
-   - `documents/ContractDocument.tsx` con tres `<Page>`:
-     - Página 1+: contrato (intro + declaraciones + 8 cláusulas + firmas). Usar `<View wrap>` para que cláusulas largas paginen automáticamente.
-     - Página Anexo A: checklist (Datos generales + secciones dinámicas con checkboxes hechos con `<View style={styles.checkbox} />`).
-     - Página Anexo B: pagaré.
-   - El modo (`full | contract | checklist | pagare`) se resuelve renderizando condicionalmente `<Page>`s en lugar del hack `doc.deletePage(1)`.
-   - Reemplazar `src/features/contracts/lib/contractPdfBuilder.ts` y eliminar `src/lib/pdf/contract/{contractPage,checklistPage,pagarePage,contractSections,sections/*}.ts`.
-   - Mantener `fetchers.ts`, `placeholders.ts`, `placeholderRegistry.ts`, `data-templates.ts`, `data.ts` (lógica de datos pura, no PDF).
+**21.6 Proceso para retirar código generado / hand-rolled**
+- Cuando un helper interno duplica una librería canónica → marcar como `@deprecated` con `// TODO(deps): migrar a <lib>`, abrir cambio en el changelog.
+- Migración incremental: nuevas features usan la dependencia; legacy se migra cuando se toca.
+- Caso de referencia: migración jsPDF → `@react-pdf/renderer` (v6.6.0-alpha.1).
 
-6. **Estado de Cuenta**
-   - `documents/CustomerStatementDocument.tsx` con tarjetas resumen (3 cols flex), tabla facturas abiertas, tabla pagadas, badge de estatus.
-   - Reescribir `src/lib/pdf/customerStatement.ts`; eliminar `customerStatement/{parts,tables}.ts`.
+**21.7 Anti-patrones**
+- "Lo escribo yo, así sé qué hace" → fricción de mantenimiento, sin tests upstream.
+- Copiar un snippet de IA que reimplementa algo de `date-fns` / `zod` / `tanstack`.
+- Wrappers triviales sobre una librería que sólo renombran su API.
+- Forks internos de librerías sin razón documentada.
+- Dependencias one-off de un solo uso que duplican algo del stack canónico.
 
-7. **Estado de Resultados** (landscape paginado)
-   - `documents/IncomeStatementDocument.tsx` con `<Page orientation="landscape" size="A4">`. Las filas se renderizan con `<View>` por fila; react-pdf maneja salto de página con `wrap` + `<View break>` cuando excede.
-   - Reescribir `src/lib/pdf/incomeStatement.ts`; eliminar `incomeStatement/{header,rows}.ts`.
+### 2. Reforzar §18 (Power of 10), regla #8
 
-8. **Limpieza final**
-   - `bun remove jspdf jspdf-autotable`.
-   - Verificar `rg "jspdf" src` → 0 matches.
-   - Eliminar `src/lib/pdf/shared.ts#addWrappedText` y `checkPage` (helpers imperativos ya no usados); mantener `fetchCompanyDataAndLogo` y `loadImageAsBase64` (siguen sirviendo el logo).
+Cambiar la línea de la regla 8 de:
 
-9. **QA y validación**
-   - `bunx vitest run` para asegurar que tests existentes pasan (los tests actuales no tocan PDF, así que deben seguir verdes).
-   - QA visual manual: descargar un PDF de cada tipo desde la app, abrirlo, verificar: header con logo, márgenes, wrapping de descripciones largas, paginación, totales alineados, firmas/checklist completos.
-   - Preview Dialog: abrir cotización en `/cotizaciones/:id`, clic en "Previsualizar", confirmar render idéntico al PDF descargado.
+> "Solo Vite + Tailwind estándar. Sin macros, sin scripts de diseño externos."
 
-10. **Changelog + memoria**
-    - `public/changelog.json`: nueva entrada `6.6.0-alpha.1` (major-architecture refactor, marcar como `minor` por compatibilidad UX).
-    - `public/changelog/v6.6.0-alpha.1.json`: detalle por documento.
-    - Actualizar `mem://tech/stack` (quitar jsPDF, agregar @react-pdf/renderer) y `mem://tech/security/vulnerabilities` (quitar lock de jsPDF 4.0.0).
+A algo como:
 
-## Detalles técnicos clave
+> "Preferir dependencias públicas maduras sobre código propio o generado por IA. Ver §21. Sin macros ni scripts de build no estándar."
 
-- **Fuentes**: `Font.register({ family: 'Inter', fonts: [{ src: '/fonts/Inter-Regular.ttf' }, { src: '/fonts/Inter-Bold.ttf', fontWeight: 'bold' }] })`. Si las TTF no están disponibles, fallback a Helvetica (built-in en react-pdf).
-- **Logo**: pasar como prop `logoBase64` (data URL); `<Image src={logoBase64} style={{ width: 60, height: 24, objectFit: 'contain' }} />` respeta el cap 24x40mm del memory de branding.
-- **Wrap de texto**: `<Text>` envuelve por defecto. Para celdas de tabla con descripciones largas, envolver en `<View style={{ flex: 1 }}><Text>…</Text></View>` — sin `numberOfLines`.
-- **Paginación**: cláusulas usan `<View wrap>` (default). Checklist y pagaré van en `<Page break>` para forzar nueva página.
-- **Estado de Resultados** (tabla ancha): si #columnas > 12 se reduce `fontSize` dinámicamente (cálculo simple: `Math.max(6, 10 - Math.floor(cols/4))`).
-- **Preview lazy**: `const QuotePreviewDialog = React.lazy(() => import('./QuotePreviewDialog'))` envuelto en `<Suspense fallback={<Spinner/>}>` — evita cargar `@react-pdf/renderer` (~400KB) en la ruta hasta que el usuario abra el preview.
-- **Memoria a respetar**: paleta minimalista industrial, `formatCurrency` MXN es-MX, fechas `dd/MM/yyyy` con `nowMty()`, máximo 150 LOC por componente (los Document grandes se reparten entre `components/`).
+### 3. Mini-mención en §17 "Anti-patrones a evitar"
 
-## Riesgos
+Añadir bullet:
 
-- **Tamaño del bundle**: `@react-pdf/renderer` pesa más que `jspdf`. Mitigación: lazy load tanto en builders (`await import('@react-pdf/renderer')`) como en el dialog.
-- **Fidelidad pixel-perfect del contrato**: el contrato actual usa coordenadas absolutas. La nueva versión declarativa puede diferir en posicionamiento exacto de firmas. Aceptable porque mantiene contenido y orden; ajustes de spacing en QA.
-- **Fuentes custom**: si no se sirven TTFs, se usa Helvetica (sin tilde correcta en algunos glifos). Mitigación: copiar Inter a `public/fonts/`.
+> Reimplementar funcionalidad ya cubierta por una dependencia del stack canónico (§21.4).
 
-## Entregables
+### 4. Changelog
 
-- 5 documentos React (`QuoteDocument`, `InvoiceDocument`, `ContractDocument`, `CustomerStatementDocument`, `IncomeStatementDocument`).
-- 1 theme + 5 componentes compartidos.
-- 1 Dialog de preview en QuoteDetail.
-- 5 builders simplificados (fetch + render + saveAs).
-- Eliminación total de jsPDF.
-- Changelog `v6.6.0-alpha.1`.
+Añadir entrada `patch` `6.6.0-alpha.2` (o el siguiente disponible) tipo `docs`:
+- `public/changelog.json` — entrada índice.
+- `public/changelog/v6.6.0-alpha.2.json` — detalle con las secciones añadidas.
+
+## Fuera de alcance
+
+- No se tocan dependencias del `package.json` en este cambio (es sólo doctrina).
+- No se migra código legacy todavía; el principio aplica a código nuevo.
+- No se introduce linter custom para detectar reinvenciones (puede ser un follow-up).
+
+## Riesgo
+
+Nulo — cambio exclusivo de documentación + changelog.
