@@ -1,13 +1,12 @@
+import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FORKLIFT_STATUSES, FUEL_TYPES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { ForkliftFormData } from "@/lib/formSchemas";
 
 interface Props {
-  form: ForkliftFormData;
-  set: <K extends keyof ForkliftFormData>(key: K, value: ForkliftFormData[K]) => void;
   isEdit: boolean;
   manufacturers: string[];
   filteredModels: { id: string; model: string }[];
@@ -16,77 +15,87 @@ interface Props {
 }
 
 export function EquipmentDetailsSection({
-  form, set, isEdit, manufacturers, filteredModels, onManufacturerChange, onModelChange,
+  isEdit, manufacturers, filteredModels, onManufacturerChange, onModelChange,
 }: Props) {
+  const { control, watch } = useFormContext<ForkliftFormData>();
+  const manufacturer = watch("manufacturer");
+
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Detalles del Equipo</CardTitle></CardHeader>
       <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Nombre / ID *</Label>
-          <Input placeholder="MC-007" value={form.name} onChange={(e) => set("name", e.target.value)} />
-        </div>
+        <FormField control={control} name="name" render={({ field }) => (
+          <FormItem><FormLabel>Nombre / ID *</FormLabel><FormControl><Input placeholder="MC-007" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
 
-        <div className="space-y-1.5">
-          <Label>Fabricante</Label>
-          <Select value={form.manufacturer} onValueChange={onManufacturerChange}>
-            <SelectTrigger><SelectValue placeholder="Seleccionar fabricante" /></SelectTrigger>
-            <SelectContent>
-              {manufacturers.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Modelo *</Label>
-          <Select key={form.manufacturer} value={form.model} onValueChange={onModelChange} disabled={!form.manufacturer}>
-            <SelectTrigger><SelectValue placeholder={form.manufacturer ? "Seleccionar modelo" : "Primero selecciona fabricante"} /></SelectTrigger>
-            <SelectContent>
-              {filteredModels.map((m) => <SelectItem key={m.id} value={m.model}>{m.model}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Año</Label>
-          <Input type="number" placeholder="2023" value={form.year} onChange={(e) => set("year", e.target.value)} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Capacidad (kg)</Label>
-          <Input type="number" placeholder="2500" value={form.capacity_kg} onChange={(e) => set("capacity_kg", e.target.value)} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Altura del Mástil (m)</Label>
-          <Input type="number" placeholder="4.5" value={form.mast_height_m} onChange={(e) => set("mast_height_m", e.target.value)} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Número de Serie</Label>
-          <Input placeholder="HY-2023-007" value={form.serial_number} onChange={(e) => set("serial_number", e.target.value)} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Tipo de Combustible</Label>
-          <Select value={form.fuel_type} onValueChange={(v) => set("fuel_type", v)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {FUEL_TYPES.map((f) => <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {!isEdit && (
-          <div className="space-y-1.5">
-            <Label>Estado Inicial</Label>
-            <Select value={form.status} onValueChange={(v) => set("status", v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+        <FormField control={control} name="manufacturer" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Fabricante</FormLabel>
+            <Select value={field.value} onValueChange={onManufacturerChange}>
+              <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar fabricante" /></SelectTrigger></FormControl>
               <SelectContent>
-                {FORKLIFT_STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>)}
+                {manufacturers.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField control={control} name="model" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Modelo *</FormLabel>
+            <Select key={manufacturer} value={field.value} onValueChange={onModelChange} disabled={!manufacturer}>
+              <FormControl><SelectTrigger><SelectValue placeholder={manufacturer ? "Seleccionar modelo" : "Primero selecciona fabricante"} /></SelectTrigger></FormControl>
+              <SelectContent>
+                {filteredModels.map((m) => <SelectItem key={m.id} value={m.model}>{m.model}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        <FormField control={control} name="year" render={({ field }) => (
+          <FormItem><FormLabel>Año</FormLabel><FormControl><Input type="number" placeholder="2023" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+
+        <FormField control={control} name="capacity_kg" render={({ field }) => (
+          <FormItem><FormLabel>Capacidad (kg)</FormLabel><FormControl><Input type="number" placeholder="2500" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+
+        <FormField control={control} name="mast_height_m" render={({ field }) => (
+          <FormItem><FormLabel>Altura del Mástil (m)</FormLabel><FormControl><Input type="number" placeholder="4.5" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+
+        <FormField control={control} name="serial_number" render={({ field }) => (
+          <FormItem><FormLabel>Número de Serie</FormLabel><FormControl><Input placeholder="HY-2023-007" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+
+        <FormField control={control} name="fuel_type" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Tipo de Combustible</FormLabel>
+            <Select value={field.value} onValueChange={field.onChange}>
+              <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+              <SelectContent>
+                {FUEL_TYPES.map((f) => <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )} />
+
+        {!isEdit && (
+          <FormField control={control} name="status" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Estado Inicial</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                <SelectContent>
+                  {FORKLIFT_STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )} />
         )}
       </CardContent>
     </Card>

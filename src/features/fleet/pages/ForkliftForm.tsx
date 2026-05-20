@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
-import { NotesCard } from "@/components/NotesCard";
 import { AlertTriangle } from "lucide-react";
 import { useForkliftFormLogic } from "@/features/fleet/hooks/useForkliftFormLogic";
 import { EquipmentDetailsSection } from "@/features/fleet/components/forklift-form/EquipmentDetailsSection";
@@ -11,9 +13,9 @@ import { InsuranceSection } from "@/features/fleet/components/forklift-form/Insu
 
 export default function ForkliftForm() {
   const {
-    isEdit, navigate, form, set,
+    isEdit, navigate, form,
     hasModels, manufacturers, filteredModels,
-    handleManufacturerChange, handleModelChange, handleSubmit, isPending,
+    handleManufacturerChange, handleModelChange, onSubmit, isPending,
   } = useForkliftFormLogic();
 
   if (!isEdit && !hasModels) {
@@ -39,29 +41,41 @@ export default function ForkliftForm() {
     <div className="p-6 max-w-3xl">
       <FormPageHeader title={isEdit ? "Editar Montacargas" : "Agregar Montacargas"} />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <EquipmentDetailsSection
-          form={form}
-          set={set}
-          isEdit={isEdit}
-          manufacturers={manufacturers}
-          filteredModels={filteredModels}
-          onManufacturerChange={handleManufacturerChange}
-          onModelChange={handleModelChange}
-        />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <EquipmentDetailsSection
+            isEdit={isEdit}
+            manufacturers={manufacturers}
+            filteredModels={filteredModels}
+            onManufacturerChange={handleManufacturerChange}
+            onModelChange={handleModelChange}
+          />
 
-        <RatesSection form={form} set={set} />
+          <RatesSection />
 
-        <InsuranceSection form={form} set={set} />
+          <InsuranceSection />
 
-        <NotesCard value={form.notes} onChange={(v) => set("notes", v)} placeholder="Notas internas sobre este montacargas..." />
+          <Card>
+            <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
+            <CardContent>
+              <FormField control={form.control} name="notes" render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea placeholder="Notas internas sobre este montacargas..." rows={3} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </CardContent>
+          </Card>
 
-        <FormActions
-          submitLabel={isEdit ? "Guardar Cambios" : "Agregar Montacargas"}
-          isPending={isPending}
-          onCancel={() => navigate(-1)}
-        />
-      </form>
+          <FormActions
+            submitLabel={isEdit ? "Guardar Cambios" : "Agregar Montacargas"}
+            isPending={isPending}
+            onCancel={() => navigate(-1)}
+          />
+        </form>
+      </Form>
     </div>
   );
 }

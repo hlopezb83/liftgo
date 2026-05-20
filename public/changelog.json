@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.0-alpha.2",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Forklift form migrado a react-hook-form + Zod (Fase 2 de 3)",
+    "category": "refactor"
+  },
+  {
     "version": "6.7.0-alpha.1",
     "date": "2026-05-20",
     "type": "patch",

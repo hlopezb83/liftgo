@@ -1,0 +1,29 @@
+{
+  "version": "6.7.0-alpha.2",
+  "date": "2026-05-20",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Forklift form migrado a react-hook-form + Zod (Fase 2 de 3)",
+  "summary": "ForkliftForm adopta el stack canónico §20.4: useForm + zodResolver + <Form>/FormField. Se elimina el useState manual y el estado derivado (manufacturers/filteredModels) ahora se calcula a partir de form.watch.",
+  "highlights": [
+    "useForkliftFormState reducido a derivados puros (hasModels, manufacturers, filteredModels) sin useState.",
+    "useForkliftPrefill aplica form.reset atómico cuando llega el registro existente.",
+    "handleManufacturerChange / handleModelChange usan form.setValue con shouldDirty.",
+    "Las 3 secciones (Equipment/Rates/Insurance) consumen useFormContext, sin prop drilling de form/set.",
+    "Validación delegada a forkliftFormSchema vía zodResolver; errores por campo con <FormMessage>."
+  ],
+  "technical": {
+    "files_changed": [
+      "src/features/fleet/hooks/useForkliftFormLogic.ts",
+      "src/features/fleet/hooks/forkliftForm/useForkliftFormState.ts",
+      "src/features/fleet/hooks/forkliftForm/useForkliftPrefill.ts",
+      "src/features/fleet/hooks/forkliftForm/useForkliftFormSubmit.ts",
+      "src/features/fleet/components/forklift-form/EquipmentDetailsSection.tsx",
+      "src/features/fleet/components/forklift-form/RatesSection.tsx",
+      "src/features/fleet/components/forklift-form/InsuranceSection.tsx",
+      "src/features/fleet/pages/ForkliftForm.tsx"
+    ],
+    "phase": "2/3 — Forklift (estado derivado validado contra form.watch)",
+    "next": "Fase 3: Invoice (consolidar 9 piezas de estado en un solo useForm)"
+  }
+}

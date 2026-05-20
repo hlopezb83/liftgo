@@ -1,41 +1,56 @@
 import { useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForklift } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { forkliftFormSchema, type ForkliftFormData } from "@/lib/formSchemas";
 import { useForkliftFormState } from "./forkliftForm/useForkliftFormState";
 import { useForkliftPrefill } from "./forkliftForm/useForkliftPrefill";
 import { useForkliftFormSubmit } from "./forkliftForm/useForkliftFormSubmit";
+
+const emptyForm: ForkliftFormData = {
+  name: "", model: "", manufacturer: "", year: "", capacity_kg: "",
+  mast_height_m: "", fuel_type: "Diesel", serial_number: "", status: "available",
+  daily_rate: "", weekly_rate: "", monthly_rate: "", acquisition_cost: "", notes: "",
+  insurance_provider: "", insurance_policy_number: "", insurance_expiry: "", insurance_cost: "",
+};
 
 export function useForkliftFormLogic() {
   const { id } = useParams();
   const isEdit = !!id;
   const { data: existing } = useForklift(id);
 
-  const { form, set, setForm, equipmentModels, hasModels, manufacturers, filteredModels } =
-    useForkliftFormState(existing);
-  useForkliftPrefill(existing, setForm);
-  const { handleSubmit, navigate, isPending } = useForkliftFormSubmit({ id, isEdit, form });
+  const form = useForm<ForkliftFormData>({
+    resolver: zodResolver(forkliftFormSchema),
+    defaultValues: emptyForm,
+  });
+
+  const { equipmentModels, hasModels, manufacturers, filteredModels } =
+    useForkliftFormState(form, existing);
+  useForkliftPrefill(existing, form);
+  const { onSubmit, navigate, isPending } = useForkliftFormSubmit({ id, isEdit });
 
   const handleManufacturerChange = (value: string) => {
-    setForm((prev) => ({ ...prev, manufacturer: value, model: "" }));
+    form.setValue("manufacturer", value, { shouldDirty: true });
+    form.setValue("model", "", { shouldDirty: true });
   };
 
   const handleModelChange = (value: string) => {
-    const match = equipmentModels?.find((m) => m.manufacturer === form.manufacturer && m.model === value);
-    setForm((prev) => ({
-      ...prev,
-      model: value,
-      ...(match ? {
-        capacity_kg: match.default_capacity_kg?.toString() ?? prev.capacity_kg,
-        mast_height_m: match.default_mast_height_m?.toString() ?? prev.mast_height_m,
-        fuel_type: match.default_fuel_type ?? prev.fuel_type,
-      } : {}),
-    }));
+    const manufacturer = form.getValues("manufacturer");
+    const match = equipmentModels?.find((m) => m.manufacturer === manufacturer && m.model === value);
+    form.setValue("model", value, { shouldDirty: true });
+    if (match) {
+      if (match.default_capacity_kg != null) form.setValue("capacity_kg", String(match.default_capacity_kg), { shouldDirty: true });
+      if (match.default_mast_height_m != null) form.setValue("mast_height_m", String(match.default_mast_height_m), { shouldDirty: true });
+      if (match.default_fuel_type) form.setValue("fuel_type", match.default_fuel_type, { shouldDirty: true });
+    }
   };
 
   return {
     id, isEdit, navigate,
-    form, set,
+    form,
     hasModels, manufacturers, filteredModels,
-    handleManufacturerChange, handleModelChange, handleSubmit,
+    handleManufacturerChange, handleModelChange,
+    onSubmit,
     isPending,
   };
 }
