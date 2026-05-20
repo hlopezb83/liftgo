@@ -1,5 +1,5 @@
 import { useUserRole } from "@/features/users/hooks/useUserRole";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 /**
  * Centralizes the "Cerrado Ganado" stage permission rule for prospects.
@@ -17,10 +17,8 @@ export function useProspectGuard() {
       create: "Solo usuarios administrativos pueden crear prospectos en Cerrado Ganado",
       save: "Solo usuarios administrativos pueden guardar prospectos en Cerrado Ganado",
     };
-    toast({
-      title: "Acceso restringido",
+    toast.error("Acceso restringido", {
       description: descriptions[action],
-      variant: "destructive",
     });
     return false;
   };
