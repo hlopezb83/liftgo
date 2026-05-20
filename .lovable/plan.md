@@ -1,42 +1,49 @@
 ## Objetivo
 
-Aplicar §20 al primer caso claro: **eliminar el sistema de toasts duplicado** (`shadcn/use-toast` + `@radix-ui/react-toast` + `<Toaster>`) consolidando todo en `sonner`, que ya es la dependencia canónica (§20.4) y se usa en 84 archivos.
+Crear `.github/pull_request_template.md` con una checklist accionable derivada de **§20 "Dependencias antes que código propio"** de `architecture.md`, para que cada PR justifique altas/bajas de dependencias y no introduzca código hand-rolled que duplique el stack canónico.
 
-## Hallazgo
+> Nota: §21 es "Referencias" (sin checklist). La auditoría se basa íntegramente en §20.1-§20.7.
 
-Coexisten dos stacks de notificación:
+## Archivo nuevo: `.github/pull_request_template.md`
 
-- **Canónico (§20.4):** `sonner` — 84 consumidores, integrado vía `<Sonner />` en `AppProviders.tsx`.
-- **Residual (shadcn legacy):** `hooks/use-toast.ts` (186 LOC) + `components/ui/toast.tsx` + `components/ui/toaster.tsx` + `@radix-ui/react-toast`. Solo **1 consumidor real**: `src/features/crm/hooks/useProspectGuard.ts`.
+Estructura propuesta:
 
-Mantener ambos viola §20.7 ("wrappers triviales / duplicación del stack canónico") y §17 (anti-patrón añadido en alpha.2).
+1. **Resumen** — 1-3 líneas de qué y por qué.
 
-## Acciones
+2. **Tipo de cambio** — checkboxes: `feature` / `refactor` / `fix` / `docs` / `chore`.
 
-1. **Migrar el único consumidor**: `src/features/crm/hooks/useProspectGuard.ts` cambia `import { toast } from "@/hooks/use-toast"` → `import { toast } from "sonner"` y adapta la(s) llamada(s) al API de sonner (`toast.error(title, { description })` en vez de `toast({ title, description, variant })`).
+3. **Checklist §20 — Dependencias antes que código propio**
+   - [ ] No reimplementé funcionalidad ya cubierta por el stack canónico (§20.4).
+   - [ ] Si añadí una dependencia, cumple §20.2 (mantenida <12m, tipos TS, licencia permisiva, sin vulnerabilidades altas).
+   - [ ] Si escribí código propio en lugar de usar una librería, encaja en §20.3 (regla de negocio LiftGo, RPC de seguridad, o glue <30 LOC documentado).
+   - [ ] Si retiré código hand-rolled, eliminé el archivo legacy en el mismo PR (no lo dejé muerto).
+   - [ ] Si la dependencia pasa a ser canónica, actualicé §2 y §20.4 de `architecture.md`.
 
-2. **Eliminar archivos legacy**:
-   - `src/hooks/use-toast.ts`
-   - `src/components/ui/toast.tsx`
-   - `src/components/ui/toaster.tsx`
+4. **Checklist general (Power of 10 §18)**
+   - [ ] Componentes ≤150 LOC, hooks ≤80 LOC.
+   - [ ] Sin `any` / `!` / `as`; errores con `unknown` + Zod cuando aplica.
+   - [ ] Paginación obligatoria en listas (>1000 filas potenciales).
+   - [ ] `useEffect` con cleanup donde corresponde.
+   - [ ] Cero warnings de TS / ESLint.
 
-3. **Limpiar render del Toaster legacy** si está montado en `AppProviders.tsx` (verificar y, si existe, remover `<Toaster />` shadcn dejando solo `<Sonner />`).
+5. **Checklist de cierre**
+   - [ ] Entrada nueva en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`.
+   - [ ] Tests (`bunx vitest run`) o verificación manual descrita.
+   - [ ] Si hay cambios de esquema, migración SQL con `SET search_path = public` y RLS revisada.
 
-4. **Remover dependencia**: `bun remove @radix-ui/react-toast`.
+6. **Notas para reviewer** — sección libre.
 
-5. **Verificar**:
-   - `rg "use-toast|@/components/ui/toast(er)?|@radix-ui/react-toast" src` → 0 resultados.
-   - Build limpio sin warnings.
-   - Test rápido en `/crm` que el toast de prospect-guard se renderice.
+## Changelog
 
-6. **Changelog**: nueva entrada `refactor` `6.6.0-alpha.3` en `public/changelog.json` + `public/changelog/v6.6.0-alpha.3.json` documentando el primer caso de aplicación de §20 (retiro de wrapper legacy, consolidación en `sonner`).
+Entrada `6.6.0-alpha.4` tipo `docs`/`chore`:
+- `public/changelog.json` (índice).
+- `public/changelog/v6.6.0-alpha.4.json` (detalle: nuevo PR template con checklist §20).
 
-## Fuera de alcance (follow-ups posibles)
+## Fuera de alcance
 
-- **`useFormState` → `react-hook-form`**: 7 dialogs/forms lo usan. Migración mayor, mejor en PR aparte.
-- **`useDebouncedValue` → `use-debounce`**: cabe en la excepción §20.3 (glue <30 LOC); no se migra.
-- **Resto de utilidades de `lib/` y `hooks/`**: auditadas — no duplican stack canónico (ver tabla en el mensaje previo).
+- No se añade Action/CI que valide la checklist (puede ser follow-up con un workflow que verifique presencia de entrada en changelog y secciones marcadas).
+- No se modifican `architecture.md` ni código fuente.
 
 ## Riesgo
 
-Bajo. Cambio mecánico: 1 import a migrar, 3 archivos a eliminar, 1 dependencia removida. Si algún archivo todavía importara los legacy, el typecheck del build los detecta.
+Nulo — solo documentación. El template aplica a PRs futuros; los existentes no se ven afectados.
