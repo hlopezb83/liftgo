@@ -2,7 +2,7 @@
 // el error de validación de contraseña vive en lib/.
 export { PasswordValidationError } from "@/features/users/lib/PasswordValidationError";
 export { useUsersWithRoles, type UserRow } from "./users/useUsersQuery";
+export { useUpdateRole, useUpdateName } from "./users/useUserMutations";
 export {
-  useUpdateRole, useUpdateName, useInviteUser,
-  useDeleteUser, useResetPassword, useToggleStatus,
-} from "./users/useUserMutations";
+  useInviteUser, useDeleteUser, useResetPassword, useToggleStatus,
+} from "./users/useUserAdminMutations";
