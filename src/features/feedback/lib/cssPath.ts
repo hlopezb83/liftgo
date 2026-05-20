@@ -1,41 +1,24 @@
+import { finder } from "@medv/finder";
+
 /**
- * Calcula un selector CSS razonablemente único para un Element.
- * Sube por la cadena de padres hasta encontrar id o tope de 5 niveles.
- * Power of 10: pura, sin efectos, ≤80 LOC.
+ * Calcula un selector CSS único usando @medv/finder.
+ * Genera selectores cortos, estables y verificadamente únicos en el DOM.
  */
 export function computeCssPath(el: Element): string {
-  const parts: string[] = [];
-  let node: Element | null = el;
-  let depth = 0;
-
-  while (node && node.nodeType === 1 && depth < 5) {
-    const tag = node.tagName.toLowerCase();
-    if (node.id) {
-      parts.unshift(`#${CSS.escape(node.id)}`);
-      break;
-    }
-
-    let selector = tag;
-    const cls = (node.getAttribute("class") || "")
-      .split(/\s+/)
-      .filter((c) => c && !c.startsWith("hover:") && !c.startsWith("focus:"))
-      .slice(0, 2);
-    if (cls.length) selector += "." + cls.map((c) => CSS.escape(c)).join(".");
-
-    const parent = node.parentElement;
-    if (parent) {
-      const sameTag = Array.from(parent.children).filter((c) => c.tagName === node?.tagName);
-      if (sameTag.length > 1) {
-        const idx = sameTag.indexOf(node) + 1;
-        selector += `:nth-of-type(${idx})`;
-      }
-    }
-    parts.unshift(selector);
-    node = parent;
-    depth += 1;
+  try {
+    return finder(el, {
+      className: (name) =>
+        !name.startsWith("hover:") &&
+        !name.startsWith("focus:") &&
+        !name.startsWith("active:") &&
+        !name.startsWith("group-") &&
+        !name.startsWith("peer-"),
+      seedMinLength: 1,
+      optimizedMinLength: 2,
+    });
+  } catch {
+    return el.tagName.toLowerCase();
   }
-
-  return parts.join(" > ");
 }
 
 export interface SelectedElementInfo {
