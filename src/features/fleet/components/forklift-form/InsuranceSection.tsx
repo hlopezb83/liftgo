@@ -1,34 +1,27 @@
+import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import type { ForkliftFormData } from "@/lib/formSchemas";
 
-interface Props {
-  form: ForkliftFormData;
-  set: <K extends keyof ForkliftFormData>(key: K, value: ForkliftFormData[K]) => void;
-}
-
-export function InsuranceSection({ form, set }: Props) {
+export function InsuranceSection() {
+  const { control } = useFormContext<ForkliftFormData>();
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Seguro</CardTitle></CardHeader>
       <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Aseguradora</Label>
-          <Input placeholder="Ej: GNP Seguros" value={form.insurance_provider} onChange={(e) => set("insurance_provider", e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>No. de Póliza</Label>
-          <Input placeholder="Ej: POL-2026-001" value={form.insurance_policy_number} onChange={(e) => set("insurance_policy_number", e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Vigencia</Label>
-          <Input type="date" value={form.insurance_expiry} onChange={(e) => set("insurance_expiry", e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Costo de Póliza ($)</Label>
-          <Input type="number" placeholder="15000" value={form.insurance_cost} onChange={(e) => set("insurance_cost", e.target.value)} />
-        </div>
+        <FormField control={control} name="insurance_provider" render={({ field }) => (
+          <FormItem><FormLabel>Aseguradora</FormLabel><FormControl><Input placeholder="Ej: GNP Seguros" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <FormField control={control} name="insurance_policy_number" render={({ field }) => (
+          <FormItem><FormLabel>No. de Póliza</FormLabel><FormControl><Input placeholder="Ej: POL-2026-001" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <FormField control={control} name="insurance_expiry" render={({ field }) => (
+          <FormItem><FormLabel>Vigencia</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <FormField control={control} name="insurance_cost" render={({ field }) => (
+          <FormItem><FormLabel>Costo de Póliza ($)</FormLabel><FormControl><Input type="number" placeholder="15000" {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
       </CardContent>
     </Card>
   );
