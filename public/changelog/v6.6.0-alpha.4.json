@@ -1,0 +1,24 @@
+{
+  "version": "6.6.0-alpha.4",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "PR template con checklist §20 (dependencias antes que código propio)",
+  "category": "docs",
+  "summary": "Se añade .github/pull_request_template.md con checklist accionable derivada de §20 + §18 (Power of 10) + cierre/changelog, para que cada PR justifique altas/bajas de dependencias y prevenga reintroducción de código hand-rolled.",
+  "changes": [
+    {
+      "area": ".github/pull_request_template.md (nuevo)",
+      "items": [
+        "Sección Resumen y Tipo de cambio (feature/refactor/fix/docs/chore).",
+        "Checklist §20: no duplicar stack canónico, justificar dependencias nuevas (§20.2), justificar código propio (§20.3), eliminar legacy al retirarlo, actualizar §2 y §20.4 si la dep pasa a canónica.",
+        "Campo libre para listar dependencias añadidas/removidas con justificación.",
+        "Checklist §18 (Power of 10): LOC, type-safety, paginación, useEffect cleanup, warnings, prop drilling.",
+        "Checklist de cierre: changelog obligatorio, tests, RLS/migraciones, soporte mobile."
+      ]
+    }
+  ],
+  "verification": {
+    "scope": "Solo documentación. GitHub mostrará el template automáticamente al abrir nuevos PRs."
+  },
+  "risk": "Nulo. Aplica a PRs futuros; los abiertos no se ven afectados."
+}
