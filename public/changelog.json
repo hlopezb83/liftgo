@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.6.0-alpha.2",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Doctrina: dependencias públicas antes que código propio (§20)",
+    "category": "docs"
+  },
+  {
     "version": "6.6.0-alpha.1",
     "date": "2026-05-19",
     "type": "major",
