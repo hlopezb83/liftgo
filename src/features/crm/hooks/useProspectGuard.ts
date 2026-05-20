@@ -17,10 +17,8 @@ export function useProspectGuard() {
       create: "Solo usuarios administrativos pueden crear prospectos en Cerrado Ganado",
       save: "Solo usuarios administrativos pueden guardar prospectos en Cerrado Ganado",
     };
-    toast({
-      title: "Acceso restringido",
+    toast.error("Acceso restringido", {
       description: descriptions[action],
-      variant: "destructive",
     });
     return false;
   };
