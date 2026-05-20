@@ -34,7 +34,7 @@ export default function ReturnInspectionPage() {
     (b) => b.status === "confirmed" && !b.return_status && new Date(b.end_date) <= today,
   );
 
-  const { dialogOpen, setDialogOpen, form, set, openNew, handleSubmit, isPending } =
+  const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending } =
     useReturnInspectionDialog(bookings, activeBookings);
 
   const filteredInspections = useMemo(() => {
@@ -152,7 +152,6 @@ export default function ReturnInspectionPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         form={form}
-        set={set}
         activeBookings={activeBookings}
         forkliftMap={forkliftMap}
         isPending={isPending}

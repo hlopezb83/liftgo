@@ -126,7 +126,6 @@ export default function MaintenancePage() {
         isEdit={!!formCtl.editingLogId}
         isPending={formCtl.isPending}
         form={formCtl.form}
-        set={formCtl.set}
         onSubmit={formCtl.handleSubmit}
         forklifts={forklifts}
         mechanics={activeMechanics}

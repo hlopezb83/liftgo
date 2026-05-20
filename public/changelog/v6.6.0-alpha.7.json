@@ -1,0 +1,25 @@
+{
+  "version": "6.6.0-alpha.7",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Migración useFormState → react-hook-form (Fase 2: maintenance + returns)",
+  "category": "refactor",
+  "description": "Fase 2 de la migración del helper duplicado `useFormState` al stack canónico §20.4. Hooks de dominio con submit handlers migrados; consumidores actualizados.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "useMaintenanceForm migrado a useForm + Zod",
+      "description": "Schema `maintenanceFormSchema` con validación de campos requeridos. `openEdit` ahora usa `form.reset` único en vez de 8 llamadas `set`. MaintenanceFormDialog refactorizado a `<Form>` + `FormField`; eliminado el prop `set`."
+    },
+    {
+      "type": "refactor",
+      "title": "useReturnInspectionDialog migrado a useForm + Zod",
+      "description": "Schema `returnInspectionSchema` con bookingId requerido. Deep link `?booking_id=` usa `form.reset` atómico. ReturnInspectionDialog refactorizado a `<Form>` + `FormField`; alias `ReturnInspectionFormState` mantenido para compatibilidad."
+    }
+  ],
+  "highlights": [
+    "3 consumidores restantes de useFormState (Fase 3 pendiente: customer, invoice, forklift)",
+    "Validación delegada a Zod elimina checks manuales en submit",
+    "MaintenanceFormShape ahora es alias del tipo inferido por Zod"
+  ]
+}

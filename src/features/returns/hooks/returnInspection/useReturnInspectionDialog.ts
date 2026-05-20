@@ -1,24 +1,42 @@
 import { useEffect, useState, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useFormState } from "@/hooks/useFormState";
 import { useCreateReturnInspection } from "@/features/returns/hooks/useReturnInspections";
 import type { Booking } from "@/features/bookings/hooks/useBookings";
 
-export const initialReturnInspectionForm = {
-  bookingId: "" as string,
-  inspectedAt: new Date() as Date,
-  condition: "good" as string,
-  damageNotes: "" as string,
-  damageCost: "" as string,
-  hoursUsed: "" as string,
-  fuelLevel: "" as string,
-  inspectedBy: "" as string,
+export const returnInspectionSchema = z.object({
+  bookingId: z.string().min(1, "Selecciona una reserva para devolver"),
+  inspectedAt: z.date(),
+  condition: z.string().min(1),
+  damageNotes: z.string(),
+  damageCost: z.string(),
+  hoursUsed: z.string(),
+  fuelLevel: z.string(),
+  inspectedBy: z.string(),
+});
+
+export type ReturnInspectionFormValues = z.infer<typeof returnInspectionSchema>;
+
+export const initialReturnInspectionForm: ReturnInspectionFormValues = {
+  bookingId: "",
+  inspectedAt: new Date(),
+  condition: "good",
+  damageNotes: "",
+  damageCost: "",
+  hoursUsed: "",
+  fuelLevel: "",
+  inspectedBy: "",
 };
 
 export function useReturnInspectionDialog(bookings: Booking[] | undefined, activeBookings: Booking[] | undefined) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { form, set, reset } = useFormState(initialReturnInspectionForm);
+  const form = useForm<ReturnInspectionFormValues>({
+    resolver: zodResolver(returnInspectionSchema),
+    defaultValues: initialReturnInspectionForm,
+  });
   const createInspection = useCreateReturnInspection();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -26,8 +44,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   useEffect(() => {
     const bookingId = searchParams.get("booking_id");
     if (bookingId && activeBookings?.some((b) => b.id === bookingId)) {
-      reset();
-      set("bookingId", bookingId);
+      form.reset({ ...initialReturnInspectionForm, bookingId });
       setDialogOpen(true);
       setSearchParams({}, { replace: true });
     }
@@ -35,51 +52,48 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   }, [searchParams, activeBookings]);
 
   const openNew = useCallback(() => {
-    reset();
+    form.reset(initialReturnInspectionForm);
     setDialogOpen(true);
-  }, [reset]);
+  }, [form]);
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!form.bookingId) {
-        toast.error("Selecciona una reserva para devolver");
+  const onSubmit = useCallback(
+    (values: ReturnInspectionFormValues) => {
+      const booking = bookings?.find((b) => b.id === values.bookingId);
+      if (!booking) {
+        toast.error("Reserva no encontrada");
         return;
       }
-      const booking = bookings?.find((b) => b.id === form.bookingId);
-      if (!booking) return;
-      const damageCost = form.damageCost ? parseFloat(form.damageCost) : 0;
+      const damageCost = values.damageCost ? parseFloat(values.damageCost) : 0;
       createInspection.mutate(
         {
-          booking_id: form.bookingId,
+          booking_id: values.bookingId,
           forklift_id: booking.forklift_id,
-          condition: form.condition,
-          damage_notes: form.damageNotes || null,
+          condition: values.condition,
+          damage_notes: values.damageNotes || null,
           damage_cost: damageCost,
-          hours_used: form.hoursUsed ? parseFloat(form.hoursUsed) : null,
-          fuel_level: form.fuelLevel || null,
-          inspected_by: form.inspectedBy || null,
-          inspected_at: form.inspectedAt.toISOString(),
+          hours_used: values.hoursUsed ? parseFloat(values.hoursUsed) : null,
+          fuel_level: values.fuelLevel || null,
+          inspected_by: values.inspectedBy || null,
+          inspected_at: values.inspectedAt.toISOString(),
         },
         {
           onSuccess: () => {
             toast.success("Inspección de devolución registrada — montacargas marcado como disponible");
             setDialogOpen(false);
-            reset();
+            form.reset(initialReturnInspectionForm);
           },
         },
       );
     },
-    [form, bookings, createInspection, reset],
+    [bookings, createInspection, form],
   );
 
   return {
     dialogOpen,
     setDialogOpen,
     form,
-    set,
     openNew,
-    handleSubmit,
+    handleSubmit: form.handleSubmit(onSubmit),
     isPending: createInspection.isPending,
   };
 }
