@@ -86,6 +86,8 @@ CANONICAL = {
     "react-day-picker": "Fechas (calendar UI)",
     "recharts": "Charts",
     "vaul": "UI primitives (shadcn)",
+    "file-saver": "Descargas blob (lazy import)",
+    "html2canvas": "Captura screenshot DOM (lazy, feedback)",
 }
 
 # Radix primitives en bloque
@@ -94,8 +96,6 @@ RADIX_PREFIX = "@radix-ui/"
 # Dependencias que NO están en §20.4 (a evaluar)
 NON_CANONICAL_NOTES = {
     "dompurify": "Sanitiza HTML del manual (help system). Usado puntualmente.",
-    "file-saver": "Descargas blob. Candidato a retiro: URL.createObjectURL + link.click cubre el 100% de los usos.",
-    "html2canvas": "Captura DOM para alguna exportación. Evaluar si sigue en uso tras migración a @react-pdf/renderer.",
     "@hello-pangea/dnd": "Drag & drop para Kanban de feedback/maintenance. Canónica de facto.",
 }
 
