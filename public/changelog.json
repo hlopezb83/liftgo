@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.7.1",
+    "date": "2026-05-20",
+    "type": "patch",
+    "title": "Pruebas: schema de Invoice + integración useFieldArray (20 tests)",
+    "category": "testing"
+  },
+  {
     "version": "6.7.0",
     "date": "2026-05-20",
     "type": "minor",

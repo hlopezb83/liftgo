@@ -1,0 +1,19 @@
+{
+  "version": "6.7.1",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Pruebas: schema de Invoice + integración useFieldArray (20 tests)",
+  "category": "testing",
+  "summary": "Cobertura de pruebas unitarias para invoiceFormSchema y de integración para useInvoiceLineItemHandlers, cubriendo validación con Zod y el comportamiento reactivo de useFieldArray en la edición de facturas.",
+  "details": {
+    "added": [
+      "src/lib/schemas/invoiceFormSchema.test.ts — 12 pruebas unitarias: validación de lineItemSchema (cantidad ≥ 1, precio ≥ 0, discount_type '%'/'$'), cfdiSchema (tipoCambio ≥ 0, EMPTY_CFDI válido), invoiceFormSchema (mínimo 1 partida con mensaje 'Agrega al menos una partida', taxRate ≥ 0) y defaults de buildEmptyInvoiceValues (IVA 16%, MXN, tipoCambio 1, partidas vacías, instancia independiente de CFDI por llamada).",
+      "src/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers.test.tsx — 8 pruebas de integración con renderHook + useForm + zodResolver: estado inicial vacío, addLineItem hereda defaults de EMPTY_LINE (clave_prod_serv '78181500', clave_unidad 'DAY'), removeLineItem por índice, recálculo de total al cambiar quantity y unit_price vía currency.js (evita drift en 19.99 × 3 = 59.97), preservación del total al editar campos no numéricos, IDs estables de useFieldArray entre renders, y disparo de validación por campo con form.trigger + getFieldState."
+    ],
+    "technical": [
+      "Resultados: 20/20 tests pasan en 1.6s",
+      "Sin mocks de Supabase requeridos: las pruebas operan sobre lógica pura y RHF en jsdom",
+      "Cumple Power of 10: cero `any`/`!`/`as`, archivos ≤150 LOC, helpers reutilizables vía setupHook()"
+    ]
+  }
+}
