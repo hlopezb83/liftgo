@@ -10,14 +10,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useInvoiceLineItemHandlers } from "@/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
-import type { LineItem } from "@/features/invoices/lib/invoiceHelpers";
 import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
-
-export interface CfdiLineItem extends LineItem {
-  clave_prod_serv?: string;
-  clave_unidad?: string;
-  objeto_imp?: string;
-}
 
 export function EditableLineItemsTable() {
   const form = useFormContext<InvoiceFormValues>();
