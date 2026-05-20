@@ -1,3 +1,4 @@
+// arch:excepción §19 (secciones agrupadas de un mismo formulario)
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

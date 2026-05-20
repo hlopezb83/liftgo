@@ -1,3 +1,4 @@
+// arch:excepción §19 (tabla densa de reporte)
 import { Fragment, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

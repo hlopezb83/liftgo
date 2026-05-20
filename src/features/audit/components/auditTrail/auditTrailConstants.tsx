@@ -1,3 +1,4 @@
+// arch:excepción §19 (archivo de constantes y labels)
 import { ArrowUpCircle, PlusCircle, Trash2, Clock } from "lucide-react";
 import { format } from "date-fns";
 import type { AuditLog } from "@/features/audit/hooks/useAuditLogs";
