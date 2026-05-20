@@ -1,0 +1,22 @@
+{
+  "version": "6.7.0-alpha.1",
+  "date": "2026-05-20",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Customer form migrado a react-hook-form + Zod (Fase 1 de 3)",
+  "summary": "CustomerFormDialog adopta el stack canónico §20.4: useForm + zodResolver + <Form>/FormField. Las 4 secciones (Identidad/Fiscal/Contacto/Dirección) ahora consumen useFormContext, eliminando el prop drilling de form/set.",
+  "highlights": [
+    "Validación delegada a customerFormSchema vía zodResolver; errores por campo con <FormMessage> en lugar de un toast global.",
+    "Importación CSF preserva ediciones del usuario usando form.reset(next, { keepDirty: true }).",
+    "Apertura del diálogo dispara form.reset atómico (con initialData o vacío).",
+    "Sin nuevos LOC netos. Cero any/!/as introducidos."
+  ],
+  "technical": {
+    "files_changed": [
+      "src/features/customers/components/customers/CustomerFormDialog.tsx",
+      "src/features/customers/components/customers/CustomerFormSections.tsx"
+    ],
+    "phase": "1/3 — Customer (bajo riesgo, valida patrón canónico)",
+    "next": "Fase 2: Forklift (estado derivado: manufacturers/filteredModels)"
+  }
+}
