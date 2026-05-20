@@ -11,9 +11,6 @@ import { Wrench } from "lucide-react";
 import { SERVICE_TYPES } from "@/lib/constants";
 import type { MaintenanceFormValues } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
 
-// Alias mantenido por compatibilidad con consumidores legados.
-export type MaintenanceFormShape = MaintenanceFormValues;
-
 interface ForkliftOption { id: string; name: string; model: string }
 interface MechanicOption { id: string; name: string; specialization?: string | null }
 
