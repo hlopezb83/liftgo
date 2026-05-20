@@ -4,10 +4,10 @@
 
 ## Resumen ejecutivo
 
-- Helpers internos auditados: **16** (736 LOC propios).
+- Helpers internos auditados: **16** (727 LOC propios).
 - KEEP: **15** · MIGRAR: **1** · RETIRADO: **0**.
-- LOC potencialmente migrable a una dep canónica: **9**.
-- Dependencias canónicas activas (§20.4): **43** · no canónicas a evaluar: **4**.
+- LOC potencialmente migrable a una dep canónica: **0**.
+- Dependencias canónicas activas (§20.4): **45** · no canónicas a evaluar: **2**.
 - Aplicaciones previas de §20 ya entregadas: `6.6.0-alpha.1` (PDF → @react-pdf/renderer), `6.6.0-alpha.3` (toasts → sonner), `6.6.0-alpha.4` (PR template).
 
 ## Tabla 1 — Helpers internos
@@ -16,7 +16,7 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | src/lib/exportCsv.ts | util | 22 | 13 | papaparse | KEEP (ya usa canónica) | — | Ya delega en papaparse; mantener. |
 | src/lib/formatCurrency.ts | util | 27 | 71 | Intl.NumberFormat (built-in) | KEEP (glue <30 LOC) | — | Wrapper de 27 LOC sobre Intl con locale es-MX. |
-| src/lib/utils.ts | util | 66 | 129 | clsx + tailwind-merge + date-fns | KEEP (ya usa canónicas) | — | cn, formatMtyDate, nowMty; delega en deps canónicas. |
+| src/lib/utils.ts | util | 66 | 130 | clsx + tailwind-merge + date-fns | KEEP (ya usa canónicas) | — | cn, formatMtyDate, nowMty; delega en deps canónicas. |
 | src/lib/lineItems.ts | util | 51 | 11 | — | KEEP (sin equivalente) | — | Narrowing JSONB específico Supabase; no hay equivalente. |
 | src/lib/rpc.ts | util | 23 | 9 | @supabase/supabase-js | KEEP (glue <30 LOC) | — | Wrapper tipado de 23 LOC sobre supabase.rpc. |
 | src/lib/telemetry.ts | util | 31 | 1 | Sentry (futuro) | KEEP (capa de cambio) | baja | Abstracción para conectar Sentry sin tocar callers. |
@@ -24,7 +24,7 @@
 | src/hooks/use-mobile.tsx | hook | 19 | 4 | matchMedia (built-in) | KEEP (glue <30 LOC) | — | Hook breakpoint mobile, 19 LOC. |
 | src/hooks/useDebouncedValue.ts | hook | 14 | 1 | use-debounce | KEEP (glue <30 LOC) | baja | 14 LOC, 1 consumidor. Migrable a use-debounce si crece. |
 | src/hooks/useDialogState.ts | hook | 40 | 4 | — | KEEP (sin equivalente) | — | Patrón propio para Sheet/Dialog state. |
-| src/hooks/useFormState.ts | hook | 9 | 8 | react-hook-form | MIGRAR | media | 9 LOC, 7 dialogs. Duplica RHF (ya canónico); migrar incrementalmente. |
+| src/hooks/useFormState.ts | hook | 0 | 0 | react-hook-form | MIGRAR | media | 9 LOC, 7 dialogs. Duplica RHF (ya canónico); migrar incrementalmente. |
 | src/hooks/useListFilters.ts | hook | 86 | 7 | react-router + @tanstack/react-table | KEEP (ya usa canónicas) | — | Compone useSearchParams + filtro client; no duplica. |
 | src/hooks/useListPage.ts | hook | 106 | 17 | @tanstack/react-table | KEEP (ya usa canónica) | — | Headless 100% TanStack Table; documentado en §20.4. |
 | src/hooks/useDocuments.ts | hook | 102 | 4 | @tanstack/react-query | KEEP (ya usa canónica) | — | Domain hook sobre supabase + react-query. |
@@ -54,45 +54,43 @@
 | @radix-ui/react-toggle | ^1.1.9 | Canónica activa | UI primitives (shadcn/Radix) | 1 |
 | @radix-ui/react-toggle-group | ^1.1.10 | Canónica activa | UI primitives (shadcn/Radix) | 1 |
 | @radix-ui/react-tooltip | ^1.2.7 | Canónica activa | UI primitives (shadcn/Radix) | 1 |
-| @react-pdf/renderer | ^4.5.1 | Canónica activa | PDF | 15 |
+| @react-pdf/renderer | ^4.5.1 | Canónica activa | PDF | 21 |
 | @supabase/supabase-js | ^2.95.3 | Canónica activa | Backend (Cloud) | 1 |
 | @tanstack/react-query | ^5.83.0 | Canónica activa | Estado servidor | 76 |
-| @tanstack/react-table | ^8.21.3 | Canónica activa | Tablas | 10 |
+| @tanstack/react-table | ^8.21.3 | Canónica activa | Tablas | 9 |
 | @tanstack/react-virtual | ^3.13.24 | Canónica activa | Tablas (virtual) | 1 |
 | class-variance-authority | ^0.7.1 | Canónica activa | UI primitives (shadcn) | 8 |
 | clsx | ^2.1.1 | Canónica activa | Class merging | 1 |
 | cmdk | ^1.1.1 | Canónica activa | UI primitives (shadcn) | 1 |
-| currency.js | ^2.0.4 | Canónica activa | Cálculos financieros | 2 |
+| currency.js | ^2.0.4 | Canónica activa | Cálculos financieros | 3 |
 | date-fns | ^3.6.0 | Canónica activa | Fechas / zonas horarias | 79 |
 | date-fns-tz | ^3.2.0 | Canónica activa | Fechas / zonas horarias | 1 |
 | dompurify | ^3.4.2 | No canónica (evaluar) | Sanitiza HTML del manual (help system). Usado puntualmente. | 1 |
-| file-saver | ^2.0.5 | No canónica (evaluar) | Descargas blob. Candidato a retiro: URL.createObjectURL + link.click cubre el 100% de los usos. | 0 |
-| html2canvas | ^1.4.1 | No canónica (evaluar) | Captura DOM para alguna exportación. Evaluar si sigue en uso tras migración a @react-pdf/renderer. | 0 |
-| lucide-react | ^0.462.0 | Canónica activa | Iconos | 196 |
+| file-saver | ^2.0.5 | Canónica activa | Descargas blob (lazy import) | 5 |
+| html2canvas | ^1.4.1 | Canónica activa | Captura screenshot DOM (lazy, feedback) | 1 |
+| lucide-react | ^0.462.0 | Canónica activa | Iconos | 195 |
 | next-themes | ^0.4 | Canónica activa | Tema | 3 |
 | papaparse | ^5.5.3 | Canónica activa | CSV | 1 |
-| react | ^18.3.1 | Canónica activa | UI runtime | 208 |
+| react | ^18.3.1 | Canónica activa | UI runtime | 209 |
 | react-day-picker | ^8.10.1 | Canónica activa | Fechas (calendar UI) | 6 |
 | react-dom | ^18.3.1 | Canónica activa | UI runtime | 1 |
 | react-dropzone | ^15.0.0 | Canónica activa | Drag & drop archivos | 3 |
-| react-hook-form | ^7.61.1 | Canónica activa | Formularios | 6 |
+| react-hook-form | ^7.61.1 | Canónica activa | Formularios | 33 |
 | react-router-dom | ^6.30.1 | Canónica activa | Router | 71 |
 | recharts | ^2.15.4 | Canónica activa | Charts | 9 |
-| sonner | ^1.7.4 | Canónica activa | Toasts | 85 |
+| sonner | ^1.7.4 | Canónica activa | Toasts | 86 |
 | tailwind-merge | ^2.6.0 | Canónica activa | Class merging | 1 |
 | tailwindcss-animate | ^1.0.7 | Canónica activa | Animaciones | 0 |
-| zod | ^3.25.76 | Canónica activa | Validación | 2 |
+| zod | ^3.25.76 | Canónica activa | Validación | 8 |
 
 ## Oportunidades priorizadas
 
 ### Helpers a migrar
-- **src/hooks/useFormState.ts** → `react-hook-form` (prioridad media, 8 consumidores). 9 LOC, 7 dialogs. Duplica RHF (ya canónico); migrar incrementalmente.
+- **src/hooks/useFormState.ts** → `react-hook-form` (prioridad media, 0 consumidores). 9 LOC, 7 dialogs. Duplica RHF (ya canónico); migrar incrementalmente.
 
 ### Dependencias no canónicas a evaluar
 - **@hello-pangea/dnd@^18.0.1** (7 consumidores) — Drag & drop para Kanban de feedback/maintenance. Canónica de facto.
 - **dompurify@^3.4.2** (1 consumidores) — Sanitiza HTML del manual (help system). Usado puntualmente.
-- **file-saver@^2.0.5** (0 consumidores) — Descargas blob. Candidato a retiro: URL.createObjectURL + link.click cubre el 100% de los usos.
-- **html2canvas@^1.4.1** (0 consumidores) — Captura DOM para alguna exportación. Evaluar si sigue en uso tras migración a @react-pdf/renderer.
 
 ## Historial de aplicaciones de §20
 
