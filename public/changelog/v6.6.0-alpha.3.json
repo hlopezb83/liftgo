@@ -1,0 +1,41 @@
+{
+  "version": "6.6.0-alpha.3",
+  "date": "2026-05-20",
+  "type": "patch",
+  "title": "Toasts: consolidación en sonner (retiro del stack legacy de shadcn)",
+  "category": "refactor",
+  "summary": "Primer caso de aplicación de §20: se elimina el sistema de notificaciones duplicado (use-toast + Toaster + @radix-ui/react-toast) y queda únicamente sonner como dependencia canónica.",
+  "changes": [
+    {
+      "area": "Hooks / UI",
+      "items": [
+        "Eliminado src/hooks/use-toast.ts (186 LOC).",
+        "Eliminado src/components/ui/toast.tsx y src/components/ui/toaster.tsx.",
+        "Retirado <Toaster /> legacy de src/layouts/AppProviders.tsx; queda <Sonner /> como único renderer."
+      ]
+    },
+    {
+      "area": "CRM",
+      "items": [
+        "useProspectGuard migrado de toast(shadcn) a toast.error(sonner) con la misma copia."
+      ]
+    },
+    {
+      "area": "Dependencias",
+      "items": [
+        "Removido @radix-ui/react-toast del package.json (bun remove)."
+      ]
+    },
+    {
+      "area": "Auditoría §20",
+      "items": [
+        "Resto de utilidades en src/lib y src/hooks revisadas: cumplen excepción §20.3 (glue <30 LOC) o ya delegan en una dependencia canónica (papaparse, date-fns, @tanstack/react-table, currency.js, react-hook-form)."
+      ]
+    }
+  ],
+  "verification": {
+    "scope": "rg de use-toast / @radix-ui/react-toast en src devuelve 0. Build limpio.",
+    "manual": "Disparar prospect-guard en CRM y verificar toast destructivo de sonner."
+  },
+  "risk": "Bajo. Cambio mecánico con 1 consumidor migrado."
+}
