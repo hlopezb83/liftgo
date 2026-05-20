@@ -412,7 +412,7 @@ Toda excepción debe ser justificable por una de las cuatro razones anteriores. 
 
 ---
 
-## 21. Dependencias antes que código propio
+## 20. Dependencias antes que código propio
 
 LiftGo prefiere **librerías públicas maduras** sobre helpers internos o snippets generados por IA. Este principio es de primera clase: complementa la regla #8 de Power of 10 (§18) y rige cada PR.
 
@@ -486,7 +486,7 @@ Solo cuando se cumple **al menos uno**:
 
 ---
 
-## 20. Referencias
+## 21. Referencias
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
