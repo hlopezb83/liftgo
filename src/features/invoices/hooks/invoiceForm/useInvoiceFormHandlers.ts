@@ -2,13 +2,13 @@ import { useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
 import { generateLineItems } from "@/features/invoices/lib/invoiceHelpers";
+import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 
 type Booking = {
   id: string; customer_name?: string | null; customer_id?: string | null;
   forklift_id: string; start_date: string; end_date: string;
 };
-type Forklift = { id: string; [k: string]: unknown };
 
 interface Props {
   form: UseFormReturn<InvoiceFormValues>;
@@ -46,7 +46,7 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts }:
     }
     const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
     if (!forklift) return;
-    const items = generateLineItems(forklift as never, booking.start_date, booking.end_date);
+    const items = generateLineItems(forklift, booking.start_date, booking.end_date);
     form.setValue("lineItems", items.map((item) => ({
       ...item, clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
     })), { shouldDirty: true });
