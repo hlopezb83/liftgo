@@ -141,6 +141,21 @@ export default function CRMClosedPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={reopenTarget !== null} onOpenChange={(open) => !open && setReopenTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reabrir deal</AlertDialogTitle>
+            <AlertDialogDescription>
+              {reopenTarget ? `¿Reabrir deal con ${reopenTarget.company_name}? Volverá a la columna de Negociación.` : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReopen}>Reabrir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageTransition>
   );
 }
