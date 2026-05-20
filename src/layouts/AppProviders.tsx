@@ -22,7 +22,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
-            <Toaster />
             <Sonner />
             {children}
           </TooltipProvider>
