@@ -1,81 +1,102 @@
-# Migración useFormState → react-hook-form
+# Plan: migrar los 3 "state bags" restantes a react-hook-form + Zod
 
-Auditoría dependency-audit identificó `useFormState` (9 LOC, 8 consumidores) como único helper de formularios que duplica la stack canónica §20.4 (`react-hook-form` + `zod`). El resto del codebase ya usa RHF para validaciones serias; este helper persiste solo como atajo de `useState` tipado.
+Cerramos la deuda de §20.4 (stack canónico de formularios) sin violar Power of 10: cada fase ≤150 LOC por componente, ≤80 LOC por hook, sin prop drilling >3 niveles, y un PR atómico por fase con su entrada de changelog.
 
-## Objetivo
+## Contexto medido
 
-Eliminar `src/hooks/useFormState.ts` y migrar los 8 consumidores a `useForm` de `react-hook-form` + esquemas Zod, alineado con §20.4 y la regla "sin helpers redundantes" de §20.3.
 
-## Estrategia
+| Target                                        | LOC actuales | Hijos / consumidores                                                                                                                                            | Riesgo                                                                                |
+| --------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `CustomerFormDialog` + `CustomerFormSections` | 104 + 108    | 4 secciones que consumen `form/set`                                                                                                                             | Bajo (puro UI)                                                                        |
+| `useInvoiceFormState`                         | 46           | `useInvoicePrefill`, `useInvoiceLineItemHandlers`, `useInvoiceFormSubmit`, `useInvoiceFormLogic`, `InvoiceForm.tsx`, `CfdiFieldsCard`, `EditableLineItemsTable` | Alto (9 piezas de estado, prefill desde quote/booking/customer)                       |
+| `useForkliftFormState`                        | 46           | `useForkliftPrefill`, `useForkliftFormSubmit`, `useForkliftFormLogic`, `ForkliftForm.tsx`, 3 secciones                                                          | Medio (estado derivado: manufacturers/filteredModels dependen de `form.manufacturer`) |
 
-Migración **incremental por dominio**, no big-bang. Cada fase es un commit independiente, verificable, con changelog propio. El hook no se borra hasta la última fase.
 
-### Fase 1 — Formularios simples (baja complejidad)
-Consumidores con `<10` campos planos, sin lógica derivada compleja:
-- `FiscalDataTab.tsx` (operations)
-- `CompanyLogoTab.tsx` (operations)
-- `DeliveryFormDialog.tsx` (deliveries)
+## Fase 1 — Customer (bajo riesgo, valida el patrón)
 
-**Patrón:** `useForm<Schema>({ resolver: zodResolver(schema), defaultValues })` + `<Form>` / `<FormField>` shadcn.
+**Alcance**: `CustomerFormDialog.tsx` + `CustomerFormSections.tsx` + `CsfDropzone` (sólo consumidor de `onParsed`).
 
-### Fase 2 — Hooks de formulario con submit handlers
-Hooks que envuelven `useFormState` + mutación:
-- `useMaintenanceForm.ts`
-- `useReturnInspectionDialog.ts`
+**Cambios**:
 
-**Patrón:** retornar `form` (de RHF) + `onSubmit = form.handleSubmit(async (values) => mutate(values))`. Reemplazar `set`/`reset` por API nativa de RHF.
+1. `CustomerFormDialog` adopta `useForm<CustomerFormData>({ resolver: zodResolver(customerFormSchema), defaultValues: emptyCustomer })`.
+2. Envolver el form en `<Form {...form}>` y reemplazar `handleSubmit` manual por `form.handleSubmit(onSubmit)`. Quitar el `toast.error` manual (RHF + zodResolver emite errores por campo vía `FormMessage`).
+3. Reemplazar la firma `{ form, set }` de las 4 secciones por `useFormContext<CustomerFormData>()` + `FormField`/`FormItem`/`FormLabel`/`FormControl`/`FormMessage`. Mantiene la estructura visual (Identidad/Fiscal/Contacto/Dirección).
+4. `handleCsfParsed` → `form.reset({ ...form.getValues(), ...patch })` filtrando vacíos.
+5. Effect `[open]` → `form.reset(initialData ? { ...emptyCustomer, ...initialData } : emptyCustomer)`.
 
-### Fase 3 — Formularios con estado derivado / efectos
-Mayor complejidad por `useEffect` que reaccionan a cambios de campos:
-- `CustomerFormDialog.tsx` (CSF import → `setForm` masivo)
-- `useInvoiceFormState.ts` (CFDI nested state, `setCfdiForm` masivo)
-- `useForkliftFormState.ts` (filtrado de modelos según manufacturer)
+**Salida**: ~5 archivos tocados, sin nuevos LOC netos. Changelog `v6.7.0-alpha.1`.
 
-**Patrón:** `form.watch()` para reactividad + `form.reset(values)` para set masivo. Validar que el orden de efectos siga funcionando.
+## Fase 2 — Forklift (riesgo medio, valida estado derivado)
 
-### Fase 4 — Limpieza
-- Eliminar `src/hooks/useFormState.ts`
-- Eliminar entrada en `dependency-audit.md` y `liftgo-dependency-audit.xlsx` (regenerar con script)
-- Verificar `rg useFormState src` retorna vacío
-- Changelog `v6.6.0-alpha.6` (minor: deuda técnica saldada)
+**Alcance**: `useForkliftFormState`, `useForkliftFormLogic`, `useForkliftPrefill`, `useForkliftFormSubmit`, `ForkliftForm.tsx`, secciones `EquipmentDetailsSection`/`InsuranceSection`/`RatesSection`.
 
-## Esquemas Zod
+**Cambios**:
 
-Cada consumidor recibe un esquema co-ubicado (`<feature>/schemas/<form>Schema.ts`) con mensajes en español MX. Reutilizar validaciones existentes si ya hay un esquema parcial en el dominio.
+1. Crear `forkliftFormSchema` en `lib/formSchemas` (ya parcialmente existe vía `ForkliftFormData`). Confirmar tipo.
+2. `useForkliftFormState` se reduce a derivados puros: recibe `form: UseFormReturn<ForkliftFormData>` y devuelve `{ hasModels, manufacturers, filteredModels }`. El `useState`/`set` desaparecen. Mantener `useMemo` con dependencia `form.watch("manufacturer")`.
+3. `useForkliftFormLogic` crea el `useForm` y pasa el control. `handleManufacturerChange`/`handleModelChange` usan `form.setValue` con `shouldDirty: true`.
+4. `useForkliftPrefill` cambia firma a `(existing, form.reset)` — un solo `reset` atómico cuando `existing` llega.
+5. `useForkliftFormSubmit` lee `form.getValues()` en lugar de recibir `form` plano. Validación delegada al resolver.
+6. Secciones migran a `useFormContext` + `FormField`. Selectores Manufacturer/Model siguen recibiendo `manufacturers`/`filteredModels` como prop (datos derivados, no estado).
 
-## Detalles técnicos
+**Validación post-fase**: crear forklift nuevo, editar uno existente, cambiar manufacturer y verificar reset de `model`, autopoblado de capacidad/altura/combustible desde `equipment_models`.
 
-- **`form.watch()` vs `form.getValues()`**: usar `watch` solo donde la UI dependa reactivamente; `getValues` en submit handlers.
-- **`setForm(prev => ...)` patrones**: migrar a `form.reset({ ...form.getValues(), ...patch })` o `form.setValue` por campo.
-- **Tipos**: derivar `type FormValues = z.infer<typeof schema>` — elimina genéricos manuales del helper actual.
-- **Power of 10**: cada hook migrado debe quedar ≤80 LOC; componentes ≤150 LOC. Si excede, partir.
-- **Sin `any`/`!`/`as`**: RHF tipa todo end-to-end vía Zod resolver.
+**Salida**: Changelog `v6.7.0-alpha.2`.
 
-## Out of scope
+## Fase 3 — Invoice (riesgo alto, fase final)
 
-- No tocar formularios que ya usan RHF.
-- No cambiar UX ni validaciones existentes (paridad funcional estricta).
-- No introducir nuevos campos ni refactor de submit logic.
-- No tocar tests existentes salvo ajuste de imports/mocks.
+**Alcance**: 4 hooks bajo `invoiceForm/`, `useInvoiceFormLogic`, `InvoiceForm.tsx`, `CfdiFieldsCard`, `EditableLineItemsTable`.
 
-## Verificación por fase
+**Estrategia**: consolidar los 9 trozos de estado en **un solo** `useForm<InvoiceFormValues>` con esquema Zod nuevo:
 
-1. Build limpio (sin warnings).
-2. Smoke manual del formulario migrado en preview.
-3. Tests existentes pasan (`bunx vitest run <feature>`).
-4. `rg "useFormState" src` muestra consumidores restantes decrecientes.
+```ts
+const invoiceFormSchema = z.object({
+  bookingId: z.string(),
+  customerId: z.string().nullable(),
+  customerName: z.string().min(1),
+  lineItems: z.array(lineItemSchema).min(1),
+  taxRate: z.number().min(0).max(100),
+  issueDate: z.date(),
+  dueDate: z.date().optional(),
+  notes: z.string(),
+  cfdi: cfdiSchema, // serie, folio, formaPago, metodoPago, usoCfdi, moneda, tipoCambio, receptor*
+});
+```
 
-## Entregables finales
+**Cambios**:
 
-- 8 archivos migrados + esquemas Zod nuevos.
-- `src/hooks/useFormState.ts` eliminado.
-- `docs/dependency-audit.md` y xlsx regenerados.
-- 4 entradas de changelog (una por fase) culminando en `v6.6.0-alpha.6`.
+1. Nuevo `lib/schemas/invoiceSchema.ts` (≤80 LOC).
+2. `useInvoiceFormState` se elimina. `useInvoiceFormLogic` crea el `useForm`.
+3. `useInvoicePrefill` recibe `form.reset`; consolida prefill desde `existing | sourceQuote | booking` en un único `reset` por fuente — elimina los `setX` encadenados actuales.
+4. `useInvoiceLineItemHandlers` opera sobre `form.setValue("lineItems", ...)` con `useFieldArray` si simplifica add/remove/edit.
+5. `handleCustomerSelect`/`handleBookingSelect` usan `form.setValue` agrupando con `{ shouldDirty: true }`.
+6. `useInvoiceFormSubmit.buildPayload` consume `form.getValues()`.
+7. `computeTotals` se mueve a un `useWatch(["lineItems","taxRate"])` memoizado en `useInvoiceFormLogic` para mantener reactividad de `subtotal/taxAmount/total`.
+8. `CfdiFieldsCard` migra a `FormField` con `useFormContext`. `EditableLineItemsTable` recibe `control` o usa `useFieldArray` interno.
 
-## Riesgo
+**Riesgos a vigilar**:
 
-**Medio.** Fase 3 es la sensible (estado derivado en CSF import e Invoice CFDI). Mitigación: fases independientes, rollback trivial por commit.
+- Prefill desde quote dispara `reset` después de fetch: garantizar que no pisa cambios del usuario (`reset(values, { keepDirty: true })` si la pestaña fue editada).
+- `tipoCambio` debe re-disparar cálculo de totales si moneda ≠ MXN (mantener lógica actual).
+- Verificar que el `useFieldArray` no fuerce re-mount de `EditableLineItemsTable` al editar filas.
 
-## Decisión solicitada
+**Salida**: Changelog `v6.7.0` (cierra deuda §20.4).
 
-¿Apruebas el plan completo (4 fases en este loop) o prefieres ejecutar **solo Fase 1** ahora para validar el patrón antes de continuar?
+## Criterios Power of 10 por fase
+
+- Cada fase termina con `wc -l` de cada archivo tocado ≤150 (componentes) / ≤80 (hooks). Si Invoice excede, dividir `useInvoiceFormLogic` en `useInvoicePrefillEffects` + `useInvoiceTotals`.
+- Cero `any`/`!`/`as` introducidos. `unknown` en catches.
+- Cero prop drilling >3 niveles (gracias a `useFormContext`).
+- Entrada en `public/changelog.json` + detalle `public/changelog/v6.7.0-alpha.X.json` al final de cada fase.
+
+## Validación entre fases
+
+Al cerrar cada fase, smoke test en preview:
+
+- Customer: crear + importar CSF + editar.
+- Forklift: crear con/sin modelos, editar, cambiar manufacturer.
+- Invoice: crear desde booking, desde quote, editar borrador, timbrar.
+
+## Decisión a confirmar
+
+¿Empiezo por **Fase 1 (Customer)** para validar el patrón canónico antes de tocar Invoice, o prefieres atacar primero **Forklift** (riesgo medio, también valida estado derivado con menos blast radius que Invoice)? Empieza por Fase 1
