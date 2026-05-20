@@ -1,10 +1,24 @@
 import { format } from "date-fns";
 import { useCreateInvoice, useUpdateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
-import { computeTotals } from "@/features/invoices/lib/invoiceHelpers";
+import { computeTotals, type LineItem } from "@/features/invoices/lib/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { orEmpty } from "@/lib/forms/coerce";
-import type { InvoiceFormValues, CfdiFormValues } from "@/lib/schemas/invoiceFormSchema";
+import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "@/lib/schemas/invoiceFormSchema";
+
+function toLineItems(items: LineItemValues[]): LineItem[] {
+  return items.map((i) => ({
+    description: i.description ?? "",
+    quantity: Number(i.quantity ?? 0),
+    unit_price: Number(i.unit_price ?? 0),
+    total: Number(i.total ?? 0),
+    discount: i.discount,
+    discount_type: i.discount_type,
+    clave_prod_serv: i.clave_prod_serv,
+    clave_unidad: i.clave_unidad,
+    objeto_imp: i.objeto_imp,
+  }));
+}
 
 interface BuildPayloadArgs {
   values: InvoiceFormValues;
