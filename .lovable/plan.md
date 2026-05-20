@@ -1,77 +1,81 @@
+# Migración useFormState → react-hook-form
+
+Auditoría dependency-audit identificó `useFormState` (9 LOC, 8 consumidores) como único helper de formularios que duplica la stack canónica §20.4 (`react-hook-form` + `zod`). El resto del codebase ya usa RHF para validaciones serias; este helper persiste solo como atajo de `useState` tipado.
+
 ## Objetivo
 
-Generar un **reporte de auditoría dependencias vs helpers internos** en dos entregables:
+Eliminar `src/hooks/useFormState.ts` y migrar los 8 consumidores a `useForm` de `react-hook-form` + esquemas Zod, alineado con §20.4 y la regla "sin helpers redundantes" de §20.3.
 
-1. **`docs/dependency-audit.md`** — versionado en el repo, enlazado desde `architecture.md` §20.
-2. **`/mnt/documents/liftgo-dependency-audit.xlsx`** — descargable para revisión offline.
+## Estrategia
 
-Ambos comparten el mismo dataset; se generan con un solo script.
+Migración **incremental por dominio**, no big-bang. Cada fase es un commit independiente, verificable, con changelog propio. El hook no se borra hasta la última fase.
 
-## Metodología
+### Fase 1 — Formularios simples (baja complejidad)
+Consumidores con `<10` campos planos, sin lógica derivada compleja:
+- `FiscalDataTab.tsx` (operations)
+- `CompanyLogoTab.tsx` (operations)
+- `DeliveryFormDialog.tsx` (deliveries)
 
-Para cada utilidad propia en `src/lib/`, `src/lib/forms/` y `src/hooks/`:
-- Conteo de **LOC** (excluyendo blank/comentarios cuando trivial).
-- Conteo de **consumidores** (`rg -l "from \"@/lib|hooks/<name>\""`).
-- **Dep canónica equivalente** según §20.4.
-- **Veredicto**: `KEEP (glue <30 LOC)`, `KEEP (sin equivalente)`, `KEEP (ya usa dep canónica)`, `MIGRAR`, `RETIRADO`.
-- **Acción recomendada** con prioridad (alta/media/baja/none).
+**Patrón:** `useForm<Schema>({ resolver: zodResolver(schema), defaultValues })` + `<Form>` / `<FormField>` shadcn.
 
-Adicional: tabla de **dependencias del `package.json`** clasificadas:
-- **Canónica activa** (en §20.4 y usada).
-- **Canónica subutilizada** (en §20.4 pero pocos consumidores → oportunidad de migración).
-- **No canónica** (no en §20.4; evaluar si debe escalarse o retirarse).
+### Fase 2 — Hooks de formulario con submit handlers
+Hooks que envuelven `useFormState` + mutación:
+- `useMaintenanceForm.ts`
+- `useReturnInspectionDialog.ts`
 
-## Estructura del Excel
+**Patrón:** retornar `form` (de RHF) + `onSubmit = form.handleSubmit(async (values) => mutate(values))`. Reemplazar `set`/`reset` por API nativa de RHF.
 
-Hoja 1 — **Helpers internos** (columnas):
-| Archivo | Tipo | LOC | Consumidores | Dep canónica equiv. | Veredicto | Prioridad | Acción |
+### Fase 3 — Formularios con estado derivado / efectos
+Mayor complejidad por `useEffect` que reaccionan a cambios de campos:
+- `CustomerFormDialog.tsx` (CSF import → `setForm` masivo)
+- `useInvoiceFormState.ts` (CFDI nested state, `setCfdiForm` masivo)
+- `useForkliftFormState.ts` (filtrado de modelos según manufacturer)
 
-Hoja 2 — **Dependencias** (columnas):
-| Paquete | Versión | Categoría §20.4 | Consumidores aprox. | Estado | Notas |
+**Patrón:** `form.watch()` para reactividad + `form.reset(values)` para set masivo. Validar que el orden de efectos siga funcionando.
 
-Hoja 3 — **Resumen** (KPIs):
-| Métrica | Valor |
-- Total helpers auditados, KEEP / MIGRAR / RETIRADO, LOC total propio, LOC potencialmente migrable, deps canónicas, deps no canónicas.
+### Fase 4 — Limpieza
+- Eliminar `src/hooks/useFormState.ts`
+- Eliminar entrada en `dependency-audit.md` y `liftgo-dependency-audit.xlsx` (regenerar con script)
+- Verificar `rg useFormState src` retorna vacío
+- Changelog `v6.6.0-alpha.6` (minor: deuda técnica saldada)
 
-Formato: fuente Arial, totales con `SUM`, encabezados con fill amarillo (`FFFF00`), negritas. Sin colores de marca custom para mantener legibilidad.
+## Esquemas Zod
 
-## Estructura del Markdown
+Cada consumidor recibe un esquema co-ubicado (`<feature>/schemas/<form>Schema.ts`) con mensajes en español MX. Reutilizar validaciones existentes si ya hay un esquema parcial en el dominio.
 
-`docs/dependency-audit.md`:
-1. **Resumen ejecutivo** — 3-5 bullets con hallazgos clave.
-2. **Tabla 1 — Helpers internos** (misma data, formato markdown).
-3. **Tabla 2 — Dependencias por categoría §20.4**.
-4. **Oportunidades de migración priorizadas** — lista numerada con esfuerzo estimado.
-5. **Historial** — referencia a alpha.1 (PDF), alpha.3 (toast), alpha.4 (PR template) como aplicaciones previas de §20.
+## Detalles técnicos
 
-## Script
+- **`form.watch()` vs `form.getValues()`**: usar `watch` solo donde la UI dependa reactivamente; `getValues` en submit handlers.
+- **`setForm(prev => ...)` patrones**: migrar a `form.reset({ ...form.getValues(), ...patch })` o `form.setValue` por campo.
+- **Tipos**: derivar `type FormValues = z.infer<typeof schema>` — elimina genéricos manuales del helper actual.
+- **Power of 10**: cada hook migrado debe quedar ≤80 LOC; componentes ≤150 LOC. Si excede, partir.
+- **Sin `any`/`!`/`as`**: RHF tipa todo end-to-end vía Zod resolver.
 
-`scripts/dependency-audit.mjs` (Bun) — un solo archivo que:
-1. Lista archivos de `src/lib/**.ts`, `src/lib/forms/**.ts`, `src/hooks/**.{ts,tsx}` (excluye `pdf/`, `domain/`, `constants/` que son carpetas de dominio).
-2. Calcula LOC con `wc -l`.
-3. Para cada archivo extrae el nombre de export y corre `rg -l` por consumidores.
-4. Carga clasificación manual desde un mapa interno (basado en la auditoría ya hecha en alpha.3).
-5. Lee `package.json` y clasifica deps contra el stack §20.4.
-6. Emite `docs/dependency-audit.md` y `/mnt/documents/liftgo-dependency-audit.xlsx` (via `exceljs` ya disponible? si no, usa `npx xlsx` con un script Python — más simple: usa **Python con openpyxl** porque ya está en sandbox).
+## Out of scope
 
-Decisión: **script Python** (`scripts/dependency_audit.py`) — más natural para xlsx + markdown.
+- No tocar formularios que ya usan RHF.
+- No cambiar UX ni validaciones existentes (paridad funcional estricta).
+- No introducir nuevos campos ni refactor de submit logic.
+- No tocar tests existentes salvo ajuste de imports/mocks.
 
-## Changelog
+## Verificación por fase
 
-Entrada `6.6.0-alpha.5` tipo `docs`:
-- `public/changelog.json` + `public/changelog/v6.6.0-alpha.5.json`.
-- Mencionar enlace `docs/dependency-audit.md` y el xlsx descargable.
+1. Build limpio (sin warnings).
+2. Smoke manual del formulario migrado en preview.
+3. Tests existentes pasan (`bunx vitest run <feature>`).
+4. `rg "useFormState" src` muestra consumidores restantes decrecientes.
 
-## Enlace desde architecture.md
+## Entregables finales
 
-Añadir un bullet al final de §20.6 ("Proceso para retirar código generado"):
-> Estado actual: ver `docs/dependency-audit.md` (regenerar con `python scripts/dependency_audit.py`).
-
-## Fuera de alcance
-
-- No se migra código en este PR — el reporte es la base para decidir siguientes pasos.
-- No se automatiza en CI (follow-up posible: regenerar en cada push a `main`).
+- 8 archivos migrados + esquemas Zod nuevos.
+- `src/hooks/useFormState.ts` eliminado.
+- `docs/dependency-audit.md` y xlsx regenerados.
+- 4 entradas de changelog (una por fase) culminando en `v6.6.0-alpha.6`.
 
 ## Riesgo
 
-Nulo en código de producción. Solo se añaden 3 archivos (script, md, xlsx en `/mnt/documents`) + 1 entrada de changelog + 1 línea en `architecture.md`.
+**Medio.** Fase 3 es la sensible (estado derivado en CSF import e Invoice CFDI). Mitigación: fases independientes, rollback trivial por commit.
+
+## Decisión solicitada
+
+¿Apruebas el plan completo (4 fases en este loop) o prefieres ejecutar **solo Fase 1** ahora para validar el patrón antes de continuar?
