@@ -1,0 +1,36 @@
+{
+  "version": "6.6.0",
+  "date": "2026-05-20",
+  "type": "minor",
+  "title": "useFormState eliminado — migración completa al stack canónico §20.4",
+  "category": "refactor",
+  "description": "Fases 3 y 4 finales de la migración. Los 3 consumidores restantes liberados del helper duplicado y `src/hooks/useFormState.ts` eliminado. La auditoría §20 cierra esta deuda: cero helpers redundantes de formularios.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "CustomerFormDialog: inline useState + setter",
+      "description": "El diálogo tiene 4 secciones hijas (Identity/Fiscal/Contact/AddressNotes) que dependen del API `form/set`. Migrar a RHF requería refactorizar las 4 secciones y CsfDropzone — fuera de scope para Power of 10. Se inlinea `useState<CustomerFormData>` + `set` memoizado con `useCallback`. Validación con `customerFormSchema.safeParse` ya estaba en place."
+    },
+    {
+      "type": "refactor",
+      "title": "useInvoiceFormState: inline useState",
+      "description": "El hook coordina 9 piezas de estado consumidas por useInvoicePrefill, useInvoiceLineItemHandlers y useInvoiceFormSubmit. No es realmente un formulario — es un state bag. Se inlinea `useState<CfdiFormState>` + `setCfdi` memoizado. API pública (`cfdi/setCfdi/setCfdiForm`) preservada."
+    },
+    {
+      "type": "refactor",
+      "title": "useForkliftFormState: inline useState",
+      "description": "Consumido por useForkliftFormLogic que orquesta prefill, submit y handlers de manufacturer/model con `setForm(prev => ...)` masivo. Inline igual que invoice; API pública (`form/set/setForm`) intacta."
+    },
+    {
+      "type": "chore",
+      "title": "src/hooks/useFormState.ts eliminado",
+      "description": "Helper de 9 LOC retirado. `rg useFormState src` retorna vacío. La auditoría `dependency-audit.md` reflejará la eliminación en la próxima regeneración del script."
+    }
+  ],
+  "highlights": [
+    "0 consumidores de useFormState en el codebase",
+    "Fases 1-2: 5 formularios migrados a react-hook-form + Zod completo",
+    "Fases 3-4: 3 consumidores inlineados (refactor a RHF excedía Power of 10 por blast radius)",
+    "Versión salta a 6.6.0 (minor) cerrando la deuda técnica identificada en la auditoría §20"
+  ]
+}

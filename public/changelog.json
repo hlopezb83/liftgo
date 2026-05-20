@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.6.0",
+    "date": "2026-05-20",
+    "type": "minor",
+    "title": "useFormState eliminado — migración completa al stack canónico §20.4",
+    "category": "refactor"
+  },
+  {
     "version": "6.6.0-alpha.7",
     "date": "2026-05-20",
     "type": "patch",
