@@ -100,21 +100,23 @@ export function FeedbackFormDialog({ open, onOpenChange }: Props) {
   return (
     <>
       <Dialog open={open && !picking} onOpenChange={(o) => { if (!o) { resetAll(); onOpenChange(false); } }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Reportar bug o sugerir mejora</DialogTitle>
           </DialogHeader>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FeedbackFormFields
-              form={form}
-              route={location.pathname + location.search}
-              selectedElement={selectedElement}
-              screenshotPreview={screenshotPreview}
-              isCapturing={isCapturing}
-              onStartPicker={handleStartPicker}
-              onClearElement={handleClearElement}
-            />
-            <DialogFooter>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 min-h-0 flex flex-col">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">
+              <FeedbackFormFields
+                form={form}
+                route={location.pathname + location.search}
+                selectedElement={selectedElement}
+                screenshotPreview={screenshotPreview}
+                isCapturing={isCapturing}
+                onStartPicker={handleStartPicker}
+                onClearElement={handleClearElement}
+              />
+            </div>
+            <DialogFooter className="shrink-0 border-t pt-3 mt-3">
               <Button type="button" variant="ghost" onClick={() => { resetAll(); onOpenChange(false); }}>
                 Cancelar
               </Button>

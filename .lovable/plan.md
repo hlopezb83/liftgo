@@ -1,35 +1,38 @@
-## Migrar `cssPath.ts` a `@medv/finder`
+# Fix: Modal de feedback se desborda al adjuntar screenshot
 
-### Cambios
+## Problema
 
-**1. `src/features/feedback/lib/cssPath.ts`** — Reemplazar `computeCssPath` por wrapper de `finder()`:
-- Mantener firma idéntica: `computeCssPath(el: Element): string`
-- Mantener `describeElement` y `SelectedElementInfo` sin cambios (API pública intacta)
-- Configurar `finder` para ignorar clases Tailwind con prefijos de estado (`hover:`, `focus:`, `active:`)
-- Fallback a `el.tagName.toLowerCase()` si finder lanza
+Cuando el usuario selecciona un elemento en el módulo de feedback:
+1. Se captura un screenshot
+2. Se renderiza dentro del modal junto con el resto del formulario (tipo, ruta, título, descripción, badges, botones)
+3. El `DialogContent` solo limita el ancho (`max-w-lg`) pero **no la altura**, por lo que el modal crece más allá del viewport y el botón "Enviar reporte" queda fuera de pantalla en laptops (≤768px de alto).
 
-### Por qué
+## Solución (solo UI, sin tocar lógica)
 
-- Selectores **verificadamente únicos** (finder valida con `querySelectorAll`)
-- Más cortos y estables: prioriza `id` → atributos → clases → `:nth-child`
-- ~3 KB, batalla-probado (usado por Chrome DevTools recorder)
-- Reduce `cssPath.ts` de 57 → ~30 LOC
+### 1. `FeedbackFormDialog.tsx` — limitar altura del modal y hacer el cuerpo scrollable
 
-### Sin cambios
+- `DialogContent`: agregar `max-h-[90vh] flex flex-col` (mantiene `max-w-lg`).
+- `<form>`: convertir en `flex-1 min-h-0 flex flex-col` para que sea contenedor flex.
+- Envolver `<FeedbackFormFields ... />` en un `<div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-4">` para que **solo el contenido del formulario** haga scroll.
+- Mover `<DialogFooter>` fuera del área scrollable (queda fijo abajo) con `className="shrink-0 border-t pt-3 mt-0"`.
 
-- `ElementPicker.tsx`, `FeedbackFormFields.tsx`, `FeedbackDetailSheet.tsx`, `useCreateFeedback.ts`: siguen importando `describeElement` / `SelectedElementInfo` con la misma firma
-- DB: `selected_element` JSONB sin migración (mismo shape)
-- Reportes antiguos siguen funcionando (es solo display de string)
+### 2. `FeedbackFormFields.tsx` — preview del screenshot más compacto
 
-### Verificación
+- Cambiar la imagen del screenshot de `max-h-48` (192px) a `max-h-32` (128px) para reducir presión vertical y mantener visible la información clave.
+- Sin cambios en la lógica de selección/captura.
 
-- `bunx vitest run` (esperado: 71/71 pasan)
-- Smoke manual: abrir FAB → "Seleccionar elemento" → confirmar que el `cssPath` mostrado es válido y único
+## Lo que NO cambia
 
-### Changelog
+- Lógica de `ElementPicker`, `captureScreenshotFile`, `useCreateFeedback`, schema, contexto.
+- Hook `cssPath.ts` (migración a `@medv/finder` ya hecha en v6.7.6).
+- DB, RPCs, edge functions.
 
-- `public/changelog.json` + `public/changelog/v6.7.6.json` (patch): "Mejora de robustez en selectores CSS del reporte de feedback usando `@medv/finder`."
+## Verificación
 
-### Nota
+- Probar en viewport 1000×673 (el del usuario): el modal debe caber con scroll interno y el footer siempre visible.
+- Probar también en 1920×1080 y móvil ≤414px.
+- `bunx vitest run` debe seguir pasando 71/71.
 
-Ya instalé `@medv/finder@4.0.2` durante exploración. Al pasar a build mode aplico el cambio en `cssPath.ts` y el changelog.
+## Changelog
+
+- `public/changelog.json` + `public/changelog/v6.7.7.json` — patch: "Modal de feedback ahora cabe en pantallas pequeñas (scroll interno, footer fijo, preview compacto)".
