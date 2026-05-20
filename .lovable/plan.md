@@ -1,49 +1,77 @@
 ## Objetivo
 
-Crear `.github/pull_request_template.md` con una checklist accionable derivada de **§20 "Dependencias antes que código propio"** de `architecture.md`, para que cada PR justifique altas/bajas de dependencias y no introduzca código hand-rolled que duplique el stack canónico.
+Generar un **reporte de auditoría dependencias vs helpers internos** en dos entregables:
 
-> Nota: §21 es "Referencias" (sin checklist). La auditoría se basa íntegramente en §20.1-§20.7.
+1. **`docs/dependency-audit.md`** — versionado en el repo, enlazado desde `architecture.md` §20.
+2. **`/mnt/documents/liftgo-dependency-audit.xlsx`** — descargable para revisión offline.
 
-## Archivo nuevo: `.github/pull_request_template.md`
+Ambos comparten el mismo dataset; se generan con un solo script.
 
-Estructura propuesta:
+## Metodología
 
-1. **Resumen** — 1-3 líneas de qué y por qué.
+Para cada utilidad propia en `src/lib/`, `src/lib/forms/` y `src/hooks/`:
+- Conteo de **LOC** (excluyendo blank/comentarios cuando trivial).
+- Conteo de **consumidores** (`rg -l "from \"@/lib|hooks/<name>\""`).
+- **Dep canónica equivalente** según §20.4.
+- **Veredicto**: `KEEP (glue <30 LOC)`, `KEEP (sin equivalente)`, `KEEP (ya usa dep canónica)`, `MIGRAR`, `RETIRADO`.
+- **Acción recomendada** con prioridad (alta/media/baja/none).
 
-2. **Tipo de cambio** — checkboxes: `feature` / `refactor` / `fix` / `docs` / `chore`.
+Adicional: tabla de **dependencias del `package.json`** clasificadas:
+- **Canónica activa** (en §20.4 y usada).
+- **Canónica subutilizada** (en §20.4 pero pocos consumidores → oportunidad de migración).
+- **No canónica** (no en §20.4; evaluar si debe escalarse o retirarse).
 
-3. **Checklist §20 — Dependencias antes que código propio**
-   - [ ] No reimplementé funcionalidad ya cubierta por el stack canónico (§20.4).
-   - [ ] Si añadí una dependencia, cumple §20.2 (mantenida <12m, tipos TS, licencia permisiva, sin vulnerabilidades altas).
-   - [ ] Si escribí código propio en lugar de usar una librería, encaja en §20.3 (regla de negocio LiftGo, RPC de seguridad, o glue <30 LOC documentado).
-   - [ ] Si retiré código hand-rolled, eliminé el archivo legacy en el mismo PR (no lo dejé muerto).
-   - [ ] Si la dependencia pasa a ser canónica, actualicé §2 y §20.4 de `architecture.md`.
+## Estructura del Excel
 
-4. **Checklist general (Power of 10 §18)**
-   - [ ] Componentes ≤150 LOC, hooks ≤80 LOC.
-   - [ ] Sin `any` / `!` / `as`; errores con `unknown` + Zod cuando aplica.
-   - [ ] Paginación obligatoria en listas (>1000 filas potenciales).
-   - [ ] `useEffect` con cleanup donde corresponde.
-   - [ ] Cero warnings de TS / ESLint.
+Hoja 1 — **Helpers internos** (columnas):
+| Archivo | Tipo | LOC | Consumidores | Dep canónica equiv. | Veredicto | Prioridad | Acción |
 
-5. **Checklist de cierre**
-   - [ ] Entrada nueva en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`.
-   - [ ] Tests (`bunx vitest run`) o verificación manual descrita.
-   - [ ] Si hay cambios de esquema, migración SQL con `SET search_path = public` y RLS revisada.
+Hoja 2 — **Dependencias** (columnas):
+| Paquete | Versión | Categoría §20.4 | Consumidores aprox. | Estado | Notas |
 
-6. **Notas para reviewer** — sección libre.
+Hoja 3 — **Resumen** (KPIs):
+| Métrica | Valor |
+- Total helpers auditados, KEEP / MIGRAR / RETIRADO, LOC total propio, LOC potencialmente migrable, deps canónicas, deps no canónicas.
+
+Formato: fuente Arial, totales con `SUM`, encabezados con fill amarillo (`FFFF00`), negritas. Sin colores de marca custom para mantener legibilidad.
+
+## Estructura del Markdown
+
+`docs/dependency-audit.md`:
+1. **Resumen ejecutivo** — 3-5 bullets con hallazgos clave.
+2. **Tabla 1 — Helpers internos** (misma data, formato markdown).
+3. **Tabla 2 — Dependencias por categoría §20.4**.
+4. **Oportunidades de migración priorizadas** — lista numerada con esfuerzo estimado.
+5. **Historial** — referencia a alpha.1 (PDF), alpha.3 (toast), alpha.4 (PR template) como aplicaciones previas de §20.
+
+## Script
+
+`scripts/dependency-audit.mjs` (Bun) — un solo archivo que:
+1. Lista archivos de `src/lib/**.ts`, `src/lib/forms/**.ts`, `src/hooks/**.{ts,tsx}` (excluye `pdf/`, `domain/`, `constants/` que son carpetas de dominio).
+2. Calcula LOC con `wc -l`.
+3. Para cada archivo extrae el nombre de export y corre `rg -l` por consumidores.
+4. Carga clasificación manual desde un mapa interno (basado en la auditoría ya hecha en alpha.3).
+5. Lee `package.json` y clasifica deps contra el stack §20.4.
+6. Emite `docs/dependency-audit.md` y `/mnt/documents/liftgo-dependency-audit.xlsx` (via `exceljs` ya disponible? si no, usa `npx xlsx` con un script Python — más simple: usa **Python con openpyxl** porque ya está en sandbox).
+
+Decisión: **script Python** (`scripts/dependency_audit.py`) — más natural para xlsx + markdown.
 
 ## Changelog
 
-Entrada `6.6.0-alpha.4` tipo `docs`/`chore`:
-- `public/changelog.json` (índice).
-- `public/changelog/v6.6.0-alpha.4.json` (detalle: nuevo PR template con checklist §20).
+Entrada `6.6.0-alpha.5` tipo `docs`:
+- `public/changelog.json` + `public/changelog/v6.6.0-alpha.5.json`.
+- Mencionar enlace `docs/dependency-audit.md` y el xlsx descargable.
+
+## Enlace desde architecture.md
+
+Añadir un bullet al final de §20.6 ("Proceso para retirar código generado"):
+> Estado actual: ver `docs/dependency-audit.md` (regenerar con `python scripts/dependency_audit.py`).
 
 ## Fuera de alcance
 
-- No se añade Action/CI que valide la checklist (puede ser follow-up con un workflow que verifique presencia de entrada en changelog y secciones marcadas).
-- No se modifican `architecture.md` ni código fuente.
+- No se migra código en este PR — el reporte es la base para decidir siguientes pasos.
+- No se automatiza en CI (follow-up posible: regenerar en cada push a `main`).
 
 ## Riesgo
 
-Nulo — solo documentación. El template aplica a PRs futuros; los existentes no se ven afectados.
+Nulo en código de producción. Solo se añaden 3 archivos (script, md, xlsx en `/mnt/documents`) + 1 entrada de changelog + 1 línea en `architecture.md`.
