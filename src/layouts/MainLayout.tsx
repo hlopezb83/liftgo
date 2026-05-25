@@ -9,11 +9,11 @@ import { FeedbackFab } from "@/features/feedback/components/FeedbackFab";
 export default function MainLayout() {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-[100dvh] flex w-full">
         <AppSidebar />
-        <main className="flex-1 overflow-auto">
-          <header className="h-12 flex items-center gap-3 border-b px-4 bg-card">
-            <SidebarTrigger />
+        <main className="flex-1 overflow-auto pb-[env(safe-area-inset-bottom)]">
+          <header className="sticky top-0 z-30 h-12 flex items-center gap-3 border-b px-4 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[env(safe-area-inset-top)] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
+            <SidebarTrigger className="touch:h-11 touch:w-11" />
             <div className="flex-1 min-w-0">
               <TopbarBreadcrumbs />
             </div>
