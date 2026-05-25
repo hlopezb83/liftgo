@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.9.0",
+    "date": "2026-05-25",
+    "type": "minor",
+    "title": "Pulido móvil y tablet (Fase 3+4): filtros en sheet, FAB primario y cards hasta tablet",
+    "category": "improvement"
+  },
+  {
     "version": "6.8.0",
     "date": "2026-05-25",
     "type": "minor",
