@@ -113,6 +113,16 @@ export default function CustomersPage() {
         title="Clientes"
         subtitle={`${customers?.length || 0} clientes`}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
+        mobileFab={
+          <button
+            type="button"
+            onClick={openCreate}
+            aria-label="Agregar cliente"
+            className="h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground flex items-center justify-center"
+          >
+            <ChevronRight className="h-6 w-6 rotate-90" />
+          </button>
+        }
         filters={<CustomersFilters search={search} onSearchChange={setSearch} />}
         isLoading={isLoading}
         items={paginatedItems}
