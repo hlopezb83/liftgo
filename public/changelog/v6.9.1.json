@@ -1,0 +1,30 @@
+{
+  "version": "6.9.1",
+  "date": "2026-05-25",
+  "type": "patch",
+  "title": "KPIs responsivos: tarjetas financieras a ancho completo en móvil y mejoras visuales",
+  "description": "Ajustes de diseño responsive en el Panel para mejorar la legibilidad de KPIs en dispositivos móviles y tabletas.",
+  "changes": [
+    {
+      "category": "UI",
+      "description": "FinancialKpiCards: cambio de grid-cols-2 a grid-cols-1 en móvil (<640px) para evitar truncamiento de valores monetarios largos. Cada tarjeta financiera ahora ocupa el ancho completo en pantallas pequeñas."
+    },
+    {
+      "category": "UI",
+      "description": "StatCards: reducción de padding e iconos en móvil (p-3 vs p-4, h-4 vs h-5) para mejor aprovechamiento del espacio en grid de 2 columnas."
+    },
+    {
+      "category": "UI",
+      "description": "Ambos componentes de KPIs: fuentes responsivas (text-sm en móvil, text-base en tablet+) y tabular-nums para estabilidad visual de números."
+    },
+    {
+      "category": "UI",
+      "description": "FleetStatusChart: leyenda ahora usa flex-wrap para evitar desbordamiento horizontal en móvil."
+    },
+    {
+      "category": "UI",
+      "description": "ArrowRight en FinancialKpiCards oculto en móvil para maximizar espacio para el valor."
+    }
+  ],
+  "breaking": false
+}
