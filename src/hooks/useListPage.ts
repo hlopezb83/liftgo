@@ -7,7 +7,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { APP_CONFIG } from "@/lib/config";
 import { liftgoSortingFn } from "@/components/dataTable/v2/sorting";
 
@@ -90,7 +90,7 @@ export function useListPage<T>(
   const page = pageIndex + 1;
   const setPage = useCallback((p: number) => setPageIndex(Math.max(0, p - 1)), []);
 
-  const isMobile = useIsMobile();
+  const isMobile = useIsTabletOrBelow();
 
   return {
     sortKey,
