@@ -29,11 +29,11 @@ export const FleetStatusChart = memo(function FleetStatusChart({ data }: FleetSt
         ) : (
           <p className="text-muted-foreground text-sm text-center py-10">Sin datos aún</p>
         )}
-        <div className="flex justify-center gap-4 mt-2">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2">
           {data.map((d) => (
             <div key={d.name} className="flex items-center gap-1.5 text-xs">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
-              {d.name} ({d.value})
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
+              <span className="truncate">{d.name} ({d.value})</span>
             </div>
           ))}
         </div>
