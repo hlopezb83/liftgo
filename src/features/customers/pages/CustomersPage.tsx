@@ -7,7 +7,7 @@ import { MobileCardList } from "@/components/MobileCardList";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { useListPage } from "@/hooks/useListPage";
 import { useListFilters } from "@/hooks/useListFilters";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
@@ -113,6 +113,16 @@ export default function CustomersPage() {
         title="Clientes"
         subtitle={`${customers?.length || 0} clientes`}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
+        mobileFab={
+          <button
+            type="button"
+            onClick={openCreate}
+            aria-label="Agregar cliente"
+            className="h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground flex items-center justify-center"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
+        }
         filters={<CustomersFilters search={search} onSearchChange={setSearch} />}
         isLoading={isLoading}
         items={paginatedItems}

@@ -82,6 +82,11 @@ export default function BookingsPage() {
       subtitle="Administrar reservas de equipos"
       totalCount={totalItems}
       actions={<Button size="sm" onClick={() => navigate("/bookings/new")}><Plus className="h-4 w-4 mr-1" />Nueva Reserva</Button>}
+      mobileFab={
+        <Button size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => navigate("/bookings/new")} aria-label="Nueva reserva">
+          <Plus className="h-6 w-6" />
+        </Button>
+      }
       filters={
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
