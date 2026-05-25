@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.9.1",
+    "date": "2026-05-25",
+    "type": "patch",
+    "title": "KPIs responsivos: tarjetas financieras a ancho completo en móvil y mejoras visuales",
+    "category": "improvement"
+  },
+  {
     "version": "6.9.0",
     "date": "2026-05-25",
     "type": "minor",
