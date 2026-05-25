@@ -1,0 +1,3 @@
+{
+  "description": "Pulido móvil y tablet (Fase 1 + 2): meta viewport con viewport-fit=cover y soporte para safe-areas iOS (notch / home indicator) en header y main. DialogContent ahora limita altura a 90dvh con scroll interno y overscroll-contain, evitando que formularios largos (cotización, reserva, cliente) desborden la pantalla en celular. Toasts se posicionan en top-center en móvil para no chocar con el FAB de Reportar ni el área del pulgar. Header sticky con backdrop-blur. Nuevo breakpoint Tailwind 'touch:' que aplica solo en dispositivos con puntero táctil; botones del header (Reportar, Buscar, Sidebar) ahora cumplen el target táctil mínimo de 44px en móvil sin afectar la densidad del escritorio."
+}
