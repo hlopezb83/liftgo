@@ -100,7 +100,7 @@ export function FeedbackFormDialog({ open, onOpenChange }: Props) {
   return (
     <>
       <Dialog open={open && !picking} onOpenChange={(o) => { if (!o) { resetAll(); onOpenChange(false); } }}>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-lg max-h-[90dvh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle>Reportar bug o sugerir mejora</DialogTitle>
           </DialogHeader>
