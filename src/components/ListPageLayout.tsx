@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { type LucideIcon, Loader2, RefreshCw, SlidersHorizontal } from "lucide-react";
+import type { Table as TanstackTable } from "@tanstack/react-table";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
@@ -12,6 +13,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableHeader } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { DataTableV2 } from "@/components/dataTable/v2/DataTableV2";
+import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
 
 interface ListPageLayoutProps<T> {
   title: string;
@@ -22,16 +25,30 @@ interface ListPageLayoutProps<T> {
   mobileFab?: ReactNode;
   filters?: ReactNode;
   isLoading: boolean;
-  items: T[];
-  page: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  /** Items a mostrar (modo legacy con renderRow). Opcional cuando se usa `table`. */
+  items?: T[];
+  /** Página actual (legacy). Ignorado si se provee `table`. */
+  page?: number;
+  /** Total de páginas (legacy). Ignorado si se provee `table`. */
+  totalPages?: number;
+  /** Cambio de página (legacy). Ignorado si se provee `table`. */
+  onPageChange?: (page: number) => void;
   emptyMessage?: string;
   emptyIcon?: LucideIcon;
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
-  tableHeader: ReactNode;
-  renderRow: (item: T, index: number) => ReactNode;
+  /** Modo legacy: header manual con SortableTableHead. */
+  tableHeader?: ReactNode;
+  /** Modo legacy: render por fila con TableRow. */
+  renderRow?: (item: T, index: number) => ReactNode;
+  /**
+   * Modo nuevo: instancia de tabla TanStack (usar `useLiftgoTable`).
+   * Cuando se provee, se renderiza con `DataTableV2` y `DataTablePaginationV2`,
+   * ignorando `items`, `tableHeader`, `renderRow` y los props de paginación.
+   */
+  table?: TanstackTable<T>;
+  /** Click handler para filas (solo aplica en modo `table`). */
+  onRowClick?: (item: T) => void;
   /** Si se provee, en mobile/tablet se renderiza como tarjetas en lugar de tabla. */
   mobileCardRender?: (item: T) => ReactNode;
   /** Extractor de key para mobile cards. Default: (item).id */
@@ -60,6 +77,8 @@ export function ListPageLayout<T extends { id?: string }>({
   onEmptyAction,
   tableHeader,
   renderRow,
+  table,
+  onRowClick,
   mobileCardRender,
   mobileKeyExtractor,
   customContent,
@@ -89,6 +108,59 @@ export function ListPageLayout<T extends { id?: string }>({
 
   const showFiltersInSheet = isMobile && !!filters;
   const ready = pullDistance >= threshold;
+
+  // Datos a usar para empty/mobile/legacy render: prioriza `table` cuando existe.
+  const effectiveItems: T[] = table
+    ? table.getRowModel().rows.map((r) => r.original)
+    : items ?? [];
+
+  const renderTableContent = () => {
+    if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
+    if (effectiveItems.length === 0) {
+      return (
+        <EmptyState
+          icon={emptyIcon}
+          title={emptyMessage}
+          subtitle="Aún no se han registrado registros aquí."
+          actionLabel={emptyActionLabel}
+          onAction={onEmptyAction}
+        />
+      );
+    }
+    if (showMobileCards) {
+      return (
+        <div className="p-4">
+          <MobileCardList
+            items={effectiveItems}
+            keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
+            emptyMessage={emptyMessage}
+            renderCard={mobileCardRender!}
+          />
+        </div>
+      );
+    }
+    if (table) {
+      return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} />;
+    }
+    if (tableHeader && renderRow) {
+      return (
+        <Table>
+          <TableHeader>{tableHeader}</TableHeader>
+          <TableBody>{effectiveItems.map((item, i) => renderRow(item, i))}</TableBody>
+        </Table>
+      );
+    }
+    return null;
+  };
+
+  const renderPagination = () => {
+    if (effectiveItems.length === 0) return null;
+    if (table) return <DataTablePaginationV2 table={table} />;
+    if (page !== undefined && totalPages !== undefined && onPageChange) {
+      return <TablePagination page={page} totalPages={totalPages} onPageChange={onPageChange} />;
+    }
+    return null;
+  };
 
   return (
     <PageTransition>
@@ -137,34 +209,8 @@ export function ListPageLayout<T extends { id?: string }>({
         {customContent || (
           <Card>
             <CardContent className="p-0">
-              {isLoading ? (
-                <TableSkeleton columnCount={skeletonColumns} />
-              ) : items.length === 0 ? (
-                <EmptyState
-                  icon={emptyIcon}
-                  title={emptyMessage}
-                  subtitle="Aún no se han registrado registros aquí."
-                  actionLabel={emptyActionLabel}
-                  onAction={onEmptyAction}
-                />
-              ) : showMobileCards ? (
-                <div className="p-4">
-                  <MobileCardList
-                    items={items}
-                    keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
-                    emptyMessage={emptyMessage}
-                    renderCard={mobileCardRender}
-                  />
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>{tableHeader}</TableHeader>
-                  <TableBody>
-                    {items.map((item, i) => renderRow(item, i))}
-                  </TableBody>
-                </Table>
-              )}
-              {items.length > 0 && <TablePagination page={page} totalPages={totalPages} onPageChange={onPageChange} />}
+              {renderTableContent()}
+              {renderPagination()}
             </CardContent>
           </Card>
         )}

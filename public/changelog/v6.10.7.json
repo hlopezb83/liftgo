@@ -1,0 +1,8 @@
+{
+  "version": "6.10.7",
+  "date": "2026-05-26",
+  "type": "minor",
+  "title": "Fase B inicia: ListPageLayout soporta DataTableV2 + 3 páginas migradas",
+  "category": "improvement",
+  "description": "`ListPageLayout` ahora acepta una instancia de tabla TanStack (`table` prop) y `onRowClick`, renderizando internamente `DataTableV2` + `DataTablePaginationV2`. Los props `tableHeader` y `renderRow` quedan opcionales para mantener compatibilidad con las páginas legacy. Migradas a `ColumnDef<T>[]` + `useLiftgoTable` + `DataTableV2`: **Proveedores**, **Refacciones (Inventario)** y **Clientes**. Beneficios: tipado estricto por columna (`accessorKey`/`accessorFn`/`cell`), preparación para CSV introspectivo, visibilidad y resize de columnas sin tocar páginas, y eliminación progresiva del patrón `renderRow` JSX opaco. Resto de páginas se migran de forma oportunista cuando se toquen por otros motivos."
+}
