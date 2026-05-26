@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.10.6",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "useListPage delega en useLiftgoTable (Fase A unificación de tablas)",
+    "category": "improvement"
+  },
+  {
     "version": "6.10.5",
     "date": "2026-05-26",
     "type": "patch",
