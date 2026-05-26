@@ -1,8 +1,8 @@
-import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
 import type { Tables } from "@/integrations/supabase/types";
 import { toStr, toNumStr } from "@/lib/coerce";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 
 type ExistingForklift = Tables<"forklifts"> | null | undefined;
 
@@ -33,9 +33,8 @@ export function useForkliftPrefill(
   existing: ExistingForklift,
   form: UseFormReturn<ForkliftFormData>,
 ) {
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!existing) return;
     form.reset(mapForkliftToForm(existing));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existing]);
 }

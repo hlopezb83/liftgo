@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
@@ -29,12 +30,11 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
     defaultValues: defaultValues as ExpenseFormData,
   });
 
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (open) {
       setSupplierId("");
       form.reset(defaultValues as ExpenseFormData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const onSubmit = (data: ExpenseFormData) => {

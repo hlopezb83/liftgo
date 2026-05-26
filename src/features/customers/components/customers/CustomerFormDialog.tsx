@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -37,7 +38,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
   });
   const [tab, setTab] = useState("manual");
 
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!open) return;
     if (initialData) {
       form.reset({ ...emptyCustomer, ...initialData });
@@ -45,8 +46,6 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       form.reset(emptyCustomer);
       setTab("manual");
     }
-    // Solo reaccionar a la apertura del diálogo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleCsfParsed = useCallback((patch: Partial<CustomerFormData>) => {

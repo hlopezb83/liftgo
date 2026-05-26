@@ -1,0 +1,8 @@
+{
+  "version": "6.10.5",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "usePrefillEffect centraliza prefills de formularios",
+  "category": "improvement",
+  "description": "Nuevo hook utilitario `usePrefillEffect` (estilo `useEffectEvent`) que mantiene el callback siempre fresco vía ref y contiene en un solo lugar el único `eslint-disable react-hooks/exhaustive-deps` necesario para los prefills de formularios. Refactorizados 7 puntos de prefill (forklift, invoice ×2, quote, customer dialog, expense dialog, feedback detail, return inspection), eliminando 8 disables manuales sin cambios funcionales. 71/71 tests pasan."
+}

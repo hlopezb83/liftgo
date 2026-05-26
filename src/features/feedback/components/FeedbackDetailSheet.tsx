@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -30,14 +31,13 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
   }, [report]);
 
   // Auto-trigger AI classification when report opens with no classification yet.
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!report) return;
     const ctx = (report.context_json ?? {}) as Record<string, unknown>;
     const needsClassification = !ctx.ai_classification && (report.module === "Sin clasificar" || !report.severity);
     if (needsClassification && !classify.isPending) {
       classify.mutate(report.id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report?.id]);
 
   if (!report) return null;

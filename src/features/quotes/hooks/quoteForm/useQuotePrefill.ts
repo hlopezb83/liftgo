@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import {
   applyBaseFields, applyLogistics, applySaleLines, applyRentalLines, defaultValidUntil,
   type ExistingQuote, type EquipmentModel, type QuoteFormState,
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function useQuotePrefill({ existingQuote, equipmentModels, state }: Props) {
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!existingQuote) {
       if (!state.validUntil) state.setValidUntil(defaultValidUntil());
       return;
@@ -27,6 +27,5 @@ export function useQuotePrefill({ existingQuote, equipmentModels, state }: Props
     const nonLogistics = allItems.filter((item) => !item.description?.includes("Logística"));
     if (isSale) applySaleLines(nonLogistics, equipmentModels, state);
     else applyRentalLines(nonLogistics, existingQuote, equipmentModels, state);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingQuote, equipmentModels]);
 }
