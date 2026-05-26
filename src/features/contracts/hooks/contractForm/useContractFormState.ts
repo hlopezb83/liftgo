@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { defaultContractForm, type ContractFormShape } from "./contractFormDefaults";
 import type { Database } from "@/integrations/supabase/types";
-import { toStr, toNumStr } from "@/lib/forms/coerce";
+import { toStr, toNumStr } from "@/lib/coerce";
 
 type ContractRow = Database["public"]["Tables"]["contracts"]["Row"];
 

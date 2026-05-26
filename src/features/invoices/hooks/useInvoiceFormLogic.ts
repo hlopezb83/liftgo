@@ -13,7 +13,7 @@ import {
   buildEmptyInvoiceValues,
   type InvoiceFormValues,
   type LineItemValues,
-} from "@/lib/schemas/invoiceFormSchema";
+} from "@/features/invoices/lib/invoiceFormSchema";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";

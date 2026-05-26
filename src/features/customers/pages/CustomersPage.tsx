@@ -14,7 +14,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
 import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
 import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";
-import type { CustomerFormData } from "@/lib/formSchemas";
+import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
 
 export default function CustomersPage() {

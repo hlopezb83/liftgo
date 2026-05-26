@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FORMA_PAGO, METODO_PAGO, USO_CFDI, MONEDA } from "@/lib/domain/satCatalogs";
-import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
+import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
 
 export function CfdiFieldsCard() {
   const { control, setValue } = useFormContext<InvoiceFormValues>();

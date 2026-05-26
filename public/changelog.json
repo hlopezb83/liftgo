@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.10.2",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Schemas y payloads consolidados a sus features (cero shims globales)",
+    "category": "improvement"
+  },
+  {
     "version": "6.10.1",
     "date": "2026-05-26",
     "type": "patch",

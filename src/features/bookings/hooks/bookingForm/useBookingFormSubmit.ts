@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
 import { useMaintenancePolicies } from "@/features/maintenance/hooks/maintenance/useMaintenancePolicies";
-import type { BookingFormData } from "@/lib/formSchemas";
+import type { BookingFormData } from "@/features/bookings/lib/bookingFormSchema";
 
 interface PostBookingState {
   bookingId: string;

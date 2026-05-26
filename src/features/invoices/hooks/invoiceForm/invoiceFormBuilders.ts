@@ -1,11 +1,11 @@
 import { parseDateLocal, nowMty } from "@/lib/utils";
-import { toStr } from "@/lib/forms/coerce";
+import { toStr } from "@/lib/coerce";
 import {
   type InvoiceFormValues,
   type CfdiFormValues,
   type LineItemValues,
   EMPTY_CFDI,
-} from "@/lib/schemas/invoiceFormSchema";
+} from "@/features/invoices/lib/invoiceFormSchema";
 
 export type Customer = {
   id: string; name: string;

@@ -1,4 +1,4 @@
-import type { CustomerFormData } from "@/lib/formSchemas";
+import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 
 const NULLABLE_FIELDS = [
   "email", "phone", "address", "notes", "website", "contact_person",

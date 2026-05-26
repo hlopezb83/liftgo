@@ -10,7 +10,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useInvoiceLineItemHandlers } from "@/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
-import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
+import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
 
 export function EditableLineItemsTable() {
   const form = useFormContext<InvoiceFormValues>();

@@ -2,7 +2,7 @@ import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import type { ForkliftFormData } from "@/lib/formSchemas";
+import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
 
 export function RatesSection() {
   const { control } = useFormContext<ForkliftFormData>();

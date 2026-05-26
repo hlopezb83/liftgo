@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerField } from "@/components/DatePickerField";
 import { nowMty } from "@/lib/utils";
-import type { ExpenseFormData } from "@/lib/formSchemas";
+import type { ExpenseFormData } from "@/features/expenses/lib/expenseFormSchema";
 import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
 import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
 

@@ -1,0 +1,16 @@
+{
+  "version": "6.10.2",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Schemas y payloads consolidados a sus features (cero shims globales)",
+  "category": "improvement",
+  "description": "Segunda tanda del audit arquitectónico: se eliminó el barril global `src/lib/formSchemas.ts` y las carpetas `src/lib/forms/` y `src/lib/schemas/`. Cada schema y payload ahora vive junto a su feature.",
+  "changes": [
+    "Split de `src/lib/formSchemas.ts` en cinco archivos feature-local: `forkliftFormSchema`, `customerFormSchema`, `bookingFormSchema`, `expenseFormSchema`, `partFormSchema`.",
+    "Movido `invoiceFormSchema` (+ test) de `src/lib/schemas/` a `src/features/invoices/lib/`.",
+    "Movido `contractPayload` a `src/features/contracts/lib/` y `forkliftPayload` a `src/features/fleet/lib/`.",
+    "Promovido `coerce.ts` de `src/lib/forms/` a `src/lib/coerce.ts` (utilidad genérica, no de formularios).",
+    "Eliminadas las carpetas `src/lib/forms/` y `src/lib/schemas/` (ya vacías).",
+    "22 imports actualizados; 71/71 tests pasan; cero cambios funcionales."
+  ]
+}

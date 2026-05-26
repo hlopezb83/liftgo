@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCreateForklift, useUpdateForklift, useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import type { ForkliftFormData } from "@/lib/formSchemas";
+import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
 import {
   buildForkliftPayload,
   validateForkliftUniqueness,
   mapForkliftMutationError,
-} from "@/lib/forms/forkliftPayload";
+} from "@/features/fleet/lib/forkliftPayload";
 
 interface Args {
   id?: string;

@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/domain/satCatalogs";
-import type { CustomerFormData } from "@/lib/formSchemas";
+import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 import { SectionHeading } from "./SectionHeading";
 
 export function FiscalSection() {
