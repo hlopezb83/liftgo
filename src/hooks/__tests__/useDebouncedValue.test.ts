@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 describe("useDebouncedValue", () => {
@@ -22,9 +22,9 @@ describe("useDebouncedValue", () => {
     });
     rerender({ v: "b" });
     expect(result.current).toBe("a");
-    vi.advanceTimersByTime(199);
+    act(() => { vi.advanceTimersByTime(199); });
     expect(result.current).toBe("a");
-    vi.advanceTimersByTime(1);
+    act(() => { vi.advanceTimersByTime(1); });
     expect(result.current).toBe("b");
   });
 
@@ -33,11 +33,11 @@ describe("useDebouncedValue", () => {
       initialProps: { v: "a" },
     });
     rerender({ v: "b" });
-    vi.advanceTimersByTime(50);
+    act(() => { vi.advanceTimersByTime(50); });
     rerender({ v: "c" });
-    vi.advanceTimersByTime(50);
+    act(() => { vi.advanceTimersByTime(50); });
     expect(result.current).toBe("a"); // todavía no expira
-    vi.advanceTimersByTime(50);
+    act(() => { vi.advanceTimersByTime(50); });
     expect(result.current).toBe("c");
   });
 });
