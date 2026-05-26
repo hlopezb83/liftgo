@@ -4,10 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
+import { SwipeableCard } from "@/components/SwipeableCard";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { useListPage } from "@/hooks/useListPage";
 import { useListFilters } from "@/hooks/useListFilters";
-import { ChevronRight, Plus } from "lucide-react";
+import { ChevronRight, Plus, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
@@ -17,7 +18,7 @@ import type { CustomerFormData } from "@/lib/formSchemas";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
 
 export default function CustomersPage() {
-  const { data: customers, isLoading } = useCustomers();
+  const { data: customers, isLoading, refetch } = useCustomers();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();
@@ -68,19 +69,29 @@ export default function CustomersPage() {
       keyExtractor={(c) => c.id}
       emptyMessage="No se encontraron clientes"
       renderCard={(c) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/customers/${c.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-sm">{c.name}</span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-            {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-              {c.phone && <span>{c.phone}</span>}
-              {c.email && <span>{c.email}</span>}
-            </div>
-          </CardContent>
-        </Card>
+        <SwipeableCard
+          onClick={() => navigate(`/customers/${c.id}`)}
+          rightActions={c.phone ? [{
+            label: "Llamar",
+            icon: Phone,
+            className: "bg-primary",
+            onAction: () => { window.location.href = `tel:${c.phone}`; },
+          }] : []}
+        >
+          <Card className="active:scale-[0.98] transition-transform">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-semibold text-sm">{c.name}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
+              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                {c.phone && <span>{c.phone}</span>}
+                {c.email && <span>{c.email}</span>}
+              </div>
+            </CardContent>
+          </Card>
+        </SwipeableCard>
       )}
     />
   ) : undefined;
@@ -110,6 +121,7 @@ export default function CustomersPage() {
   return (
     <>
       <ListPageLayout
+        onRefresh={refetch}
         title="Clientes"
         subtitle={`${customers?.length || 0} clientes`}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}

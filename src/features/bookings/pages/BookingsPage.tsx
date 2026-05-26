@@ -21,7 +21,7 @@ import { Plus, ChevronRight, CalendarDays } from "lucide-react";
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 
 export default function BookingsPage() {
-  const { data: bookings, isLoading } = useBookings();
+  const { data: bookings, isLoading, refetch } = useBookings();
   const navigate = useNavigate();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(bookings, {
@@ -78,6 +78,7 @@ export default function BookingsPage() {
 
   return (
     <ListPageLayout
+      onRefresh={refetch}
       title="Reservas"
       subtitle="Administrar reservas de equipos"
       totalCount={totalItems}

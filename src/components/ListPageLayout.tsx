@@ -1,5 +1,5 @@
-import { ReactNode, useState } from "react";
-import { type LucideIcon, SlidersHorizontal } from "lucide-react";
+import { ReactNode, useEffect, useRef, useState } from "react";
+import { type LucideIcon, Loader2, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { TablePagination } from "@/components/TablePagination";
 import { MobileCardList } from "@/components/MobileCardList";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableHeader } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,8 @@ interface ListPageLayoutProps<T> {
   mobileKeyExtractor?: (item: T) => string;
   customContent?: ReactNode;
   skeletonColumns?: number;
+  /** Callback para pull-to-refresh en móvil. Debe devolver una promesa. */
+  onRefresh?: () => Promise<unknown> | void;
 }
 
 export function ListPageLayout<T extends { id?: string }>({
@@ -61,17 +64,51 @@ export function ListPageLayout<T extends { id?: string }>({
   mobileKeyExtractor,
   customContent,
   skeletonColumns,
+  onRefresh,
 }: ListPageLayoutProps<T>) {
   const isMobile = useIsMobile();
   const isTabletOrBelow = useIsTabletOrBelow();
   const showMobileCards = isTabletOrBelow && !!mobileCardRender;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isMobile || !onRefresh) {
+      setScrollTarget(null);
+      return;
+    }
+    setScrollTarget(sentinelRef.current?.closest("main") as HTMLElement | null);
+  }, [isMobile, onRefresh]);
+
+  const { pullDistance, isRefreshing, threshold } = usePullToRefresh({
+    onRefresh: onRefresh ?? (() => undefined),
+    target: scrollTarget,
+    enabled: isMobile && !!onRefresh,
+  });
 
   const showFiltersInSheet = isMobile && !!filters;
+  const ready = pullDistance >= threshold;
 
   return (
     <PageTransition>
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div ref={sentinelRef} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        {isMobile && onRefresh && (pullDistance > 0 || isRefreshing) && (
+          <div
+            className="flex items-center justify-center text-xs text-muted-foreground -mt-2 -mb-2"
+            style={{ height: Math.max(24, pullDistance), transition: isRefreshing ? "height 200ms ease" : undefined }}
+            aria-live="polite"
+          >
+            {isRefreshing ? (
+              <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Actualizando…</span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <RefreshCw className={`h-4 w-4 transition-transform ${ready ? "rotate-180" : ""}`} />
+                {ready ? "Suelta para actualizar" : "Desliza para actualizar"}
+              </span>
+            )}
+          </div>
+        )}
         <PageHeader
           title={title}
           subtitle={totalCount !== undefined ? `${subtitle || ""}${subtitle ? " — " : ""}${totalCount} resultado${totalCount !== 1 ? "s" : ""}` : subtitle}

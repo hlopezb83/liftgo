@@ -22,7 +22,7 @@ const QUOTE_STATUS_LABELS: Record<string, string> = { ...STATUS_LABELS, sent: "E
 const quoteLabel = (status: string) => QUOTE_STATUS_LABELS[status] || status;
 
 export default function QuotesPage() {
-  const { data: quotes, isLoading } = useQuotes();
+  const { data: quotes, isLoading, refetch } = useQuotes();
   const navigate = useNavigate();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(quotes, {
@@ -73,6 +73,7 @@ export default function QuotesPage() {
 
   return (
     <ListPageLayout
+      onRefresh={refetch}
       title="Cotizaciones"
       subtitle="Crea y administra cotizaciones para clientes"
       actions={<Button onClick={() => navigate("/quotes/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" />Nueva Cotización</Button>}

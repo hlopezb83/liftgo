@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.10.0",
+    "date": "2026-05-26",
+    "type": "minor",
+    "title": "Gestos móviles (Fase 5): pull-to-refresh y swipe-to-action en cards",
+    "category": "improvement"
+  },
+  {
     "version": "6.9.1",
     "date": "2026-05-25",
     "type": "patch",
