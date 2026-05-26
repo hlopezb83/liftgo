@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 interface UsePullToRefreshOptions {
   onRefresh: () => Promise<unknown> | void;
+  /** Elemento scrollable al que adjuntar los listeners. Si es null, hook inactivo. */
+  target: HTMLElement | null;
   /** Distancia (px) que el usuario debe arrastrar para disparar refresh. */
   threshold?: number;
   /** Distancia máxima visible que la animación puede mostrar. */
@@ -12,19 +14,17 @@ interface UsePullToRefreshOptions {
 
 /**
  * Pull-to-refresh para contenedores con scroll vertical.
- * Devuelve `containerRef` para adjuntar al scroller y `pullDistance` /
- * `isRefreshing` para renderizar un indicador visual.
- *
- * Solo dispara cuando el contenedor ya está en `scrollTop === 0` para no
- * interferir con scroll natural.
+ * Solo dispara cuando el contenedor ya está en `scrollTop === 0`.
  */
-export function usePullToRefresh<T extends HTMLElement = HTMLElement>({
+export function usePullToRefresh({
   onRefresh,
+  target,
   threshold = 70,
   maxDistance = 110,
   enabled = true,
 }: UsePullToRefreshOptions) {
-  const containerRef = useRef<T | null>(null);
+  const containerRef = useRef<HTMLElement | null>(null);
+  containerRef.current = target;
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const startYRef = useRef<number | null>(null);
