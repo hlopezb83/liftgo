@@ -6,7 +6,8 @@ const f = (over: Partial<Tables<"forklifts">>): Tables<"forklifts"> =>
   ({
     id: "id", name: "x", manufacturer: null, model: null, status: "available",
     daily_rate: 0, weekly_rate: 0, monthly_rate: 0, fuel_type: "LPG",
-  } as unknown as Tables<"forklifts">) && ({ ...({} as Tables<"forklifts">), ...over } as Tables<"forklifts">);
+    ...over,
+  } as unknown as Tables<"forklifts">);
 
 describe("getUtilColor", () => {
   it("verde >75%, amarillo 40-75%, rojo <40%", () => {
