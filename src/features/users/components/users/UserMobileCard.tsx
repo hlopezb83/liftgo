@@ -7,6 +7,8 @@ import { Trash2, Pencil, KeyRound } from "lucide-react";
 import { format } from "date-fns";
 import { STAFF_ROLES } from "@/lib/constants";
 import { RoleBadge } from "@/features/users/components/users/RoleBadge";
+import type { UserRow } from "@/features/users/hooks/useUserManagement";
+import type { AppRole } from "@/features/users/hooks/useUserRole";
 
 export interface UserRowActions {
   currentUserId?: string;
@@ -17,8 +19,7 @@ export interface UserRowActions {
   onSetPassword: (u: UserRow) => void;
   onDelete: (u: UserRow) => void;
 }
-import type { UserRow } from "@/features/users/hooks/useUserManagement";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+
 
 export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowActions }) {
   const isSelf = u.user_id === actions.currentUserId;
