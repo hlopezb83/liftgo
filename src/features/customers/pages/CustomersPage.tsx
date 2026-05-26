@@ -8,7 +8,7 @@ import { SwipeableCard } from "@/components/SwipeableCard";
 import { SortableTableHead } from "@/components/SortableTableHead";
 import { useListPage } from "@/hooks/useListPage";
 import { useListFilters } from "@/hooks/useListFilters";
-import { ChevronRight, Plus, Pencil } from "lucide-react";
+import { ChevronRight, Plus, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
@@ -73,7 +73,7 @@ export default function CustomersPage() {
           onClick={() => navigate(`/customers/${c.id}`)}
           rightActions={c.phone ? [{
             label: "Llamar",
-            icon: Pencil,
+            icon: Phone,
             className: "bg-primary",
             onAction: () => { window.location.href = `tel:${c.phone}`; },
           }] : []}
@@ -121,6 +121,7 @@ export default function CustomersPage() {
   return (
     <>
       <ListPageLayout
+        onRefresh={refetch}
         title="Clientes"
         subtitle={`${customers?.length || 0} clientes`}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
