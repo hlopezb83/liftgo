@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { TableCell, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
@@ -7,23 +6,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type ForkliftMap = Map<string, Tables<"forklifts">>;
 
-export function MaintenanceTableRow({
-  log, forkliftMap, onClick,
-}: { log: MaintenanceLog; forkliftMap: ForkliftMap; onClick: () => void }) {
-  return (
-    <TableRow
-      className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors"
-      onClick={onClick}
-    >
-      <TableCell className="font-mono text-sm">{formatDateDisplay(log.performed_at)}</TableCell>
-      <TableCell className="font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</TableCell>
-      <TableCell>{log.service_type}</TableCell>
-      <TableCell>{log.performed_by || "—"}</TableCell>
-      <TableCell className="text-right font-medium">{formatCurrency(log.cost || 0)}</TableCell>
-      <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(log.next_service_date)}</TableCell>
-    </TableRow>
-  );
-}
+
 
 export function MaintenanceMobileCard({
   log, forkliftMap, onClick,

@@ -14,14 +14,6 @@ export const enrichLogs = (
 ): EnrichedMaintenanceLog[] =>
   (logs ?? []).map((log) => ({ ...log, forklift_name: forkliftName(forkliftMap, log.forklift_id) }));
 
-export const maintenanceSortAccessors = (forkliftMap: ForkliftMap) => ({
-  performed_at: (l: MaintenanceLog) => l.performed_at,
-  forklift_name: (l: MaintenanceLog) => forkliftName(forkliftMap, l.forklift_id),
-  service_type: (l: MaintenanceLog) => l.service_type,
-  performed_by: (l: MaintenanceLog) => l.performed_by ?? "",
-  cost: (l: MaintenanceLog) => l.cost ?? 0,
-  next_service_date: (l: MaintenanceLog) => l.next_service_date ?? "",
-});
 
 export const maintenanceCsvRows = (
   logs: MaintenanceLog[] | undefined,
