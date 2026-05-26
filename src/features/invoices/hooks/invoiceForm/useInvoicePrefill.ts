@@ -1,6 +1,6 @@
-import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import {
   buildFromInvoice, buildFromQuote, cfdiFromCustomer,
   type Customer, type ExistingInvoice, type SourceQuote, type Forklift, type Assignment,
@@ -19,15 +19,13 @@ interface Props {
 }
 
 export function useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form }: Props) {
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!existing) return;
     form.reset(buildFromInvoice(existing, customers));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existing, customers]);
 
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!sourceQuote || isEdit) return;
     form.reset(buildFromQuote({ q: sourceQuote, assignments, forklifts, customers }), { keepDirty: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceQuote, customers, isEdit, assignments, forklifts]);
 }
