@@ -110,7 +110,7 @@ export function ListPageLayout<T extends { id?: string }>({
             items={effectiveItems}
             keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
             emptyMessage={emptyMessage}
-            renderCard={mobileCardRender!}
+            renderCard={(item) => (mobileCardRender ? mobileCardRender(item) : null)}
           />
         </div>
       );

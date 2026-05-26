@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.12.2",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Fix lint: assertion no-nula y deps de useMemo en daños",
+    "category": "bugfix"
+  },
+  {
     "version": "6.12.1",
     "date": "2026-05-26",
     "type": "patch",

@@ -1,0 +1,12 @@
+{
+  "version": "6.12.2",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Fix lint: assertion no-nula y deps de useMemo en daños",
+  "category": "bugfix",
+  "description": "Corrige dos errores de ESLint que bloqueaban el CI: se elimina el operador '!' en ListPageLayout usando un render seguro de tarjetas móviles, y se reemplaza la función getPhotoCount por un lookup inline en DamageTrackingPage para satisfacer react-hooks/exhaustive-deps.",
+  "changes": [
+    "ListPageLayout: renderCard ahora valida mobileCardRender en vez de usar non-null assertion.",
+    "DamageTrackingPage: la celda de fotos usa photoCounts directamente, eliminando dependencia faltante en useMemo."
+  ]
+}
