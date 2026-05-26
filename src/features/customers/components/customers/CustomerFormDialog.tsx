@@ -38,7 +38,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
   });
   const [tab, setTab] = useState("manual");
 
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!open) return;
     if (initialData) {
       form.reset({ ...emptyCustomer, ...initialData });
@@ -46,8 +46,6 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       form.reset(emptyCustomer);
       setTab("manual");
     }
-    // Solo reaccionar a la apertura del diálogo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const handleCsfParsed = useCallback((patch: Partial<CustomerFormData>) => {
