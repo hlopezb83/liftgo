@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.11.2",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Cobertura de tests: facturación recurrente (+4)",
+    "category": "improvement"
+  },
+  {
     "version": "6.11.1",
     "date": "2026-05-26",
     "type": "patch",

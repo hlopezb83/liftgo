@@ -1,0 +1,11 @@
+{
+  "version": "6.11.2",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Cobertura de tests: facturación recurrente",
+  "category": "improvement",
+  "description": "Se agregaron 4 tests para buildRecurringInserts cubriendo: sin configuración (null), generación de inserts para gastos pendientes del mes, deduplicación por categoría+descripción contra registros existentes, y array vacío cuando todos ya se generaron. Mock de Supabase y de nowMty() para resultados deterministas. Total: 154 tests verdes.",
+  "changes": [
+    "src/features/expenses/lib/__tests__/recurringExpensesHelpers.test.ts — 4 tests con mock encadenado de supabase.from()"
+  ]
+}
