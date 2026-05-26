@@ -140,7 +140,7 @@ export function ListPageLayout<T extends { id?: string }>({
       );
     }
     if (table) {
-      return <DataTableV2 table={table} emptyMessage={emptyMessage} />;
+      return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} />;
     }
     if (tableHeader && renderRow) {
       return (
