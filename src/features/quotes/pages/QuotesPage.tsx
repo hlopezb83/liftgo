@@ -1,25 +1,25 @@
-import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
+import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useListFilters } from "@/hooks/useListFilters";
-import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { MobileCardList } from "@/components/MobileCardList";
-import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableCell, TableHead, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS } from "@/lib/constants";
 import { PlusCircle, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 const QUOTE_STATUS_LABELS: Record<string, string> = { ...STATUS_LABELS, sent: "Enviada" };
 const quoteLabel = (status: string) => QUOTE_STATUS_LABELS[status] || status;
+
+type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
 
 export default function QuotesPage() {
   const { data: quotes, isLoading, refetch } = useQuotes();
@@ -30,46 +30,63 @@ export default function QuotesPage() {
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
-    accessors: {
-      quote_number: (q) => q.quote_number,
-      customer_name: (q) => q.customer_name || "",
-      total: (q) => q.total,
-      status: (q) => q.status,
-      valid_until: (q) => q.valid_until || "",
-    },
-  });
+  const columns = useMemo<ColumnDef<Quote>[]>(
+    () => [
+      {
+        id: "quote_number",
+        header: "Cotización #",
+        accessorKey: "quote_number",
+        cell: ({ row }) => <span className="font-mono font-medium">{row.original.quote_number}</span>,
+      },
+      {
+        id: "type",
+        header: "Tipo",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Badge variant={row.original.quote_type === "sale" ? "default" : "secondary"} className="text-xs">
+            {STATUS_LABELS[row.original.quote_type || "rental"] || "Renta"}
+          </Badge>
+        ),
+      },
+      {
+        id: "customer_name",
+        header: "Cliente",
+        accessorFn: (q) => q.customer_name || "",
+        cell: ({ row }) => row.original.customer_name || "—",
+      },
+      {
+        id: "dates",
+        header: "Fechas",
+        enableSorting: false,
+        cell: ({ row }) => <span className="text-sm whitespace-nowrap">{formatDateRange(row.original.start_date, row.original.end_date)}</span>,
+      },
+      {
+        id: "total",
+        header: "Total",
+        accessorKey: "total",
+        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.total)}</span>,
+      },
+      {
+        id: "status",
+        header: "Estado",
+        accessorKey: "status",
+        cell: ({ row }) => <StatusBadge status={row.original.status} label={quoteLabel(row.original.status)} />,
+      },
+      {
+        id: "valid_until",
+        header: "Vigencia",
+        accessorFn: (q) => q.valid_until || "",
+        cell: ({ row }) => <span className="whitespace-nowrap">{formatDateDisplay(row.original.valid_until)}</span>,
+      },
+    ],
+    [],
+  );
 
-  const mobileContent = isMobile ? (
-    <MobileCardList
-      items={paginatedItems}
-      keyExtractor={(q) => q.id}
-      emptyMessage="No hay cotizaciones aún"
-      renderCard={(q) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
-                <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
-                  {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
-                </Badge>
-              </div>
-              <StatusBadge status={q.status} label={quoteLabel(q.status)} />
-            </div>
-            <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-semibold font-mono">{formatCurrency(q.total)}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    />
-  ) : undefined;
+  const table = useLiftgoTable<Quote>({
+    data: filtered,
+    columns,
+    getRowId: (q) => q.id,
+  });
 
   return (
     <ListPageLayout
@@ -94,39 +111,33 @@ export default function QuotesPage() {
         </div>
       }
       isLoading={isLoading}
-      items={paginatedItems}
-      page={page}
-      totalPages={totalPages}
-      onPageChange={setPage}
+      table={table}
+      onRowClick={(q) => navigate(`/quotes/${q.id}`)}
       emptyMessage="No hay cotizaciones aún"
-      tableHeader={
-        <TableRow>
-          <SortableTableHead sortKey="quote_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cotización #</SortableTableHead>
-          <TableHead>Tipo</TableHead>
-          <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
-          <TableHead>Fechas</TableHead>
-          <SortableTableHead sortKey="total" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Total</SortableTableHead>
-          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <SortableTableHead sortKey="valid_until" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Vigencia</SortableTableHead>
-        </TableRow>
-      }
-      renderRow={(q) => (
-        <TableRow key={q.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/quotes/${q.id}`)}>
-          <TableCell className="font-mono font-medium">{q.quote_number}</TableCell>
-          <TableCell>
-            <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-xs">
-              {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
-            </Badge>
-          </TableCell>
-          <TableCell>{q.customer_name || "—"}</TableCell>
-          <TableCell className="text-sm whitespace-nowrap">{formatDateRange(q.start_date, q.end_date)}</TableCell>
-          <TableCell className="font-mono">{formatCurrency(q.total)}</TableCell>
-          <TableCell><StatusBadge status={q.status} label={quoteLabel(q.status)} /></TableCell>
-          <TableCell className="whitespace-nowrap">{formatDateDisplay(q.valid_until)}</TableCell>
-        </TableRow>
-      )}
-      customContent={mobileContent}
       skeletonColumns={7}
+      mobileCardRender={(q) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
+                <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                  {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
+                </Badge>
+              </div>
+              <StatusBadge status={q.status} label={quoteLabel(q.status)} />
+            </div>
+            <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t">
+              <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-semibold font-mono">{formatCurrency(q.total)}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     />
   );
 }

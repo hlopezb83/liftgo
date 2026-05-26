@@ -1,13 +1,14 @@
-import { useCallback } from "react";
-import { TableHead, TableRow } from "@/components/ui/table";
+import { useCallback, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Pencil, KeyRound, ShieldCheck, ShieldCheck as ShieldIcon, Users } from "lucide-react";
+import { format } from "date-fns";
 import { SearchBar } from "@/components/SearchBar";
-import { ShieldCheck, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { useListPage } from "@/hooks/useListPage";
 import { STAFF_ROLES } from "@/lib/constants";
 import type { AppRole } from "@/features/users/hooks/useUserRole";
 
@@ -21,8 +22,10 @@ import { DeleteUserDialog } from "@/features/users/components/users/DeleteUserDi
 import { RoleChangeDialog } from "@/features/users/components/users/RoleChangeDialog";
 import { SetPasswordDialog } from "@/features/users/components/users/SetPasswordDialog";
 import { RoleBadge } from "@/features/users/components/users/RoleBadge";
-import { UserDesktopRow, type UserRowActions } from "@/features/users/components/users/UserDesktopRow";
 import { UserMobileCard } from "@/features/users/components/users/UserMobileCard";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+
+type UserItem = UserRow & { id?: string };
 
 export default function UserManagementPage() {
   const navigate = useNavigate();
@@ -32,25 +35,116 @@ export default function UserManagementPage() {
 
   const dialogs = useUserManagementDialogs();
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
-  const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
-
   const { setEditTarget, setPasswordTarget, setDeleteTarget, setRoleChangeTarget } = dialogs;
 
-  const actions: UserRowActions = {
-    currentUserId: currentUser?.id,
-    isToggling: toggleStatus.isPending,
-    onRoleChange: useCallback((user: UserRow, newRole: AppRole) => setRoleChangeTarget({ user, newRole }), [setRoleChangeTarget]),
-    onToggleStatus: useCallback((userId: string, currentActive: boolean) => {
-      toggleStatus.mutate({ userId, isActive: !currentActive });
-    }, [toggleStatus]),
-    onEdit: useCallback((u: UserRow) => setEditTarget(u), [setEditTarget]),
-    onSetPassword: useCallback((u: UserRow) => setPasswordTarget(u), [setPasswordTarget]),
-    onDelete: useCallback((u: UserRow) => setDeleteTarget(u), [setDeleteTarget]),
-  };
+  const onRoleChange = useCallback((u: UserRow, newRole: AppRole) => setRoleChangeTarget({ user: u, newRole }), [setRoleChangeTarget]);
+  const onToggleStatus = useCallback((userId: string, currentActive: boolean) => {
+    toggleStatus.mutate({ userId, isActive: !currentActive });
+  }, [toggleStatus]);
+  const onEdit = useCallback((u: UserRow) => setEditTarget(u), [setEditTarget]);
+  const onSetPassword = useCallback((u: UserRow) => setPasswordTarget(u), [setPasswordTarget]);
+  const onDelete = useCallback((u: UserRow) => setDeleteTarget(u), [setDeleteTarget]);
+
+  const columns = useMemo<ColumnDef<UserItem>[]>(
+    () => [
+      {
+        id: "full_name",
+        header: "Nombre",
+        accessorFn: (u) => u.full_name ?? "",
+        cell: ({ row }) => {
+          const u = row.original;
+          const isSelf = u.user_id === currentUser?.id;
+          return (
+            <div className="flex items-center gap-2 font-medium">
+              {u.full_name ?? "—"}
+              {isSelf && <Badge variant="outline" className="text-[10px] px-1.5">Tú</Badge>}
+            </div>
+          );
+        },
+      },
+      {
+        id: "email",
+        header: "Email",
+        accessorFn: (u) => u.email ?? "",
+        cell: ({ row }) => <span className="text-muted-foreground text-sm">{row.original.email ?? "—"}</span>,
+      },
+      {
+        id: "created_at",
+        header: "Fecha de Registro",
+        accessorKey: "created_at",
+        cell: ({ row }) => <span className="text-muted-foreground text-sm">{format(new Date(row.original.created_at), "dd/MM/yyyy")}</span>,
+      },
+      {
+        id: "role",
+        header: "Rol",
+        accessorKey: "role",
+        cell: ({ row }) => (
+          <Select defaultValue={row.original.role} onValueChange={(val) => onRoleChange(row.original, val as AppRole)}>
+            <SelectTrigger className="w-[160px]" onClick={(e) => e.stopPropagation()}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {STAFF_ROLES.map((r) => (
+                <SelectItem key={r} value={r}><RoleBadge role={r} /></SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ),
+      },
+      {
+        id: "status",
+        header: "Estado",
+        accessorFn: (u) => (u.is_active ? "Activo" : "Inactivo"),
+        cell: ({ row }) => {
+          const u = row.original;
+          const isSelf = u.user_id === currentUser?.id;
+          return !isSelf ? (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <Switch checked={u.is_active} onCheckedChange={() => onToggleStatus(u.user_id, u.is_active)} disabled={toggleStatus.isPending} />
+              <span className="text-xs text-muted-foreground">{u.is_active ? "Activo" : "Inactivo"}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <ShieldIcon className="h-3.5 w-3.5" /> Activo
+            </div>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Acciones",
+        enableSorting: false,
+        cell: ({ row }) => {
+          const u = row.original;
+          const isSelf = u.user_id === currentUser?.id;
+          return (
+            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => onEdit(u)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => onSetPassword(u)}>
+                <KeyRound className="h-4 w-4" />
+              </Button>
+              {!isSelf && (
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => onDelete(u)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        },
+      },
+    ],
+    [currentUser?.id, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete, toggleStatus.isPending],
+  );
+
+  const table = useLiftgoTable<UserItem>({
+    data: filtered,
+    columns,
+    getRowId: (u) => u.user_id,
+  });
 
   return (
     <>
-      <ListPageLayout<UserRow & { id?: string }>
+      <ListPageLayout<UserItem>
         title="Gestión de Usuarios"
         subtitle="Ver y administrar roles de usuarios"
         totalCount={filtered.length}
@@ -77,26 +171,25 @@ export default function UserManagementPage() {
           </div>
         }
         isLoading={isLoading}
-        items={paginatedItems}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
+        table={table}
         emptyMessage="No hay usuarios"
         emptyIcon={Users}
         skeletonColumns={6}
-        tableHeader={
-          <TableRow>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Fecha de Registro</TableHead>
-            <TableHead>Rol</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Acciones</TableHead>
-          </TableRow>
-        }
-        renderRow={(u) => <UserDesktopRow u={u as UserRow} actions={actions} />}
-        mobileCardRender={(u) => <UserMobileCard u={u as UserRow} actions={actions} />}
-        mobileKeyExtractor={(u) => (u as UserRow).user_id}
+        mobileCardRender={(u) => (
+          <UserMobileCard
+            u={u}
+            actions={{
+              currentUserId: currentUser?.id,
+              isToggling: toggleStatus.isPending,
+              onRoleChange,
+              onToggleStatus,
+              onEdit,
+              onSetPassword,
+              onDelete,
+            }}
+          />
+        )}
+        mobileKeyExtractor={(u) => u.user_id}
       />
 
       <DeleteUserDialog user={dialogs.deleteTarget} onClose={() => dialogs.setDeleteTarget(null)} />
