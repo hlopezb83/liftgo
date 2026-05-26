@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.10.5",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "usePrefillEffect centraliza prefills de formularios",
+    "category": "improvement"
+  },
+  {
     "version": "6.10.4",
     "date": "2026-05-26",
     "type": "patch",
