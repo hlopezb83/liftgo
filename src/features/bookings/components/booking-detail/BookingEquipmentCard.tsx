@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck } from "lucide-react";
-import { InfoRow } from "@/features/bookings/components/booking-detail/InfoRow";
+import { InfoRow } from "@/components/InfoRow";
 
 export function BookingEquipmentCard({ name, model }: { name: string; model: string }) {
   return (

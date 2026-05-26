@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
-import { InfoRow } from "./InfoRow";
+import { InfoRow } from "@/components/InfoRow";
 import { formatCurrency } from "@/lib/formatCurrency";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
