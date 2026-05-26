@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { useCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
 import { useCurrentVersion } from "@/features/changelog/hooks/useChangelog";
-import { useVisibleNavGroups } from "@/hooks/useVisibleNavGroups";
+import { useVisibleNavGroups } from "@/layouts/hooks/useVisibleNavGroups";
 import { SidebarBranding } from "@/layouts/sidebar/SidebarBranding";
 import { SidebarNavSection } from "@/layouts/sidebar/SidebarNavSection";
 import { SidebarUserFooter } from "@/layouts/sidebar/SidebarUserFooter";

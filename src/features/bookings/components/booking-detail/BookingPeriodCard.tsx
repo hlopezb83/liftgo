@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays } from "lucide-react";
-import { InfoRow } from "@/components/InfoRow";
+import { InfoRow } from "@/features/bookings/components/booking-detail/InfoRow";
 import { differenceInDays, parseISO } from "date-fns";
 import { formatMtyDate } from "@/lib/utils";
 

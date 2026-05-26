@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Phone } from "lucide-react";
-import { InfoRow } from "@/components/InfoRow";
+import { InfoRow } from "@/features/bookings/components/booking-detail/InfoRow";
 
 interface Props {
   customerName?: string | null;
