@@ -1,0 +1,14 @@
+{
+  "version": "6.10.4",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "InfoRow consolidado como componente compartido",
+  "category": "improvement",
+  "description": "Se elimina la duplicación de InfoRow entre módulos. Las dos copias casi idénticas en bookings/booking-detail y returns/return-inspection se unifican en un único componente compartido en src/components/InfoRow.tsx, que soporta ReactNode en label/value y la prop opcional emphasis. Todas las cards de detalle de bookings y returns ahora importan del componente compartido.",
+  "changes": [
+    "Creado src/components/InfoRow.tsx (superset con ReactNode + emphasis)",
+    "Eliminadas dos copias duplicadas en bookings y returns",
+    "Actualizados 10 imports en cards de detalle de bookings y returns",
+    "DeliveryInfoCards mantiene su variante local por estilos específicos"
+  ]
+}
