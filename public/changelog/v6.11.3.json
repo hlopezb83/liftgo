@@ -1,0 +1,12 @@
+{
+  "version": "6.11.3",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Cobertura de tests: cotizaciones (+17)",
+  "category": "improvement",
+  "description": "17 tests nuevos para cotizaciones: validateQuoteForm (cliente, periodo, líneas válidas por renta/venta), buildSaleItems y buildRentalItems (multiplicación por cantidad de equipos, propagación de descuentos, filtro de líneas inválidas), buildDeliveryInfos (empareja booking↔forklift con dirección de cliente) y resolveLegacyForkliftIds (deducción desde line_items, deduplicación, fallback a forklift_id legacy). Total: 171 tests verdes en 29 archivos.",
+  "changes": [
+    "src/features/quotes/hooks/quoteForm/__tests__/quoteFormHelpers.test.ts — 11 tests (validación, sale/rental builders)",
+    "src/features/quotes/hooks/quoteDetail/__tests__/quoteBookingBuilders.test.ts — 6 tests (conversión cotización→reserva)"
+  ]
+}
