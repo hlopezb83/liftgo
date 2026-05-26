@@ -1,0 +1,15 @@
+{
+  "version": "6.10.1",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Limpieza arquitectónica: componentes y constants reubicados a sus features",
+  "category": "improvement",
+  "description": "Quick wins del audit arquitectónico: se eliminó código duplicado y se reubicaron componentes de un solo uso a sus features correspondientes para reforzar la separación de responsabilidades.",
+  "changes": [
+    "Movido `CostSummaryCard` de `src/components/` a `src/features/quotes/components/quotes/` (único consumidor: QuoteForm).",
+    "Movido `DocumentAttachments` de `src/components/` a `src/features/fleet/components/forklift-detail/` (único consumidor: ForkliftDetail).",
+    "Eliminado shim `src/features/invoices/lib/invoiceHelpers.ts` (solo reexportaba `@/lib/domain/invoiceHelpers`); imports actualizados al origen.",
+    "Eliminado shim `src/lib/constants/crm.ts` y la carpeta vacía; imports apuntan a `@/features/crm/lib/constants`.",
+    "Verificado: 71/71 tests pasan, sin cambios funcionales ni de UI."
+  ]
+}
