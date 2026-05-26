@@ -5,7 +5,7 @@ import {
   type InvoiceFormValues,
   type LineItemValues,
   EMPTY_LINE,
-} from "@/lib/schemas/invoiceFormSchema";
+} from "@/features/invoices/lib/invoiceFormSchema";
 
 export function useInvoiceLineItemHandlers(form: UseFormReturn<InvoiceFormValues>) {
   const { fields, append, remove, update } = useFieldArray({

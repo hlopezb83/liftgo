@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { ForkliftFormData } from "@/lib/formSchemas";
 import type { Tables } from "@/integrations/supabase/types";
-import { toStr, toNumStr } from "@/lib/forms/coerce";
+import { toStr, toNumStr } from "@/lib/coerce";
 
 type ExistingForklift = Tables<"forklifts"> | null | undefined;
 

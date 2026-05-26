@@ -15,7 +15,7 @@ import { EditableLineItemsTable } from "@/features/invoices/components/invoice-f
 import { toast } from "sonner";
 import { formatDateRange } from "@/lib/utils";
 import { useNextInvoiceNumber } from "@/features/invoices/hooks/invoices/useNextInvoiceNumber";
-import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
+import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
+import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
 import {
   buildFromInvoice, buildFromQuote, cfdiFromCustomer,
   type Customer, type ExistingInvoice, type SourceQuote, type Forklift, type Assignment,

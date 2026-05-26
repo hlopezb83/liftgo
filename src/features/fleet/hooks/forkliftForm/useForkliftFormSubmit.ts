@@ -6,7 +6,7 @@ import {
   buildForkliftPayload,
   validateForkliftUniqueness,
   mapForkliftMutationError,
-} from "@/lib/forms/forkliftPayload";
+} from "@/features/fleet/lib/forkliftPayload";
 
 interface Args {
   id?: string;

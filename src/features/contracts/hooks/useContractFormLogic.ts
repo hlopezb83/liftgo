@@ -5,7 +5,7 @@ import { useCustomers } from "@/features/customers/hooks/customers/useCustomers"
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useContractFormState } from "./contractForm/useContractFormState";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
-import { buildContractPayload } from "@/lib/forms/contractPayload";
+import { buildContractPayload } from "@/features/contracts/lib/contractPayload";
 
 export function useContractFormLogic() {
   const { id } = useParams();

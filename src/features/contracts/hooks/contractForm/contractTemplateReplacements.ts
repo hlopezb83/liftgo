@@ -1,6 +1,6 @@
 import type { Database } from "@/integrations/supabase/types";
 import type { ContractFormShape } from "./contractFormDefaults";
-import { toStr } from "@/lib/forms/coerce";
+import { toStr } from "@/lib/coerce";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type Forklift = Database["public"]["Tables"]["forklifts"]["Row"];

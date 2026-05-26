@@ -3,8 +3,8 @@ import { useCreateInvoice, useUpdateInvoice } from "@/features/invoices/hooks/in
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
-import { orEmpty } from "@/lib/forms/coerce";
-import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "@/lib/schemas/invoiceFormSchema";
+import { orEmpty } from "@/lib/coerce";
+import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "@/features/invoices/lib/invoiceFormSchema";
 
 function toLineItems(items: LineItemValues[]): LineItem[] {
   return items.map((i) => ({
