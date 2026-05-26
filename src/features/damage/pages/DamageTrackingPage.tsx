@@ -68,14 +68,16 @@ export default function DamageTrackingPage() {
         header: "Fotos",
         enableSorting: false,
         meta: { align: "center", cellClassName: "w-16" },
-        cell: ({ row }) =>
-          getPhotoCount(row.original.id) > 0 ? (
+        cell: ({ row }) => {
+          const count = photoCounts?.[row.original.id] || 0;
+          return count > 0 ? (
             <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
-              <Camera className="h-3 w-3" /> {getPhotoCount(row.original.id)}
+              <Camera className="h-3 w-3" /> {count}
             </Badge>
           ) : (
             <span className="text-muted-foreground text-xs">—</span>
-          ),
+          );
+        },
       },
       {
         id: "estimated_cost",
