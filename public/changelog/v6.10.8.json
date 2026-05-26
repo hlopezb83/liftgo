@@ -1,0 +1,19 @@
+{
+  "version": "6.10.8",
+  "date": "2026-05-26",
+  "type": "minor",
+  "title": "Fase B completa: 13 páginas migradas a DataTableV2 + useLiftgoTable",
+  "category": "improvement",
+  "description": "Cierre de la Fase B del plan de unificación de tablas. Trece páginas pasaron del patrón legacy useListPage + renderRow al patrón declarativo ColumnDef<T>[] + useLiftgoTable, renderizando vía ListPageLayout con DataTableV2 y DataTablePaginationV2.",
+  "highlights": [
+    "Migradas: Fleet, Bookings, Contracts, Quotes, Invoices, Deliveries, DamageTracking, ReturnInspection, OperatingExpenses, AuditTrail, Maintenance, UserManagement, MyReports.",
+    "Estandarización de metadata de columnas: meta.cellClassName y meta.align ('left' | 'right' | 'center').",
+    "Se preservan tarjetas móviles existentes (FleetMobileCard, UserMobileCard, etc.) vía mobileCardRender.",
+    "Sin cambios funcionales ni de UX: filtros, paginación, búsqueda y drill-down panels intactos.",
+    "Verificación: bunx vitest run → 71/71 tests OK."
+  ],
+  "technical": {
+    "pattern": "const columns = useMemo<ColumnDef<Entity>[]>(...); const table = useLiftgoTable({ data, columns, getRowId }); <ListPageLayout table={table} mobileCardRender={...} onRowClick={...} />",
+    "next_steps": "Fase C: deprecación de la rama legacy (tableHeader/renderRow) en ListPageLayout una vez confirmado que ninguna página la usa."
+  }
+}
