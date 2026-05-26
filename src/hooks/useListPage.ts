@@ -1,15 +1,7 @@
 import { useMemo, useState, useCallback } from "react";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  type ColumnDef,
-  type SortingState,
-} from "@tanstack/react-table";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { APP_CONFIG } from "@/lib/config";
-import { liftgoSortingFn } from "@/components/dataTable/v2/sorting";
+import { useLiftgoTable } from "@/components/dataTable/v2/useLiftgoTable";
 
 type SortDirection = "asc" | "desc";
 
@@ -20,12 +12,12 @@ interface UseListPageOptions<T> {
 }
 
 /**
- * Hook headless basado 100% en `@tanstack/react-table`: maneja sorting +
- * pagination client-side sin custom useEffect ni `useSort`/`usePagination`
- * propios. La API pública se mantiene para no romper páginas que renderizan
- * tablas manualmente con `SortableTableHead`.
+ * Hook headless que delega 100% del motor de tabla en `useLiftgoTable`
+ * (única fuente de verdad para TanStack en LiftGo). Expone una API plana
+ * (sortKey, page, paginatedItems, etc.) para páginas que renderizan tablas
+ * manualmente con `SortableTableHead` + `renderRow`.
  *
- * Para tablas nuevas, prefiere `useLiftgoTable` + `DataTableV2`.
+ * Para tablas nuevas, prefiere `useLiftgoTable` + `DataTableV2` directamente.
  */
 export function useListPage<T>(
   items: T[] | undefined,
@@ -41,54 +33,52 @@ export function useListPage<T>(
     return Array.from(keys).map((key) => ({
       id: key,
       accessorFn: accessors?.[key] ?? ((row: T) => (row as Record<string, unknown>)[key]),
-      sortingFn: liftgoSortingFn,
     }));
   }, [accessors, options.defaultSortKey]);
 
-  const [sorting, setSorting] = useState<SortingState>(
-    options.defaultSortKey
-      ? [{ id: options.defaultSortKey, desc: options.defaultSortDirection === "desc" }]
-      : [],
+  const initialSorting = useMemo<SortingState>(
+    () =>
+      options.defaultSortKey
+        ? [{ id: options.defaultSortKey, desc: options.defaultSortDirection === "desc" }]
+        : [],
+    [options.defaultSortKey, options.defaultSortDirection],
   );
-  const [pageIndex, setPageIndex] = useState(0);
 
-  const table = useReactTable<T>({
+  const getRowId = useCallback((_row: T, index: number) => String(index), []);
+
+  const table = useLiftgoTable<T>({
     data,
     columns,
-    state: {
-      sorting,
-      pagination: { pageIndex, pageSize: APP_CONFIG.PAGE_SIZE },
-    },
-    onSortingChange: setSorting,
-    onPaginationChange: (updater) => {
-      const next =
-        typeof updater === "function"
-          ? updater({ pageIndex, pageSize: APP_CONFIG.PAGE_SIZE })
-          : updater;
-      setPageIndex(next.pageIndex);
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getRowId,
+    initialSorting,
+    paginated: true,
   });
 
-  const sortKey = sorting[0]?.id ?? null;
-  const sortDirection: SortDirection = sorting[0]?.desc ? "desc" : "asc";
+  const sortingState = table.getState().sorting;
+  const sortKey = sortingState[0]?.id ?? null;
+  const sortDirection: SortDirection = sortingState[0]?.desc ? "desc" : "asc";
 
-  const toggleSort = useCallback((key: string) => {
-    setSorting((prev) => {
-      const current = prev[0];
-      if (!current || current.id !== key) return [{ id: key, desc: false }];
-      if (!current.desc) return [{ id: key, desc: true }];
-      return [{ id: key, desc: false }];
-    });
-  }, []);
+  const toggleSort = useCallback(
+    (key: string) => {
+      table.setSorting((prev) => {
+        const current = prev[0];
+        if (!current || current.id !== key) return [{ id: key, desc: false }];
+        if (!current.desc) return [{ id: key, desc: true }];
+        return [{ id: key, desc: false }];
+      });
+    },
+    [table],
+  );
 
+  const paginationState = table.getState().pagination;
   const totalItems = data.length;
   const totalPages = Math.max(1, table.getPageCount());
   const paginatedItems = table.getRowModel().rows.map((r) => r.original);
-  const page = pageIndex + 1;
-  const setPage = useCallback((p: number) => setPageIndex(Math.max(0, p - 1)), []);
+  const page = paginationState.pageIndex + 1;
+  const setPage = useCallback(
+    (p: number) => table.setPageIndex(Math.max(0, p - 1)),
+    [table],
+  );
 
   const isMobile = useIsTabletOrBelow();
 
