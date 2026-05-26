@@ -30,12 +30,11 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
     defaultValues: defaultValues as ExpenseFormData,
   });
 
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (open) {
       setSupplierId("");
       form.reset(defaultValues as ExpenseFormData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const onSubmit = (data: ExpenseFormData) => {
