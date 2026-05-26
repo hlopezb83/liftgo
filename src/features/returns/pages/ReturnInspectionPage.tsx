@@ -4,13 +4,9 @@ import { useBookings } from "@/features/bookings/hooks/useBookings";
 import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { useReturnInspections } from "@/features/returns/hooks/useReturnInspections";
 import { useReturnInspectionDialog } from "@/features/returns/hooks/returnInspection/useReturnInspectionDialog";
-import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { DatePickerField } from "@/components/DatePickerField";
-import { MobileCardList } from "@/components/MobileCardList";
-import { SortableTableHead } from "@/components/SortableTableHead";
 import { Button } from "@/components/ui/button";
-import { TableRow, TableCell } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ReturnInspectionDialog } from "@/features/returns/components/return-inspection/ReturnInspectionDialog";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -19,6 +15,9 @@ import { PlusCircle } from "lucide-react";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+
+type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 
 export default function ReturnInspectionPage() {
   const navigate = useNavigate();
@@ -38,7 +37,7 @@ export default function ReturnInspectionPage() {
     useReturnInspectionDialog(bookings, activeBookings);
 
   const filteredInspections = useMemo(() => {
-    if (!inspections) return undefined;
+    if (!inspections) return [];
     if (!filterDate) return inspections;
     return inspections.filter((i) => {
       const d = parseDateLocal(i.inspected_at);
@@ -50,51 +49,53 @@ export default function ReturnInspectionPage() {
     });
   }, [inspections, filterDate]);
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(
-    filteredInspections,
-    {
-      accessors: {
-        inspection_number: (i) => i.inspection_number,
-        inspected_at: (i) => i.inspected_at,
-        forklift_name: (i) => (i as ReturnInspectionWithJoins).forklifts?.name || "",
-        customer_name: (i) => (i as ReturnInspectionWithJoins).bookings?.customer_name || "",
-        condition: (i) => i.condition,
-        damage_cost: (i) => i.damage_cost || 0,
-        inspected_by: (i) => i.inspected_by || "",
+  const columns = useMemo<ColumnDef<Inspection>[]>(
+    () => [
+      {
+        id: "inspection_number",
+        header: "Devolución #",
+        accessorKey: "inspection_number",
+        cell: ({ row }) => <span className="font-mono text-sm text-primary">{row.original.inspection_number}</span>,
       },
-    },
+      {
+        id: "inspected_at",
+        header: "Fecha",
+        accessorKey: "inspected_at",
+        cell: ({ row }) => <span className="font-mono text-sm">{format(parseDateLocal(row.original.inspected_at), "dd/MM/yyyy")}</span>,
+      },
+      {
+        id: "forklift_name",
+        header: "Montacargas",
+        accessorFn: (i) => (i as ReturnInspectionWithJoins).forklifts?.name || "",
+        cell: ({ row }) => <span className="font-medium">{(row.original as ReturnInspectionWithJoins).forklifts?.name || "—"}</span>,
+      },
+      {
+        id: "customer_name",
+        header: "Cliente",
+        accessorFn: (i) => (i as ReturnInspectionWithJoins).bookings?.customer_name || "",
+        cell: ({ row }) => (row.original as ReturnInspectionWithJoins).bookings?.customer_name || "—",
+      },
+      {
+        id: "condition",
+        header: "Condición",
+        accessorKey: "condition",
+        cell: ({ row }) => <StatusBadge status={row.original.condition} />,
+      },
+      {
+        id: "inspected_by",
+        header: "Inspector",
+        accessorFn: (i) => i.inspected_by || "",
+        cell: ({ row }) => row.original.inspected_by || "—",
+      },
+    ],
+    [],
   );
 
-  const mobileContent = isMobile ? (
-    <MobileCardList
-      items={paginatedItems}
-      keyExtractor={(ins) => ins.id}
-      emptyMessage="No hay inspecciones de devolución"
-      renderCard={(ins) => {
-        const insWithJoins = ins as ReturnInspectionWithJoins;
-        return (
-          <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
-                <StatusBadge status={ins.condition} />
-              </div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">{insWithJoins.bookings?.customer_name || "—"}</p>
-              <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                <span className="font-mono">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</span>
-                {ins.damage_cost ? (
-                  <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      }}
-    />
-  ) : undefined;
+  const table = useLiftgoTable<Inspection>({
+    data: filteredInspections,
+    columns,
+    getRowId: (i) => i.id,
+  });
 
   return (
     <>
@@ -117,35 +118,32 @@ export default function ReturnInspectionPage() {
           </Button>
         }
         isLoading={isLoading}
-        items={paginatedItems}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
+        table={table}
+        onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"
-        tableHeader={
-          <TableRow>
-            <SortableTableHead sortKey="inspection_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Devolución #</SortableTableHead>
-            <SortableTableHead sortKey="inspected_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
-            <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
-            <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
-            <SortableTableHead sortKey="condition" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Condición</SortableTableHead>
-            <SortableTableHead sortKey="inspected_by" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inspector</SortableTableHead>
-          </TableRow>
-        }
-        renderRow={(ins) => {
+        mobileCardRender={(ins) => {
           const insWithJoins = ins as ReturnInspectionWithJoins;
           return (
-            <TableRow key={ins.id} className="hover:bg-muted/50 cursor-pointer border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/returns/${ins.id}`)}>
-              <TableCell className="font-mono text-sm text-primary">{ins.inspection_number}</TableCell>
-              <TableCell className="font-mono text-sm">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</TableCell>
-              <TableCell className="font-medium">{insWithJoins.forklifts?.name || "—"}</TableCell>
-              <TableCell>{insWithJoins.bookings?.customer_name || "—"}</TableCell>
-              <TableCell><StatusBadge status={ins.condition} /></TableCell>
-              <TableCell>{ins.inspected_by || "—"}</TableCell>
-            </TableRow>
+            <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
+                  <StatusBadge status={ins.condition} />
+                </div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{insWithJoins.bookings?.customer_name || "—"}</p>
+                <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                  <span className="font-mono">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</span>
+                  {ins.damage_cost ? (
+                    <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
           );
         }}
-        customContent={mobileContent}
       />
 
       <ReturnInspectionDialog

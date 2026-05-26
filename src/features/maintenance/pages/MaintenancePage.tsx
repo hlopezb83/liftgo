@@ -1,26 +1,24 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDialogState } from "@/hooks/useDialogState";
 import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { useMaintenanceLogs, type MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { useGenerateRecurringMaintenance } from "@/features/maintenance/hooks/maintenance/useGenerateRecurringMaintenance";
 import { useListFilters } from "@/hooks/useListFilters";
-import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { MobileCardList } from "@/components/MobileCardList";
-import { SortableTableHead } from "@/components/SortableTableHead";
-import { TableRow } from "@/components/ui/table";
 import { MarkAvailableDialog } from "@/features/fleet/components/fleet/MarkAvailableDialog";
 import { MaintenanceDetailSheet } from "@/features/maintenance/components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFormDialog } from "@/features/maintenance/components/maintenance/MaintenanceFormDialog";
 import { MaintenanceFiltersBar } from "@/features/maintenance/components/maintenance/MaintenanceFiltersBar";
 import { MaintenanceKanban } from "@/features/maintenance/components/maintenance/MaintenanceKanban";
-import { MaintenanceTableRow, MaintenanceMobileCard } from "@/features/maintenance/components/maintenance/MaintenanceRow";
+import { MaintenanceMobileCard } from "@/features/maintenance/components/maintenance/MaintenanceRow";
 import { MaintenancePageActions } from "@/features/maintenance/components/maintenance/MaintenancePageActions";
 import { useActiveMechanics } from "@/features/maintenance/hooks/maintenance/useMechanics";
 import { useMaintenanceForm } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
-import { enrichLogs, maintenanceSortAccessors, maintenanceCsvRows, sumCost } from "@/features/maintenance/lib/maintenancePageHelpers";
+import { formatDateDisplay } from "@/lib/utils";
+import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "@/features/maintenance/lib/maintenancePageHelpers";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
@@ -33,35 +31,67 @@ export default function MaintenancePage() {
 
   const formCtl = useMaintenanceForm(forkliftMap);
 
-  const enrichedLogs = enrichLogs(logs, forkliftMap);
+  const enrichedLogs = useMemo(() => enrichLogs(logs, forkliftMap), [logs, forkliftMap]);
 
   const { search, setSearch, filtered: searchFiltered } = useListFilters(enrichedLogs, {
     searchFields: ["service_type", "performed_by", "description", "forklift_name"],
   });
 
-  const filtered = (searchFiltered ?? []).filter(
-    (log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter,
+  const filtered = useMemo(
+    () => (searchFiltered ?? []).filter((log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter),
+    [searchFiltered, forkliftFilter],
   );
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
-    accessors: maintenanceSortAccessors(forkliftMap),
+  const columns = useMemo<ColumnDef<EnrichedMaintenanceLog>[]>(
+    () => [
+      {
+        id: "performed_at",
+        header: "Fecha",
+        accessorKey: "performed_at",
+        cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span>,
+      },
+      {
+        id: "forklift_name",
+        header: "Montacargas",
+        accessorKey: "forklift_name",
+        cell: ({ row }) => <span className="font-medium">{row.original.forklift_name || "—"}</span>,
+      },
+      {
+        id: "service_type",
+        header: "Tipo de Servicio",
+        accessorKey: "service_type",
+      },
+      {
+        id: "performed_by",
+        header: "Realizado Por",
+        accessorFn: (l) => l.performed_by ?? "",
+        cell: ({ row }) => row.original.performed_by || "—",
+      },
+      {
+        id: "cost",
+        header: "Costo",
+        accessorFn: (l) => l.cost ?? 0,
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="font-medium">{formatCurrency(row.original.cost || 0)}</span>,
+      },
+      {
+        id: "next_service_date",
+        header: "Próximo Servicio",
+        accessorFn: (l) => l.next_service_date ?? "",
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.next_service_date)}</span>,
+      },
+    ],
+    [],
+  );
+
+  const table = useLiftgoTable<EnrichedMaintenanceLog>({
+    data: filtered,
+    columns,
+    getRowId: (l) => l.id,
   });
 
   const isBoard = viewMode === "board";
-  const kanbanContent = isBoard ? (
-    <MaintenanceKanban logs={filtered} />
-  ) : undefined;
-
-  const mobileContent = isMobile && !isBoard ? (
-    <MobileCardList
-      items={paginatedItems}
-      keyExtractor={(log) => log.id}
-      emptyMessage="No se encontraron registros"
-      renderCard={(log) => (
-        <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
-      )}
-    />
-  ) : undefined;
+  const kanbanContent = isBoard ? <MaintenanceKanban logs={filtered} /> : undefined;
 
   const totalCost = sumCost(logs);
   const exportCsv = () => exportToCsv("mantenimiento.csv", maintenanceCsvRows(logs, forkliftMap));
@@ -91,25 +121,13 @@ export default function MaintenancePage() {
           />
         }
         isLoading={isLoading}
-        items={paginatedItems}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
+        table={isBoard ? undefined : table}
+        onRowClick={(log) => detail.open(log)}
         emptyMessage="No se encontraron registros de mantenimiento"
-        tableHeader={
-          <TableRow>
-            <SortableTableHead sortKey="performed_at" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fecha</SortableTableHead>
-            <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Montacargas</SortableTableHead>
-            <SortableTableHead sortKey="service_type" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Tipo de Servicio</SortableTableHead>
-            <SortableTableHead sortKey="performed_by" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Realizado Por</SortableTableHead>
-            <SortableTableHead sortKey="cost" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort} className="text-right">Costo</SortableTableHead>
-            <SortableTableHead sortKey="next_service_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Próximo Servicio</SortableTableHead>
-          </TableRow>
-        }
-        renderRow={(log) => (
-          <MaintenanceTableRow key={log.id} log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
+        customContent={kanbanContent}
+        mobileCardRender={(log) => (
+          <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
         )}
-        customContent={kanbanContent || mobileContent}
       />
 
       <MaintenanceDetailSheet

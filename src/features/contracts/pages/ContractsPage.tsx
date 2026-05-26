@@ -1,21 +1,21 @@
 import { useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { STATUS_LABELS } from "@/lib/constants";
 import { useContracts } from "@/features/contracts/hooks/useContracts";
 import { useListFilters } from "@/hooks/useListFilters";
-import { useListPage } from "@/hooks/useListPage";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { MobileCardList } from "@/components/MobileCardList";
-import { SortableTableHead } from "@/components/SortableTableHead";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { TableRow, TableCell, TableHead } from "@/components/ui/table";
 import { Plus, Eye, ChevronRight } from "lucide-react";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
+
+type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
 export default function ContractsPage() {
   const { data: contracts, isLoading } = useContracts();
@@ -26,42 +26,60 @@ export default function ContractsPage() {
     statusField: "status",
   });
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
-    accessors: {
-      contract_number: (c) => c.contract_number,
-      customer_name: (c) => c.customer_name || "",
-      forklift_name: (c) => c.forklift_name || "",
-      start_date: (c) => c.start_date || "",
-      end_date: (c) => c.end_date || "",
-      status: (c) => c.status,
-    },
-  });
+  const columns = useMemo<ColumnDef<Contract>[]>(
+    () => [
+      {
+        id: "contract_number",
+        header: "Contrato #",
+        accessorKey: "contract_number",
+        cell: ({ row }) => <span className="font-medium">{row.original.contract_number}</span>,
+      },
+      {
+        id: "customer_name",
+        header: "Cliente",
+        accessorFn: (c) => c.customer_name || "",
+        cell: ({ row }) => row.original.customer_name || "—",
+      },
+      {
+        id: "forklift_name",
+        header: "Equipo",
+        accessorFn: (c) => c.forklift_name || "",
+        cell: ({ row }) => row.original.forklift_name || "—",
+      },
+      {
+        id: "start_date",
+        header: "Inicio",
+        accessorFn: (c) => c.start_date || "",
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.start_date)}</span>,
+      },
+      {
+        id: "end_date",
+        header: "Fin",
+        accessorFn: (c) => c.end_date || "",
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.end_date)}</span>,
+      },
+      {
+        id: "status",
+        header: "Estado",
+        accessorKey: "status",
+        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      },
+      {
+        id: "view",
+        header: "",
+        enableSorting: false,
+        meta: { className: "w-12" },
+        cell: () => <Eye className="h-4 w-4 text-muted-foreground" />,
+      },
+    ],
+    [],
+  );
 
-  const mobileContent = isMobile ? (
-    <MobileCardList
-      items={paginatedItems}
-      keyExtractor={(c) => c.id}
-      emptyMessage="No se encontraron contratos"
-      renderCard={(c) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/contracts/${c.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono font-semibold text-sm">{c.contract_number}</span>
-              <StatusBadge status={c.status} />
-            </div>
-            <p className="text-sm text-muted-foreground">{c.customer_name || "Sin cliente"}</p>
-            {c.forklift_name && <p className="text-xs text-muted-foreground mt-1">Equipo: {c.forklift_name}</p>}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <span className="text-xs text-muted-foreground">
-                {formatDateRange(c.start_date, c.end_date)}
-              </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    />
-  ) : undefined;
+  const table = useLiftgoTable<Contract>({
+    data: filtered,
+    columns,
+    getRowId: (c) => c.id,
+  });
 
   return (
     <ListPageLayout
@@ -79,35 +97,28 @@ export default function ContractsPage() {
         </div>
       }
       isLoading={isLoading}
-      items={paginatedItems}
-      page={page}
-      totalPages={totalPages}
-      onPageChange={setPage}
+      table={table}
+      onRowClick={(c) => navigate(`/contracts/${c.id}`)}
       emptyMessage="No se encontraron contratos"
-      tableHeader={
-        <TableRow>
-          <SortableTableHead sortKey="contract_number" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Contrato #</SortableTableHead>
-          <SortableTableHead sortKey="customer_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Cliente</SortableTableHead>
-          <SortableTableHead sortKey="forklift_name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Equipo</SortableTableHead>
-          <SortableTableHead sortKey="start_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Inicio</SortableTableHead>
-          <SortableTableHead sortKey="end_date" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Fin</SortableTableHead>
-          <SortableTableHead sortKey="status" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Estado</SortableTableHead>
-          <TableHead className="w-12" />
-        </TableRow>
-      }
-      renderRow={(c) => (
-        <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 border-l-2 border-transparent hover:border-primary transition-colors" onClick={() => navigate(`/contracts/${c.id}`)}>
-          <TableCell className="font-medium">{c.contract_number}</TableCell>
-          <TableCell>{c.customer_name || "—"}</TableCell>
-          <TableCell>{c.forklift_name || "—"}</TableCell>
-          <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(c.start_date)}</TableCell>
-          <TableCell className="text-sm text-muted-foreground">{formatDateDisplay(c.end_date)}</TableCell>
-          <TableCell><StatusBadge status={c.status} /></TableCell>
-          <TableCell><Eye className="h-4 w-4 text-muted-foreground" /></TableCell>
-        </TableRow>
-      )}
-      customContent={mobileContent}
       skeletonColumns={7}
+      mobileCardRender={(c) => (
+        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/contracts/${c.id}`)}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="font-mono font-semibold text-sm">{c.contract_number}</span>
+              <StatusBadge status={c.status} />
+            </div>
+            <p className="text-sm text-muted-foreground">{c.customer_name || "Sin cliente"}</p>
+            {c.forklift_name && <p className="text-xs text-muted-foreground mt-1">Equipo: {c.forklift_name}</p>}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t">
+              <span className="text-xs text-muted-foreground">
+                {formatDateRange(c.start_date, c.end_date)}
+              </span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      )}
     />
   );
 }

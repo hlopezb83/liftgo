@@ -1,8 +1,8 @@
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
+import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, RefreshCw, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -18,8 +18,8 @@ import { ExpenseFormDialog } from "@/features/expenses/components/expenses/Expen
 import { ExpenseDetailSheet } from "@/features/expenses/components/expenses/ExpenseDetailSheet";
 import { ExpenseEditDialog } from "@/features/expenses/components/expenses/ExpenseEditDialog";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { useListPage } from "@/hooks/useListPage";
 import { useExpenseFilters } from "@/features/expenses/hooks/expenses/useExpenseFilters";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 export default function OperatingExpensesPage() {
   const { data: expenses, isLoading } = useOperatingExpenses();
@@ -30,21 +30,53 @@ export default function OperatingExpensesPage() {
   const detail = useDialogState<OperatingExpense>();
 
   const f = useExpenseFilters(expenses);
-  const { page, setPage, totalPages, paginatedItems } = useListPage(f.filtered);
 
-  const renderRow = (e: OperatingExpense) => (
-    <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => detail.open(e)}>
-      <TableCell>{format(parseDateLocal(e.expense_date), "dd MMM yyyy", { locale: es })}</TableCell>
-      <TableCell>
-        <Badge variant={e.category === "costo_venta" ? "secondary" : "outline"}>
-          {EXPENSE_CATEGORY_LABELS[e.category]}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-muted-foreground">{e.description || "—"}</TableCell>
-      <TableCell className="text-right font-mono">{formatCurrency(e.amount)}</TableCell>
-      <TableCell className="text-muted-foreground">{e.suppliers?.name || "—"}</TableCell>
-    </TableRow>
+  const columns = useMemo<ColumnDef<OperatingExpense>[]>(
+    () => [
+      {
+        id: "expense_date",
+        header: "Fecha",
+        accessorKey: "expense_date",
+        cell: ({ row }) => format(parseDateLocal(row.original.expense_date), "dd MMM yyyy", { locale: es }),
+      },
+      {
+        id: "category",
+        header: "Categoría",
+        accessorKey: "category",
+        cell: ({ row }) => (
+          <Badge variant={row.original.category === "costo_venta" ? "secondary" : "outline"}>
+            {EXPENSE_CATEGORY_LABELS[row.original.category]}
+          </Badge>
+        ),
+      },
+      {
+        id: "description",
+        header: "Descripción",
+        accessorFn: (e) => e.description || "",
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.description || "—"}</span>,
+      },
+      {
+        id: "amount",
+        header: "Monto",
+        accessorKey: "amount",
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.amount)}</span>,
+      },
+      {
+        id: "supplier",
+        header: "Proveedor",
+        accessorFn: (e) => e.suppliers?.name || "",
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.suppliers?.name || "—"}</span>,
+      },
+    ],
+    [],
   );
+
+  const table = useLiftgoTable<OperatingExpense>({
+    data: f.filtered,
+    columns,
+    getRowId: (e) => e.id,
+  });
 
   const mobileCard = (e: OperatingExpense) => (
     <Card onClick={() => detail.open(e)} className="cursor-pointer">
@@ -115,25 +147,13 @@ export default function OperatingExpensesPage() {
           </div>
         }
         isLoading={isLoading}
-        items={paginatedItems}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
+        table={table}
+        onRowClick={(e) => detail.open(e)}
         emptyMessage="Sin gastos registrados"
         emptyIcon={DollarSign}
         emptyActionLabel="Registrar Gasto"
         onEmptyAction={createDialog.openDialog}
         skeletonColumns={5}
-        tableHeader={
-          <TableRow>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Categoría</TableHead>
-            <TableHead>Descripción</TableHead>
-            <TableHead className="text-right">Monto</TableHead>
-            <TableHead>Proveedor</TableHead>
-          </TableRow>
-        }
-        renderRow={renderRow}
         mobileCardRender={mobileCard}
       />
 
