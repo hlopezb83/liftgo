@@ -6,6 +6,10 @@ interface InfoRowProps {
   emphasis?: boolean;
 }
 
+/**
+ * Fila etiqueta / valor reutilizable en cards de detalle.
+ * Compartida entre bookings, returns y deliveries.
+ */
 export function InfoRow({ label, value, emphasis = false }: InfoRowProps) {
   return (
     <div className="flex items-center justify-between">

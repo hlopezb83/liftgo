@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.10.4",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "InfoRow consolidado como componente compartido",
+    "category": "improvement"
+  },
+  {
     "version": "6.10.3",
     "date": "2026-05-26",
     "type": "patch",
