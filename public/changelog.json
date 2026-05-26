@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.12.3",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Limpieza de código muerto detectado por Knip para arreglar CI",
+    "category": "bugfix"
+  },
+  {
     "version": "6.12.2",
     "date": "2026-05-26",
     "type": "patch",
