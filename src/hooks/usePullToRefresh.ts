@@ -90,7 +90,7 @@ export function usePullToRefresh({
       el.removeEventListener("touchend", onTouchEnd);
       el.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [enabled, threshold, maxDistance, pullDistance, isRefreshing, trigger]);
+  }, [enabled, threshold, maxDistance, pullDistance, isRefreshing, trigger, target]);
 
-  return { containerRef, pullDistance, isRefreshing, threshold };
+  return { pullDistance, isRefreshing, threshold };
 }
