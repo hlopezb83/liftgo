@@ -1,0 +1,14 @@
+{
+  "version": "6.10.0",
+  "date": "2026-05-26",
+  "type": "minor",
+  "title": "Gestos móviles (Fase 5): pull-to-refresh y swipe en cards",
+  "category": "improvement",
+  "details": [
+    "Nuevo hook usePullToRefresh para refrescar listas deslizando hacia abajo desde la parte superior.",
+    "Indicador visual integrado en ListPageLayout (mensaje 'Desliza para actualizar' / 'Suelta para actualizar' / 'Actualizando…') con safe-area respetada.",
+    "Nuevo componente SwipeableCard con acciones reveladas al deslizar (patrón nativo iOS/Android), umbral y resistencia ajustables.",
+    "Aplicado pull-to-refresh en Cotizaciones, Reservas y Clientes.",
+    "En Clientes: swipe izquierda revela acción 'Llamar' (tel:) cuando hay teléfono registrado."
+  ]
+}
