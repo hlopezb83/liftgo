@@ -47,6 +47,8 @@ interface ListPageLayoutProps<T> {
    * ignorando `items`, `tableHeader`, `renderRow` y los props de paginación.
    */
   table?: TanstackTable<T>;
+  /** Click handler para filas (solo aplica en modo `table`). */
+  onRowClick?: (item: T) => void;
   /** Si se provee, en mobile/tablet se renderiza como tarjetas en lugar de tabla. */
   mobileCardRender?: (item: T) => ReactNode;
   /** Extractor de key para mobile cards. Default: (item).id */
@@ -76,6 +78,7 @@ export function ListPageLayout<T extends { id?: string }>({
   tableHeader,
   renderRow,
   table,
+  onRowClick,
   mobileCardRender,
   mobileKeyExtractor,
   customContent,
