@@ -1,5 +1,5 @@
-import { ReactNode, useState } from "react";
-import { type LucideIcon, SlidersHorizontal } from "lucide-react";
+import { ReactNode, useEffect, useRef, useState } from "react";
+import { type LucideIcon, Loader2, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { TableSkeleton } from "@/components/TableSkeleton";
@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { TablePagination } from "@/components/TablePagination";
 import { MobileCardList } from "@/components/MobileCardList";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableHeader } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
