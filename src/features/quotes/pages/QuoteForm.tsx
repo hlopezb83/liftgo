@@ -12,7 +12,7 @@ import { FormActions } from "@/components/FormActions";
 import { FormPageHeader } from "@/components/FormPageHeader";
 import { SaleLineItems } from "@/features/quotes/components/quotes/SaleLineItems";
 import { RentalLineItems } from "@/features/quotes/components/quotes/RentalLineItems";
-import { CostSummaryCard } from "@/components/CostSummaryCard";
+import { CostSummaryCard } from "@/features/quotes/components/quotes/CostSummaryCard";
 import { NotesCard } from "@/components/NotesCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
