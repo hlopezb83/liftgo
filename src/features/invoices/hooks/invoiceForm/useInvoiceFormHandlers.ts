@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
-import { generateLineItems } from "@/features/invoices/lib/invoiceHelpers";
+import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 

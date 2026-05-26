@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { useCreateInvoice, useUpdateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
-import { computeTotals, type LineItem } from "@/features/invoices/lib/invoiceHelpers";
+import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { orEmpty } from "@/lib/forms/coerce";
 import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "@/lib/schemas/invoiceFormSchema";
