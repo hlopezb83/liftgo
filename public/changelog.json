@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.12.1",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Cobertura de tests: helpers de facturación, payloads y markdown (+32)",
+    "category": "improvement"
+  },
+  {
     "version": "6.12.0",
     "date": "2026-05-26",
     "type": "minor",
