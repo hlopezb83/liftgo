@@ -4,7 +4,7 @@ import { NavLink } from "@/layouts/NavLink";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarFooter } from "@/components/ui/sidebar";
-import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { ChangePasswordDialog } from "@/layouts/sidebar/ChangePasswordDialog";
 import { ThemeToggle } from "./ThemeToggle";
 import { ROLE_LABELS } from "@/lib/constants";
 import type { AppRole } from "@/features/users/hooks/useUserRole";
