@@ -41,7 +41,7 @@ export default function MyReportsPage() {
         id: "title",
         header: "Título",
         accessorKey: "title",
-        meta: { className: "max-w-[280px] truncate" },
+        meta: { cellClassName: "max-w-[280px] truncate" },
       },
       {
         id: "status",

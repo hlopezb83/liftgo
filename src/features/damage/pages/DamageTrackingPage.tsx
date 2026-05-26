@@ -60,14 +60,14 @@ export default function DamageTrackingPage() {
         id: "description",
         header: "Descripción",
         enableSorting: false,
-        meta: { className: "max-w-[200px] truncate" },
+        meta: { cellClassName: "max-w-[200px] truncate" },
         cell: ({ row }) => row.original.description,
       },
       {
         id: "photos",
         header: "Fotos",
         enableSorting: false,
-        meta: { align: "center", className: "w-16" },
+        meta: { align: "center", cellClassName: "w-16" },
         cell: ({ row }) =>
           getPhotoCount(row.original.id) > 0 ? (
             <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">

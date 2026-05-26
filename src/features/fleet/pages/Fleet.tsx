@@ -123,7 +123,7 @@ export default function Fleet() {
         id: "location",
         header: "Ubicación",
         enableSorting: false,
-        meta: { className: "hidden lg:table-cell text-xs text-muted-foreground max-w-[200px] truncate" },
+        meta: { cellClassName: "hidden lg:table-cell text-xs text-muted-foreground max-w-[200px] truncate" },
         cell: ({ row }) => locationMap.get(row.original.id) || "—",
       },
     ],

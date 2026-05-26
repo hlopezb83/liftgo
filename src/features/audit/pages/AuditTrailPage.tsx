@@ -54,7 +54,7 @@ export default function AuditTrailPage() {
           id: "icon",
           header: "",
           enableSorting: false,
-          meta: { className: "w-10" },
+          meta: { cellClassName: "w-10" },
           cell: ({ row }) => actionIcon(row.original.action),
         },
         {
@@ -73,14 +73,14 @@ export default function AuditTrailPage() {
           id: "record",
           header: "Registro",
           enableSorting: false,
-          meta: { className: "text-sm font-medium max-w-[160px] truncate" },
+          meta: { cellClassName: "text-sm font-medium max-w-[160px] truncate" },
           cell: ({ row }) => getRecordLabel(row.original),
         },
         {
           id: "fields",
           header: "Campos Modificados",
           enableSorting: false,
-          meta: { className: "text-sm text-muted-foreground max-w-[200px] truncate" },
+          meta: { cellClassName: "text-sm text-muted-foreground max-w-[200px] truncate" },
           cell: ({ row }) => row.original.changed_fields?.map(translateField).join(", ") || "—",
         },
         {
@@ -101,7 +101,7 @@ export default function AuditTrailPage() {
           id: "delete",
           header: "",
           enableSorting: false,
-          meta: { className: "w-10" },
+          meta: { cellClassName: "w-10" },
           cell: ({ row }) => (
             <Button
               variant="ghost"

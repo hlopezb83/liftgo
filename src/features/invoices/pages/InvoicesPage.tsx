@@ -73,7 +73,7 @@ export default function InvoicesPage() {
         id: "view",
         header: "",
         enableSorting: false,
-        meta: { className: "w-12" },
+        meta: { cellClassName: "w-12" },
         cell: () => <Eye className="h-4 w-4 text-muted-foreground" />,
       },
     ],
