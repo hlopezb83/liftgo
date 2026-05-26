@@ -1,0 +1,16 @@
+{
+  "version": "6.11.0",
+  "date": "2026-05-26",
+  "type": "minor",
+  "title": "Cobertura de tests: P1 hooks/utils + P0 schemas Zod",
+  "category": "improvement",
+  "description": "Primer sprint del plan de cobertura. Se agregaron 10 nuevos archivos de pruebas (de 12 a 22) y 64 tests adicionales (de 71 a 135), todos verdes. La cobertura ahora incluye utilidades transversales, hooks compartidos y schemas Zod críticos del negocio.",
+  "highlights": [
+    "P1 utilidades: utils.ts (cn, parseDateLocal, formatDateDisplay, formatDateRange, formatMtyDate, capitalize, nowMty), coerce.ts (toStr, toNumStr, orEmpty), lineItems.ts (parseLineItems, parseRentalMeta, parseJsonbArray, toJsonArray).",
+    "P1 hooks: useDialogState + useToggleDialog (estado de sheets/dialogs), useDebouncedValue (timers fake), useListFilters (search/status + persistencia sessionStorage).",
+    "P0 schemas: bookingFormSchema (7 casos incl. validación cruzada de fechas), customerFormSchema (validación email opcional y defaults CFDI), forkliftFormSchema (defaults y campos requeridos), expenseFormSchema (coerción numérica, monto > 0).",
+    "Convención: tests colocalizados en __tests__/ por feature; utilidades de src/lib en src/test/.",
+    "Resultado: 22 archivos · 135 tests · 100% verde."
+  ],
+  "next": "Pendientes del plan: P0 contracts/placeholders, recurring billing edge functions, reports/P&L; P2 flujos por feature; P3 edge functions Deno; P4 smoke tests de páginas."
+}
