@@ -1,0 +1,15 @@
+{
+  "version": "6.10.3",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Hooks y componentes de un solo uso reubicados a sus dueños",
+  "category": "improvement",
+  "description": "Tercera tanda del audit arquitectónico: hooks y componentes con un único consumidor se movieron a la carpeta de la feature o capa que los usa, reduciendo la superficie de `src/components/` y `src/hooks/`.",
+  "changes": [
+    "Hooks de layout: `useBreadcrumbEntityLabel` y `useVisibleNavGroups` movidos a `src/layouts/hooks/`.",
+    "`ChangePasswordDialog` movido a `src/layouts/sidebar/` (único consumidor: SidebarUserFooter).",
+    "`ImageGalleryLightbox` movido a `src/features/damage/components/damage/` (único consumidor: DamagePhotosSection).",
+    "`InfoRow` movido a `src/features/bookings/components/booking-detail/` (5 cards de bookings, una sola feature).",
+    "8 imports actualizados, 71/71 tests pasan, sin cambios funcionales."
+  ]
+}
