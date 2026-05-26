@@ -1,0 +1,8 @@
+{
+  "version": "6.10.6",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "useListPage delega en useLiftgoTable (Fase A unificación de tablas)",
+  "category": "improvement",
+  "description": "Refactor interno de `useListPage` para delegar 100% del motor TanStack en `useLiftgoTable`, eliminando la duplicación de `useReactTable`/`getCoreRowModel`/`getSortedRowModel`/`getPaginationRowModel` que existía entre los dos wrappers. API pública intacta: las 17 páginas que usan `ListPageLayout` + `renderRow` no requieren cambios. `useLiftgoTable` queda como única fuente de verdad para tablas en LiftGo, preparando el camino para las Fases B (migración progresiva página a página) y C (deprecación del API legacy). 71/71 tests pasan."
+}
