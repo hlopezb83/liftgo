@@ -97,10 +97,7 @@ export default function CustomersPage() {
     initialSorting: [{ id: "name", desc: false }],
   });
 
-  const paginatedItems = useMemo(
-    () => table.getRowModel().rows.map((r) => r.original),
-    [table, table.getState().pagination, table.getState().sorting, filtered],
-  );
+  const paginatedItems = table.getRowModel().rows.map((r) => r.original);
 
   const mobileContent = isMobile ? (
     <MobileCardList
