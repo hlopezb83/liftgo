@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableCell, TableHead, TableRow } from "@/components/ui/table";
 import { Plus, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { usePartsInventory, type PartInventory } from "@/features/inventory/hooks/usePartsInventory";
@@ -10,10 +9,10 @@ import { PartDetailSheet } from "@/features/inventory/components/inventory/PartD
 import { PartFormDialog, PART_CATEGORIES } from "@/features/inventory/components/inventory/PartFormDialog";
 import { SearchBar } from "@/components/SearchBar";
 import { ListPageLayout } from "@/components/ListPageLayout";
-import { useListPage } from "@/hooks/useListPage";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { useInventoryFilters } from "@/features/inventory/hooks/inventory/useInventoryFilters";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 export default function InventoryPage() {
   const { data: parts, isLoading } = usePartsInventory();
@@ -28,24 +27,57 @@ export default function InventoryPage() {
   const openCreate = useCallback(() => { setEditing(null); formDialog.openDialog(); }, [formDialog]);
   const openEdit = useCallback((p: PartInventory) => { setEditing(p); formDialog.openDialog(); }, [formDialog]);
 
-  const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
+  const columns = useMemo<ColumnDef<PartInventory>[]>(
+    () => [
+      {
+        id: "sku",
+        header: "SKU",
+        accessorFn: (p) => p.sku || "",
+        cell: ({ row }) => <span className="font-mono text-muted-foreground">{row.original.sku || "—"}</span>,
+      },
+      {
+        id: "name",
+        header: "Nombre",
+        accessorKey: "name",
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      },
+      {
+        id: "category",
+        header: "Categoría",
+        accessorKey: "category",
+        cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge>,
+      },
+      {
+        id: "unit_cost",
+        header: "Costo Unitario",
+        accessorKey: "unit_cost",
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.unit_cost)}</span>,
+      },
+      {
+        id: "stock_quantity",
+        header: "Stock",
+        accessorKey: "stock_quantity",
+        meta: { align: "center" },
+        cell: ({ row }) => {
+          const p = row.original;
+          const isLow = p.stock_quantity <= p.min_stock_level;
+          return (
+            <Badge variant={isLow ? "destructive" : "secondary"}>
+              {isLow ? `${p.stock_quantity} - Reabastecer` : p.stock_quantity}
+            </Badge>
+          );
+        },
+      },
+    ],
+    [],
+  );
 
-  const renderRow = (p: PartInventory) => {
-    const isLow = p.stock_quantity <= p.min_stock_level;
-    return (
-      <TableRow key={p.id} className="cursor-pointer" onClick={() => detail.open(p)}>
-        <TableCell className="font-mono text-muted-foreground">{p.sku || "—"}</TableCell>
-        <TableCell className="font-medium">{p.name}</TableCell>
-        <TableCell><Badge variant="outline">{p.category}</Badge></TableCell>
-        <TableCell className="text-right font-mono">{formatCurrency(p.unit_cost)}</TableCell>
-        <TableCell className="text-center">
-          <Badge variant={isLow ? "destructive" : "secondary"}>
-            {isLow ? `${p.stock_quantity} - Reabastecer` : p.stock_quantity}
-          </Badge>
-        </TableCell>
-      </TableRow>
-    );
-  };
+  const table = useLiftgoTable<PartInventory>({
+    data: filtered,
+    columns,
+    getRowId: (p) => p.id,
+  });
 
   const mobileCard = (p: PartInventory) => {
     const isLow = p.stock_quantity <= p.min_stock_level;
@@ -103,25 +135,13 @@ export default function InventoryPage() {
           </div>
         }
         isLoading={isLoading}
-        items={paginatedItems}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
+        table={table}
+        onRowClick={(p) => detail.open(p)}
         emptyMessage="Sin refacciones registradas"
         emptyIcon={Package}
         emptyActionLabel="Nueva Refacción"
         onEmptyAction={openCreate}
         skeletonColumns={5}
-        tableHeader={
-          <TableRow>
-            <TableHead>SKU</TableHead>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Categoría</TableHead>
-            <TableHead className="text-right">Costo Unitario</TableHead>
-            <TableHead className="text-center">Stock</TableHead>
-          </TableRow>
-        }
-        renderRow={renderRow}
         mobileCardRender={mobileCard}
       />
 

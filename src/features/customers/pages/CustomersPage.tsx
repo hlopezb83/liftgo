@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/features/customers/hooks/customers/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
-import { TableCell, TableRow } from "@/components/ui/table";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { MobileCardList } from "@/components/MobileCardList";
 import { SwipeableCard } from "@/components/SwipeableCard";
-import { SortableTableHead } from "@/components/SortableTableHead";
-import { useListPage } from "@/hooks/useListPage";
 import { useListFilters } from "@/hooks/useListFilters";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { ChevronRight, Plus, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -16,10 +14,14 @@ import { CustomerFormDialog } from "@/features/customers/components/customers/Cu
 import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";
 import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+
+type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
 export default function CustomersPage() {
   const { data: customers, isLoading, refetch } = useCustomers();
   const navigate = useNavigate();
+  const isMobile = useIsTabletOrBelow();
   const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
@@ -52,16 +54,53 @@ export default function CustomersPage() {
     searchFields: ["name", "company", "email"],
   });
 
-  const { sortKey, sortDirection, toggleSort, page, setPage, totalPages, paginatedItems, isMobile } = useListPage(filtered, {
-    defaultSortKey: "name",
-    accessors: {
-      name: (c) => c.name,
-      rfc: (c) => c.rfc || "",
-      email: (c) => c.email || "",
-      phone: (c) => c.phone || "",
-      contact_person: (c) => c.contact_person || "",
-    },
+  const columns = useMemo<ColumnDef<Customer>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Nombre",
+        accessorKey: "name",
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      },
+      {
+        id: "rfc",
+        header: "RFC",
+        accessorFn: (c) => c.rfc || "",
+        cell: ({ row }) => <span className="font-mono text-xs">{row.original.rfc || "—"}</span>,
+      },
+      {
+        id: "email",
+        header: "Correo",
+        accessorFn: (c) => c.email || "",
+        cell: ({ row }) => row.original.email || "—",
+      },
+      {
+        id: "phone",
+        header: "Teléfono",
+        accessorFn: (c) => c.phone || "",
+        cell: ({ row }) => row.original.phone || "—",
+      },
+      {
+        id: "contact_person",
+        header: "Persona de Contacto",
+        accessorFn: (c) => c.contact_person || "",
+        cell: ({ row }) => row.original.contact_person || "—",
+      },
+    ],
+    [],
+  );
+
+  const table = useLiftgoTable<Customer>({
+    data: filtered,
+    columns,
+    getRowId: (c) => c.id,
+    initialSorting: [{ id: "name", desc: false }],
   });
+
+  const paginatedItems = useMemo(
+    () => table.getRowModel().rows.map((r) => r.original),
+    [table, table.getState().pagination, table.getState().sorting, filtered],
+  );
 
   const mobileContent = isMobile ? (
     <MobileCardList
@@ -137,29 +176,9 @@ export default function CustomersPage() {
         }
         filters={<CustomersFilters search={search} onSearchChange={setSearch} />}
         isLoading={isLoading}
-        items={paginatedItems}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
+        table={table}
+        onRowClick={(c) => navigate(`/customers/${c.id}`)}
         emptyMessage="No se encontraron clientes"
-        tableHeader={
-          <TableRow>
-            <SortableTableHead sortKey="name" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Nombre</SortableTableHead>
-            <SortableTableHead sortKey="rfc" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>RFC</SortableTableHead>
-            <SortableTableHead sortKey="email" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Correo</SortableTableHead>
-            <SortableTableHead sortKey="phone" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Teléfono</SortableTableHead>
-            <SortableTableHead sortKey="contact_person" currentSort={sortKey} currentDirection={sortDirection} onSort={toggleSort}>Persona de Contacto</SortableTableHead>
-          </TableRow>
-        }
-        renderRow={(c) => (
-          <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 transition-colors border-l-2 border-transparent hover:border-primary" onClick={() => navigate(`/customers/${c.id}`)}>
-            <TableCell className="font-medium">{c.name}</TableCell>
-            <TableCell className="font-mono text-xs">{c.rfc || "—"}</TableCell>
-            <TableCell>{c.email || "—"}</TableCell>
-            <TableCell>{c.phone || "—"}</TableCell>
-            <TableCell>{c.contact_person || "—"}</TableCell>
-          </TableRow>
-        )}
         customContent={mobileContent}
         skeletonColumns={6}
       />

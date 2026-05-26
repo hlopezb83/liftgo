@@ -123,6 +123,7 @@ export default function SuppliersPage() {
         filters={<SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre, RFC, correo…" />}
         isLoading={isLoading}
         table={table}
+        onRowClick={(s) => navigate(`/suppliers/${s.id}`)}
         emptyMessage="No se encontraron proveedores"
         mobileCardRender={(s) => (
           <Card className="cursor-pointer" onClick={() => navigate(`/suppliers/${s.id}`)}>
