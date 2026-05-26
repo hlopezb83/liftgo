@@ -42,14 +42,13 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Deep link via ?booking_id=...
-  useEffect(() => {
+  usePrefillEffect(() => {
     const bookingId = searchParams.get("booking_id");
     if (bookingId && activeBookings?.some((b) => b.id === bookingId)) {
       form.reset({ ...initialReturnInspectionForm, bookingId });
       setDialogOpen(true);
       setSearchParams({}, { replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, activeBookings]);
 
   const openNew = useCallback(() => {
