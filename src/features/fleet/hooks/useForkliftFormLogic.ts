@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForklift } from "@/features/fleet/hooks/forklifts/useForklifts";
-import { forkliftFormSchema, type ForkliftFormData } from "@/lib/formSchemas";
+import { forkliftFormSchema, type ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
 import { useForkliftFormState } from "./forkliftForm/useForkliftFormState";
 import { useForkliftPrefill } from "./forkliftForm/useForkliftPrefill";
 import { useForkliftFormSubmit } from "./forkliftForm/useForkliftFormSubmit";

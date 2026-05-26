@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormActions } from "@/components/FormActions";
-import { customerFormSchema, type CustomerFormData } from "@/lib/formSchemas";
+import { customerFormSchema, type CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 import {
   Form,
   IdentitySection,

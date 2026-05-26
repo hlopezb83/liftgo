@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useEquipmentModels } from "@/features/fleet/hooks/useEquipmentModels";
-import type { ForkliftFormData } from "@/lib/formSchemas";
+import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ExistingForklift = Tables<"forklifts"> | null | undefined;

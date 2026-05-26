@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FORKLIFT_STATUSES, FUEL_TYPES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
-import type { ForkliftFormData } from "@/lib/formSchemas";
+import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
 
 interface Props {
   isEdit: boolean;

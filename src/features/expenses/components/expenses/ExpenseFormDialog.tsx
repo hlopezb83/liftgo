@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormActions } from "@/components/FormActions";
-import { expenseFormSchema, type ExpenseFormData } from "@/lib/formSchemas";
+import { expenseFormSchema, type ExpenseFormData } from "@/features/expenses/lib/expenseFormSchema";
 import { useCreateExpense, type ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
 import { ExpenseFormFields } from "./ExpenseFormFields";
 
