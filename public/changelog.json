@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.11.1",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Cobertura de tests: contratos, placeholders y P&L (+15)",
+    "category": "improvement"
+  },
+  {
     "version": "6.11.0",
     "date": "2026-05-26",
     "type": "minor",

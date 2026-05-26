@@ -1,0 +1,14 @@
+{
+  "version": "6.11.1",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Cobertura de tests: contratos, placeholders y P&L",
+  "category": "improvement",
+  "description": "Se agregaron 15 tests nuevos cubriendo lógica crítica de negocio: buildContractPayload (defaults, numéricos, fallback 5% interés), replacePlaceholders (sintaxis brace/bracket, fallbacks em dash), buildPlaceholderVars (cobertura completa del CONTRACT_PLACEHOLDERS registry) y computeDerivedTotals del Estado de Resultados (exclusión de software/depreciación de egresos operativos, costo_venta como costo directo, depreciación solo en Utilidad Neta, prevención de división por cero). Total: 150 tests verdes en 26 archivos.",
+  "changes": [
+    "src/features/contracts/lib/__tests__/contractPayload.test.ts — 3 tests para buildContractPayload",
+    "src/test/templateUtils.test.ts — 5 tests para replacePlaceholders",
+    "src/test/contractPlaceholders.test.ts — 3 tests para buildPlaceholderVars con verificación de cobertura del registry",
+    "src/features/reports/hooks/incomeStatement/__tests__/computeDerivedTotals.test.ts — 4 tests para reglas del P&L"
+  ]
+}
