@@ -69,19 +69,29 @@ export default function CustomersPage() {
       keyExtractor={(c) => c.id}
       emptyMessage="No se encontraron clientes"
       renderCard={(c) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/customers/${c.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-sm">{c.name}</span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-            {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-              {c.phone && <span>{c.phone}</span>}
-              {c.email && <span>{c.email}</span>}
-            </div>
-          </CardContent>
-        </Card>
+        <SwipeableCard
+          onClick={() => navigate(`/customers/${c.id}`)}
+          rightActions={c.phone ? [{
+            label: "Llamar",
+            icon: Pencil,
+            className: "bg-primary",
+            onAction: () => { window.location.href = `tel:${c.phone}`; },
+          }] : []}
+        >
+          <Card className="active:scale-[0.98] transition-transform">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-semibold text-sm">{c.name}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
+              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                {c.phone && <span>{c.phone}</span>}
+                {c.email && <span>{c.email}</span>}
+              </div>
+            </CardContent>
+          </Card>
+        </SwipeableCard>
       )}
     />
   ) : undefined;
