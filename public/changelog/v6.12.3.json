@@ -1,0 +1,15 @@
+{
+  "version": "6.12.3",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Limpieza de código muerto detectado por Knip para arreglar CI",
+  "category": "bugfix",
+  "changes": [
+    "Eliminados archivos no usados: SortableTableHead.tsx, AuditLogTableRow.tsx, UserDesktopRow.tsx",
+    "Eliminado export no usado FleetTableRow de FleetRowAndCard.tsx",
+    "Eliminado export no usado MaintenanceTableRow de MaintenanceRow.tsx",
+    "Eliminado export no usado maintenanceSortAccessors de maintenancePageHelpers.ts",
+    "Movida la interfaz UserRowActions a UserMobileCard.tsx"
+  ],
+  "files_changed": 6
+}
