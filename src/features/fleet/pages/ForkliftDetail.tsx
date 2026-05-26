@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { DocumentAttachments } from "@/components/DocumentAttachments";
+import { DocumentAttachments } from "@/features/fleet/components/forklift-detail/DocumentAttachments";
 import { NotesCard } from "@/components/NotesCard";
 import { DamagePhotosSection } from "@/features/damage/components/damage/DamagePhotosSection";
 import { ForkliftSpecsCard } from "@/features/fleet/components/forklift-detail/ForkliftSpecsCard";

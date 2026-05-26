@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.10.1",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Limpieza arquitectónica: componentes y constants reubicados a sus features",
+    "category": "improvement"
+  },
+  {
     "version": "6.10.0",
     "date": "2026-05-26",
     "type": "minor",

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { InvoiceFormValues } from "@/lib/schemas/invoiceFormSchema";
-import { computeTotals } from "@/features/invoices/lib/invoiceHelpers";
+import { computeTotals } from "@/lib/domain/invoiceHelpers";
 
 export function useInvoiceFormTotals(form: UseFormReturn<InvoiceFormValues>) {
   const watched = useWatch({ control: form.control, name: ["lineItems", "taxRate"] });
