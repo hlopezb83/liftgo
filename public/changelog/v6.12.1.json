@@ -1,0 +1,24 @@
+{
+  "version": "6.12.1",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Cobertura de tests: helpers de facturación, payloads y markdown",
+  "category": "improvement",
+  "description": "Se agregaron 32 tests nuevos cubriendo helpers críticos sin cobertura previa: cálculo de rentas mixtas mensual/semanal/diaria con descuentos e IVA (invoiceHelpers), construcción de payloads de clientes y montacargas con validación de unicidad y mapeo de errores de constraints, formateo de moneda MXN/USD, y renderizado seguro de Markdown con sanitización DOMPurify. Suite total: 296 tests en 50 archivos, 100% verde.",
+  "changes": [
+    "invoiceHelpers: applyDiscount (%/$, negativos), calculateRentalCost (mensual exacta, semanal+diaria, fallback derivado), generateLineItemsFromModel (prefijo + multiplicador), computeTotals (IVA pre/post descuento)",
+    "customerPayload: nulls para opcionales vacíos, name duplicado en company",
+    "forkliftPayload: coerce numérico, validación de unicidad por nombre/serial, mapeo de errores de constraint",
+    "formatCurrency / formatCurrencyWithCode: MXN default, USD dinámico, redondeo 2 decimales",
+    "markdown: headings H2-H4, listas, blockquote, sanitización XSS"
+  ],
+  "files_changed": [
+    "src/lib/domain/__tests__/invoiceHelpers.test.ts",
+    "src/features/customers/lib/__tests__/customerPayload.test.ts",
+    "src/features/fleet/lib/__tests__/forkliftPayload.test.ts",
+    "src/lib/__tests__/formatCurrency.test.ts",
+    "src/features/help/lib/__tests__/markdown.test.ts"
+  ],
+  "tests_total": 296,
+  "tests_added": 32
+}
