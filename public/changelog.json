@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.10.3",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Hooks y componentes de un solo uso reubicados a sus dueños",
+    "category": "improvement"
+  },
+  {
     "version": "6.10.2",
     "date": "2026-05-26",
     "type": "patch",
