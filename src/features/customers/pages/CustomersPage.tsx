@@ -17,7 +17,7 @@ import type { CustomerFormData } from "@/lib/formSchemas";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
 
 export default function CustomersPage() {
-  const { data: customers, isLoading } = useCustomers();
+  const { data: customers, isLoading, refetch } = useCustomers();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();
