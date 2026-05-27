@@ -342,7 +342,32 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - Siempre **consumir el body** (`await res.text()`) para evitar leaks de recursos en Deno.
 - CI: job `edge-functions` separado del `quality` en `.github/workflows/ci.yml`.
 
+### 15.3 E2E (Playwright)
+
+- Suite en `tests/e2e/` con `playwright.config.ts` en raíz.
+- Levanta `bun run preview` en puerto 4173 vía `webServer` y corre en chromium.
+- Auth: project `setup` (`global.setup.ts`) loguea con `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` y guarda `storageState` en `tests/e2e/.auth/admin.json`. Los demás tests lo reusan.
+- Project `portal` corre sin `storageState` para validar rutas públicas (`/portal/login`).
+- Cobertura actual: `auth.spec.ts` (dashboard tras login), `smoke-nav.spec.ts` (10 rutas críticas sin error boundary), `booking.spec.ts` / `quote-to-invoice.spec.ts` / `portal.spec.ts` (lista + skips marcados con `TODO` para happy-paths con seed).
+- Comandos: `bun run test:e2e` (CI) y `bun run test:e2e:ui` (debugging local).
+- CI: job `e2e` en `.github/workflows/ci.yml` con `continue-on-error: true` hasta que se añadan los 3 secrets (`E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `SUPABASE_SERVICE_ROLE_KEY`). Quitar el flag después.
+- Convención: cada test < 30s. Para tests que requieren datos, preferir RPC de seed antes que UI clicks. Evitar selectores por copy: usar `data-testid` o `role` + `name` con regex flexible.
+
+### 15.4 Mobile QA
+
+- Pasada manual antes de cada minor: viewport 375x812 (iPhone 13) en preview.
+- Checklist mínimo: sidebar colapsado, `MobileCardList` en listas, sin overflow horizontal, formularios sin clipping, modales caben.
+- Resultados se documentan en `docs/mobile-qa-v<X.Y.Z>.md` con findings clasificados (bloqueante / no bloqueante / mejora).
+- No se gatea CI con esto — es proceso humano.
+
+### 15.5 Lighthouse baseline
+
+- Script: `scripts/lighthouse-baseline.sh` corre Lighthouse desktop contra rutas públicas (`/`, `/portal/login`) y guarda JSON en `docs/lighthouse/`.
+- Baseline tabular en `docs/lighthouse/baseline.md`. Rutas autenticadas se miden manualmente con Chrome DevTools.
+- No gatea CI — sirve para comparar regresiones entre versiones.
+
 ---
+
 
 ## 16. Versionado y changelog
 

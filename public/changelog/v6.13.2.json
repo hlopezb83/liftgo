@@ -1,0 +1,50 @@
+{
+  "version": "6.13.2",
+  "date": "2026-05-27",
+  "type": "minor",
+  "title": "Bloque B pre-RC: suite E2E + mobile QA + Lighthouse baseline",
+  "category": "infra",
+  "description": "Añade gates de calidad de usuario final: Playwright para flujos críticos, pasada de QA mobile documentada y baseline de Lighthouse para comparar regresiones futuras.",
+  "changes": [
+    {
+      "type": "added",
+      "title": "Playwright E2E configurado",
+      "description": "playwright.config.ts en raíz, tests en tests/e2e/. Proyecto 'setup' loguea admin con E2E_TEST_EMAIL/PASSWORD y reusa storageState. Proyecto 'portal' valida rutas públicas sin sesión."
+    },
+    {
+      "type": "added",
+      "title": "5 specs E2E iniciales",
+      "description": "auth.spec.ts (login → dashboard), smoke-nav.spec.ts (10 rutas críticas sin error boundary), booking.spec.ts (lista + TODO happy-path), quote-to-invoice.spec.ts (listas + TODO seed), portal.spec.ts (login público + TODO seed)."
+    },
+    {
+      "type": "added",
+      "title": "Job 'e2e' en GitHub Actions",
+      "description": "Corre en paralelo a 'quality' y 'edge-functions'. Marcado con continue-on-error: true hasta que se configuren los 3 secrets requeridos. Sube playwright-report como artifact en fallos."
+    },
+    {
+      "type": "added",
+      "title": "Mobile QA pass v6.13.2",
+      "description": "Pasada manual a 375x812 documentada en docs/mobile-qa-v6.13.2.md. Validadas / (Panel), /fleet, /invoices: sin bloqueantes. MobileCardList confirmado en listas."
+    },
+    {
+      "type": "added",
+      "title": "Lighthouse baseline",
+      "description": "Script scripts/lighthouse-baseline.sh + docs/lighthouse/baseline.md con tabla de scores esperados (Performance ≥80, A11y ≥90). Sirve para detectar regresiones en versiones futuras; no gatea CI."
+    },
+    {
+      "type": "added",
+      "title": "Scripts npm: test:e2e y test:e2e:ui",
+      "description": "Para correr Playwright en CI y en modo UI local."
+    },
+    {
+      "type": "added",
+      "title": "Documentación arquitectura §15.3, §15.4, §15.5",
+      "description": "Convenciones de E2E (Playwright), proceso de Mobile QA y Lighthouse baseline en architecture.md."
+    },
+    {
+      "type": "changed",
+      "title": "knip.json extendido",
+      "description": "Reconoce tests/e2e/ y playwright.config.ts como entries, e ignora @playwright/test (devDep sin import en src/)."
+    }
+  ]
+}

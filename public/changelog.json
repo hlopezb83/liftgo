@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.13.2",
+    "date": "2026-05-27",
+    "type": "minor",
+    "title": "Bloque B pre-RC: suite E2E + mobile QA + Lighthouse baseline",
+    "category": "infra"
+  },
+  {
+
     "version": "6.13.1",
     "date": "2026-05-27",
     "type": "patch",
