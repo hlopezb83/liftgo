@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.13.1",
+    "date": "2026-05-27",
+    "type": "patch",
+    "title": "CI: arregla job de Deno smoke tests (URL fallback + glob)",
+    "category": "infra"
+  },
+  {
     "version": "6.13.0",
     "date": "2026-05-27",
     "type": "minor",
