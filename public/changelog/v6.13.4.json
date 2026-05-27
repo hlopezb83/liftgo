@@ -1,0 +1,9 @@
+{
+  "version": "6.13.4",
+  "date": "2026-05-27",
+  "type": "patch",
+  "title": "Folio mínimo de factura ajustado a FAC-0060",
+  "category": "improvement",
+  "description": "Se actualizó el folio mínimo en invoice_number_settings a 60. La próxima factura emitida será FAC-0060.",
+  "changes": ["min_next_number = 60"]
+}
