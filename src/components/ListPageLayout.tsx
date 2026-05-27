@@ -121,11 +121,26 @@ export function ListPageLayout<T extends { id?: string }>({
         {customContent || (
           <Card>
             <CardContent className="p-0">
-              {renderTableContent()}
-              {renderPagination()}
+              <TableContent
+                isLoading={isLoading}
+                showEmpty={showEmpty}
+                showMobileCards={showMobileCards}
+                items={effectiveItems}
+                table={table}
+                emptyMessage={emptyMessage}
+                emptyIcon={emptyIcon}
+                emptyActionLabel={emptyActionLabel}
+                onEmptyAction={onEmptyAction}
+                onRowClick={onRowClick}
+                mobileCardRender={mobileCardRender}
+                mobileKeyExtractor={mobileKeyExtractor}
+                skeletonColumns={skeletonColumns}
+              />
+              {hasPagination && <DataTablePaginationV2 table={table} />}
             </CardContent>
           </Card>
         )}
+
       </div>
       {isMobile && mobileFab && (
         <div className="fixed right-4 z-40 pointer-events-none" style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
