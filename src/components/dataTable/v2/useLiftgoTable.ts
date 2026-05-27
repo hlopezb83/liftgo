@@ -80,6 +80,7 @@ export function useLiftgoTable<T>({
   };
 
   return useReactTable<T>({
+    autoResetPageIndex: false,
     data: tableData,
     columns,
     defaultColumn: { sortingFn: liftgoSortingFn },

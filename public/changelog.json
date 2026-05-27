@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.12.5",
+    "date": "2026-05-27",
+    "type": "patch",
+    "title": "Fix: filtros de Facturas no respondían por bucle infinito de renders",
+    "category": "bugfix"
+  },
+  {
     "version": "6.12.4",
     "date": "2026-05-26",
     "type": "patch",

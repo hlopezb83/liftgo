@@ -80,7 +80,11 @@ export function useListFilters<T extends Record<string, unknown>>(
       }
       return true;
     });
-  }, [items, search, statusFilter, options.searchFields, options.searchAccessors, options.statusField]);
+    // Config options (searchFields, searchAccessors, statusField) son literales por callsite.
+    // Incluirlos en deps causa nueva referencia de `filtered` en cada render → cascada que
+    // dispara autoResetPageIndex de TanStack Table en loop infinito.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, search, statusFilter]);
 
   return { search, setSearch, statusFilter, setStatusFilter, filtered };
 }

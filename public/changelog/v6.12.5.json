@@ -1,0 +1,13 @@
+{
+  "version": "6.12.5",
+  "date": "2026-05-27",
+  "type": "patch",
+  "title": "Fix: filtros de Facturas no respondían por bucle infinito de renders",
+  "category": "bugfix",
+  "description": "Los filtros de la página de Facturas (tabs de estado, rango de fechas y búsqueda) no respondían a clics porque un bucle infinito de renders bloqueaba los event handlers (Maximum update depth exceeded en table.resetPageIndex).",
+  "changes": [
+    "useListFilters: removidas dependencias inestables (searchFields, searchAccessors, statusField) del useMemo de `filtered`. Eran literales por callsite que cambiaban de referencia en cada render, propagando una cascada que disparaba autoResetPageIndex de TanStack Table en loop.",
+    "useLiftgoTable: agregado `autoResetPageIndex: false` como defensa en profundidad para evitar que futuras inestabilidades de `data` vuelvan a colapsar la UI.",
+    "Impacto: la corrección en useListFilters beneficia a todas las páginas que lo usan (Cotizaciones, Reservas, Clientes, etc.)."
+  ]
+}
