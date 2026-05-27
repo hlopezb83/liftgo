@@ -24,7 +24,7 @@
 | src/hooks/use-mobile.tsx | hook | 19 | 4 | matchMedia (built-in) | KEEP (glue <30 LOC) | — | Hook breakpoint mobile, 19 LOC. |
 | src/hooks/useDebouncedValue.ts | hook | 14 | 1 | use-debounce | KEEP (glue <30 LOC) | baja | 14 LOC, 1 consumidor. Migrable a use-debounce si crece. |
 | src/hooks/useDialogState.ts | hook | 40 | 4 | — | KEEP (sin equivalente) | — | Patrón propio para Sheet/Dialog state. |
-| src/hooks/useFormState.ts | hook | 0 | 0 | react-hook-form | MIGRAR | media | 9 LOC, 7 dialogs. Duplica RHF (ya canónico); migrar incrementalmente. |
+| ~~src/hooks/useFormState.ts~~ | hook | — | — | react-hook-form | RETIRADO (v6.13.3) | — | Eliminado; todos los diálogos migrados a react-hook-form. |
 | src/hooks/useListFilters.ts | hook | 86 | 7 | react-router + @tanstack/react-table | KEEP (ya usa canónicas) | — | Compone useSearchParams + filtro client; no duplica. |
 | src/hooks/useListPage.ts | hook | 106 | 17 | @tanstack/react-table | KEEP (ya usa canónica) | — | Headless 100% TanStack Table; documentado en §20.4. |
 | src/hooks/useDocuments.ts | hook | 102 | 4 | @tanstack/react-query | KEEP (ya usa canónica) | — | Domain hook sobre supabase + react-query. |

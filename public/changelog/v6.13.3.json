@@ -1,0 +1,24 @@
+{
+  "version": "6.13.3",
+  "date": "2026-05-27",
+  "type": "patch",
+  "title": "Auditoría de calidad: tokens CRM y limpieza de auditoría §20",
+  "category": "refactor",
+  "summary": "Resultados de /skill:audit-code-quality. Se atienden los dos hallazgos LOW abiertos.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Colores del Kanban CRM movidos al design system",
+      "description": "Los cuatro stages activos (Nuevo Prospecto, Contactado, Cotización Enviada, Negociación) usaban literales HSL embebidos en src/features/crm/lib/constants.ts, rompiendo el principio de tematización vía tokens. Se agregaron --crm-stage-{new,contacted,quoted,negotiating} en src/index.css (light + dark) y los stages ahora los consumen vía hsl(var(--crm-stage-*)). Permite retematizar el CRM sin tocar código de dominio."
+    },
+    {
+      "type": "docs",
+      "title": "docs/dependency-audit.md: useFormState marcado como RETIRADO",
+      "description": "El helper src/hooks/useFormState.ts ya no existe (todos los diálogos están en react-hook-form). La auditoría §20 lo mostraba como MIGRAR pendiente; se actualiza a RETIRADO (v6.13.3) para reflejar el estado real."
+    }
+  ],
+  "audit": {
+    "summary": "0 CRITICAL · 0 HIGH · 0 LOW abiertos tras este parche.",
+    "scope": "src/ y supabase/functions/ (excluye ui/, types.ts generado y tests)."
+  }
+}

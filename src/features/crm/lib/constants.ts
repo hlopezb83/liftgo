@@ -23,10 +23,10 @@ export const STAGE_LABELS: Record<string, string> = {
 };
 
 export const ACTIVE_STAGES = [
-  { key: "nuevo_prospecto", label: "Nuevo Prospecto", color: "hsl(var(--primary))" },
-  { key: "contactado", label: "Contactado", color: "hsl(210 80% 55%)" },
-  { key: "cotizacion_enviada", label: "Cotización Enviada", color: "hsl(45 93% 47%)" },
-  { key: "negociacion", label: "Negociación", color: "hsl(280 60% 55%)" },
+  { key: "nuevo_prospecto", label: "Nuevo Prospecto", color: "hsl(var(--crm-stage-new))" },
+  { key: "contactado", label: "Contactado", color: "hsl(var(--crm-stage-contacted))" },
+  { key: "cotizacion_enviada", label: "Cotización Enviada", color: "hsl(var(--crm-stage-quoted))" },
+  { key: "negociacion", label: "Negociación", color: "hsl(var(--crm-stage-negotiating))" },
 ] as const;
 
 export const VALUE_RANGE_OPTIONS = [
