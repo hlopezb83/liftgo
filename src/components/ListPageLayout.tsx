@@ -196,3 +196,55 @@ function FiltersSlot({
   );
 }
 
+interface TableContentProps<T> {
+  isLoading: boolean;
+  showEmpty: boolean;
+  showMobileCards: boolean;
+  items: T[];
+  table?: TanstackTable<T>;
+  emptyMessage: string;
+  emptyIcon?: LucideIcon;
+  emptyActionLabel?: string;
+  onEmptyAction?: () => void;
+  onRowClick?: (item: T) => void;
+  mobileCardRender?: (item: T) => ReactNode;
+  mobileKeyExtractor?: (item: T) => string;
+  skeletonColumns?: number;
+}
+
+function TableContent<T extends { id?: string }>({
+  isLoading, showEmpty, showMobileCards, items, table,
+  emptyMessage, emptyIcon, emptyActionLabel, onEmptyAction,
+  onRowClick, mobileCardRender, mobileKeyExtractor, skeletonColumns,
+}: TableContentProps<T>) {
+  if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
+  if (showEmpty) {
+    return (
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyMessage}
+        subtitle="Aún no se han registrado registros aquí."
+        actionLabel={emptyActionLabel}
+        onAction={onEmptyAction}
+      />
+    );
+  }
+  if (showMobileCards) {
+    return (
+      <div className="p-4">
+        <MobileCardList
+          items={items}
+          keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
+          emptyMessage={emptyMessage}
+          renderCard={(item) => (mobileCardRender ? mobileCardRender(item) : null)}
+        />
+      </div>
+    );
+  }
+  if (table) {
+    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} />;
+  }
+  return null;
+}
+
+
