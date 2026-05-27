@@ -1,0 +1,9 @@
+{
+  "description": "El job 'Edge Functions (Deno smoke tests)' del CI fallaba en 9s porque (a) faltaba el secret VITE_SUPABASE_URL en GitHub Actions y los tests reventaban con 'Invalid URL', y (b) el glob bash supabase/functions/**/index_test.ts no se expandía sin globstar.",
+  "changes": [
+    "Nuevo helper supabase/functions/_shared/test-helpers.ts con fallback a la URL pública del proyecto (los smoke tests solo validan CORS y 401, no exponen datos)",
+    "Los 8 index_test.ts ahora importan fnUrl() del helper en vez de leer env vars sueltas",
+    "Workflow CI usa 'find ... -print0 | xargs -0 deno test' para descubrir los tests sin depender de globstar",
+    "Eliminada la dependencia de dotenv/load.ts en los tests (no era necesaria en CI sin .env)"
+  ]
+}
