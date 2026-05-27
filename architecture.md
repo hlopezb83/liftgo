@@ -134,10 +134,12 @@ Página (orquestador)
 ### 5.2 Patrones reutilizables de UI
 
 - `useListPage` consolida filtros + orden + paginación + búsqueda para todas las páginas de listado.
-- Bloques composables: `useListFilters`, `useDebouncedValue`, `useFormState`, `useSort`, `usePagination`, `useDialogState`.
-- Componentes estándar: `ListPageLayout`, `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`, `MobileCardList`, `ReadOnlyLineItemsTable`, `SortableTableHead`, `TablePagination`.
+- Bloques composables: `useListFilters`, `useDebouncedValue`, `useSort`, `usePagination`, `useDialogState`. `useFormState` está `@deprecated` (`TODO(deps)` → migrar a `react-hook-form`, ver `docs/dependency-audit.md`).
+- Componentes estándar: `ListPageLayout`, `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`, `MobileCardList`, `ReadOnlyLineItemsTable`, `TablePagination`.
+- **Tablas avanzadas**: `DataTableV2` (`src/components/dataTable/v2/`) envuelve TanStack Table con `useLiftgoTable`; defaults seguros (`autoResetPageIndex: false`, sorting controlado, paginación cliente de 25). Reemplaza al antiguo `SortableTableHead` (eliminado en v6.12.x).
 - Multimedia: `DragDropImageUploader` + `ImageGalleryLightbox`, indexados por `entityType`/`entityId`.
 - Restauración de filtros al volver a un listado mediante `sessionStorage`.
+- **Estabilidad de referencias en filtros**: las dependencias de `useMemo` en `useListFilters` deben ser estables; arrays/objetos literales en cada render disparan loops infinitos con `autoResetPageIndex` (lección del fix v6.12.5).
 
 ### 5.3 Mutaciones y caché
 
