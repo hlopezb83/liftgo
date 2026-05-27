@@ -490,7 +490,7 @@ Solo cuando se cumple **al menos uno**:
 ### 20.5 Proceso para introducir una dependencia nueva
 
 1. Verificar que no exista ya algo equivalente en el stack canónico (§20.4).
-2. Aplicar checklist 21.2.
+2. Aplicar checklist §20.2.
 3. Instalar con `bun add`; añadir nota al changelog (`type: refactor` o `feature`).
 4. Si pasa a ser canónica, documentarla en §2 (Stack tecnológico) y en §20.4.
 5. Si reemplaza código propio: **eliminar el archivo legacy en el mismo PR** (no dejar código muerto).
