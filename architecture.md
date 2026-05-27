@@ -521,6 +521,9 @@ Solo cuando se cumple **al menos uno**:
 - `src/lib/config.ts` — configuración global (IVA, monedas).
 - `src/lib/routes-config.tsx` y `src/lib/routes.ts` — rutas y permisos.
 - `src/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
+- `src/components/dataTable/v2/` — patrón canónico de tablas (DataTableV2 + useLiftgoTable).
+- `src/lib/pdf/theme/tokens.ts` — fuente de tokens visuales para PDFs.
+- `docs/dependency-audit.md` y `scripts/dependency_audit.py` — estado de migración hacia el stack canónico (§20).
 - `supabase/functions/` — backend serverless.
 - `supabase/migrations/` — historial SQL.
 - `.lovable/plan.md` — última auditoría arquitectónica.
