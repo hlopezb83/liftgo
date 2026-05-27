@@ -6,17 +6,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Trash2 } from "lucide-react";
 import type { EquipmentModel } from "@/features/fleet/hooks/useEquipmentModels";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { calculateRentalCost } from "@/lib/domain/invoiceHelpers";
 import type { RentalLine } from "./RentalLineItems";
+import { computeRentalLineTotal } from "./rentalLineHelpers";
 
-export function computeRentalLineTotal(line: RentalLine, startDate?: Date, endDate?: Date): number {
-  if (!startDate || !endDate) return 0;
-  const items = calculateRentalCost(line.dailyRate, line.weeklyRate, line.monthlyRate, startDate, endDate);
-  const base = items.reduce((sum, i) => sum + i.total, 0) * line.quantity;
-  if (!line.discount || line.discount <= 0) return base;
-  if (line.discountType === "$") return Math.max(0, base - line.discount);
-  return Math.max(0, base * (1 - line.discount / 100));
-}
 
 interface Props {
   line: RentalLine;

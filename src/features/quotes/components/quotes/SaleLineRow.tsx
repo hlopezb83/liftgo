@@ -7,13 +7,8 @@ import { Trash2 } from "lucide-react";
 import type { EquipmentModel } from "@/features/fleet/hooks/useEquipmentModels";
 import { formatCurrency } from "@/lib/formatCurrency";
 import type { SaleLine } from "./SaleLineItems";
+import { computeSaleLineTotal } from "./saleLineHelpers";
 
-export function computeSaleLineTotal(line: SaleLine): number {
-  const base = line.quantity * line.unitPrice;
-  if (!line.discount || line.discount <= 0) return base;
-  if (line.discountType === "$") return Math.max(0, base - line.discount);
-  return Math.max(0, base * (1 - line.discount / 100));
-}
 
 interface Props {
   line: SaleLine;
