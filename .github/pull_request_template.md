@@ -40,7 +40,8 @@ Doctrina de referencia: `architecture.md` §18 (Power of 10) y §20 (Dependencia
 
 - [ ] Entrada nueva en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json` (semver acorde a la magnitud).
 - [ ] Tests (`bunx vitest run`) verdes, o verificación manual descrita abajo.
-- [ ] Si hay cambios de esquema: migración SQL con `SET search_path = public`, RLS revisada y `has_role` aplicado donde corresponde.
+- [ ] Si toqué una Edge Function: smoke test Deno en `supabase/functions/<name>/index_test.ts` actualizado (CORS + auth gate).
+- [ ] Si hay cambios de esquema: migración SQL con `SET search_path = public`, RLS revisada, `has_role` aplicado, `REVOKE EXECUTE FROM anon, PUBLIC` en RPCs `SECURITY DEFINER`.
 - [ ] Mobile probado con `MobileCardList` si toca listas.
 
 ## Verificación

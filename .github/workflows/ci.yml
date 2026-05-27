@@ -44,3 +44,24 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  edge-functions:
+    name: Edge Functions (Deno smoke tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Run Deno tests
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        run: |
+          deno test \
+            --allow-net --allow-env --allow-read \
+            supabase/functions/**/index_test.ts

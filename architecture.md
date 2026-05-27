@@ -325,11 +325,22 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ## 15. Testing
 
+### 15.1 Frontend (Vitest)
+
 - Vitest + jsdom + @testing-library/react.
 - Mocks de Supabase reutilizables en `src/test/helpers/mockSupabase.ts`.
 - Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`, `coerce`, `rpc`, `templateUtils`, `activityTranslations`, `contractPlaceholders`, `lineItems`.
 - Suites de hooks/libs en `src/**/__tests__/`: `useDebouncedValue`, `useDialogState`, `useListFilters`, `formatCurrency`, `partFormSchema`, `markdown`.
 - Comandos: `bun run test` (CI), `bun run test:watch` (desarrollo).
+
+### 15.2 Edge Functions (Deno)
+
+- Convención: `supabase/functions/<name>/index_test.ts` con `Deno.test`.
+- Patrón mínimo por función (smoke RC): CORS preflight 200, rechazo sin `Authorization` (401), rechazo con JWT inválido (401 donde aplique).
+- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`.
+- Importes: `https://deno.land/std@0.224.0/dotenv/load.ts` y `assert/mod.ts`. SUPABASE_URL desde `.env`.
+- Siempre **consumir el body** (`await res.text()`) para evitar leaks de recursos en Deno.
+- CI: job `edge-functions` separado del `quality` en `.github/workflows/ci.yml`.
 
 ---
 
