@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.13.3",
+    "date": "2026-05-27",
+    "type": "patch",
+    "title": "Auditoría de calidad: tokens CRM y limpieza de auditoría §20",
+    "category": "refactor"
+  },
+  {
     "version": "6.13.2",
     "date": "2026-05-27",
     "type": "minor",

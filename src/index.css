@@ -71,6 +71,12 @@
     --gantt-7: 190 80% 45%;
     --gantt-8: 60 70% 45%;
 
+    /* CRM Kanban stage palette */
+    --crm-stage-new: var(--primary);
+    --crm-stage-contacted: 210 80% 55%;
+    --crm-stage-quoted: 45 93% 47%;
+    --crm-stage-negotiating: 280 60% 55%;
+
     --chart-1: 220 45% 20%;
     --chart-2: 142 71% 45%;
     --chart-3: 217 91% 60%;
@@ -136,6 +142,11 @@
     --gantt-6: 340 75% 55%;
     --gantt-7: 190 80% 45%;
     --gantt-8: 60 70% 45%;
+
+    --crm-stage-new: var(--primary);
+    --crm-stage-contacted: 210 80% 55%;
+    --crm-stage-quoted: 45 93% 47%;
+    --crm-stage-negotiating: 280 60% 55%;
 
     --chart-1: 220 45% 25%;
     --chart-2: 142 71% 45%;
