@@ -89,42 +89,9 @@ export function ListPageLayout<T extends { id?: string }>({
   const ready = pullDistance >= threshold;
 
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
+  const showEmpty = !isLoading && effectiveItems.length === 0;
+  const hasPagination = effectiveItems.length > 0 && !!table;
 
-  const renderTableContent = () => {
-    if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
-    if (effectiveItems.length === 0) {
-      return (
-        <EmptyState
-          icon={emptyIcon}
-          title={emptyMessage}
-          subtitle="Aún no se han registrado registros aquí."
-          actionLabel={emptyActionLabel}
-          onAction={onEmptyAction}
-        />
-      );
-    }
-    if (showMobileCards) {
-      return (
-        <div className="p-4">
-          <MobileCardList
-            items={effectiveItems}
-            keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
-            emptyMessage={emptyMessage}
-            renderCard={(item) => (mobileCardRender ? mobileCardRender(item) : null)}
-          />
-        </div>
-      );
-    }
-    if (table) {
-      return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} />;
-    }
-    return null;
-  };
-
-  const renderPagination = () => {
-    if (effectiveItems.length === 0 || !table) return null;
-    return <DataTablePaginationV2 table={table} />;
-  };
 
   const subtitleText =
     totalCount !== undefined
