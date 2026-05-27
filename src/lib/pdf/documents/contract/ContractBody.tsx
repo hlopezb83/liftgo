@@ -58,11 +58,62 @@ function SignaturePair({ leftLabel, leftName, rightLabel, rightName, rightSub }:
   );
 }
 
-export function ContractBody({ contract, tpl, vars, company, customer, city, formattedDate }: PartiesContractBodyProps) {
-  const tenantDecls = [...tpl.declarations_tenant];
-  if (customer?.representante_legal && !tenantDecls.some((d) => d.includes("{representante_legal}"))) {
-    tenantDecls.push("Representada legalmente por: {representante_legal}.");
+function DeclarationsSection({
+  landlord, tenant, vars,
+}: { landlord: string[]; tenant: string[]; vars: Record<string, string> }) {
+  return (
+    <>
+      <SectionTitle text="I. DECLARACIONES" />
+      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginBottom: 3 }}>
+        Declara EL ARRENDADOR:
+      </Text>
+      {landlord.map((d, i) => (
+        <Bullet key={`l-${i}`} text={replacePlaceholders(d, vars)} />
+      ))}
+      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginTop: 6, marginBottom: 3 }}>
+        Declara EL ARRENDATARIO:
+      </Text>
+      {tenant.map((d, i) => (
+        <Bullet key={`t-${i}`} text={replacePlaceholders(d, vars)} />
+      ))}
+    </>
+  );
+}
+
+function ClausesSection({
+  clauses, vars,
+}: { clauses: TemplateData["clauses"]; vars: Record<string, string> }) {
+  return (
+    <>
+      <SectionTitle text="II. CLÁUSULAS" />
+      {clauses.map((c, i) => (
+        <View key={i} style={{ marginBottom: 6 }} wrap>
+          <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
+            {replacePlaceholders(c.title, vars)}
+          </Text>
+          <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700, lineHeight: 1.4 }}>
+            {replacePlaceholders(c.body, vars)}
+          </Text>
+        </View>
+      ))}
+    </>
+  );
+}
+
+function buildTenantDecls(
+  base: string[],
+  customer: PartiesContractBodyProps["customer"],
+): string[] {
+  const decls = [...base];
+  if (customer?.representante_legal && !decls.some((d) => d.includes("{representante_legal}"))) {
+    decls.push("Representada legalmente por: {representante_legal}.");
   }
+  return decls;
+}
+
+export function ContractBody({ contract, tpl, vars, company, customer, city, formattedDate }: PartiesContractBodyProps) {
+  const tenantDecls = buildTenantDecls(tpl.declarations_tenant, customer);
+  const rightSub = customer?.representante_legal ? `Rep. Legal: ${customer.representante_legal}` : undefined;
 
   return (
     <View>
@@ -73,31 +124,8 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
         {replacePlaceholders(tpl.intro_text || DEFAULT_INTRO, vars)}
       </Text>
 
-      <SectionTitle text="I. DECLARACIONES" />
-      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginBottom: 3 }}>
-        Declara EL ARRENDADOR:
-      </Text>
-      {tpl.declarations_landlord.map((d, i) => (
-        <Bullet key={`l-${i}`} text={replacePlaceholders(d, vars)} />
-      ))}
-      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginTop: 6, marginBottom: 3 }}>
-        Declara EL ARRENDATARIO:
-      </Text>
-      {tenantDecls.map((d, i) => (
-        <Bullet key={`t-${i}`} text={replacePlaceholders(d, vars)} />
-      ))}
-
-      <SectionTitle text="II. CLÁUSULAS" />
-      {tpl.clauses.map((c, i) => (
-        <View key={i} style={{ marginBottom: 6 }} wrap>
-          <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
-            {replacePlaceholders(c.title, vars)}
-          </Text>
-          <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700, lineHeight: 1.4 }}>
-            {replacePlaceholders(c.body, vars)}
-          </Text>
-        </View>
-      ))}
+      <DeclarationsSection landlord={tpl.declarations_landlord} tenant={tenantDecls} vars={vars} />
+      <ClausesSection clauses={tpl.clauses} vars={vars} />
 
       <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700, marginTop: PAGE_MARGIN / 2 }}>
         Leído el presente contrato, lo firman en {city}, el día {formattedDate}.
@@ -108,7 +136,7 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
         leftName={company?.razon_social || ""}
         rightLabel="EL ARRENDATARIO"
         rightName={customer?.name || contract.customer_name || ""}
-        rightSub={customer?.representante_legal ? `Rep. Legal: ${customer.representante_legal}` : undefined}
+        rightSub={rightSub}
       />
       <SignaturePair
         leftLabel="TESTIGO 1"
@@ -119,3 +147,4 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
     </View>
   );
 }
+
