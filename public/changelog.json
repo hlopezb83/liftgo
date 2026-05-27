@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.13.0",
+    "date": "2026-05-27",
+    "type": "minor",
+    "title": "Hardening pre-Release Candidate: gates de calidad backend",
+    "category": "security"
+  },
+  {
     "version": "6.12.6",
     "date": "2026-05-27",
     "type": "patch",

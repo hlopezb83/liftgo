@@ -1,0 +1,19 @@
+{
+  "version": "6.13.0",
+  "date": "2026-05-27",
+  "type": "minor",
+  "title": "Hardening pre-Release Candidate: gates de calidad backend",
+  "category": "security",
+  "description": "Bloque A del plan pre-RC: endurecimiento del backend, smoke tests de Edge Functions críticas, gate de CI y documentación de la postura de seguridad. Sin cambios funcionales para el usuario final.",
+  "changes": [
+    "DB: migración que revoca EXECUTE de `anon` y `PUBLIC` en todas las funciones SECURITY DEFINER del schema public (cierra Supabase linter 0028 — 8 findings).",
+    "Defense-in-depth: cada RPC privilegiada conserva su guarda interna `has_role(auth.uid(), ...)` como segunda capa.",
+    "Tests Deno smoke para 8 Edge Functions críticas: reset-user-password, delete-user, invite-user, invite-customer, stamp-cfdi, cancel-cfdi, toggle-user-status, parse-csf. 18/18 tests verdes.",
+    "Patrón estándar de smoke test Edge: CORS preflight 200, sin Authorization 401, con bearer inválido 401.",
+    "CI: nuevo job `edge-functions` en `.github/workflows/ci.yml` que ejecuta `deno test` en paralelo al job de lint/vitest/build.",
+    "PR template: checklist actualizado con smoke test Deno cuando se toca una Edge Function y `REVOKE EXECUTE FROM anon, PUBLIC` para nuevas RPCs SECURITY DEFINER.",
+    "architecture.md §15: nueva subsección 15.2 (Edge Functions) con convención de tests Deno.",
+    "Security memory: documentada la postura aceptada para linter 0014 (btree_gist en public, requerido por GiST exclusion en bookings) y 0029 (~34 RPCs callable por authenticated, protegidas por has_role interno).",
+    "Resultado scan: 43 → 35 findings (todos WARN, ninguno HIGH/CRITICAL). Los 35 restantes son aceptados por diseño con justificación en security memory."
+  ]
+}
