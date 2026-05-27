@@ -63,57 +63,55 @@ function ContractHeader({ company, logoBase64, contractNumber }: {
   );
 }
 
+function ContractPageWrapper({
+  company, logoBase64, contractNumber, footerPrefix, children,
+}: {
+  company: ContractDocumentProps["company"];
+  logoBase64: string | null;
+  contractNumber: string;
+  footerPrefix: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Page size="A4" style={sharedStyles.page}>
+      <AccentBar />
+      <ContractHeader company={company} logoBase64={logoBase64} contractNumber={contractNumber} />
+      <View style={sharedStyles.separator} />
+      {children}
+      <Footer companyName={company?.razon_social ?? null} prefix={footerPrefix} />
+    </Page>
+  );
+}
+
 export function ContractDocument(props: ContractDocumentProps) {
-  const wantsContract = props.mode === "full" || props.mode === "contract";
-  const wantsChecklist = props.mode === "full" || props.mode === "checklist";
-  const wantsPagare = props.mode === "full" || props.mode === "pagare";
-  const city = props.vars.ciudad;
+  const { mode, contract, tpl, vars, logoBase64, company, customer, forklift } = props;
+  const pages: { key: PDFMode; show: boolean }[] = [
+    { key: "contract", show: mode === "full" || mode === "contract" },
+    { key: "checklist", show: mode === "full" || mode === "checklist" },
+    { key: "pagare", show: mode === "full" || mode === "pagare" },
+  ];
+  const city = vars.ciudad;
   const formattedDate = format(nowMty(), "dd/MM/yyyy");
+  const wrapperProps = { company, logoBase64, contractNumber: contract.contract_number };
 
   return (
-    <Document title={props.contract.contract_number}>
-      {wantsContract && (
-        <Page size="A4" style={sharedStyles.page}>
-          <AccentBar />
-          <ContractHeader company={props.company} logoBase64={props.logoBase64} contractNumber={props.contract.contract_number} />
-          <View style={sharedStyles.separator} />
-          <ContractBody
-            contract={props.contract}
-            tpl={props.tpl}
-            vars={props.vars}
-            company={props.company}
-            customer={props.customer}
-            city={city}
-            formattedDate={formattedDate}
-          />
-          <Footer companyName={props.company?.razon_social ?? null} prefix="Contrato" />
-        </Page>
+    <Document title={contract.contract_number}>
+      {pages[0].show && (
+        <ContractPageWrapper {...wrapperProps} footerPrefix="Contrato">
+          <ContractBody contract={contract} tpl={tpl} vars={vars} company={company} customer={customer} city={city} formattedDate={formattedDate} />
+        </ContractPageWrapper>
       )}
-      {wantsChecklist && (
-        <Page size="A4" style={sharedStyles.page}>
-          <AccentBar />
-          <ContractHeader company={props.company} logoBase64={props.logoBase64} contractNumber={props.contract.contract_number} />
-          <View style={sharedStyles.separator} />
-          <ChecklistAnnex contract={props.contract} tpl={props.tpl} forklift={props.forklift} />
-          <Footer companyName={props.company?.razon_social ?? null} prefix="Anexo A" />
-        </Page>
+      {pages[1].show && (
+        <ContractPageWrapper {...wrapperProps} footerPrefix="Anexo A">
+          <ChecklistAnnex contract={contract} tpl={tpl} forklift={forklift} />
+        </ContractPageWrapper>
       )}
-      {wantsPagare && (
-        <Page size="A4" style={sharedStyles.page}>
-          <AccentBar />
-          <ContractHeader company={props.company} logoBase64={props.logoBase64} contractNumber={props.contract.contract_number} />
-          <View style={sharedStyles.separator} />
-          <PagareAnnex
-            contract={props.contract}
-            tpl={props.tpl}
-            vars={props.vars}
-            customer={props.customer}
-            city={city}
-            formattedDate={formattedDate}
-          />
-          <Footer companyName={props.company?.razon_social ?? null} prefix="Anexo B (Pagaré)" />
-        </Page>
+      {pages[2].show && (
+        <ContractPageWrapper {...wrapperProps} footerPrefix="Anexo B (Pagaré)">
+          <PagareAnnex contract={contract} tpl={tpl} vars={vars} customer={customer} city={city} formattedDate={formattedDate} />
+        </ContractPageWrapper>
       )}
     </Document>
   );
 }
+

@@ -1,0 +1,15 @@
+{
+  "version": "6.12.4",
+  "date": "2026-05-26",
+  "type": "patch",
+  "title": "Refactor: cero warnings de ESLint",
+  "category": "improvement",
+  "changes": [
+    "auditTrailConstants renombrado a .ts (sin JSX)",
+    "computeRentalLineTotal y computeSaleLineTotal extraídos a helpers",
+    "Columnas de CustomersPage, Fleet y UserManagementPage extraídas a hooks",
+    "InfoCards, ContractDocument y ContractBody divididos en sub-componentes",
+    "ListPageLayout: extraídos PullToRefreshIndicator, FiltersSlot y TableContent"
+  ],
+  "files_changed": 11
+}
