@@ -1,0 +1,68 @@
+{
+  "version": "6.12.6",
+  "date": "2026-05-27",
+  "type": "patch",
+  "title": "Docs: architecture.md alineado con el estado real del código",
+  "category": "docs",
+  "summary": "Actualización exclusiva de documentación. Se corrigieron desfases entre architecture.md y el código actual, y se documentaron patrones/features que estaban omitidos.",
+  "changes": [
+    {
+      "area": "§1 Introducción",
+      "items": [
+        "Agregado módulo 'Feedback interno' (FAB Reportar, /mis-reportes, /leaderboard, /feedback admin Kanban)."
+      ]
+    },
+    {
+      "area": "§2 Stack tecnológico",
+      "items": [
+        "Reemplazada la fila 'Documentos': jsPDF 4.x → @react-pdf/renderer ^4.5.x (declarativo, carga diferida)."
+      ]
+    },
+    {
+      "area": "§5.2 Patrones reutilizables de UI",
+      "items": [
+        "Eliminada referencia a SortableTableHead (removido en v6.12.x).",
+        "Documentado DataTableV2 + useLiftgoTable como patrón canónico de tablas avanzadas, con defaults seguros (autoResetPageIndex: false, paginación cliente 25).",
+        "useFormState marcado como @deprecated (TODO(deps) → react-hook-form).",
+        "Añadida nota sobre estabilidad de referencias en useListFilters (lección del fix v6.12.5)."
+      ]
+    },
+    {
+      "area": "§7 Enrutamiento",
+      "items": [
+        "Añadidas rutas /feedback, /mis-reportes y /leaderboard a la lista de rutas notables."
+      ]
+    },
+    {
+      "area": "§9 Generación de documentos (reescritura completa)",
+      "items": [
+        "Sección reescrita para reflejar la migración a @react-pdf/renderer (v6.6.0-alpha.1).",
+        "Documentada la estructura real: documents/, components/, theme/{tokens,styles}.ts, contract/, quote/build.tsx.",
+        "theme/tokens.ts identificada como única fuente de tokens visuales.",
+        "Eliminadas referencias obsoletas a contractPage.ts, quote/constants.ts, jsPDF y jspdf-autotable."
+      ]
+    },
+    {
+      "area": "§15 Testing",
+      "items": [
+        "Listadas suites de tests presentes en src/test/ y src/**/__tests__/ que no aparecían: useDebouncedValue, useDialogState, useListFilters, partFormSchema, markdown, coerce, rpc, templateUtils, activityTranslations, contractPlaceholders, lineItems."
+      ]
+    },
+    {
+      "area": "§20.5 Proceso para introducir dependencias",
+      "items": [
+        "Corregido typo: 'checklist 21.2' → 'checklist §20.2'."
+      ]
+    },
+    {
+      "area": "§21 Referencias",
+      "items": [
+        "Añadidos: src/components/dataTable/v2/, src/lib/pdf/theme/tokens.ts, docs/dependency-audit.md y scripts/dependency_audit.py."
+      ]
+    }
+  ],
+  "verification": {
+    "scope": "Solo documentación. No se modifica código fuente, migraciones ni configuración."
+  },
+  "risk": "Nulo. Cambio exclusivo de documentación."
+}
