@@ -44,6 +44,7 @@ interface ListPageLayoutProps<T> {
   onRefresh?: () => Promise<unknown> | void;
 }
 
+// eslint-disable-next-line complexity -- componente de layout con múltiples slots opcionales
 export function ListPageLayout<T extends { id?: string }>({
   title,
   subtitle,
