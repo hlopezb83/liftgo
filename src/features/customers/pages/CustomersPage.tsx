@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/features/customers/hooks/customers/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -14,7 +14,8 @@ import { CustomerFormDialog } from "@/features/customers/components/customers/Cu
 import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";
 import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { useLiftgoTable } from "@/components/dataTable/v2";
+import { useCustomersColumns } from "@/features/customers/hooks/customers/useCustomersColumns";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
@@ -54,41 +55,7 @@ export default function CustomersPage() {
     searchFields: ["name", "company", "email"],
   });
 
-  const columns = useMemo<ColumnDef<Customer>[]>(
-    () => [
-      {
-        id: "name",
-        header: "Nombre",
-        accessorKey: "name",
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-      },
-      {
-        id: "rfc",
-        header: "RFC",
-        accessorFn: (c) => c.rfc || "",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.rfc || "—"}</span>,
-      },
-      {
-        id: "email",
-        header: "Correo",
-        accessorFn: (c) => c.email || "",
-        cell: ({ row }) => row.original.email || "—",
-      },
-      {
-        id: "phone",
-        header: "Teléfono",
-        accessorFn: (c) => c.phone || "",
-        cell: ({ row }) => row.original.phone || "—",
-      },
-      {
-        id: "contact_person",
-        header: "Persona de Contacto",
-        accessorFn: (c) => c.contact_person || "",
-        cell: ({ row }) => row.original.contact_person || "—",
-      },
-    ],
-    [],
-  );
+  const columns = useCustomersColumns();
 
   const table = useLiftgoTable<Customer>({
     data: filtered,
@@ -98,6 +65,7 @@ export default function CustomersPage() {
   });
 
   const paginatedItems = table.getRowModel().rows.map((r) => r.original);
+
 
   const mobileContent = isMobile ? (
     <MobileCardList
