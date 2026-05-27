@@ -12,6 +12,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 - **Comercial**: CRM/prospectos, clientes, cotizaciones (renta y venta), contratos.
 - **Finanzas**: facturación CFDI 4.0, pagos, gastos operativos, estado de resultados, MRR, proveedores.
 - **Administración**: gestión de usuarios, permisos por rol, configuración de empresa, bitácora de auditoría, ayuda y changelog.
+- **Feedback interno**: reportes de usuarios (FAB), `/mis-reportes`, leaderboard público y gestión Kanban admin (`mem://features/feedback`).
 - **Portal de cliente**: vista de solo lectura para clientes finales.
 
 **Audiencia**: desarrolladores y nuevos integrantes del equipo. Contexto de despliegue: aplicación interna, optimizada para escritorio (≈99% del uso), localizada para México (es-MX, zona horaria `America/Monterrey`, MXN).
@@ -28,7 +29,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 | Formularios | react-hook-form + Zod |
 | Routing | react-router-dom v6 con `lazy()` + `Suspense` |
 | Backend | Lovable Cloud (Supabase): Postgres + Auth + Storage + Edge Functions (Deno) |
-| Documentos | jsPDF 4.x (locked ≤ 4.0.0) + jspdf-autotable (carga diferida) |
+| Documentos | `@react-pdf/renderer` ^4.5.x (declarativo, JSX → PDF, carga diferida) |
 | Notificaciones | sonner |
 | Tests | Vitest + @testing-library/react + jsdom |
 | Integraciones externas | Facturapi (CFDI 4.0), Lovable AI Gateway |
@@ -133,10 +134,12 @@ Página (orquestador)
 ### 5.2 Patrones reutilizables de UI
 
 - `useListPage` consolida filtros + orden + paginación + búsqueda para todas las páginas de listado.
-- Bloques composables: `useListFilters`, `useDebouncedValue`, `useFormState`, `useSort`, `usePagination`, `useDialogState`.
-- Componentes estándar: `ListPageLayout`, `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`, `MobileCardList`, `ReadOnlyLineItemsTable`, `SortableTableHead`, `TablePagination`.
+- Bloques composables: `useListFilters`, `useDebouncedValue`, `useSort`, `usePagination`, `useDialogState`. `useFormState` está `@deprecated` (`TODO(deps)` → migrar a `react-hook-form`, ver `docs/dependency-audit.md`).
+- Componentes estándar: `ListPageLayout`, `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`, `MobileCardList`, `ReadOnlyLineItemsTable`, `TablePagination`.
+- **Tablas avanzadas**: `DataTableV2` (`src/components/dataTable/v2/`) envuelve TanStack Table con `useLiftgoTable`; defaults seguros (`autoResetPageIndex: false`, sorting controlado, paginación cliente de 25). Reemplaza al antiguo `SortableTableHead` (eliminado en v6.12.x).
 - Multimedia: `DragDropImageUploader` + `ImageGalleryLightbox`, indexados por `entityType`/`entityId`.
 - Restauración de filtros al volver a un listado mediante `sessionStorage`.
+- **Estabilidad de referencias en filtros**: las dependencias de `useMemo` en `useListFilters` deben ser estables; arrays/objetos literales en cada render disparan loops infinitos con `autoResetPageIndex` (lección del fix v6.12.5).
 
 ### 5.3 Mutaciones y caché
 
@@ -214,7 +217,7 @@ Página (orquestador)
 
 - **Sin nested wildcards**: `MainLayout` se monta una sola vez, `Suspense` envuelve cada ruta individual (ver `mem://arch/routing-architecture`).
 - Constantes de URL en `src/lib/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
-- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/role-permissions`, `/operations-setup`, `/changelog`, `/help`.
+- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/role-permissions`, `/operations-setup`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
 
 ---
 
@@ -230,14 +233,33 @@ Página (orquestador)
 
 ## 9. Generación de documentos (PDFs)
 
-- Carpeta `src/lib/pdf/` con un sub-módulo por tipo de documento:
-  - `contract/` — `contractPage.ts`, `checklistPage.ts`, `pagarePage.ts`, `sections/{header,declarations,clauses,signatures}.ts`, `placeholders.ts`, `placeholderRegistry.ts`, `data-templates.ts`, `fetchers.ts`.
-  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts` (**fuente de tokens compartidos**: `GRAY_*`, `FONT_*`, `MARGIN`).
-  - `customerStatement/` — `parts.ts`, `tables.ts`.
-  - `incomeStatement/` — `header.ts`, `rows.ts` (consume tokens de `quote/constants.ts`).
-- `placeholderRegistry.ts` es la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
-- Helpers compartidos en `shared.ts` (fetch de datos de empresa + logo, wrappers de texto, paginación) y `loadImageAsBase64.ts`.
-- jsPDF se carga de forma diferida desde el botón que dispara la descarga; bloqueado en versión ≤ 4.0.0 por compatibilidad (`mem://tech/security/vulnerabilities`).
+Motor: **`@react-pdf/renderer`** (declarativo, JSX → PDF). La migración desde el jsPDF imperativo se completó en `v6.6.0-alpha.1`; ya no queda código jsPDF en el bundle.
+
+```text
+src/lib/pdf/
+├── documents/                  Documentos React-PDF (uno por tipo)
+│   ├── InvoiceDocument.tsx
+│   ├── QuoteDocument.tsx
+│   ├── ContractDocument.tsx
+│   ├── CustomerStatementDocument.tsx
+│   ├── IncomeStatementDocument.tsx
+│   └── contract/               ContractBody, ChecklistAnnex, PagareAnnex
+├── components/                 Bloques compartidos (Header, Footer, InfoCards,
+│                               LineItemsTable, TotalsBox, AccentBar)
+├── theme/
+│   ├── tokens.ts               Única fuente de tokens visuales (colores,
+│   │                           tipografía, márgenes A4)
+│   └── styles.ts               StyleSheet.create compartido
+├── contract/                   Datos: placeholderRegistry, placeholders,
+│                               data-templates, fetchers
+├── quote/build.tsx             Builder de descarga
+├── shared.ts                   Helpers compartidos (datos de empresa)
+└── loadImageAsBase64.ts        Logo embebido en base64
+```
+
+- `theme/tokens.ts` es la **única fuente de tokens visuales**. Cualquier color, tamaño de fuente o margen vive aquí.
+- `placeholderRegistry.ts` sigue siendo la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
+- El builder del PDF se importa de forma **diferida** (`await import()`) desde el botón que dispara la descarga para mantener el bundle inicial liviano.
 - Logo escalado a 24×40 mm máx. para mantener layout (`mem://style/branding/logo`).
 
 ---
@@ -305,7 +327,8 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 - Vitest + jsdom + @testing-library/react.
 - Mocks de Supabase reutilizables en `src/test/helpers/mockSupabase.ts`.
-- Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`.
+- Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`, `coerce`, `rpc`, `templateUtils`, `activityTranslations`, `contractPlaceholders`, `lineItems`.
+- Suites de hooks/libs en `src/**/__tests__/`: `useDebouncedValue`, `useDialogState`, `useListFilters`, `formatCurrency`, `partFormSchema`, `markdown`.
 - Comandos: `bun run test` (CI), `bun run test:watch` (desarrollo).
 
 ---
@@ -467,7 +490,7 @@ Solo cuando se cumple **al menos uno**:
 ### 20.5 Proceso para introducir una dependencia nueva
 
 1. Verificar que no exista ya algo equivalente en el stack canónico (§20.4).
-2. Aplicar checklist 21.2.
+2. Aplicar checklist §20.2.
 3. Instalar con `bun add`; añadir nota al changelog (`type: refactor` o `feature`).
 4. Si pasa a ser canónica, documentarla en §2 (Stack tecnológico) y en §20.4.
 5. Si reemplaza código propio: **eliminar el archivo legacy en el mismo PR** (no dejar código muerto).
@@ -498,6 +521,9 @@ Solo cuando se cumple **al menos uno**:
 - `src/lib/config.ts` — configuración global (IVA, monedas).
 - `src/lib/routes-config.tsx` y `src/lib/routes.ts` — rutas y permisos.
 - `src/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
+- `src/components/dataTable/v2/` — patrón canónico de tablas (DataTableV2 + useLiftgoTable).
+- `src/lib/pdf/theme/tokens.ts` — fuente de tokens visuales para PDFs.
+- `docs/dependency-audit.md` y `scripts/dependency_audit.py` — estado de migración hacia el stack canónico (§20).
 - `supabase/functions/` — backend serverless.
 - `supabase/migrations/` — historial SQL.
 - `.lovable/plan.md` — última auditoría arquitectónica.

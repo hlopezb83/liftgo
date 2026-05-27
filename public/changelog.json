@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.12.6",
+    "date": "2026-05-27",
+    "type": "patch",
+    "title": "Docs: architecture.md alineado con el estado real del código",
+    "category": "docs"
+  },
+  {
     "version": "6.12.5",
     "date": "2026-05-27",
     "type": "patch",
