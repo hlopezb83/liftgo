@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.12.4",
+    "date": "2026-05-26",
+    "type": "patch",
+    "title": "Refactor: cero warnings de ESLint (react-refresh, max-lines, complexity)",
+    "category": "improvement"
+  },
+  {
     "version": "6.12.3",
     "date": "2026-05-26",
     "type": "patch",
