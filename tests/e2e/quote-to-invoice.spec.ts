@@ -8,14 +8,14 @@ import { test, expect } from "@playwright/test";
  */
 test.describe("Quote → Invoice", () => {
   test("quotes list loads", async ({ page }) => {
-    await page.goto("/cotizaciones");
+    await page.goto("/quotes");
     await expect(page.getByRole("heading", { name: /cotizaciones/i }).first()).toBeVisible({
       timeout: 10_000,
     });
   });
 
   test("invoices list loads", async ({ page }) => {
-    await page.goto("/facturas");
+    await page.goto("/invoices");
     await expect(page.getByRole("heading", { name: /facturas/i }).first()).toBeVisible({
       timeout: 10_000,
     });
@@ -25,3 +25,4 @@ test.describe("Quote → Invoice", () => {
     // TODO: requires seed RPC that returns an accepted quote id.
   });
 });
+

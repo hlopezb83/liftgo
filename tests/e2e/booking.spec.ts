@@ -11,7 +11,7 @@ import { test, expect } from "@playwright/test";
  */
 test.describe("Bookings", () => {
   test("bookings list loads", async ({ page }) => {
-    await page.goto("/reservas");
+    await page.goto("/bookings");
     await expect(page.getByRole("heading", { name: /reservas/i }).first()).toBeVisible({
       timeout: 10_000,
     });
@@ -21,3 +21,4 @@ test.describe("Bookings", () => {
     // TODO: implement once data-testid attributes are added to the booking form.
   });
 });
+
