@@ -29,7 +29,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 | Formularios | react-hook-form + Zod |
 | Routing | react-router-dom v6 con `lazy()` + `Suspense` |
 | Backend | Lovable Cloud (Supabase): Postgres + Auth + Storage + Edge Functions (Deno) |
-| Documentos | jsPDF 4.x (locked ≤ 4.0.0) + jspdf-autotable (carga diferida) |
+| Documentos | `@react-pdf/renderer` ^4.5.x (declarativo, JSX → PDF, carga diferida) |
 | Notificaciones | sonner |
 | Tests | Vitest + @testing-library/react + jsdom |
 | Integraciones externas | Facturapi (CFDI 4.0), Lovable AI Gateway |
