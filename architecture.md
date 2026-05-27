@@ -233,14 +233,33 @@ Página (orquestador)
 
 ## 9. Generación de documentos (PDFs)
 
-- Carpeta `src/lib/pdf/` con un sub-módulo por tipo de documento:
-  - `contract/` — `contractPage.ts`, `checklistPage.ts`, `pagarePage.ts`, `sections/{header,declarations,clauses,signatures}.ts`, `placeholders.ts`, `placeholderRegistry.ts`, `data-templates.ts`, `fetchers.ts`.
-  - `quote/` — `header.ts`, `table.ts`, `totals.ts`, `constants.ts` (**fuente de tokens compartidos**: `GRAY_*`, `FONT_*`, `MARGIN`).
-  - `customerStatement/` — `parts.ts`, `tables.ts`.
-  - `incomeStatement/` — `header.ts`, `rows.ts` (consume tokens de `quote/constants.ts`).
-- `placeholderRegistry.ts` es la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
-- Helpers compartidos en `shared.ts` (fetch de datos de empresa + logo, wrappers de texto, paginación) y `loadImageAsBase64.ts`.
-- jsPDF se carga de forma diferida desde el botón que dispara la descarga; bloqueado en versión ≤ 4.0.0 por compatibilidad (`mem://tech/security/vulnerabilities`).
+Motor: **`@react-pdf/renderer`** (declarativo, JSX → PDF). La migración desde el jsPDF imperativo se completó en `v6.6.0-alpha.1`; ya no queda código jsPDF en el bundle.
+
+```text
+src/lib/pdf/
+├── documents/                  Documentos React-PDF (uno por tipo)
+│   ├── InvoiceDocument.tsx
+│   ├── QuoteDocument.tsx
+│   ├── ContractDocument.tsx
+│   ├── CustomerStatementDocument.tsx
+│   ├── IncomeStatementDocument.tsx
+│   └── contract/               ContractBody, ChecklistAnnex, PagareAnnex
+├── components/                 Bloques compartidos (Header, Footer, InfoCards,
+│                               LineItemsTable, TotalsBox, AccentBar)
+├── theme/
+│   ├── tokens.ts               Única fuente de tokens visuales (colores,
+│   │                           tipografía, márgenes A4)
+│   └── styles.ts               StyleSheet.create compartido
+├── contract/                   Datos: placeholderRegistry, placeholders,
+│                               data-templates, fetchers
+├── quote/build.tsx             Builder de descarga
+├── shared.ts                   Helpers compartidos (datos de empresa)
+└── loadImageAsBase64.ts        Logo embebido en base64
+```
+
+- `theme/tokens.ts` es la **única fuente de tokens visuales**. Cualquier color, tamaño de fuente o margen vive aquí.
+- `placeholderRegistry.ts` sigue siendo la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
+- El builder del PDF se importa de forma **diferida** (`await import()`) desde el botón que dispara la descarga para mantener el bundle inicial liviano.
 - Logo escalado a 24×40 mm máx. para mantener layout (`mem://style/branding/logo`).
 
 ---
