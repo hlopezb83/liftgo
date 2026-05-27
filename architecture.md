@@ -327,7 +327,8 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 - Vitest + jsdom + @testing-library/react.
 - Mocks de Supabase reutilizables en `src/test/helpers/mockSupabase.ts`.
-- Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`.
+- Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`, `coerce`, `rpc`, `templateUtils`, `activityTranslations`, `contractPlaceholders`, `lineItems`.
+- Suites de hooks/libs en `src/**/__tests__/`: `useDebouncedValue`, `useDialogState`, `useListFilters`, `formatCurrency`, `partFormSchema`, `markdown`.
 - Comandos: `bun run test` (CI), `bun run test:watch` (desarrollo).
 
 ---
