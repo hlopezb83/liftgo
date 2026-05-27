@@ -217,7 +217,7 @@ Página (orquestador)
 
 - **Sin nested wildcards**: `MainLayout` se monta una sola vez, `Suspense` envuelve cada ruta individual (ver `mem://arch/routing-architecture`).
 - Constantes de URL en `src/lib/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
-- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/role-permissions`, `/operations-setup`, `/changelog`, `/help`.
+- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/role-permissions`, `/operations-setup`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
 
 ---
 
