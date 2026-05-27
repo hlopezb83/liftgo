@@ -1,9 +1,8 @@
 // Smoke tests for invite-customer edge function (staff-only).
-import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { fnUrl } from "../_shared/test-helpers.ts";
 
-const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL") ?? Deno.env.get("SUPABASE_URL") ?? "";
-const FN_URL = `${SUPABASE_URL}/functions/v1/invite-customer`;
+const FN_URL = fnUrl("invite-customer");
 
 Deno.test("invite-customer: CORS preflight returns 200", async () => {
   const res = await fetch(FN_URL, {
