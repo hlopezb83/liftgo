@@ -59,9 +59,6 @@ jobs:
           deno-version: v1.x
 
       - name: Run Deno tests
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         run: |
-          deno test \
-            --allow-net --allow-env --allow-read \
-            supabase/functions/**/index_test.ts
+          find supabase/functions -name 'index_test.ts' -print0 \
+            | xargs -0 deno test --allow-net --allow-env --allow-read
