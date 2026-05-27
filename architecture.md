@@ -12,6 +12,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 - **Comercial**: CRM/prospectos, clientes, cotizaciones (renta y venta), contratos.
 - **Finanzas**: facturación CFDI 4.0, pagos, gastos operativos, estado de resultados, MRR, proveedores.
 - **Administración**: gestión de usuarios, permisos por rol, configuración de empresa, bitácora de auditoría, ayuda y changelog.
+- **Feedback interno**: reportes de usuarios (FAB), `/mis-reportes`, leaderboard público y gestión Kanban admin (`mem://features/feedback`).
 - **Portal de cliente**: vista de solo lectura para clientes finales.
 
 **Audiencia**: desarrolladores y nuevos integrantes del equipo. Contexto de despliegue: aplicación interna, optimizada para escritorio (≈99% del uso), localizada para México (es-MX, zona horaria `America/Monterrey`, MXN).
