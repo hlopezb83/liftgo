@@ -1,0 +1,8 @@
+{
+  "version": "6.13.6",
+  "date": "2026-05-28",
+  "type": "patch",
+  "title": "Fix: render de '0' literal en descripción de línea cuando descuento es cero",
+  "category": "bugfix",
+  "description": "Corrige un bug visual en la Vista Previa de Costos donde el descuento con valor 0 causaba que React renderizara el literal '0' como texto, concatenándose a la cantidad (ej. '× 1' se veía como '× 10'). El problema estaba en la expresión JSX `{item.discount && item.discount > 0 && (...)}` que evaluaba `0 && ...` a `0`. Se cambió a `{(item.discount ?? 0) > 0 && (...)}` para evitar el renderizado del literal."
+}
