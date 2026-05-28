@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.13.7",
+    "date": "2026-05-28",
+    "type": "patch",
+    "title": "Fix: refrescar UI de asignación de equipos aunque falle un paso secundario",
+    "category": "bugfix"
+  },
+  {
     "version": "6.13.6",
     "date": "2026-05-28",
     "type": "patch",
