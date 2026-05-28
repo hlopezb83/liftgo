@@ -46,6 +46,7 @@ export default function QuoteDetail() {
             quote={quote}
             isSale={isSale}
             alreadyConverted={alreadyConverted}
+            alreadyInvoiced={alreadyInvoiced}
             isConverting={isConverting}
             onSetStatus={setStatus}
             onConvertClick={handleConvertClick}
