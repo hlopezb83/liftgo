@@ -8,13 +8,14 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Eye } from "lucide-react";
+import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Eye, Receipt } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface Props {
   quote: Tables<"quotes">;
   isSale: boolean;
   alreadyConverted: boolean;
+  alreadyInvoiced: boolean;
   isConverting: boolean;
   onSetStatus: (status: string) => void;
   onConvertClick: () => void;
@@ -22,7 +23,7 @@ interface Props {
 }
 
 export function QuoteDetailActions({
-  quote, isSale, alreadyConverted, isConverting, onSetStatus, onConvertClick, onDelete,
+  quote, isSale, alreadyConverted, alreadyInvoiced, isConverting, onSetStatus, onConvertClick, onDelete,
 }: Props) {
   const navigate = useNavigate();
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -51,6 +52,16 @@ export function QuoteDetailActions({
       {alreadyConverted && (
         <Button size="sm" variant="outline" disabled className="opacity-70">
           <BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva
+        </Button>
+      )}
+      {isSale && quote.status === "accepted" && !alreadyInvoiced && (
+        <Button size="sm" variant="default" onClick={() => navigate(`/invoices/new?from_quote=${quote.id}`)}>
+          <Receipt className="h-4 w-4 mr-1" />Facturar
+        </Button>
+      )}
+      {isSale && alreadyInvoiced && (
+        <Button size="sm" variant="outline" disabled className="opacity-70">
+          <Receipt className="h-4 w-4 mr-1" />Ya facturada
         </Button>
       )}
       {quote.status === "sent" && (

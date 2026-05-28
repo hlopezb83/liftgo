@@ -1,0 +1,14 @@
+{
+  "version": "6.13.8",
+  "date": "2026-05-28",
+  "type": "minor",
+  "title": "Botón Facturar en cotizaciones de venta aceptadas",
+  "category": "feature",
+  "description": "Se agregó el botón Facturar en el detalle de cotizaciones de venta aceptadas. Navega a Nueva Factura con la cotización prellenada: cliente, datos CFDI y líneas de venta con los números de serie de los equipos asignados desde el inventario. Si la cotización ya tiene factura no cancelada, se muestra el botón deshabilitado Ya facturada.",
+  "changes": [
+    "useQuoteDetailData: nueva query invoices_for_quote y bandera alreadyInvoiced",
+    "QuoteDetailActions: botón Facturar (→ /invoices/new?from_quote=ID) y estado Ya facturada",
+    "QuoteDetail: propaga alreadyInvoiced",
+    "Reutiliza el prellenado existente de InvoiceForm (cliente, CFDI, series de equipos)"
+  ]
+}

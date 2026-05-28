@@ -18,7 +18,7 @@ export default function QuoteDetail() {
 
   const {
     quote, isLoading, lineItems, customerMatch, quoteType, isSale,
-    alreadyConverted, isConverting,
+    alreadyConverted, alreadyInvoiced, isConverting,
     setStatus, handleDelete, handleConvertClick,
   } = logic;
 
@@ -46,6 +46,7 @@ export default function QuoteDetail() {
             quote={quote}
             isSale={isSale}
             alreadyConverted={alreadyConverted}
+            alreadyInvoiced={alreadyInvoiced}
             isConverting={isConverting}
             onSetStatus={setStatus}
             onConvertClick={handleConvertClick}

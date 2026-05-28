@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.13.8",
+    "date": "2026-05-28",
+    "type": "minor",
+    "title": "Botón Facturar en cotizaciones de venta aceptadas",
+    "category": "feature"
+  },
+  {
     "version": "6.13.7",
     "date": "2026-05-28",
     "type": "patch",
