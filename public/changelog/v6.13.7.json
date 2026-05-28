@@ -1,0 +1,13 @@
+{
+  "version": "6.13.7",
+  "date": "2026-05-28",
+  "type": "patch",
+  "title": "Fix: refrescar UI de asignación de equipos aunque falle un paso secundario",
+  "category": "bugfix",
+  "description": "Al asignar un equipo a una cotización de venta aceptada, la UI no se actualizaba si fallaba un paso secundario (update de status o insert de log), aunque la asignación ya estuviera persistida. Requería Ctrl+Shift+R para verla. Se movió la invalidación de queries de onSuccess a onSettled en useAssignForklift y useUnassignForklift para que el cache se sincronice siempre con la base de datos.",
+  "changes": [
+    "useAssignForklift: invalidación de queries en onSettled en lugar de onSuccess",
+    "useUnassignForklift: mismo patrón aplicado",
+    "Toast de éxito y manejo de error se mantienen sin cambios"
+  ]
+}
