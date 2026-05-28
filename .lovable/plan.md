@@ -1,38 +1,27 @@
-## Problema
+## Diagnóstico
 
-Al asignar un equipo a una cotización de venta aceptada, el equipo no aparece como asignado hasta hacer un hard reload (Ctrl+Shift+R).
+Tienes razón: el badge "Sin Pagar" no aplica a cotizaciones — pertenece al dominio de facturas.
 
-## Causa raíz
+La causa es que `STATUS_LABELS` en `src/lib/constants.ts` mapea globalmente `sent → "Sin Pagar"` (pensado para facturas). Como las cotizaciones también usan el estado `sent` ("enviada al cliente"), el `<StatusBadge>` del header de detalle hereda ese texto incorrecto.
 
-En `src/features/fleet/hooks/forklifts/useAssignForklifts.ts`, la mutación `useAssignForklift` ejecuta **3 pasos secuenciales** dentro de `mutationFn`:
+En el listado de cotizaciones ya existe un override local (`QUOTE_STATUS_LABELS` + `quoteLabel`) que lo corrige, pero **se olvidó aplicarlo en el header de detalle** (`QuoteHeaderBadges`), que es justo lo que ves ahora en `/quotes/:id`.
 
-1. `INSERT` en `quote_assigned_forklifts` (la asignación en sí)
-2. `UPDATE` masivo del status de `forklifts` a `'sold'`
-3. `INSERT` en `status_logs`
+## Cambios
 
-La invalidación de queries (`quote_assigned_forklifts`, `forklifts`, `status_logs`) está en `onSuccess`. Si **cualquiera de los pasos 2 o 3 falla** (p.ej. un policy de RLS sobre `status_logs`, un timeout transitorio, una restricción), `mutationFn` lanza error → React Query va a `onError` → **nunca se invalidan las queries**, aunque el paso 1 (la asignación) ya quedó persistido en la base de datos.
+1. **`src/features/quotes/components/quotes/QuoteHeaderBadges.tsx`**
+   - Importar `QUOTE_STATUS_LABELS` (ya existente).
+   - Pasar `label={QUOTE_STATUS_LABELS[status] ?? status}` al `<StatusBadge>` para que `sent` se muestre como **"Enviada"** en lugar de "Sin Pagar". El color (azul info) se mantiene, sólo cambia el texto.
 
-Resultado: la asignación existe en DB, pero el cache local sigue mostrando el estado anterior. Un Ctrl+Shift+R fuerza un fetch nuevo y aparece.
+2. **Verificación de coherencia** (sin cambios funcionales adicionales):
+   - Confirmar que el resto de `StatusBadge` en módulos no-facturación que usen `status="sent"` también pasen su label de dominio. Si encontramos otro huérfano lo corregimos igual.
+   - No tocamos `STATUS_LABELS["sent"] = "Sin Pagar"` global porque sí es la etiqueta correcta para facturas.
 
-El mismo patrón existe en `useUnassignForklift` (delete + update + insert log), así que tiene el mismo riesgo.
+3. **Changelog 6.13.10 (patch / bugfix)**
+   - `public/changelog.json` + `public/changelog/v6.13.10.json`
+   - Título: "Header de cotización ya no muestra 'Sin Pagar' (era etiqueta de factura)"
 
-## Solución
+## Lo que NO cambia
 
-Mover la invalidación de queries de `onSuccess` a `onSettled` en ambas mutaciones (`useAssignForklift` y `useUnassignForklift`). `onSettled` corre siempre, tanto en éxito como en error, garantizando que el cache se sincronice con la DB sin importar si fallaron los pasos secundarios (status del equipo, log).
-
-El toast de éxito y el `onError` (toast de error) se mantienen como están — solo se separa la responsabilidad de refrescar datos.
-
-### Archivos afectados
-
-- `src/features/fleet/hooks/forklifts/useAssignForklifts.ts` — mover `invalidateQueries` a `onSettled` en ambos hooks.
-
-### Verificación
-
-- `bun run lint` y `bunx vitest`.
-- Nueva entrada `6.13.7` (patch / bugfix) en `public/changelog.json` + `public/changelog/v6.13.7.json` describiendo "Refrescar UI de asignación de equipos aunque falle un paso secundario".
-
-### Lo que NO se cambia
-
-- La lógica de negocio (orden de operaciones, status `sold`, logs) se mantiene.
-- No se tocan los componentes `AssignForkliftsCard` ni `AssignForkliftsLineRow`.
-- No se modifica RLS ni la base de datos.
+- `StatusBadge` global, `STATUS_LABELS`, colores semánticos.
+- Lógica de estado de cotizaciones, facturas, ni pagos.
+- Listado de cotizaciones (ya estaba correcto).
