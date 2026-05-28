@@ -95,11 +95,13 @@ export function useUnassignForklift() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
       toast.success("Equipo desasignado");
     },
     onError: (err: Error) => toast.error(err.message),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
+    },
   });
 }
