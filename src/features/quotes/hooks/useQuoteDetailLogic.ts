@@ -19,6 +19,7 @@ export function useQuoteDetailLogic(id: string | undefined) {
     quoteType: data.quoteType,
     isSale: data.isSale,
     alreadyConverted: data.alreadyConverted,
+    alreadyInvoiced: data.alreadyInvoiced,
     durationDays: data.durationDays,
     rentalMeta: data.rentalMeta,
     customers: data.customers,
