@@ -1,0 +1,13 @@
+{
+  "version": "6.13.9",
+  "date": "2026-05-28",
+  "type": "patch",
+  "title": "Header de detalle apila acciones cuando hay más de dos",
+  "category": "ui",
+  "description": "Los botones de Previsualizar, Descargar PDF, Editar, Aceptar, Rechazar y Eliminar ya no comprimen el título de la cotización/reserva. Cuando hay más de 2 acciones en desktop, el header las apila en una segunda fila alineadas a la derecha para mantener el título legible.",
+  "changes": [
+    "DetailPageHeader: nuevo layout en dos filas cuando hay >2 acciones en desktop",
+    "Título y subtítulo dejan de truncarse en páginas con muchas acciones",
+    "Móvil y páginas con pocas acciones conservan el layout horizontal compacto"
+  ]
+}
