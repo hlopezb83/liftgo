@@ -1,0 +1,11 @@
+{
+  "version": "6.13.5",
+  "date": "2026-05-28",
+  "type": "patch",
+  "title": "Fix: crash en /bookings por filtered undefined",
+  "category": "bugfix",
+  "description": "Se corrigió TypeError 'Cannot read properties of undefined (reading length)' en la página de Reservas. useListFilters retornaba `filtered = undefined` cuando los datos aún no se cargaban, rompiendo cualquier consumidor que leyera `filtered.length` (BookingsPage, etc.). Ahora siempre retorna un arreglo (`items ?? []`).",
+  "changes": [
+    "src/hooks/useListFilters.ts: `filtered` siempre es un array, nunca undefined."
+  ]
+}

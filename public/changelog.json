@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.13.5",
+    "date": "2026-05-28",
+    "type": "patch",
+    "title": "Fix: crash en /bookings por filtered undefined",
+    "category": "bugfix"
+  },
+  {
     "version": "6.13.4",
     "date": "2026-05-27",
     "type": "patch",
