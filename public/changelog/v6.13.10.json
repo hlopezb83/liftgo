@@ -1,0 +1,14 @@
+{
+  "version": "6.13.10",
+  "date": "2026-05-28",
+  "type": "patch",
+  "title": "Header de cotización ya no muestra 'Sin Pagar'",
+  "category": "bugfix",
+  "description": "En el detalle de una cotización con estado 'sent' aparecía 'Sin Pagar' porque ese label global pertenece al dominio de facturas. Ahora se muestra 'Enviada', que es lo correcto para cotizaciones.",
+  "changes": [
+    "Nuevo módulo src/features/quotes/constants.ts con QUOTE_STATUS_LABELS y helper quoteStatusLabel",
+    "QuoteHeaderBadges usa el override de dominio en el StatusBadge",
+    "QuotesPage deduplica su override local y consume el helper compartido",
+    "Sin cambios en STATUS_LABELS global ni en lógica de facturación"
+  ]
+}
