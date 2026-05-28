@@ -28,6 +28,20 @@ export function useQuoteDetailData(id: string | undefined) {
   });
   const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
 
+  const { data: linkedInvoices } = useQuery({
+    queryKey: ["invoices_for_quote", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("id,status")
+        .eq("quote_id", id ?? "");
+      return data || [];
+    },
+  });
+  const alreadyInvoiced = (linkedInvoices ?? []).some((i) => i.status !== "cancelled");
+
+
   const customerMatch = useMemo(
     () => customers?.find((c) => c.id === quote?.customer_id),
     [customers, quote?.customer_id],
