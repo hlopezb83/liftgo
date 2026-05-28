@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.13.9",
+    "date": "2026-05-28",
+    "type": "patch",
+    "title": "Header de detalle apila acciones cuando hay más de dos para no truncar el título",
+    "category": "ui"
+  },
+  {
     "version": "6.13.8",
     "date": "2026-05-28",
     "type": "minor",
