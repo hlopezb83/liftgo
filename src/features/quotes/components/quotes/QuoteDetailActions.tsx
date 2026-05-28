@@ -54,6 +54,16 @@ export function QuoteDetailActions({
           <BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva
         </Button>
       )}
+      {isSale && quote.status === "accepted" && !alreadyInvoiced && (
+        <Button size="sm" variant="default" onClick={() => navigate(`/invoices/new?from_quote=${quote.id}`)}>
+          <Receipt className="h-4 w-4 mr-1" />Facturar
+        </Button>
+      )}
+      {isSale && alreadyInvoiced && (
+        <Button size="sm" variant="outline" disabled className="opacity-70">
+          <Receipt className="h-4 w-4 mr-1" />Ya facturada
+        </Button>
+      )}
       {quote.status === "sent" && (
         <>
           <Button size="sm" variant="default" onClick={() => onSetStatus("accepted")}>
