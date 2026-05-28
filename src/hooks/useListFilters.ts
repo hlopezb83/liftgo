@@ -61,7 +61,7 @@ export function useListFilters<T extends Record<string, unknown>>(
   );
 
   const filtered = useMemo(() => {
-    return items?.filter((item) => {
+    return (items ?? []).filter((item) => {
       if (options.statusField && statusFilter !== "all") {
         if (item[options.statusField] !== statusFilter) return false;
       }
