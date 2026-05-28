@@ -71,6 +71,6 @@ export function useQuoteDetailData(id: string | undefined) {
   return {
     quote, isLoading, customers, forklifts, equipmentModels,
     customerMatch, quoteType, isSale, lineItems, durationDays,
-    rentalMeta, isModelBasedQuote, alreadyConverted,
+    rentalMeta, isModelBasedQuote, alreadyConverted, alreadyInvoiced,
   };
 }
