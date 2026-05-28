@@ -30,7 +30,7 @@ export function CostSummaryCard({ lineItems, subtotal, taxRate, taxAmount, total
           <div key={i} className="flex justify-between text-sm">
             <span>
               {item.description} × {item.quantity}
-              {item.discount && item.discount > 0 && (
+              {(item.discount ?? 0) > 0 && (
                 <span className="text-destructive text-xs ml-1">{discountLabel(item, currency)}</span>
               )}
             </span>
