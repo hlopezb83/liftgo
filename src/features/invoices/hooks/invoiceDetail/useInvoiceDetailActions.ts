@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { STATUS_LABELS } from "@/lib/constants";
 import { useUpdateInvoice, useDeleteInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useUpdateBooking } from "@/features/bookings/hooks/useBookings";
 import { useStampCfdi } from "@/features/invoices/hooks/invoices/useStampCfdi";
@@ -33,7 +34,7 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
       { id, status, ...(paidAt ? { paid_at: paidAt } : {}) },
       {
         onSuccess: (data) => {
-          toast.success(`Factura marcada como ${status}`);
+          toast.success(`Factura marcada como ${STATUS_LABELS[status] ?? status}`);
           if (status === "paid" && data.booking_id) {
             updateBooking.mutate(
               { id: data.booking_id, status: "completed" },
