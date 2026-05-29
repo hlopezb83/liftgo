@@ -1,0 +1,12 @@
+{
+  "version": "6.14.2",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Se retira Previsualizar en cotizaciones y acciones alineadas a la izquierda",
+  "category": "bugfix",
+  "description": "El botón Previsualizar del detalle de cotización casi no se usaba y duplicaba el flujo de Descargar PDF, así que se retiró para limpiar la barra de acciones. Además, ahora los botones del encabezado de detalle se alinean a la izquierda, a la altura del título, en lugar de pegarse al borde derecho.",
+  "changes": [
+    "QuoteDetailActions: removido botón Previsualizar y su diálogo",
+    "DetailPageHeader: acciones alineadas a la izquierda con indent del ancho del botón regresar"
+  ]
+}
