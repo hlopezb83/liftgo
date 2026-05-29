@@ -1,0 +1,16 @@
+{
+  "version": "6.14.3",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Localización: se eliminan mezclas español/inglés en toasts y UI",
+  "category": "bugfix",
+  "description": "Toasts y etiquetas que interpolaban valores crudos de la BD (en inglés) ahora muestran sus equivalentes en español. También se tradujeron algunos textos sueltos que habían quedado en inglés.",
+  "changes": [
+    "Cotizaciones: 'Cotización marcada como accepted' ahora muestra 'Aceptada' (y demás estados)",
+    "Contratos: el toast de cambio de estado usa la etiqueta localizada",
+    "Facturas: el toast de cambio de estado usa la etiqueta localizada",
+    "CRM: campo 'Email' renombrado a 'Correo' en el detalle de prospecto",
+    "Usuarios: placeholder 'Buscar por nombre o email…' → 'Buscar por nombre o correo…'",
+    "Config PAC: chips 'Test'/'Live' → 'Pruebas'/'Producción'"
+  ]
+}
