@@ -72,12 +72,14 @@ export function useUpdatePermission() {
 
   return useMutation({
     mutationFn: async ({ role, module, access_level }: { role: AppRole; module: string; access_level: AccessLevel }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("role_permissions")
         .update({ access_level, updated_at: nowMty().toISOString() })
         .eq("role", role)
-        .eq("module", module);
+        .eq("module", module)
+        .select("role");
       if (error) throw error;
+      assertRowsAffected(data, "Actualizar permiso de rol");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["role_permissions"] });
