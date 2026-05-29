@@ -1,36 +1,31 @@
+# Arreglar CI: eliminar archivos huérfanos detectados por Knip
 
 ## Problema
 
-Al borrar una cotización de venta con equipos asignados (`quote_assigned_forklifts`), los montacargas quedan con `status = 'sold'` huérfano y desaparecen del inventario disponible. Hoy `useDeleteQuote` solo hace `DELETE FROM quotes` sin tocar asignaciones ni estatus.
+El job **Lint, Knip, Tests, Build** del CI falla en el paso de Knip estricto (`--include files,dependencies,binaries`), que rompe el PR cuando hay archivos sin uso. Lint, Vitest y Build pasan limpios. El job E2E falla por falta de secrets pero tiene `continue-on-error: true`, así que no bloquea.
 
-## Solución propuesta
+Knip reporta 4 archivos huérfanos (sin importadores en `src/`):
 
-Al eliminar una cotización, liberar automáticamente los equipos asignados (revertir a `available` + log) de forma atómica vía RPC. También arreglar los equipos ya afectados.
+1. `src/features/quotes/components/quotes/QuotePreviewDialog.tsx`
+2. `src/lib/crm/crmToast.ts`
+3. `src/lib/errors/index.ts`
+4. `src/lib/ui/appFeedback.ts`
 
-### 1. Migración: RPC `delete_quote_with_unassign`
+Probablemente quedaron sin uso tras refactors recientes (incluida la limpieza de la página de cotizaciones).
 
-Función `SECURITY DEFINER` con `SET search_path = public` que en una sola transacción:
-1. Lee asignaciones de la cotización (`quote_assigned_forklifts`).
-2. Para cada `forklift_id`: `UPDATE forklifts SET status='available'` (solo si está `sold`) e inserta en `status_logs` con nota *"Liberado por eliminación de cotización {quote_number}"*.
-3. Borra `quote_assigned_forklifts` de esa cotización.
-4. Borra la `quote`.
+## Cambios
 
-Permisos: ejecutable por roles que ya pueden borrar cotizaciones (admin, ventas, etc.) — se valida con `has_role`.
-
-### 2. Frontend — `useDeleteQuote` (`src/features/quotes/hooks/quotes/useQuotes.ts`)
-
-Reemplazar el `supabase.from("quotes").delete()` por `callRpc("delete_quote_with_unassign", { p_quote_id: id })`. Invalidar también `["forklifts"]`, `["forklift-options"]`, `["quote_assigned_forklifts"]` y `["status_logs"]`.
-
-### 3. Backfill puntual
-
-Script SQL (insert tool) para los equipos que quedaron `sold` sin asignación viva: detectar `forklifts.status='sold'` que no aparezcan en ninguna `quote_assigned_forklifts` ni en ventas reales (invoice de venta), y regresarlos a `available` con log *"Corrección: cotización eliminada previamente"*. Antes de aplicar, validar con `read_query` la lista candidata para que el usuario confirme.
-
-### 4. Changelog
-
-Patch `6.14.7` en `public/changelog.json` + `public/changelog/v6.14.7.json`.
+1. Borrar los 4 archivos listados arriba.
+2. Verificar que `bun run lint`, `bunx knip --include files,dependencies,binaries --reporter compact` y `bun run test` queden en verde localmente.
+3. Agregar entrada de changelog `6.14.8` (patch):
+   - `public/changelog.json` (índice, al inicio)
+   - `public/changelog/v6.14.8.json` (detalle)
+   - Título: "Limpieza de archivos huérfanos para CI"
+   - Descripción: eliminación de `QuotePreviewDialog`, `crmToast`, `lib/errors/index`, `appFeedback` para que Knip estricto no rompa el pipeline.
 
 ## Notas técnicas
 
-- No se cambia el flujo de UI (sin diálogo extra). El usuario sigue confirmando con el `AlertDialog` actual.
-- La operación es atómica: si falla el unassign, no se borra la cotización.
-- No se tocan equipos cuya venta ya fue facturada (status sigue `sold` solo si hay invoice asociada — la heurística del backfill lo respeta).
+- No se tocan rutas, hooks ni RPCs.
+- Las advertencias de complejidad de ESLint (`QuoteDetailActions`, `errorDetailsExtract`, `deriveErrorCode`, `formatReportText`) son `warning`, no `error`, por lo que **no bloquean** el CI y quedan fuera de este cambio.
+- Las deprecation warnings de Node 20 en GitHub Actions (`actions/checkout@v4`, `denoland/setup-deno@v1`, `actions/upload-artifact@v4`) son informativas hasta junio 2026 y se atienden en un cambio aparte si se desea.
+- El job E2E seguirá marcado como fallido hasta que se configuren los secrets `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `SUPABASE_SERVICE_ROLE_KEY`, pero no bloquea el merge.
