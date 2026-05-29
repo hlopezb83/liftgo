@@ -11,6 +11,7 @@ import { QuoteCustomerCard } from "@/features/quotes/components/quotes/QuoteCust
 import { QuoteDatesCard } from "@/features/quotes/components/quotes/QuoteDatesCard";
 import { QuoteHeaderBadges } from "@/features/quotes/components/quotes/QuoteHeaderBadges";
 import { useQuoteDetailLogic } from "@/features/quotes/hooks/useQuoteDetailLogic";
+import { useQuoteSaleAssignmentStatus } from "@/features/quotes/hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -22,11 +23,17 @@ export default function QuoteDetail() {
     setStatus, handleDelete, handleConvertClick,
   } = logic;
 
+  const assignmentStatus = useQuoteSaleAssignmentStatus(quote?.id, lineItems);
+
   if (isLoading) return <div className="p-6"><Skeleton className="h-64" /></div>;
   if (!quote) return <div className="p-6 text-muted-foreground">Cotización no encontrada</div>;
 
   const currency = (quote as unknown as { currency?: string }).currency;
   const showAssignCard = isSale && quote.status === "accepted";
+  const canInvoice = !isSale || assignmentStatus.isComplete;
+  const invoiceBlockedReason = assignmentStatus.isComplete
+    ? undefined
+    : `Asigna los equipos del inventario antes de facturar (${assignmentStatus.totalAssigned}/${assignmentStatus.totalRequired} asignados)`;
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -48,6 +55,8 @@ export default function QuoteDetail() {
             alreadyConverted={alreadyConverted}
             alreadyInvoiced={alreadyInvoiced}
             isConverting={isConverting}
+            canInvoice={canInvoice}
+            invoiceBlockedReason={invoiceBlockedReason}
             onSetStatus={setStatus}
             onConvertClick={handleConvertClick}
             onDelete={handleDelete}

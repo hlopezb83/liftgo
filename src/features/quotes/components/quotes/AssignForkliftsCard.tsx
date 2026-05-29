@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PackageCheck } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PackageCheck, AlertTriangle } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import {
   useQuoteAssignments,
@@ -96,6 +97,19 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
+        {(() => {
+          const totalRequired = linesData.reduce((sum, l) => sum + l.quantity, 0);
+          const totalAssigned = linesData.reduce((sum, l) => sum + l.assignedCount, 0);
+          if (totalAssigned >= totalRequired) return null;
+          return (
+            <Alert variant="default" className="border-amber-500/40 bg-amber-50 dark:bg-amber-950/20">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 dark:text-amber-200">
+                Faltan {totalRequired - totalAssigned} equipo(s) por asignar para poder facturar esta cotización.
+              </AlertDescription>
+            </Alert>
+          );
+        })()}
         {linesData.map(({ item, index, quantity, available, assignedForklifts, assignedCount }) => (
           <AssignForkliftsLineRow
             key={index}

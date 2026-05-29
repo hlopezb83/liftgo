@@ -6,6 +6,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Receipt } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -15,13 +16,17 @@ interface Props {
   alreadyConverted: boolean;
   alreadyInvoiced: boolean;
   isConverting: boolean;
+  canInvoice: boolean;
+  invoiceBlockedReason?: string;
   onSetStatus: (status: string) => void;
   onConvertClick: () => void;
   onDelete: () => void;
 }
 
 export function QuoteDetailActions({
-  quote, isSale, alreadyConverted, alreadyInvoiced, isConverting, onSetStatus, onConvertClick, onDelete,
+  quote, isSale, alreadyConverted, alreadyInvoiced, isConverting,
+  canInvoice, invoiceBlockedReason,
+  onSetStatus, onConvertClick, onDelete,
 }: Props) {
   const navigate = useNavigate();
 
@@ -50,9 +55,24 @@ export function QuoteDetailActions({
         </Button>
       )}
       {isSale && quote.status === "accepted" && !alreadyInvoiced && (
-        <Button size="sm" variant="default" onClick={() => navigate(`/invoices/new?from_quote=${quote.id}`)}>
-          <Receipt className="h-4 w-4 mr-1" />Facturar
-        </Button>
+        canInvoice ? (
+          <Button size="sm" variant="default" onClick={() => navigate(`/invoices/new?from_quote=${quote.id}`)}>
+            <Receipt className="h-4 w-4 mr-1" />Facturar
+          </Button>
+        ) : (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
+                    <Receipt className="h-4 w-4 mr-1" />Facturar
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{invoiceBlockedReason ?? "Asigna los equipos antes de facturar"}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )
       )}
       {isSale && alreadyInvoiced && (
         <Button size="sm" variant="outline" disabled className="opacity-70">
