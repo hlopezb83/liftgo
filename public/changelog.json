@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.14.3",
+    "date": "2026-05-29",
+    "type": "patch",
+    "title": "Localización: se eliminan mezclas español/inglés en toasts y UI",
+    "category": "bugfix"
+  },
+  {
     "version": "6.14.2",
     "date": "2026-05-29",
     "type": "patch",
