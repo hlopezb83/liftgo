@@ -1,0 +1,9 @@
+{
+  "description": "Eliminados 4 archivos huérfanos detectados por Knip que rompían el pipeline de CI.",
+  "changes": [
+    "Eliminado src/features/quotes/components/quotes/QuotePreviewDialog.tsx (sin importadores)",
+    "Eliminado src/lib/crm/crmToast.ts (sin importadores)",
+    "Eliminado src/lib/errors/index.ts (sin importadores)",
+    "Eliminado src/lib/ui/appFeedback.ts (sin importadores)"
+  ]
+}

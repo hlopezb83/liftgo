@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.14.8",
+    "date": "2026-05-29",
+    "type": "patch",
+    "title": "Limpieza de archivos huérfanos para desbloquear CI",
+    "category": "chore"
+  },
+  {
     "version": "6.14.7",
     "date": "2026-05-29",
     "type": "patch",
