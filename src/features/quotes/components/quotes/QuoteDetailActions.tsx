@@ -1,14 +1,12 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { QuotePDFButton } from "@/features/quotes/components/quotes/QuotePDFButton";
-import { QuotePreviewDialog } from "@/features/quotes/components/quotes/QuotePreviewDialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Eye, Receipt } from "lucide-react";
+import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Receipt } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface Props {
@@ -26,14 +24,11 @@ export function QuoteDetailActions({
   quote, isSale, alreadyConverted, alreadyInvoiced, isConverting, onSetStatus, onConvertClick, onDelete,
 }: Props) {
   const navigate = useNavigate();
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
-        <Eye className="h-4 w-4 mr-1" />Previsualizar
-      </Button>
       <QuotePDFButton quoteId={quote.id} />
+
       {(quote.status === "draft" || quote.status === "sent") && (
         <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${quote.id}/edit`)}>
           <Edit className="h-4 w-4 mr-1" />Editar
