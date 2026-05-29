@@ -1,0 +1,13 @@
+{
+  "version": "6.14.7",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Cotizaciones: al eliminar una venta se liberan automáticamente los equipos asignados",
+  "category": "bugfix",
+  "description": "Antes, al borrar una cotización de venta con equipos asignados, los montacargas quedaban marcados como 'vendido' y desaparecían del inventario disponible. Ahora la eliminación se hace de forma atómica vía RPC: primero libera cada equipo asignado (estatus vuelve a 'disponible' con su registro en bitácora) y después borra la cotización. También se corrigió manualmente un equipo que había quedado huérfano de un borrado anterior.",
+  "changes": [
+    "Nuevo RPC delete_quote_with_unassign que libera equipos y borra la cotización en una sola transacción",
+    "useDeleteQuote ahora invoca el RPC e invalida cachés de forklifts y status_logs",
+    "Backfill puntual: equipo MCLTC025A048/010 regresado a disponible con log de corrección"
+  ]
+}
