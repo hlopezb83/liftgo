@@ -91,7 +91,7 @@ export function QuoteDetailActions({
           </AlertDialogContent>
         </AlertDialog>
       </RoleGuard>
-      <QuotePreviewDialog quoteId={quote.id} open={previewOpen} onOpenChange={setPreviewOpen} />
+      
     </>
   );
 }
