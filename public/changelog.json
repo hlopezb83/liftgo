@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.15.0",
+    "date": "2026-05-29",
+    "type": "minor",
+    "title": "Migración global a notifyError/notifyWarning con botón \"Ver detalles\"",
+    "category": "improvement"
+  },
+  {
     "version": "6.14.9",
     "date": "2026-05-29",
     "type": "patch",
