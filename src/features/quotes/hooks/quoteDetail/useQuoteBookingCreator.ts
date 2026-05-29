@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
