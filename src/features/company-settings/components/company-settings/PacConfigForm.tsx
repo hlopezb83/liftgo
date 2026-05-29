@@ -88,7 +88,7 @@ export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Test</span>
+            <span className="text-xs text-muted-foreground">Pruebas</span>
             <FormField control={form.control} name="facturapi_mode" render={({ field }) => (
               <FormItem>
                 <FormControl>
@@ -99,7 +99,7 @@ export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
                 </FormControl>
               </FormItem>
             )} />
-            <span className="text-xs text-muted-foreground">Live</span>
+            <span className="text-xs text-muted-foreground">Producción</span>
           </div>
         </div>
 

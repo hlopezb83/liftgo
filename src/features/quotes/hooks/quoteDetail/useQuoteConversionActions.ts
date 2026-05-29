@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { quoteStatusLabel } from "@/features/quotes/constants";
 import { useUpdateQuote, useDeleteQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
 import { isPublicoGeneral } from "./useQuoteDetailData";
@@ -23,7 +24,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
 
   const setStatus = (status: string) => {
     if (!id) return;
-    updateQuote.mutate({ id, status }, { onSuccess: () => toast.success(`Cotización marcada como ${status}`) });
+    updateQuote.mutate({ id, status }, { onSuccess: () => toast.success(`Cotización marcada como ${quoteStatusLabel(status)}`) });
   };
 
   const handleDelete = () => {

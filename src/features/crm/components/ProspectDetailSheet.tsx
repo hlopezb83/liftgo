@@ -67,7 +67,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
 
           <div className="space-y-1">
             <DetailRow icon={User} label="Contacto" value={prospect.contact_person} />
-            <DetailRow icon={Mail} label="Email" value={prospect.email} />
+            <DetailRow icon={Mail} label="Correo" value={prospect.email} />
             <DetailRow icon={Phone} label="Teléfono" value={prospect.phone} />
             <DetailRow icon={DollarSign} label="Valor Estimado" value={formatCurrency(prospect.deal_value ?? 0)} />
           </div>

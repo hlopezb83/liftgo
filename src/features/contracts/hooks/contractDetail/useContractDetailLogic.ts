@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { STATUS_LABELS } from "@/lib/constants";
 import { useContract, useUpdateContract } from "@/features/contracts/hooks/useContracts";
 
 /**
@@ -15,7 +16,7 @@ export function useContractDetailLogic() {
     if (!id) return;
     updateContract.mutate(
       { id, status, ...extra },
-      { onSuccess: () => toast.success(`Contrato marcado como ${status}`) }
+      { onSuccess: () => toast.success(`Contrato marcado como ${STATUS_LABELS[status] ?? status}`) }
     );
   };
 
