@@ -1,0 +1,15 @@
+{
+  "version": "6.14.5",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Cotizaciones de venta: facturación bloqueada hasta asignar todos los equipos",
+  "category": "feature",
+  "description": "Una cotización de venta ya no puede facturarse hasta que cada línea 'Venta de equipo' tenga sus unidades asignadas desde el inventario. Esto evita doble venta, asegura la trazabilidad por número de serie y mantiene íntegro el ROI por activo.",
+  "changes": [
+    "El botón 'Facturar' aparece deshabilitado con tooltip indicando cuántos equipos faltan por asignar (ej. 1/2 asignados)",
+    "La tarjeta 'Asignar Equipos del Inventario' muestra una alerta visible cuando faltan asignaciones",
+    "Si se entra manualmente a /invoices/new?from_quote=<incompleta> el sistema redirige a la cotización con un toast explicativo",
+    "Cotizaciones de venta sin líneas de equipo (solo refacciones/servicio) no se ven afectadas",
+    "Nuevo hook useQuoteSaleAssignmentStatus y utilidad saleLines para centralizar la detección de líneas de venta de equipo"
+  ]
+}
