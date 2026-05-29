@@ -69,17 +69,22 @@ export function useDeleteQuote() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("quotes").delete().eq("id", id);
-      if (error) throw error;
+      await callRpc<void>("delete_quote_with_unassign", { p_quote_id: id });
       return id;
     },
     onSuccess: (deletedId) => {
-      // Optimistically remove from cache for instant UI update
       queryClient.setQueryData<Quote[]>(["quotes"], (old) =>
         old ? old.filter((q) => q.id !== deletedId) : []
       );
       queryClient.removeQueries({ queryKey: ["quotes", deletedId] });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
+      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
+      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
+    },
+    onError: (err: Error) => {
+      toast.error("Error al eliminar cotización", { description: err.message });
     },
   });
 }
