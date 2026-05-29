@@ -40,7 +40,7 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, actions, pri
         </div>
       </div>
       {hasActions && (
-        <div className="flex gap-2 flex-wrap justify-end items-center">
+        <div className="flex gap-2 flex-wrap items-center pl-10 sm:pl-12">
           {primaryAction}
           {actions}
         </div>

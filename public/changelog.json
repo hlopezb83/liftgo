@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.14.2",
+    "date": "2026-05-29",
+    "type": "patch",
+    "title": "Se retira Previsualizar en cotizaciones y acciones alineadas a la izquierda",
+    "category": "bugfix"
+  },
+  {
     "version": "6.14.1",
     "date": "2026-05-29",
     "type": "patch",
