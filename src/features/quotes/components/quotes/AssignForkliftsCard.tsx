@@ -44,7 +44,12 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
 
   if (isLoading) return null;
 
-  const selectedElsewhere = new Set(Object.values(selections));
+  const selectedElsewhereForLine = (currentIndex: number) =>
+    new Set(
+      Object.entries(selections)
+        .filter(([k]) => Number(k) !== currentIndex)
+        .map(([, v]) => v)
+    );
 
   const linesData = lineItems.map((item, index) => {
     const parsed = parseDescription(item.description);
@@ -100,7 +105,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
             assignedForklifts={assignedForklifts}
             available={available}
             selectedValue={selections[index] || ""}
-            selectedElsewhere={selectedElsewhere}
+            selectedElsewhere={selectedElsewhereForLine(index)}
             isAssigning={assignMutation.isPending}
             isUnassigning={unassignMutation.isPending}
             onSelect={(v) => setSelections((s) => ({ ...s, [index]: v }))}
