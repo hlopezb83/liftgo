@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,7 +61,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
     (values: ReturnInspectionFormValues) => {
       const booking = bookings?.find((b) => b.id === values.bookingId);
       if (!booking) {
-        toast.error("Reserva no encontrada");
+        notifyError({ message: "Reserva no encontrada" });
         return;
       }
       const damageCost = values.damageCost ? parseFloat(values.damageCost) : 0;

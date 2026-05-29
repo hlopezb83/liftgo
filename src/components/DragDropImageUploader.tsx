@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { useUploadDocument } from "@/hooks/useDocuments";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
@@ -51,7 +52,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
       previews.forEach((p) => URL.revokeObjectURL(p.url));
       setPreviews([]);
     } catch {
-      toast.error("Error al subir fotos");
+      notifyError({ message: "Error al subir fotos" });
     } finally {
       setUploading(false);
     }

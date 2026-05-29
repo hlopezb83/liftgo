@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -41,7 +42,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
       });
       toast.success("PDF descargado");
     } catch {
-      toast.error("Error al generar PDF");
+      notifyError({ message: "Error al generar PDF" });
     } finally {
       setPdfLoading(false);
     }

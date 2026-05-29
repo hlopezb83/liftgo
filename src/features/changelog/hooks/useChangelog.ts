@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/ui/appFeedback";
+
 import { useEffect } from "react";
 import { fetchChangelogIndex, fetchChangelogDetail, getCurrentVersion } from "@/features/changelog/lib/changelog";
 
@@ -12,7 +13,7 @@ export function useChangelog() {
     retry: 2,
   });
   useEffect(() => {
-    if (query.error) toast.error("No se pudo cargar el historial de cambios");
+    if (query.error) notifyError({ message: "No se pudo cargar el historial de cambios" });
   }, [query.error]);
   return query;
 }

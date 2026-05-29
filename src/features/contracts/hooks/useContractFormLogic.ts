@@ -1,4 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { useContract, useCreateContract, useUpdateContract } from "@/features/contracts/hooks/useContracts";
 import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
@@ -32,7 +33,7 @@ export function useContractFormLogic() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.customer_id || !form.forklift_id) {
-      toast.error("Cliente y equipo son requeridos");
+      notifyError({ message: "Cliente y equipo son requeridos" });
       return;
     }
     const payload = buildContractPayload(form, bookingId);

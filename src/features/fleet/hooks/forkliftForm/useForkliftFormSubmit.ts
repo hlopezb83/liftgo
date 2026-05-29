@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { useCreateForklift, useUpdateForklift, useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
@@ -23,7 +24,7 @@ export function useForkliftFormSubmit({ id, isEdit }: Args) {
     const others = allForklifts?.filter((f) => f.id !== id) ?? [];
     const uniquenessError = validateForkliftUniqueness({ form: values, others });
     if (uniquenessError) {
-      toast.error(uniquenessError);
+      notifyError({ error: uniquenessError });
       return;
     }
 

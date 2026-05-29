@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,11 +19,11 @@ export function CsfDropzone({ onParsed }: Props) {
     const file = acceptedFiles[0];
     if (!file) return;
     if (file.type !== "application/pdf") {
-      toast.error("Solo se aceptan archivos PDF");
+      notifyError({ message: "Solo se aceptan archivos PDF" });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("El archivo no debe superar 10 MB");
+      notifyError({ message: "El archivo no debe superar 10 MB" });
       return;
     }
 

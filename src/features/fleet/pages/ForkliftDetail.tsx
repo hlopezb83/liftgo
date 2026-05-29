@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useForklift, useDeleteForklift, useStatusLogs } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
 import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
@@ -40,7 +41,7 @@ export default function ForkliftDetail() {
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {
       onSuccess: () => { toast.success("Montacargas eliminado"); navigate("/fleet"); },
-      onError: () => toast.error("Error al eliminar"),
+      onError: () => notifyError({ message: "Error al eliminar" }),
     });
   };
 

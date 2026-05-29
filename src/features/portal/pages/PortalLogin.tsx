@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -36,11 +37,11 @@ export default function PortalLogin() {
 
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
-      if (error) toast.error(error.message);
+      if (error) notifyError({ error: error });
       else toast.success("Revisa tu correo para el enlace de restablecimiento");
     } else {
       const { error } = await signIn(email, password);
-      if (error) toast.error(error.message);
+      if (error) notifyError({ error: error });
     }
     setLoading(false);
   };

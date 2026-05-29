@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useCreateSupplier, useUpdateSupplier } from "@/features/suppliers/hooks/useSuppliers";
 import type { Supplier } from "@/features/suppliers/hooks/useSuppliers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FormActions } from "@/components/FormActions";
-import { toast } from "sonner";
+
 import { SupplierFormFields } from "./SupplierFormFields";
 import { emptySupplierForm, type SupplierForm } from "./supplierFormTypes";
 
@@ -42,7 +43,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleSave = () => {
-    if (!form.name.trim()) { toast.error("El nombre es requerido"); return; }
+    if (!form.name.trim()) { notifyError({ message: "El nombre es requerido" }); return; }
     const payload = {
       name: form.name.trim(),
       contact_person: form.contact_person || null,

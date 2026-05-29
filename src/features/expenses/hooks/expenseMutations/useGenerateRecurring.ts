@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { buildRecurringInserts } from "@/features/expenses/lib/recurringExpensesHelpers";
@@ -26,6 +27,6 @@ export function useGenerateRecurring() {
         toast.success(`${count} gasto(s) recurrente(s) generado(s)`);
       }
     },
-    onError: () => toast.error("Error al generar gastos recurrentes"),
+    onError: () => notifyError({ message: "Error al generar gastos recurrentes" }),
   });
 }

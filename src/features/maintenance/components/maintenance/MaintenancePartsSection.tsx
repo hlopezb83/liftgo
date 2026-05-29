@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -28,10 +29,10 @@ export function MaintenancePartsSection({ maintenanceLogId, currentCost }: Props
   const availableParts = parts.filter((p) => p.stock_quantity > 0);
 
   const handleAddPart = () => {
-    if (!selectedPart) { toast.error("Selecciona una refacción"); return; }
-    if (quantity < 1) { toast.error("La cantidad debe ser al menos 1"); return; }
+    if (!selectedPart) { notifyError({ message: "Selecciona una refacción" }); return; }
+    if (quantity < 1) { notifyError({ message: "La cantidad debe ser al menos 1" }); return; }
     if (quantity > selectedPart.stock_quantity) {
-      toast.error(`Solo hay ${selectedPart.stock_quantity} en stock`);
+      notifyError({ message: `Solo hay ${selectedPart.stock_quantity} en stock` });
       return;
     }
 

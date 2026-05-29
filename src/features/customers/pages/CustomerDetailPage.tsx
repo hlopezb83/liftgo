@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +27,7 @@ export default function CustomerDetailPage() {
       await exportCustomerStatementPdf({ customer: s.customer, summary: s.summary });
       toast.success("Estado de cuenta generado");
     } catch {
-      toast.error("No se pudo generar el PDF");
+      notifyError({ message: "No se pudo generar el PDF" });
     }
   };
 

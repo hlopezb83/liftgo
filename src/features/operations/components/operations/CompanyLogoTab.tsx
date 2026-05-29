@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,7 +36,7 @@ export function CompanyLogoTab() {
 
   const onSubmit = (values: LogoFormValues) => {
     if (!settings?.id) {
-      toast.error("Primero captura tus datos fiscales");
+      notifyError({ message: "Primero captura tus datos fiscales" });
       return;
     }
     upsert.mutate(

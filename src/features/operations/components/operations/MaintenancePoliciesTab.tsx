@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import {
   useMaintenancePolicies,
   useCreateMaintenancePolicy,
@@ -15,7 +16,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { MaintenancePolicyForm } from "./MaintenancePolicyForm";
 import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
-import { toast } from "sonner";
+
 
 export function MaintenancePoliciesTab() {
   const { data: policies, isLoading } = useMaintenancePolicies();
@@ -52,7 +53,7 @@ export function MaintenancePoliciesTab() {
 
   const handleSave = () => {
     if (!form.forklift_id || !form.provider_name) {
-      toast.error("Montacargas y proveedor son requeridos");
+      notifyError({ message: "Montacargas y proveedor son requeridos" });
       return;
     }
     const payload = {

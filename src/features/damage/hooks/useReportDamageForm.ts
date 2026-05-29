@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { useCreateDamageRecord } from "@/features/damage/hooks/useDamageRecords";
 import { useUploadDocument } from "@/hooks/useDocuments";
@@ -39,7 +40,7 @@ export function useReportDamageForm(onClose: () => void) {
 
   const handleSubmit = async () => {
     if (!forkliftId || !description.trim()) {
-      toast.error("Campos requeridos", { description: "Selecciona un montacargas y describe el daño." });
+      notifyError({ title: "Campos requeridos", description: "Selecciona un montacargas y describe el daño." });
       return;
     }
     setSubmitting(true);

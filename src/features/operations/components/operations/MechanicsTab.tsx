@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance/hooks/maintenance/useMechanics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,11 +31,11 @@ export function MechanicsTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.name) { toast.error("El nombre es requerido"); return; }
+    if (!form.name) { notifyError({ message: "El nombre es requerido" }); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, specialization: form.specialization || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
-      if (err.message?.includes("mechanics_name_unique")) toast.error("Ya existe un mecánico con este nombre");
-      else toast.error("Error al guardar mecánico");
+      if (err.message?.includes("mechanics_name_unique")) notifyError({ message: "Ya existe un mecánico con este nombre" });
+      else notifyError({ message: "Error al guardar mecánico" });
     };
     if (editId) {
       update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); }, onError });
