@@ -76,7 +76,7 @@ export default function UserManagementPage() {
         }
         filters={
           <div className="flex flex-col sm:flex-row gap-3">
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre o email…" className="flex-1 max-w-md" />
+            <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre o correo…" className="flex-1 max-w-md" />
             <Select value={filterRole} onValueChange={setFilterRole}>
               <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filtrar por rol" /></SelectTrigger>
               <SelectContent>
