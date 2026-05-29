@@ -26,6 +26,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error("[ErrorBoundary]", error, info.componentStack);
+    const msg = error?.message ?? "";
+    const stale =
+      msg.includes("Failed to fetch dynamically imported module") ||
+      msg.includes("Importing a module script failed") ||
+      msg.includes("error loading dynamically imported module");
+    if (stale && sessionStorage.getItem("vite-preload-reload") !== "1") {
+      sessionStorage.setItem("vite-preload-reload", "1");
+      window.location.reload();
+    }
   }
 
   private handleReload = (): void => {
