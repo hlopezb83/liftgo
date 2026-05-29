@@ -93,7 +93,13 @@ export function useUpdateStatus() {
     mutationFn: async ({
       forkliftId, fromStatus, toStatus, note,
     }: { forkliftId: string; fromStatus: string; toStatus: string; note?: string }) => {
-      await supabase.from("forklifts").update({ status: toStatus }).eq("id", forkliftId);
+      const { data: updated, error: upErr } = await supabase
+        .from("forklifts")
+        .update({ status: toStatus })
+        .eq("id", forkliftId)
+        .select("id");
+      if (upErr) throw upErr;
+      assertRowsAffected(updated, "Actualizar estado de montacargas");
       await supabase.from("status_logs").insert({
         forklift_id: forkliftId, from_status: fromStatus, to_status: toStatus, note,
       });
