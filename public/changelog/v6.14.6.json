@@ -1,0 +1,13 @@
+{
+  "version": "6.14.6",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Auto-recarga cuando el navegador apunta a archivos viejos tras un nuevo deploy",
+  "category": "bugfix",
+  "description": "Tras un nuevo deploy, los archivos JavaScript de la versión anterior dejan de existir en el CDN. Si tenías la app abierta y navegabas a otra sección (por ejemplo después de borrar una cotización), el navegador intentaba cargar un archivo que ya no existía y mostraba 'Failed to fetch dynamically imported module'. Ahora la app detecta esta situación y se recarga sola una vez para tomar la versión nueva.",
+  "changes": [
+    "main.tsx escucha el evento vite:preloadError y errores/promesas rechazadas relacionadas con módulos obsoletos",
+    "ErrorBoundary también detecta este caso como defensa en profundidad",
+    "Guard con sessionStorage evita bucles de recarga si la nueva versión también falla"
+  ]
+}

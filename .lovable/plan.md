@@ -1,49 +1,44 @@
-# Bloquear facturación de venta sin equipos asignados
+# Fix: "Failed to fetch dynamically imported module" tras redeploy
 
-## Regla de negocio
-Una cotización de tipo **venta** sólo podrá facturarse cuando **todas las líneas de "Venta de equipo"** tengan asignados los equipos del inventario indicados en su cantidad (`assignedCount === quantity` para cada línea).
+## Causa raíz
 
-Las cotizaciones sin líneas de venta de equipo (ej. sólo refacciones o servicio) no se ven afectadas: se podrán facturar como hoy.
+Después de un nuevo deploy, los chunks con hash anterior (`QuotesPage-CXtStOvh.js`) dejan de existir en el CDN. Cuando el usuario navega a una ruta `lazy()` cargada después del deploy, el import dinámico falla y React Suspense propaga el error al ErrorBoundary.
+
+Vite emite el evento `vite:preloadError` para exactamente este caso. La solución estándar es escucharlo y forzar `window.location.reload()` una sola vez — el navegador descargará el `index.html` fresco con los nuevos hashes.
 
 ## Cambios
 
-### 1. Hook nuevo: `useQuoteSaleAssignmentStatus`
-`src/features/quotes/hooks/quoteDetail/useQuoteSaleAssignmentStatus.ts` — recibe `quoteId` y `lineItems`, consume `useQuoteAssignments`, y regresa:
+### 1. `src/main.tsx`
+Añadir listener antes del `createRoot`:
 
 ```ts
-{
-  hasSaleLines: boolean;
-  totalRequired: number;     // suma de quantity de líneas "Venta de equipo"
-  totalAssigned: number;     // suma de asignaciones reales
-  isComplete: boolean;       // hasSaleLines === false || (todas las líneas completas)
-  missingByLine: Array<{ index: number; description: string; assigned: number; required: number }>;
-}
+window.addEventListener("vite:preloadError", (event) => {
+  // Evita loop si la recarga también falla
+  if (sessionStorage.getItem("vite-preload-reload") === "1") return;
+  sessionStorage.setItem("vite-preload-reload", "1");
+  event.preventDefault();
+  window.location.reload();
+});
+
+// Limpia el flag tras carga exitosa
+window.addEventListener("load", () => {
+  sessionStorage.removeItem("vite-preload-reload");
+});
 ```
 
-Detección de línea de venta: misma heurística que `AssignForkliftsCard.parseDescription` — sufijo `"- Venta de equipo"` en `item.description`. Centralizar el helper en `src/features/quotes/utils/saleLines.ts` para que `AssignForkliftsCard` también lo importe (evita duplicación).
+### 2. `src/layouts/ErrorBoundary.tsx` (defensa en profundidad)
+Si el error que cae al boundary contiene el mensaje "Failed to fetch dynamically imported module" o "Importing a module script failed", recargar automáticamente (mismo guard de sessionStorage). Esto cubre casos donde el error no pase por el evento `preloadError` (p. ej. import disparado por código no-preload).
 
-### 2. `QuoteDetailActions.tsx`
-- Añadir prop `canInvoice: boolean` y `invoiceBlockedReason?: string`.
-- En el bloque del botón **Facturar** (líneas 52-56), si `!canInvoice`, renderizar el botón **deshabilitado** envuelto en `<Tooltip>` con el mensaje (ej. *"Asigna los equipos del inventario antes de facturar (1/2 asignados)"*).
-- Mantener el botón habilitado cuando `canInvoice === true`.
-
-### 3. `QuoteDetail.tsx`
-- Invocar el hook nuevo y pasar `canInvoice` + `invoiceBlockedReason` a `QuoteDetailActions`.
-- En `AssignForkliftsCard`, añadir un `Alert` sutil (variant warning) arriba cuando `!isComplete`: *"Faltan N equipos por asignar para poder facturar."*
-
-### 4. Defensa servidor-side (ligera)
-La validación principal vive en UI porque la creación de factura va por `/invoices/new?from_quote=...` (form prefill, no RPC atómica). Para evitar bypass por URL directa, en `useInvoicePrefill.ts` (que ya lee la cotización origen) añadir guard: si `quote_type = sale` y faltan asignaciones, mostrar `toast.error` y redirigir de vuelta al detalle.
-
-No se modifica DB ni RPC porque no hay una RPC de "factura desde cotización"; el form es manual editable.
-
-### 5. Changelog
-Patch **6.14.5**:
-- `public/changelog.json` + `public/changelog/v6.14.5.json`
-- Título: *"Cotizaciones de venta: facturación bloqueada hasta asignar todos los equipos del inventario"*.
+### 3. Changelog
+Patch **6.14.6** — "Auto-recarga cuando el navegador apunta a archivos viejos tras un nuevo deploy".
 
 ## Verificación
-1. Cotización venta aceptada **sin** asignaciones → botón Facturar deshabilitado con tooltip.
-2. Asignar parcialmente → tooltip muestra `1/2`.
-3. Asignar todo → botón habilitado, flujo normal.
-4. Cotización venta de sólo refacciones (sin líneas de equipo) → botón habilitado siempre.
-5. Entrar manual a `/invoices/new?from_quote=<incompleta>` → redirige con toast.
+
+No se puede reproducir sin un deploy real entre cargas, pero:
+1. `App` sigue arrancando sin warnings.
+2. En DevTools, disparar manualmente `window.dispatchEvent(new Event("vite:preloadError"))` provoca un reload.
+3. Borrar una cotización (flujo que el usuario reportó) sigue funcionando sin cambios.
+
+## Nota
+
+No se cambia la lógica de borrado ni rutas — el borrado funcionó, solo la recarga de la página de destino tropezó con el chunk obsoleto.
