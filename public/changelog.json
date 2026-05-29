@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.15.2",
+    "date": "2026-05-29",
+    "type": "patch",
+    "title": "Helper assertRowsAffected para prevenir éxitos silenciosos en mutaciones",
+    "category": "improvement"
+  },
+  {
     "version": "6.15.1",
     "date": "2026-05-29",
     "type": "patch",
