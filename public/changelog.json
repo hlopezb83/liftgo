@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.15.1",
+    "date": "2026-05-29",
+    "type": "patch",
+    "title": "Fix: actualizar nombre/rol de otros usuarios desde Gestión de Usuarios",
+    "category": "fix"
+  },
+  {
     "version": "6.15.0",
     "date": "2026-05-29",
     "type": "minor",
