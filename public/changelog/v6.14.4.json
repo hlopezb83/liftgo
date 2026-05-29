@@ -1,0 +1,13 @@
+{
+  "version": "6.14.4",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Cotizaciones: el equipo seleccionado ahora se muestra en el selector de asignación",
+  "category": "bugfix",
+  "description": "En cotizaciones aceptadas de venta, al elegir un equipo del inventario en 'Asignar Equipos del Inventario' el selector quedaba en blanco aunque el valor sí estuviera tomado. El filtro de equipos ya seleccionados en otras líneas estaba desmontando el ítem recién elegido, impidiendo que Radix Select pintara su etiqueta.",
+  "changes": [
+    "AssignForkliftsCard ahora calcula los equipos ocupados por línea, excluyendo la selección de la propia línea",
+    "AssignForkliftsLineRow conserva siempre montado el ítem seleccionado como defensa en profundidad",
+    "El nombre y S/N del equipo elegido vuelven a aparecer en el trigger y el botón Asignar se habilita correctamente"
+  ]
+}

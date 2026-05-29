@@ -78,7 +78,7 @@ export function AssignForkliftsLineRow({
                 <div className="px-3 py-2 text-sm text-muted-foreground">Sin equipos disponibles</div>
               ) : (
                 available
-                  .filter((f) => !selectedElsewhere.has(f.id))
+                  .filter((f) => f.id === selectedValue || !selectedElsewhere.has(f.id))
                   .map((f) => (
                     <SelectItem key={f.id} value={f.id}>
                       {f.name} {f.serial_number ? `— S/N: ${f.serial_number}` : ""}

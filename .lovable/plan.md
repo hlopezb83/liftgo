@@ -1,26 +1,52 @@
-## Objetivo
-Eliminar mezclas español/inglés en strings visibles. El caso reportado: el toast dice "Cotización marcada como accepted" porque interpola el status crudo de la BD (en inglés) dentro de un texto en español.
+# Fix: el equipo seleccionado no se visualiza en el selector
 
-## Plan
+## Causa raíz
 
-### 1. Corregir los toasts con status interpolado (inmediato)
-En estos archivos el patrón es `\`X marcada como ${status}\`` con `status` crudo:
-- `src/features/quotes/hooks/quoteDetail/useQuoteConversionActions.ts` — usar `quoteStatusLabel(status)` (ya existe en `src/features/quotes/constants.ts`).
-- `src/features/contracts/hooks/contractDetail/useContractDetailLogic.ts` — usar la etiqueta localizada de status de contrato (revisar `STATUS_LABELS` en `src/lib/constants.ts`).
-- `src/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions.ts` — usar etiqueta localizada de status de factura.
+En `src/features/quotes/components/quotes/AssignForkliftsCard.tsx` línea 47:
 
-### 2. Búsqueda amplia con dos agentes en paralelo
-- **Agente A — Toasts y mensajes runtime**: buscar todos los `toast.success/error/info/warning`, `notifyError`, `notifySuccess`, `sonner` calls que interpolen variables con valores enum/status crudos (ej. `accepted`, `pending`, `draft`, `sent`, `completed`, `cancelled`, `paid`, `open`, `closed`). Reportar archivo, línea, snippet y corrección sugerida (label localizado).
-- **Agente B — UI estática y formularios**: buscar strings hardcodeados en inglés dentro de componentes (`.tsx`), placeholders, labels, headers de tabla, validation messages de Zod, botones, títulos de diálogos. Excluir: nombres de variables, comentarios, `console.log`, archivos de tipos generados (`integrations/supabase/types.ts`), librerías ui shadcn intactas.
+```ts
+const selectedElsewhere = new Set(Object.values(selections));
+```
 
-Cada agente entrega una tabla concisa: `archivo:línea | string actual | español sugerido`.
+Este `Set` se pasa igual a **todas** las líneas e incluye la selección de la línea actual. En `AssignForkliftsLineRow.tsx` línea 81, el filtro `!selectedElsewhere.has(f.id)` saca al equipo recién seleccionado del `SelectContent`. Como Radix `Select` necesita el `SelectItem` montado para que `SelectValue` resuelva la etiqueta, el trigger queda visualmente vacío aunque el `value` esté correcto.
 
-### 3. Aplicar correcciones de los agentes
-Revisar los reportes, priorizar por visibilidad al usuario (toasts > diálogos > placeholders > labels secundarios), y aplicar en lote. Si hay >20 cambios, agruparlos por módulo.
+La corrección de v6.14.4 que añadía `f.id === selectedValue || ...` en `AssignForkliftsLineRow` no aparece en el archivo actual (se revirtió o no se persistió).
 
-### 4. Changelog
-Versión patch `6.14.3`: "Localización: se eliminan mezclas español/inglés en toasts y UI" con detalle por módulo afectado.
+## Cambios
 
-## Notas técnicas
-- Los labels canónicos viven en `src/features/quotes/constants.ts` (`quoteStatusLabel`), `src/lib/constants.ts` (`STATUS_LABELS`) y por dominio en sus `constants`. Reutilizar, no duplicar.
-- No se tocan valores en BD ni enums Postgres — solo presentación.
+### 1. `AssignForkliftsCard.tsx`
+Calcular `selectedElsewhere` por línea, excluyendo la selección de la propia línea:
+
+```ts
+// Pasar selections completo en lugar de un Set compartido,
+// y construir el Set por línea dentro del map.
+```
+
+Más limpio: pasar `selections` y `index` al hijo y que él derive el Set; o construir un `selectedElsewhereByLine` dentro del `linesData.map`. Elijo la segunda opción para no cambiar la API del componente hijo más de lo necesario:
+
+```ts
+const selectedElsewhereForLine = (currentIndex: number) =>
+  new Set(
+    Object.entries(selections)
+      .filter(([k]) => Number(k) !== currentIndex)
+      .map(([, v]) => v)
+  );
+```
+
+Y al renderizar cada `AssignForkliftsLineRow` pasar `selectedElsewhere={selectedElsewhereForLine(index)}`.
+
+### 2. `AssignForkliftsLineRow.tsx` (defensa en profundidad)
+Reaplicar el guard para que, aun si llegara un Set "contaminado", el ítem seleccionado siempre se mantenga montado:
+
+```tsx
+.filter((f) => f.id === selectedValue || !selectedElsewhere.has(f.id))
+```
+
+### 3. Changelog
+Nueva entrada patch **6.14.5**:
+- `public/changelog.json` — añadir entrada al inicio
+- `public/changelog/v6.14.5.json` — detalle: "Cotizaciones: corregido el selector de asignación de equipos del inventario que dejaba el campo en blanco tras seleccionar una opción".
+
+## Verificación
+
+Recargar la cotización aceptada `/quotes/a0b9a559-...`, abrir el selector de **Asignar Equipos del Inventario**, elegir un equipo y confirmar que el nombre + S/N quedan visibles en el trigger y que el botón **Asignar** se habilita.
