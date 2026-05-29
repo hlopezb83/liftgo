@@ -47,11 +47,14 @@ export function useAssignForklift() {
         .in("id", ids);
       const statusById = new Map((currentForklifts ?? []).map((f) => [f.id, f.status]));
 
-      const { error: updateError } = await supabase
+      const { data: soldRows, error: updateError } = await supabase
         .from("forklifts")
         .update({ status: "sold" })
-        .in("id", ids);
+        .in("id", ids)
+        .select("id");
       if (updateError) throw updateError;
+      assertRowsAffected(soldRows, "Marcar montacargas como vendidos");
+
 
       const logs = assignments.map((a) => ({
         forklift_id: a.forkliftId,
