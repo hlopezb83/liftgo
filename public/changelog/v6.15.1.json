@@ -1,0 +1,11 @@
+{
+  "version": "6.15.1",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Fix: actualizar nombre/rol de otros usuarios desde Gestión de Usuarios",
+  "category": "fix",
+  "changes": [
+    "Se agregaron políticas RLS para que admin y administrativo puedan actualizar el perfil de cualquier usuario (antes RLS filtraba la fila y el UPDATE afectaba 0 registros sin lanzar error).",
+    "useUpdateName y useUpdateRole ahora verifican que el UPDATE realmente haya modificado al menos una fila; si no, lanzan un error visible con 'Ver detalles' en lugar de mostrar un éxito falso."
+  ]
+}
