@@ -9,8 +9,15 @@ export function useUpdateRole() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
-      const { error } = await supabase.from("user_roles").update({ role }).eq("user_id", userId);
+      const { data, error } = await supabase
+        .from("user_roles")
+        .update({ role })
+        .eq("user_id", userId)
+        .select("user_id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("No se actualizó ningún registro. Verifica tus permisos.");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
@@ -24,8 +31,15 @@ export function useUpdateName() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, fullName }: { userId: string; fullName: string }) => {
-      const { error } = await supabase.from("profiles").update({ full_name: fullName }).eq("user_id", userId);
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName })
+        .eq("user_id", userId)
+        .select("user_id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("No se actualizó ningún registro. Verifica tus permisos.");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
