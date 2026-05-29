@@ -87,10 +87,13 @@ export function useUnassignForklift() {
         .eq("id", assignmentId);
       if (error) throw error;
 
-      await supabase
+      const { data: availRows, error: availErr } = await supabase
         .from("forklifts")
         .update({ status: "available" })
-        .eq("id", forkliftId);
+        .eq("id", forkliftId)
+        .select("id");
+      if (availErr) throw availErr;
+      assertRowsAffected(availRows, "Liberar montacargas");
 
       await supabase.from("status_logs").insert({
         forklift_id: forkliftId,
