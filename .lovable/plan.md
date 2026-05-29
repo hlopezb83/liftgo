@@ -1,52 +1,49 @@
-# Fix: el equipo seleccionado no se visualiza en el selector
+# Bloquear facturación de venta sin equipos asignados
 
-## Causa raíz
+## Regla de negocio
+Una cotización de tipo **venta** sólo podrá facturarse cuando **todas las líneas de "Venta de equipo"** tengan asignados los equipos del inventario indicados en su cantidad (`assignedCount === quantity` para cada línea).
 
-En `src/features/quotes/components/quotes/AssignForkliftsCard.tsx` línea 47:
-
-```ts
-const selectedElsewhere = new Set(Object.values(selections));
-```
-
-Este `Set` se pasa igual a **todas** las líneas e incluye la selección de la línea actual. En `AssignForkliftsLineRow.tsx` línea 81, el filtro `!selectedElsewhere.has(f.id)` saca al equipo recién seleccionado del `SelectContent`. Como Radix `Select` necesita el `SelectItem` montado para que `SelectValue` resuelva la etiqueta, el trigger queda visualmente vacío aunque el `value` esté correcto.
-
-La corrección de v6.14.4 que añadía `f.id === selectedValue || ...` en `AssignForkliftsLineRow` no aparece en el archivo actual (se revirtió o no se persistió).
+Las cotizaciones sin líneas de venta de equipo (ej. sólo refacciones o servicio) no se ven afectadas: se podrán facturar como hoy.
 
 ## Cambios
 
-### 1. `AssignForkliftsCard.tsx`
-Calcular `selectedElsewhere` por línea, excluyendo la selección de la propia línea:
+### 1. Hook nuevo: `useQuoteSaleAssignmentStatus`
+`src/features/quotes/hooks/quoteDetail/useQuoteSaleAssignmentStatus.ts` — recibe `quoteId` y `lineItems`, consume `useQuoteAssignments`, y regresa:
 
 ```ts
-// Pasar selections completo en lugar de un Set compartido,
-// y construir el Set por línea dentro del map.
+{
+  hasSaleLines: boolean;
+  totalRequired: number;     // suma de quantity de líneas "Venta de equipo"
+  totalAssigned: number;     // suma de asignaciones reales
+  isComplete: boolean;       // hasSaleLines === false || (todas las líneas completas)
+  missingByLine: Array<{ index: number; description: string; assigned: number; required: number }>;
+}
 ```
 
-Más limpio: pasar `selections` y `index` al hijo y que él derive el Set; o construir un `selectedElsewhereByLine` dentro del `linesData.map`. Elijo la segunda opción para no cambiar la API del componente hijo más de lo necesario:
+Detección de línea de venta: misma heurística que `AssignForkliftsCard.parseDescription` — sufijo `"- Venta de equipo"` en `item.description`. Centralizar el helper en `src/features/quotes/utils/saleLines.ts` para que `AssignForkliftsCard` también lo importe (evita duplicación).
 
-```ts
-const selectedElsewhereForLine = (currentIndex: number) =>
-  new Set(
-    Object.entries(selections)
-      .filter(([k]) => Number(k) !== currentIndex)
-      .map(([, v]) => v)
-  );
-```
+### 2. `QuoteDetailActions.tsx`
+- Añadir prop `canInvoice: boolean` y `invoiceBlockedReason?: string`.
+- En el bloque del botón **Facturar** (líneas 52-56), si `!canInvoice`, renderizar el botón **deshabilitado** envuelto en `<Tooltip>` con el mensaje (ej. *"Asigna los equipos del inventario antes de facturar (1/2 asignados)"*).
+- Mantener el botón habilitado cuando `canInvoice === true`.
 
-Y al renderizar cada `AssignForkliftsLineRow` pasar `selectedElsewhere={selectedElsewhereForLine(index)}`.
+### 3. `QuoteDetail.tsx`
+- Invocar el hook nuevo y pasar `canInvoice` + `invoiceBlockedReason` a `QuoteDetailActions`.
+- En `AssignForkliftsCard`, añadir un `Alert` sutil (variant warning) arriba cuando `!isComplete`: *"Faltan N equipos por asignar para poder facturar."*
 
-### 2. `AssignForkliftsLineRow.tsx` (defensa en profundidad)
-Reaplicar el guard para que, aun si llegara un Set "contaminado", el ítem seleccionado siempre se mantenga montado:
+### 4. Defensa servidor-side (ligera)
+La validación principal vive en UI porque la creación de factura va por `/invoices/new?from_quote=...` (form prefill, no RPC atómica). Para evitar bypass por URL directa, en `useInvoicePrefill.ts` (que ya lee la cotización origen) añadir guard: si `quote_type = sale` y faltan asignaciones, mostrar `toast.error` y redirigir de vuelta al detalle.
 
-```tsx
-.filter((f) => f.id === selectedValue || !selectedElsewhere.has(f.id))
-```
+No se modifica DB ni RPC porque no hay una RPC de "factura desde cotización"; el form es manual editable.
 
-### 3. Changelog
-Nueva entrada patch **6.14.5**:
-- `public/changelog.json` — añadir entrada al inicio
-- `public/changelog/v6.14.5.json` — detalle: "Cotizaciones: corregido el selector de asignación de equipos del inventario que dejaba el campo en blanco tras seleccionar una opción".
+### 5. Changelog
+Patch **6.14.5**:
+- `public/changelog.json` + `public/changelog/v6.14.5.json`
+- Título: *"Cotizaciones de venta: facturación bloqueada hasta asignar todos los equipos del inventario"*.
 
 ## Verificación
-
-Recargar la cotización aceptada `/quotes/a0b9a559-...`, abrir el selector de **Asignar Equipos del Inventario**, elegir un equipo y confirmar que el nombre + S/N quedan visibles en el trigger y que el botón **Asignar** se habilita.
+1. Cotización venta aceptada **sin** asignaciones → botón Facturar deshabilitado con tooltip.
+2. Asignar parcialmente → tooltip muestra `1/2`.
+3. Asignar todo → botón habilitado, flujo normal.
+4. Cotización venta de sólo refacciones (sin líneas de equipo) → botón habilitado siempre.
+5. Entrar manual a `/invoices/new?from_quote=<incompleta>` → redirige con toast.
