@@ -1,11 +1,7 @@
-import { ReactNode, Children, isValidElement } from "react";
+import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MoreVertical } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ArrowLeft } from "lucide-react";
 
 interface DetailPageHeaderProps {
   title: string;
@@ -13,18 +9,18 @@ interface DetailPageHeaderProps {
   badges?: ReactNode;
   backTo: string;
   actions?: ReactNode;
-  /** Acción primaria que se mantiene visible en móvil. Las demás se colapsan al menú. */
+  /** Acción primaria, se muestra primero en la barra de acciones. */
   primaryAction?: ReactNode;
 }
 
 export function DetailPageHeader({ title, subtitle, badges, backTo, actions, primaryAction }: DetailPageHeaderProps) {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const handleBack = () => {
     const savedParams = sessionStorage.getItem(`list-filters:${backTo}`);
     navigate(savedParams ? `${backTo}?${savedParams}` : backTo);
   };
+
 
   // Nota: `actions` suele venir como un único componente wrapper, por lo que
   // contar Children no es confiable. Apilamos siempre que haya acciones para
