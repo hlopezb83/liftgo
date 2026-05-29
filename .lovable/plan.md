@@ -1,44 +1,36 @@
-# Fix: "Failed to fetch dynamically imported module" tras redeploy
 
-## Causa raíz
+## Problema
 
-Después de un nuevo deploy, los chunks con hash anterior (`QuotesPage-CXtStOvh.js`) dejan de existir en el CDN. Cuando el usuario navega a una ruta `lazy()` cargada después del deploy, el import dinámico falla y React Suspense propaga el error al ErrorBoundary.
+Al borrar una cotización de venta con equipos asignados (`quote_assigned_forklifts`), los montacargas quedan con `status = 'sold'` huérfano y desaparecen del inventario disponible. Hoy `useDeleteQuote` solo hace `DELETE FROM quotes` sin tocar asignaciones ni estatus.
 
-Vite emite el evento `vite:preloadError` para exactamente este caso. La solución estándar es escucharlo y forzar `window.location.reload()` una sola vez — el navegador descargará el `index.html` fresco con los nuevos hashes.
+## Solución propuesta
 
-## Cambios
+Al eliminar una cotización, liberar automáticamente los equipos asignados (revertir a `available` + log) de forma atómica vía RPC. También arreglar los equipos ya afectados.
 
-### 1. `src/main.tsx`
-Añadir listener antes del `createRoot`:
+### 1. Migración: RPC `delete_quote_with_unassign`
 
-```ts
-window.addEventListener("vite:preloadError", (event) => {
-  // Evita loop si la recarga también falla
-  if (sessionStorage.getItem("vite-preload-reload") === "1") return;
-  sessionStorage.setItem("vite-preload-reload", "1");
-  event.preventDefault();
-  window.location.reload();
-});
+Función `SECURITY DEFINER` con `SET search_path = public` que en una sola transacción:
+1. Lee asignaciones de la cotización (`quote_assigned_forklifts`).
+2. Para cada `forklift_id`: `UPDATE forklifts SET status='available'` (solo si está `sold`) e inserta en `status_logs` con nota *"Liberado por eliminación de cotización {quote_number}"*.
+3. Borra `quote_assigned_forklifts` de esa cotización.
+4. Borra la `quote`.
 
-// Limpia el flag tras carga exitosa
-window.addEventListener("load", () => {
-  sessionStorage.removeItem("vite-preload-reload");
-});
-```
+Permisos: ejecutable por roles que ya pueden borrar cotizaciones (admin, ventas, etc.) — se valida con `has_role`.
 
-### 2. `src/layouts/ErrorBoundary.tsx` (defensa en profundidad)
-Si el error que cae al boundary contiene el mensaje "Failed to fetch dynamically imported module" o "Importing a module script failed", recargar automáticamente (mismo guard de sessionStorage). Esto cubre casos donde el error no pase por el evento `preloadError` (p. ej. import disparado por código no-preload).
+### 2. Frontend — `useDeleteQuote` (`src/features/quotes/hooks/quotes/useQuotes.ts`)
 
-### 3. Changelog
-Patch **6.14.6** — "Auto-recarga cuando el navegador apunta a archivos viejos tras un nuevo deploy".
+Reemplazar el `supabase.from("quotes").delete()` por `callRpc("delete_quote_with_unassign", { p_quote_id: id })`. Invalidar también `["forklifts"]`, `["forklift-options"]`, `["quote_assigned_forklifts"]` y `["status_logs"]`.
 
-## Verificación
+### 3. Backfill puntual
 
-No se puede reproducir sin un deploy real entre cargas, pero:
-1. `App` sigue arrancando sin warnings.
-2. En DevTools, disparar manualmente `window.dispatchEvent(new Event("vite:preloadError"))` provoca un reload.
-3. Borrar una cotización (flujo que el usuario reportó) sigue funcionando sin cambios.
+Script SQL (insert tool) para los equipos que quedaron `sold` sin asignación viva: detectar `forklifts.status='sold'` que no aparezcan en ninguna `quote_assigned_forklifts` ni en ventas reales (invoice de venta), y regresarlos a `available` con log *"Corrección: cotización eliminada previamente"*. Antes de aplicar, validar con `read_query` la lista candidata para que el usuario confirme.
 
-## Nota
+### 4. Changelog
 
-No se cambia la lógica de borrado ni rutas — el borrado funcionó, solo la recarga de la página de destino tropezó con el chunk obsoleto.
+Patch `6.14.7` en `public/changelog.json` + `public/changelog/v6.14.7.json`.
+
+## Notas técnicas
+
+- No se cambia el flujo de UI (sin diálogo extra). El usuario sigue confirmando con el `AlertDialog` actual.
+- La operación es atómica: si falla el unassign, no se borra la cotización.
+- No se tocan equipos cuya venta ya fue facturada (status sigue `sold` solo si hay invoice asociada — la heurística del backfill lo respeta).

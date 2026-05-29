@@ -2112,6 +2112,10 @@ export type Database = {
         Returns: string
       }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
+      delete_quote_with_unassign: {
+        Args: { p_quote_id: string }
+        Returns: undefined
+      }
       generate_feedback_number: { Args: never; Returns: string }
       get_available_forklifts: {
         Args: { p_end_date: string; p_start_date: string }
