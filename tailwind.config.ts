@@ -70,6 +70,10 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         status: {
           available: "hsl(var(--status-available))",
           rented: "hsl(var(--status-rented))",

@@ -1,0 +1,21 @@
+{
+  "version": "6.14.0",
+  "date": "2026-05-28",
+  "type": "minor",
+  "title": "Sistema unificado de toasts con reporte de error copiable",
+  "category": "feature",
+  "description": "Nuevo sistema para que los errores de la app generen un reporte estructurado que el usuario puede copiar y enviar a soporte con un click. Construido sobre sonner (sin migrar los 91 archivos existentes).",
+  "changes": [
+    "ErrorReport con requestId UUID v4, código de error, ruta, usuario, viewport, stack y contexto",
+    "Catálogo de códigos (errorCatalog.ts) con núcleo y dominio LiftGo (bookings, quotes, invoices, CFDI, etc.) y mensajes en español mexicano",
+    "Extractor de errores que normaliza Error nativo, PostgrestError, ZodError (directo o en cause) y Response HTTP",
+    "Snapshot sincrónico de auth (authSnapshot) usable fuera de hooks; se actualiza vía AuthSnapshotSync",
+    "Store con useSyncExternalStore para abrir el diálogo de detalles sin Context ni re-renders globales",
+    "ErrorDetailsDialog global con botón 'Copiar reporte' (navigator.clipboard)",
+    "notifyError / notifyWarning / notifySuccess en lib/ui/appFeedback.ts — los errores son persistentes con acción 'Ver detalles'",
+    "Wrapper crmToast.ts con success/error/info/undo para acciones simples del CRM",
+    "Tokens semánticos --warning agregados (--success ya existía); variantes success/warning/error en sonner.tsx con borde lateral semántico",
+    "Sin nuevas dependencias; sonner sigue siendo la base"
+  ],
+  "migration": "Las llamadas existentes a toast.success/error/info de sonner siguen funcionando idéntico. Para errores de mutación se recomienda migrar gradualmente a notifyError({ error, phase, context }) para obtener reporte copiable."
+}

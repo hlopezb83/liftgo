@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorDetailsDialog } from "@/components/ui/ErrorDetailsDialog";
+import { AuthSnapshotSync } from "@/lib/ui/AuthSnapshotSync";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,8 +23,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <AuthSnapshotSync />
           <TooltipProvider>
             <Sonner />
+            <ErrorDetailsDialog />
             {children}
           </TooltipProvider>
         </AuthProvider>

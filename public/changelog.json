@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.14.0",
+    "date": "2026-05-28",
+    "type": "minor",
+    "title": "Sistema unificado de toasts con reporte de error copiable",
+    "category": "feature"
+  },
+  {
     "version": "6.13.10",
     "date": "2026-05-28",
     "type": "patch",
