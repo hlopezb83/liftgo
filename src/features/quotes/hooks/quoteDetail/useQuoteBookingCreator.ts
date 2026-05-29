@@ -49,7 +49,13 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
       );
 
       if (bookingIds.length > 0) {
-        await supabase.from("bookings").update({ quote_id: quote.id }).in("id", bookingIds);
+        const { data: linked, error: linkErr } = await supabase
+          .from("bookings")
+          .update({ quote_id: quote.id })
+          .in("id", bookingIds)
+          .select("id");
+        if (linkErr) throw linkErr;
+        assertRowsAffected(linked, "Vincular reservas a cotización");
       }
       updateQuote.mutate({ id: quote.id, status: "accepted" });
       toast.success(`${bookingIds.length} reserva(s) creada(s) desde cotización`);
