@@ -1,0 +1,25 @@
+{
+  "version": "6.15.0",
+  "date": "2026-05-29",
+  "type": "minor",
+  "title": "Migración global a notifyError/notifyWarning con botón \"Ver detalles\"",
+  "category": "improvement",
+  "description": "Todos los toasts de error y advertencia ahora se generan vía notifyError/notifyWarning, lo que adjunta un reporte estructurado y un botón \"Ver detalles\" para copiar el stack, contexto, código Postgres y mensaje traducido.",
+  "changes": [
+    "Migradas 177 llamadas a toast.error/toast.warning en 77 archivos (hooks de dominio, páginas, componentes y validaciones de formulario).",
+    "Handler global en AppProviders: si una mutación define onError local, se omite el toast global para evitar notificaciones duplicadas.",
+    "Imports limpiados: archivos sin uso restante de `toast` ya no importan sonner directamente.",
+    "El sistema cubre ahora: bookings, expenses, maintenance, invoices, quotes, fleet, CRM, customers, damage, returns, deliveries, suppliers, feedback, contracts, inventory, help, changelog, audit, company settings, users y operations."
+  ],
+  "technical": {
+    "filesChanged": 77,
+    "callsMigrated": 177,
+    "newFiles": [],
+    "modifiedFiles": [
+      "src/layouts/AppProviders.tsx",
+      "src/features/**/hooks/**",
+      "src/features/**/components/**",
+      "src/features/**/pages/**"
+    ]
+  }
+}
