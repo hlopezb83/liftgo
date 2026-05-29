@@ -11,6 +11,7 @@ import { QuoteCustomerCard } from "@/features/quotes/components/quotes/QuoteCust
 import { QuoteDatesCard } from "@/features/quotes/components/quotes/QuoteDatesCard";
 import { QuoteHeaderBadges } from "@/features/quotes/components/quotes/QuoteHeaderBadges";
 import { useQuoteDetailLogic } from "@/features/quotes/hooks/useQuoteDetailLogic";
+import { useQuoteSaleAssignmentStatus } from "@/features/quotes/hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -27,6 +28,12 @@ export default function QuoteDetail() {
 
   const currency = (quote as unknown as { currency?: string }).currency;
   const showAssignCard = isSale && quote.status === "accepted";
+  const assignmentStatus = useQuoteSaleAssignmentStatus(quote.id, lineItems);
+  const canInvoice = !isSale || assignmentStatus.isComplete;
+  const invoiceBlockedReason = assignmentStatus.isComplete
+    ? undefined
+    : `Asigna los equipos del inventario antes de facturar (${assignmentStatus.totalAssigned}/${assignmentStatus.totalRequired} asignados)`;
+
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
