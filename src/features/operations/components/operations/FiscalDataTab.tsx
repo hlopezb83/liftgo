@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -86,7 +87,7 @@ export function FiscalDataTab() {
       }
       toast.success("Datos fiscales guardados");
     } catch (_err) {
-      toast.error("No se pudieron guardar los datos fiscales");
+      notifyError({ message: "No se pudieron guardar los datos fiscales" });
     }
   };
 

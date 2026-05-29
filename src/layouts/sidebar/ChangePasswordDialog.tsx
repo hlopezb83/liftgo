@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,18 +22,18 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("La contraseña debe tener al menos 6 caracteres");
+      notifyError({ message: "La contraseña debe tener al menos 6 caracteres" });
       return;
     }
     if (password !== confirm) {
-      toast.error("Las contraseñas no coinciden");
+      notifyError({ message: "Las contraseñas no coinciden" });
       return;
     }
     setLoading(true);
     const { error } = await updatePassword(password);
     setLoading(false);
     if (error) {
-      toast.error("Error al cambiar contraseña", { description: error.message });
+      notifyError({ title: "Error al cambiar contraseña", error: error });
     } else {
       toast.success("Contraseña actualizada correctamente");
       setPassword("");

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -29,12 +30,12 @@ export function useCancelCfdi() {
     },
     onSuccess: (data, { invoiceId }) => {
       toast.success("CFDI cancelado");
-      if (data?.warning) toast.warning(data.warning);
+      if (data?.warning) notifyWarning({ title: data.warning });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["invoice", invoiceId] });
     },
     onError: (err: unknown) => {
-      toast.error(err instanceof Error ? err.message : "Error al cancelar");
+      notifyError({ error: err, message: "Error al cancelar" });
     },
   });
 }

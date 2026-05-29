@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
 
   const handleSubmit = () => {
     const amt = Number(amount);
-    if (!amt || amt <= 0) { toast.error("Monto inválido"); return; }
+    if (!amt || amt <= 0) { notifyError({ message: "Monto inválido" }); return; }
     updatePayment.mutate(
       {
         id: payment.id,
@@ -59,7 +60,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
           toast.success("Pago actualizado");
           onOpenChange(false);
         },
-        onError: (err) => toast.error(err.message),
+        onError: (err) => notifyError({ error: err }),
       }
     );
   };

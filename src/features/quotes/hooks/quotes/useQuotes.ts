@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { callRpc } from "@/lib/rpc";
-import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 export type { Quote } from "@/types/rental";
 import type { Quote } from "@/types/rental";
@@ -45,7 +45,7 @@ export function useCreateQuote() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
     onError: (err: Error) => {
-      toast.error("Error al crear cotización", { description: err.message });
+      notifyError({ title: "Error al crear cotización", error: err });
     },
   });
 }
@@ -60,7 +60,7 @@ export function useUpdateQuote() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
     onError: (err: Error) => {
-      toast.error("Error al actualizar cotización", { description: err.message });
+      notifyError({ title: "Error al actualizar cotización", error: err });
     },
   });
 }
@@ -84,7 +84,7 @@ export function useDeleteQuote() {
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
-      toast.error("Error al eliminar cotización", { description: err.message });
+      notifyError({ title: "Error al eliminar cotización", error: err });
     },
   });
 }

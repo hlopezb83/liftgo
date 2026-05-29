@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -33,9 +34,7 @@ export function useGenerateRecurringMaintenance() {
       }
     },
     onError: (err: unknown) => {
-      toast.error(
-        err instanceof Error ? err.message : "Error al generar mantenimiento recurrente",
-      );
+      notifyError({ error: err, message: "Error al generar mantenimiento recurrente" });
     },
   });
 }

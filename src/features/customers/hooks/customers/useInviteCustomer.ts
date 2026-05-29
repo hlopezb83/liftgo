@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -34,9 +35,7 @@ export function useInviteCustomer() {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
     },
     onError: (err: unknown) => {
-      toast.error("Error", {
-        description: err instanceof Error ? err.message : "Error desconocido",
-      });
+      notifyError({ error: err, title: "Error", description: err instanceof Error ? err.message : "Error desconocido", });
     },
   });
 }

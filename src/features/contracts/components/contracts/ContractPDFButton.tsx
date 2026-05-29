@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FileDown, ChevronDown } from "lucide-react";
-import { toast } from "sonner";
 import type { ContractData } from "@/lib/pdf/contract/data";
 import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
 import { buildContractPdf } from "@/features/contracts/lib/contractPdfBuilder";
@@ -17,7 +17,7 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
     try {
       await buildContractPdf(contract, mode);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al generar PDF");
+      notifyError({ error: err, message: "Error al generar PDF" });
     } finally {
       setLoading(false);
     }

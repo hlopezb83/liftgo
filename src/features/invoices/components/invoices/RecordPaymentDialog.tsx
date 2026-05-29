@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance }: 
 
   const handleSubmit = () => {
     const amt = Number(amount);
-    if (!amt || amt <= 0) { toast.error("Monto inválido"); return; }
+    if (!amt || amt <= 0) { notifyError({ message: "Monto inválido" }); return; }
     createPayment.mutate(
       { invoice_id: invoiceId, amount: amt, payment_date: format(date, "yyyy-MM-dd"), payment_method: method, reference_number: reference || null, notes: notes || null },
       {
@@ -53,7 +54,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance }: 
           setReference("");
           setNotes("");
         },
-        onError: (err) => toast.error(err.message),
+        onError: (err) => notifyError({ error: err }),
       }
     );
   };

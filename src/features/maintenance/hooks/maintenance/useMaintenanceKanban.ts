@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/ui/appFeedback";
+
 import type { DropResult } from "@hello-pangea/dnd";
 import {
   useUpdateMaintenanceLog,
@@ -29,7 +30,7 @@ export function useMaintenanceKanban() {
       {
         onError: () => {
           queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
-          toast.error("Error al actualizar estado");
+          notifyError({ message: "Error al actualizar estado" });
         },
       },
     );

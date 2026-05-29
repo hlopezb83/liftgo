@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { nowMty } from "@/lib/utils";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type { Forklift } from "@/types/rental";
@@ -19,7 +19,7 @@ async function insertCostoVentaIfSold(forkliftId: string, toStatus: string) {
     is_recurring: false,
   });
   if (expError) {
-    toast.warning("No se pudo registrar el costo de venta automáticamente", { description: expError.message });
+    notifyWarning({ title: "No se pudo registrar el costo de venta automáticamente", description: expError.message });
   }
 }
 
@@ -38,7 +38,7 @@ export function useCreateForklift() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
     onError: (err: Error) => {
-      toast.error("Error al crear montacargas", { description: err.message });
+      notifyError({ title: "Error al crear montacargas", error: err });
     },
   });
 }
@@ -61,7 +61,7 @@ export function useUpdateForklift() {
       queryClient.invalidateQueries({ queryKey: ["insurance-alerts"] });
     },
     onError: (err: Error) => {
-      toast.error("Error al actualizar montacargas", { description: err.message });
+      notifyError({ title: "Error al actualizar montacargas", error: err });
     },
   });
 }

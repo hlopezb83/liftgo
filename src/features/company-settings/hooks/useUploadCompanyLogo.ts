@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -7,11 +8,11 @@ export function useUploadCompanyLogo() {
 
   const upload = async (file: File): Promise<string | null> => {
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("El archivo no debe superar 2MB");
+      notifyError({ message: "El archivo no debe superar 2MB" });
       return null;
     }
     if (!file.type.startsWith("image/")) {
-      toast.error("Solo se permiten archivos de imagen");
+      notifyError({ message: "Solo se permiten archivos de imagen" });
       return null;
     }
 
@@ -25,7 +26,7 @@ export function useUploadCompanyLogo() {
       toast.success("Logo subido correctamente");
       return urlData.publicUrl;
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al subir logo");
+      notifyError({ error: err, message: "Error al subir logo" });
       return null;
     } finally {
       setUploading(false);

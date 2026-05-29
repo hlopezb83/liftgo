@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts/hooks/useContractTemplates";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ export function ContractTemplateTab() {
   const handleSave = async () => {
     const invalidClause = clauses.find((c) => !c.title.trim() || !c.body.trim());
     if (invalidClause) {
-      toast.error("Todas las cláusulas deben tener título y contenido.");
+      notifyError({ message: "Todas las cláusulas deben tener título y contenido." });
       return;
     }
     try {
@@ -57,7 +58,7 @@ export function ContractTemplateTab() {
       });
       toast.success("Plantilla guardada correctamente.");
     } catch {
-      toast.error("Error al guardar la plantilla.");
+      notifyError({ message: "Error al guardar la plantilla." });
     }
   };
 

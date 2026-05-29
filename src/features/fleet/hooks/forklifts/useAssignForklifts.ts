@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -63,7 +64,7 @@ export function useAssignForklift() {
     onSuccess: () => {
       toast.success("Equipos asignados correctamente");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => notifyError({ error: err }),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });
@@ -97,7 +98,7 @@ export function useUnassignForklift() {
     onSuccess: () => {
       toast.success("Equipo desasignado");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => notifyError({ error: err }),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });

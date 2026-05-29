@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { USERS_QUERY_KEY } from "../useUsersQuery";
@@ -16,6 +17,6 @@ export function useInviteUser() {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
       toast.success("Usuario creado exitosamente");
     },
-    onError: (err: Error) => toast.error("Error al crear usuario", { description: err.message }),
+    onError: (err: Error) => notifyError({ title: "Error al crear usuario", error: err }),
   });
 }

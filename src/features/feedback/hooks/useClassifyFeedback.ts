@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-
 export function useClassifyFeedback() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -16,7 +15,7 @@ export function useClassifyFeedback() {
       queryClient.invalidateQueries({ queryKey: ["feedback_reports"] });
     },
     onError: (err: Error) => {
-      toast.error("No se pudo clasificar con AI", { description: err.message });
+      notifyError({ title: "No se pudo clasificar con AI", error: err });
     },
   });
 }

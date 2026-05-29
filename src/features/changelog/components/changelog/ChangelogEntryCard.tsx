@@ -1,4 +1,5 @@
 import { Link as LinkIcon, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { es } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +26,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
     const url = `${window.location.origin}/changelog#v${entry.version}`;
     navigator.clipboard.writeText(url).then(
       () => toast.success("Enlace copiado"),
-      () => toast.error("No se pudo copiar el enlace"),
+      () => notifyError({ message: "No se pudo copiar el enlace" }),
     );
   };
 

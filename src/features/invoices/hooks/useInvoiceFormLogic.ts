@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { useBookings, type BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useInvoice, useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
@@ -56,9 +56,7 @@ export function useInvoiceFormLogic() {
     if (isEdit || !sourceQuote || !fromQuoteId) return;
     if (sourceQuote.quote_type !== "sale") return;
     if (quoteAssignmentStatus.isComplete) return;
-    toast.error(
-      `Asigna los equipos del inventario antes de facturar (${quoteAssignmentStatus.totalAssigned}/${quoteAssignmentStatus.totalRequired})`,
-    );
+    notifyError({ title: `Asigna los equipos del inventario antes de facturar (${quoteAssignmentStatus.totalAssigned}/${quoteAssignmentStatus.totalRequired})` });
     navigate(`/quotes/${fromQuoteId}`, { replace: true });
   }, [isEdit, sourceQuote, fromQuoteId, quoteAssignmentStatus, navigate]);
 

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { quoteStatusLabel } from "@/features/quotes/constants";
 import { useUpdateQuote, useDeleteQuote } from "@/features/quotes/hooks/quotes/useQuotes";
@@ -31,7 +32,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     if (!id) return;
     deleteQuote.mutate(id, {
       onSuccess: () => { toast.success("Cotización eliminada"); navigate("/quotes"); },
-      onError: (err: Error) => toast.error(err.message),
+      onError: (err: Error) => notifyError({ error: err }),
     });
   };
 

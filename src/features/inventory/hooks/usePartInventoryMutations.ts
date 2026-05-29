@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { PartInventory } from "./usePartsInventory";
 
@@ -14,7 +14,7 @@ export function useCreatePart() {
       return data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
-    onError: (err: Error) => toast.error("Error al crear refacción", { description: err.message }),
+    onError: (err: Error) => notifyError({ title: "Error al crear refacción", error: err }),
   });
 }
 
@@ -39,7 +39,7 @@ export function useDeletePart() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
-    onError: (err: Error) => toast.error("Error al eliminar refacción", { description: err.message }),
+    onError: (err: Error) => notifyError({ title: "Error al eliminar refacción", error: err }),
   });
 }
 
@@ -67,6 +67,6 @@ export function useAddMaintenancePart() {
       queryClient.invalidateQueries({ queryKey: ["parts_inventory"] });
       queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
     },
-    onError: (err: Error) => toast.error("Error al agregar refacción", { description: err.message }),
+    onError: (err: Error) => notifyError({ title: "Error al agregar refacción", error: err }),
   });
 }

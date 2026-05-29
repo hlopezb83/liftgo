@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 export type { DamageRecord } from "@/types/rental";
 
@@ -29,7 +29,7 @@ export function useCreateDamageRecord() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
     onError: (err: Error) => {
-      toast.error("Error al crear registro de daño", { description: err.message });
+      notifyError({ title: "Error al crear registro de daño", error: err });
     },
   });
 }
@@ -44,7 +44,7 @@ export function useUpdateDamageRecord() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
     onError: (err: Error) => {
-      toast.error("Error al actualizar registro de daño", { description: err.message });
+      notifyError({ title: "Error al actualizar registro de daño", error: err });
     },
   });
 }

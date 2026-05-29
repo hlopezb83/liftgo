@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
@@ -29,7 +30,7 @@ export function useCreateMaintenanceLog() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
     onError: (err: Error) => {
       import("sonner").then(({ toast }) =>
-        toast.error("Error al crear registro de mantenimiento", { description: err.message })
+        notifyError({ title: "Error al crear registro de mantenimiento", error: err })
       );
     },
   });
@@ -57,7 +58,7 @@ export function useDeleteMaintenanceLog() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
     onError: (err: Error) => {
       import("sonner").then(({ toast }) =>
-        toast.error("Error al eliminar registro de mantenimiento", { description: err.message })
+        notifyError({ title: "Error al eliminar registro de mantenimiento", error: err })
       );
     },
   });

@@ -32,6 +32,9 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error, _vars, _ctx, mutation) => {
       if (mutation.meta?.silent) return;
+      // Si la mutación ya tiene un onError local, dejamos que él maneje el toast
+      // (típicamente usando notifyError) para evitar notificaciones duplicadas.
+      if (mutation.options.onError) return;
       notifyError({ error, phase: "mutation" });
     },
   }),

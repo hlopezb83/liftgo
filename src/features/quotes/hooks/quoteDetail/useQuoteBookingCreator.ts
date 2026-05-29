@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
@@ -60,7 +61,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
         buildDeliveryInfos(quote, customers, forklifts, assignments.map((a) => a.forkliftId), bookingIds),
       );
     } catch (err: unknown) {
-      toast.error(`Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}`);
+      notifyError({ message: `Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}` });
     } finally {
       state.setIsConverting(false);
     }
@@ -70,7 +71,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
     if (!quote || !forklifts) return;
     const ids = resolveLegacyForkliftIds(quote, forklifts);
     if (ids.length === 0) {
-      toast.error("No se encontraron montacargas para crear reservas");
+      notifyError({ message: "No se encontraron montacargas para crear reservas" });
       return;
     }
     const assignments = ids.map((fId) => ({ forkliftId: fId, dailyRate: 0, weeklyRate: 0, monthlyRate: 0 }));

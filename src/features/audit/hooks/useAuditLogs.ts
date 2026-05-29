@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -66,7 +67,7 @@ export function useDeleteAuditLog() {
       toast.success("Registro eliminado correctamente");
     },
     onError: () => {
-      toast.error("Error al eliminar el registro");
+      notifyError({ message: "Error al eliminar el registro" });
     },
   });
 }
@@ -85,7 +86,7 @@ export function useRevertAuditLog() {
       toast.success("Acción revertida y registro eliminado correctamente");
     },
     onError: (error: Error) => {
-      toast.error(error?.message || "Error al revertir la acción");
+      notifyError({ message: error?.message || "Error al revertir la acción" });
     },
   });
 }

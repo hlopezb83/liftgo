@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PasswordValidationError } from "@/features/users/lib/PasswordValidationError";
@@ -25,7 +26,7 @@ export function useResetPassword() {
     },
     onError: (err: Error) => {
       if (err instanceof PasswordValidationError) return;
-      toast.error("Error al actualizar contraseña", { description: err.message });
+      notifyError({ title: "Error al actualizar contraseña", error: err });
     },
   });
 }

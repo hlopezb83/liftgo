@@ -1,4 +1,5 @@
 import { PageTransition } from "@/components/PageTransition";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Eye, Minus, Loader2 } from "lucide-react";
@@ -38,7 +39,7 @@ export default function RolePermissionsPage() {
       { role, module, access_level: next },
       {
         onSuccess: () => toast.success(`${ROLE_LABELS[role]} → ${module}: ${accessConfig[next].label}`),
-        onError: () => toast.error("Error al actualizar permiso"),
+        onError: () => notifyError({ message: "Error al actualizar permiso" }),
       }
     );
   };

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { nowMty } from "@/lib/utils";
 import type { TablesInsert } from "@/integrations/supabase/types";
 
@@ -55,7 +55,7 @@ export function useCreateReturnInspection() {
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
-      toast.error("Error al completar inspección de retorno", { description: err.message });
+      notifyError({ title: "Error al completar inspección de retorno", error: err });
     },
   });
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,19 +36,19 @@ export default function AuthPage() {
   const runSubmit = async () => {
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
-      if (error) toast.error(error.message);
+      if (error) notifyError({ error: error });
       else toast.success("Revisa tu correo para restablecer tu contraseña");
       return;
     }
     if (mode === "reset") {
       const { error } = await updatePassword(password);
-      if (error) { toast.error(error.message); return; }
+      if (error) { notifyError({ error: error }); return; }
       toast.success("Contraseña actualizada");
       setMode("sign-in");
       return;
     }
     const { error } = await signIn(email, password);
-    if (error) toast.error(error.message);
+    if (error) notifyError({ error: error });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

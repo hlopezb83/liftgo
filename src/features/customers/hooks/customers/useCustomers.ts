@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Customer = Tables<"customers">;
@@ -27,7 +27,7 @@ export function useCreateCustomer() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      toast.error("Error al crear cliente", { description: err.message });
+      notifyError({ title: "Error al crear cliente", error: err });
     },
   });
 }
@@ -42,7 +42,7 @@ export function useUpdateCustomer() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      toast.error("Error al actualizar cliente", { description: err.message });
+      notifyError({ title: "Error al actualizar cliente", error: err });
     },
   });
 }
@@ -56,7 +56,7 @@ export function useDeleteCustomer() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
     onError: (err: Error) => {
-      toast.error("Error al eliminar cliente", { description: err.message });
+      notifyError({ title: "Error al eliminar cliente", error: err });
     },
   });
 }

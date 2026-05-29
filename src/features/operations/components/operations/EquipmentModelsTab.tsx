@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, EquipmentModel } from "@/features/fleet/hooks/useEquipmentModels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,7 @@ export function EquipmentModelsTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.manufacturer || !form.model) { toast.error("Fabricante y modelo son requeridos"); return; }
+    if (!form.manufacturer || !form.model) { notifyError({ message: "Fabricante y modelo son requeridos" }); return; }
     const payload = { manufacturer: form.manufacturer, model: form.model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type, default_daily_rate: form.default_daily_rate ? parseFloat(form.default_daily_rate) : 0, default_weekly_rate: form.default_weekly_rate ? parseFloat(form.default_weekly_rate) : 0, default_monthly_rate: form.default_monthly_rate ? parseFloat(form.default_monthly_rate) : 0 };
     if (editId) {
       update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); } });
