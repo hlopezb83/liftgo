@@ -1,0 +1,13 @@
+{
+  "version": "6.14.1",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Fix layout de botones en encabezados de detalle",
+  "category": "bugfix",
+  "description": "El encabezado de detalle (cotizaciones, facturas, reservas, etc.) contaba mal las acciones cuando venían dentro de un componente wrapper, por lo que los botones competían con el título y lo truncaban a 'C...'. Ahora, cuando hay acciones, siempre se renderizan en una segunda fila alineada a la derecha con wrap, dejando el título y los badges respirar.",
+  "changes": [
+    "DetailPageHeader: layout de dos filas estable cuando hay acciones",
+    "Se elimina el conteo de Children (poco confiable con wrappers) y la colapsa-a-menú móvil que dependía de él",
+    "El título de cotización deja de mostrarse como 'C...' en viewports intermedios"
+  ]
+}
