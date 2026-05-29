@@ -1,74 +1,91 @@
-# Bug: el nombre no se guarda pero el toast dice "éxito"
+# Auditoría: otras tablas/mutaciones con el mismo riesgo
 
-## Causa raíz
+## Hallazgos a nivel RLS (tablas)
 
-La tabla `profiles` solo tiene esta política de UPDATE:
+Revisé todas las políticas `UPDATE`/`DELETE` del esquema `public`. Después del fix de `profiles`, **solo queda una tabla con el mismo patrón estricto**:
 
-```
-Users can update own profile  →  USING (auth.uid() = user_id)
-```
+| Tabla | Política UPDATE/DELETE | ¿Riesgo de éxito silencioso? |
+|---|---|---|
+| `notifications` | solo `auth.uid() = user_id` | ⚠️ Sí, si algún flujo admin intenta marcar/eliminar notificaciones ajenas. |
+| Resto (`activity_feed`, `billing_secrets`, `contract_templates`, `forklifts`, `maintenance_parts`, `parts_inventory`, `suppliers`, `user_roles`, etc.) | Cubiertas por `FOR ALL` de admin/administrativo más roles explícitos. | ✅ No. |
 
-No existe ninguna política que permita a `admin` o `administrativo` actualizar el `profiles` de **otro** usuario. Cuando un admin edita el nombre de `ventas@liftgo.com.mx`, RLS filtra la fila y el `UPDATE` afecta **0 filas**, pero Supabase **no devuelve error** (RLS sobre UPDATE simplemente excluye filas no visibles). 
+**Acción RLS sugerida**: ninguna por ahora — `notifications` solo se manipula desde el propio usuario en el código actual (`rg "from(\"notifications\")"` no encuentra writes admin). Si algún día se agrega un panel admin, replicar el patrón de `profiles`.
 
-En `useUpdateName` (src/features/users/hooks/users/useUserMutations.ts) solo se valida `if (error) throw error`, nunca se revisa cuántas filas se modificaron, así que se dispara `toast.success("Nombre actualizado")` aunque nada haya cambiado en BD.
+## Hallazgo principal: anti-patrón en el frontend
 
-El mismo patrón existe en `useUpdateRole` (sobre `user_roles`), aunque las policies de esa tabla sí dan acceso a admin.
+El bug raíz **no es solo de `profiles`**: es que **cualquier mutación que llame `.update().eq()` sin `.select()` ni verificación de filas** dispara `onSuccess` aunque RLS filtre la fila y modifique 0 registros.
 
-## Plan
+Hay **27 archivos** con `.update()` (sin contar tests). Aunque hoy las policies cubren los flujos actuales, el sistema es frágil: cualquier cambio de policy o cualquier mutación cruzada (ej. un dispatcher tocando un campo restringido) volverá a producir el "toast verde mentiroso" que el usuario acaba de reportar.
 
-### 1. Migración SQL — policies de `profiles`
+## Plan en 2 fases
 
-Agregar policies para que admin y administrativo puedan actualizar/insertar perfiles ajenos:
+### Fase 1 — Helper compartido (esta entrega)
 
-```sql
-CREATE POLICY "Admins update any profile"
-  ON public.profiles FOR UPDATE TO authenticated
-  USING (has_role(auth.uid(), 'admin'::app_role))
-  WITH CHECK (has_role(auth.uid(), 'admin'::app_role));
-
-CREATE POLICY "Administrativo update any profile"
-  ON public.profiles FOR UPDATE TO authenticated
-  USING (has_role(auth.uid(), 'administrativo'::app_role))
-  WITH CHECK (has_role(auth.uid(), 'administrativo'::app_role));
-```
-
-(Solo UPDATE. INSERT/DELETE de perfiles ajenos ya está cubierto por el trigger de `auth.users` y el flujo de `delete-user` Edge Function con service role; no se tocan.)
-
-### 2. Defensa en código — `useUpdateName`
-
-Cambiar el `update` para pedir confirmación de filas afectadas y disparar `notifyError` si no se modificó nada:
+Crear `src/lib/supabase/assertRowsAffected.ts`:
 
 ```ts
-const { data, error } = await supabase
-  .from("profiles")
-  .update({ full_name: fullName })
-  .eq("user_id", userId)
-  .select("user_id");
-if (error) throw error;
-if (!data || data.length === 0) {
-  throw new Error("No se actualizó ningún registro. Verifica tus permisos.");
+export function assertRowsAffected<T>(
+  data: T[] | null,
+  context: string,
+): asserts data is T[] {
+  if (!data || data.length === 0) {
+    throw new Error(
+      `${context}: no se modificó ningún registro. Verifica tus permisos o que el registro exista.`,
+    );
+  }
 }
 ```
 
-Esto blinda el hook contra futuros silencios de RLS y aprovecha el sistema `notifyError` ya migrado (Ver detalles muestra el contexto exacto).
+Y un patrón canónico:
 
-### 3. Defensa equivalente — `useUpdateRole`
+```ts
+const { data, error } = await supabase
+  .from("tabla")
+  .update({...})
+  .eq("id", id)
+  .select("id");
+if (error) throw error;
+assertRowsAffected(data, "Actualizar tabla");
+```
 
-Aplicar el mismo patrón `.select()` + validación de filas. Aunque hoy `user_roles` sí permite a admin, este es el mismo anti-pattern y conviene cerrarlo en el mismo cambio para evitar otro "success silencioso".
+Reutilizar en `useUpdateName`/`useUpdateRole` que ya quedaron arreglados (refactor para usar el helper, sin cambiar comportamiento).
 
-### 4. Changelog
+### Fase 2 — Migración progresiva (prioridad alta → baja)
 
-Patch `6.15.1` en `public/changelog.json` + `public/changelog/v6.15.1.json`:
-- Fix: admins pueden actualizar nombres de otros usuarios.
-- Fix: mutaciones de usuarios ahora detectan updates en cero filas y muestran error real en lugar de éxito falso.
+Aplicar el patrón a los 27 archivos en este orden por impacto operativo:
+
+**Alta prioridad** (mutaciones que un admin/staff hace sobre datos de otros):
+1. `useProspectMutations.ts` — CRM (Ventas vs Closed Won)
+2. `useBookingMutations.ts` / `useBookingExtensions.ts` — reservas
+3. `useInvoices.ts` / `usePayments.ts` — cobranza
+4. `useQuotes.ts` / `useQuoteBookingCreator.ts` — cotizaciones
+5. `useContracts.ts` / `useContractTemplates.ts` — contratos
+6. `useDamageRecords.ts` — daños
+7. `useDeliveries.ts` — entregas
+8. `useMaintenanceLogs.ts` / `useMaintenancePolicies.ts` / `useMechanics.ts`
+9. `useForkliftMutations.ts` / `useAssignForklifts.ts` / `useEquipmentModels.ts` / `useDrivers.ts`
+10. `useSuppliers.ts` / `useCustomers.ts`
+11. `useUpdateExpense.ts`
+12. `usePartInventoryMutations.ts`
+13. `useRolePermissions.ts` / `useBillingSecrets.ts` / `useCompanySettings.ts`
+
+Cada archivo se convierte por separado (1 commit lógico por archivo, sin tocar lógica de negocio).
+
+## Recomendación de alcance
+
+Te propongo **hacer Fase 1 completa + Fase 2 alta prioridad (puntos 1–5)** en esta misma entrega. El resto puede ir en un PR de seguimiento si prefieres separar el riesgo de revisión.
+
+**Cambio de DB**: ninguno (no es necesario tocar más policies hoy).
+
+**Changelog**: patch `6.15.2` describiendo el helper y la lista de hooks migrados.
+
+## Verificación
+
+- `npx tsc --noEmit` + `eslint` limpios.
+- Smoke manual: editar un registro como rol que no tiene permiso → debe aparecer error con "Ver detalles" en vez de éxito.
 
 ## Fuera de alcance
 
-- Otras tablas con el mismo patrón (no hay reportes activos).
-- Refactor general del hook a un util `assertRowsAffected`.
-
-## Verificación post-implementación
-
-1. Como admin, editar nombre de `ventas@liftgo.com.mx` → debe persistir y refrescar lista.
-2. Quitar temporalmente la nueva policy (mental check) → la mutación ahora debe mostrar error "Ver detalles" en vez de éxito.
-3. `npx tsc --noEmit` y `eslint` limpios.
+- Cambios de RLS en `notifications` (sin caso de uso actual).
+- Inserts/Deletes (el mismo patrón aplica pero con menor frecuencia de bug; se puede atacar en otra ronda).
+- Renombrar `notifyError` o tocar `appFeedback.ts`.

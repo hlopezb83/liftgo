@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { telemetry } from "@/lib/telemetry";
@@ -71,12 +72,14 @@ export function useUpdatePermission() {
 
   return useMutation({
     mutationFn: async ({ role, module, access_level }: { role: AppRole; module: string; access_level: AccessLevel }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("role_permissions")
         .update({ access_level, updated_at: nowMty().toISOString() })
         .eq("role", role)
-        .eq("module", module);
+        .eq("module", module)
+        .select("role");
       if (error) throw error;
+      assertRowsAffected(data, "Actualizar permiso de rol");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["role_permissions"] });

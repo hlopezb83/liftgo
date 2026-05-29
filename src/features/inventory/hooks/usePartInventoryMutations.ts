@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { PartInventory } from "./usePartsInventory";
 
@@ -56,10 +57,11 @@ export function useAddMaintenancePart() {
       const partCost = (insertRow.quantity_used || 1) * (insertRow.cost_at_time || 0);
       const newTotalCost = (currentLogCost || 0) + partCost;
 
-      const { error: updateError } = await supabase
-        .from("maintenance_logs").update({ cost: newTotalCost }).eq("id", insertRow.maintenance_log_id);
+      const { data: logUpdated, error: updateError } = await supabase
+        .from("maintenance_logs").update({ cost: newTotalCost }).eq("id", insertRow.maintenance_log_id).select("id");
 
       if (updateError) throw updateError;
+      assertRowsAffected(logUpdated, "Actualizar costo de mantenimiento");
       return data;
     },
     onSuccess: (_data, variables) => {

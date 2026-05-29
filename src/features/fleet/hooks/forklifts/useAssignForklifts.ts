@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { toast } from "sonner";
 
 import type { Tables } from "@/integrations/supabase/types";
@@ -46,11 +47,14 @@ export function useAssignForklift() {
         .in("id", ids);
       const statusById = new Map((currentForklifts ?? []).map((f) => [f.id, f.status]));
 
-      const { error: updateError } = await supabase
+      const { data: soldRows, error: updateError } = await supabase
         .from("forklifts")
         .update({ status: "sold" })
-        .in("id", ids);
+        .in("id", ids)
+        .select("id");
       if (updateError) throw updateError;
+      assertRowsAffected(soldRows, "Marcar montacargas como vendidos");
+
 
       const logs = assignments.map((a) => ({
         forklift_id: a.forkliftId,
@@ -83,10 +87,13 @@ export function useUnassignForklift() {
         .eq("id", assignmentId);
       if (error) throw error;
 
-      await supabase
+      const { data: availRows, error: availErr } = await supabase
         .from("forklifts")
         .update({ status: "available" })
-        .eq("id", forkliftId);
+        .eq("id", forkliftId)
+        .select("id");
+      if (availErr) throw availErr;
+      assertRowsAffected(availRows, "Liberar montacargas");
 
       await supabase.from("status_logs").insert({
         forklift_id: forkliftId,

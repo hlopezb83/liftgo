@@ -55,9 +55,13 @@ export async function applyRatesToForklifts(assignments: Assignment[]): Promise<
     .filter((u) => Object.keys(u.payload).length > 0);
 
   const results = await Promise.all(
-    updates.map((u) => supabase.from("forklifts").update(u.payload).eq("id", u.forkliftId)),
+    updates.map((u) =>
+      supabase.from("forklifts").update(u.payload).eq("id", u.forkliftId).select("id"),
+    ),
   );
-  return results.filter((r) => !r.error).length;
+  // Cuenta updates que (a) no fallaron y (b) realmente modificaron una fila.
+  // Si RLS filtra la fila, .select() devuelve [] sin error: no debe contarse.
+  return results.filter((r) => !r.error && Array.isArray(r.data) && r.data.length > 0).length;
 }
 
 /**

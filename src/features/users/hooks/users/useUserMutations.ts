@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { toast } from "sonner";
 import type { AppRole } from "@/features/users/hooks/useUserRole";
 import { USERS_QUERY_KEY } from "./useUsersQuery";
@@ -15,9 +16,7 @@ export function useUpdateRole() {
         .eq("user_id", userId)
         .select("user_id");
       if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error("No se actualizó ningún registro. Verifica tus permisos.");
-      }
+      assertRowsAffected(data, "Actualizar rol");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
@@ -37,9 +36,7 @@ export function useUpdateName() {
         .eq("user_id", userId)
         .select("user_id");
       if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error("No se actualizó ningún registro. Verifica tus permisos.");
-      }
+      assertRowsAffected(data, "Actualizar nombre");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });

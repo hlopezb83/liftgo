@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
 import { parseJsonbArray } from "@/lib/lineItems";
 
@@ -56,14 +57,16 @@ export function useUpdateContractTemplate() {
   return useMutation({
     mutationFn: async (template: Partial<ContractTemplate> & { id: string }) => {
       const { id, ...rest } = template;
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("contract_templates")
         .update({
           ...rest,
           updated_at: nowMty().toISOString(),
         } as Record<string, unknown>)
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (error) throw error;
+      assertRowsAffected(data, "Actualizar plantilla de contrato");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contract_templates"] });
