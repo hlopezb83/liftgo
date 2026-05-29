@@ -1,13 +1,16 @@
-import { useMemo } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { useBookings, type BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useInvoice, useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useQuoteAssignments } from "@/features/fleet/hooks/forklifts/useAssignForklifts";
+import { useQuoteSaleAssignmentStatus } from "@/features/quotes/hooks/quoteDetail/useQuoteSaleAssignmentStatus";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import {
   invoiceFormSchema,
   buildEmptyInvoiceValues,
