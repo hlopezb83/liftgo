@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type { Forklift } from "@/types/rental";
