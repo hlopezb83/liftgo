@@ -26,6 +26,7 @@ export type { InvoiceFormValues, LineItemValues };
 
 export function useInvoiceFormLogic() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fromQuoteId = searchParams.get("from_quote");
   const isEdit = !!id;
@@ -44,6 +45,23 @@ export function useInvoiceFormLogic() {
   });
 
   useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form });
+
+  const quoteLineItems = useMemo<LineItem[]>(
+    () => (Array.isArray(sourceQuote?.line_items) ? (sourceQuote?.line_items as unknown as LineItem[]) : []),
+    [sourceQuote],
+  );
+  const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(fromQuoteId || undefined, quoteLineItems);
+
+  useEffect(() => {
+    if (isEdit || !sourceQuote || !fromQuoteId) return;
+    if (sourceQuote.quote_type !== "sale") return;
+    if (quoteAssignmentStatus.isComplete) return;
+    toast.error(
+      `Asigna los equipos del inventario antes de facturar (${quoteAssignmentStatus.totalAssigned}/${quoteAssignmentStatus.totalRequired})`,
+    );
+    navigate(`/quotes/${fromQuoteId}`, { replace: true });
+  }, [isEdit, sourceQuote, fromQuoteId, quoteAssignmentStatus, navigate]);
+
   const submit = useInvoiceFormSubmit();
   const { handleCustomerSelect, handleBookingSelect } = useInvoiceFormHandlers({ form, customers, bookings, forklifts });
   const totals = useInvoiceFormTotals(form);
