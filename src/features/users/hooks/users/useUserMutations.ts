@@ -36,9 +36,7 @@ export function useUpdateName() {
         .eq("user_id", userId)
         .select("user_id");
       if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error("No se actualizó ningún registro. Verifica tus permisos.");
-      }
+      assertRowsAffected(data, "Actualizar nombre");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
