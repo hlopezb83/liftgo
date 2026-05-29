@@ -1,0 +1,14 @@
+{
+  "version": "6.15.2",
+  "date": "2026-05-29",
+  "type": "patch",
+  "title": "Helper assertRowsAffected para prevenir éxitos silenciosos en mutaciones",
+  "category": "improvement",
+  "summary": "Se introdujo el helper compartido assertRowsAffected y se migraron las mutaciones que actualizaban sin .select().single(), las cuales podían reportar éxito aunque RLS filtrara la fila objetivo.",
+  "changes": [
+    "Nuevo helper src/lib/supabase/assertRowsAffected.ts: lanza error real cuando una actualización afecta 0 filas, integrándose con notifyError y el botón 'Ver detalles'.",
+    "Migradas mutaciones inseguras (.update() sin .single()) a .select('id') + assertRowsAffected: useUpdateRole, useUpdateName, useRolePermissions, useUpdateStatus de montacargas, useAssignForklifts, useBookingExtensions, useContractTemplates, useUpdateExpense, syncInvoiceStatus en usePayments, usePartInventoryMutations, useQuoteBookingCreator y quoteBookingBuilders.",
+    "El resto de hooks (.update().select().single()) ya eran seguros porque .single() lanza PGRST116 cuando RLS filtra la fila; se documenta y no requieren cambios.",
+    "Auditoría completa de UPDATE/DELETE RLS en todas las tablas: solo notifications conserva política estricta auth.uid()=user_id; el resto está cubierto por FOR ALL admin/administrativo."
+  ]
+}
