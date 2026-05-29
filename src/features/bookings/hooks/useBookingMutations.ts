@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useCreateBooking() {
@@ -25,7 +25,7 @@ export function useCreateBooking() {
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
-      toast.error("Error al crear reserva", { description: err.message });
+      notifyError({ title: "Error al crear reserva", error: err });
     },
   });
 }
@@ -42,7 +42,7 @@ export function useUpdateBooking() {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
     },
     onError: (err: Error) => {
-      toast.error("Error al actualizar reserva", { description: err.message });
+      notifyError({ title: "Error al actualizar reserva", error: err });
     },
   });
 }
@@ -59,7 +59,7 @@ export function useDeleteBooking() {
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });
     },
     onError: (err: Error) => {
-      toast.error("Error al eliminar reserva", { description: err.message });
+      notifyError({ title: "Error al eliminar reserva", error: err });
     },
   });
 }
@@ -77,7 +77,7 @@ export function useCancelBooking() {
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
-      toast.error("Error al cancelar reserva", { description: err.message });
+      notifyError({ title: "Error al cancelar reserva", error: err });
     },
   });
 }

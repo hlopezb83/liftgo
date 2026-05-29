@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { buildInvoicePdf } from "@/features/invoices/lib/pdf/build";
 
 export function useInvoicePdfDownload() {
@@ -10,7 +10,7 @@ export function useInvoicePdfDownload() {
     try {
       await buildInvoicePdf(invoiceId);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al descargar PDF");
+      notifyError({ error: err, message: "Error al descargar PDF" });
     } finally {
       setLoading(false);
     }

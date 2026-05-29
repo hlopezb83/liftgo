@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
@@ -44,7 +45,7 @@ export function useCreateInvoice() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["invoices"] }),
     onError: (err: Error) => {
-      toast.error("Error al crear factura", { description: err.message });
+      notifyError({ title: "Error al crear factura", error: err });
     },
   });
 }
@@ -62,7 +63,7 @@ export function useUpdateInvoice() {
       queryClient.invalidateQueries({ queryKey: ["invoices", data.id] });
     },
     onError: (err: Error) => {
-      toast.error("Error al actualizar factura", { description: err.message });
+      notifyError({ title: "Error al actualizar factura", error: err });
     },
   });
 }
@@ -79,7 +80,7 @@ export function useDeleteInvoice() {
       toast.success("Factura eliminada");
     },
     onError: (err: Error) => {
-      toast.error("Error al eliminar factura", { description: err.message });
+      notifyError({ title: "Error al eliminar factura", error: err });
     },
   });
 }

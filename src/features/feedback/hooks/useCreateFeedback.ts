@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -71,7 +72,7 @@ export function useCreateFeedback() {
       });
     },
     onError: (err: Error) => {
-      toast.error("No se pudo enviar el reporte", { description: err.message });
+      notifyError({ title: "No se pudo enviar el reporte", error: err });
     },
   });
 }

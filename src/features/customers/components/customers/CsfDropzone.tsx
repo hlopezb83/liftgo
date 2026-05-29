@@ -42,7 +42,7 @@ export function CsfDropzone({ onParsed }: Props) {
         toast.success("Datos fiscales extraídos. Revisa y completa la información.");
       },
       onError: (e: unknown) => {
-        toast.error(e instanceof Error ? e.message : "Error al procesar la constancia");
+        notifyError({ error: e, message: "Error al procesar la constancia" });
       },
     });
   }, [parseCsf, onParsed]);

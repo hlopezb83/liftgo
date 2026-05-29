@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -69,7 +70,7 @@ export function useBookingActionsLogic(booking: BookingWithForklift) {
       toast.success(`Estatus cambiado a ${STATUS_LABELS[newStatus] || newStatus}`);
       setStatusDialogOpen(false);
     } catch (err: unknown) {
-      toast.error("Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido"));
+      notifyError({ title: "Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido") });
     }
   };
 

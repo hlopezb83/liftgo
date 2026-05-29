@@ -26,7 +26,7 @@ export function useUploadCompanyLogo() {
       toast.success("Logo subido correctamente");
       return urlData.publicUrl;
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al subir logo");
+      notifyError({ error: err, message: "Error al subir logo" });
       return null;
     } finally {
       setUploading(false);

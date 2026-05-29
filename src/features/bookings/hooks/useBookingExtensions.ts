@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,6 +45,6 @@ export function useCreateBookingExtension() {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       toast.success("Reserva extendida exitosamente");
     },
-    onError: (err: Error) => toast.error("Error al extender reserva", { description: err.message }),
+    onError: (err: Error) => notifyError({ title: "Error al extender reserva", error: err }),
   });
 }

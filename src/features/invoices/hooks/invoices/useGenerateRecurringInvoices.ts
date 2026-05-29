@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -30,9 +31,7 @@ export function useGenerateRecurringInvoices() {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
     },
     onError: (err: unknown) => {
-      toast.error("Error al generar facturas", {
-        description: err instanceof Error ? err.message : "Intenta de nuevo.",
-      });
+      notifyError({ error: err, title: "Error al generar facturas", description: err instanceof Error ? err.message : "Intenta de nuevo.", });
     },
   });
 }

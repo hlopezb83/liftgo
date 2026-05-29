@@ -86,7 +86,7 @@ export function useRevertAuditLog() {
       toast.success("Acción revertida y registro eliminado correctamente");
     },
     onError: (error: Error) => {
-      toast.error(error?.message || "Error al revertir la acción");
+      notifyError({ message: error?.message || "Error al revertir la acción" });
     },
   });
 }

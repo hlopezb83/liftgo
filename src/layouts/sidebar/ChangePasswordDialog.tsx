@@ -33,7 +33,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
     const { error } = await updatePassword(password);
     setLoading(false);
     if (error) {
-      toast.error("Error al cambiar contraseña", { description: error.message });
+      notifyError({ title: "Error al cambiar contraseña", error: error });
     } else {
       toast.success("Contraseña actualizada correctamente");
       setPassword("");
