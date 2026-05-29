@@ -1,0 +1,9 @@
+{
+  "description": "Se restauró el sistema de detalles de errores: ahora los toasts de error muestran un botón 'Ver detalles' que abre un reporte estructurado copiable. Cableado global vía TanStack Query para que toda mutación o query fallida lo dispare automáticamente.",
+  "changes": [
+    "Restaurado src/lib/ui/appFeedback.ts (notifyError/notifyWarning/notifySuccess) y src/lib/errors/index.ts (getErrorMessage en español)",
+    "Cableado global en AppProviders: QueryCache.onError y MutationCache.onError disparan notifyError automáticamente",
+    "Opt-out por mutación/query vía meta.silent = true cuando se quiera manejar el error localmente",
+    "useDeleteUser migrado como ejemplo: ahora el toast del error 400 de delete-user es clickeable con detalles"
+  ]
+}
