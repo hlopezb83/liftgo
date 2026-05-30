@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.15.3",
+    "date": "2026-05-30",
+    "type": "patch",
+    "title": "Tests: actualizar asserts de quoteFormHelpers a la firma de notifyError",
+    "category": "fix"
+  },
+  {
     "version": "6.15.2",
     "date": "2026-05-29",
     "type": "patch",
