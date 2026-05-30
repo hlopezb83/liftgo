@@ -1,0 +1,13 @@
+{
+  "version": "6.15.3",
+  "date": "2026-05-30",
+  "type": "patch",
+  "title": "Tests: actualizar asserts de quoteFormHelpers a la firma de notifyError",
+  "category": "fix",
+  "description": "Se actualizaron 2 asserts obsoletos en quoteFormHelpers.test.ts que esperaban la firma vieja toast.error('mensaje'). Tras la migración global a notifyError, la llamada real es toast.error('Error', { description: 'mensaje', ... }). Los tests ahora validan el campo description con expect.objectContaining. Sin cambios en código de producción.",
+  "changes": [
+    "Actualizado assert de 'rechaza sin cliente' para validar description: 'Selecciona un cliente'",
+    "Actualizado assert de 'rechaza renta sin periodo' para validar description: 'Selecciona el periodo de renta'",
+    "Suite quoteFormHelpers ahora pasa 11/11"
+  ]
+}
