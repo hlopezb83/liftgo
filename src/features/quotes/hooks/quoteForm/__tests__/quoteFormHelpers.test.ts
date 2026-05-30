@@ -17,13 +17,19 @@ describe("validateQuoteForm", () => {
   it("rechaza sin cliente", () => {
     const ok = validateQuoteForm({ customerId: "", quoteType: "rental", rentalLines: [], saleLines: [] });
     expect(ok).toBe(false);
-    expect(toastError).toHaveBeenCalledWith("Selecciona un cliente");
+    expect(toastError).toHaveBeenCalledWith(
+      "Error",
+      expect.objectContaining({ description: "Selecciona un cliente" }),
+    );
   });
 
   it("rechaza renta sin periodo", () => {
     const ok = validateQuoteForm({ customerId: "c1", quoteType: "rental", rentalLines: [], saleLines: [] });
     expect(ok).toBe(false);
-    expect(toastError).toHaveBeenCalledWith("Selecciona el periodo de renta");
+    expect(toastError).toHaveBeenCalledWith(
+      "Error",
+      expect.objectContaining({ description: "Selecciona el periodo de renta" }),
+    );
   });
 
   it("rechaza renta sin líneas con tarifas", () => {
