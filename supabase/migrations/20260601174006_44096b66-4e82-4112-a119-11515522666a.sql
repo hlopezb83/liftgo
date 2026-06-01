@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.get_public_branding() TO anon, authenticated;

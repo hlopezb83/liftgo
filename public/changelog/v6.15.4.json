@@ -1,0 +1,11 @@
+{
+  "version": "6.15.4",
+  "date": "2026-06-01",
+  "type": "patch",
+  "title": "Fix: permiso de ejecución para get_public_branding en pantallas públicas",
+  "description": "Se otorgó permiso de ejecución (GRANT EXECUTE) del RPC get_public_branding a los roles anon e authenticated. Esto corrige el error 42501 (permission denied) que impedía cargar el logo y razón social en las pantallas públicas como /auth y /portal/login.",
+  "category": "fix",
+  "changes": [
+    "Migración SQL: GRANT EXECUTE ON FUNCTION public.get_public_branding() TO anon, authenticated"
+  ]
+}
