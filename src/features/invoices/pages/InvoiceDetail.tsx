@@ -16,6 +16,8 @@ import { InvoiceDetailActions } from "@/features/invoices/components/invoice-det
 import { InvoiceSourceLinks } from "@/features/invoices/components/invoice-detail/InvoiceSourceLinks";
 import { InvoiceSummaryCards } from "@/features/invoices/components/invoice-detail/InvoiceSummaryCards";
 import { InvoiceDetailDialogs } from "@/features/invoices/components/invoice-detail/InvoiceDetailDialogs";
+import { InvoiceCreditNotesCard } from "@/features/invoices/components/invoice-detail/InvoiceCreditNotesCard";
+import { useCreditNotesForInvoice } from "@/features/invoices/hooks/creditNotes/useCreditNotes";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
