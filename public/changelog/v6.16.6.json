@@ -1,0 +1,13 @@
+{
+  "version": "6.16.6",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Backfill automático de snapshot fiscal al timbrar facturas antiguas",
+  "category": "fix",
+  "description": "Las facturas creadas antes del snapshot fiscal (v6.16.3) no tenían los campos receptor_* ni los defaults SAT (forma_pago/metodo_pago/moneda) y bloqueaban el timbrado. Ahora 'Timbrar CFDI' hidrata automáticamente los nulos desde el cliente y aplica defaults (99/PPD/MXN) antes de validar y enviar a Facturapi, sin sobrescribir datos existentes.",
+  "changes": [
+    "handleStamp ejecuta backfillStampSnapshot que llena receptor_rfc, razon_social, regimen_fiscal, CP, uso_cfdi desde customers cuando están vacíos.",
+    "Aplica defaults SAT (forma_pago 99, metodo_pago PPD, moneda MXN, tipo_cambio 1) sólo si faltan.",
+    "Si tras el backfill aún faltan datos, se muestra el toast con los campos pendientes y se refresca la factura."
+  ]
+}

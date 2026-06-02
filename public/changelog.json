@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.6",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Backfill automático de snapshot fiscal al timbrar facturas antiguas",
+    "category": "fix"
+  },
+  {
     "version": "6.16.5",
     "date": "2026-06-02",
     "type": "patch",
