@@ -166,7 +166,17 @@ export default function OperatingExpensesPage() {
         mobileCardRender={mobileCard}
       />
 
-      <ExpenseFormDialog open={createDialog.open} onOpenChange={createDialog.setOpen} />
+      <ExpenseFormDialog
+        open={createDialog.open}
+        onOpenChange={(o) => { createDialog.setOpen(o); if (!o) setCfdiPrefill(null); }}
+        prefill={cfdiPrefill}
+      />
+
+      <CfdiImportDialog
+        open={cfdiDialog.open}
+        onOpenChange={cfdiDialog.setOpen}
+        onParsed={(p) => { setCfdiPrefill(p); createDialog.openDialog(); }}
+      />
 
       <ExpenseDetailSheet
         expense={detail.selected}
