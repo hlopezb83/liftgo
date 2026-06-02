@@ -4,7 +4,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "@/features/invoices/components/invoices/InvoicePDFButton";
-import { Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Printer, Trash2 } from "lucide-react";
+import { Send, CheckCircle, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -88,7 +88,7 @@ export function InvoiceDetailActions({
               </DropdownMenuItem>
             </>
           )}
-          <DropdownMenuItem onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" /> Imprimir</DropdownMenuItem>
+          
           <RoleGuard module="Facturas" minAccess="full">
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
