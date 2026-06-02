@@ -170,7 +170,7 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped
 
   return (
     <>
-      {totalPaid > 0 && (
+      {(totalPaid > 0 || creditedAmount > 0) && (
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
@@ -178,6 +178,12 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped
                 <p className="text-sm text-muted-foreground">Total Pagado</p>
                 <p className="text-lg font-mono font-bold text-green-600">{formatCurrency(totalPaid)}</p>
               </div>
+              {creditedAmount > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Notas de Crédito</p>
+                  <p className="text-lg font-mono font-bold text-blue-600">−{formatCurrency(creditedAmount)}</p>
+                </div>
+              )}
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
                 <p className={`text-lg font-mono font-bold ${balance <= 0 ? "text-green-600" : "text-destructive"}`}>{formatCurrency(balance)}</p>
