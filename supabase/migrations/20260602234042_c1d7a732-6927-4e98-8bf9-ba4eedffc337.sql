@@ -1,0 +1,2 @@
+ALTER TABLE public.operating_expenses ADD COLUMN IF NOT EXISTS cfdi_uuid TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS operating_expenses_cfdi_uuid_key ON public.operating_expenses(cfdi_uuid) WHERE cfdi_uuid IS NOT NULL;

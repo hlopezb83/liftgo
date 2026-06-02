@@ -1538,6 +1538,7 @@ export type Database = {
         Row: {
           amount: number
           category: Database["public"]["Enums"]["expense_category"]
+          cfdi_uuid: string | null
           created_at: string
           description: string | null
           expense_date: string
@@ -1549,6 +1550,7 @@ export type Database = {
         Insert: {
           amount?: number
           category: Database["public"]["Enums"]["expense_category"]
+          cfdi_uuid?: string | null
           created_at?: string
           description?: string | null
           expense_date?: string
@@ -1560,6 +1562,7 @@ export type Database = {
         Update: {
           amount?: number
           category?: Database["public"]["Enums"]["expense_category"]
+          cfdi_uuid?: string | null
           created_at?: string
           description?: string | null
           expense_date?: string

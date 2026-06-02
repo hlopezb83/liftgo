@@ -1,78 +1,110 @@
 
-## Diagnóstico (UI/UX)
+## Objetivo
 
-Captura visual: `/calendar` en vista Gantt → Mes. Detecté estos problemas:
+Permitir registrar un Gasto Operativo subiendo el XML del CFDI (factura). El sistema lo parsea, usa IA para sugerir categoría y proveedor, y abre el formulario de gasto pre-llenado para que el usuario confirme.
 
-1. **Etiqueta "HOY" sobrepuesta al número del día** en la cabecera (se monta encima del "2"). Es ilegible y luce como bug.
-2. **Toolbar ambigua**: las flechas y el botón "Hoy" no tienen tooltip ni texto que explique qué hacen. El usuario no sabe si navegan mes/semana o algo más.
-3. **Doble información en cada barra rentada**: el badge azul "Rentado" se monta sobre el nombre del cliente, generando overlap y ruido. La existencia de la barra ya implica que está rentado.
-4. **Filas "Disponibles" y "Vendidos" desperdician espacio**: son agrupadas por modelo pero ocupan una fila completa de Gantt con la grilla de días vacía a la derecha. La grilla no aporta nada porque no hay barras.
-5. **Marcador de "hoy" como columna pintada** compite con las barras y los fines de semana; un línea vertical fina es más limpia.
-6. **Identificadores largos** (`HPLTC015A0762/002`) sin truncado se llevan demasiado ancho de la columna izquierda.
-7. **Leyenda inferior duplica** los nombres de cliente que ya aparecen escritos sobre cada barra.
-8. **Cards de stats se cortan** en 1000px (el cuarto card "Utilización" queda parcialmente fuera).
+## Flujo de usuario
+
+1. En `/expenses` → botón **"Importar CFDI (XML)"** junto al actual "Registrar Gasto".
+2. Diálogo "Importar CFDI": dropzone que acepta `.xml` (o múltiples archivos en V1 = uno; multi-archivo lo dejamos fuera).
+3. Al soltar el XML:
+   - Se sube el contenido al edge function `parse-cfdi-expense`.
+   - Spinner "Analizando CFDI…".
+4. Respuesta → se abre `ExpenseFormDialog` pre-llenado con:
+   - `amount` = Total del CFDI
+   - `expense_date` = Fecha del CFDI
+   - `description` = "Factura {Folio/Serie} — {primer concepto}"
+   - `supplier_id` = match por RFC del Emisor, o sugerencia de crear nuevo proveedor (con botón "Crear proveedor con datos del CFDI")
+   - `category` = sugerida por IA (8 opciones del enum)
+   - Badge informativo: "📄 Datos extraídos del CFDI · UUID: …"
+5. Usuario revisa, edita si quiere, y guarda.
+
+## Anti-duplicados
+
+- Nueva columna `cfdi_uuid TEXT UNIQUE` en `operating_expenses`.
+- Al subir, el edge function verifica si el UUID ya existe y devuelve `{ duplicate: true, existing_id }` → el frontend muestra toast "Este CFDI ya fue registrado" con link al gasto existente.
 
 ## Cambios
 
-### 1. `GanttHeader.tsx` — fix "HOY" overlap y marcador
-- Eliminar la etiqueta "HOY" superpuesta al número del día.
-- Reemplazarla por:
-  - El número del día con `bg-primary text-primary-foreground` redondo cuando es hoy (sin texto extra).
-  - Una línea vertical de 1px (`bg-primary`) que cruza toda la grilla en la columna de hoy, marcada en el body.
-- Compactar la cabecera para que weekday + día queden en una sola celda alineada.
+### 1. Migración DB
+- `ALTER TABLE public.operating_expenses ADD COLUMN cfdi_uuid TEXT;`
+- `CREATE UNIQUE INDEX operating_expenses_cfdi_uuid_key ON public.operating_expenses(cfdi_uuid) WHERE cfdi_uuid IS NOT NULL;`
 
-### 2. `CalendarPage.tsx` — toolbar legible
-- Añadir `tooltip` a los botones de navegación con texto contextual:
-  - `ChevronLeft` → "Mes anterior" / "Semana anterior" según `ganttRange`.
-  - `Hoy` → "Ir a hoy".
-  - `ChevronRight` → "Mes siguiente" / "Semana siguiente".
-- Agregar `aria-label` matching.
+### 2. Edge function `supabase/functions/parse-cfdi-expense/index.ts`
+- Verifica JWT del usuario (rol admin/administrativo).
+- Recibe `{ xml: string }`.
+- Parser determinístico del XML (regex / `DOMParser` vía `deno-dom`):
+  - Atributos del nodo `cfdi:Comprobante`: `Total`, `Fecha`, `Folio`, `Serie`, `SubTotal`, `Moneda`.
+  - `cfdi:Emisor`: `Rfc`, `Nombre`, `RegimenFiscal`.
+  - `cfdi:Conceptos > cfdi:Concepto`: lista de `Descripcion`, `ClaveProdServ`.
+  - `tfd:TimbreFiscalDigital`: `UUID`.
+- Verifica duplicado por UUID contra `operating_expenses` con service role.
+- Busca proveedor existente por `rfc` (case-insensitive).
+- Llama a **Lovable AI** (`google/gemini-3-flash-preview`) con tool calling para clasificar la categoría:
+  - Input: lista de descripciones de conceptos + nombre/régimen del emisor.
+  - Tool `classify_expense` con enum: `renta | nomina | software | depreciacion | otro | costo_venta | caja_chica | publicidad`.
+- Devuelve:
+  ```json
+  {
+    "cfdi_uuid": "…",
+    "folio": "A-123",
+    "total": 11600.00,
+    "moneda": "MXN",
+    "fecha": "2026-05-30",
+    "emisor": { "rfc": "XAXX010101000", "nombre": "…", "regimen_fiscal": "…" },
+    "conceptos_resumen": "Renta de oficina mayo 2026",
+    "categoria_sugerida": "renta",
+    "supplier_match": { "id": "uuid", "name": "…" } | null,
+    "duplicate": false
+  }
+  ```
+- Manejo de errores 429/402 de Lovable AI con mensajes claros.
 
-### 3. `GanttRow.tsx` — barras más limpias
-- Quitar el badge `StatusBadge` ("Rentado") del lado izquierdo de la fila (la sección "Con renta activa o futura" ya lo comunica).
-- Mantener solo el nombre del montacargas en la columna izquierda.
-- Truncar nombres largos con `truncate` + `title` para tooltip nativo.
-- El nombre del cliente sigue dentro de la barra coloreada; sin overlap.
+### 3. Frontend
+- **`src/features/expenses/components/expenses/CfdiImportDialog.tsx`** (nuevo)
+  - Dropzone con `react-dropzone` (ya usado en damage tracking).
+  - Llama al edge function vía `supabase.functions.invoke('parse-cfdi-expense', { body: { xml } })`.
+  - Si `duplicate` → toast con link al existente, cierra.
+  - Si OK → cierra y abre `ExpenseFormDialog` pasando datos prefill (nueva prop opcional `prefill`).
+- **`ExpenseFormDialog.tsx`**: agregar prop opcional `prefill?: CfdiPrefill`. Si existe:
+  - Setear amount/date/description/category/supplier_id.
+  - Mostrar badge "📄 Pre-llenado desde CFDI · UUID: {uuid}" arriba del form.
+  - Al guardar, incluir `cfdi_uuid` en el insert.
+  - Si `supplier_match` es null pero hay emisor, mostrar mini-aviso "Proveedor {Nombre RFC} no existe" con botón "Crear proveedor" que abre `SupplierFormDialog` pre-llenado.
+- **`useCreateExpense`**: aceptar opcional `cfdi_uuid` en payload.
+- **`OperatingExpensesPage.tsx`**: agregar botón "Importar CFDI (XML)" junto al de registrar.
 
-### 4. `GanttChart.tsx` — Disponibles y Vendidos compactos
-- Reemplazar las filas de Gantt vacías para Disponibles y Vendidos por una sola sección compacta tipo "chip cloud":
-  - Una fila por sección con chips: `LIFT GO FB25 × 7`, `LIFT GO FB35 × 9`, etc.
-  - Sin grilla de días (no hay reservas que mostrar ahí).
-  - Mucho menor altura, foco visual queda en las barras de renta activa.
+### 4. Permisos
+- Edge function valida que el usuario sea admin o administrativo (mismo gate que tiene la tabla).
 
-### 5. `GanttRow.tsx` + `GanttGroupedRow.tsx` — línea vertical de "hoy"
-- Reemplazar el fondo `bg-primary/10 border-x border-primary/30` por una línea de 1px posicionada absoluta sobre la grilla (un solo elemento en `GanttChart`, no por celda) para evitar ruido y mejorar performance.
-
-### 6. Leyenda inferior
-- Mantener pero envuelta en un `Collapsible` cerrado por default ("Ver leyenda de clientes (N)") para reducir scroll y duplicación visual.
-
-### 7. Stat cards responsivos
-- En `CalendarStatCards.tsx`, asegurar `grid-cols-2 md:grid-cols-4` con `gap-3` para que no se corten a 1000px (verificar el componente actual y ajustar si hace falta).
-
-### Fuera de alcance
-- Sticky left column / sticky header (mejora futura, mayor refactor).
-- Cambios al modo Lista o a los hooks de bookings.
-- Filtros adicionales.
-
-### Changelog
-- `public/changelog/v6.20.4.json` (patch — mejoras UX del Gantt).
+### 5. Changelog
+- `public/changelog/v6.21.0.json` (minor — nueva funcionalidad).
 - Entrada en `public/changelog.json`.
+
+## Fuera de alcance
+
+- Subida masiva (varios XML a la vez) — V2.
+- Adjuntar el PDF/XML al gasto en Storage — V2.
+- Validación contra el SAT (timbrado vigente / cancelado) — V2.
+- Lectura del PDF (sólo XML por ahora).
 
 ## Detalles técnicos
 
 ```text
-Línea de hoy:
-GanttChart
-  └── div className="relative"
-      ├── header
-      ├── absolute top-0 bottom-0 w-px bg-primary (left: % calc)
-      └── rows
+Parseo XML CFDI 4.0 (namespaces típicos):
+  xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
+  xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital"
 
-Chip cloud Disponibles/Vendidos:
-<section>
-  <header sticky/>
-  <flex wrap gap-2>
-    {groups.map → <chip>LIFT GO FB25 <span class="opacity-60">× 7</span></chip>}
-  </flex>
-</section>
+Estrategia: usar deno-dom para tolerancia a namespaces,
+o regex robusto sobre atributos (suficiente para CFDI 4.0 bien formado).
+Preferencia: deno-dom (npm:linkedom) para evitar falsos negativos.
+```
+
+```text
+Lovable AI prompt (clasificador):
+system: "Clasifica gastos operativos de una empresa de renta de montacargas
+         en México en una de estas 8 categorías: renta, nomina, software,
+         depreciacion, otro, costo_venta, caja_chica, publicidad.
+         Usa tool calling. Si no hay señal clara, devuelve 'otro'."
+user:   "Emisor: {nombre} ({regimen}). Conceptos: {lista}."
 ```

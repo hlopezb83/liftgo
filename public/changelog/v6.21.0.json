@@ -1,0 +1,15 @@
+{
+  "version": "6.21.0",
+  "date": "2026-06-02",
+  "type": "minor",
+  "title": "Gastos: importar CFDI desde XML con IA",
+  "category": "feature",
+  "changes": [
+    "Nuevo botón 'Importar CFDI' en Gastos Operativos para subir el XML de una factura.",
+    "Extracción automática de monto, fecha, folio, emisor y conceptos del CFDI 4.0.",
+    "Clasificación inteligente de categoría sugerida usando IA (Lovable AI).",
+    "Match automático de proveedor por RFC; aviso si el proveedor no existe.",
+    "Anti-duplicados por UUID del CFDI (índice único) para evitar registrar la misma factura dos veces.",
+    "El formulario se abre pre-llenado para que el usuario revise y confirme antes de guardar."
+  ]
+}
