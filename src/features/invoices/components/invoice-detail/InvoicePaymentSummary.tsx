@@ -18,6 +18,7 @@ interface InvoicePaymentSummaryProps {
   payments: Tables<"payments">[];
   /** If true, parent invoice is PPD+stamped (REP capabilities visible) */
   ppdStamped?: boolean;
+  creditedAmount?: number;
 }
 
 type Payment = Tables<"payments">;
