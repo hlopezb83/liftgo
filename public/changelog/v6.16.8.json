@@ -1,0 +1,11 @@
+{
+  "version": "6.16.8",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Permitir reintentar Timbrar CFDI tras un error",
+  "category": "fix",
+  "description": "El botón Timbrar CFDI ahora vuelve a mostrarse cuando un timbrado anterior falló (cfdi_status='error'), permitiendo reintentar sin intervención manual.",
+  "changes": [
+    "Acciones de factura: canStamp acepta cfdi_status 'pending' o 'error'."
+  ]
+}

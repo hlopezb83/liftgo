@@ -28,7 +28,7 @@ export function InvoiceDetailActions({
   const isPayable = status === "sent" || status === "overdue";
   const showPaymentBtn = isPayable || status === "partial";
   const canEdit = isDraft || userRole === "admin";
-  const canStamp = cfdiStatus === "pending" && !isDraft;
+  const canStamp = (cfdiStatus === "pending" || cfdiStatus === "error") && !isDraft;
   const isStamped = cfdiStatus === "stamped";
 
   return (
