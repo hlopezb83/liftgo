@@ -9,7 +9,6 @@ export interface OperatingExpense {
   description: string | null;
   amount: number;
   expense_date: string;
-  is_recurring: boolean;
   supplier_id: string | null;
   suppliers: { name: string } | null;
   created_at: string;
@@ -37,7 +36,7 @@ export function useOperatingExpenses() {
         .select("*, suppliers(name)")
         .order("expense_date", { ascending: false });
       if (error) throw error;
-      return data as OperatingExpense[];
+      return (data ?? []) as unknown as OperatingExpense[];
     },
   });
 }
@@ -46,5 +45,4 @@ export {
   useCreateExpense,
   useUpdateExpense,
   useDeleteExpense,
-  useGenerateRecurring,
 } from "./useOperatingExpenseMutations";
