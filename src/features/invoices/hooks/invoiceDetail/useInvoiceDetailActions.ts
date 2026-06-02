@@ -110,15 +110,33 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
     stampCfdi.mutate(id, { onSuccess: () => refetch() });
   };
 
-  const handleDownloadXml = () => {
-    if (!invoice?.cfdi_xml) return;
-    const blob = new Blob([invoice.cfdi_xml], { type: "application/xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${invoice.invoice_number}.xml`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleDownloadXml = async () => {
+    if (!invoice) return;
+    const filename = `${invoice.invoice_number}.xml`;
+    const triggerDownload = (blob: Blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    try {
+      const { data, error } = await supabase.functions.invoke("download-cfdi", {
+        body: { invoice_id: invoice.id, format: "xml" },
+      });
+      if (error) throw error;
+      const blob = data instanceof Blob ? data : new Blob([data], { type: "application/xml" });
+      triggerDownload(blob);
+    } catch (err) {
+      if (invoice.cfdi_xml) {
+        triggerDownload(new Blob([invoice.cfdi_xml], { type: "application/xml" }));
+        return;
+      }
+      toast.error("Error al descargar XML", {
+        description: err instanceof Error ? err.message : "Intenta de nuevo.",
+      });
+    }
   };
 
   const handleEdit = () => navigate(`/invoices/${id}/edit`);

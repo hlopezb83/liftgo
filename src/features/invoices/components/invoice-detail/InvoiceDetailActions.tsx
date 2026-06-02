@@ -70,7 +70,7 @@ export function InvoiceDetailActions({
           </RoleGuard>
         </DropdownMenuContent>
       </DropdownMenu>
-      <InvoicePDFButton invoiceId={invoice.id} />
+      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
     </>
   );
 }

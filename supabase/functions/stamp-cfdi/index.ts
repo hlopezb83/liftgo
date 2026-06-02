@@ -182,15 +182,47 @@ Deno.serve(async (req) => {
     const cfdiUuid = facturApiInvoice.uuid;
 
     let cfdiXml: string | null = null;
+    let xmlStoragePath: string | null = null;
+    let pdfStoragePath: string | null = null;
+
     try {
       const xmlRes = await fetch(`${FACTURAPI_BASE}/invoices/${facturApiId}/xml`, {
         headers: { "Authorization": `Bearer ${apiKey}` },
       });
       if (xmlRes.ok) {
         cfdiXml = await xmlRes.text();
+        const path = `${invoice_id}/${cfdiUuid}.xml`;
+        const { error: upErr } = await supabase.storage
+          .from("cfdi-files")
+          .upload(path, new Blob([cfdiXml], { type: "application/xml" }), {
+            contentType: "application/xml",
+            upsert: true,
+          });
+        if (!upErr) xmlStoragePath = path;
+        else console.error("XML storage upload failed:", upErr);
       }
-    } catch (_xmlErr) {
-      // XML download is optional
+    } catch (xmlErr) {
+      console.error("XML download failed:", xmlErr);
+    }
+
+    try {
+      const pdfRes = await fetch(`${FACTURAPI_BASE}/invoices/${facturApiId}/pdf`, {
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      });
+      if (pdfRes.ok) {
+        const pdfBytes = new Uint8Array(await pdfRes.arrayBuffer());
+        const path = `${invoice_id}/${cfdiUuid}.pdf`;
+        const { error: upErr } = await supabase.storage
+          .from("cfdi-files")
+          .upload(path, pdfBytes, {
+            contentType: "application/pdf",
+            upsert: true,
+          });
+        if (!upErr) pdfStoragePath = path;
+        else console.error("PDF storage upload failed:", upErr);
+      }
+    } catch (pdfErr) {
+      console.error("PDF download failed:", pdfErr);
     }
 
     const { error: updateErr } = await supabase
@@ -198,6 +230,8 @@ Deno.serve(async (req) => {
       .update({
         cfdi_uuid: cfdiUuid,
         cfdi_xml: cfdiXml,
+        cfdi_xml_url: xmlStoragePath,
+        cfdi_pdf_url: pdfStoragePath,
         cfdi_status: "stamped",
         cfdi_error_message: null,
         facturapi_invoice_id: facturApiId,
