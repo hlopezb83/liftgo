@@ -118,12 +118,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Invoice not stamped" }), { status: 409, headers: jsonHeaders });
     }
 
-
-
-    const contentType = format === "pdf" ? "application/pdf" : "application/xml";
     const filename = `${invoice.invoice_number || invoice.cfdi_uuid}.${format}`;
     const storagePath =
       (format === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as string | null;
+
 
     // 1) Try Storage
     if (storagePath) {
