@@ -1,0 +1,7 @@
+{
+  "version": "6.16.4",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Removida opción Imprimir del menú de acciones de facturas",
+  "description": "Eliminada la opción 'Imprimir' del dropdown de acciones en el detalle de facturas. El flujo correcto es descargar el PDF y luego imprimir desde el visor de PDF."
+}

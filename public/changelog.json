@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.4",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Removida opción Imprimir del menú de acciones de facturas",
+    "category": "fix"
+  },
+  {
     "version": "6.16.3",
     "date": "2026-06-02",
     "type": "patch",
