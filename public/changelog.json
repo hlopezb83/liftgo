@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.20.4",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Calendario: mejoras UX del Gantt",
+    "category": "improvement"
+  },
+  {
     "version": "6.20.3",
     "date": "2026-06-02",
     "type": "patch",

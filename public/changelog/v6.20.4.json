@@ -1,0 +1,15 @@
+{
+  "version": "6.20.4",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Calendario: mejoras UX del Gantt",
+  "category": "improvement",
+  "changes": [
+    "Eliminada la etiqueta 'HOY' que se sobreponía al número del día.",
+    "Indicador del día actual con número en círculo primario y línea vertical fina sobre las barras de renta.",
+    "Tooltips en los botones de navegación (Mes/Semana anterior, Ir a hoy, Mes/Semana siguiente).",
+    "Quitado el badge 'Rentado' redundante de cada fila para evitar overlap con el nombre del cliente.",
+    "Disponibles y Vendidos ahora se muestran como chips compactos por modelo en lugar de filas vacías.",
+    "Leyenda de clientes colapsada por defecto para reducir ruido visual."
+  ]
+}
