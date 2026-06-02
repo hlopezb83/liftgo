@@ -51,7 +51,7 @@ function RepBadge({ status }: { status: string | null }) {
   return <Badge variant="outline">Sin REP</Badge>;
 }
 
-export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped = false }: InvoicePaymentSummaryProps) {
+export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped = false, creditedAmount = 0 }: InvoicePaymentSummaryProps) {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const stampRep = useStampPaymentComplement();
   const cancelRep = useCancelPaymentComplement();
