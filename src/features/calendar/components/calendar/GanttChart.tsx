@@ -1,11 +1,12 @@
-import { useMemo } from "react";
-import { parseISO } from "date-fns";
+import { useMemo, useState } from "react";
+import { parseISO, isToday } from "date-fns";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { useGanttSegments } from "@/features/calendar/hooks/calendar/useGanttSegments";
 import { GanttHeader } from "./GanttHeader";
 import { GanttRow } from "./GanttRow";
-import { GanttGroupedRow } from "./GanttGroupedRow";
 
 interface GanttChartProps {
   forklifts: Tables<"forklifts">[] | undefined;
@@ -35,8 +36,28 @@ function SectionHeader({ label, count }: { label: string; count: number }) {
   );
 }
 
+function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }) {
+  if (groups.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 px-2 py-3">
+      {groups.map((g) => (
+        <span
+          key={g.key}
+          className="inline-flex items-center gap-1.5 text-[11px] font-mono bg-muted/50 border border-border rounded px-2 py-1 text-foreground/80"
+        >
+          {g.key}
+          <span className="text-[10px] font-semibold text-muted-foreground bg-background border border-border rounded px-1">
+            × {g.count}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttChartProps) {
   const { days, getSegments, customerColorMap } = useGanttSegments(bookings, rangeStart, rangeEnd);
+  const [legendOpen, setLegendOpen] = useState(false);
 
   const forkliftsWithActivity = useMemo(() => {
     const set = new Set<string>();
@@ -65,9 +86,13 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
   const availableGroups = useMemo(() => groupByModel(available), [available]);
   const soldGroups = useMemo(() => groupByModel(sold), [sold]);
 
+  // Posición de la línea vertical "hoy"
+  const todayIdx = useMemo(() => days.findIndex((d) => isToday(d)), [days]);
+  const todayLeftPct = todayIdx >= 0 && days.length > 0 ? ((todayIdx + 0.5) / days.length) * 100 : null;
+
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[800px]">
+      <div className="min-w-[800px] relative">
         <GanttHeader days={days} />
 
         {active.length > 0 && <SectionHeader label="Con renta activa o futura" count={active.length} />}
@@ -76,25 +101,43 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
         ))}
 
         {available.length > 0 && <SectionHeader label="Disponibles" count={available.length} />}
-        {availableGroups.map((g) => (
-          <GanttGroupedRow key={`avail-${g.key}`} label={g.key} count={g.count} days={days} />
-        ))}
+        <ChipCloud groups={availableGroups} />
 
         {sold.length > 0 && <SectionHeader label="Vendidos" count={sold.length} />}
-        {soldGroups.map((g) => (
-          <GanttGroupedRow key={`sold-${g.key}`} label={g.key} count={g.count} days={days} />
-        ))}
+        <ChipCloud groups={soldGroups} />
+
+        {/* Línea vertical de "hoy" sobre toda la grilla (sólo cubre el área de barras de renta activa) */}
+        {todayLeftPct !== null && active.length > 0 && (
+          <div
+            className="pointer-events-none absolute top-10 flex"
+            style={{ left: "12rem", right: 0, bottom: 0 }}
+            aria-hidden="true"
+          >
+            <div
+              className="absolute top-0 w-px bg-primary/70"
+              style={{ left: `${todayLeftPct}%`, height: `${active.length * 36 + 32}px` }}
+            />
+          </div>
+        )}
       </div>
 
       {customerColorMap.size > 0 && (
-        <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t">
-          {Array.from(customerColorMap.entries()).map(([name, color]) => (
-            <div key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <div className="w-3 h-3 rounded-sm" style={{ background: color }} />
-              <span>{name}</span>
+        <Collapsible open={legendOpen} onOpenChange={setLegendOpen} className="mt-4 pt-3 border-t">
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            {legendOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            Leyenda de clientes ({customerColorMap.size})
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="flex flex-wrap gap-3 mt-2">
+              {Array.from(customerColorMap.entries()).map(([name, color]) => (
+                <div key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <div className="w-3 h-3 rounded-sm" style={{ background: color }} />
+                  <span>{name}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );

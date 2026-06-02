@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { nowMty, formatMtyDate } from "@/lib/utils";
@@ -113,13 +113,40 @@ export default function CalendarPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-base capitalize">{rangeLabel}</CardTitle>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={navigateBack}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={navigateToday}>Hoy</Button>
-              <Button variant="ghost" size="icon" onClick={navigateForward}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={navigateBack}
+                    aria-label={ganttRange === "month" ? "Mes anterior" : "Semana anterior"}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{ganttRange === "month" ? "Mes anterior" : "Semana anterior"}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" onClick={navigateToday} aria-label="Ir a hoy">
+                    Hoy
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Ir a la fecha actual</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={navigateForward}
+                    aria-label={ganttRange === "month" ? "Mes siguiente" : "Semana siguiente"}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{ganttRange === "month" ? "Mes siguiente" : "Semana siguiente"}</TooltipContent>
+              </Tooltip>
             </div>
           </CardHeader>
           <CardContent>
