@@ -168,6 +168,17 @@ Deno.serve(async (req) => {
       const taxAmount = Math.round(monthlyRate * (taxRate / 100) * 100) / 100;
       const total = Math.round((monthlyRate + taxAmount) * 100) / 100;
 
+      // Snapshot CFDI 4.0: hidrata datos fiscales del receptor desde el cliente
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi")
+        .eq("id", booking.customer_id)
+        .maybeSingle();
+
+      if (!customer?.rfc) {
+        console.warn(`[recurring-invoices] Cliente ${booking.customer_id} sin RFC; factura se creará pero no podrá timbrarse hasta completar datos fiscales.`);
+      }
+
       const { error: invErr } = await supabase.from("invoices").insert({
         invoice_number: invNum || `FAC-AUTO-${Date.now()}`,
         booking_id: booking.id,
@@ -182,6 +193,17 @@ Deno.serve(async (req) => {
         due_date: endStr,
         billing_period_start: startStr,
         billing_period_end: endStr,
+        // Snapshot fiscal del receptor (solo si el cliente los trae)
+        receptor_rfc: customer?.rfc ?? null,
+        receptor_razon_social: customer?.razon_social || customer?.name || null,
+        receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
+        receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
+        uso_cfdi: customer?.uso_cfdi ?? "G03",
+        // Defaults SAT para renta recurrente (PPD = pago en parcialidades / diferido)
+        forma_pago: "99",
+        metodo_pago: "PPD",
+        moneda: "MXN",
+        tipo_cambio: 1,
       });
 
       if (invErr) {
