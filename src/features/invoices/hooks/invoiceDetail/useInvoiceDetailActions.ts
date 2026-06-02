@@ -6,6 +6,7 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { useUpdateInvoice, useDeleteInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useUpdateBooking } from "@/features/bookings/hooks/useBookings";
 import { useStampCfdi } from "@/features/invoices/hooks/invoices/useStampCfdi";
+import { getMissingStampFields } from "@/features/invoices/lib/cfdiPrechecks";
 import { nowMty } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -52,9 +53,17 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
   };
 
   const handleStamp = () => {
-    if (!id) return;
+    if (!id || !invoice) return;
+    const missing = getMissingStampFields(invoice);
+    if (missing.length > 0) {
+      toast.error("Faltan datos para timbrar", {
+        description: `Completa: ${missing.join(", ")}.`,
+      });
+      return;
+    }
     stampCfdi.mutate(id, { onSuccess: () => refetch() });
   };
+
 
   const handleDownloadXml = () => {
     if (!invoice?.cfdi_xml) return;
