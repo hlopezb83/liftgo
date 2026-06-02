@@ -5,12 +5,34 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useGanttSegments } from "@/features/calendar/hooks/calendar/useGanttSegments";
 import { GanttHeader } from "./GanttHeader";
 import { GanttRow } from "./GanttRow";
+import { GanttGroupedRow } from "./GanttGroupedRow";
 
 interface GanttChartProps {
   forklifts: Tables<"forklifts">[] | undefined;
   bookings: BookingWithForklift[] | undefined;
   rangeStart: Date;
   rangeEnd: Date;
+}
+
+type Forklift = Tables<"forklifts">;
+
+function groupByModel(items: Forklift[]): Array<{ key: string; count: number }> {
+  const map = new Map<string, number>();
+  for (const f of items) {
+    const key = `${f.manufacturer ?? ""} ${f.model}`.trim() || "Sin modelo";
+    map.set(key, (map.get(key) ?? 0) + 1);
+  }
+  return Array.from(map.entries())
+    .map(([key, count]) => ({ key, count }))
+    .sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function SectionHeader({ label, count }: { label: string; count: number }) {
+  return (
+    <div className="px-2 py-1.5 mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide bg-muted/40 border-y">
+      {label} ({count})
+    </div>
+  );
 }
 
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttChartProps) {
@@ -27,35 +49,40 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
     return set;
   }, [bookings, rangeStart, rangeEnd]);
 
-  const { active, available } = useMemo(() => {
+  const { active, available, sold } = useMemo(() => {
     const sorted = [...(forklifts ?? [])].sort((a, b) => a.name.localeCompare(b.name));
-    return {
-      active: sorted.filter((f) => forkliftsWithActivity.has(f.id)),
-      available: sorted.filter((f) => !forkliftsWithActivity.has(f.id)),
-    };
+    const activeList: Forklift[] = [];
+    const availableList: Forklift[] = [];
+    const soldList: Forklift[] = [];
+    for (const f of sorted) {
+      if (forkliftsWithActivity.has(f.id)) activeList.push(f);
+      else if (f.status === "sold") soldList.push(f);
+      else availableList.push(f);
+    }
+    return { active: activeList, available: availableList, sold: soldList };
   }, [forklifts, forkliftsWithActivity]);
+
+  const availableGroups = useMemo(() => groupByModel(available), [available]);
+  const soldGroups = useMemo(() => groupByModel(sold), [sold]);
 
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[800px]">
         <GanttHeader days={days} />
 
-        {active.length > 0 && (
-          <div className="px-2 py-1.5 mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide bg-muted/40 border-y">
-            Con renta activa o futura ({active.length})
-          </div>
-        )}
+        {active.length > 0 && <SectionHeader label="Con renta activa o futura" count={active.length} />}
         {active.map((fl) => (
           <GanttRow key={fl.id} forklift={fl} segments={getSegments(fl.id)} days={days} />
         ))}
 
-        {available.length > 0 && (
-          <div className="px-2 py-1.5 mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide bg-muted/40 border-y">
-            Disponibles ({available.length})
-          </div>
-        )}
-        {available.map((fl) => (
-          <GanttRow key={fl.id} forklift={fl} segments={getSegments(fl.id)} days={days} />
+        {available.length > 0 && <SectionHeader label="Disponibles" count={available.length} />}
+        {availableGroups.map((g) => (
+          <GanttGroupedRow key={`avail-${g.key}`} label={g.key} count={g.count} days={days} />
+        ))}
+
+        {sold.length > 0 && <SectionHeader label="Vendidos" count={sold.length} />}
+        {soldGroups.map((g) => (
+          <GanttGroupedRow key={`sold-${g.key}`} label={g.key} count={g.count} days={days} />
         ))}
       </div>
 
