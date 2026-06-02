@@ -121,6 +121,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/crm/cerrados", component: CRMClosedPage, module: "CRM / Prospectos" },
   { path: "/suppliers", component: SuppliersPage, module: "Proveedores" },
   { path: "/suppliers/:id", component: SupplierDetailPage, module: "Proveedores" },
+  { path: "/settings", component: CompanySettingsPage, module: "Configuración" },
   { path: "/settings/operations", component: OperationsSetupPage, module: "Configuración" },
   { path: "/settings/company", component: CompanySettingsPage, module: "Configuración" },
   { path: "/users", component: UserManagementPage, module: "Gestión de Usuarios" },
