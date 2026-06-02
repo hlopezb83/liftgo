@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.20.1",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Flujo de Efectivo: fórmula del Neto corregida",
+    "category": "fix"
+  },
+  {
     "version": "6.20.0",
     "date": "2026-06-02",
     "type": "minor",

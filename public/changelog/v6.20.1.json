@@ -1,0 +1,12 @@
+{
+  "version": "6.20.1",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Flujo de Efectivo: fórmula del Neto corregida",
+  "category": "fix",
+  "description": "El tooltip del gráfico Flujo de Efectivo calculaba el Neto como pagado − facturado, mostrando flujo negativo cuando la facturación superaba a los cobros. Se invirtió la fórmula a facturado − pagado para que un mes con más facturación que pagos refleje flujo positivo (cobros pendientes generados).",
+  "changes": [
+    "Neto = Facturado − Pagado en tooltip de Flujo de Efectivo",
+    "Etiquetas 'Flujo positivo' / 'Flujo negativo' ahora consistentes con la lógica de cobranza"
+  ]
+}

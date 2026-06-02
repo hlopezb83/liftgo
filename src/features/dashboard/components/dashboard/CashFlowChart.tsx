@@ -20,7 +20,7 @@ interface TooltipPayloadEntry {
 function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadEntry[] }) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
-  const net = item.paid - item.invoiced;
+  const net = item.invoiced - item.paid;
   const isPositive = net >= 0;
   return (
     <div className="rounded-lg border bg-card p-3 shadow-md text-xs space-y-1.5 min-w-[180px]">
