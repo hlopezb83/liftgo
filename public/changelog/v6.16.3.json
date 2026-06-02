@@ -1,0 +1,9 @@
+{
+  "description": "Las facturas recurrentes ahora copian los datos fiscales del receptor (RFC, razón social, régimen, CP, Uso CFDI) desde el cliente al momento de generarse, alineado al estándar CFDI 4.0 (snapshot inmutable).",
+  "changes": [
+    "Edge function generate-recurring-invoices hidrata receptor_rfc, receptor_razon_social, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp y uso_cfdi desde customers al insertar la factura",
+    "Defaults SAT para renta mensual: forma_pago='99', metodo_pago='PPD', moneda='MXN', tipo_cambio=1",
+    "Si el cliente no tiene RFC, la factura se crea igual pero el precheck del front bloqueará el timbrado hasta completar datos",
+    "Removido el fallback de hidratación en handleStamp (ya no es necesario; el snapshot ocurre al crear la factura)"
+  ]
+}
