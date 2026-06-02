@@ -111,7 +111,12 @@ export default function OperatingExpensesPage() {
             <Button variant="outline" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
               <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />Generar Recurrentes
             </Button>
-            <Button onClick={createDialog.openDialog}><Plus className="h-4 w-4 mr-1" />Registrar Gasto</Button>
+            <Button variant="outline" onClick={cfdiDialog.openDialog}>
+              <FileUp className="h-4 w-4 mr-1" />Importar CFDI
+            </Button>
+            <Button onClick={() => { setCfdiPrefill(null); createDialog.openDialog(); }}>
+              <Plus className="h-4 w-4 mr-1" />Registrar Gasto
+            </Button>
           </div>
         }
         filters={
