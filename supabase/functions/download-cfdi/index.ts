@@ -54,6 +54,59 @@ Deno.serve(async (req) => {
 
     const contentType = format === "pdf" ? "application/pdf" : "application/xml";
 
+    // --- Credit Note download branch ---
+    if (isUUID(credit_note_id)) {
+      const { data: cn } = await supabase
+        .from("credit_notes")
+        .select("id, credit_note_number, cfdi_uuid, cfdi_status, cfdi_xml_url, cfdi_pdf_url, facturapi_invoice_id")
+        .eq("id", credit_note_id)
+        .single();
+      if (!cn || cn.cfdi_status !== "stamped" || !cn.cfdi_uuid) {
+        return new Response(JSON.stringify({ error: "Credit note not stamped" }), { status: 409, headers: jsonHeaders });
+      }
+      const cnFilename = `${cn.credit_note_number || cn.cfdi_uuid}.${format}`;
+      const cnPath = (format === "pdf" ? cn.cfdi_pdf_url : cn.cfdi_xml_url) as string | null;
+      if (cnPath) {
+        const { data: file } = await supabase.storage.from(BUCKET).download(cnPath);
+        if (file) {
+          return new Response(file, {
+            headers: { ...corsHeaders, "Content-Type": contentType, "Content-Disposition": `attachment; filename="${cnFilename}"` },
+          });
+        }
+      }
+      if (!cn.facturapi_invoice_id) {
+        return new Response(JSON.stringify({ error: "Missing facturapi reference" }), { status: 404, headers: jsonHeaders });
+      }
+      const { data: company } = await supabase.from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
+      const { data: secrets } = await supabase.from("billing_secrets").select("facturapi_test_key, facturapi_live_key").limit(1).maybeSingle();
+      const mode = (company?.facturapi_mode as string) || "test";
+      const apiKey = mode === "live"
+        ? ((secrets?.facturapi_live_key as string | null) || Deno.env.get("FACTURAPI_LIVE_KEY"))
+        : ((secrets?.facturapi_test_key as string | null) || Deno.env.get("FACTURAPI_TEST_KEY"));
+      if (!apiKey) {
+        return new Response(JSON.stringify({ error: "Facturapi key not configured" }), { status: 500, headers: jsonHeaders });
+      }
+      const res = await fetch(`${FACTURAPI_BASE}/invoices/${cn.facturapi_invoice_id}/${format}`, {
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      });
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: `Facturapi error: ${res.status}` }), { status: 502, headers: jsonHeaders });
+      }
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const newPath = `credit-notes/${cn.id}/${cn.cfdi_uuid}.${format}`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(newPath, bytes, { contentType, upsert: true });
+      if (!upErr) {
+        await supabase
+          .from("credit_notes")
+          .update(format === "pdf" ? { cfdi_pdf_url: newPath } : { cfdi_xml_url: newPath })
+          .eq("id", credit_note_id);
+      }
+      return new Response(bytes, {
+        headers: { ...corsHeaders, "Content-Type": contentType, "Content-Disposition": `attachment; filename="${cnFilename}"` },
+      });
+    }
+
+
     // --- REP (Payment Complement) download branch ---
     if (isUUID(payment_id)) {
       const { data: payment } = await supabase
