@@ -1,100 +1,49 @@
+## Objetivo
 
-# Plan: Puesta en marcha de Facturapi para timbrado CFDI 4.0
+Que toda factura nueva nazca con los `receptor_*` y `uso_cfdi` ya copiados desde el cliente (snapshot inmutable, alineado a CFDI 4.0). Las facturas existentes se quedan como están.
 
-## Estado actual (ya implementado)
+## Estado actual
 
-La integración base con Facturapi ya está construida en el proyecto:
+- **Creación manual** (`useInvoiceFormHandlers.handleCustomerSelect` / `handleBookingSelect`): ya hidrata vía `cfdiFromCustomer`. ✅
+- **Desde cotización** (`buildFromQuote`): ya hidrata. ✅
+- **Defaults de CFDI** en `EMPTY_CFDI`: `formaPago='03'`, `metodoPago='PUE'`, `usoCfdi='G03'`. ✅
+- **Facturación recurrente** (edge `generate-recurring-invoices`): **NO hidrata** datos fiscales del cliente. ❌ — este es el origen de FAC-0071.
 
-- **Edge Functions**: `stamp-cfdi` y `cancel-cfdi` conectadas a `https://www.facturapi.io/v2`, con auth + RBAC (admin/administrativo), validación de UUID y fallback a modo stub.
-- **Persistencia de llaves**: tabla `billing_secrets` (lectura sólo vía RPC `get_billing_secrets_status`, escritura por admin), columna `facturapi_invoice_id` en `invoices`, campo `facturapi_mode` en `company_settings`.
-- **UI**: `FiscalDataTab` con `PacConfigForm` (toggle test/live, captura enmascarada de API keys, indicador "configurado").
-- **Selección de llave**: las Edge Functions eligen `facturapi_test_key` o `facturapi_live_key` según `facturapi_mode`, con fallback a variables de entorno.
-- **Cancelación**: incluye advertencia para facturas > $1,000 MXN (requieren aprobación del receptor).
-- **Hooks cliente**: `useStampCfdi`, `useCancelCfdi` con invalidación de caché.
+## Cambios
 
-Por lo tanto, **no necesitamos código nuevo de integración** — necesitamos completar configuración, validación end-to-end y endurecer flujos.
+### 1. Edge `supabase/functions/generate-recurring-invoices/index.ts`
 
----
+Antes del `insert` en `invoices`:
 
-## Fase 1 — Onboarding de la organización en Facturapi (sin código)
+- Cargar el cliente: `select rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi from customers where id = booking.customer_id`.
+- Agregar al payload del insert:
+  - `receptor_rfc`, `receptor_razon_social` (con fallback a `name`), `receptor_regimen_fiscal`, `receptor_domicilio_fiscal_cp`, `uso_cfdi` — solo si el cliente los trae.
+  - Defaults SAT: `forma_pago: "99"` (Por definir, típico de PPD recurrente), `metodo_pago: "PPD"` (renta mensual con pago posterior), `moneda: "MXN"`, `tipo_cambio: 1`.
+- Si el cliente no existe o le falta RFC: continuar creando la factura pero loguear un `warn` (no bloquear el cron). El precheck del front seguirá bloqueando el timbrado hasta que se complete.
 
-Trabajo del usuario en el panel de Facturapi:
+### 2. Revertir el fallback de hidratación en `handleStamp`
 
-1. Crear cuenta en Facturapi (https://facturapi.io).
-2. Dar de alta la **organización emisora** con sus datos fiscales reales (RFC, razón social, régimen, código postal de lugar de expedición).
-3. Subir los **CSD (certificados sello digital)** del SAT: archivos `.cer`, `.key` y contraseña.
-4. Obtener:
-   - `FACTURAPI_TEST_KEY` (modo sandbox, no genera CFDI ante el SAT)
-   - `FACTURAPI_LIVE_KEY` (modo producción, timbra ante el SAT — consume folios)
-5. Confirmar plan de timbres contratado.
+`src/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions.ts`:
 
-Entregable: las dos API keys capturadas en `Operaciones → Datos Fiscales → PAC` desde la UI ya existente.
+- Quitar el bloque agregado ayer que consulta `customers` y hace `update` al vuelo antes de timbrar.
+- Volver a la validación simple: si faltan campos → toast "Faltan datos para timbrar. Completa en el cliente o en la factura".
+- Razón: con el snapshot al crear, ya no es necesario; mantener dos fuentes de verdad confunde y oculta datos faltantes del cliente.
 
----
+### 3. Sin backfill ni migración
 
-## Fase 2 — Validación end-to-end en sandbox
+Las facturas viejas (FAC-0071 y previas) se quedan en `draft`. Si el usuario las quiere timbrar, edita la factura → al guardar pasa por el form y se rehidratan, o las cancela.
 
-Pruebas manuales con `facturapi_mode = "test"` y `FACTURAPI_TEST_KEY` configurada:
+### 4. Changelog `v6.16.3` (patch)
 
-1. **Datos fiscales del emisor completos** (RFC, razón social, régimen fiscal, lugar de expedición).
-2. **Crear factura de prueba** con cliente que tenga RFC, régimen y CP válidos (incluyendo el caso "Público en General" → `XAXX010101000`, régimen `616`, CP del emisor).
-3. **Timbrar** y verificar:
-   - Respuesta `stub: false` (real, no fallback)
-   - `cfdi_uuid` y `facturapi_invoice_id` persistidos en `invoices`
-   - `cfdi_xml` descargado y guardado
-   - `cfdi_status = 'stamped'`
-4. **Descargar PDF** y validar que el XML se vea correctamente.
-5. **Cancelar** la factura de prueba y verificar `cfdi_status = 'cancelled'`, `cancelled_at` y `cancellation_reason` poblados.
-6. **Caso de error**: timbrar con RFC inválido → confirmar que `cfdi_status = 'error'` y `cfdi_error_message` se guarda.
+- "Datos fiscales del receptor se copian desde el cliente al generar facturas recurrentes (snapshot CFDI 4.0)."
+- "Removido fallback de hidratación en timbrado; el snapshot ocurre al crear la factura."
 
----
+## Verificación
 
-## Fase 3 — Ajustes menores recomendados (código pequeño)
+- Test manual: ejecutar `generate-recurring-invoices` (o esperar al cron) y verificar que la nueva factura nace con `receptor_rfc`, `receptor_razon_social`, etc. poblados.
+- `vitest run` para asegurar que nada se rompe en los flujos de creación.
 
-Mejoras pre-producción detectadas al revisar `stamp-cfdi/index.ts` y la UI:
+## Notas técnicas
 
-1. **Validación pre-timbrado en UI**: deshabilitar el botón "Timbrar CFDI" si faltan datos fiscales del emisor o del receptor (RFC, régimen, CP). Hoy se envía y falla en Facturapi.
-2. **Mapeo de errores de Facturapi → español**: el `cfdi_error_message` actual guarda la respuesta cruda en inglés. Agregar traducción de los códigos más comunes (`CFDI40101`, `CFDI40102`, etc.) en `errorCatalog.ts`.
-3. **Forma de pago / Uso CFDI**: validar en el form que los catálogos `forma_pago`, `metodo_pago`, `uso_cfdi` (ya en `satCatalogs.ts`) sean obligatorios antes de timbrar.
-4. **Folios y serie**: confirmar que `useNextInvoiceNumber` genera folio único por serie, ya que Facturapi rechaza duplicados.
-5. **Indicador visual de modo** en el header de la página de facturas (`Modo: SANDBOX` en amarillo / `Modo: PRODUCCIÓN` en verde) para evitar timbrar real por error.
-
----
-
-## Fase 4 — Salto a producción (`facturapi_mode = "live"`)
-
-1. Cambiar toggle a "Producción" en `Datos Fiscales → PAC` (solo admin).
-2. Capturar `FACTURAPI_LIVE_KEY`.
-3. Realizar **una factura piloto real** con monto bajo a cliente interno.
-4. Validar el CFDI ante el SAT (consulta en https://verificacfdi.facturaelectronica.sat.gob.mx con el UUID).
-5. Activar timbrado para todos los usuarios `admin` / `administrativo`.
-
----
-
-## Fase 5 — Operación continua
-
-- Monitorear logs de las Edge Functions `stamp-cfdi` y `cancel-cfdi` desde Lovable Cloud.
-- Alertar cuando `cfdi_status = 'error'` (ya hay infraestructura de notificaciones).
-- Renovar CSD del SAT antes de que venza (válido 4 años) — recordatorio en `OperationsSetupPage`.
-- Conciliar saldo de timbres en Facturapi al menos mensualmente.
-
----
-
-## Riesgos y bloqueos
-
-| Riesgo | Mitigación |
-|---|---|
-| CSD vencido o mal cargado | Validar en Fase 1 antes de comprar timbres |
-| Catálogos SAT desactualizados (régimen, uso CFDI) | Ya está versionado en `satCatalogs.ts`, revisar trimestralmente |
-| Cancelación de facturas > $1,000 requiere aprobación del receptor | Ya se advierte en la respuesta; documentar en manual |
-| Llave LIVE filtrada | Llaves guardadas en `billing_secrets` con RLS admin-only y nunca se devuelven al cliente ✅ |
-
----
-
-## ¿Qué hacemos ahora?
-
-Las tareas inmediatas son **del usuario** (Fase 1 y Fase 2). En cuanto confirmes:
-
-- **Opción A**: "Ya tengo cuenta y llave TEST" → procedo con Fase 3 (ajustes UI/validación) y guío Fase 2.
-- **Opción B**: "Empieza por los ajustes de UI de la Fase 3" → implemento las 5 mejoras en paralelo a tu setup de cuenta.
-- **Opción C**: "Solo dame el checklist de Fase 1" → exporto un documento guía sin tocar código.
+- El precheck `getMissingStampFields` se mantiene tal cual — actúa como guardia tanto para facturas viejas como para clientes incompletos.
+- No se toca el schema de DB; los campos `receptor_*` ya existen en `invoices`.

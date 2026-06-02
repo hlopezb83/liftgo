@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.3",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Snapshot fiscal del receptor en facturación recurrente",
+    "category": "feature"
+  },
+  {
     "version": "6.16.2",
     "date": "2026-06-02",
     "type": "patch",
