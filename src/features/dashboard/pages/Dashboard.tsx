@@ -5,7 +5,6 @@ import { StatCards } from "@/features/dashboard/components/dashboard/StatCards";
 import { FinancialKpiCards } from "@/features/dashboard/components/dashboard/FinancialKpiCards";
 import { DashboardAlertsSection } from "@/features/dashboard/components/dashboard/DashboardAlertsSection";
 import { DashboardChartsSection } from "@/features/dashboard/components/dashboard/DashboardChartsSection";
-import { RecentActivity } from "@/features/dashboard/components/dashboard/RecentActivity";
 import { useDashboardSections } from "@/features/dashboard/hooks/dashboard/useDashboardSections";
 
 export default function Dashboard() {
@@ -13,8 +12,8 @@ export default function Dashboard() {
     isLoading, insuranceData,
     statCards, utilizationPercent,
     pieData, agingBuckets, maintenanceAlerts,
-    weeklyUtilization, revenuePerUnit, invoiceBreakdown, cashFlowData,
-    overdueInvoices, outstandingRevenue,
+    weeklyUtilization, revenuePerUnit, cashFlowData,
+    overdueInvoices,
     financials, alertsProps,
   } = useDashboardSections();
 
@@ -49,13 +48,10 @@ export default function Dashboard() {
         />
         <DashboardChartsSection
           pieData={pieData}
-          invoiceBreakdown={invoiceBreakdown}
-          outstandingRevenue={outstandingRevenue}
           weeklyUtilization={weeklyUtilization}
           revenuePerUnit={revenuePerUnit}
           cashFlowData={cashFlowData}
         />
-        <RecentActivity />
       </div>
     </PageTransition>
   );
