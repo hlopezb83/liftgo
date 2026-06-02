@@ -1,0 +1,19 @@
+{
+  "version": "6.19.0",
+  "date": "2026-06-02",
+  "type": "minor",
+  "title": "Notas de Crédito (CFDI tipo Egreso) con timbrado SAT",
+  "category": "feature",
+  "description": "Se cierra el ciclo fiscal mexicano con la emisión de Notas de Crédito (CFDI tipo E) ligadas a una factura origen. Cubre devoluciones de renta, descuentos posteriores, correcciones de monto y saldos a favor del cliente. Cada NC se timbra con Facturapi, descarga XML y PDF oficiales del SAT, los archiva en Storage y reduce automáticamente el saldo pendiente de la factura asociada. Soporta cancelación SAT con los cuatro motivos oficiales (01-04).",
+  "changes": [
+    "Nueva tabla credit_notes con numeración automática NC-XXXX, estado SAT (pendiente/timbrada/cancelada) y soporte para cancelación con motivo y UUID sustituto.",
+    "Nueva edge function stamp-credit-note: crea CFDI tipo E en Facturapi con related_documents relationship 01 hacia la factura origen, archiva XML y PDF en cfdi-files/credit-notes/{id}/.",
+    "Nueva edge function cancel-credit-note: cancela la NC ante el SAT con los cuatro motivos oficiales y maneja sustitución para motivo 01.",
+    "download-cfdi extendido: acepta credit_note_id para descargar XML/PDF SAT de la nota de crédito.",
+    "Nuevo botón 'Nueva NC' en el detalle de factura, visible solo cuando la factura está timbrada y tiene saldo acreditable disponible.",
+    "Diálogo de creación con selector de motivo, conceptos editables precargados desde la factura, validación de no exceder el saldo, y opción 'Guardar borrador' o 'Guardar y timbrar' en un solo paso.",
+    "Nueva sección 'Notas de Crédito' en el detalle de factura con tabla compacta, badges de estado, descarga directa de PDF/XML SAT y acciones de timbrar/cancelar/eliminar.",
+    "El saldo pendiente ahora resta automáticamente los montos de notas de crédito timbradas activas; se muestra una línea dedicada 'Notas de Crédito' en el resumen de pagos.",
+    "RPC next_credit_note_number para generar folios consecutivos NC-0001, NC-0002, etc."
+  ]
+}
