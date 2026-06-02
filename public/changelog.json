@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.20.2",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Calendario: Gantt agrupado por actividad",
+    "category": "improvement"
+  },
+  {
     "version": "6.20.1",
     "date": "2026-06-02",
     "type": "patch",
