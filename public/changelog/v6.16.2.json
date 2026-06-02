@@ -1,0 +1,9 @@
+{
+  "description": "Al timbrar una factura, los datos fiscales del receptor (RFC, razón social, régimen fiscal, CP, Uso CFDI) se autocompletan desde el registro del cliente si faltan, y se aplican defaults sensatos para forma de pago (99) y método de pago (PUE).",
+  "changes": [
+    "handleStamp hidrata receptor_rfc, receptor_razon_social, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp y uso_cfdi desde la tabla customers cuando están vacíos en la factura",
+    "Defaults automáticos: forma_pago='99' (Por definir) y metodo_pago='PUE' (Pago en una exhibición) si la factura no los trae",
+    "Mensaje de validación más claro indicando completar datos en el cliente o en la factura",
+    "Soluciona el bloqueo al timbrar facturas creadas antes del CFDI 4.0 que no copiaban estos campos"
+  ]
+}
