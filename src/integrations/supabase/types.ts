@@ -493,6 +493,114 @@ export type Database = {
           },
         ]
       }
+      credit_notes: {
+        Row: {
+          cancellation_motive: string | null
+          cancellation_reason: string | null
+          cancellation_status: string
+          cancelled_at: string | null
+          cfdi_error_message: string | null
+          cfdi_pdf_url: string | null
+          cfdi_status: string
+          cfdi_uuid: string | null
+          cfdi_xml_url: string | null
+          created_at: string
+          created_by: string | null
+          credit_note_number: string
+          currency: string
+          customer_id: string | null
+          facturapi_invoice_id: string | null
+          id: string
+          invoice_id: string
+          issued_at: string
+          line_items: Json
+          motive: string
+          reason_text: string
+          status: string
+          substitution_uuid: string | null
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          cancellation_motive?: string | null
+          cancellation_reason?: string | null
+          cancellation_status?: string
+          cancelled_at?: string | null
+          cfdi_error_message?: string | null
+          cfdi_pdf_url?: string | null
+          cfdi_status?: string
+          cfdi_uuid?: string | null
+          cfdi_xml_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit_note_number: string
+          currency?: string
+          customer_id?: string | null
+          facturapi_invoice_id?: string | null
+          id?: string
+          invoice_id: string
+          issued_at?: string
+          line_items?: Json
+          motive: string
+          reason_text: string
+          status?: string
+          substitution_uuid?: string | null
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          cancellation_motive?: string | null
+          cancellation_reason?: string | null
+          cancellation_status?: string
+          cancelled_at?: string | null
+          cfdi_error_message?: string | null
+          cfdi_pdf_url?: string | null
+          cfdi_status?: string
+          cfdi_uuid?: string | null
+          cfdi_xml_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          credit_note_number?: string
+          currency?: string
+          customer_id?: string | null
+          facturapi_invoice_id?: string | null
+          id?: string
+          invoice_id?: string
+          issued_at?: string
+          line_items?: Json
+          motive?: string
+          reason_text?: string
+          status?: string
+          substitution_uuid?: string | null
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -2294,6 +2402,7 @@ export type Database = {
       }
       next_booking_number: { Args: never; Returns: string }
       next_contract_number: { Args: never; Returns: string }
+      next_credit_note_number: { Args: never; Returns: string }
       next_delivery_number: { Args: never; Returns: string }
       next_inspection_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
