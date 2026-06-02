@@ -211,11 +211,6 @@ serve(async (req) => {
     let categoria_sugerida: ExpenseCategory = "otro";
     if (LOVABLE_API_KEY) {
       try {
-        const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "HEAD",
-        }).catch(() => null);
-        // even if HEAD not supported, just call classify
-        void resp;
         categoria_sugerida = await classifyCategory(cfdi, LOVABLE_API_KEY);
       } catch (e) {
         console.error("classify error", e);
