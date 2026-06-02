@@ -128,9 +128,10 @@ Deno.serve(async (req) => {
     };
 
     const items = Array.isArray(invoice.line_items)
-      ? (invoice.line_items as Array<{ description?: string; quantity?: number; unit_price?: number; }>).map((li) => ({
+      ? (invoice.line_items as Array<{ description?: string; quantity?: number; unit_price?: number; product_key?: string; }>).map((li) => ({
           product: {
             description: li.description || "Servicio de renta",
+            product_key: li.product_key || "78101803",
             price: li.unit_price || 0,
             tax_included: false,
             taxes: [{ type: "IVA", rate: invoice.tax_rate > 0 ? invoice.tax_rate / 100 : 0.16 }],

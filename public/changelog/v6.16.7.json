@@ -1,0 +1,12 @@
+{
+  "version": "6.16.7",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Fix: product_key SAT requerido por Facturapi al timbrar",
+  "category": "fix",
+  "description": "Facturapi rechazaba el timbrado con 'items[0].product.product_key is required'. Se añadió product_key por ítem en el payload del edge function stamp-cfdi, usando 78101803 (Renta de equipo industrial) como default y respetando product_key del line_item si viene definido.",
+  "changes": [
+    "stamp-cfdi: incluir product.product_key en cada item enviado a Facturapi.",
+    "Default 78101803 (Renta o alquiler de equipo) acorde al catálogo SAT c_ClaveProdServ."
+  ]
+}
