@@ -83,7 +83,7 @@ export function usePayments(invoiceId: string | undefined) {
 export function useCreatePayment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payment: Omit<Payment, "id" | "created_at">) => {
+    mutationFn: async (payment: TablesInsert<"payments">) => {
       const { data, error } = await supabase
         .from("payments")
         .insert(payment)
