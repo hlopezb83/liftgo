@@ -1,0 +1,16 @@
+{
+  "version": "6.17.0",
+  "date": "2026-06-02",
+  "type": "minor",
+  "title": "PDF y XML CFDI oficiales archivados en Storage",
+  "category": "feature",
+  "description": "Al timbrar una factura, el XML y el PDF oficial del SAT (con sello digital y QR) se descargan de Facturapi y se guardan automáticamente en un bucket privado. El botón Descargar PDF entrega el PDF oficial cuando la factura está timbrada; si el archivo no existe en almacenamiento, se re-descarga de Facturapi y se archiva al vuelo.",
+  "changes": [
+    "Nuevo bucket privado cfdi-files con políticas de lectura restringidas a admin/administrativo.",
+    "stamp-cfdi: archivado automático de XML y PDF tras timbrar.",
+    "Nueva edge function download-cfdi con fallback a Facturapi para facturas ya timbradas sin archivo (backfill perezoso).",
+    "Botón 'Descargar PDF' entrega el PDF oficial SAT cuando la factura está timbrada; conserva el PDF interno para borradores.",
+    "Acción 'Descargar XML' descarga directamente desde el archivo oficial.",
+    "Nuevas columnas usadas: invoices.cfdi_xml_url y cfdi_pdf_url (rutas en Storage)."
+  ]
+}
