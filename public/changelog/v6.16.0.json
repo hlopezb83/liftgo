@@ -1,0 +1,9 @@
+{
+  "description": "Endurecimiento del flujo de timbrado con Facturapi previo a la salida a producción: validaciones, traducción de errores y badge visible del modo PAC.",
+  "changes": [
+    "Bloqueo del botón 'Timbrar CFDI' cuando faltan RFC, razón social, régimen fiscal o CP del receptor, o Uso CFDI/forma/método de pago, evitando consumir folios con errores",
+    "Traducción al español de los códigos de error más comunes de Facturapi/SAT (CFDI40101, CFDI33102, CSD vencido, sin folios, API key inválida)",
+    "Nuevo badge en el detalle de factura que indica si el PAC está en modo Sandbox (amarillo) o Producción (verde), visible mientras la factura no esté timbrada",
+    "Nuevos helpers cfdiPrechecks y facturapiErrors centralizan la lógica de validación previa al timbrado"
+  ]
+}

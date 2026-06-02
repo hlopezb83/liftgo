@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { translateFacturapiError } from "@/features/invoices/lib/facturapiErrors";
+
 
 interface StampCfdiResponse {
   cfdi_uuid: string;
@@ -32,7 +34,8 @@ export function useStampCfdi() {
       queryClient.invalidateQueries({ queryKey: ["invoice", invoiceId] });
     },
     onError: (err: unknown) => {
-      notifyError({ error: err, message: "Error al timbrar" });
+      const raw = err instanceof Error ? err.message : String(err);
+      notifyError({ error: err, message: translateFacturapiError(raw) });
     },
   });
 }

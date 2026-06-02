@@ -4,6 +4,7 @@ import { useBooking } from "@/features/bookings/hooks/useBookings";
 import { usePayments } from "@/features/invoices/hooks/usePayments";
 import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
 import { useInvoiceDetailActions } from "@/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions";
 import { TotalsSummary } from "@/components/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
@@ -40,6 +41,7 @@ export default function InvoiceDetail() {
   const { data: invoice, isLoading, refetch } = useInvoice(id);
   const { data: payments } = usePayments(id);
   const { data: userRole } = useUserRole();
+  const { data: company } = useCompanySettings();
   const { data: sourceQuote } = useQuote(invoice?.quote_id ?? undefined);
   const { data: sourceBooking } = useBooking(invoice?.booking_id ?? undefined);
 
@@ -57,6 +59,9 @@ export default function InvoiceDetail() {
   const showCfdiError = Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped";
   const showCollectionNotes = !["paid", "draft"].includes(invoice.status);
   const notes = invoice.notes;
+  const pacMode = (company as { facturapi_mode?: string } | null | undefined)?.facturapi_mode ?? "test";
+  const isLive = pacMode === "live";
+  const showPacBadge = cfdiStatus !== "stamped";
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -67,6 +72,16 @@ export default function InvoiceDetail() {
           <>
             <StatusBadge status={invoice.status} />
             <Badge className={cfdiBadgeClass(cfdiStatus)}>{cfdiBadgeLabel(cfdiStatus)}</Badge>
+            {showPacBadge && (
+              <Badge
+                variant="outline"
+                className={isLive
+                  ? "border-status-available text-status-available"
+                  : "border-status-maintenance text-status-maintenance"}
+              >
+                {isLive ? "PAC: Producción" : "PAC: Sandbox"}
+              </Badge>
+            )}
           </>
         }
         actions={
