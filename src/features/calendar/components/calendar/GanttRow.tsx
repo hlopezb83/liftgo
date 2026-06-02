@@ -1,7 +1,6 @@
-import { format, getDay, isToday, parseISO, startOfWeek, isSameDay } from "date-fns";
+import { getDay, isSameDay, startOfWeek } from "date-fns";
 import { formatMtyDate } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { StatusBadge } from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
 import type { BarSegment } from "@/features/calendar/hooks/calendar/useGanttSegments";
 
@@ -21,21 +20,21 @@ interface Props {
 export function GanttRow({ forklift, segments, days }: Props) {
   return (
     <div className="flex items-center border-b py-1.5 hover:bg-muted/30">
-      <div className="w-48 shrink-0 flex items-center gap-2 pr-2">
-        <span className="text-xs font-mono font-medium">{forklift.name}</span>
-        <StatusBadge status={forklift.status} />
+      <div className="w-48 shrink-0 pr-2">
+        <span className="text-xs font-mono font-medium truncate block" title={forklift.name}>
+          {forklift.name}
+        </span>
       </div>
       <div className="flex-1 relative" style={{ height: "24px" }}>
         <div className="absolute inset-0 flex">
           {days.map((day) => {
             const wd = getDay(day);
             const isWeekend = wd === 0 || wd === 6;
-            const today = isToday(day);
             const weekStart = isSameDay(day, startOfWeek(day, { weekStartsOn: 1 }));
             return (
               <div
                 key={day.toISOString()}
-                className={`flex-1 ${isWeekend ? "bg-muted/20" : ""} ${today ? "bg-primary/10 border-x border-primary/30" : ""} ${weekStart && !today ? "border-l border-border" : ""}`}
+                className={`flex-1 ${isWeekend ? "bg-muted/20" : ""} ${weekStart ? "border-l border-border" : ""}`}
               />
             );
           })}
