@@ -88,7 +88,6 @@ export function InvoiceDetailActions({
               </DropdownMenuItem>
             </>
           )}
-          
           <RoleGuard module="Facturas" minAccess="full">
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
