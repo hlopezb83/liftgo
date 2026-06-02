@@ -1047,7 +1047,9 @@ export type Database = {
           billing_period_end: string | null
           billing_period_start: string | null
           booking_id: string | null
+          cancellation_motive: string | null
           cancellation_reason: string | null
+          cancellation_status: string
           cancelled_at: string | null
           cfdi_error_message: string | null
           cfdi_pdf_url: string | null
@@ -1077,6 +1079,7 @@ export type Database = {
           receptor_rfc: string | null
           serie: string | null
           status: string
+          substitution_uuid: string | null
           subtotal: number
           tax_amount: number
           tax_rate: number
@@ -1089,7 +1092,9 @@ export type Database = {
           billing_period_end?: string | null
           billing_period_start?: string | null
           booking_id?: string | null
+          cancellation_motive?: string | null
           cancellation_reason?: string | null
+          cancellation_status?: string
           cancelled_at?: string | null
           cfdi_error_message?: string | null
           cfdi_pdf_url?: string | null
@@ -1119,6 +1124,7 @@ export type Database = {
           receptor_rfc?: string | null
           serie?: string | null
           status?: string
+          substitution_uuid?: string | null
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
@@ -1131,7 +1137,9 @@ export type Database = {
           billing_period_end?: string | null
           billing_period_start?: string | null
           booking_id?: string | null
+          cancellation_motive?: string | null
           cancellation_reason?: string | null
+          cancellation_status?: string
           cancelled_at?: string | null
           cfdi_error_message?: string | null
           cfdi_pdf_url?: string | null
@@ -1161,6 +1169,7 @@ export type Database = {
           receptor_rfc?: string | null
           serie?: string | null
           status?: string
+          substitution_uuid?: string | null
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
@@ -1504,32 +1513,68 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          currency: string
+          exchange_rate: number
           id: string
+          installment_number: number | null
           invoice_id: string
           notes: string | null
           payment_date: string
+          payment_form_sat: string | null
           payment_method: string | null
+          prior_balance: number | null
           reference_number: string | null
+          rep_cancelled_at: string | null
+          rep_cfdi_status: string
+          rep_cfdi_uuid: string | null
+          rep_error_message: string | null
+          rep_facturapi_id: string | null
+          rep_pdf_url: string | null
+          rep_xml_url: string | null
         }
         Insert: {
           amount: number
           created_at?: string
+          currency?: string
+          exchange_rate?: number
           id?: string
+          installment_number?: number | null
           invoice_id: string
           notes?: string | null
           payment_date?: string
+          payment_form_sat?: string | null
           payment_method?: string | null
+          prior_balance?: number | null
           reference_number?: string | null
+          rep_cancelled_at?: string | null
+          rep_cfdi_status?: string
+          rep_cfdi_uuid?: string | null
+          rep_error_message?: string | null
+          rep_facturapi_id?: string | null
+          rep_pdf_url?: string | null
+          rep_xml_url?: string | null
         }
         Update: {
           amount?: number
           created_at?: string
+          currency?: string
+          exchange_rate?: number
           id?: string
+          installment_number?: number | null
           invoice_id?: string
           notes?: string | null
           payment_date?: string
+          payment_form_sat?: string | null
           payment_method?: string | null
+          prior_balance?: number | null
           reference_number?: string | null
+          rep_cancelled_at?: string | null
+          rep_cfdi_status?: string
+          rep_cfdi_uuid?: string | null
+          rep_error_message?: string | null
+          rep_facturapi_id?: string | null
+          rep_pdf_url?: string | null
+          rep_xml_url?: string | null
         }
         Relationships: [
           {
