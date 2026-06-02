@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.21.0",
+    "date": "2026-06-02",
+    "type": "minor",
+    "title": "Gastos: importar CFDI desde XML con IA",
+    "category": "feature"
+  },
+  {
     "version": "6.20.4",
     "date": "2026-06-02",
     "type": "patch",
