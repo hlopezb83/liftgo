@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.19.0",
+    "date": "2026-06-02",
+    "type": "minor",
+    "title": "Notas de Crédito (CFDI tipo Egreso) con timbrado SAT",
+    "category": "feature"
+  },
+  {
     "version": "6.18.0",
     "date": "2026-06-02",
     "type": "minor",
