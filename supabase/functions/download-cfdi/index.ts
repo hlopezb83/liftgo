@@ -46,8 +46,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => null);
     const invoice_id = body?.invoice_id;
     const payment_id = body?.payment_id;
+    const credit_note_id = body?.credit_note_id;
     const format = body?.format;
-    if ((format !== "xml" && format !== "pdf") || (!isUUID(invoice_id) && !isUUID(payment_id))) {
+    if ((format !== "xml" && format !== "pdf") || (!isUUID(invoice_id) && !isUUID(payment_id) && !isUUID(credit_note_id))) {
       return new Response(JSON.stringify({ error: "Invalid payload" }), { status: 400, headers: jsonHeaders });
     }
 
