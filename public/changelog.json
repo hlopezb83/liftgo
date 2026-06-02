@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.8",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Permitir reintentar Timbrar CFDI tras un error",
+    "category": "fix"
+  },
+  {
     "version": "6.16.7",
     "date": "2026-06-02",
     "type": "patch",
