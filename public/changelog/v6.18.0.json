@@ -1,0 +1,22 @@
+{
+  "version": "6.18.0",
+  "date": "2026-06-02",
+  "type": "minor",
+  "title": "Cancelación CFDI completa y Complementos de Pago (REP)",
+  "category": "feature",
+  "description": "Se completa el ciclo de vida fiscal de las facturas en LiftGo. La cancelación ahora respeta el motivo seleccionado por el usuario (01, 02, 03, 04), exige el UUID de la factura sustituta cuando el motivo es 01, persiste el estado real del SAT (pending/accepted/rejected/expired) y permite re-consultarlo manualmente. Las facturas PPD ya generan Complementos de Pago (CFDI tipo P) timbrados automáticamente al registrar cada cobro, con archivo de XML y PDF en Storage y posibilidad de descarga o cancelación posterior.",
+  "changes": [
+    "cancel-cfdi: ahora pasa el motivo elegido como query string a Facturapi y guarda cancellation_status real del SAT.",
+    "Nuevas columnas en invoices: cancellation_status, cancellation_motive, substitution_uuid.",
+    "Soporte completo para motivo 01 (Comprobante emitido con errores con relación) con validación de UUID de sustitución en el diálogo de cancelación.",
+    "Nueva edge function refresh-cancellation-status: re-consulta al SAT vía Facturapi (PUT /status) para actualizar el estado de cancelaciones pendientes.",
+    "Badge 'Cancelación pendiente SAT' y botón 'Actualizar estado SAT' en el detalle de factura.",
+    "Nueva edge function stamp-payment-complement: emite el CFDI tipo P en Facturapi, calcula automáticamente número de parcialidad y saldo previo, archiva XML y PDF en cfdi-files/{invoice_id}/rep-{uuid}.{ext}.",
+    "Nueva edge function cancel-payment-complement: cancela un REP timbrado.",
+    "RecordPaymentDialog ahora incluye selector de forma de pago SAT, moneda + tipo de cambio, y checkbox 'Timbrar Complemento de Pago' (activado por defecto para facturas PPD timbradas).",
+    "Historial de pagos: nueva columna 'REP' con badge de estado y acciones rápidas (Timbrar, Descargar PDF, Descargar XML, Cancelar REP).",
+    "Indicador visual en el resumen de pagos cuando hay cobros sin REP timbrado.",
+    "download-cfdi extendido: acepta payment_id para servir XML/PDF del Complemento de Pago.",
+    "Nuevas columnas en payments: installment_number, prior_balance, payment_form_sat, currency, exchange_rate, rep_facturapi_id, rep_cfdi_uuid, rep_cfdi_status, rep_xml_url, rep_pdf_url, rep_cancelled_at, rep_error_message."
+  ]
+}

@@ -3,6 +3,7 @@ import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID, isNonEmptyString } from "../_shared/validate.ts";
 
 const FACTURAPI_BASE = "https://www.facturapi.io/v2";
+const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -11,12 +12,9 @@ Deno.serve(async (req) => {
   const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
-    // --- AuthN: require valid JWT ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: jsonHeaders,
-      });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -27,13 +25,10 @@ Deno.serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: jsonHeaders,
-      });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
     }
     const userId = claimsData.claims.sub as string;
 
-    // --- AuthZ: must be admin or administrativo ---
     const adminClient = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: rolesRows } = await adminClient
       .from("user_roles")
@@ -41,25 +36,23 @@ Deno.serve(async (req) => {
       .eq("user_id", userId);
     const allowed = (rolesRows ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
     if (!allowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403, headers: jsonHeaders,
-      });
+      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
     }
 
     const body = await req.json();
-    const { invoice_id, cancellation_reason } = body;
+    const { invoice_id, motive, substitution_uuid, cancellation_reason } = body ?? {};
 
     if (!isUUID(invoice_id)) {
-      return new Response(
-        JSON.stringify({ error: "invoice_id must be a valid UUID" }),
-        { status: 400, headers: jsonHeaders }
-      );
+      return new Response(JSON.stringify({ error: "invoice_id must be a valid UUID" }), { status: 400, headers: jsonHeaders });
     }
-    if (!isNonEmptyString(cancellation_reason, 1000)) {
-      return new Response(
-        JSON.stringify({ error: "cancellation_reason is required (max 1000 chars)" }),
-        { status: 400, headers: jsonHeaders }
-      );
+    if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
+      return new Response(JSON.stringify({ error: "motive must be one of 01,02,03,04" }), { status: 400, headers: jsonHeaders });
+    }
+    if (motive === "01" && !isUUID(substitution_uuid)) {
+      return new Response(JSON.stringify({ error: "substitution_uuid (UUID de factura sustituta) es requerido para motivo 01" }), { status: 400, headers: jsonHeaders });
+    }
+    if (cancellation_reason && !isNonEmptyString(cancellation_reason, 1000)) {
+      return new Response(JSON.stringify({ error: "cancellation_reason too long" }), { status: 400, headers: jsonHeaders });
     }
 
     const supabase = adminClient;
@@ -71,19 +64,12 @@ Deno.serve(async (req) => {
       .single();
 
     if (invErr || !invoice) {
-      return new Response(JSON.stringify({ error: "Invoice not found" }), {
-        status: 404, headers: jsonHeaders,
-      });
+      return new Response(JSON.stringify({ error: "Invoice not found" }), { status: 404, headers: jsonHeaders });
     }
-
     if (invoice.cfdi_status !== "stamped") {
-      return new Response(
-        JSON.stringify({ error: "Only stamped invoices can be cancelled" }),
-        { status: 400, headers: jsonHeaders }
-      );
+      return new Response(JSON.stringify({ error: "Only stamped invoices can be cancelled" }), { status: 400, headers: jsonHeaders });
     }
 
-    // Read mode from company_settings + keys from billing_secrets
     const { data: company } = await supabase
       .from("company_settings")
       .select("facturapi_mode")
@@ -96,22 +82,21 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const mode = (company?.facturapi_mode as string | undefined) || "test";
-    const dbTestKey = (secrets?.facturapi_test_key as string | null | undefined) ?? null;
-    const dbLiveKey = (secrets?.facturapi_live_key as string | null | undefined) ?? null;
     const apiKey = mode === "live"
-      ? (dbLiveKey || Deno.env.get("FACTURAPI_LIVE_KEY"))
-      : (dbTestKey || Deno.env.get("FACTURAPI_TEST_KEY"));
+      ? ((secrets?.facturapi_live_key as string | null) || Deno.env.get("FACTURAPI_LIVE_KEY"))
+      : ((secrets?.facturapi_test_key as string | null) || Deno.env.get("FACTURAPI_TEST_KEY"));
     const facturApiId = invoice.facturapi_invoice_id;
 
-    // If we have a real Facturapi ID and API key, cancel via API
+    let satStatus: string = "accepted"; // default when stub
+    let isStub = !apiKey || !facturApiId;
+
     if (apiKey && facturApiId) {
-      const cancelRes = await fetch(`${FACTURAPI_BASE}/invoices/${facturApiId}`, {
+      const params = new URLSearchParams({ motive });
+      if (motive === "01" && substitution_uuid) params.set("substitution", substitution_uuid);
+      const url = `${FACTURAPI_BASE}/invoices/${facturApiId}?${params.toString()}`;
+      const cancelRes = await fetch(url, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ motive: "02" }),
+        headers: { "Authorization": `Bearer ${apiKey}` },
       });
 
       if (!cancelRes.ok) {
@@ -119,43 +104,52 @@ Deno.serve(async (req) => {
         console.error("Facturapi cancel error:", errBody);
         return new Response(
           JSON.stringify({ error: `Facturapi cancel error: ${cancelRes.status}`, detail: errBody }),
-          { status: 502, headers: jsonHeaders }
+          { status: 502, headers: jsonHeaders },
         );
       }
 
-      await cancelRes.text();
+      const cancelJson = await cancelRes.json().catch(() => ({}));
+      // Facturapi returns: { status: "canceled"|"valid", cancellation_status: "accepted"|"pending"|... }
+      const rawStatus = (cancelJson?.cancellation_status as string | undefined) ?? "accepted";
+      satStatus = ["accepted", "pending", "rejected", "expired", "none"].includes(rawStatus) ? rawStatus : "pending";
     }
 
-    // Update DB
+    const isAccepted = satStatus === "accepted";
+    const update: Record<string, unknown> = {
+      cancellation_status: satStatus,
+      cancellation_motive: motive,
+      substitution_uuid: motive === "01" ? substitution_uuid : null,
+      cancellation_reason: cancellation_reason ?? null,
+    };
+    if (isAccepted) {
+      update.cfdi_status = "cancelled";
+      update.status = "cancelled";
+      update.cancelled_at = new Date().toISOString();
+    }
+
     const { error: updateErr } = await supabase
       .from("invoices")
-      .update({
-        cfdi_status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-        cancellation_reason,
-        status: "cancelled",
-      })
+      .update(update)
       .eq("id", invoice_id);
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: "Failed to cancel invoice" }), {
-        status: 500, headers: jsonHeaders,
-      });
+      return new Response(JSON.stringify({ error: "Failed to update invoice" }), { status: 500, headers: jsonHeaders });
     }
-
-    const isStub = !apiKey || !facturApiId;
 
     return new Response(
       JSON.stringify({
         success: true,
         stub: isStub,
-        warning: Number(invoice.total) > 1000
-          ? "Facturas mayores a $1,000 MXN requieren aprobación del receptor para cancelación ante el SAT"
+        cancellation_status: satStatus,
+        accepted: isAccepted,
+        warning: !isAccepted
+          ? "El SAT marcó la cancelación como pendiente. El receptor tiene 72 horas para aceptar o rechazar."
           : undefined,
       }),
-      { headers: jsonHeaders }
+      { headers: jsonHeaders },
     );
-  } catch (_err) {
+  } catch (err) {
+    console.error("cancel-cfdi error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },

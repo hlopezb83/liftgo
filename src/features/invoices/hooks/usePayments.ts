@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export type Payment = Tables<"payments">;
 
@@ -83,7 +83,7 @@ export function usePayments(invoiceId: string | undefined) {
 export function useCreatePayment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payment: Omit<Payment, "id" | "created_at">) => {
+    mutationFn: async (payment: TablesInsert<"payments">) => {
       const { data, error } = await supabase
         .from("payments")
         .insert(payment)

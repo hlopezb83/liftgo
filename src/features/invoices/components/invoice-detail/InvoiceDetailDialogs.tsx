@@ -28,6 +28,7 @@ type Props = {
   setDeleteOpen: (open: boolean) => void;
   onCancelSuccess: () => void;
   onDelete: () => void;
+  ppdStamped?: boolean;
 };
 
 export function InvoiceDetailDialogs({
@@ -45,12 +46,14 @@ export function InvoiceDetailDialogs({
   setDeleteOpen,
   onCancelSuccess,
   onDelete,
+  ppdStamped,
 }: Props) {
   return (
     <>
       {notes && <NotesCard value={notes} readOnly />}
       {showCollectionNotes && <CollectionNotesCard invoiceId={invoiceId} />}
-      <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} />
+      <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} ppdStamped={ppdStamped} />
+
       <CancelCfdiDialog open={cancelOpen} onOpenChange={setCancelOpen} invoiceId={invoiceId} invoiceTotal={invoiceTotal} onSuccess={onCancelSuccess} />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>

@@ -117,7 +117,12 @@ export default function InvoiceDetail() {
       <ReadOnlyLineItemsTable lineItems={lineItems} />
       <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={total} />
 
-      <InvoicePaymentSummary totalPaid={totalPaid} balance={balance} payments={paymentList} />
+      <InvoicePaymentSummary
+        totalPaid={totalPaid}
+        balance={balance}
+        payments={paymentList}
+        ppdStamped={invoice.metodo_pago === "PPD" && cfdiStatus === "stamped"}
+      />
       <InvoiceHistoryCard invoiceId={id} />
 
       <InvoiceDetailDialogs
@@ -135,7 +140,9 @@ export default function InvoiceDetail() {
         setDeleteOpen={actions.setDeleteDialogOpen}
         onCancelSuccess={refetch}
         onDelete={actions.handleDelete}
+        ppdStamped={invoice.metodo_pago === "PPD" && cfdiStatus === "stamped"}
       />
+
     </div>
   );
 }

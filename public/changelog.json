@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.18.0",
+    "date": "2026-06-02",
+    "type": "minor",
+    "title": "Cancelación CFDI completa y Complementos de Pago (REP)",
+    "category": "feature"
+  },
+  {
     "version": "6.17.0",
     "date": "2026-06-02",
     "type": "minor",

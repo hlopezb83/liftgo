@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "@/features/invoices/components/invoices/InvoicePDFButton";
-import { Send, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2 } from "lucide-react";
+import { Send, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { useRefreshCancellationStatus } from "@/features/invoices/hooks/invoices/useRefreshCancellationStatus";
 
 interface Props {
   invoice: Tables<"invoices">;
@@ -30,9 +32,32 @@ export function InvoiceDetailActions({
   const canEdit = isDraft || userRole === "admin";
   const canStamp = (cfdiStatus === "pending" || cfdiStatus === "error") && !isDraft;
   const isStamped = cfdiStatus === "stamped";
+  const cancellationStatus = (invoice as unknown as { cancellation_status?: string }).cancellation_status ?? "none";
+  const isPendingCancel = cancellationStatus === "pending";
+  const isRejectedCancel = cancellationStatus === "rejected";
+  const refreshStatus = useRefreshCancellationStatus();
 
   return (
     <>
+      {isPendingCancel && (
+        <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-300">
+          Cancelación pendiente SAT
+        </Badge>
+      )}
+      {isRejectedCancel && (
+        <Badge variant="destructive">Cancelación rechazada</Badge>
+      )}
+      {(isPendingCancel || isRejectedCancel) && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => refreshStatus.mutate(invoice.id)}
+          disabled={refreshStatus.isPending}
+        >
+          <RefreshCw className={`h-4 w-4 mr-1 ${refreshStatus.isPending ? "animate-spin" : ""}`} />
+          Actualizar estado SAT
+        </Button>
+      )}
       {isDraft && (
         <Button size="sm" onClick={onSent}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
       )}
@@ -57,9 +82,11 @@ export function InvoiceDetailActions({
           {isStamped && (
             <>
               <DropdownMenuItem onClick={onDownloadXml}><Download className="h-4 w-4 mr-2" /> Descargar XML</DropdownMenuItem>
-              <DropdownMenuItem onClick={onCancelCfdi} className="text-destructive focus:text-destructive">
-                <XCircle className="h-4 w-4 mr-2" /> Cancelar CFDI
-              </DropdownMenuItem>
+              {!isPendingCancel && (
+                <DropdownMenuItem onClick={onCancelCfdi} className="text-destructive focus:text-destructive">
+                  <XCircle className="h-4 w-4 mr-2" /> Cancelar CFDI
+                </DropdownMenuItem>
+              )}
             </>
           )}
           <RoleGuard module="Facturas" minAccess="full">

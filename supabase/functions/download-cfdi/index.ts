@@ -45,9 +45,65 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => null);
     const invoice_id = body?.invoice_id;
+    const payment_id = body?.payment_id;
     const format = body?.format;
-    if (!isUUID(invoice_id) || (format !== "xml" && format !== "pdf")) {
+    if ((format !== "xml" && format !== "pdf") || (!isUUID(invoice_id) && !isUUID(payment_id))) {
       return new Response(JSON.stringify({ error: "Invalid payload" }), { status: 400, headers: jsonHeaders });
+    }
+
+    const contentType = format === "pdf" ? "application/pdf" : "application/xml";
+
+    // --- REP (Payment Complement) download branch ---
+    if (isUUID(payment_id)) {
+      const { data: payment } = await supabase
+        .from("payments")
+        .select("invoice_id, rep_facturapi_id, rep_cfdi_uuid, rep_cfdi_status, rep_xml_url, rep_pdf_url")
+        .eq("id", payment_id)
+        .single();
+      if (!payment || payment.rep_cfdi_status !== "stamped" || !payment.rep_cfdi_uuid) {
+        return new Response(JSON.stringify({ error: "REP not stamped" }), { status: 409, headers: jsonHeaders });
+      }
+      const repFilename = `REP-${payment.rep_cfdi_uuid}.${format}`;
+      const repPath = (format === "pdf" ? payment.rep_pdf_url : payment.rep_xml_url) as string | null;
+      if (repPath) {
+        const { data: file } = await supabase.storage.from(BUCKET).download(repPath);
+        if (file) {
+          return new Response(file, {
+            headers: { ...corsHeaders, "Content-Type": contentType, "Content-Disposition": `attachment; filename="${repFilename}"` },
+          });
+        }
+      }
+      // Fallback to Facturapi
+      if (!payment.rep_facturapi_id) {
+        return new Response(JSON.stringify({ error: "Missing facturapi REP reference" }), { status: 404, headers: jsonHeaders });
+      }
+      const { data: company } = await supabase.from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
+      const { data: secrets } = await supabase.from("billing_secrets").select("facturapi_test_key, facturapi_live_key").limit(1).maybeSingle();
+      const mode = (company?.facturapi_mode as string) || "test";
+      const apiKey = mode === "live"
+        ? ((secrets?.facturapi_live_key as string | null) || Deno.env.get("FACTURAPI_LIVE_KEY"))
+        : ((secrets?.facturapi_test_key as string | null) || Deno.env.get("FACTURAPI_TEST_KEY"));
+      if (!apiKey) {
+        return new Response(JSON.stringify({ error: "Facturapi key not configured" }), { status: 500, headers: jsonHeaders });
+      }
+      const res = await fetch(`${FACTURAPI_BASE}/invoices/${payment.rep_facturapi_id}/${format}`, {
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      });
+      if (!res.ok) {
+        return new Response(JSON.stringify({ error: `Facturapi error: ${res.status}` }), { status: 502, headers: jsonHeaders });
+      }
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const newPath = `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${format}`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(newPath, bytes, { contentType, upsert: true });
+      if (!upErr) {
+        await supabase
+          .from("payments")
+          .update(format === "pdf" ? { rep_pdf_url: newPath } : { rep_xml_url: newPath })
+          .eq("id", payment_id);
+      }
+      return new Response(bytes, {
+        headers: { ...corsHeaders, "Content-Type": contentType, "Content-Disposition": `attachment; filename="${repFilename}"` },
+      });
     }
 
     const { data: invoice, error: invErr } = await supabase
@@ -62,10 +118,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Invoice not stamped" }), { status: 409, headers: jsonHeaders });
     }
 
-    const contentType = format === "pdf" ? "application/pdf" : "application/xml";
     const filename = `${invoice.invoice_number || invoice.cfdi_uuid}.${format}`;
     const storagePath =
       (format === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as string | null;
+
 
     // 1) Try Storage
     if (storagePath) {
