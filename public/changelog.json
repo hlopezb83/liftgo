@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.20.3",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Calendario: Disponibles y Vendidos agrupados por modelo",
+    "category": "improvement"
+  },
+  {
     "version": "6.20.2",
     "date": "2026-06-02",
     "type": "patch",

@@ -1,0 +1,13 @@
+{
+  "version": "6.20.3",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Calendario: Disponibles y Vendidos agrupados por modelo",
+  "category": "improvement",
+  "description": "El Gantt ahora colapsa los montacargas Disponibles y Vendidos en una sola fila por modelo con el conteo de unidades, reduciendo drásticamente el ruido visual y dejando el foco en los equipos con renta activa o futura.",
+  "changes": [
+    "Nueva sección 'Vendidos' separada de 'Disponibles'",
+    "Filas resumen por Manufacturer + Model con badge de conteo (× N)",
+    "Solo los equipos con renta activa o futura mantienen una fila por unidad"
+  ]
+}

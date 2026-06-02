@@ -1,40 +1,41 @@
 
 ## Objetivo
 
-Hacer el Gantt de Calendario de Disponibilidad más fácil de leer mostrando primero los montacargas con renta activa o futura, y agrupando al final los que están disponibles (sin reservas).
+Reducir ruido visual en el Gantt agrupando por modelo los montacargas sin actividad (Disponibles y Vendidos), en lugar de mostrar una fila por unidad.
 
 ## Cambios
 
-### 1. `src/features/calendar/components/calendar/GanttChart.tsx`
-- Antes de renderizar las filas, clasificar `forklifts` en dos grupos usando `bookings` del rango visible:
-  - **Con actividad**: tienen al menos una reserva `confirmed` en el rango (activa hoy o futura dentro del rango visible).
-  - **Disponibles**: sin reservas en el rango.
-- Ordenar cada grupo por `name` (alfabético, como hoy).
-- Renderizar:
-  1. Encabezado de sección "Con renta activa o futura" (`N`) — solo si hay elementos.
-  2. Filas del grupo con actividad.
-  3. Encabezado de sección "Disponibles" (`N`) — solo si hay elementos.
-  4. Filas del grupo disponibles (con un fondo `bg-muted/20` sutil opcional para distinguirlos visualmente).
-- Los separadores serán filas tipo sticky-left con texto pequeño (`text-xs font-semibold text-muted-foreground uppercase tracking-wide`), respetando el ancho de columna izquierdo (`w-48`) y extendiéndose sobre la grilla.
+### `src/features/calendar/components/calendar/GanttChart.tsx`
+- Clasificar los `forklifts` en tres grupos:
+  1. **Con renta activa o futura** — sigue igual, una fila por unidad (`GanttRow`).
+  2. **Disponibles** — `status !== "sold"` y sin reservas activas/futuras en el rango.
+  3. **Vendidos** — `status === "sold"` y sin reservas activas/futuras en el rango.
+- Para los grupos 2 y 3, agrupar por `manufacturer + model` y renderizar **una sola fila resumen por modelo** con:
+  - Etiqueta: `Manufacturer Model` + badge con el conteo (`× N`).
+  - Sin barras de Gantt (no hay reservas que mostrar).
+  - Estilo compacto consistente con `GanttRow` (mismo `w-48` izquierdo, fondo sutil `bg-muted/10` para diferenciar).
+- Mantener el encabezado por sección con conteo total (unidades, no modelos): `Disponibles (12)`, `Vendidos (5)`.
+- Ordenar las filas agrupadas alfabéticamente por `Manufacturer Model`.
 
-### 2. Sin cambios en lógica de negocio
-- No se modifican hooks, queries ni el `EquipmentListView`.
-- No se altera la semántica del status `forklifts.status` (solo se usa para mostrar el badge como hoy).
-- La clasificación se basa en `bookings` del rango visible (consistente con lo que ya muestra el Gantt).
+### Nuevo componente `GanttGroupedRow.tsx`
+- Componente pequeño y puro: recibe `label: string`, `count: number`, `days: Date[]` (para renderizar la grilla de fondo igual que `GanttRow`, manteniendo alineación visual de columnas).
+- Sin tooltips ni segmentos.
 
-### 3. Changelog
-- Crear `public/changelog/v6.20.2.json` (patch — mejora visual del Gantt).
-- Agregar entrada en `public/changelog.json`.
+### Sin cambios
+- `useGanttSegments`, hooks, queries, vista Lista.
+- La fila "Con renta activa o futura" sigue mostrando una fila por unidad con barras.
+
+### Changelog
+- `public/changelog/v6.20.3.json` (patch).
+- Entrada en `public/changelog.json`.
 
 ## Detalles técnicos
 
 ```text
-bookingsByForklift (Map ya existente en useGanttSegments)
-  └── forklift tiene entry con al menos 1 booking confirmed dentro del rango → "Con actividad"
-  └── sin entries / solo cancelled → "Disponibles"
+groupKey = `${manufacturer ?? ""} ${model}`.trim()
+disponibles: forklifts sin actividad y status !== 'sold' → agrupar por groupKey
+vendidos:    forklifts sin actividad y status === 'sold' → agrupar por groupKey
 ```
 
-Para evitar duplicar lógica, exponer un `Set<string>` `forkliftsWithActivity` desde `useGanttSegments` o calcularlo inline en `GanttChart` con un `useMemo` simple sobre `bookings`.
-
 ## Fuera de alcance
-- Filtros adicionales, colapsar grupos, cambios en la vista Lista, o cambios en el status real de los montacargas.
+- Expandir/colapsar grupos, filtros, cambios en la vista Lista.
