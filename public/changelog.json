@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.5",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Flujo único de pago en detalle de facturas",
+    "category": "fix"
+  },
+  {
     "version": "6.16.4",
     "date": "2026-06-02",
     "type": "patch",
