@@ -65,9 +65,7 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
     stampCfdi.mutate(id, { onSuccess: () => refetch() });
   };
 
-    }
-    stampCfdi.mutate(id, { onSuccess: () => refetch() });
-  };
+
 
 
   const handleDownloadXml = () => {
