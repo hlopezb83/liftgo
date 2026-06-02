@@ -13,6 +13,39 @@ interface CashFlowChartProps {
   data: CashFlowItem[];
 }
 
+interface TooltipPayloadEntry {
+  payload: CashFlowItem;
+}
+
+function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadEntry[] }) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0].payload;
+  const net = item.paid - item.invoiced;
+  const isPositive = net >= 0;
+  return (
+    <div className="rounded-lg border bg-card p-3 shadow-md text-xs space-y-1.5 min-w-[180px]">
+      <p className="font-semibold text-sm mb-1">{item.month}</p>
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">Facturado:</span>
+        <span className="font-mono">{formatCurrency(item.invoiced)}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">Pagado:</span>
+        <span className="font-mono">{formatCurrency(item.paid)}</span>
+      </div>
+      <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
+        <span className="font-medium">Neto:</span>
+        <span className={`font-mono font-semibold ${isPositive ? "text-status-available" : "text-destructive"}`}>
+          {formatCurrency(net)}
+        </span>
+      </div>
+      <p className={`text-[11px] text-right ${isPositive ? "text-status-available" : "text-destructive"}`}>
+        {isPositive ? "Flujo positivo" : "Flujo negativo"}
+      </p>
+    </div>
+  );
+}
+
 export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <Card>
@@ -24,7 +57,7 @@ export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChart
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
-              <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={{ borderRadius: "0.5rem", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
+              <Tooltip content={<CashFlowTooltip />} />
               <Bar dataKey="invoiced" name="Facturado" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
               <Bar dataKey="paid" name="Pagado" fill="hsl(var(--status-available))" radius={[4, 4, 0, 0]} />
             </BarChart>

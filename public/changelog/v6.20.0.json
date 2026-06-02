@@ -1,0 +1,14 @@
+{
+  "version": "6.20.0",
+  "date": "2026-06-02",
+  "type": "minor",
+  "title": "Panel: limpieza y métricas enriquecidas",
+  "category": "improvement",
+  "description": "Se simplifica el Panel para enfocarlo en métricas accionables y se enriquecen los gráficos con información de tendencias y flujo neto.",
+  "changes": [
+    "Se elimina la tarjeta 'Actividad Reciente' del Panel; la actividad sigue disponible en su módulo dedicado.",
+    "Se elimina la tarjeta 'Desglose de Facturas' del Panel; el desglose vive en el módulo de Facturas.",
+    "Flujo de Efectivo: el tooltip ahora muestra Facturado, Pagado y Neto del mes, con indicador visual de flujo positivo o negativo.",
+    "Utilización de Flota: se agrega línea de tendencia (regresión lineal) y un indicador de subida, bajada o estabilidad sobre el periodo mostrado."
+  ]
+}
