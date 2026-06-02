@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.17.0",
+    "date": "2026-06-02",
+    "type": "minor",
+    "title": "PDF y XML CFDI oficiales archivados en Storage",
+    "category": "feature"
+  },
+  {
     "version": "6.16.8",
     "date": "2026-06-02",
     "type": "patch",
