@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.7",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Fix: product_key SAT requerido por Facturapi al timbrar",
+    "category": "fix"
+  },
+  {
     "version": "6.16.6",
     "date": "2026-06-02",
     "type": "patch",
