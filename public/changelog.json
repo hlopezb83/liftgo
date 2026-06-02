@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.0",
+    "date": "2026-06-02",
+    "type": "minor",
+    "title": "Endurecimiento del flujo de timbrado Facturapi previo a producción",
+    "category": "feature"
+  },
+  {
     "version": "6.15.4",
     "date": "2026-06-01",
     "type": "patch",
