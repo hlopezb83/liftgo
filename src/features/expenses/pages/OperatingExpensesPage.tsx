@@ -1,39 +1,35 @@
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, DollarSign, FileUp } from "lucide-react";
+import { Plus, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { capitalize, parseDateLocal } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  useOperatingExpenses, useGenerateRecurring,
+  useOperatingExpenses,
   EXPENSE_CATEGORY_LABELS, type OperatingExpense,
 } from "@/features/expenses/hooks/useOperatingExpenses";
 import { SearchBar } from "@/components/SearchBar";
 import { ExpenseFormDialog } from "@/features/expenses/components/expenses/ExpenseFormDialog";
 import { ExpenseDetailSheet } from "@/features/expenses/components/expenses/ExpenseDetailSheet";
 import { ExpenseEditDialog } from "@/features/expenses/components/expenses/ExpenseEditDialog";
-import { CfdiImportDialog } from "@/features/expenses/components/expenses/CfdiImportDialog";
-import type { CfdiPrefill } from "@/features/expenses/lib/cfdiPrefill";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { useExpenseFilters } from "@/features/expenses/hooks/expenses/useExpenseFilters";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 export default function OperatingExpensesPage() {
   const { data: expenses, isLoading } = useOperatingExpenses();
-  const generateRecurring = useGenerateRecurring();
 
   const createDialog = useToggleDialog();
-  const cfdiDialog = useToggleDialog();
   const editDialog = useDialogState<OperatingExpense>();
   const detail = useDialogState<OperatingExpense>();
-  const [cfdiPrefill, setCfdiPrefill] = useState<CfdiPrefill | null>(null);
 
   const f = useExpenseFilters(expenses);
+
 
   const columns = useMemo<ColumnDef<OperatingExpense>[]>(
     () => [
@@ -108,13 +104,7 @@ export default function OperatingExpensesPage() {
         totalCount={f.filtered.length}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
-              <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />Generar Recurrentes
-            </Button>
-            <Button variant="outline" onClick={cfdiDialog.openDialog}>
-              <FileUp className="h-4 w-4 mr-1" />Importar CFDI
-            </Button>
-            <Button onClick={() => { setCfdiPrefill(null); createDialog.openDialog(); }}>
+            <Button onClick={createDialog.openDialog}>
               <Plus className="h-4 w-4 mr-1" />Registrar Gasto
             </Button>
           </div>
@@ -168,15 +158,9 @@ export default function OperatingExpensesPage() {
 
       <ExpenseFormDialog
         open={createDialog.open}
-        onOpenChange={(o) => { createDialog.setOpen(o); if (!o) setCfdiPrefill(null); }}
-        prefill={cfdiPrefill}
+        onOpenChange={createDialog.setOpen}
       />
 
-      <CfdiImportDialog
-        open={cfdiDialog.open}
-        onOpenChange={cfdiDialog.setOpen}
-        onParsed={(p) => { setCfdiPrefill(p); createDialog.openDialog(); }}
-      />
 
       <ExpenseDetailSheet
         expense={detail.selected}
