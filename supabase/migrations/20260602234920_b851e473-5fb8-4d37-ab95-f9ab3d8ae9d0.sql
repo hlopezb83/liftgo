@@ -1,0 +1,1 @@
+ALTER TABLE public.operating_expenses DROP COLUMN IF EXISTS is_recurring;
