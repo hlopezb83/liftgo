@@ -16,6 +16,8 @@ import { InvoiceDetailActions } from "@/features/invoices/components/invoice-det
 import { InvoiceSourceLinks } from "@/features/invoices/components/invoice-detail/InvoiceSourceLinks";
 import { InvoiceSummaryCards } from "@/features/invoices/components/invoice-detail/InvoiceSummaryCards";
 import { InvoiceDetailDialogs } from "@/features/invoices/components/invoice-detail/InvoiceDetailDialogs";
+import { InvoiceCreditNotesCard } from "@/features/invoices/components/invoice-detail/InvoiceCreditNotesCard";
+import { useCreditNotesForInvoice } from "@/features/invoices/hooks/creditNotes/useCreditNotes";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +42,7 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const { data: invoice, isLoading, refetch } = useInvoice(id);
   const { data: payments } = usePayments(id);
+  const { data: creditNotes = [] } = useCreditNotesForInvoice(id);
   const { data: userRole } = useUserRole();
   const { data: company } = useCompanySettings();
   const { data: sourceQuote } = useQuote(invoice?.quote_id ?? undefined);
@@ -54,8 +57,11 @@ export default function InvoiceDetail() {
   const lineItems = parseLineItems<LineItem>(invoice.line_items);
   const cfdiStatus = invoice.cfdi_status ?? "pending";
   const totalPaid = paymentList.reduce((sum, p) => sum + Number(p.amount), 0);
+  const creditedAmount = creditNotes
+    .filter((cn) => cn.cfdi_status === "stamped" && cn.status !== "cancelled" && cn.cancellation_status !== "accepted")
+    .reduce((s, cn) => s + Number(cn.total), 0);
   const total = Number(invoice.total);
-  const balance = total - totalPaid;
+  const balance = total - totalPaid - creditedAmount;
   const showCfdiError = Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped";
   const showCollectionNotes = !["paid", "draft"].includes(invoice.status);
   const notes = invoice.notes;
@@ -122,7 +128,9 @@ export default function InvoiceDetail() {
         balance={balance}
         payments={paymentList}
         ppdStamped={invoice.metodo_pago === "PPD" && cfdiStatus === "stamped"}
+        creditedAmount={creditedAmount}
       />
+      <InvoiceCreditNotesCard invoice={invoice} totalPaid={totalPaid} />
       <InvoiceHistoryCard invoiceId={id} />
 
       <InvoiceDetailDialogs

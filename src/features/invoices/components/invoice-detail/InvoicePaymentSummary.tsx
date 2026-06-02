@@ -18,6 +18,7 @@ interface InvoicePaymentSummaryProps {
   payments: Tables<"payments">[];
   /** If true, parent invoice is PPD+stamped (REP capabilities visible) */
   ppdStamped?: boolean;
+  creditedAmount?: number;
 }
 
 type Payment = Tables<"payments">;
@@ -50,7 +51,7 @@ function RepBadge({ status }: { status: string | null }) {
   return <Badge variant="outline">Sin REP</Badge>;
 }
 
-export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped = false }: InvoicePaymentSummaryProps) {
+export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped = false, creditedAmount = 0 }: InvoicePaymentSummaryProps) {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const stampRep = useStampPaymentComplement();
   const cancelRep = useCancelPaymentComplement();
@@ -169,7 +170,7 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped
 
   return (
     <>
-      {totalPaid > 0 && (
+      {(totalPaid > 0 || creditedAmount > 0) && (
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
@@ -177,6 +178,12 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped
                 <p className="text-sm text-muted-foreground">Total Pagado</p>
                 <p className="text-lg font-mono font-bold text-green-600">{formatCurrency(totalPaid)}</p>
               </div>
+              {creditedAmount > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Notas de Crédito</p>
+                  <p className="text-lg font-mono font-bold text-blue-600">−{formatCurrency(creditedAmount)}</p>
+                </div>
+              )}
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
                 <p className={`text-lg font-mono font-bold ${balance <= 0 ? "text-green-600" : "text-destructive"}`}>{formatCurrency(balance)}</p>
