@@ -34,12 +34,13 @@ export function CfdiImportDialog({ open, onOpenChange, onParsed }: Props) {
       );
       if (error) throw error;
       if (!data) throw new Error("Respuesta vacía");
-      if (data.duplicate) {
+      if (data.duplicate === true) {
         toast.warning("Este CFDI ya fue registrado anteriormente");
         onOpenChange(false);
         return;
       }
-      onParsed(data);
+      const { duplicate: _d, ...prefill } = data;
+      onParsed(prefill);
       onOpenChange(false);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "No se pudo procesar el CFDI";
