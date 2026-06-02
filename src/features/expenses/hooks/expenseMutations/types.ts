@@ -7,6 +7,7 @@ export type ExpenseInput = {
   expense_date: string;
   is_recurring?: boolean;
   supplier_id?: string | null;
+  cfdi_uuid?: string | null;
 };
 
 export type ExpenseUpdate = { id: string } & Partial<ExpenseInput>;
