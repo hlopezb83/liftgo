@@ -6,7 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
 import { useCancelCfdi } from "@/features/invoices/hooks/invoices/useCancelCfdi";
-import { isUUID } from "@/lib/utils";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUUID = (s: string) => UUID_RE.test(s);
+
 
 interface CancelCfdiDialogProps {
   open: boolean;
