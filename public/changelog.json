@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.16.2",
+    "date": "2026-06-02",
+    "type": "patch",
+    "title": "Autocompletado de datos fiscales del receptor al timbrar CFDI",
+    "category": "fix"
+  },
+  {
     "version": "6.16.1",
     "date": "2026-06-02",
     "type": "patch",
