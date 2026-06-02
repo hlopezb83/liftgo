@@ -28,8 +28,10 @@ export default function OperatingExpensesPage() {
   const generateRecurring = useGenerateRecurring();
 
   const createDialog = useToggleDialog();
+  const cfdiDialog = useToggleDialog();
   const editDialog = useDialogState<OperatingExpense>();
   const detail = useDialogState<OperatingExpense>();
+  const [cfdiPrefill, setCfdiPrefill] = useState<CfdiPrefill | null>(null);
 
   const f = useExpenseFilters(expenses);
 
