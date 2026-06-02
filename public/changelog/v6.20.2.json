@@ -1,0 +1,13 @@
+{
+  "version": "6.20.2",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Calendario: Gantt agrupado por actividad",
+  "category": "improvement",
+  "description": "El diagrama Gantt ahora agrupa los montacargas en dos secciones: 'Con renta activa o futura' arriba y 'Disponibles' abajo, facilitando identificar de un vistazo qué equipos están en uso y cuáles libres en el rango visible.",
+  "changes": [
+    "Agrupación visual por estado de renta en el rango visible",
+    "Encabezados de sección con conteo por grupo",
+    "Orden alfabético dentro de cada grupo"
+  ]
+}
