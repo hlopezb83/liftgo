@@ -1,0 +1,12 @@
+{
+  "version": "6.16.1",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Fix: ruta /settings redirige a Configuración en lugar de 404",
+  "category": "fix",
+  "description": "El breadcrumb del topbar enlazaba a /settings desde /settings/operations o /settings/company, pero esa ruta no existía y mostraba la pantalla de 404. Se registró /settings como ruta válida que redirige a /settings/operations.",
+  "changes": [
+    "Agregada ruta /settings en routes-config que reutiliza CompanySettingsPage (Navigate a /settings/operations)",
+    "Eliminado el 404 al hacer clic en el segmento 'Configuración' del breadcrumb"
+  ]
+}
