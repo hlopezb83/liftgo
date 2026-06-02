@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
 import {
@@ -18,7 +17,6 @@ interface FormData {
   description: string;
   amount: string;
   expense_date: string;
-  is_recurring: boolean;
   supplier_id: string;
 }
 
@@ -47,7 +45,6 @@ export function ExpenseEditDialog({ expense, open, onOpenChange }: Props) {
         description: form.description || undefined,
         amount,
         expense_date: form.expense_date,
-        is_recurring: form.is_recurring,
         supplier_id: form.supplier_id || null,
       },
       { onSuccess: () => onOpenChange(false) },
@@ -85,13 +82,6 @@ export function ExpenseEditDialog({ expense, open, onOpenChange }: Props) {
             <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
           </div>
           <SupplierSelector value={form.supplier_id} onChange={(v) => setForm({ ...form, supplier_id: v })} />
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="space-y-0.5">
-              <Label>Gasto recurrente mensual</Label>
-              <p className="text-xs text-muted-foreground">Se podrá generar automáticamente cada mes</p>
-            </div>
-            <Switch checked={form.is_recurring} onCheckedChange={(v) => setForm({ ...form, is_recurring: v })} />
-          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
@@ -103,13 +93,12 @@ export function ExpenseEditDialog({ expense, open, onOpenChange }: Props) {
 }
 
 function fromExpense(e: OperatingExpense | null): FormData {
-  if (!e) return { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), is_recurring: false, supplier_id: "" };
+  if (!e) return { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), supplier_id: "" };
   return {
     category: e.category,
     description: e.description || "",
     amount: String(e.amount),
     expense_date: e.expense_date,
-    is_recurring: e.is_recurring ?? false,
     supplier_id: e.supplier_id || "",
   };
 }

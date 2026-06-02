@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { parseDateLocal } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Pencil, Trash2, DollarSign, Calendar, FileText, Tag, Truck, RefreshCw } from "lucide-react";
+import { Pencil, Trash2, DollarSign, Calendar, FileText, Tag, Truck } from "lucide-react";
 
 interface Props {
   expense: OperatingExpense | null;
@@ -56,11 +56,6 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, onEdit }: Prop
             <Badge variant={expense.category === "costo_venta" ? "secondary" : "outline"}>
               {EXPENSE_CATEGORY_LABELS[expense.category]}
             </Badge>
-            {expense.is_recurring && (
-              <Badge variant="outline" className="gap-1">
-                <RefreshCw className="h-3 w-3" /> Recurrente
-              </Badge>
-            )}
           </div>
 
           <div className="space-y-1">

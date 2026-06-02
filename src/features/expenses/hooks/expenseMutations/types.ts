@@ -5,7 +5,6 @@ export type ExpenseInput = {
   description?: string;
   amount: number;
   expense_date: string;
-  is_recurring?: boolean;
   supplier_id?: string | null;
   cfdi_uuid?: string | null;
 };

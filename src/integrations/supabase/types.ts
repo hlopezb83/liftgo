@@ -1543,7 +1543,6 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
-          is_recurring: boolean
           supplier_id: string | null
           updated_at: string
         }
@@ -1555,7 +1554,6 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
-          is_recurring?: boolean
           supplier_id?: string | null
           updated_at?: string
         }
@@ -1567,7 +1565,6 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
-          is_recurring?: boolean
           supplier_id?: string | null
           updated_at?: string
         }
