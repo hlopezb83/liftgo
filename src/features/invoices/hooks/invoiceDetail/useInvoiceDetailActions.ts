@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { STATUS_LABELS } from "@/lib/constants";
 import { useUpdateInvoice, useDeleteInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
@@ -8,7 +7,6 @@ import { useUpdateBooking } from "@/features/bookings/hooks/useBookings";
 import { useStampCfdi } from "@/features/invoices/hooks/invoices/useStampCfdi";
 import { getMissingStampFields } from "@/features/invoices/lib/cfdiPrechecks";
 
-import { nowMty } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 
 /**
@@ -25,8 +23,6 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [paidDate, setPaidDate] = useState<Date>(nowMty());
-  const [paidPopoverOpen, setPaidPopoverOpen] = useState(false);
 
   const id = invoice?.id;
 
@@ -48,11 +44,6 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
     );
   };
 
-  const confirmPaidWithDate = () => {
-    setStatus("paid", format(paidDate, "yyyy-MM-dd"));
-    setPaidPopoverOpen(false);
-  };
-
   const handleStamp = () => {
     if (!id || !invoice) return;
     const missing = getMissingStampFields(invoice);
@@ -64,9 +55,6 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
     }
     stampCfdi.mutate(id, { onSuccess: () => refetch() });
   };
-
-
-
 
   const handleDownloadXml = () => {
     if (!invoice?.cfdi_xml) return;
@@ -91,13 +79,10 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
     cancelDialogOpen, setCancelDialogOpen,
     paymentDialogOpen, setPaymentDialogOpen,
     deleteDialogOpen, setDeleteDialogOpen,
-    paidDate, setPaidDate,
-    paidPopoverOpen, setPaidPopoverOpen,
     // mutations
     stampCfdi,
     // actions
     setStatus,
-    confirmPaidWithDate,
     handleStamp,
     handleDownloadXml,
     handleEdit,

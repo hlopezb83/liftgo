@@ -89,13 +89,8 @@ export default function InvoiceDetail() {
             invoice={invoice}
             cfdiStatus={cfdiStatus}
             userRole={userRole}
-            paidDate={actions.paidDate}
-            setPaidDate={actions.setPaidDate}
-            paidPopoverOpen={actions.paidPopoverOpen}
-            setPaidPopoverOpen={actions.setPaidPopoverOpen}
             isStamping={actions.stampCfdi.isPending}
             onSent={() => actions.setStatus("sent")}
-            onConfirmPaid={actions.confirmPaidWithDate}
             onOpenPayment={() => actions.setPaymentDialogOpen(true)}
             onEdit={actions.handleEdit}
             onStamp={actions.handleStamp}

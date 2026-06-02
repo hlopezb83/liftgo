@@ -1,0 +1,13 @@
+{
+  "version": "6.16.5",
+  "date": "2026-06-02",
+  "type": "patch",
+  "title": "Flujo único de pago en detalle de facturas",
+  "category": "fix",
+  "description": "Se eliminó el botón 'Marcar Pagada' del detalle de facturas. 'Registrar Pago' queda como único camino para registrar cobros, garantizando que siempre quede traza en el módulo de pagos (monto, método, referencia) y evitando cambios de status sin registro auditable.",
+  "changes": [
+    "Removido botón 'Marcar Pagada' y su popover de calendario en InvoiceDetailActions.",
+    "Limpiado estado paidDate/paidPopoverOpen y handler confirmPaidWithDate en useInvoiceDetailActions.",
+    "'Registrar Pago' sigue auto-marcando la factura como pagada cuando el monto cubre el saldo."
+  ]
+}
