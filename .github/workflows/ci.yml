@@ -67,8 +67,9 @@ jobs:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # No bloquea el merge mientras se configuran los 3 secrets:
-    # E2E_TEST_EMAIL, E2E_TEST_PASSWORD, SUPABASE_SERVICE_ROLE_KEY.
+    # No bloquea el merge mientras se configuran los 2 secrets:
+    # E2E_TEST_EMAIL, E2E_TEST_PASSWORD (usuario de prueba con rol admin).
+    # Los tests usan login normal y respetan RLS — no se requiere service role key.
     # Quitar este flag una vez los secrets estén en el repo.
     continue-on-error: true
     steps:
@@ -90,7 +91,6 @@ jobs:
         env:
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: bun run test:e2e
 
       - name: Upload Playwright report
