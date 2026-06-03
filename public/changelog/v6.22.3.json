@@ -1,0 +1,11 @@
+{
+  "version": "6.22.3",
+  "date": "2026-06-03",
+  "type": "patch",
+  "title": "CI E2E: job ahora bloquea merge en fallos",
+  "category": "chore",
+  "description": "Con los secrets E2E_TEST_EMAIL y E2E_TEST_PASSWORD ya configurados en GitHub, se elimina continue-on-error del job E2E. A partir de ahora un fallo en Playwright bloquea el merge.",
+  "changes": [
+    "ci.yml: eliminada bandera continue-on-error del job e2e"
+  ]
+}
