@@ -1,0 +1,13 @@
+{
+  "version": "6.22.1",
+  "date": "2026-06-03",
+  "type": "patch",
+  "title": "CI: limpieza de archivos huérfanos detectados por knip",
+  "category": "chore",
+  "description": "Se eliminaron tres componentes sin referencias (GanttGroupedRow, InvoiceBreakdown, RecentActivity) que estaban rompiendo el job de calidad de CI por knip.",
+  "changes": [
+    "Eliminado src/features/calendar/components/calendar/GanttGroupedRow.tsx (sin uso tras refactor del calendario).",
+    "Eliminado src/features/dashboard/components/dashboard/InvoiceBreakdown.tsx (reemplazado por la sección modular del dashboard).",
+    "Eliminado src/features/dashboard/components/dashboard/RecentActivity.tsx (no referenciado)."
+  ]
+}
