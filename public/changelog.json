@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.3",
+    "date": "2026-06-03",
+    "type": "patch",
+    "title": "CI E2E: job ahora bloquea merge en fallos",
+    "category": "chore"
+  },
+  {
     "version": "6.22.2",
     "date": "2026-06-03",
     "type": "patch",
