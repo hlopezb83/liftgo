@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.1",
+    "date": "2026-06-03",
+    "type": "patch",
+    "title": "CI: limpieza de archivos huérfanos detectados por knip",
+    "category": "chore"
+  },
+  {
     "version": "6.22.0",
     "date": "2026-06-02",
     "type": "minor",
