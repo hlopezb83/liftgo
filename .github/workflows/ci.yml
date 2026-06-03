@@ -67,11 +67,8 @@ jobs:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # No bloquea el merge mientras se configuran los 2 secrets:
-    # E2E_TEST_EMAIL, E2E_TEST_PASSWORD (usuario de prueba con rol admin).
+    # Requiere los secrets E2E_TEST_EMAIL y E2E_TEST_PASSWORD (usuario admin de prueba).
     # Los tests usan login normal y respetan RLS — no se requiere service role key.
-    # Quitar este flag una vez los secrets estén en el repo.
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
