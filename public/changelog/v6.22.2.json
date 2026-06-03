@@ -1,0 +1,13 @@
+{
+  "version": "6.22.2",
+  "date": "2026-06-03",
+  "type": "patch",
+  "title": "CI E2E: elimina dependencia de SUPABASE_SERVICE_ROLE_KEY",
+  "category": "chore",
+  "description": "Los tests E2E ya autentican con email/password real respetando RLS. Se eliminó la variable SUPABASE_SERVICE_ROLE_KEY del workflow CI y de la documentación; ahora solo se requieren 2 secrets (E2E_TEST_EMAIL, E2E_TEST_PASSWORD).",
+  "changes": [
+    "ci.yml: eliminada variable de entorno SUPABASE_SERVICE_ROLE_KEY del job e2e",
+    "architecture.md: documentación actualizada (2 secrets en lugar de 3)",
+    "Tests E2E siguen usando login normal vía global.setup.ts — sin bypass de RLS"
+  ]
+}
