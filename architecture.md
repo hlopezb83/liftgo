@@ -350,7 +350,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - Project `portal` corre sin `storageState` para validar rutas públicas (`/portal/login`).
 - Cobertura actual: `auth.spec.ts` (dashboard tras login), `smoke-nav.spec.ts` (10 rutas críticas sin error boundary), `booking.spec.ts` / `quote-to-invoice.spec.ts` / `portal.spec.ts` (lista + skips marcados con `TODO` para happy-paths con seed).
 - Comandos: `bun run test:e2e` (CI) y `bun run test:e2e:ui` (debugging local).
-- CI: job `e2e` en `.github/workflows/ci.yml` con `continue-on-error: true` hasta que se añadan los 3 secrets (`E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `SUPABASE_SERVICE_ROLE_KEY`). Quitar el flag después.
+- CI: job `e2e` en `.github/workflows/ci.yml` con `continue-on-error: true` hasta que se añadan los 2 secrets (`E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`). Los tests usan login normal con email/password y respetan RLS — no se requiere `SUPABASE_SERVICE_ROLE_KEY`. Quitar el flag después.
 - Convención: cada test < 30s. Para tests que requieren datos, preferir RPC de seed antes que UI clicks. Evitar selectores por copy: usar `data-testid` o `role` + `name` con regex flexible.
 
 ### 15.4 Mobile QA
