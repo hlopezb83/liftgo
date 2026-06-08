@@ -8,6 +8,7 @@ import { InfoCards } from "@/lib/pdf/components/InfoCards";
 import { Footer } from "@/lib/pdf/components/Footer";
 import { fmtDate, type CompanyData } from "@/lib/pdf/shared";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { roundMoney } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import type { CustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
 
@@ -97,9 +98,9 @@ function InvoiceTable({ title, rows, showDue, emptyMsg }: {
 
 export function CustomerStatementDocument(props: CustomerStatementDocumentProps) {
   const { summary } = props;
-  const totalInvoiced = Number(summary.totals.total_invoiced ?? 0);
-  const totalPaid = Number(summary.totals.total_paid ?? 0);
-  const balance = totalInvoiced - totalPaid;
+  const totalInvoiced = roundMoney(Number(summary.totals.total_invoiced ?? 0));
+  const totalPaid = roundMoney(Number(summary.totals.total_paid ?? 0));
+  const balance = roundMoney(totalInvoiced - totalPaid);
   const today = nowMty();
   const openInvoices = summary.invoices.filter((i) => i.status !== "paid" && i.status !== "cancelled");
   const paidInvoices = summary.invoices.filter((i) => i.status === "paid");

@@ -1,5 +1,6 @@
 import type { ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
 import { EXPENSE_CATEGORY_LABELS } from "@/features/expenses/hooks/useOperatingExpenses";
+import { roundMoney } from "@/lib/money";
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
 export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];
@@ -81,13 +82,13 @@ export function computeDerivedTotals(t: {
   expenses: Record<ExpenseCategory, number>;
 }) {
   const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
-  const grossProfit = t.revenue - t.maintenanceCost - t.damageCost - costoVenta;
+  const grossProfit = roundMoney(t.revenue - t.maintenanceCost - t.damageCost - costoVenta);
   const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
   const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
-  const totalExpenses = t.maintenanceCost + t.damageCost + costoVenta + opexTotal;
-  const profitBeforeDepreciation = t.revenue - totalExpenses;
+  const totalExpenses = roundMoney(t.maintenanceCost + t.damageCost + costoVenta + opexTotal);
+  const profitBeforeDepreciation = roundMoney(t.revenue - totalExpenses);
   const marginBeforeDepreciation = t.revenue > 0 ? (profitBeforeDepreciation / t.revenue) * 100 : 0;
-  const netProfit = profitBeforeDepreciation - t.depreciation;
+  const netProfit = roundMoney(profitBeforeDepreciation - t.depreciation);
   const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
   return { grossProfit, grossMargin, totalExpenses, profitBeforeDepreciation, marginBeforeDepreciation, netProfit, margin };
 }

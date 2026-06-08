@@ -1,3 +1,4 @@
+import { sumMoney } from "@/lib/money";
 import {
   type MonthData, type StatementRow, type YearTotals,
   EXPENSE_CATEGORIES, DIRECT_COST_CATEGORIES, EXPENSE_CATEGORY_LABELS,
@@ -59,7 +60,7 @@ export function buildBreakdownRows(
   return [...allNames].sort().map((name) => ({
     label: `      ${name}`,
     values: filteredData.map((r) => selector(r)[name] ?? 0),
-    total: filteredData.reduce((s, r) => s + (selector(r)[name] ?? 0), 0),
+    total: sumMoney(filteredData.map((r) => selector(r)[name] ?? 0)),
     isCost: isCost || undefined,
   }));
 }
