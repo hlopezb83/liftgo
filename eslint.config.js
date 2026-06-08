@@ -54,4 +54,17 @@ export default tseslint.config(
       "max-lines-per-function": "off",
     },
   },
+  {
+    // Guardrail: matemática monetaria SOLO en src/lib/domain/invoiceHelpers.ts.
+    files: [
+      "src/features/quotes/components/quotes/*LineHelpers.ts",
+      "src/features/invoices/hooks/invoiceForm/*.ts",
+    ],
+    rules: {
+      "no-restricted-syntax": ["error", {
+        selector: "BinaryExpression[operator=/^[*/]$/]",
+        message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceHelpers.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
+      }],
+    },
+  },
 );

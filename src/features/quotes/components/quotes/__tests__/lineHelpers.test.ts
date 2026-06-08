@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { computeRentalLineTotal } from "../rentalLineHelpers";
 import { computeSaleLineTotal } from "../saleLineHelpers";
+import { saleLineTotal, applyDiscountToBase } from "@/lib/domain/invoiceHelpers";
 import type { RentalLine } from "../RentalLineItems";
 import type { SaleLine } from "../SaleLineItems";
+
 
 const baseRental: RentalLine = {
   modelId: "m1", quantity: 1,
@@ -59,5 +61,24 @@ describe("computeSaleLineTotal", () => {
   it("ignora descuento ≤ 0", () => {
     expect(computeSaleLineTotal({ ...base, discount: 0, discountType: "%" })).toBe(1000);
     expect(computeSaleLineTotal({ ...base, discount: -5, discountType: "%" })).toBe(1000);
+  });
+});
+
+describe("saleLineTotal & applyDiscountToBase (drift)", () => {
+  it("3 × 19.99 sin drift", () => {
+    expect(saleLineTotal({ quantity: 3, unit_price: 19.99 })).toBe(59.97);
+  });
+  it("descuento 10% sobre 19.99 sin drift", () => {
+    expect(saleLineTotal({ quantity: 1, unit_price: 19.99, discount: 10, discount_type: "%" })).toBe(17.99);
+  });
+  it("descuento porcentual evita drift binario", () => {
+    // 0.1 + 0.2 = 0.30000000000000004 → currency.js lo cuantiza a 0.3
+    expect(applyDiscountToBase(0.1 + 0.2, 50, "%")).toBe(0.15);
+  });
+  it("descuento $ mayor que base devuelve 0", () => {
+    expect(applyDiscountToBase(100, 9999, "$")).toBe(0);
+  });
+  it("valores no finitos en base devuelven 0", () => {
+    expect(applyDiscountToBase(Number.NaN, 10, "%")).toBe(0);
   });
 });
