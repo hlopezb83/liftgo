@@ -1,10 +1,11 @@
-import { format } from "date-fns";
 import { useCreateInvoice, useUpdateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { orEmpty } from "@/lib/coerce";
+import { toYMD } from "@/lib/date/toYMD";
 import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "@/features/invoices/lib/invoiceFormSchema";
+
 
 function toLineItems(items: LineItemValues[]): LineItem[] {
   return items.map((i) => ({
@@ -62,9 +63,10 @@ export function useInvoiceFormSubmit() {
       quote_id: fromQuoteId || (isEdit ? orEmpty(existingQuoteId, null) : null) || null,
       line_items: toJsonArray(items),
       subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
-      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
-      issued_at: format(issueDate, "yyyy-MM-dd"),
+      due_date: toYMD(dueDate) ?? null,
+      issued_at: toYMD(issueDate) ?? "",
       notes: nn(notes),
+
       ...buildCfdiPayload(cfdi),
     };
   };

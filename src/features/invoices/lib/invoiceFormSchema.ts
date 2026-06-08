@@ -2,7 +2,7 @@ import { z } from "zod";
 import { nowMty } from "@/lib/utils";
 
 export const lineItemSchema = z.object({
-  description: z.string(),
+  description: z.string().trim().min(1, "Descripción requerida"),
   quantity: z.number().min(1, "Cantidad ≥ 1"),
   unit_price: z.number().min(0, "Precio ≥ 0"),
   total: z.number(),
@@ -12,6 +12,7 @@ export const lineItemSchema = z.object({
   discount: z.number().optional(),
   discount_type: z.enum(["%", "$"]).optional(),
 });
+
 
 export const cfdiSchema = z.object({
   serie: z.string(),

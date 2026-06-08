@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.7",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Facturas: descripción de partida requerida + toYMD() en submit",
+    "category": "chore"
+  },
+  {
     "version": "6.22.6",
     "date": "2026-06-08",
     "type": "patch",

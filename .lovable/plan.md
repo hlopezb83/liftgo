@@ -1,58 +1,65 @@
 
-## ¿Tiene sentido para LiftGo (zona MX)?
+## ¿Es buena idea? — **No, y aquí está el porqué**
 
-**Sí, pero como medida preventiva, no porque hoy haya un bug visible.** Análisis:
+Revisé `invoiceFormSchema.ts` + `useInvoiceFormSubmit.ts`. La propuesta de cambiar campos opcionales a `.string().nullable().optional()` **introduce más problemas de los que resuelve** en este codebase:
 
-- `react-day-picker` entrega `Date` en **medianoche local**. En Monterrey (UTC-6/-5) la medianoche local cae en UTC del **mismo día** (ej. 8 jun 00:00 MTY = 8 jun 06:00 UTC), así que `.toISOString().slice(0, 10)` da "2026-06-08" correctamente. No vemos el clásico bug de "se corre un día" porque MX siempre tiene offset negativo.
-- El bug **sí** aparece si en algún lado se construye un `Date` desde una cadena UTC (`new Date("2026-06-08")` = 8 jun 00:00 UTC = **7 jun 18:00 MTY**) y luego se formatea con `format(...)` o se vuelve a serializar. Hoy ya hay `nowMty()` para "ahora", pero no hay un helper `toYMD(date)` que extraiga el año/mes/día **locales** de un `Date`.
-- Usar `.toISOString().slice(0,10)` en todos los consumidores es **frágil**: el día que alguien arrastre una `Date` UTC al serializador, perdemos un día sin darnos cuenta.
+### 1. No hay bug que arreglar
+- Todos los campos de texto opcionales hoy son `z.string()` con default `""` (ver `EMPTY_CFDI`, `buildEmptyInvoiceValues`). 
+- React Hook Form usa **inputs controlados**: cuando el usuario borra el campo, RHF guarda `""`, nunca `null` ni `undefined`. `z.string()` acepta `""` sin problema → **no hay validación que falle ni submission bloqueada**.
+- La conversión `"" → null` ya se hace en el boundary de submit con el helper `nn()` en `useInvoiceFormSubmit.ts` (líneas 31, 35-45, 61, 67), justo antes de mandar a Supabase. Patrón correcto: **strings en el form, null en el DB**.
 
-Conclusión: vale la pena estandarizar con un helper `toYMD()` basado en componentes locales y usarlo en `DateRangePickerField` + todos los hooks que serializan rangos para Supabase como `date`/`YYYY-MM-DD`. Las columnas `timestamptz` (`created_at`, `inspected_at`, etc.) se quedan con `toISOString()` — esas sí necesitan UTC.
+### 2. Hacerlo `.nullable().optional()` empeora las cosas
+- El tipo inferido pasa de `string` a `string | null | undefined`. Cada consumidor (UI, helpers, PDF, edge functions) tendría que manejar tres estados para el mismo concepto semántico ("vacío").
+- React Hook Form arroja warnings de *uncontrolled → controlled* si un input recibe `null/undefined`. Tendríamos que poner `value={field.value ?? ""}` en cada `<Input>`.
+- El default `""` deja de tipar y obliga a `null as string | null | undefined` en `buildEmptyInvoiceValues`.
+
+### 3. Lo que sí tiene sentido cambiar (oportunidades reales que vi)
+Mientras revisaba, encontré dos issues legítimos:
+
+**(a) `useInvoiceFormSubmit.ts` usa `format(date, "yyyy-MM-dd")` en `due_date` e `issued_at`.** Las columnas son `date` en Postgres. Esto repite exactamente el patrón frágil que migramos a `toYMD()` en el changelog 6.22.6. Debería usar `toYMD()`.
+
+**(b) `lineItemSchema.description` es `z.string()` sin `.min(1)`.** Permite líneas con descripción vacía que llegan a CFDI. SAT rechaza descripciones vacías → falla `stamp-cfdi` con error genérico en lugar de validación amigable en el form.
 
 ## Plan
 
-### 1. Nuevo helper `src/lib/date/toYMD.ts`
-```ts
-export function toYMD(date: Date | undefined | null): string | undefined {
-  if (!date) return undefined;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-```
-Test asociado en `src/lib/date/__tests__/toYMD.test.ts` verificando que un `Date` creado con `new Date(2026, 5, 8)` siempre devuelve `"2026-06-08"` independiente del offset.
-
-### 2. `src/components/DateRangePickerField.tsx`
-- Mantener firma `onSelect(range?: DateRange)` (no romper API), pero **normalizar** el `Date` recibido del calendario a medianoche local antes de emitir:
+### 1. Migrar serializadores de fecha a `toYMD()`
+En `src/features/invoices/hooks/invoiceForm/useInvoiceFormSubmit.ts`:
+- Quitar `import { format } from "date-fns"`.
+- Importar `toYMD` de `@/lib/date/toYMD`.
+- Reemplazar:
   ```ts
-  const normalize = (d?: Date) => d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : undefined;
+  due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
+  issued_at: format(issueDate, "yyyy-MM-dd"),
   ```
-  Esto garantiza que si en el futuro `react-day-picker` cambia el comportamiento o alguien pre-llena con una `Date` UTC, el callback siempre recibe medianoche local pura.
-- Mismo cambio en `src/components/DatePickerField.tsx` para consistencia.
+  por:
+  ```ts
+  due_date: toYMD(dueDate) ?? null,
+  issued_at: toYMD(issueDate) ?? "",
+  ```
+  (`issued_at` siempre tiene valor porque `issueDate` es `z.date()` requerido — el `?? ""` es solo para satisfacer el tipado, nunca dispara).
 
-### 3. Migrar serializadores `.toISOString().slice(0,10)` → `toYMD()` cuando el destino es columna `date` (no `timestamptz`):
-- `src/features/bookings/hooks/useBookings.ts` (líneas 25-26)
-- `src/features/fleet/hooks/forklifts/useAvailableForklifts.ts` (líneas 13-14)
-- `src/features/fleet/hooks/forklifts/useForkliftMutations.ts` (línea 19, expense_date)
-- `src/features/invoices/hooks/invoices/useInvoicesFilters.ts` (líneas 51-53)
-- `src/features/expenses/components/expenses/ExpenseEditDialog.tsx` (línea 96, expense_date)
-- `src/features/dashboard/components/dashboard/AlertsRow.tsx` (línea 53, paid_at)
+### 2. Requerir descripción no vacía en line items
+En `invoiceFormSchema.ts`:
+```ts
+description: z.string().trim().min(1, "Descripción requerida"),
+```
+- Verificar que `EditableLineItemsTable` muestre el error del field (RHF lo expone automáticamente vía `formState.errors.lineItems`).
+- Actualizar el test `invoiceFormSchema.test.ts` para cubrir el nuevo case.
 
-**NO** tocar las que apuntan a `timestamptz` (created_at de audit, inspected_at, closed_at, signed_at, etc.) — esas deben seguir siendo UTC ISO completo.
+### 3. Documentar la decisión
+Agregar memoria `mem://logic/zod-nullable-fields`: "Campos de texto opcionales que mapean a columnas nullable se modelan como `z.string()` con default `''` en el form. La conversión `'' → null` se hace en el boundary de submit (helper `nn()`). No usar `.nullable().optional()` para inputs controlados."
 
-### 4. Memoria de proyecto
-Agregar memoria `mem://logic/date-serialization`: "Para columnas DB tipo `date` usar `toYMD()` (componentes locales). Para `timestamptz` usar `nowMty().toISOString()` o `date.toISOString()`. Nunca `.toISOString().slice(0,10)` sobre `Date` que pueda venir en UTC."
-
-### 5. Changelog
-Entrada `6.22.6` patch en `public/changelog.json` + `public/changelog/v6.22.6.json` documentando el helper y la migración.
+### 4. Changelog
+Entrada `6.22.7` patch en `public/changelog.json` + `public/changelog/v6.22.7.json`.
 
 ## Archivos tocados
+- `src/features/invoices/hooks/invoiceForm/useInvoiceFormSubmit.ts`
+- `src/features/invoices/lib/invoiceFormSchema.ts`
+- `src/features/invoices/lib/invoiceFormSchema.test.ts`
+- nueva memoria + changelog
 
-- nuevo: `src/lib/date/toYMD.ts` (+ test)
-- `src/components/DateRangePickerField.tsx`, `src/components/DatePickerField.tsx`
-- 6 hooks/componentes listados en §3
-- `public/changelog.json`, `public/changelog/v6.22.6.json`
-- memoria del proyecto
+Sin DB, sin UI, sin backend.
 
-Sin DB, sin RPCs, sin cambios de UI visibles.
+---
+
+¿Avanzo con esto, o prefieres que de todas formas convierta los strings opcionales a `.nullable().optional()`?
