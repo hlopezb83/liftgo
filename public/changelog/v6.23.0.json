@@ -1,0 +1,13 @@
+{
+  "version": "6.23.0",
+  "date": "2026-06-08",
+  "type": "minor",
+  "title": "Cobertura de tests: lotes 1, 2, 4 y 8 (+47 unit tests)",
+  "description": "Se agregaron 47 unit tests nuevos para cerrar gaps de cobertura críticos en cálculo monetario, CFDI 4.0, fechas con timezone Monterrey y máquina de estados de reservas. Todos los lotes corren verdes (64/64 incluyendo lote 8 preexistente).",
+  "changes": [
+    "Lote 1 (Cálculos monetarios): invoiceHelpers.more.test.ts — 12 tests para calculateRentalCost (45 días, mes exacto, fallback monthly/30 y weekly/7, start===end), applyDiscount (100%) y computeTotals (IVA 0%, redondeo IVA 16%)",
+    "Lote 2 (CFDI 4.0 y Facturapi): cfdiPrechecks.test.ts (5), facturapiErrors.test.ts (10), invoiceFormBuilders.test.ts (7) — cubre getMissingStampFields, translateFacturapiError (truncado >200), cfdiFromCustomer (no sobreescribe defaults)",
+    "Lote 4 (Fechas y timezone Monterrey): utils.date.test.ts — 17 tests para parseDateLocal (sin off-by-one), formatDateRange, formatMtyDate (cruce de día UTC↔CST), nowMty (zona America/Monterrey)",
+    "Lote 8 (Auth/Roles/Coerce): tests preexistentes verificados — coerce.lote8 (4), bookingStateMachine (4), authTypes (5)"
+  ]
+}
