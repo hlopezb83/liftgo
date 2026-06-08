@@ -1,5 +1,5 @@
 import { useFormContext, useWatch } from "react-hook-form";
-import currency from "currency.js";
+import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,10 +68,10 @@ function LineItemRow({ index, onRemove }: RowProps) {
     control,
     name: [`lineItems.${index}.quantity`, `lineItems.${index}.unit_price`],
   });
-  const total = currency(Number(unitPrice ?? 0)).multiply(Number(quantity ?? 0)).value;
+  const total = lineItemTotal(Number(quantity ?? 0), Number(unitPrice ?? 0));
 
   const syncTotal = (q: number, p: number) => {
-    const next = currency(p).multiply(q).value;
+    const next = lineItemTotal(q, p);
     const current = getValues(`lineItems.${index}.total`);
     if (current !== next) setValue(`lineItems.${index}.total`, next, { shouldDirty: true });
   };
