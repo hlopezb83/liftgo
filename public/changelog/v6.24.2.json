@@ -1,0 +1,16 @@
+{
+  "version": "6.24.2",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Refactor PDF de contrato: builder reubicado y estilos centralizados",
+  "category": "refactor",
+  "description": "El builder de PDF de contrato se mueve a la arquitectura canónica src/lib/pdf/contract/build.tsx y los componentes del documento (ContractDocument, ContractBody, ChecklistAnnex, PagareAnnex) consumen estilos exclusivamente desde src/lib/pdf/theme/styles.ts vía el nuevo export contractStyles.",
+  "changes": [
+    "Nuevo src/lib/pdf/contract/build.tsx (idéntico en API a la versión anterior)",
+    "Eliminado src/features/contracts/lib/contractPdfBuilder.tsx",
+    "ContractPDFButton importa ahora desde @/lib/pdf/contract/build",
+    "Nuevo export contractStyles en src/lib/pdf/theme/styles.ts con paleta, márgenes y tipografía centralizados",
+    "ContractDocument, ContractBody, ChecklistAnnex y PagareAnnex migrados de estilos inline a contractStyles y sharedStyles",
+    "Sin cambios funcionales ni visuales en la salida del PDF"
+  ]
+}
