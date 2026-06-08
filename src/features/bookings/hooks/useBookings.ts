@@ -22,8 +22,9 @@ export function useBookings(forkliftId?: string) {
  * Trae reservas donde end_date >= from AND start_date <= to.
  */
 export function useBookingsRange(from: string | Date, to: string | Date) {
-  const fromStr = typeof from === "string" ? from : from.toISOString().slice(0, 10);
-  const toStr = typeof to === "string" ? to : to.toISOString().slice(0, 10);
+  const fromStr = typeof from === "string" ? from : toYMD(from);
+  const toStr = typeof to === "string" ? to : toYMD(to);
+
   return useQuery({
     queryKey: ["bookings", "range", fromStr, toStr],
     staleTime: 60_000,
