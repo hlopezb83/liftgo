@@ -1,0 +1,11 @@
+{
+  "description": "Cada ruta lazy ahora está envuelta en un ErrorBoundary local: si un chunk de feature falla por inestabilidad de red o un deploy con chunks corruptos, el sidebar y topbar permanecen visibles y el usuario recibe un fallback con acción 'Refrescar app' en lugar de pantalla en blanco.",
+  "changes": [
+    "ErrorBoundary refactorizado con props scope ('app' | 'route') y routeLabel",
+    "Detección de errores de chunk muestra copy específico: 'Hay una nueva versión disponible'",
+    "Botón principal renombrado a 'Refrescar app' y limpia el flag vite-preload-reload antes de recargar",
+    "Nuevo RouteErrorBoundary que se re-monta por pathname para auto-resetear errores al navegar",
+    "App.tsx envuelve cada <Suspense> (incluido /portal/login y NotFound) en RouteErrorBoundary",
+    "Detalles técnicos del error ahora colapsables en un <details> para reducir ruido"
+  ]
+}
