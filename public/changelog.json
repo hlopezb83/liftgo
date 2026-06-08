@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.25.5",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Filtros de Gastos: default 'todos los meses' y búsqueda por proveedor",
+    "category": "improvement"
+  },
+  {
     "version": "6.25.4",
     "date": "2026-06-08",
     "type": "minor",

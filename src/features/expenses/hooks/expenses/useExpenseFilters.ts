@@ -9,7 +9,7 @@ const CATEGORIES = Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, 
 export function useExpenseFilters(expenses: OperatingExpense[] | undefined) {
   const currentMonth = format(new Date(), "yyyy-MM");
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterMonth, setFilterMonth] = useState<string>(currentMonth);
+  const [filterMonth, setFilterMonth] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   const availableMonths = useMemo(() => {
@@ -28,7 +28,11 @@ export function useExpenseFilters(expenses: OperatingExpense[] | undefined) {
   const matchesFilters = useCallback((e: OperatingExpense) => {
     if (filterCategory !== "all" && e.category !== filterCategory) return false;
     if (filterMonth !== "all" && !e.expense_date.startsWith(filterMonth)) return false;
-    if (search && !(e.description || "").toLowerCase().includes(search.toLowerCase())) return false;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      const haystack = `${e.description || ""} ${e.suppliers?.name || ""}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
     return true;
   }, [filterCategory, filterMonth, search]);
 

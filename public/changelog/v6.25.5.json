@@ -1,0 +1,12 @@
+{
+  "version": "6.25.5",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Ajustes de filtros en Gastos Operativos",
+  "category": "improvement",
+  "changes": [
+    "El filtro de mes inicia en 'Todos los meses' por defecto, evitando que gastos recién creados queden ocultos.",
+    "La búsqueda ahora abarca descripción y nombre del proveedor.",
+    "Se confirma localización en español para las etiquetas de mes del filtro."
+  ]
+}
