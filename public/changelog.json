@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.23.5",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Lote 12: smoke navigation de rutas secundarias (+21 rutas)",
+    "category": "chore"
+  },
+  {
     "version": "6.23.4",
     "date": "2026-06-08",
     "type": "patch",
