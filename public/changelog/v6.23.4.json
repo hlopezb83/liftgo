@@ -1,0 +1,12 @@
+{
+  "version": "6.23.4",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "E2E setup espera shell autenticada y persiste IndexedDB",
+  "category": "fix",
+  "description": "El setup de Playwright ahora espera a que desaparezca la pantalla de login y se renderice la navegación antes de guardar storageState, e incluye IndexedDB para capturar la sesión de Supabase. Resuelve fallos en auth.spec, booking.spec y quote-to-invoice.spec donde los tests aterrizaban sin sesión.",
+  "changes": [
+    "tests/e2e/global.setup.ts: esperar heading 'Iniciar Sesión' a count 0 y nav visible antes de storageState",
+    "tests/e2e/global.setup.ts: storageState ahora con indexedDB: true"
+  ]
+}
