@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.3",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Utilitarios de assets de PDF centralizados en src/lib/pdf/assets",
+    "category": "refactor"
+  },
+  {
     "version": "6.24.2",
     "date": "2026-06-08",
     "type": "patch",
