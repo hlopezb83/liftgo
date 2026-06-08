@@ -1,0 +1,11 @@
+{
+  "version": "6.23.5",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Lote 12: smoke navigation de rutas secundarias (+21 rutas)",
+  "category": "chore",
+  "description": "Se amplía tests/e2e/smoke-nav.spec.ts para cubrir rutas secundarias (contratos, proveedores, inventario, MRR, estado de resultados, gastos, daños, entregas, devoluciones, actividad, auditoría, CRM cerrados, configuración, usuarios, changelog, help, mis-reportes, leaderboard, feedback). Cada ruta se valida sin error boundary ni 404 ni errores no capturados.",
+  "changes": [
+    "tests/e2e/smoke-nav.spec.ts: 10 → 31 rutas cubiertas"
+  ]
+}
