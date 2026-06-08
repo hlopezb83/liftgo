@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.7",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Consolidación de matemática de cotizaciones en invoiceHelpers (currency.js)",
+    "category": "refactor"
+  },
+  {
     "version": "6.24.6",
     "date": "2026-06-08",
     "type": "patch",

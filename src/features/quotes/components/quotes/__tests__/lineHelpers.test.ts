@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { computeRentalLineTotal } from "../rentalLineHelpers";
 import { computeSaleLineTotal } from "../saleLineHelpers";
+import { saleLineTotal, applyDiscountToBase } from "@/lib/domain/invoiceHelpers";
 import type { RentalLine } from "../RentalLineItems";
 import type { SaleLine } from "../SaleLineItems";
+
 
 const baseRental: RentalLine = {
   modelId: "m1", quantity: 1,
