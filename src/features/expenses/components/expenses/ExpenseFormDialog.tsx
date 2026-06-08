@@ -53,6 +53,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
     if (open) {
       setPrefill(null);
       setSupplierId("");
+      setRfcLinked(false);
       form.reset(buildDefaults(null) as ExpenseFormData);
     }
   }, [open]);
@@ -82,6 +83,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
       const { duplicate: _d, ...p } = data;
       setPrefill(p);
       setSupplierId(p.supplier_match?.id ?? "");
+      setRfcLinked(false);
       form.reset(buildDefaults(p) as ExpenseFormData);
       toast.success("CFDI cargado correctamente");
     } catch (e: unknown) {
@@ -102,6 +104,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   const clearCfdi = () => {
     setPrefill(null);
     setSupplierId("");
+    setRfcLinked(false);
     form.reset(buildDefaults(null) as ExpenseFormData);
   };
 
