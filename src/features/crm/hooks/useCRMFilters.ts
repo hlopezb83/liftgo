@@ -31,7 +31,7 @@ function matchesAge(updatedAt: string, range: AgeRange, now: number): boolean {
 
 function matchesSearch(p: Prospect, query: string): boolean {
   if (!query) return true;
-  const hay = `${p.company_name} ${p.contact_person ?? ""}`.toLowerCase();
+  const hay = `${p.companyName} ${p.contactPerson ?? ""}`.toLowerCase();
   return hay.includes(query);
 }
 
@@ -42,10 +42,10 @@ export function useCRMFilters(prospects: Prospect[]) {
     const now = Date.now();
     const q = filters.search.trim().toLowerCase();
     return prospects.filter((p) => {
-      if (filters.creator !== "all" && p.created_by !== filters.creator) return false;
+      if (filters.creator !== "all" && p.createdBy !== filters.creator) return false;
       if (!matchesSearch(p, q)) return false;
-      if (!matchesValue(p.deal_value ?? 0, filters.valueRange)) return false;
-      if (!matchesAge(p.updated_at, filters.ageRange, now)) return false;
+      if (!matchesValue(p.dealValue ?? 0, filters.valueRange)) return false;
+      if (!matchesAge(p.updatedAt, filters.ageRange, now)) return false;
       return true;
     });
   }, [prospects, filters]);
@@ -62,8 +62,4 @@ export function useCRMFilters(prospects: Prospect[]) {
     filters.ageRange !== "all";
 
   return { filters, update, reset, filtered, hasActive };
-}
-
-export function getStaleDays(updatedAt: string): number {
-  return Math.floor((Date.now() - new Date(updatedAt).getTime()) / DAY_MS);
 }
