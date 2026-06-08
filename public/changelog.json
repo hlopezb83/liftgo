@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.23.4",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "E2E setup espera shell autenticada y persiste IndexedDB",
+    "category": "fix"
+  },
+  {
     "version": "6.23.3",
     "date": "2026-06-08",
     "type": "patch",
