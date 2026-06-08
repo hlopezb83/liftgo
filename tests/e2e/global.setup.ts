@@ -16,7 +16,7 @@ setup("authenticate as admin", async ({ page }) => {
   }
 
   await page.goto("/");
-  await expect(page.getByText("Iniciar Sesión")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toBeVisible({ timeout: 15_000 });
 
   await page.getByLabel(/correo|email/i).fill(email);
   await page.getByLabel(/contraseña|password/i).fill(password);
