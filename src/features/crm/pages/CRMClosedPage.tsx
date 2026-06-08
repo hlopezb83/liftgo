@@ -5,62 +5,118 @@ import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
 import { useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
 
-function ClosedTable({ rows, kind, onReopen }: { rows: Prospect[]; kind: "won" | "lost"; onReopen: (p: Prospect) => void }) {
-  if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground py-8 text-center">Sin registros.</p>;
+type ClosedKind = "won" | "lost";
+
+function buildColumns(kind: ClosedKind, onReopen: (p: Prospect) => void): ColumnDef<Prospect>[] {
+  const base: ColumnDef<Prospect>[] = [
+    {
+      id: "companyName",
+      header: "Empresa",
+      accessorKey: "companyName",
+      cell: ({ row }) => <span className="font-medium">{row.original.companyName}</span>,
+    },
+    {
+      id: "contactPerson",
+      header: "Contacto",
+      accessorFn: (p) => p.contactPerson ?? "",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.contactPerson ?? "—"}</span>
+      ),
+    },
+    {
+      id: "value",
+      header: "Valor",
+      accessorFn: (p) => p.finalAmount ?? p.dealValue ?? 0,
+      meta: { align: "right" },
+      cell: ({ row }) => (
+        <span className="tabular-nums font-mono">
+          {formatCurrency(row.original.finalAmount ?? row.original.dealValue ?? 0)}
+        </span>
+      ),
+    },
+    {
+      id: "closedAt",
+      header: "Fecha cierre",
+      accessorFn: (p) => (p.closedAt ? new Date(p.closedAt).getTime() : 0),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.closedAtLabel ?? "—"}</span>
+      ),
+    },
+    {
+      id: "createdByName",
+      header: "Vendedor",
+      accessorFn: (p) => p.createdByName ?? "",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.createdByName ?? "—"}</span>
+      ),
+    },
+  ];
+
+  if (kind === "lost") {
+    base.push({
+      id: "lostReason",
+      header: "Razón",
+      accessorFn: (p) => p.lostReason ?? "",
+      cell: ({ row }) => {
+        const reason = row.original.lostReason;
+        return (
+          <Badge variant="outline">
+            {reason ? LOST_REASON_LABELS[reason] ?? reason : "—"}
+          </Badge>
+        );
+      },
+      enableSorting: false,
+    });
   }
+
+  base.push({
+    id: "actions",
+    header: "",
+    enableSorting: false,
+    meta: { headClassName: "w-[120px]" },
+    cell: ({ row }) => (
+      <Button size="sm" variant="ghost" onClick={() => onReopen(row.original)}>
+        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reabrir
+      </Button>
+    ),
+  });
+
+  return base;
+}
+
+interface ClosedTableProps {
+  rows: Prospect[];
+  kind: ClosedKind;
+  isLoading: boolean;
+  onReopen: (p: Prospect) => void;
+}
+
+function ClosedTable({ rows, kind, isLoading, onReopen }: ClosedTableProps) {
+  const columns = useMemo(() => buildColumns(kind, onReopen), [kind, onReopen]);
+  const table = useLiftgoTable<Prospect>({
+    data: rows,
+    columns,
+    getRowId: (p) => p.id,
+    initialSorting: [{ id: "closedAt", desc: true }],
+  });
+
   return (
-    <div className="border rounded-md overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Empresa</TableHead>
-            <TableHead>Contacto</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
-            <TableHead>Fecha cierre</TableHead>
-            <TableHead>Vendedor</TableHead>
-            {kind === "lost" && <TableHead>Razón</TableHead>}
-            <TableHead className="w-[100px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((p, i) => (
-            <TableRow key={p.id} className={i % 2 === 0 ? "bg-muted/20" : ""}>
-              <TableCell className="font-medium">{p.companyName}</TableCell>
-              <TableCell className="text-muted-foreground">{p.contactPerson ?? "—"}</TableCell>
-              <TableCell className="text-right tabular-nums">
-                {formatCurrency(p.finalAmount ?? p.dealValue ?? 0)}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {p.closedAtLabel ?? "—"}
-              </TableCell>
-              <TableCell className="text-muted-foreground">{p.createdByName ?? "—"}</TableCell>
-              {kind === "lost" && (
-                <TableCell>
-                  <Badge variant="outline">{p.lostReason ? LOST_REASON_LABELS[p.lostReason] ?? p.lostReason : "—"}</Badge>
-                </TableCell>
-              )}
-              <TableCell>
-                <Button size="sm" variant="ghost" onClick={() => onReopen(p)}>
-                  <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reabrir
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTableV2
+      table={table}
+      isLoading={isLoading}
+      emptyMessage="Sin registros."
+    />
   );
 }
 
@@ -72,13 +128,8 @@ export default function CRMClosedPage() {
 
   const filterRows = useCallback((rows: Prospect[]) => {
     const q = search.trim().toLowerCase();
-    const sorted = [...rows].sort((a, b) => {
-      const da = a.closedAt ? new Date(a.closedAt).getTime() : 0;
-      const db = b.closedAt ? new Date(b.closedAt).getTime() : 0;
-      return db - da;
-    });
-    if (!q) return sorted;
-    return sorted.filter(
+    if (!q) return rows;
+    return rows.filter(
       (p) =>
         p.companyName.toLowerCase().includes(q) ||
         (p.contactPerson ?? "").toLowerCase().includes(q)
@@ -88,7 +139,7 @@ export default function CRMClosedPage() {
   const wonRows = useMemo(() => filterRows(metrics.won), [metrics.won, filterRows]);
   const lostRows = useMemo(() => filterRows(metrics.lost), [metrics.lost, filterRows]);
 
-  const handleReopen = (p: Prospect) => setReopenTarget(p);
+  const handleReopen = useCallback((p: Prospect) => setReopenTarget(p), []);
 
   const confirmReopen = () => {
     if (!reopenTarget) return;
@@ -132,10 +183,10 @@ export default function CRMClosedPage() {
             <TabsTrigger value="lost">Perdidos ({metrics.lost.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="won" className="mt-4">
-            {isLoading ? <p className="text-sm text-muted-foreground">Cargando…</p> : <ClosedTable rows={wonRows} kind="won" onReopen={handleReopen} />}
+            <ClosedTable rows={wonRows} kind="won" isLoading={isLoading} onReopen={handleReopen} />
           </TabsContent>
           <TabsContent value="lost" className="mt-4">
-            {isLoading ? <p className="text-sm text-muted-foreground">Cargando…</p> : <ClosedTable rows={lostRows} kind="lost" onReopen={handleReopen} />}
+            <ClosedTable rows={lostRows} kind="lost" isLoading={isLoading} onReopen={handleReopen} />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.6",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Estandarización de tablas de tracking a DataTableV2",
+    "category": "refactor"
+  },
+  {
     "version": "6.24.5",
     "date": "2026-06-08",
     "type": "patch",
