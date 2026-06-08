@@ -2078,6 +2078,160 @@ export type Database = {
           },
         ]
       }
+      supplier_bills: {
+        Row: {
+          balance: number
+          bill_number: string
+          category: Database["public"]["Enums"]["expense_category"] | null
+          cfdi_use: string | null
+          cfdi_uuid: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          due_date: string | null
+          exchange_rate: number
+          folio: string | null
+          id: string
+          issue_date: string
+          legacy_expense_id: string | null
+          notes: string | null
+          payment_form_sat: string | null
+          payment_method_sat: string | null
+          pdf_url: string | null
+          retention_isr: number
+          retention_iva: number
+          serie: string | null
+          status: Database["public"]["Enums"]["supplier_bill_status"]
+          subtotal: number
+          supplier_id: string | null
+          tax_amount: number
+          total: number
+          updated_at: string
+          xml_url: string | null
+        }
+        Insert: {
+          balance?: number
+          bill_number: string
+          category?: Database["public"]["Enums"]["expense_category"] | null
+          cfdi_use?: string | null
+          cfdi_uuid?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          due_date?: string | null
+          exchange_rate?: number
+          folio?: string | null
+          id?: string
+          issue_date?: string
+          legacy_expense_id?: string | null
+          notes?: string | null
+          payment_form_sat?: string | null
+          payment_method_sat?: string | null
+          pdf_url?: string | null
+          retention_isr?: number
+          retention_iva?: number
+          serie?: string | null
+          status?: Database["public"]["Enums"]["supplier_bill_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          total: number
+          updated_at?: string
+          xml_url?: string | null
+        }
+        Update: {
+          balance?: number
+          bill_number?: string
+          category?: Database["public"]["Enums"]["expense_category"] | null
+          cfdi_use?: string | null
+          cfdi_uuid?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          due_date?: string | null
+          exchange_rate?: number
+          folio?: string | null
+          id?: string
+          issue_date?: string
+          legacy_expense_id?: string | null
+          notes?: string | null
+          payment_form_sat?: string | null
+          payment_method_sat?: string | null
+          pdf_url?: string | null
+          retention_isr?: number
+          retention_iva?: number
+          serie?: string | null
+          status?: Database["public"]["Enums"]["supplier_bill_status"]
+          subtotal?: number
+          supplier_id?: string | null
+          tax_amount?: number
+          total?: number
+          updated_at?: string
+          xml_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_bills_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_payments: {
+        Row: {
+          amount: number
+          bank_account: string | null
+          bill_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          receipt_url: string | null
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          bank_account?: string | null
+          bill_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          receipt_url?: string | null
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          bank_account?: string | null
+          bill_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          receipt_url?: string | null
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_payments_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -2407,6 +2561,7 @@ export type Database = {
       next_inspection_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
+      next_supplier_bill_number: { Args: never; Returns: string }
       notify_admins: {
         Args: {
           p_entity_id?: string
@@ -2417,6 +2572,20 @@ export type Database = {
           p_type: string
         }
         Returns: number
+      }
+      recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
+      register_supplier_payment: {
+        Args: {
+          p_amount: number
+          p_bank_account?: string
+          p_bill_id: string
+          p_notes?: string
+          p_payment_date?: string
+          p_payment_method?: string
+          p_receipt_url?: string
+          p_reference?: string
+        }
+        Returns: string
       }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
     }
@@ -2438,6 +2607,13 @@ export type Database = {
         | "costo_venta"
         | "caja_chica"
         | "publicidad"
+      supplier_bill_status:
+        | "draft"
+        | "pending"
+        | "partial"
+        | "paid"
+        | "overdue"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2583,6 +2759,14 @@ export const Constants = {
         "costo_venta",
         "caja_chica",
         "publicidad",
+      ],
+      supplier_bill_status: [
+        "draft",
+        "pending",
+        "partial",
+        "paid",
+        "overdue",
+        "cancelled",
       ],
     },
   },
