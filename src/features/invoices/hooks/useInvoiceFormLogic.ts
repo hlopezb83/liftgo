@@ -1,6 +1,4 @@
-import { useEffect, useMemo } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBookings, type BookingWithForklift } from "@/features/bookings/hooks/useBookings";
@@ -24,11 +22,19 @@ import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 
 export type { InvoiceFormValues, LineItemValues };
 
-export function useInvoiceFormLogic() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const fromQuoteId = searchParams.get("from_quote");
+export interface SaleAssignmentGuard {
+  shouldBlock: boolean;
+  totalAssigned: number;
+  totalRequired: number;
+  missingByLine: Array<{ index: number; description: string; assigned: number; required: number }>;
+}
+
+interface UseInvoiceFormLogicArgs {
+  id?: string;
+  fromQuoteId: string | null;
+}
+
+export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs) {
   const isEdit = !!id;
 
   const { data: bookings } = useBookings();
@@ -52,13 +58,20 @@ export function useInvoiceFormLogic() {
   );
   const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(fromQuoteId || undefined, quoteLineItems);
 
-  useEffect(() => {
-    if (isEdit || !sourceQuote || !fromQuoteId) return;
-    if (sourceQuote.quote_type !== "sale") return;
-    if (quoteAssignmentStatus.isComplete) return;
-    notifyError({ title: `Asigna los equipos del inventario antes de facturar (${quoteAssignmentStatus.totalAssigned}/${quoteAssignmentStatus.totalRequired})` });
-    navigate(`/quotes/${fromQuoteId}`, { replace: true });
-  }, [isEdit, sourceQuote, fromQuoteId, quoteAssignmentStatus, navigate]);
+  const saleAssignmentGuard: SaleAssignmentGuard = useMemo(() => {
+    const shouldBlock =
+      !isEdit &&
+      !!sourceQuote &&
+      !!fromQuoteId &&
+      sourceQuote.quote_type === "sale" &&
+      !quoteAssignmentStatus.isComplete;
+    return {
+      shouldBlock,
+      totalAssigned: quoteAssignmentStatus.totalAssigned,
+      totalRequired: quoteAssignmentStatus.totalRequired,
+      missingByLine: quoteAssignmentStatus.missingByLine,
+    };
+  }, [isEdit, sourceQuote, fromQuoteId, quoteAssignmentStatus]);
 
   const submit = useInvoiceFormSubmit();
   const { handleCustomerSelect, handleBookingSelect } = useInvoiceFormHandlers({ form, customers, bookings, forklifts });
@@ -82,6 +95,8 @@ export function useInvoiceFormLogic() {
   return {
     form, isEdit, id, fromQuoteId,
     customers, availableBookings,
+    sourceQuote,
+    saleAssignmentGuard,
     handleCustomerSelect, handleBookingSelect,
     onSubmit,
     createInvoice: submit.createInvoice,

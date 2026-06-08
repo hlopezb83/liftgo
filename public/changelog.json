@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.4",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Refactor InvoiceForm: separación vista/mutaciones y bloqueo in-page",
+    "category": "refactor"
+  },
+  {
     "version": "6.24.3",
     "date": "2026-06-08",
     "type": "patch",

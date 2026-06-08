@@ -1,0 +1,13 @@
+{
+  "version": "6.24.4",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Refactor InvoiceForm: separación vista/mutaciones y bloqueo in-page",
+  "category": "refactor",
+  "description": "El hook useInvoiceFormLogic queda puro: se eliminaron useNavigate, useParams, useSearchParams y notifyError. La página InvoiceForm asume la ingestión de URL params y la navegación. El faltante de asignaciones de equipos en cotizaciones de venta ahora se muestra como un bloqueo in-page con detalle por línea (descripción y asignados/requeridos) y un CTA para ir a la cotización, en lugar de redirigir con un toast.",
+  "changes": [
+    "useInvoiceFormLogic recibe { id, fromQuoteId } como argumentos y expone saleAssignmentGuard",
+    "InvoiceForm renderiza un Alert destructivo con líneas faltantes cuando la asignación de venta está incompleta",
+    "Eliminado redirect automático y notifyError del hook"
+  ]
+}
