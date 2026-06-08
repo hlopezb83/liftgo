@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/formatCurrency";
+
 import { Building2, User, Mail, Phone, DollarSign } from "lucide-react";
 import type { Prospect } from "@/features/crm/hooks/useProspects";
 import { ProspectHistoryCard } from "./ProspectHistoryCard";
