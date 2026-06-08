@@ -16,6 +16,7 @@ import { FormActions } from "@/components/FormActions";
 import { expenseFormSchema, type ExpenseFormData } from "@/features/expenses/lib/expenseFormSchema";
 import { useCreateExpense, type ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
 import { ExpenseFormFields } from "./ExpenseFormFields";
+import { useLinkRfcToSupplier } from "@/features/suppliers/hooks/useLinkRfcToSupplier";
 import type { CfdiParseResult, CfdiPrefill } from "@/features/expenses/lib/cfdiPrefill";
 
 interface ExpenseFormDialogProps {
@@ -25,9 +26,11 @@ interface ExpenseFormDialogProps {
 
 export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps) {
   const createExpense = useCreateExpense();
+  const linkRfc = useLinkRfcToSupplier();
   const [supplierId, setSupplierId] = useState("");
   const [prefill, setPrefill] = useState<CfdiPrefill | null>(null);
   const [cfdiLoading, setCfdiLoading] = useState(false);
+  const [rfcLinked, setRfcLinked] = useState(false);
 
   const buildDefaults = (p: CfdiPrefill | null): Partial<ExpenseFormData> => {
     if (p) {
