@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.4",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "ErrorBoundary por ruta con 'Refrescar app'",
+    "category": "chore"
+  },
+  {
     "version": "6.22.3",
     "date": "2026-06-03",
     "type": "patch",
