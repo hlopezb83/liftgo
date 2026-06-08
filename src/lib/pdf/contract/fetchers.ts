@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
+import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
 import type { ContractClause, ChecklistSection } from "@/features/contracts/hooks/useContractTemplates";
 import type { ContractViewModel } from "@/types/rental";
 import { parseJsonbArray } from "@/lib/lineItems";
@@ -69,7 +69,10 @@ export async function fetchTemplate(): Promise<TemplateData> {
   };
 }
 
+/**
+ * @deprecated Usar `loadCompanyLogo` desde `@/lib/pdf/assets/logo`.
+ * Se mantiene como thin wrapper para compatibilidad del builder de contrato.
+ */
 export async function fetchLogoBase64(logoUrl: string | null | undefined): Promise<string | null> {
-  if (!logoUrl) return null;
-  return loadImageAsBase64(logoUrl);
+  return loadCompanyLogo(logoUrl);
 }

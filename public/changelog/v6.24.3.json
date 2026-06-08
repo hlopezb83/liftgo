@@ -1,0 +1,15 @@
+{
+  "version": "6.24.3",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Utilitarios de assets de PDF centralizados en src/lib/pdf/assets",
+  "category": "refactor",
+  "description": "Nuevo módulo src/lib/pdf/assets/logo.ts como única fuente para cargar logos e iconografía base64 en los builders de PDF. El builder de contrato, shared.ts (quote/invoice) y demás consumidores ahora dependen de loadCompanyLogo en lugar de fetchers locales por feature, manteniendo theme/ puro de tokens visuales.",
+  "changes": [
+    "Nuevo src/lib/pdf/assets/logo.ts con loadImageAsBase64 y loadCompanyLogo (wrapper null-safe)",
+    "src/lib/pdf/shared.ts (quote/invoice/customerStatement/incomeStatement) migrado al nuevo módulo",
+    "src/lib/pdf/contract/fetchers.ts: fetchLogoBase64 ahora es thin wrapper sobre loadCompanyLogo (@deprecated)",
+    "Eliminado src/lib/pdf/loadImageAsBase64.ts (contenido movido a assets/logo.ts)",
+    "Sin cambios funcionales ni visuales en los PDFs generados"
+  ]
+}
