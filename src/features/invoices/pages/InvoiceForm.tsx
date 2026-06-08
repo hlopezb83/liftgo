@@ -1,8 +1,10 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import { useInvoiceFormLogic } from "@/features/invoices/hooks/useInvoiceFormLogic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePickerField } from "@/components/DatePickerField";
@@ -13,13 +15,18 @@ import { TotalsSummary } from "@/components/TotalsSummary";
 import { CfdiFieldsCard } from "@/features/invoices/components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 import { formatDateRange } from "@/lib/utils";
 import { useNextInvoiceNumber } from "@/features/invoices/hooks/invoices/useNextInvoiceNumber";
 import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
-  const f = useInvoiceFormLogic();
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const fromQuoteId = searchParams.get("from_quote");
+
+  const f = useInvoiceFormLogic({ id, fromQuoteId });
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
 
   const onSubmit = (values: InvoiceFormValues) => {
@@ -38,6 +45,35 @@ export default function InvoiceForm() {
       });
     }
   };
+
+  if (f.saleAssignmentGuard.shouldBlock) {
+    const { totalAssigned, totalRequired, missingByLine } = f.saleAssignmentGuard;
+    return (
+      <div className="p-6 max-w-4xl">
+        <FormPageHeader title="Nueva Factura" />
+        <Alert variant="destructive" className="mt-6">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>
+            Asigna los equipos del inventario antes de facturar ({totalAssigned}/{totalRequired})
+          </AlertTitle>
+          <AlertDescription className="mt-2 space-y-2">
+            <p>Las siguientes partidas de venta tienen equipos pendientes de asignación:</p>
+            <ul className="list-disc pl-5">
+              {missingByLine.map((line) => (
+                <li key={line.index}>
+                  {line.description}: {line.assigned}/{line.required}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+        <div className="flex gap-3 mt-4">
+          <Button onClick={() => navigate(`/quotes/${f.fromQuoteId}`)}>Ir a la cotización</Button>
+          <Button variant="outline" onClick={() => navigate(-1)}>Volver</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl">
