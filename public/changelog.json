@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.12",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Auth: labels accesibles en login para fix de E2E setup",
+    "category": "fix"
+  },
+  {
     "version": "6.22.11",
     "date": "2026-06-08",
     "type": "patch",
