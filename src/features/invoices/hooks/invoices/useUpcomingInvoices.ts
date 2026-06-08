@@ -16,12 +16,13 @@ export interface UpcomingInvoice {
  * Útil para el pronóstico de cobranza del Panel.
  */
 export function useUpcomingInvoices() {
+  const today = format(nowMty(), "yyyy-MM-dd");
+  const in30 = format(addDays(nowMty(), 30), "yyyy-MM-dd");
+
   return useQuery({
-    queryKey: ["upcoming-invoices"],
+    queryKey: ["upcoming-invoices", today, in30],
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<UpcomingInvoice[]> => {
-      const today = format(nowMty(), "yyyy-MM-dd");
-      const in30 = format(addDays(nowMty(), 30), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("invoices")
         .select("id, invoice_number, total, due_date, customer_name, status")
