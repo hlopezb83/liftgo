@@ -137,7 +137,7 @@ export default function OperatingExpensesPage() {
               </CardContent>
             </Card>
             <div className="flex flex-col sm:flex-row gap-3">
-              <SearchBar value={f.search} onChange={f.setSearch} placeholder="Buscar por descripción…" className="sm:max-w-xs" />
+              <SearchBar value={f.search} onChange={f.setSearch} placeholder="Buscar por descripción o proveedor…" className="sm:max-w-xs" />
               <Select value={f.filterMonth} onValueChange={f.setFilterMonth}>
                 <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
