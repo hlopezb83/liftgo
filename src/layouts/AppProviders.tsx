@@ -46,6 +46,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
+          <AuthQueryCacheSync />
           <AuthSnapshotSync />
           <TooltipProvider>
             <Sonner />
