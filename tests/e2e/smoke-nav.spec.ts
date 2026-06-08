@@ -16,6 +16,28 @@ const ROUTES = [
   "/reports",
   "/calendar",
   "/crm",
+  // Lote 12 — rutas secundarias
+  "/contracts",
+  "/suppliers",
+  "/inventory",
+  "/mrr",
+  "/income-statement",
+  "/expenses",
+  "/damage",
+  "/returns",
+  "/deliveries",
+  "/activity",
+  "/audit",
+  "/crm/cerrados",
+  "/settings",
+  "/settings/operations",
+  "/users",
+  "/users/permissions",
+  "/changelog",
+  "/help",
+  "/mis-reportes",
+  "/leaderboard",
+  "/feedback",
 ];
 
 test.describe("Smoke navigation", () => {
