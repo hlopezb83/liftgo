@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.8",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "useIsMounted: guarda setState en callbacks async tras desmontaje",
+    "category": "chore"
+  },
+  {
     "version": "6.22.7",
     "date": "2026-06-08",
     "type": "patch",

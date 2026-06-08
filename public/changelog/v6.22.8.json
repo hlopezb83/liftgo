@@ -1,0 +1,13 @@
+{
+  "version": "6.22.8",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "useIsMounted: guarda setState en callbacks async tras desmontaje",
+  "category": "chore",
+  "description": "Nuevo hook reutilizable src/hooks/useIsMounted.ts y aplicación en useBookingFormSubmit: el onSuccess de createBooking verifica isMounted() antes de setPostBooking() para evitar warnings de React cuando el usuario navega fuera del formulario antes de que la mutación resuelva.",
+  "changes": [
+    "Nuevo hook useIsMounted() con useRef + cleanup en useEffect.",
+    "useBookingFormSubmit: guardia isMounted() previa a setPostBooking en el onSuccess de createBooking.",
+    "Patrón disponible para reutilizar en cualquier mutación async que escriba estado local."
+  ]
+}
