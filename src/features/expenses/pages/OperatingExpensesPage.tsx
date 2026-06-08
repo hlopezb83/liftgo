@@ -1,5 +1,6 @@
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -159,6 +160,7 @@ export default function OperatingExpensesPage() {
       <ExpenseFormDialog
         open={createDialog.open}
         onOpenChange={createDialog.setOpen}
+        onCreated={handleCreated}
       />
 
 
