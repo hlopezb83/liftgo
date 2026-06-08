@@ -25,11 +25,6 @@ export function lineItemTotal(quantity: number | null | undefined, unitPrice: nu
   return money(p).multiply(q).value;
 }
 
-export function lineItemTotal(quantity: number | null | undefined, unitPrice: number | null | undefined): number {
-  const q = typeof quantity === "number" && Number.isFinite(quantity) ? quantity : 0;
-  const p = typeof unitPrice === "number" && Number.isFinite(unitPrice) ? unitPrice : 0;
-  return money(p).multiply(q).value;
-}
 
 /**
  * Aplica un descuento (porcentual o monto fijo) a un monto base, usando currency.js.
