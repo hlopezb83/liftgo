@@ -15,8 +15,6 @@ import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
 import { useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 function ClosedTable({ rows, kind, onReopen }: { rows: Prospect[]; kind: "won" | "lost"; onReopen: (p: Prospect) => void }) {
   if (rows.length === 0) {
