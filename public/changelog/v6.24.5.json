@@ -1,0 +1,16 @@
+{
+  "version": "6.24.5",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Refactor CRM Prospects: view-model camelCase con mapper explícito",
+  "category": "refactor",
+  "description": "Se separa el shape crudo de DB (ProspectRow, snake_case) del view model (Prospect, camelCase con campos derivados). El nuevo mapper mapProspectRow centraliza el formateo de moneda (MXN), fechas (DD/MM/YYYY es-MX) y la lógica de stale/closed. Las cards y el resto de la UI del módulo CRM consumen únicamente propiedades ya mapeadas, dejando de procesar payloads crudos. Los tipos de mutación (ProspectInsert/Update) siguen basados en ProspectRow porque van directo a la base de datos.",
+  "changes": [
+    "Nuevos archivos src/features/crm/lib/prospectTypes.ts y prospectMapper.ts",
+    "useProspects devuelve Prospect[] mapeado con createdByName resuelto vía profileMap",
+    "Cards, dialogs, sheets y páginas (CRMPage, CRMClosedPage) migrados a camelCase",
+    "Reglas isClosed/isStale/staleDays calculadas una sola vez en el mapper",
+    "Formato de fechas unificado a DD/MM/YYYY (era dd MMM yyyy en algunos puntos)",
+    "Removidos getStaleDays exportado y CLOSED_STAGES duplicado"
+  ]
+}
