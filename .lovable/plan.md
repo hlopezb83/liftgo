@@ -1,79 +1,55 @@
-# Plan: View-model explícito para Prospects de CRM
+## Auditoría de tablas en la app
 
-## Objetivo
-Separar el modelo crudo de DB (snake_case) del modelo de vista que consume la UI (camelCase + campos derivados). Las cards de prospecto dejan de procesar filas crudas y leen sólo propiedades ya mapeadas y formateadas.
+Mapeo de todo lo que importa `@/components/ui/table` y clasificación según deben migrar a `DataTableV2` o quedarse como están.
 
-## Arquitectura propuesta
+### Estado actual
 
-### 1. Tipos (`src/features/crm/lib/prospectTypes.ts` — nuevo)
-- `ProspectRow` — shape exacto de la tabla `prospects` (snake_case, ints/strings tal cual vienen de Supabase).
-- `Prospect` — view model camelCase + campos derivados:
-  ```ts
-  interface Prospect {
-    id: string;
-    companyName: string;
-    contactPerson: string | null;
-    email: string | null;
-    phone: string | null;
-    dealValue: number;
-    dealValueLabel: string;        // formatCurrency(dealValue)
-    stage: string;
-    stageOrder: number;
-    notes: string | null;
-    quoteId: string | null;
-    customerId: string | null;
-    createdBy: string | null;
-    createdByName: string | null;
-    createdAt: string;             // ISO original
-    createdAtLabel: string;        // "dd/MM/yyyy" es-MX
-    updatedAt: string;
-    staleDays: number;             // calculado vs nowMty()
-    isStale: boolean;              // staleDays > 14 && !isClosed
-    isClosed: boolean;
-    closedAt: string | null;
-    lostReason: string | null;
-    finalAmount: number | null;
-  }
-  ```
+**Ya estandarizadas en `DataTableV2` + `useLiftgoTable`** (sorting, paginación, presentación uniforme): Customers, Invoices, Bookings, Quotes, Contracts, Fleet, Maintenance, Damage, Inventory, Suppliers (list + detail), Returns, Deliveries, Expenses, Users, Audit, Feedback (MyReports), Reports (Aging, Revenue, Utilization, Profitability, Maintenance), Portal (Rentals, Invoices, Contracts, InvoiceDetail), Operations tabs (Drivers, Mechanics, Models, Policies), MRR Detail, Forklift Hourometer, Invoice Payment Summary.
 
-### 2. Mapeador (`src/features/crm/lib/prospectMapper.ts` — nuevo)
-- `mapProspectRow(row: ProspectRow, opts: { creatorName: string | null }): Prospect`
-- Concentra: cálculo de `staleDays`, `isStale`, `isClosed`, formateo de moneda y fecha.
-- `CLOSED_STAGES` constante exportada desde aquí (hoy vive duplicada en `ProspectCard.tsx` y en `useCRMFilters`).
+**Sub-tablas que deben quedarse en primitive `ui/table`** (no son tracking; tienen edición inline, totales, diff, o estructura jerárquica):
+- `EditableLineItemsTable.tsx` — inputs por celda
+- `ReadOnlyLineItemsTable.tsx` — con totales en footer
+- `InvoiceCreditNotesCard.tsx` — embebida en card pequeña
+- `CreateCreditNoteDialog.tsx` — selección dentro de dialog
+- `AuditDiffTables.tsx` — visualización de diffs
+- `IncomeStatementTable.tsx` + `ComparisonTable.tsx` + `StatementTableRow.tsx` — P&L jerárquico con subtotales
 
-### 3. Hook (`useProspects.ts`)
-- Renombrar el tipo actual a `ProspectRow` localmente y exportar el nuevo `Prospect` desde `prospectTypes`.
-- En `queryFn`: traer rows + perfiles → `rows.map(r => mapProspectRow(r, { creatorName: profileMap.get(r.created_by) ?? null }))`.
-- `ProspectInsert` / `ProspectUpdate` pasan a basarse en `ProspectRow` (siguen siendo snake_case porque van a la DB).
+### Candidatas reales a migrar
 
-### 4. Cards consumen sólo el view model
-- `ProspectCard.tsx`: elimina `getStaleDays`, `CLOSED_STAGES`, cálculo de `isStale`. Usa `prospect.isStale` y `prospect.staleDays`.
-- `ProspectCardParts.tsx`: reemplaza `prospect.company_name` → `companyName`, `deal_value` → `dealValueLabel` (sin `formatCurrency` inline), `contact_person` → `contactPerson`, `created_by_name` → `createdByName`, `created_at` → `createdAtLabel` (sin `format()` inline), `quote_id` → `quoteId`. Quita imports de `formatCurrency`, `date-fns` y `es`.
+Solo **2 archivos** todavía renderizan tracking-style listas con `ui/table` crudo:
 
-### 5. Migración del resto de consumidores (mecánica, snake → camel)
-Estos archivos hoy leen el shape snake_case y deben adaptarse al view model:
-- `KanbanColumn.tsx`, `CRMKanbanGrid.tsx`, `CRMPageDialogs.tsx`, `CRMHeaderKPIs.tsx`
-- `ProspectDetailSheet.tsx`, `prospectDetail/ProspectInfoBlocks.tsx`, `prospectDetail/ProspectActions.tsx`, `ProspectHistoryCard.tsx`
-- `CloseWonDialog.tsx`, `CloseLostDialog.tsx`
-- `ProspectFormDialog.tsx`, `prospect-form/ProspectDialogParts.tsx`, `prospect-form/ProspectCloseDealActions.tsx`
-- `useProspectForm.ts` (prefill desde Prospect → form en camelCase; al guardar, construir `ProspectInsert`/`Update` snake_case)
-- `useCRMFilters.ts`, `useCRMMetrics.ts`, `useCRMPageDialogs.ts`
-- `useProspectMutations.ts` (sus inputs siguen siendo snake_case = `ProspectInsert/Update`; sin cambios funcionales)
-- `pages/CRMPage.tsx`, `pages/CRMClosedPage.tsx`, `pages/CustomersPage.tsx` (esta última sólo usa Prospect para conteos — verificar).
+1. **`src/features/crm/pages/CRMClosedPage.tsx`** — Tabla de prospectos cerrados (won/lost). Columnas: Empresa, Contacto, Valor, Fecha cierre, Vendedor, Razón (lost), acciones. Sin sorting, sin paginación, sin persistencia.
+2. **`src/features/feedback/pages/LeaderboardPage.tsx`** — Ranking. Columnas: #, Nombre, Reportes, Aceptados, Resueltos, Puntos. Sin sorting interactivo.
 
-### 6. Tests
-- Nuevo `src/features/crm/lib/__tests__/prospectMapper.test.ts`: cubre formateo MXN, fecha es-MX DD/MM/YYYY, `staleDays` con `nowMty()`, `isStale` vs `isClosed`, `createdByName` fallback `null`.
+### Plan de migración
 
-### 7. Changelog
-`public/changelog/v6.24.5.json` (patch, category `refactor`) + entrada en `public/changelog.json`.
+**Paso 1 — `CRMClosedPage`**
+- Reemplazar la función local `ClosedTable` por `DataTableV2` con `useLiftgoTable<Prospect>`.
+- Definir `columns: ColumnDef<Prospect>[]` para won y lost (lost añade columna "Razón").
+- Acción "Reabrir" como columna `actions` al estilo de Customers/Invoices (ícono + onClick).
+- Persistence key: `crm-closed-won` y `crm-closed-lost`.
+- Pagination por defecto 25 (memoria `arch/pagination`).
+- Mantener `MobileCardList` en mobile (regla Core).
 
-## ¿Tiene sentido?
-Sí, es un refactor sano: elimina formateo disperso, centraliza reglas de "stale" y "closed", y deja la UI 100% declarativa sobre un modelo tipado. El costo es que toca ~18 archivos (mecánico, snake → camel), no sólo las cards.
+**Paso 2 — `LeaderboardPage`**
+- Reemplazar `LeaderboardTable` por `DataTableV2`.
+- Columnas con `sortable: true` en Reportes, Aceptados, Resueltos, Puntos (Puntos como sort default desc).
+- Columna `#` calculada desde el índice después de sort (render `({ row, table }) => ...` o pre-calcular en data).
+- Persistence key: `leaderboard-${period}`.
 
-## Decisión que necesito de ti
-**Alcance de la migración:**
+**Paso 3 — Estandarización transversal**
+- Verificar que toda página migrada usa exactamente: `useLiftgoTable({ data, columns, initialPageSize: 25, persistenceKey })` + `<DataTableV2 table={...} />`.
+- Confirmar formato de columnas monetarias con `formatCurrency` y `tabular-nums` / `font-mono` (consistente con MrrDetailPage).
+- Confirmar fechas con `DD/MM/YYYY` vía utilidades existentes.
 
-- **A) Migración completa** — Cambio `Prospect` a camelCase en todo el módulo CRM (lo descrito arriba). Una sola pasada, sin tipos paralelos. Cambios mecánicos en ~18 archivos. **Recomendado** — evita mantener dos shapes en paralelo.
-- **B) Migración acotada a las cards** — Introduzco `ProspectViewModel` (nuevo) sólo para `useProspects`/cards; el resto sigue leyendo el tipo `Prospect` snake_case. Requiere mantener dos tipos y dos rutas de datos (cards vs. dialogs/forms). Menos archivos tocados ahora, pero deuda técnica futura.
+**Paso 4 — Changelog**
+- `public/changelog/v6.24.6.json` + entrada en `public/changelog.json` describiendo "Estandarización de tablas de tracking en CRM Cerrados y Leaderboard a DataTableV2".
 
-¿Vamos con A o B?
+### Lo que NO se cambia y por qué
+
+- Line items, credit notes embebidas, diff de auditoría e Income Statement **no migran**: `DataTableV2` está diseñado para listados paginables y ordenables con una fila = una entidad. Forzarlos perdería edición inline, totales jerárquicos y agrupamientos visuales — sería una regresión funcional, no una estandarización.
+
+### Riesgos
+
+- `CRMClosedPage` y `LeaderboardPage` son vistas pequeñas; bajo riesgo.
+- Verificar que el sort de Leaderboard por "Puntos desc" mantenga la numeración `#` coherente (recalcular después del sort, no antes).
