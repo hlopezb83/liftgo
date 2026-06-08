@@ -24,7 +24,15 @@ setup("authenticate as admin", async ({ page }) => {
 
   // Dashboard or any authenticated layout
   await expect(page).toHaveURL(/\/(dashboard)?$/, { timeout: 20_000 });
+  // Wait until the auth screen is gone and the app shell rendered, so that
+  // Supabase has finished persisting the session to localStorage.
+  await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toHaveCount(0, {
+    timeout: 15_000,
+  });
+  await expect(page.locator("nav, [role='navigation']").first()).toBeVisible({ timeout: 15_000 });
+  // Extra settle time for any pending storage writes.
+  await page.waitForTimeout(500);
 
   mkdirSync(dirname(STORAGE_PATH), { recursive: true });
-  await page.context().storageState({ path: STORAGE_PATH });
+  await page.context().storageState({ path: STORAGE_PATH, indexedDB: true });
 });
