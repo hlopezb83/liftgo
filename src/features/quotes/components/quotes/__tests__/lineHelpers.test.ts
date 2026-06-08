@@ -63,3 +63,21 @@ describe("computeSaleLineTotal", () => {
     expect(computeSaleLineTotal({ ...base, discount: -5, discountType: "%" })).toBe(1000);
   });
 });
+
+describe("saleLineTotal & applyDiscountToBase (drift)", () => {
+  it("3 × 19.99 sin drift", () => {
+    expect(saleLineTotal({ quantity: 3, unit_price: 19.99 })).toBe(59.97);
+  });
+  it("descuento 10% sobre 19.99 sin drift", () => {
+    expect(saleLineTotal({ quantity: 1, unit_price: 19.99, discount: 10, discount_type: "%" })).toBe(17.99);
+  });
+  it("applyDiscountToBase con 0.1 + 0.2", () => {
+    expect(applyDiscountToBase(0.1 + 0.2, 0)).toBe(0.3);
+  });
+  it("descuento $ mayor que base devuelve 0", () => {
+    expect(applyDiscountToBase(100, 9999, "$")).toBe(0);
+  });
+  it("valores no finitos en base devuelven 0", () => {
+    expect(applyDiscountToBase(Number.NaN, 10, "%")).toBe(0);
+  });
+});
