@@ -1,4 +1,3 @@
-import currency from "currency.js";
 import { useCallback } from "react";
 import { useFieldArray, type UseFormReturn } from "react-hook-form";
 import {
@@ -6,6 +5,7 @@ import {
   type LineItemValues,
   EMPTY_LINE,
 } from "@/features/invoices/lib/invoiceFormSchema";
+import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
 
 export function useInvoiceLineItemHandlers(form: UseFormReturn<InvoiceFormValues>) {
   const { fields, append, remove, update } = useFieldArray({
@@ -16,7 +16,7 @@ export function useInvoiceLineItemHandlers(form: UseFormReturn<InvoiceFormValues
     const current = form.getValues(`lineItems.${index}`);
     const next: LineItemValues = { ...current, [field]: value };
     if (field === "quantity" || field === "unit_price") {
-      next.total = currency(Number(next.unit_price)).multiply(Number(next.quantity)).value;
+      next.total = lineItemTotal(Number(next.quantity), Number(next.unit_price));
     }
     update(index, next);
   }, [form, update]);

@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.1",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Consolidación de matemática financiera de facturas en invoiceHelpers",
+    "category": "refactor"
+  },
+  {
     "version": "6.24.0",
     "date": "2026-06-08",
     "type": "minor",

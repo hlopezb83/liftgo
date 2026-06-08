@@ -3,8 +3,26 @@ import {
   applyDiscount,
   calculateRentalCost,
   computeTotals,
+  lineItemTotal,
   type LineItem,
 } from "@/lib/domain/invoiceHelpers";
+
+describe("lineItemTotal", () => {
+  it("multiplica cantidad por precio con precisión de 2 decimales", () => {
+    expect(lineItemTotal(3, 100.1)).toBe(300.3);
+  });
+  it("devuelve 0 cuando la cantidad es 0", () => {
+    expect(lineItemTotal(0, 50)).toBe(0);
+  });
+  it("trata NaN/null/undefined como 0", () => {
+    expect(lineItemTotal(Number.NaN, 10)).toBe(0);
+    expect(lineItemTotal(null, 10)).toBe(0);
+    expect(lineItemTotal(5, undefined)).toBe(0);
+  });
+  it("evita drift binario (19.99 × 3 = 59.97)", () => {
+    expect(lineItemTotal(3, 19.99)).toBe(59.97);
+  });
+});
 
 const item = (over: Partial<LineItem> = {}): LineItem => ({
   description: "test",

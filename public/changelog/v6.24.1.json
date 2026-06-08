@@ -1,0 +1,25 @@
+{
+  "version": "6.24.1",
+  "date": "2026-06-08",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Consolidación de matemática financiera de facturas en invoiceHelpers",
+  "description": "Toda la matemática monetaria de facturas (subtotal, IVA, descuentos, total por línea) pasa exclusivamente por src/lib/domain/invoiceHelpers.ts envuelta en currency.js. Sin cambios funcionales para el usuario.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Nuevo helper lineItemTotal(quantity, unitPrice)",
+      "description": "Wrapper sobre currency.js con precisión 2 que devuelve el total de una línea y trata NaN/null/undefined como 0. Es la única vía permitida para calcular totales de partida."
+    },
+    {
+      "type": "refactor",
+      "title": "useInvoiceLineItemHandlers y EditableLineItemsTable usan lineItemTotal",
+      "description": "Se eliminó la importación directa de currency.js en useInvoiceLineItemHandlers.ts y EditableLineItemsTable.tsx; ambos consumen ahora lineItemTotal desde el dominio. invoiceFormBuilders.ts se mantiene como prefill puro (sin matemática)."
+    },
+    {
+      "type": "test",
+      "title": "Pruebas para lineItemTotal",
+      "description": "Cobertura de casos: precisión decimal (3 × 100.10 = 300.30), drift binario (3 × 19.99 = 59.97), cantidad cero y entradas no finitas."
+    }
+  ]
+}

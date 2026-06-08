@@ -14,6 +14,17 @@ export interface LineItem {
 /** Wrap a number into a currency.js instance with MXN-compatible 2-decimal precision. */
 const money = (value: number) => currency(value, { precision: 2 });
 
+/**
+ * Total monetario de una línea de factura/cotización a partir de cantidad y precio unitario.
+ * Single source of truth: cualquier handler que recalcule el total de una línea debe usar esta función.
+ * Devuelve 0 ante valores no finitos.
+ */
+export function lineItemTotal(quantity: number | null | undefined, unitPrice: number | null | undefined): number {
+  const q = typeof quantity === "number" && Number.isFinite(quantity) ? quantity : 0;
+  const p = typeof unitPrice === "number" && Number.isFinite(unitPrice) ? unitPrice : 0;
+  return money(p).multiply(q).value;
+}
+
 export function applyDiscount(item: LineItem): number {
   const base = item.total || 0;
   if (!item.discount || item.discount <= 0) return base;
