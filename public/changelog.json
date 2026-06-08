@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.23.6",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "E2E: assertions de headings más robustas en bookings y quotes",
+    "category": "fix"
+  },
+  {
     "version": "6.23.5",
     "date": "2026-06-08",
     "type": "patch",
