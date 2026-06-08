@@ -1,4 +1,4 @@
-import { useLocation, useMatch } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { type ReactNode, useMemo } from "react";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { appRoutes } from "@/lib/routes-config";
