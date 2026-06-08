@@ -14,7 +14,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { FormActions } from "@/components/FormActions";
 import { expenseFormSchema, type ExpenseFormData } from "@/features/expenses/lib/expenseFormSchema";
-import { useCreateExpense, type ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
+import { useCreateExpense, type ExpenseCategory, type OperatingExpense } from "@/features/expenses/hooks/useOperatingExpenses";
 import { ExpenseFormFields } from "./ExpenseFormFields";
 import { useLinkRfcToSupplier } from "@/features/suppliers/hooks/useLinkRfcToSupplier";
 import type { CfdiParseResult, CfdiPrefill } from "@/features/expenses/lib/cfdiPrefill";
@@ -22,6 +22,7 @@ import type { CfdiParseResult, CfdiPrefill } from "@/features/expenses/lib/cfdiP
 interface ExpenseFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: (expense: OperatingExpense) => void;
 }
 
 export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps) {
