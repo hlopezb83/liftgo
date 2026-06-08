@@ -1,0 +1,9 @@
+{
+  "version": "6.25.1",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Botón de editar en página de detalle de proveedor",
+  "description": "Se agregó un botón 'Editar' en la página de detalle de cada proveedor (esquina superior derecha, visible para usuarios con permisos 'full' en el módulo Proveedores). Al hacer clic abre el SupplierFormDialog precargado con los datos actuales del proveedor, permitiendo modificar nombre, RFC, contacto, dirección, régimen fiscal y demás campos.",
+  "category": "feature",
+  "breaking": false
+}
