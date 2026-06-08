@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { callRpc } from "@/lib/rpc";
+import { roundMoney } from "@/lib/money";
 
 export interface MrrItem {
   forklift_id: string;
@@ -29,7 +30,7 @@ export function useMrrDetail() {
       const result = await callRpc<MrrDetail>("get_mrr_detail");
       return {
         items: result?.items ?? [],
-        total_mrr: result?.total_mrr ?? 0,
+        total_mrr: roundMoney(result?.total_mrr ?? 0),
       };
     },
   });

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { roundMoney } from "@/lib/money";
 import {
   type MonthData, type YearTotals, type ExpenseCategory,
   EXPENSE_CATEGORIES, DIRECT_COST_CATEGORIES, computeDerivedTotals,
@@ -29,7 +30,18 @@ function aggregate(rows: MonthData[]) {
       } as Record<ExpenseCategory, number>,
     }
   );
-  return { ...t, ...computeDerivedTotals(t) };
+  const expensesRounded = { ...t.expenses };
+  allCats.forEach((c) => { expensesRounded[c] = roundMoney(expensesRounded[c]); });
+  const rounded = {
+    revenue: roundMoney(t.revenue),
+    revenueRental: roundMoney(t.revenueRental),
+    revenueSales: roundMoney(t.revenueSales),
+    maintenanceCost: roundMoney(t.maintenanceCost),
+    damageCost: roundMoney(t.damageCost),
+    depreciation: roundMoney(t.depreciation),
+    expenses: expensesRounded,
+  };
+  return { ...rounded, ...computeDerivedTotals(rounded) };
 }
 
 export function useStatementTotals(data: MonthData[]) {

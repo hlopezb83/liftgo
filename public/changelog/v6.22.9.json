@@ -1,0 +1,16 @@
+{
+  "version": "6.22.9",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "roundMoney: helper de redondeo monetario en boundaries de escritura y reportes",
+  "category": "chore",
+  "summary": "Nuevo helper src/lib/money.ts (roundMoney/sumMoney) con ajuste vía Number.EPSILON para eliminar colas binarias (0.1+0.2=0.30000000000000004) antes de persistir o agregar valores monetarios.",
+  "details": [
+    "Helper roundMoney(n) y sumMoney(arr) con guards para NaN/null/undefined.",
+    "Tests unitarios cubren binarias clásicas, negativos, arrays grandes e idempotencia.",
+    "Aplicado en write boundaries: quoteFormPayload (subtotal/tax_amount/total), useInvoiceFormSubmit (totales factura), contractPayload (daily/weekly/monthly_rate, deposit_amount, extra_hour_rate), RecordPaymentDialog y EditPaymentDialog (amount).",
+    "Aplicado en agregaciones de reportes: computeDerivedTotals (P&L), aggregate de useStatementTotals, buildBreakdownRows, useMrrDetail (total_mrr) y CustomerStatementDocument (totalInvoiced/totalPaid/balance).",
+    "usePayments: sumMoney en totalPaid y roundMoney en balance para evitar drift en comparaciones de saldo.",
+    "No se tocó formatCurrency.ts (Intl.NumberFormat ya redondea para presentación)."
+  ]
+}

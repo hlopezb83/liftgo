@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { nowMty } from "@/lib/utils";
+import { roundMoney } from "@/lib/money";
 import type { RentalLine, SaleLine } from "./quoteFormBuilders";
 
 export interface BuildQuotePayloadArgs {
@@ -49,10 +50,10 @@ export function buildQuotePayload(a: BuildQuotePayloadArgs) {
     start_date: startStr,
     end_date: endStr,
     line_items: toJsonArray(a.lineItems),
-    subtotal: a.subtotal,
+    subtotal: roundMoney(a.subtotal),
     tax_rate: Number(a.taxRate),
-    tax_amount: a.taxAmount,
-    total: a.total,
+    tax_amount: roundMoney(a.taxAmount),
+    total: roundMoney(a.total),
     status: a.existingQuote?.status || "draft",
     valid_until: a.validUntil ? format(a.validUntil, "yyyy-MM-dd") : null,
     notes: a.notes || null,
