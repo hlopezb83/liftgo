@@ -17,7 +17,7 @@ async function insertCostoVentaIfSold(forkliftId: string, toStatus: string) {
     category: "costo_venta",
     description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
     amount: cost,
-    expense_date: nowMty().toISOString().slice(0, 10),
+    expense_date: toYMD(nowMty()),
   });
   if (expError) {
     notifyWarning({ title: "No se pudo registrar el costo de venta automáticamente", description: expError.message });
