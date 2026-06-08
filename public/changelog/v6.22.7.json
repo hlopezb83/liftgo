@@ -1,0 +1,8 @@
+{
+  "description": "Endurecimiento del Zod de facturas: la descripción de cada partida ahora es requerida (mínimo 1 caracter tras trim), evitando que líneas vacías lleguen al timbrado y rebote el SAT. Además, useInvoiceFormSubmit migrado a toYMD() para due_date e issued_at, consistente con la convención de fechas para columnas Postgres date.",
+  "changes": [
+    "lineItemSchema.description ahora es .trim().min(1, 'Descripción requerida')",
+    "useInvoiceFormSubmit: due_date e issued_at usan toYMD() en lugar de format(date, 'yyyy-MM-dd')",
+    "Test nuevo para descripción vacía en lineItemSchema"
+  ]
+}
