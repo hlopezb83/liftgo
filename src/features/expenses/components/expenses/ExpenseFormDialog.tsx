@@ -231,7 +231,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onCreated }: ExpenseForm
           </div>
         )}
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-4">
           <ExpenseFormFields form={form} supplierId={supplierId} setSupplierId={setSupplierId} />
           <DialogFooter>
             <FormActions
