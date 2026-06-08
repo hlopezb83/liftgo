@@ -5,7 +5,7 @@ test.describe("Auth", () => {
     await page.goto("/");
     // AuthGuard renders the dashboard layout when storageState is valid.
     // We assert the sidebar is present and the auth screen is not shown.
-    await expect(page.getByText("Iniciar Sesión")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toHaveCount(0);
     // Sidebar / main nav landmark
     await expect(page.locator("nav, [role='navigation']").first()).toBeVisible({ timeout: 10_000 });
   });
