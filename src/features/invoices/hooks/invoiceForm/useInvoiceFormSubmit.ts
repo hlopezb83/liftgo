@@ -1,10 +1,11 @@
-import { format } from "date-fns";
 import { useCreateInvoice, useUpdateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { orEmpty } from "@/lib/coerce";
+import { toYMD } from "@/lib/date/toYMD";
 import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "@/features/invoices/lib/invoiceFormSchema";
+
 
 function toLineItems(items: LineItemValues[]): LineItem[] {
   return items.map((i) => ({
