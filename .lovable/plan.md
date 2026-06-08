@@ -1,36 +1,28 @@
-## Diagnóstico
+# Fix: e2e setup falla por selector ambiguo de contraseña
 
-El fallo principal no viene de los warnings de Vite/Browserslist, sino del setup de Playwright:
+## Causa
+En `tests/e2e/global.setup.ts:22`, `getByLabel(/contraseña|password/i)` matchea 2 elementos:
+1. El `<input id="auth-password">`
+2. El botón toggle `<button aria-label="Mostrar contraseña">` (ojito mostrar/ocultar)
 
-```text
-Error: locator.fill: Test timeout exceeded
-waiting for getByLabel(/correo|email/i)
-```
+Playwright en strict mode falla porque la regex matchea ambos accessible names.
 
-El test sí encuentra el heading **“Iniciar Sesión”**, pero no encuentra el input por label. En `src/features/auth/components/AuthForm.tsx`, los campos usan `<Label>` sin `htmlFor` y los `<Input>` no tienen `id`, por lo que Playwright no puede asociar “Correo Electrónico” ni “Contraseña” con sus inputs usando `getByLabel()`.
-
-## Plan de implementación
-
-1. Actualizar `AuthForm.tsx` para que los campos sean accesibles y compatibles con Playwright:
-   - Agregar `id="auth-email"` al input de correo.
-   - Agregar `htmlFor="auth-email"` al label de correo.
-   - Agregar `id="auth-password"` al input de contraseña.
-   - Agregar `htmlFor="auth-password"` al label de contraseña.
-   - Mantener los textos actuales en español mexicano.
-
-2. Mantener el test e2e sin cambios, porque `getByLabel(/correo|email/i)` es el selector correcto desde accesibilidad.
-
-3. Actualizar changelog como exige el proyecto:
-   - Agregar `6.22.12` al inicio de `public/changelog.json`.
-   - Crear `public/changelog/v6.22.12.json` con el detalle del fix.
-
-## Validación esperada
-
-Después del cambio, el setup de e2e deberá poder ejecutar:
+## Cambio
+Reemplazar el selector por uno no ambiguo apuntando al input por id:
 
 ```ts
-page.getByLabel(/correo|email/i).fill(email)
-page.getByLabel(/contraseña|password/i).fill(password)
+// tests/e2e/global.setup.ts
+await page.locator('#auth-email').fill(email);
+await page.locator('#auth-password').fill(password);
 ```
 
-sin quedarse esperando el locator.
+(o equivalente: `page.getByRole('textbox', { name: 'Contraseña' })`, pero `#auth-password` es el más estable porque ya añadimos esos ids para Playwright en la fix anterior).
+
+## Archivos
+- `tests/e2e/global.setup.ts` — cambiar las 2 líneas de `getByLabel(...)` por `locator('#auth-email')` y `locator('#auth-password')`.
+
+## Changelog
+- `public/changelog.json` + `public/changelog/v6.23.2.json` (patch) — "Fix selector ambiguo de contraseña en e2e setup".
+
+## Verificación
+No puedo correr Playwright completo aquí, pero confirmo que el build pasa y que el cambio resuelve el strict-mode violation reportado en el log.
