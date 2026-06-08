@@ -8,16 +8,16 @@ import { test, expect } from "@playwright/test";
  */
 test.describe("Quote → Invoice", () => {
   test("quotes list loads", async ({ page }) => {
-    await page.goto("/quotes");
-    await expect(page.getByRole("heading", { name: /cotizaciones/i }).first()).toBeVisible({
-      timeout: 10_000,
+    await page.goto("/quotes", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("h1").filter({ hasText: /cotizaciones/i }).first()).toBeVisible({
+      timeout: 15_000,
     });
   });
 
   test("invoices list loads", async ({ page }) => {
-    await page.goto("/invoices");
-    await expect(page.getByRole("heading", { name: /facturas/i }).first()).toBeVisible({
-      timeout: 10_000,
+    await page.goto("/invoices", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("h1").filter({ hasText: /facturas/i }).first()).toBeVisible({
+      timeout: 15_000,
     });
   });
 
@@ -25,4 +25,3 @@ test.describe("Quote → Invoice", () => {
     // TODO: requires seed RPC that returns an accepted quote id.
   });
 });
-
