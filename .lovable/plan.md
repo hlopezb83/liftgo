@@ -1,55 +1,131 @@
-## Auditoría de tablas en la app
+# Consolidar matemática de cotizaciones en `invoiceHelpers` + guardrail ESLint
 
-Mapeo de todo lo que importa `@/components/ui/table` y clasificación según deben migrar a `DataTableV2` o quedarse como están.
+## Objetivo
+Eliminar la última fuente de aritmética monetaria cruda en el código: los helpers de líneas de cotización. Y bloquear regresiones futuras con una regla de ESLint.
 
-### Estado actual
+No se toca `invoiceFormBuilders.ts` (no contiene matemática; solo coerce `Number()` de tasa/tipo de cambio, que no deben pasar por `currency.js`).
 
-**Ya estandarizadas en `DataTableV2` + `useLiftgoTable`** (sorting, paginación, presentación uniforme): Customers, Invoices, Bookings, Quotes, Contracts, Fleet, Maintenance, Damage, Inventory, Suppliers (list + detail), Returns, Deliveries, Expenses, Users, Audit, Feedback (MyReports), Reports (Aging, Revenue, Utilization, Profitability, Maintenance), Portal (Rentals, Invoices, Contracts, InvoiceDetail), Operations tabs (Drivers, Mechanics, Models, Policies), MRR Detail, Forklift Hourometer, Invoice Payment Summary.
+---
 
-**Sub-tablas que deben quedarse en primitive `ui/table`** (no son tracking; tienen edición inline, totales, diff, o estructura jerárquica):
-- `EditableLineItemsTable.tsx` — inputs por celda
-- `ReadOnlyLineItemsTable.tsx` — con totales en footer
-- `InvoiceCreditNotesCard.tsx` — embebida en card pequeña
-- `CreateCreditNoteDialog.tsx` — selección dentro de dialog
-- `AuditDiffTables.tsx` — visualización de diffs
-- `IncomeStatementTable.tsx` + `ComparisonTable.tsx` + `StatementTableRow.tsx` — P&L jerárquico con subtotales
+## Cambio 1 — Generalizar `applyDiscount` en `src/lib/domain/invoiceHelpers.ts`
 
-### Candidatas reales a migrar
+Hoy `applyDiscount(item: LineItem)` recibe un `LineItem` completo. Lo convertimos en pieza reutilizable:
 
-Solo **2 archivos** todavía renderizan tracking-style listas con `ui/table` crudo:
+```ts
+export function applyDiscountToBase(
+  base: number,
+  discount?: number,
+  type?: "%" | "$"
+): number { /* currency.js, mismo algoritmo */ }
 
-1. **`src/features/crm/pages/CRMClosedPage.tsx`** — Tabla de prospectos cerrados (won/lost). Columnas: Empresa, Contacto, Valor, Fecha cierre, Vendedor, Razón (lost), acciones. Sin sorting, sin paginación, sin persistencia.
-2. **`src/features/feedback/pages/LeaderboardPage.tsx`** — Ranking. Columnas: #, Nombre, Reportes, Aceptados, Resueltos, Puntos. Sin sorting interactivo.
+export function applyDiscount(item: LineItem): number {
+  return applyDiscountToBase(item.total || 0, item.discount, item.discount_type);
+}
+```
 
-### Plan de migración
+`computeTotals` y todo lo demás siguen funcionando igual (wrapper compatible).
 
-**Paso 1 — `CRMClosedPage`**
-- Reemplazar la función local `ClosedTable` por `DataTableV2` con `useLiftgoTable<Prospect>`.
-- Definir `columns: ColumnDef<Prospect>[]` para won y lost (lost añade columna "Razón").
-- Acción "Reabrir" como columna `actions` al estilo de Customers/Invoices (ícono + onClick).
-- Persistence key: `crm-closed-won` y `crm-closed-lost`.
-- Pagination por defecto 25 (memoria `arch/pagination`).
-- Mantener `MobileCardList` en mobile (regla Core).
+## Cambio 2 — Nuevo helper `saleLineTotal`
 
-**Paso 2 — `LeaderboardPage`**
-- Reemplazar `LeaderboardTable` por `DataTableV2`.
-- Columnas con `sortable: true` en Reportes, Aceptados, Resueltos, Puntos (Puntos como sort default desc).
-- Columna `#` calculada desde el índice después de sort (render `({ row, table }) => ...` o pre-calcular en data).
-- Persistence key: `leaderboard-${period}`.
+```ts
+export interface SaleLineInput {
+  quantity: number;
+  unit_price: number;
+  discount?: number;
+  discount_type?: "%" | "$";
+}
 
-**Paso 3 — Estandarización transversal**
-- Verificar que toda página migrada usa exactamente: `useLiftgoTable({ data, columns, initialPageSize: 25, persistenceKey })` + `<DataTableV2 table={...} />`.
-- Confirmar formato de columnas monetarias con `formatCurrency` y `tabular-nums` / `font-mono` (consistente con MrrDetailPage).
-- Confirmar fechas con `DD/MM/YYYY` vía utilidades existentes.
+export function saleLineTotal(line: SaleLineInput): number {
+  const base = lineItemTotal(line.quantity, line.unit_price);
+  return applyDiscountToBase(base, line.discount, line.discount_type);
+}
+```
 
-**Paso 4 — Changelog**
-- `public/changelog/v6.24.6.json` + entrada en `public/changelog.json` describiendo "Estandarización de tablas de tracking en CRM Cerrados y Leaderboard a DataTableV2".
+## Cambio 3 — Reescribir helpers de cotización como wrappers delgados
 
-### Lo que NO se cambia y por qué
+`src/features/quotes/components/quotes/saleLineHelpers.ts`:
+```ts
+import { saleLineTotal } from "@/lib/domain/invoiceHelpers";
+import type { SaleLine } from "./SaleLineItems";
 
-- Line items, credit notes embebidas, diff de auditoría e Income Statement **no migran**: `DataTableV2` está diseñado para listados paginables y ordenables con una fila = una entidad. Forzarlos perdería edición inline, totales jerárquicos y agrupamientos visuales — sería una regresión funcional, no una estandarización.
+export function computeSaleLineTotal(line: SaleLine): number {
+  return saleLineTotal({
+    quantity: line.quantity,
+    unit_price: line.unitPrice,
+    discount: line.discount,
+    discount_type: line.discountType,
+  });
+}
+```
 
-### Riesgos
+`src/features/quotes/components/quotes/rentalLineHelpers.ts`:
+```ts
+import { calculateRentalCost, applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 
-- `CRMClosedPage` y `LeaderboardPage` son vistas pequeñas; bajo riesgo.
-- Verificar que el sort de Leaderboard por "Puntos desc" mantenga la numeración `#` coherente (recalcular después del sort, no antes).
+export function computeRentalLineTotal(line: RentalLine, startDate?: Date, endDate?: Date): number {
+  if (!startDate || !endDate) return 0;
+  const items = calculateRentalCost(line.dailyRate, line.weeklyRate, line.monthlyRate, startDate, endDate);
+  const subtotal = items.reduce((sum, i) => sum + i.total, 0);
+  const base = lineItemTotal(line.quantity, subtotal); // currency.js
+  return applyDiscountToBase(base, line.discount, line.discountType);
+}
+```
+
+Ningún `*`, `-` ni `1 - x/100` crudo fuera de `invoiceHelpers.ts`.
+
+## Cambio 4 — Tests
+
+Ampliar `src/features/quotes/components/quotes/__tests__/lineHelpers.test.ts` y/o agregar a `src/lib/domain/__tests__/invoiceHelpers.test.ts`:
+
+- `saleLineTotal({ qty: 3, unit_price: 19.99 })` → `59.97` (sin drift)
+- `saleLineTotal` con descuento 10% sobre 19.99 → `17.99`
+- `applyDiscountToBase(0.1 + 0.2, 0)` → `0.3`
+- `computeRentalLineTotal` con `quantity: 3` y tarifa diaria 19.99 × N días → exacto a 2 decimales
+- Descuento `$` mayor que base → `0` (no negativo)
+
+## Cambio 5 — Guardrail ESLint
+
+En `eslint.config.js`, agregar un bloque overrride para los archivos de helpers de feature:
+
+```js
+{
+  files: [
+    "src/features/quotes/components/quotes/*LineHelpers.ts",
+    "src/features/invoices/hooks/invoiceForm/*.ts",
+  ],
+  rules: {
+    "no-restricted-syntax": ["error", {
+      selector: "BinaryExpression[operator=/^[*/]$/]",
+      message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceHelpers.ts. Usar lineItemTotal/applyDiscountToBase/saleLineTotal.",
+    }],
+  },
+},
+```
+
+Alcance limitado a propósito: no se aplica a `invoiceHelpers.ts` (donde vive la fuente de verdad), ni a `useInvoiceFormTotals/Submit/LineItemHandlers` (que ya delegan), ni a coerce/rates donde `*` es legítimo. Solo bloquea reintroducción en helpers de líneas.
+
+## Cambio 6 — Changelog
+
+Agregar `public/changelog/v6.24.7.json` (patch, refactor) + entrada en `public/changelog.json`:
+- "Helpers de líneas de cotización delegan en `invoiceHelpers` (currency.js)"
+- "Nuevo `saleLineTotal` y `applyDiscountToBase` reutilizables"
+- "Regla ESLint bloquea aritmética monetaria cruda en helpers de líneas"
+
+---
+
+## Archivos tocados
+- `src/lib/domain/invoiceHelpers.ts` (agregar `applyDiscountToBase`, `saleLineTotal`)
+- `src/features/quotes/components/quotes/saleLineHelpers.ts` (wrapper)
+- `src/features/quotes/components/quotes/rentalLineHelpers.ts` (wrapper)
+- `src/lib/domain/__tests__/invoiceHelpers.test.ts` o `lineHelpers.test.ts` (nuevos casos)
+- `eslint.config.js` (override `no-restricted-syntax`)
+- `public/changelog.json` + `public/changelog/v6.24.7.json`
+
+## Lo que NO se toca
+- `invoiceFormBuilders.ts` — sin matemática, solo coerce.
+- `useInvoiceFormTotals/Submit/LineItemHandlers` — ya delegan en `invoiceHelpers`.
+- `invoiceHelpers.ts` `applyDiscount` original — se mantiene como wrapper para no romper callers existentes.
+
+## Riesgos
+- Bajo. Los wrappers preservan firmas públicas. Cobertura de tests existente para `computeRentalLineTotal`/`computeSaleLineTotal` valida equivalencia funcional; los nuevos tests cierran los casos de drift.
+- La regla ESLint podría disparar en algún `* `/`/` legítimo del archivo (p.ej. dividir por 100 una tasa). Si pasa, se usa `// eslint-disable-next-line` con justificación o se mueve el cálculo a `invoiceHelpers`.
