@@ -42,13 +42,13 @@ export function useProspectForm({
 
   useEffect(() => {
     if (prospect) {
-      setCompany(prospect.company_name);
-      setContact(prospect.contact_person ?? "");
+      setCompany(prospect.companyName);
+      setContact(prospect.contactPerson ?? "");
       setEmail(prospect.email ?? "");
       setPhone(prospect.phone ?? "");
-      setDealValue(String(prospect.deal_value ?? 0));
+      setDealValue(String(prospect.dealValue ?? 0));
       setNotes(prospect.notes ?? "");
-      setQuoteId(prospect.quote_id ?? null);
+      setQuoteId(prospect.quoteId ?? null);
     } else {
       setCompany(""); setContact(""); setEmail(""); setPhone("");
       setDealValue(""); setNotes(""); setQuoteId(null);

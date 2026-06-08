@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.5",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Refactor CRM Prospects: view-model camelCase con mapper explícito",
+    "category": "refactor"
+  },
+  {
     "version": "6.24.4",
     "date": "2026-06-08",
     "type": "patch",

@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { FileText, StickyNote } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
@@ -16,7 +14,7 @@ interface Props {
 
 export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) {
   const navigate = useNavigate();
-  if (!prospect.quote_id || !quoteNumber) return null;
+  if (!prospect.quoteId || !quoteNumber) return null;
   return (
     <>
       <Separator />
@@ -27,7 +25,7 @@ export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) 
           <Badge
             variant="secondary"
             className="cursor-pointer hover:bg-accent gap-1 mt-1"
-            onClick={() => { onNavigate(); navigate(`/quotes/${prospect.quote_id}`); }}
+            onClick={() => { onNavigate(); navigate(`/quotes/${prospect.quoteId}`); }}
           >
             <FileText className="h-3 w-3" />
             {quoteNumber}
@@ -55,21 +53,20 @@ export function ProspectNotes({ notes }: { notes: string | null | undefined }) {
 }
 
 export function ProspectClosureInfo({ prospect }: { prospect: Prospect }) {
-  const isClosed = prospect.stage === "cerrado_ganado" || prospect.stage === "cerrado_perdido";
-  if (!isClosed) return null;
+  if (!prospect.isClosed) return null;
   return (
     <>
       <Separator />
       <div className="rounded-md border bg-muted/30 p-3 space-y-1 text-xs">
         <p className="font-semibold text-sm">Información de cierre</p>
-        {prospect.closed_at && (
-          <p>Fecha cierre: <span className="font-medium">{format(new Date(prospect.closed_at), "dd MMM yyyy", { locale: es })}</span></p>
+        {prospect.closedAtLabel && (
+          <p>Fecha cierre: <span className="font-medium">{prospect.closedAtLabel}</span></p>
         )}
-        {prospect.stage === "cerrado_ganado" && prospect.final_amount != null && (
-          <p>Monto final: <span className="font-medium">{formatCurrency(prospect.final_amount)}</span></p>
+        {prospect.stage === "cerrado_ganado" && prospect.finalAmount != null && (
+          <p>Monto final: <span className="font-medium">{formatCurrency(prospect.finalAmount)}</span></p>
         )}
-        {prospect.stage === "cerrado_perdido" && prospect.lost_reason && (
-          <p>Razón: <span className="font-medium">{LOST_REASON_LABELS[prospect.lost_reason] ?? prospect.lost_reason}</span></p>
+        {prospect.stage === "cerrado_perdido" && prospect.lostReason && (
+          <p>Razón: <span className="font-medium">{LOST_REASON_LABELS[prospect.lostReason] ?? prospect.lostReason}</span></p>
         )}
       </div>
     </>

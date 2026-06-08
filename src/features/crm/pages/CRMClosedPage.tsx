@@ -15,8 +15,6 @@ import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
 import { useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 function ClosedTable({ rows, kind, onReopen }: { rows: Prospect[]; kind: "won" | "lost"; onReopen: (p: Prospect) => void }) {
   if (rows.length === 0) {
@@ -39,18 +37,18 @@ function ClosedTable({ rows, kind, onReopen }: { rows: Prospect[]; kind: "won" |
         <TableBody>
           {rows.map((p, i) => (
             <TableRow key={p.id} className={i % 2 === 0 ? "bg-muted/20" : ""}>
-              <TableCell className="font-medium">{p.company_name}</TableCell>
-              <TableCell className="text-muted-foreground">{p.contact_person ?? "—"}</TableCell>
+              <TableCell className="font-medium">{p.companyName}</TableCell>
+              <TableCell className="text-muted-foreground">{p.contactPerson ?? "—"}</TableCell>
               <TableCell className="text-right tabular-nums">
-                {formatCurrency(p.final_amount ?? p.deal_value ?? 0)}
+                {formatCurrency(p.finalAmount ?? p.dealValue ?? 0)}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {p.closed_at ? format(new Date(p.closed_at), "dd MMM yyyy", { locale: es }) : "—"}
+                {p.closedAtLabel ?? "—"}
               </TableCell>
-              <TableCell className="text-muted-foreground">{p.created_by_name ?? "—"}</TableCell>
+              <TableCell className="text-muted-foreground">{p.createdByName ?? "—"}</TableCell>
               {kind === "lost" && (
                 <TableCell>
-                  <Badge variant="outline">{p.lost_reason ? LOST_REASON_LABELS[p.lost_reason] ?? p.lost_reason : "—"}</Badge>
+                  <Badge variant="outline">{p.lostReason ? LOST_REASON_LABELS[p.lostReason] ?? p.lostReason : "—"}</Badge>
                 </TableCell>
               )}
               <TableCell>
@@ -75,15 +73,15 @@ export default function CRMClosedPage() {
   const filterRows = useCallback((rows: Prospect[]) => {
     const q = search.trim().toLowerCase();
     const sorted = [...rows].sort((a, b) => {
-      const da = a.closed_at ? new Date(a.closed_at).getTime() : 0;
-      const db = b.closed_at ? new Date(b.closed_at).getTime() : 0;
+      const da = a.closedAt ? new Date(a.closedAt).getTime() : 0;
+      const db = b.closedAt ? new Date(b.closedAt).getTime() : 0;
       return db - da;
     });
     if (!q) return sorted;
     return sorted.filter(
       (p) =>
-        p.company_name.toLowerCase().includes(q) ||
-        (p.contact_person ?? "").toLowerCase().includes(q)
+        p.companyName.toLowerCase().includes(q) ||
+        (p.contactPerson ?? "").toLowerCase().includes(q)
     );
   }, [search]);
 
@@ -147,7 +145,7 @@ export default function CRMClosedPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Reabrir deal</AlertDialogTitle>
             <AlertDialogDescription>
-              {reopenTarget ? `¿Reabrir deal con ${reopenTarget.company_name}? Volverá a la columna de Negociación.` : ""}
+              {reopenTarget ? `¿Reabrir deal con ${reopenTarget.companyName}? Volverá a la columna de Negociación.` : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

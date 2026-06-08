@@ -28,7 +28,7 @@ export function CRMPageDialogs({
           dialogs.setDetailProspect(null);
           openEdit(p);
         }}
-        quoteNumber={dialogs.detailProspect?.quote_id ? quoteMap.get(dialogs.detailProspect.quote_id) : undefined}
+        quoteNumber={dialogs.detailProspect?.quoteId ? quoteMap.get(dialogs.detailProspect.quoteId) : undefined}
       />
 
       <ProspectFormDialog
