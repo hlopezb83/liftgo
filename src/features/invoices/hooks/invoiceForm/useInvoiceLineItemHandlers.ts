@@ -16,7 +16,7 @@ export function useInvoiceLineItemHandlers(form: UseFormReturn<InvoiceFormValues
     const current = form.getValues(`lineItems.${index}`);
     const next: LineItemValues = { ...current, [field]: value };
     if (field === "quantity" || field === "unit_price") {
-      next.total = currency(Number(next.unit_price)).multiply(Number(next.quantity)).value;
+      next.total = lineItemTotal(Number(next.quantity), Number(next.unit_price));
     }
     update(index, next);
   }, [form, update]);
