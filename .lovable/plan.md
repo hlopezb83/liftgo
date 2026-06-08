@@ -1,72 +1,55 @@
-# Tanda 4 de Seguridad — Cierre de hallazgos pendientes
+# Consolidación de lógica financiera de facturas
 
-## Objetivo
+## Hallazgo previo (importante)
 
-Cerrar los 2 hallazgos abiertos del scanner de Lovable Cloud y reducir el ruido del Supabase Linter revocando EXECUTE de funciones `SECURITY DEFINER` que no necesitan estar expuestas a todo el rol `authenticated`.
+Antes de planear, revisé `invoiceFormBuilders.ts` y **no contiene lógica financiera ni de impuestos/descuentos**. Solo contiene builders de prefill de formulario (`cfdiFromCustomer`, `buildFromInvoice`, `buildFromQuote`, `enrichLineItem`) que mapean datos de cliente/cotización/factura existente a `InvoiceFormValues`. Mover eso a `invoiceHelpers.ts` mezclaría dos dominios (prefill de UI vs. matemática financiera) y rompería la convención de que `lib/domain/` no dependa de schemas de formularios.
 
-Sin cambios funcionales para el usuario final. Todo es endurecimiento de backend.
+La lógica financiera real ya está en `src/lib/domain/invoiceHelpers.ts`, envuelta con `currency.js`:
+- `applyDiscount()` — descuentos `$` y `%`
+- `computeTotals()` — subtotal + IVA + total
+- `calculateRentalCost()`, `generateLineItems()`, `generateLineItemsFromModel()` — generación de líneas
+- Wrapper interno `money()` con precisión 2.
 
----
+## El gap real
 
-## Lote A — Bucket `cfdi-files` (storage.objects)
+Hay **un único punto** donde el cálculo financiero ocurre fuera de `invoiceHelpers.ts`:
 
-**Hallazgo:** el bucket tiene solo política de `SELECT` para admin/administrativo, pero ninguna política de `INSERT`, `UPDATE` ni `DELETE`. Hoy las edge functions (`stamp-cfdi`, `cancel-cfdi`) suben/borran vía `service_role`, así que funciona — pero queda implícito y el scanner lo marca.
+`src/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers.ts:19`
 
-**Acción (migración):**
-- Añadir políticas explícitas `INSERT`, `UPDATE`, `DELETE` en `storage.objects` para el bucket `cfdi-files`, restringidas a `admin` y `administrativo` vía `has_role(auth.uid(), ...)`.
-- Service role sigue funcionando (bypassa RLS), no rompe nada.
+```ts
+next.total = currency(Number(next.unit_price)).multiply(Number(next.quantity)).value;
+```
 
-**Decisión sobre `invoices` SELECT para `customer`:** se marca como **aceptado por diseño** en `security-memory`. Los clientes del portal leen sus facturas vía RPCs (`get_customer_invoices`, etc.) con validación de propiedad, no por Data API directa. No se añade política.
+Importa `currency.js` directamente y recalcula el total de línea al editar `quantity`/`unit_price`. Esa es la única fuga.
 
----
+## Cambios propuestos
 
-## Lote B — Revocar EXECUTE de `SECURITY DEFINER` no necesarias en `authenticated`
+1. **Añadir `lineItemTotal(quantity, unitPrice)` en `src/lib/domain/invoiceHelpers.ts`** — wrapper sobre `money()` que devuelve el total de una línea redondeado a 2 decimales. Exportarlo.
 
-**Hallazgo:** 35 warnings del linter `0029`. Ya en `v6.13.0` revocamos `anon`/`PUBLIC`. Falta auditar cuáles funciones realmente necesitan ser invocables por todo `authenticated` (incluye `customer` del portal) vs solo por roles internos.
+2. **`useInvoiceLineItemHandlers.ts`**:
+   - Eliminar `import currency from "currency.js"`.
+   - Reemplazar la línea del cálculo por `lineItemTotal(next.quantity, next.unit_price)` importado desde `@/lib/domain/invoiceHelpers`.
 
-**Plan:**
-1. Listar todas las funciones `SECURITY DEFINER` del schema `public` y agruparlas en 3 categorías:
-   - **Públicas a authenticated** (mantienen EXECUTE): `has_role`, `get_public_branding`, RPCs del portal de clientes (`get_customer_*`).
-   - **Solo personal interno** (REVOKE de `authenticated`, GRANT específico a roles internos vía función wrapper o se confía en el `has_role` interno): RPCs de dashboard, reportes, CFDI, gestión de usuarios, audit revert, etc.
-   - **Solo `service_role`**: RPCs invocadas exclusivamente desde edge functions con cron (ej. `generate_recurring_*`).
+3. **Test unitario** en `src/lib/domain/__tests__/invoiceHelpers.more.test.ts`:
+   - `lineItemTotal(3, 100.10)` → `300.3` (precisión binaria correcta).
+   - `lineItemTotal(0, 50)` → `0`.
+   - `lineItemTotal(NaN, 10)` → `0` (defensive).
 
-2. Migración con bloque de `REVOKE EXECUTE ... FROM authenticated` + `GRANT EXECUTE ... TO service_role` donde aplique.
+4. **Dejar `invoiceFormBuilders.ts` intacto** — no contiene matemática financiera, solo mapeo de datos para prefill. Moverlo sería un refactor de UI/form, no de "single source of truth financiero".
 
-**Defense-in-depth:** todas las funciones conservan su `has_role()` interno como segunda capa. La revocación es para silenciar al linter y reducir superficie.
+5. **Changelog `v6.24.1` (patch, refactor)** documentando la consolidación y el invariante: "todo cálculo de subtotal, IVA, descuento y total de línea pasa exclusivamente por `src/lib/domain/invoiceHelpers.ts`".
 
-**Nota de aceptación:** las funciones que sigan siendo callable por `authenticated` con guarda `has_role` interno se documentan en `security-memory` como postura aceptada (ya hay precedente en `v6.13.0`).
+## Verificación
 
----
+- Buscar en todo el repo `import currency from "currency.js"` fuera de `src/lib/` y confirmar que tras este cambio solo queda en `invoiceHelpers.ts` (y, si los hay, otros dominios legítimos como `quoteHelpers`).
+- Correr `bun test` para asegurar que los tests existentes de `invoiceHelpers` y `useInvoiceLineItemHandlers` siguen verdes.
+- Verificar tipado estricto: sin `as`, sin `!`.
 
-## Entregables
+## Fuera de alcance (intencionalmente)
 
-1. **Migración SQL** con políticas storage + REVOKE/GRANT consolidados.
-2. **Actualizar `security-memory`** con la nueva postura aceptada (invoices customer SELECT vía RPC, funciones authenticated con `has_role` interno).
-3. **Re-ejecutar scanner + linter** para confirmar cierre.
-4. **Changelog** `v6.14.0` (minor, category: security) con detalle de cambios.
-5. **Marcar fixed** los 2 findings del scanner vía `manage_security_finding`.
+- No se tocan `invoiceFormBuilders.ts`, `useInvoiceFormHandlers.ts`, `useInvoicePrefill.ts`, `useInvoiceFormSubmit.ts` — su responsabilidad es prefill/persistencia, no cálculo financiero.
+- No se mezclan helpers de cotizaciones (`features/quotes/lib/`) en este lote.
 
----
+## Pregunta de confirmación
 
-## Detalles técnicos
-
-- Las políticas de `storage.objects` se filtran por `bucket_id = 'cfdi-files'` y `has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'administrativo'::app_role)`.
-- Para el lote B, antes de la migración, exploraré con `supabase--read_query` sobre `pg_proc` + `information_schema.routine_privileges` para inventariar las 35 funciones y clasificarlas. Esto genera el SQL definitivo del REVOKE.
-- No se tocan funciones del portal de cliente (`get_customer_*`) — siguen accesibles a `authenticated` porque ahí están los clientes.
-
----
-
-## Riesgos y mitigación
-
-- **Riesgo:** revocar EXECUTE rompe alguna llamada del frontend.
-  - **Mitigación:** clasificación previa basada en uso real (`rg` por nombre de función en `src/`). Cualquier RPC llamada desde el portal de cliente queda en grupo 1.
-- **Riesgo:** edge functions con cron pierden acceso.
-  - **Mitigación:** `service_role` bypassa todo; además se añade GRANT explícito a `service_role` por claridad.
-
----
-
-## Fuera de alcance
-
-- Paginación server-side de invoices/bookings (auditoría de rendimiento, paso 9).
-- Virtualización del Gantt (paso 10).
-- Migración de `dompurify` o `@hello-pangea/dnd` (auditoría de dependencias, sin urgencia).
+¿Confirmas este alcance acotado, o realmente quieres que mueva también los builders de prefill (`buildFromInvoice`, `buildFromQuote`, etc.) a `lib/domain/` aun cuando dependerían del schema de formularios? Recomiendo mantenerlos donde están.
