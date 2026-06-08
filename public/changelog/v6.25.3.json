@@ -1,0 +1,14 @@
+{
+  "version": "6.25.3",
+  "date": "2026-06-08",
+  "type": "minor",
+  "title": "Vincular RFC del CFDI a proveedor existente desde gasto",
+  "category": "feature",
+  "description": "Cuando se carga un XML de CFDI y el emisor no es reconocido por RFC, ahora puedes seleccionar manualmente el proveedor en el diálogo de gasto y vincular el RFC del CFDI a ese proveedor con un solo clic. A partir de esa vinculación, futuras facturas del mismo emisor se reconocerán automáticamente sin intervención manual. Si el proveedor ya tiene un RFC distinto, se pide confirmación antes de sobrescribirlo.",
+  "highlights": [
+    "Botón 'Vincular RFC a este proveedor' en el aviso de proveedor no reconocido",
+    "Se activa solo cuando hay un proveedor seleccionado manualmente",
+    "Confirmación si el proveedor ya tenía un RFC diferente",
+    "Reconocimiento automático en futuros CFDIs del mismo emisor"
+  ]
+}
