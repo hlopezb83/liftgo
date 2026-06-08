@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
 import { useMaintenancePolicies } from "@/features/maintenance/hooks/maintenance/useMaintenancePolicies";
+import { useIsMounted } from "@/hooks/useIsMounted";
 import type { BookingFormData } from "@/features/bookings/lib/bookingFormSchema";
 
 interface PostBookingState {
@@ -16,11 +17,13 @@ interface PostBookingState {
 
 export function useBookingFormSubmit() {
   const navigate = useNavigate();
+  const isMounted = useIsMounted();
   const { data: customers } = useCustomers();
   const { data: policies } = useMaintenancePolicies();
   const createBooking = useCreateBooking();
   const [postBooking, setPostBooking] = useState<PostBookingState | null>(null);
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
+
 
   const onSubmit = (data: BookingFormData) => {
     const { from, to } = data.date_range;
@@ -39,6 +42,9 @@ export function useBookingFormSubmit() {
       },
       {
         onSuccess: (bookingId: string) => {
+          // Si el usuario ya navegó fuera del formulario, evita el setState
+          // sobre un componente desmontado (warning de React).
+          if (!isMounted()) return;
           const cust = customers?.find((c) => c.id === data.customer_id);
           setPostBooking({
             bookingId,
