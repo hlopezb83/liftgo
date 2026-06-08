@@ -1,0 +1,15 @@
+{
+  "version": "6.23.3",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Cobertura de tests: lotes 6 y 3 complementario",
+  "category": "chore",
+  "summary": "+8 tests para buildQuotePayload; Lote 6 (Maintenance) ya estaba cubierto por suites existentes; Lotes 10/11/12 (E2E + RLS) requieren infraestructura aparte.",
+  "details": [
+    "Lote 3 complementario — buildQuotePayload: quote_number existente vs nuevo vs fallback, fechas rental vs sale (Monterrey), rental_meta solo en rental, redondeo a 2 decimales, normalización de vacíos a null, currency, equipment_model_id desde primera línea con modelId.",
+    "Lote 6 (Maintenance/Damage): cubierto por maintenanceFormHelpers.test.ts y maintenancePageHelpers.test.ts existentes; no se duplica.",
+    "Pendiente — Lote 10 E2E happy paths: requiere Playwright + datos seed estables.",
+    "Pendiente — Lote 11 RLS: requiere tests de integración contra DB con usuarios de cada rol.",
+    "Pendiente — Lote 12 E2E secundarios: smoke-nav.spec.ts ya cubre rutas principales; los flujos específicos requieren especs nuevos."
+  ]
+}

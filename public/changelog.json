@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.23.3",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Cobertura de tests: lotes 6 y 3 complementario (+8 unit tests)",
+    "category": "chore"
+  },
+  {
     "version": "6.23.2",
     "date": "2026-06-08",
     "type": "patch",
