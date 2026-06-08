@@ -1,0 +1,11 @@
+{
+  "version": "6.23.2",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Fix selector ambiguo de contraseña en e2e setup",
+  "category": "fix",
+  "summary": "Playwright fallaba por strict-mode: getByLabel(/contraseña/i) matcheaba el input y el botón toggle 'Mostrar contraseña'.",
+  "details": [
+    "tests/e2e/global.setup.ts: reemplazo de getByLabel(...) por locator('#auth-email') y locator('#auth-password') — ids ya añadidos al AuthForm en v6.22.12."
+  ]
+}
