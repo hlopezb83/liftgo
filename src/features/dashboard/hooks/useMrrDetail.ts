@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { callRpc } from "@/lib/rpc";
 import { roundMoney } from "@/lib/money";
+import { format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 export interface MrrItem {
   forklift_id: string;
@@ -24,8 +26,10 @@ interface MrrDetail {
 }
 
 export function useMrrDetail() {
+  const dateKey = format(nowMty(), "yyyy-MM-dd");
+
   return useQuery({
-    queryKey: ["mrr-detail"],
+    queryKey: ["mrr-detail", dateKey],
     queryFn: async (): Promise<MrrDetail> => {
       const result = await callRpc<MrrDetail>("get_mrr_detail");
       return {
