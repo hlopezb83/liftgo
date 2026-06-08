@@ -47,23 +47,26 @@ describe("buildTemplateReplacements", () => {
     expect(r.REPRESENTANTE_LEGAL).toBe("Juan Pérez");
   });
 
-  it("aplica fallbacks cuando faltan campos opcionales", () => {
+  it("aplica fallbacks solo cuando el valor es null/undefined (toStr semantics)", () => {
     const r = buildTemplateReplacements({
       company: null,
       customer: { ...customer, address: null, representante_legal: null } as typeof customer,
       forklift: { ...forklift, capacity_kg: null, fuel_type: null } as typeof forklift,
       form: { ...defaultContractForm },
     });
+    // null/undefined → fallback aplica
     expect(r.EMPRESA_ARRENDADOR).toBe("[Nombre de tu empresa]");
     expect(r.DOMICILIO_CLIENTE).toBe("[Domicilio del cliente]");
     expect(r.CAPACIDAD_EQUIPO).toBe("—");
     expect(r.COMBUSTIBLE_EQUIPO).toBe("—");
-    expect(r.UBICACION_USO).toBe("[Dirección]");
-    expect(r.HORAS_MAX).toBe("[Número]");
-    expect(r.TARIFA_HORA_EXTRA).toBe("[Monto]");
-    expect(r.FECHA_INICIO).toBe("[Fecha de inicio]");
-    expect(r.MONTO_RENTA).toBe("[Monto]");
     expect(r.REPRESENTANTE_LEGAL).toBe("");
+    // string vacío del form NO dispara fallback (toStr trata "" como valor válido)
+    expect(r.UBICACION_USO).toBe("");
+    expect(r.HORAS_MAX).toBe("");
+    expect(r.TARIFA_HORA_EXTRA).toBe("");
+    expect(r.FECHA_INICIO).toBe("");
+    // "0" es truthy como string → gana sobre el fallback
+    expect(r.MONTO_RENTA).toBe("0");
   });
 
   it("MONTO_RENTA prioriza mensual > semanal > diario", () => {
