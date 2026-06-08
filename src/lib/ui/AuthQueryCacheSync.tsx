@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export function AuthQueryCacheSync() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const prevUserId = useRef<string | null>(null);
+  const prevUserId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
     const currentUserId = user?.id ?? null;
