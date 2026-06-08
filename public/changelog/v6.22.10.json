@@ -1,0 +1,10 @@
+{
+  "description": "Auditoría y endurecimiento de los queryKey de TanStack Query para prevenir fugas de datos entre sesiones y vistas.",
+  "changes": [
+    "Nuevo componente AuthQueryCacheSync: limpia el caché global de React Query al detectar cambio de usuario (sign-out / login)",
+    "useUpcomingInvoices: incluye fecha de ventana (hoy → +30d) en queryKey para evitar datos obsoletos entre días",
+    "useDashboardStats / useFinancialKpis / useMrrDetail: agregan fecha del día al queryKey para aislar snapshots diarios",
+    "useRolePermissions: agrega user?.id al queryKey para aislar permisos por sesión",
+    "Tests unitarios para AuthQueryCacheSync (montaje inicial, cambio de usuario, sign-out)"
+  ]
+}

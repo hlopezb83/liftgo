@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { callRpc } from "@/lib/rpc";
+import { format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 export interface FinancialKpis {
   mrr: number;
@@ -16,8 +18,10 @@ export interface FinancialKpis {
 }
 
 export function useFinancialKpis() {
+  const dateKey = format(nowMty(), "yyyy-MM-dd");
+
   return useQuery({
-    queryKey: ["financial-kpis"],
+    queryKey: ["financial-kpis", dateKey],
     queryFn: () => callRpc<FinancialKpis>("get_financial_kpis"),
     staleTime: 30_000,
   });

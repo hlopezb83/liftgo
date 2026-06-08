@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { callRpc } from "@/lib/rpc";
+import { format } from "date-fns";
+import { nowMty } from "@/lib/utils";
 
 export interface DashboardStats {
   fleet_counts: {
@@ -63,8 +65,10 @@ export interface DashboardStats {
 }
 
 export function useDashboardStats() {
+  const dateKey = format(nowMty(), "yyyy-MM-dd");
+
   return useQuery({
-    queryKey: ["dashboard-stats"],
+    queryKey: ["dashboard-stats", dateKey],
     queryFn: () => callRpc<DashboardStats>("get_dashboard_stats"),
     staleTime: 30_000,
   });
