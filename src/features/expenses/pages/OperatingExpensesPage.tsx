@@ -31,6 +31,19 @@ export default function OperatingExpensesPage() {
 
   const f = useExpenseFilters(expenses);
 
+  const handleCreated = useCallback((created: OperatingExpense) => {
+    if (f.hasActiveFilters && !f.matchesFilters(created)) {
+      toast.warning("Gasto creado pero oculto por los filtros activos", {
+        description: "Limpia los filtros para verlo en la lista.",
+        duration: 8000,
+        action: {
+          label: "Limpiar filtros",
+          onClick: () => f.resetFilters(),
+        },
+      });
+    }
+  }, [f]);
+
 
   const columns = useMemo<ColumnDef<OperatingExpense>[]>(
     () => [
