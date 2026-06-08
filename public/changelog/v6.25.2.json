@@ -1,0 +1,9 @@
+{
+  "version": "6.25.2",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Importar CSF también al editar un proveedor existente",
+  "description": "El diálogo de edición de proveedor ahora muestra las pestañas 'Llenar manualmente' e 'Importar desde CSF', igual que al crearlo. Esto permite arrastrar el PDF del CSF de un proveedor ya dado de alta y autocompletar/actualizar nombre, RFC, régimen fiscal y dirección sin sobrescribir datos manuales como teléfono, email o categoría.",
+  "category": "feature",
+  "breaking": false
+}

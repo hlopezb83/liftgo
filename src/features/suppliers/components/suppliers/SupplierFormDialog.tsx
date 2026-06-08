@@ -24,6 +24,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
 
   useEffect(() => {
     if (!open) return;
+    setTab("manual");
     if (supplier) {
       setForm({
         name: supplier.name,
@@ -39,9 +40,9 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
       });
     } else {
       setForm(emptySupplierForm);
-      setTab("manual");
     }
   }, [open, supplier]);
+
 
   const setField = <K extends keyof SupplierForm>(key: K, value: SupplierForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -100,25 +101,22 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
           <DialogTitle>{supplier ? "Editar Proveedor" : "Nuevo Proveedor"}</DialogTitle>
         </DialogHeader>
 
-        {supplier ? (
-          formContent
-        ) : (
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="w-full">
-              <TabsTrigger value="manual" className="flex-1">Llenar manualmente</TabsTrigger>
-              <TabsTrigger value="csf" className="flex-1">Importar desde CSF</TabsTrigger>
-            </TabsList>
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="w-full">
+            <TabsTrigger value="manual" className="flex-1">Llenar manualmente</TabsTrigger>
+            <TabsTrigger value="csf" className="flex-1">Importar desde CSF</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="manual">
-              {formContent}
-            </TabsContent>
+          <TabsContent value="manual">
+            {formContent}
+          </TabsContent>
 
-            <TabsContent value="csf" className="space-y-4">
-              <SupplierCsfDropzone onParsed={handleCsfParsed} />
-              {formContent}
-            </TabsContent>
-          </Tabs>
-        )}
+          <TabsContent value="csf" className="space-y-4">
+            <SupplierCsfDropzone onParsed={handleCsfParsed} />
+            {formContent}
+          </TabsContent>
+        </Tabs>
+
       </DialogContent>
     </Dialog>
   );

@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.25.2",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Importar CSF también al editar un proveedor existente",
+    "category": "feature"
+  },
+  {
     "version": "6.25.1",
     "date": "2026-06-08",
     "type": "patch",
