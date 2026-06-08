@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { FileDown, ChevronDown } from "lucide-react";
 import type { ContractData } from "@/lib/pdf/contract/data";
 import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
-import { buildContractPdf } from "@/features/contracts/lib/contractPdfBuilder";
+import { buildContractPdf } from "@/lib/pdf/contract/build";
 
 export type { ContractData } from "@/lib/pdf/contract/data";
 
