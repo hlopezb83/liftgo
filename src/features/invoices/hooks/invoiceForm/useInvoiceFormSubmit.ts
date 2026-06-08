@@ -63,9 +63,10 @@ export function useInvoiceFormSubmit() {
       quote_id: fromQuoteId || (isEdit ? orEmpty(existingQuoteId, null) : null) || null,
       line_items: toJsonArray(items),
       subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
-      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
-      issued_at: format(issueDate, "yyyy-MM-dd"),
+      due_date: toYMD(dueDate) ?? null,
+      issued_at: toYMD(issueDate) ?? "",
       notes: nn(notes),
+
       ...buildCfdiPayload(cfdi),
     };
   };
