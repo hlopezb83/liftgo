@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.26.0",
+    "date": "2026-06-08",
+    "type": "minor",
+    "title": "Cuentas por Pagar: fundamentos backend (supplier_bills, supplier_payments, RPC y migración)",
+    "category": "feature"
+  },
+  {
     "version": "6.25.5",
     "date": "2026-06-08",
     "type": "patch",
