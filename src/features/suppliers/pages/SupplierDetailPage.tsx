@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
 import { useOperatingExpenses } from "@/features/expenses/hooks/useOperatingExpenses";
@@ -8,12 +8,15 @@ import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { NotesCard } from "@/components/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { SupplierContactCard } from "@/features/suppliers/components/suppliers/SupplierContactCard";
+import { SupplierFormDialog } from "@/features/suppliers/components/suppliers/SupplierFormDialog";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { FileText, Wrench, DollarSign } from "lucide-react";
+import { FileText, Wrench, DollarSign, Pencil } from "lucide-react";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
 type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string; service_type: string; cost: number | null };
@@ -26,6 +29,7 @@ export default function SupplierDetailPage() {
   const { forkliftMap } = useForkliftMap();
 
   const supplier = suppliers?.find((s) => s.id === id);
+  const [editOpen, setEditOpen] = useState(false);
 
   const linkedExpenses = useMemo(
     () => (expenses || []).filter((e) => e.supplier_id === id),
@@ -93,6 +97,13 @@ export default function SupplierDetailPage() {
         title={supplier.name}
         backTo="/suppliers"
         badges={supplier.category ? <Badge variant="outline">{SUPPLIER_CATEGORIES[supplier.category] || supplier.category}</Badge> : undefined}
+        actions={
+          <RoleGuard module="Proveedores" minAccess="full">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4 mr-2" /> Editar
+            </Button>
+          </RoleGuard>
+        }
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -136,6 +147,8 @@ export default function SupplierDetailPage() {
           <DataTableV2 table={maintenanceTable} emptyMessage="Sin mantenimiento vinculado" />
         </CardContent>
       </Card>
+
+      <SupplierFormDialog open={editOpen} onOpenChange={setEditOpen} supplier={supplier} />
     </div>
   );
 }

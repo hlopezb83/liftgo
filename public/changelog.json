@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.25.1",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Botón de editar en página de detalle de proveedor",
+    "category": "feature"
+  },
+  {
     "version": "6.25.0",
     "date": "2026-06-08",
     "type": "minor",
