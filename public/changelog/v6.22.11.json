@@ -1,0 +1,10 @@
+{
+  "version": "6.22.11",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "CI: forzar Node.js 24 en GitHub Actions para evitar deprecación",
+  "description": "Agregada la variable de entorno FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true en el workflow de CI para eliminar los warnings de deprecación de Node.js 20 en actions/checkout@v4 y actions/upload-artifact@v4.",
+  "changes": [
+    "Agregada variable de entorno FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true en .github/workflows/ci.yml"
+  ]
+}
