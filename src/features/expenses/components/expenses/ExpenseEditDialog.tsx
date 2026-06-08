@@ -95,7 +95,7 @@ export function ExpenseEditDialog({ expense, open, onOpenChange }: Props) {
 }
 
 function fromExpense(e: OperatingExpense | null): FormData {
-  if (!e) return { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), supplier_id: "" };
+  if (!e) return { category: "renta", description: "", amount: "", expense_date: toYMD(nowMty()) ?? "", supplier_id: "" };
   return {
     category: e.category,
     description: e.description || "",
