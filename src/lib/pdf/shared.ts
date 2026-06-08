@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { loadImageAsBase64 } from "@/lib/pdf/loadImageAsBase64";
+import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
 import { formatDateDisplay } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────
@@ -33,10 +33,7 @@ export async function fetchCompanyDataAndLogo(): Promise<{
     .limit(1)
     .maybeSingle();
 
-  let logoBase64: string | null = null;
-  if (company?.logo_url) {
-    logoBase64 = await loadImageAsBase64(company.logo_url);
-  }
+  const logoBase64 = await loadCompanyLogo(company?.logo_url);
 
   return { company, logoBase64 };
 }
