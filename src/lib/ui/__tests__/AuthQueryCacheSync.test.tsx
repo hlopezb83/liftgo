@@ -1,41 +1,41 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { render, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import React, { useState } from "react";
 
-// Mock AuthContext before importing AuthQueryCacheSync
-const mockUser = { id: "user-1", email: "a@test.com" };
-let authUser: { id: string; email: string } | null = mockUser;
+// Mock AuthContext with a mutable provider for testing
+let currentUser: { id: string } | null = { id: "user-1" };
 
 vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: () => ({ user: authUser }),
+  useAuth: () => ({ user: currentUser }),
 }));
 
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+interface TestWrapperProps {
+  user: { id: string } | null;
+  queryClient: QueryClient;
+}
+
+function TestWrapper({ user, queryClient }: TestWrapperProps) {
+  currentUser = user;
   return (
-    <QueryClientProvider client={qc}>
-      {children}
+    <QueryClientProvider client={queryClient}>
+      <AuthQueryCacheSync />
     </QueryClientProvider>
   );
 }
 
 describe("AuthQueryCacheSync", () => {
   beforeEach(() => {
-    authUser = mockUser;
+    currentUser = { id: "user-1" };
   });
 
   it("does NOT clear cache on initial mount", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const clearSpy = vi.spyOn(qc, "clear");
 
-    renderHook(() => React.createElement(AuthQueryCacheSync), {
-      wrapper: ({ children }) => (
-        <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-      ),
-    });
+    render(<TestWrapper user={currentUser} queryClient={qc} />);
 
     expect(clearSpy).not.toHaveBeenCalled();
     clearSpy.mockRestore();
@@ -45,18 +45,11 @@ describe("AuthQueryCacheSync", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const clearSpy = vi.spyOn(qc, "clear");
 
-    const { rerender } = renderHook(() => React.createElement(AuthQueryCacheSync), {
-      wrapper: ({ children }) => (
-        <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-      ),
-    });
+    const { rerender } = render(<TestWrapper user={{ id: "user-1" }} queryClient={qc} />);
 
-    // Initial mount should not clear
     expect(clearSpy).not.toHaveBeenCalled();
 
-    // Change user
-    authUser = { id: "user-2", email: "b@test.com" };
-    rerender();
+    rerender(<TestWrapper user={{ id: "user-2" }} queryClient={qc} />);
 
     expect(clearSpy).toHaveBeenCalledTimes(1);
     clearSpy.mockRestore();
@@ -66,16 +59,11 @@ describe("AuthQueryCacheSync", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const clearSpy = vi.spyOn(qc, "clear");
 
-    const { rerender } = renderHook(() => React.createElement(AuthQueryCacheSync), {
-      wrapper: ({ children }) => (
-        <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-      ),
-    });
+    const { rerender } = render(<TestWrapper user={{ id: "user-1" }} queryClient={qc} />);
 
     expect(clearSpy).not.toHaveBeenCalled();
 
-    authUser = null;
-    rerender();
+    rerender(<TestWrapper user={null} queryClient={qc} />);
 
     expect(clearSpy).toHaveBeenCalledTimes(1);
     clearSpy.mockRestore();
