@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { useListFilters } from "@/hooks/useListFilters";
+import { toYMD } from "@/lib/date/toYMD";
 import type { Invoice } from "@/types/rental";
 
 /**
@@ -48,9 +49,10 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        if (range?.from) next.set("from", range.from.toISOString().slice(0, 10));
+        if (range?.from) next.set("from", toYMD(range.from) ?? "");
         else next.delete("from");
-        if (range?.to) next.set("to", range.to.toISOString().slice(0, 10));
+        if (range?.to) next.set("to", toYMD(range.to) ?? "");
+
         else next.delete("to");
         return next;
       },

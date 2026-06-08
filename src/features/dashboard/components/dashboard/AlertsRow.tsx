@@ -5,6 +5,7 @@ import { useUpdateBooking } from "@/features/bookings/hooks/useBookings";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { toast } from "sonner";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
 import { AlertCard, AlertRow } from "./AlertCard";
 
 interface OverdueInvoice {
@@ -50,7 +51,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
   const handleMarkPaid = (inv: OverdueInvoice, e: React.MouseEvent) => {
     e.stopPropagation();
     updateInvoice.mutate(
-      { id: inv.id, status: "paid", paid_at: nowMty().toISOString().split("T")[0] },
+      { id: inv.id, status: "paid", paid_at: toYMD(nowMty()) },
       {
         onSuccess: (data) => {
           toast.success(`${inv.invoice_number} marcada como pagada`);

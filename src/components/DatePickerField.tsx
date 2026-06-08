@@ -14,7 +14,12 @@ interface DatePickerFieldProps {
   required?: boolean;
 }
 
+const normalize = (d?: Date) =>
+  d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : undefined;
+
 export function DatePickerField({ label, date, onSelect, placeholder = "Seleccionar fecha", required }: DatePickerFieldProps) {
+  const handleSelect = (d?: Date) => onSelect(normalize(d));
+
   return (
     <div className="space-y-1.5">
       <Label>{label}{required && " *"}</Label>
@@ -26,9 +31,10 @@ export function DatePickerField({ label, date, onSelect, placeholder = "Seleccio
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={date} onSelect={onSelect} initialFocus className="p-3 pointer-events-auto" />
+          <Calendar mode="single" selected={date} onSelect={handleSelect} initialFocus className="p-3 pointer-events-auto" />
         </PopoverContent>
       </Popover>
     </div>
   );
 }
+

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Tables } from "@/integrations/supabase/types";
 import type { DateRange } from "react-day-picker";
 import { callRpc } from "@/lib/rpc";
+import { toYMD } from "@/lib/date/toYMD";
 
 type Forklift = Tables<"forklifts">;
 
@@ -10,8 +11,9 @@ export function useAvailableForklifts(dateRange: DateRange | undefined) {
   const endDate = dateRange?.to;
   const datesSelected = !!startDate && !!endDate;
 
-  const startStr = startDate?.toISOString().slice(0, 10);
-  const endStr = endDate?.toISOString().slice(0, 10);
+  const startStr = toYMD(startDate);
+  const endStr = toYMD(endDate);
+
 
   const { data: availableForklifts = [], isLoading } = useQuery({
     queryKey: ["available_forklifts", startStr, endStr],

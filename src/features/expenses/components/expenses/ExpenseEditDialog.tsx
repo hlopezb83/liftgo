@@ -9,6 +9,8 @@ import {
   EXPENSE_CATEGORY_LABELS, useUpdateExpense, type ExpenseCategory, type OperatingExpense,
 } from "@/features/expenses/hooks/useOperatingExpenses";
 import { useEffect, useState } from "react";
+import { toYMD } from "@/lib/date/toYMD";
+import { nowMty } from "@/lib/utils";
 
 const CATEGORIES = Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, string][];
 
@@ -93,7 +95,7 @@ export function ExpenseEditDialog({ expense, open, onOpenChange }: Props) {
 }
 
 function fromExpense(e: OperatingExpense | null): FormData {
-  if (!e) return { category: "renta", description: "", amount: "", expense_date: new Date().toISOString().slice(0, 10), supplier_id: "" };
+  if (!e) return { category: "renta", description: "", amount: "", expense_date: toYMD(nowMty()) ?? "", supplier_id: "" };
   return {
     category: e.category,
     description: e.description || "",

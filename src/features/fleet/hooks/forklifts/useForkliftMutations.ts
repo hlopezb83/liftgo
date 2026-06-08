@@ -3,6 +3,7 @@ import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type { Forklift } from "@/types/rental";
 
@@ -16,7 +17,7 @@ async function insertCostoVentaIfSold(forkliftId: string, toStatus: string) {
     category: "costo_venta",
     description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
     amount: cost,
-    expense_date: nowMty().toISOString().slice(0, 10),
+    expense_date: toYMD(nowMty()),
   });
   if (expError) {
     notifyWarning({ title: "No se pudo registrar el costo de venta automáticamente", description: expError.message });

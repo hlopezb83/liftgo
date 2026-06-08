@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.6",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "toYMD(): fechas seguras para columnas Postgres date",
+    "category": "chore"
+  },
+  {
     "version": "6.22.5",
     "date": "2026-06-08",
     "type": "patch",
