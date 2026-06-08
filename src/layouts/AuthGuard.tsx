@@ -4,10 +4,11 @@ import AuthPage from "@/features/auth/pages/AuthPage";
 import { CustomerPortalRoutes } from "@/layouts/CustomerPortalRoutes";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const { data: role, isLoading: roleLoading } = useUserRole();
 
-  if (loading || (user && roleLoading)) {
+  if (isLoading || (user && roleLoading)) {
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">

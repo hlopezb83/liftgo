@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.5",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "AuthContext: isLoading + bootstrap defensivo con getSession()",
+    "category": "chore"
+  },
+  {
     "version": "6.22.4",
     "date": "2026-06-08",
     "type": "patch",

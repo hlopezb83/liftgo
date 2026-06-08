@@ -1,0 +1,8 @@
+{
+  "description": "Audit del AuthContext: se renombra 'loading' → 'isLoading' para alinear con la convención del proyecto y se añade un bootstrap defensivo con getSession() que garantiza la salida del estado de carga incluso si INITIAL_SESSION nunca se emite. AuthGuard ya mostraba el spinner de pantalla completa, evitando el flash de la pantalla de login.",
+  "changes": [
+    "AuthContextValue.loading renombrado a isLoading",
+    "Bootstrap defensivo con supabase.auth.getSession() además del subscribe a onAuthStateChange",
+    "AuthGuard actualizado para consumir isLoading"
+  ]
+}
