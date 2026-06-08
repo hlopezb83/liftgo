@@ -4,6 +4,7 @@ import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { orEmpty } from "@/lib/coerce";
 import { toYMD } from "@/lib/date/toYMD";
+import { roundMoney } from "@/lib/money";
 import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "@/features/invoices/lib/invoiceFormSchema";
 
 
@@ -62,7 +63,7 @@ export function useInvoiceFormSubmit() {
       customer_name: nn(customerName),
       quote_id: fromQuoteId || (isEdit ? orEmpty(existingQuoteId, null) : null) || null,
       line_items: toJsonArray(items),
-      subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
+      subtotal: roundMoney(subtotal), tax_rate: taxRate, tax_amount: roundMoney(taxAmount), total: roundMoney(total),
       due_date: toYMD(dueDate) ?? null,
       issued_at: toYMD(issueDate) ?? "",
       notes: nn(notes),

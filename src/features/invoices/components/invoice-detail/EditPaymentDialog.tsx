@@ -43,7 +43,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
   }, [open, payment]);
 
   const handleSubmit = () => {
-    const amt = Number(amount);
+    const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyError({ message: "Monto inválido" }); return; }
     updatePayment.mutate(
       {

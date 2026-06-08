@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { roundMoney } from "@/lib/money";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
   }, [method]);
 
   const handleSubmit = async () => {
-    const amt = Number(amount);
+    const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyError({ message: "Monto inválido" }); return; }
     const exch = Number(exchangeRate) || 1;
     if (currency !== "MXN" && exch <= 0) { notifyError({ message: "Tipo de cambio inválido" }); return; }

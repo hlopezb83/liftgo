@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { roundMoney, sumMoney } from "@/lib/money";
 
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
@@ -14,7 +15,7 @@ async function fetchPaymentsSum(invoiceId: string): Promise<{ rows: PaymentLite[
     .select("amount, payment_date")
     .eq("invoice_id", invoiceId);
   const rows = (data || []) as PaymentLite[];
-  const total = rows.reduce((s, p) => s + Number(p.amount), 0);
+  const total = sumMoney(rows.map((p) => Number(p.amount)));
   return { rows, total };
 }
 
@@ -27,7 +28,7 @@ async function syncInvoiceStatus(invoiceId: string, paidAtFallback: string | nul
     .single();
   if (!invoice) return;
 
-  const balance = Number(invoice.total) - totalPaid;
+  const balance = roundMoney(Number(invoice.total) - totalPaid);
   if (balance <= 0 && invoice.status !== "paid") {
     const latestDate = rows.reduce<string>(
       (latest, p) => (p.payment_date && p.payment_date > latest ? p.payment_date : latest),
