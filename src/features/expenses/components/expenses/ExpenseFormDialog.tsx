@@ -25,7 +25,7 @@ interface ExpenseFormDialogProps {
   onCreated?: (expense: OperatingExpense) => void;
 }
 
-export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps) {
+export function ExpenseFormDialog({ open, onOpenChange, onCreated }: ExpenseFormDialogProps) {
   const createExpense = useCreateExpense();
   const linkRfc = useLinkRfcToSupplier();
   const [supplierId, setSupplierId] = useState("");
@@ -119,8 +119,17 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         supplier_id: supplierId || null,
         cfdi_uuid: prefill?.cfdi_uuid ?? null,
       },
-      { onSuccess: () => onOpenChange(false) },
+      {
+        onSuccess: (created) => {
+          onOpenChange(false);
+          onCreated?.(created);
+        },
+      },
     );
+  };
+
+  const onInvalid = () => {
+    notifyError({ message: "Revisa los campos del formulario antes de registrar" });
   };
 
   return (
