@@ -18,8 +18,8 @@ setup("authenticate as admin", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toBeVisible({ timeout: 15_000 });
 
-  await page.getByLabel(/correo|email/i).fill(email);
-  await page.getByLabel(/contraseña|password/i).fill(password);
+  await page.locator("#auth-email").fill(email);
+  await page.locator("#auth-password").fill(password);
   await page.getByRole("button", { name: /iniciar sesión|entrar|sign in/i }).click();
 
   // Dashboard or any authenticated layout
