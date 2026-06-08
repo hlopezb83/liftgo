@@ -47,7 +47,7 @@ export function useRolePermissions() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["role_permissions"],
+    queryKey: ["role_permissions", user?.id],
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
