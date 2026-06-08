@@ -1,0 +1,12 @@
+{
+  "version": "6.23.6",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "E2E: assertions de headings más robustas en bookings y quotes",
+  "category": "fix",
+  "description": "getByRole('heading') fallaba intermitentemente para /bookings y /quotes pese a que el h1 sí renderiza vía PageHeader (el h1 lleva clases truncate que rompen el accessible name cuando hay otros nodos). Se reemplaza por locator('h1').filter({hasText: ...}) con timeout extendido a 15s y waitUntil: 'domcontentloaded'.",
+  "changes": [
+    "tests/e2e/booking.spec.ts: usar locator('h1') + filter",
+    "tests/e2e/quote-to-invoice.spec.ts: usar locator('h1') + filter en quotes e invoices"
+  ]
+}
