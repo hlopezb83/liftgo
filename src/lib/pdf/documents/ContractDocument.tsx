@@ -1,7 +1,6 @@
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { format } from "date-fns";
-import { sharedStyles } from "@/lib/pdf/theme/styles";
-import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
+import { sharedStyles, contractStyles } from "@/lib/pdf/theme/styles";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
 import { Footer } from "@/lib/pdf/components/Footer";
 import { nowMty } from "@/lib/utils";
@@ -48,17 +47,17 @@ function ContractHeader({ company, logoBase64, contractNumber }: {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         {logoBase64 && <Image src={logoBase64} style={sharedStyles.logo} />}
         <View>
-          <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", color: COLORS.gray900 }}>
+          <Text style={contractStyles.headerCompanyName}>
             {company?.razon_social || "Empresa"}
           </Text>
           {company?.rfc && (
-            <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.gray500 }}>
+            <Text style={contractStyles.headerCompanyMeta}>
               RFC: {company.rfc} | C.P. {company.lugar_expedicion || ""}
             </Text>
           )}
         </View>
       </View>
-      <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray500 }}>{contractNumber}</Text>
+      <Text style={contractStyles.headerNumber}>{contractNumber}</Text>
     </View>
   );
 }
