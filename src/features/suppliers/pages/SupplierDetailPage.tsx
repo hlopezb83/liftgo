@@ -29,6 +29,7 @@ export default function SupplierDetailPage() {
   const { forkliftMap } = useForkliftMap();
 
   const supplier = suppliers?.find((s) => s.id === id);
+  const [editOpen, setEditOpen] = useState(false);
 
   const linkedExpenses = useMemo(
     () => (expenses || []).filter((e) => e.supplier_id === id),
