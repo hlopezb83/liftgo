@@ -1,0 +1,9 @@
+{
+  "description": "Ahora puedes dar de alta proveedores importando su Constancia de Situación Fiscal (CSF) en PDF, igual que con clientes.",
+  "changes": [
+    "Nueva pestaña 'Importar desde CSF' en el diálogo de alta de proveedor",
+    "Extracción automática de RFC, razón social, régimen fiscal, dirección y representante legal",
+    "Soporte drag-and-drop del PDF, reutilizando el edge function parse-csf",
+    "El representante legal se precarga como persona de contacto"
+  ]
+}
