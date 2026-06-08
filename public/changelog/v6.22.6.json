@@ -1,0 +1,8 @@
+{
+  "description": "Nuevo helper toYMD() que serializa fechas usando componentes locales (año/mes/día) en lugar de .toISOString().slice(0,10). Previene el clásico bug de 'se corrió un día' cuando una Date tiene offset UTC distinto al local. DateRangePickerField y DatePickerField normalizan las fechas elegidas a medianoche local antes de emitirlas. Todos los hooks que escriben a columnas Postgres tipo 'date' migrados al helper. Columnas timestamptz siguen usando ISO completo.",
+  "changes": [
+    "Nuevo src/lib/date/toYMD.ts + tests unitarios",
+    "DateRangePickerField y DatePickerField normalizan a medianoche local antes de onSelect",
+    "useBookingsRange, useAvailableForklifts, useForkliftMutations, useInvoicesFilters, ExpenseEditDialog, AlertsRow: usan toYMD() en lugar de toISOString().slice(0,10)"
+  ]
+}
