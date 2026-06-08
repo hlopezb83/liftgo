@@ -1,0 +1,12 @@
+{
+  "version": "6.22.12",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Auth: labels accesibles en login para fix de E2E setup",
+  "description": "Los inputs de correo y contraseña en AuthForm ahora tienen id y htmlFor asociados, permitiendo que Playwright los localice con getByLabel y que el setup de autenticación admin en CI ya no falle por timeout.",
+  "changes": [
+    "Agregado id=\"auth-email\" + htmlFor en campo de correo",
+    "Agregado id=\"auth-password\" + htmlFor en campo de contraseña",
+    "Agregado autoComplete adecuado (email / current-password / new-password)"
+  ]
+}
