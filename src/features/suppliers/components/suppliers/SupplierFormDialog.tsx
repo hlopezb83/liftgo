@@ -24,6 +24,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
 
   useEffect(() => {
     if (!open) return;
+    setTab("manual");
     if (supplier) {
       setForm({
         name: supplier.name,
@@ -39,9 +40,9 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
       });
     } else {
       setForm(emptySupplierForm);
-      setTab("manual");
     }
   }, [open, supplier]);
+
 
   const setField = <K extends keyof SupplierForm>(key: K, value: SupplierForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
