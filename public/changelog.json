@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.23.2",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Fix selector ambiguo de contraseña en e2e setup",
+    "category": "fix"
+  },
+  {
     "version": "6.23.1",
     "date": "2026-06-08",
     "type": "patch",
