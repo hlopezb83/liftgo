@@ -1,5 +1,6 @@
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,6 +30,19 @@ export default function OperatingExpensesPage() {
   const detail = useDialogState<OperatingExpense>();
 
   const f = useExpenseFilters(expenses);
+
+  const handleCreated = useCallback((created: OperatingExpense) => {
+    if (f.hasActiveFilters && !f.matchesFilters(created)) {
+      toast.warning("Gasto creado pero oculto por los filtros activos", {
+        description: "Limpia los filtros para verlo en la lista.",
+        duration: 8000,
+        action: {
+          label: "Limpiar filtros",
+          onClick: () => f.resetFilters(),
+        },
+      });
+    }
+  }, [f]);
 
 
   const columns = useMemo<ColumnDef<OperatingExpense>[]>(
@@ -159,6 +173,7 @@ export default function OperatingExpensesPage() {
       <ExpenseFormDialog
         open={createDialog.open}
         onOpenChange={createDialog.setOpen}
+        onCreated={handleCreated}
       />
 
 

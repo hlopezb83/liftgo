@@ -1,0 +1,13 @@
+{
+  "version": "6.25.4",
+  "date": "2026-06-08",
+  "type": "minor",
+  "title": "Confirmación enriquecida y aviso cuando un gasto recién registrado queda oculto por filtros",
+  "category": "feature",
+  "description": "Al registrar un gasto operativo, el toast de éxito ahora muestra categoría, monto y fecha del gasto y dura más tiempo. Si los filtros activos en la lista (mes, categoría o búsqueda) ocultan el gasto recién creado, se emite un toast de advertencia con un botón 'Limpiar filtros' que reinicia los filtros para hacer visible la fila nueva. Adicionalmente, si el formulario tiene errores de validación al enviar, ahora se muestra un toast de error explícito en lugar de un envío silencioso.",
+  "highlights": [
+    "Toast de éxito enriquecido con categoría · monto · fecha del gasto.",
+    "Aviso cuando filtros activos esconden el gasto recién creado, con acción 'Limpiar filtros'.",
+    "Toast de error al intentar registrar con campos inválidos."
+  ]
+}

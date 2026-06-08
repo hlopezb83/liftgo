@@ -14,7 +14,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { FormActions } from "@/components/FormActions";
 import { expenseFormSchema, type ExpenseFormData } from "@/features/expenses/lib/expenseFormSchema";
-import { useCreateExpense, type ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
+import { useCreateExpense, type ExpenseCategory, type OperatingExpense } from "@/features/expenses/hooks/useOperatingExpenses";
 import { ExpenseFormFields } from "./ExpenseFormFields";
 import { useLinkRfcToSupplier } from "@/features/suppliers/hooks/useLinkRfcToSupplier";
 import type { CfdiParseResult, CfdiPrefill } from "@/features/expenses/lib/cfdiPrefill";
@@ -22,9 +22,10 @@ import type { CfdiParseResult, CfdiPrefill } from "@/features/expenses/lib/cfdiP
 interface ExpenseFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: (expense: OperatingExpense) => void;
 }
 
-export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps) {
+export function ExpenseFormDialog({ open, onOpenChange, onCreated }: ExpenseFormDialogProps) {
   const createExpense = useCreateExpense();
   const linkRfc = useLinkRfcToSupplier();
   const [supplierId, setSupplierId] = useState("");
@@ -118,8 +119,17 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         supplier_id: supplierId || null,
         cfdi_uuid: prefill?.cfdi_uuid ?? null,
       },
-      { onSuccess: () => onOpenChange(false) },
+      {
+        onSuccess: (created) => {
+          onOpenChange(false);
+          onCreated?.(created);
+        },
+      },
     );
+  };
+
+  const onInvalid = () => {
+    notifyError({ message: "Revisa los campos del formulario antes de registrar" });
   };
 
   return (
@@ -221,7 +231,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
           </div>
         )}
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-4">
           <ExpenseFormFields form={form} supplierId={supplierId} setSupplierId={setSupplierId} />
           <DialogFooter>
             <FormActions

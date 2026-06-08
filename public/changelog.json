@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.25.4",
+    "date": "2026-06-08",
+    "type": "minor",
+    "title": "Confirmación enriquecida y aviso cuando un gasto recién registrado queda oculto por filtros",
+    "category": "feature"
+  },
+  {
     "version": "6.25.3",
     "date": "2026-06-08",
     "type": "minor",
