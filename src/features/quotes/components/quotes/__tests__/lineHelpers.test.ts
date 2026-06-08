@@ -71,8 +71,9 @@ describe("saleLineTotal & applyDiscountToBase (drift)", () => {
   it("descuento 10% sobre 19.99 sin drift", () => {
     expect(saleLineTotal({ quantity: 1, unit_price: 19.99, discount: 10, discount_type: "%" })).toBe(17.99);
   });
-  it("applyDiscountToBase con 0.1 + 0.2", () => {
-    expect(applyDiscountToBase(0.1 + 0.2, 0)).toBe(0.3);
+  it("descuento porcentual evita drift binario", () => {
+    // 0.1 + 0.2 = 0.30000000000000004 → currency.js lo cuantiza a 0.3
+    expect(applyDiscountToBase(0.1 + 0.2, 50, "%")).toBe(0.15);
   });
   it("descuento $ mayor que base devuelve 0", () => {
     expect(applyDiscountToBase(100, 9999, "$")).toBe(0);
