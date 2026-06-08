@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.22.10",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "queryKey: contexto de sesión y filtros en caché de TanStack Query",
+    "category": "fix"
+  },
+  {
     "version": "6.22.9",
     "date": "2026-06-08",
     "type": "patch",
