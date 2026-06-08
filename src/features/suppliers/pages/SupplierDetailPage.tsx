@@ -147,6 +147,8 @@ export default function SupplierDetailPage() {
           <DataTableV2 table={maintenanceTable} emptyMessage="Sin mantenimiento vinculado" />
         </CardContent>
       </Card>
+
+      <SupplierFormDialog open={editOpen} onOpenChange={setEditOpen} supplier={supplier} />
     </div>
   );
 }
