@@ -1,0 +1,23 @@
+{
+  "version": "6.26.0",
+  "date": "2026-06-08",
+  "type": "minor",
+  "title": "Cuentas por Pagar: fundamentos backend",
+  "category": "feature",
+  "summary": "Primera fase de Cuentas por Pagar: nuevas tablas supplier_bills y supplier_payments, numeración CXP-XXXX, cálculo automático de saldo y estatus, RPC transaccional para registrar pagos, RLS por rol y migración de todos los gastos existentes hacia el nuevo modelo. La UI sigue usando operating_expenses (sin cambios visibles) y será reemplazada en la siguiente fase.",
+  "highlights": [
+    "Nueva tabla supplier_bills con folio fiscal único, fechas de emisión/vencimiento, impuestos, retenciones, moneda, tipo de cambio, método/forma de pago SAT, estatus y saldo.",
+    "Nueva tabla supplier_payments con fecha, monto, método, cuenta bancaria, referencia y comprobante.",
+    "Trigger automático recalcula saldo y estatus (pendiente, parcial, pagada, vencida) al registrar o eliminar pagos.",
+    "Folio interno consecutivo CXP-XXXX generado por trigger.",
+    "RPC register_supplier_payment transaccional con validación de monto y permisos.",
+    "RLS: admin y administrativo CRUD total; auditor solo lectura.",
+    "Migración completa de operating_expenses a supplier_bills con sus pagos correspondientes (estatus pagada)."
+  ],
+  "technical": [
+    "Enum supplier_bill_status (draft, pending, partial, paid, overdue, cancelled).",
+    "Índice único parcial en cfdi_uuid para prevenir duplicados.",
+    "Funciones SECURITY DEFINER con SET search_path = public.",
+    "Campo legacy_expense_id en supplier_bills para trazabilidad de la migración."
+  ]
+}
