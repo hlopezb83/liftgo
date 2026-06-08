@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/lineItems";
 import { nowMty } from "@/lib/utils";
+import { roundMoney } from "@/lib/money";
 import type { RentalLine, SaleLine } from "./quoteFormBuilders";
 
 export interface BuildQuotePayloadArgs {
