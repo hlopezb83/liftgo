@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.25.3",
+    "date": "2026-06-08",
+    "type": "minor",
+    "title": "Vincular RFC del CFDI al proveedor existente desde el gasto",
+    "category": "feature"
+  },
+  {
     "version": "6.25.2",
     "date": "2026-06-08",
     "type": "patch",
