@@ -147,9 +147,54 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
               <span className="font-medium">{prefill.emisor.nombre}</span>
               {prefill.emisor.rfc && <> · {prefill.emisor.rfc}</>}
             </p>
-            {!prefill.supplier_match && prefill.emisor.rfc && (
-              <p className="text-amber-600 dark:text-amber-500">
-                ⚠ Proveedor no existe en el sistema. Puedes crearlo después desde Proveedores.
+            {!prefill.supplier_match && prefill.emisor.rfc && !rfcLinked && (
+              <div className="space-y-1.5 rounded border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 p-2">
+                <p className="text-amber-700 dark:text-amber-400">
+                  ⚠ Proveedor no reconocido por RFC <span className="font-mono">{prefill.emisor.rfc}</span>.
+                  Selecciona un proveedor existente y vincula este RFC para auto-reconocer futuras facturas.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  disabled={!supplierId || linkRfc.isPending}
+                  onClick={async () => {
+                    if (!supplierId || !prefill?.emisor.rfc) return;
+                    const result = await linkRfc.mutateAsync({
+                      supplierId,
+                      rfc: prefill.emisor.rfc,
+                    });
+                    if ("needsConfirm" in result) {
+                      const ok = window.confirm(
+                        `Este proveedor ya tiene el RFC "${result.currentRfc}". ¿Sobrescribir con "${prefill.emisor.rfc}"?`,
+                      );
+                      if (!ok) return;
+                      await linkRfc.mutateAsync({
+                        supplierId,
+                        rfc: prefill.emisor.rfc,
+                        overwrite: true,
+                      });
+                    }
+                    setRfcLinked(true);
+                  }}
+                >
+                  {linkRfc.isPending ? (
+                    <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Vinculando…</>
+                  ) : (
+                    "Vincular RFC a este proveedor"
+                  )}
+                </Button>
+                {!supplierId && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Selecciona primero un proveedor abajo para habilitar la vinculación.
+                  </p>
+                )}
+              </div>
+            )}
+            {rfcLinked && (
+              <p className="text-emerald-600 dark:text-emerald-400">
+                ✓ RFC vinculado al proveedor. Futuras facturas se reconocerán automáticamente.
               </p>
             )}
           </div>
