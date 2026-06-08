@@ -57,7 +57,18 @@ describe("lineItemSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("rechaza descripción vacía con mensaje en español", () => {
+    const result = lineItemSchema.safeParse({
+      description: "   ", quantity: 1, unit_price: 100, total: 100,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe("Descripción requerida");
+    }
+  });
 });
+
 
 describe("cfdiSchema", () => {
   it("acepta un CFDI válido (EMPTY_CFDI)", () => {
