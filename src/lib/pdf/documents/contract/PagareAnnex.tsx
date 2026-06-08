@@ -1,5 +1,5 @@
 import { Text, View } from "@react-pdf/renderer";
-import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
+import { contractStyles } from "@/lib/pdf/theme/styles";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
@@ -21,9 +21,9 @@ interface PagareAnnexProps {
 
 function FieldRow({ label, value }: { label: string; value: string }) {
   return (
-    <View style={{ flexDirection: "row", marginBottom: 3 }}>
-      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", width: 90 }}>{label}</Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700 }}>{value}</Text>
+    <View style={contractStyles.pagareFieldRow}>
+      <Text style={contractStyles.pagareFieldLabel}>{label}</Text>
+      <Text style={contractStyles.pagareFieldValue}>{value}</Text>
     </View>
   );
 }
@@ -31,54 +31,46 @@ function FieldRow({ label, value }: { label: string; value: string }) {
 export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate }: PagareAnnexProps) {
   return (
     <View>
-      <Text style={{ fontSize: FONT_SIZES.xl, fontFamily: "Helvetica-Bold", textAlign: "center", marginBottom: 4 }}>
-        PAGARÉ
-      </Text>
-      <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.gray500, textAlign: "center", marginBottom: 14 }}>
+      <Text style={[contractStyles.docTitle, { marginBottom: 4 }]}>PAGARÉ</Text>
+      <Text style={[contractStyles.docSubtitle, { marginBottom: 14 }]}>
         Anexo B del {contract.contract_number}
       </Text>
 
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+      <View style={contractStyles.pagareHeadRow}>
         <FieldRow label="Número:" value="1/1" />
         <FieldRow label="Bueno por:" value={`$${vars.deposito}`} />
       </View>
       <FieldRow label="Lugar:" value={city} />
       <FieldRow label="Fecha:" value={formattedDate} />
 
-      <Text style={{ fontSize: FONT_SIZES.md, fontFamily: "Helvetica-Bold", marginTop: 12, marginBottom: 6 }}>
-        TEXTO DEL PAGARÉ
-      </Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700, lineHeight: 1.5 }}>
+      <Text style={[contractStyles.subsectionTitle, { marginTop: 12 }]}>TEXTO DEL PAGARÉ</Text>
+      <Text style={contractStyles.pagareBody}>
         {replacePlaceholders(tpl.pagare_text || DEFAULT_PAGARE, vars)}
       </Text>
 
-      <Text style={{ fontSize: FONT_SIZES.md, fontFamily: "Helvetica-Bold", marginTop: 18, marginBottom: 6 }}>
-        1. DATOS DEL SUSCRIPTOR
-      </Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, marginBottom: 3 }}>
+      <Text style={contractStyles.pagareSubsection}>1. DATOS DEL SUSCRIPTOR</Text>
+      <Text style={contractStyles.pagareLine}>
         Nombre / Razón Social: {customer?.name || "______________________"}
       </Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, marginBottom: 3 }}>
+      <Text style={contractStyles.pagareLine}>
         Representante Legal: {customer?.representante_legal || customer?.contact_person || "______________________"}
       </Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, marginBottom: 3 }}>
+      <Text style={contractStyles.pagareLine}>
         Domicilio: {customer?.address || "______________________"}
       </Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, marginBottom: 12 }}>
+      <Text style={contractStyles.pagareLineSpaced}>
         RFC: {customer?.rfc || "______________________"}
       </Text>
 
-      <View style={{ width: "50%", borderTopWidth: 0.5, borderTopColor: COLORS.gray900, paddingTop: 4 }}>
-        <Text style={{ fontSize: FONT_SIZES.xs }}>Firma del Suscriptor</Text>
+      <View style={contractStyles.pagareSignatureBox}>
+        <Text style={contractStyles.checklistKey}>Firma del Suscriptor</Text>
       </View>
 
-      <Text style={{ fontSize: FONT_SIZES.md, fontFamily: "Helvetica-Bold", marginTop: 18, marginBottom: 6 }}>
-        2. DATOS DEL AVAL (Opcional)
-      </Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, marginBottom: 3 }}>Nombre: ______________________</Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, marginBottom: 12 }}>Domicilio: ______________________</Text>
-      <View style={{ width: "50%", borderTopWidth: 0.5, borderTopColor: COLORS.gray900, paddingTop: 4 }}>
-        <Text style={{ fontSize: FONT_SIZES.xs }}>Firma del Aval</Text>
+      <Text style={contractStyles.pagareSubsection}>2. DATOS DEL AVAL (Opcional)</Text>
+      <Text style={contractStyles.pagareLine}>Nombre: ______________________</Text>
+      <Text style={contractStyles.pagareLineSpaced}>Domicilio: ______________________</Text>
+      <View style={contractStyles.pagareSignatureBox}>
+        <Text style={contractStyles.checklistKey}>Firma del Aval</Text>
       </View>
     </View>
   );

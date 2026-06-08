@@ -1,5 +1,6 @@
 import { Text, View } from "@react-pdf/renderer";
-import { COLORS, FONT_SIZES, PAGE_MARGIN } from "@/lib/pdf/theme/tokens";
+import { PAGE_MARGIN } from "@/lib/pdf/theme/tokens";
+import { contractStyles } from "@/lib/pdf/theme/styles";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import { DEFAULT_INTRO } from "@/lib/pdf/contract/data-templates";
@@ -18,21 +19,11 @@ interface PartiesContractBodyProps {
 }
 
 function SectionTitle({ text }: { text: string }) {
-  return (
-    <Text style={{
-      fontSize: FONT_SIZES.lg, fontFamily: "Helvetica-Bold",
-      color: COLORS.gray900, marginTop: 10, marginBottom: 6,
-    }}>{text}</Text>
-  );
+  return <Text style={contractStyles.sectionTitle}>{text}</Text>;
 }
 
 function Bullet({ text }: { text: string }) {
-  return (
-    <Text style={{
-      fontSize: FONT_SIZES.sm, color: COLORS.gray700,
-      marginLeft: 12, marginBottom: 3, lineHeight: 1.4,
-    }}>•  {text}</Text>
-  );
+  return <Text style={contractStyles.bullet}>•  {text}</Text>;
 }
 
 function SignaturePair({ leftLabel, leftName, rightLabel, rightName, rightSub }: {
@@ -40,18 +31,18 @@ function SignaturePair({ leftLabel, leftName, rightLabel, rightName, rightSub }:
   rightLabel: string; rightName: string; rightSub?: string;
 }) {
   return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 30 }} wrap={false}>
-      <View style={{ width: "45%" }}>
-        <View style={{ borderTopWidth: 0.5, borderTopColor: COLORS.gray900, paddingTop: 4 }}>
-          <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: "Helvetica-Bold" }}>{leftLabel}</Text>
-          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.gray700 }}>{leftName}</Text>
+    <View style={contractStyles.signatureRow} wrap={false}>
+      <View style={contractStyles.signatureCol}>
+        <View style={contractStyles.signatureBox}>
+          <Text style={contractStyles.signatureLabel}>{leftLabel}</Text>
+          <Text style={contractStyles.signatureName}>{leftName}</Text>
         </View>
       </View>
-      <View style={{ width: "45%" }}>
-        <View style={{ borderTopWidth: 0.5, borderTopColor: COLORS.gray900, paddingTop: 4 }}>
-          <Text style={{ fontSize: FONT_SIZES.xs, fontFamily: "Helvetica-Bold" }}>{rightLabel}</Text>
-          <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.gray700 }}>{rightName}</Text>
-          {rightSub && <Text style={{ fontSize: FONT_SIZES.xs, color: COLORS.gray700 }}>{rightSub}</Text>}
+      <View style={contractStyles.signatureCol}>
+        <View style={contractStyles.signatureBox}>
+          <Text style={contractStyles.signatureLabel}>{rightLabel}</Text>
+          <Text style={contractStyles.signatureName}>{rightName}</Text>
+          {rightSub && <Text style={contractStyles.signatureName}>{rightSub}</Text>}
         </View>
       </View>
     </View>
@@ -64,15 +55,11 @@ function DeclarationsSection({
   return (
     <>
       <SectionTitle text="I. DECLARACIONES" />
-      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginBottom: 3 }}>
-        Declara EL ARRENDADOR:
-      </Text>
+      <Text style={contractStyles.declarationLabel}>Declara EL ARRENDADOR:</Text>
       {landlord.map((d, i) => (
         <Bullet key={`l-${i}`} text={replacePlaceholders(d, vars)} />
       ))}
-      <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginTop: 6, marginBottom: 3 }}>
-        Declara EL ARRENDATARIO:
-      </Text>
+      <Text style={[contractStyles.declarationLabel, { marginTop: 6 }]}>Declara EL ARRENDATARIO:</Text>
       {tenant.map((d, i) => (
         <Bullet key={`t-${i}`} text={replacePlaceholders(d, vars)} />
       ))}
@@ -87,13 +74,9 @@ function ClausesSection({
     <>
       <SectionTitle text="II. CLÁUSULAS" />
       {clauses.map((c, i) => (
-        <View key={i} style={{ marginBottom: 6 }} wrap>
-          <Text style={{ fontSize: FONT_SIZES.sm, fontFamily: "Helvetica-Bold", marginBottom: 2 }}>
-            {replacePlaceholders(c.title, vars)}
-          </Text>
-          <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700, lineHeight: 1.4 }}>
-            {replacePlaceholders(c.body, vars)}
-          </Text>
+        <View key={i} style={contractStyles.clauseBlock} wrap>
+          <Text style={contractStyles.clauseTitle}>{replacePlaceholders(c.title, vars)}</Text>
+          <Text style={contractStyles.clauseBody}>{replacePlaceholders(c.body, vars)}</Text>
         </View>
       ))}
     </>
@@ -117,17 +100,17 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
 
   return (
     <View>
-      <Text style={{ fontSize: FONT_SIZES.xl, fontFamily: "Helvetica-Bold", textAlign: "center", marginBottom: 12 }}>
+      <Text style={contractStyles.docTitle}>
         CONTRATO DE ARRENDAMIENTO DE MAQUINARIA Y EQUIPO
       </Text>
-      <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700, lineHeight: 1.5, marginBottom: 8 }}>
+      <Text style={contractStyles.intro}>
         {replacePlaceholders(tpl.intro_text || DEFAULT_INTRO, vars)}
       </Text>
 
       <DeclarationsSection landlord={tpl.declarations_landlord} tenant={tenantDecls} vars={vars} />
       <ClausesSection clauses={tpl.clauses} vars={vars} />
 
-      <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray700, marginTop: PAGE_MARGIN / 2 }}>
+      <Text style={[contractStyles.closingLine, { marginTop: PAGE_MARGIN / 2 }]}>
         Leído el presente contrato, lo firman en {city}, el día {formattedDate}.
       </Text>
 
@@ -147,4 +130,3 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
     </View>
   );
 }
-

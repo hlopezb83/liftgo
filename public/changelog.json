@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.2",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Refactor PDF de contrato: builder reubicado y estilos centralizados",
+    "category": "refactor"
+  },
+  {
     "version": "6.24.1",
     "date": "2026-06-08",
     "type": "patch",
