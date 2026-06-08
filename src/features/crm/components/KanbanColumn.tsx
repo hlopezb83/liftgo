@@ -68,7 +68,7 @@ export function KanbanColumn({
                   prospect={prospect}
                   index={index}
                   density={density}
-                  quoteNumber={prospect.quote_id ? quoteMap.get(prospect.quote_id) : undefined}
+                  quoteNumber={prospect.quoteId ? quoteMap.get(prospect.quoteId) : undefined}
                   onClick={() => onCardClick(prospect)}
                 />
               ))}

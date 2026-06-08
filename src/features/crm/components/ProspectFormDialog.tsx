@@ -46,7 +46,7 @@ export function ProspectFormDialog({
         <form onSubmit={handleSubmit} className="flex flex-col">
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-4 pb-1 pr-4">
-              <ProspectCreatorBlock createdByName={prospect?.created_by_name} />
+              <ProspectCreatorBlock createdByName={prospect?.createdByName} />
               <ProspectFormFields
                 fields={fields}
                 setters={setters}

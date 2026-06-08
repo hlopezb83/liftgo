@@ -56,7 +56,7 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
             Marcar como Perdido
           </DialogTitle>
           <DialogDescription>
-            Cerrar deal con <span className="font-medium">{prospect.company_name}</span>. Saldrá del pipeline activo.
+            Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Saldrá del pipeline activo.
           </DialogDescription>
         </DialogHeader>
 

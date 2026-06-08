@@ -56,7 +56,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            {prospect.company_name}
+            {prospect.companyName}
           </SheetTitle>
         </SheetHeader>
 
@@ -66,10 +66,10 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
           </Badge>
 
           <div className="space-y-1">
-            <DetailRow icon={User} label="Contacto" value={prospect.contact_person} />
+            <DetailRow icon={User} label="Contacto" value={prospect.contactPerson} />
             <DetailRow icon={Mail} label="Correo" value={prospect.email} />
             <DetailRow icon={Phone} label="Teléfono" value={prospect.phone} />
-            <DetailRow icon={DollarSign} label="Valor Estimado" value={formatCurrency(prospect.deal_value ?? 0)} />
+            <DetailRow icon={DollarSign} label="Valor Estimado" value={prospect.dealValueLabel} />
           </div>
 
           <ProspectQuoteLink prospect={prospect} quoteNumber={quoteNumber} onNavigate={close} />

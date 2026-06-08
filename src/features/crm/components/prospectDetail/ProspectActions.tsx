@@ -72,7 +72,7 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
               <AlertDialogHeader>
                 <AlertDialogTitle>¿Eliminar prospecto?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Esta acción no se puede deshacer. Se eliminará permanentemente el prospecto "{prospect.company_name}".
+                  Esta acción no se puede deshacer. Se eliminará permanentemente el prospecto "{prospect.companyName}".
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

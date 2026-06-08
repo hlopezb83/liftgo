@@ -24,7 +24,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
 
   useEffect(() => {
     if (open && prospect) {
-      setAmount(String(prospect.deal_value ?? 0));
+      setAmount(String(prospect.dealValue ?? 0));
       setDate(format(nowMty(), "yyyy-MM-dd"));
       setExtraNote("");
     }
@@ -53,7 +53,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
             Marcar como Ganado
           </DialogTitle>
           <DialogDescription>
-            Cerrar deal con <span className="font-medium">{prospect.company_name}</span>. Se moverá fuera del pipeline activo.
+            Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Se moverá fuera del pipeline activo.
           </DialogDescription>
         </DialogHeader>
 
