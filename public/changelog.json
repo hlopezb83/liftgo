@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.23.7",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "E2E setup falla ruidosamente si el usuario es del Portal de Clientes",
+    "category": "fix"
+  },
+  {
     "version": "6.23.6",
     "date": "2026-06-08",
     "type": "patch",
