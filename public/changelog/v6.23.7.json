@@ -1,0 +1,11 @@
+{
+  "version": "6.23.7",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "E2E setup falla ruidosamente si el usuario es del Portal de Clientes",
+  "category": "fix",
+  "description": "global.setup.ts ahora detecta cuando E2E_TEST_EMAIL es una cuenta de Customer Portal (redirección a /portal o banner 'Lift Go - Portal') y aborta con mensaje claro. Evita falsos positivos donde los specs admin (bookings, quotes, etc.) fallan por 'heading not found' cuando en realidad el usuario no tiene rol admin.",
+  "changes": [
+    "tests/e2e/global.setup.ts: chequeo de pathname /portal y de banner del portal antes de guardar storageState"
+  ]
+}

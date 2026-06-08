@@ -22,7 +22,28 @@ setup("authenticate as admin", async ({ page }) => {
   await page.locator("#auth-password").fill(password);
   await page.getByRole("button", { name: /iniciar sesión|entrar|sign in/i }).click();
 
-  // Dashboard or any authenticated layout
+  // Wait for any post-login navigation to settle.
+  await page.waitForLoadState("networkidle").catch(() => {});
+
+  // FAIL LOUDLY if the configured user is a Customer Portal account.
+  // The admin area lives at "/" or "/dashboard"; portal users get redirected to "/portal/*".
+  const url = new URL(page.url());
+  if (url.pathname.startsWith("/portal")) {
+    throw new Error(
+      `E2E_TEST_EMAIL (${email}) is a Customer Portal user — landed on ${url.pathname}. ` +
+        "Use an admin account (role 'admin' in public.user_roles) instead."
+    );
+  }
+  // Also detect the portal banner just in case the URL hasn't updated yet.
+  const portalBanner = await page.getByText(/Lift Go - Portal/i).count();
+  if (portalBanner > 0) {
+    throw new Error(
+      `E2E_TEST_EMAIL (${email}) logged into the Customer Portal layout. ` +
+        "Use an admin account (role 'admin' in public.user_roles) instead."
+    );
+  }
+
+  // Dashboard or any authenticated admin layout
   await expect(page).toHaveURL(/\/(dashboard)?$/, { timeout: 20_000 });
   // Wait until the auth screen is gone and the app shell rendered, so that
   // Supabase has finished persisting the session to localStorage.
