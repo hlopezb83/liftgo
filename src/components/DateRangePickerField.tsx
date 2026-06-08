@@ -18,19 +18,27 @@ interface DateRangePickerFieldProps {
   error?: string;
 }
 
+const normalize = (d?: Date) =>
+  d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : undefined;
+
+const normalizeRange = (r?: DateRange): DateRange | undefined =>
+  r ? { from: normalize(r.from), to: normalize(r.to) } : undefined;
+
 export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required, error }: DateRangePickerFieldProps) {
   const [open, setOpen] = useState(false);
   // Local range to avoid re-rendering trigger while calendar is open
   const [localRange, setLocalRange] = useState<DateRange | undefined>(dateRange);
 
   const handleSelect = (range?: DateRange) => {
-    setLocalRange(range);
-    if (range?.from && range?.to) {
+    const normalized = normalizeRange(range);
+    setLocalRange(normalized);
+    if (normalized?.from && normalized?.to) {
       // Both dates selected — propagate and schedule close
-      onSelect(range);
+      onSelect(normalized);
       setTimeout(() => setOpen(false), 200);
     }
   };
+
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
