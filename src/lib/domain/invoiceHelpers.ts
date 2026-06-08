@@ -25,18 +25,49 @@ export function lineItemTotal(quantity: number | null | undefined, unitPrice: nu
   return money(p).multiply(q).value;
 }
 
-export function applyDiscount(item: LineItem): number {
-  const base = item.total || 0;
-  if (!item.discount || item.discount <= 0) return base;
-  if (item.discount_type === "$") {
-    const result = money(base).subtract(item.discount).value;
+export function lineItemTotal(quantity: number | null | undefined, unitPrice: number | null | undefined): number {
+  const q = typeof quantity === "number" && Number.isFinite(quantity) ? quantity : 0;
+  const p = typeof unitPrice === "number" && Number.isFinite(unitPrice) ? unitPrice : 0;
+  return money(p).multiply(q).value;
+}
+
+/**
+ * Aplica un descuento (porcentual o monto fijo) a un monto base, usando currency.js.
+ * Fuente única de verdad para descuentos monetarios. Nunca devuelve negativo.
+ */
+export function applyDiscountToBase(
+  base: number,
+  discount?: number,
+  type?: "%" | "$",
+): number {
+  const safeBase = typeof base === "number" && Number.isFinite(base) ? base : 0;
+  if (!discount || discount <= 0) return safeBase;
+  if (type === "$") {
+    const result = money(safeBase).subtract(discount).value;
     return Math.max(0, result);
   }
-  // Percentage: base * (1 - discount/100) → base - base*(discount/100)
-  const discountAmount = money(base).multiply(item.discount).divide(100).value;
-  const result = money(base).subtract(discountAmount).value;
+  const discountAmount = money(safeBase).multiply(discount).divide(100).value;
+  const result = money(safeBase).subtract(discountAmount).value;
   return Math.max(0, result);
 }
+
+export function applyDiscount(item: LineItem): number {
+  return applyDiscountToBase(item.total || 0, item.discount, item.discount_type);
+}
+
+export interface SaleLineInput {
+  quantity: number;
+  unit_price: number;
+  discount?: number;
+  discount_type?: "%" | "$";
+}
+
+/** Total de una línea de venta (cantidad × precio − descuento) vía currency.js. */
+export function saleLineTotal(line: SaleLineInput): number {
+  const base = lineItemTotal(line.quantity, line.unit_price);
+  return applyDiscountToBase(base, line.discount, line.discount_type);
+}
+
 
 function calcMonths(monthlyRate: number, startDate: Date, effectiveEnd: Date): number {
   if (monthlyRate <= 0) return 0;

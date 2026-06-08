@@ -1,0 +1,25 @@
+{
+  "version": "6.24.7",
+  "date": "2026-06-08",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Consolidación de matemática de cotizaciones en invoiceHelpers (currency.js)",
+  "description": "Los helpers de líneas de cotización (venta y renta) ahora delegan estrictamente en src/lib/domain/invoiceHelpers.ts. Cero aritmética monetaria cruda fuera del dominio.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Nuevos helpers reutilizables applyDiscountToBase y saleLineTotal",
+      "description": "applyDiscountToBase(base, discount, type) y saleLineTotal({ quantity, unit_price, discount, discount_type }) viven en invoiceHelpers y envuelven currency.js. applyDiscount(item) se mantiene como wrapper compatible."
+    },
+    {
+      "type": "refactor",
+      "title": "saleLineHelpers y rentalLineHelpers son wrappers delgados",
+      "description": "computeSaleLineTotal y computeRentalLineTotal ya no contienen *, − ni (1 − x/100); delegan en saleLineTotal/applyDiscountToBase/lineItemTotal."
+    },
+    {
+      "type": "improvement",
+      "title": "Guardrail ESLint contra drift de punto flotante",
+      "description": "Regla no-restricted-syntax bloquea operadores * y / dentro de los archivos *LineHelpers.ts y invoiceForm/*.ts, obligando a usar los helpers de dominio."
+    }
+  ]
+}
