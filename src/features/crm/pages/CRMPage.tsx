@@ -38,7 +38,7 @@ export default function CRMPage() {
   const creators = useMemo<[string, string][]>(() => {
     const map = new Map<string, string>();
     activeProspects.forEach((p) => {
-      if (p.created_by && p.created_by_name) map.set(p.created_by, p.created_by_name);
+      if (p.createdBy && p.createdByName) map.set(p.createdBy, p.createdByName);
     });
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1]));
   }, [activeProspects]);
@@ -46,8 +46,8 @@ export default function CRMPage() {
   const stagesData = useMemo(
     () =>
       ACTIVE_STAGES.map((s) => {
-        const items = filtered.filter((p) => p.stage === s.key).sort((a, b) => a.stage_order - b.stage_order);
-        return { ...s, items, total: items.reduce((sum, p) => sum + (p.deal_value ?? 0), 0) };
+        const items = filtered.filter((p) => p.stage === s.key).sort((a, b) => a.stageOrder - b.stageOrder);
+        return { ...s, items, total: items.reduce((sum, p) => sum + (p.dealValue ?? 0), 0) };
       }),
     [filtered]
   );

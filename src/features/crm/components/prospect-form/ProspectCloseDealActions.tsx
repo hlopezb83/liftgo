@@ -18,7 +18,7 @@ export function ProspectCloseDealActions({ prospect, canCloseDeal, onClose }: Pr
         <p className="text-xs text-muted-foreground text-center">
           Solo usuarios administrativos pueden convertir prospectos a clientes
         </p>
-      ) : prospect.customer_id ? (
+      ) : prospect.customerId ? (
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium text-primary">Cliente creado</span>
@@ -27,7 +27,7 @@ export function ProspectCloseDealActions({ prospect, canCloseDeal, onClose }: Pr
             variant="link"
             size="sm"
             className="ml-auto p-0 h-auto"
-            onClick={() => navigate(`/customers/${prospect.customer_id}`)}
+            onClick={() => navigate(`/customers/${prospect.customerId}`)}
           >
             Ver cliente
           </Button>
@@ -41,8 +41,8 @@ export function ProspectCloseDealActions({ prospect, canCloseDeal, onClose }: Pr
             const params = new URLSearchParams({
               from_prospect: "true",
               prospect_id: prospect.id,
-              company: prospect.company_name,
-              contact: prospect.contact_person || "",
+              company: prospect.companyName,
+              contact: prospect.contactPerson || "",
               email: prospect.email || "",
               phone: prospect.phone || "",
             });
