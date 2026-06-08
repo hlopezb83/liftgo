@@ -1,0 +1,15 @@
+{
+  "version": "6.24.6",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Estandarización de tablas de tracking a DataTableV2",
+  "category": "refactor",
+  "description": "Se migraron las dos últimas vistas de tracking que aún usaban el primitive @/components/ui/table (CRMClosedPage y LeaderboardPage) a DataTableV2 + useLiftgoTable. Ahora todas las páginas de listado de la aplicación comparten el mismo motor de tabla, con sorting interactivo, paginación, zebra striping, sticky header y manejo de estado uniforme. Las sub-tablas con edición inline, totales jerárquicos o estructura especial (line items, credit notes, diffs de auditoría, Income Statement) se conservan intencionalmente en el primitive ui/table porque DataTableV2 no soporta esos casos.",
+  "changes": [
+    "CRMClosedPage migrado a DataTableV2 con columnas tipadas y sort por fecha de cierre desc",
+    "LeaderboardPage migrado a DataTableV2 con sort interactivo en Reportes/Aceptados/Resueltos/Puntos",
+    "Posición # del leaderboard se recalcula después del sort para mantener coherencia",
+    "Columnas monetarias unificadas con tabular-nums font-mono",
+    "Eliminados componentes ClosedTable y LeaderboardTable que duplicaban estructura de tabla"
+  ]
+}

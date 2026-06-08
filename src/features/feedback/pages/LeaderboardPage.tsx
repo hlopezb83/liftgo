@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Medal } from "lucide-react";
-import { useLeaderboard, type LeaderboardPeriod } from "@/features/feedback/hooks/useLeaderboard";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "@/features/feedback/hooks/useLeaderboard";
 
 const PODIUM_COLORS = ["text-amber-500", "text-slate-400", "text-orange-700"];
 
@@ -17,33 +17,73 @@ function PositionCell({ pos }: { pos: number }) {
 
 function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
   const { data, isLoading } = useLeaderboard(period);
+
+  const columns = useMemo<ColumnDef<LeaderboardRow>[]>(
+    () => [
+      {
+        id: "position",
+        header: "#",
+        enableSorting: false,
+        meta: { headClassName: "w-16" },
+        cell: ({ row, table }) => {
+          const sortedRows = table.getSortedRowModel().rows;
+          const pos = sortedRows.findIndex((r) => r.id === row.id) + 1;
+          return <PositionCell pos={pos} />;
+        },
+      },
+      {
+        id: "reporter_name",
+        header: "Nombre",
+        accessorKey: "reporter_name",
+        cell: ({ row }) => <span className="font-medium">{row.original.reporter_name}</span>,
+      },
+      {
+        id: "total_reports",
+        header: "Reportes",
+        accessorKey: "total_reports",
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="tabular-nums">{row.original.total_reports}</span>,
+      },
+      {
+        id: "accepted_reports",
+        header: "Aceptados",
+        accessorKey: "accepted_reports",
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="tabular-nums">{row.original.accepted_reports}</span>,
+      },
+      {
+        id: "resolved_reports",
+        header: "Resueltos",
+        accessorKey: "resolved_reports",
+        meta: { align: "right" },
+        cell: ({ row }) => <span className="tabular-nums">{row.original.resolved_reports}</span>,
+      },
+      {
+        id: "total_points",
+        header: "Puntos",
+        accessorKey: "total_points",
+        meta: { align: "right" },
+        cell: ({ row }) => (
+          <span className="tabular-nums font-semibold">{row.original.total_points}</span>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const table = useLiftgoTable<LeaderboardRow>({
+    data,
+    columns,
+    getRowId: (row) => row.reporter_id,
+    initialSorting: [{ id: "total_points", desc: true }],
+  });
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-16">#</TableHead>
-          <TableHead>Nombre</TableHead>
-          <TableHead className="text-right">Reportes</TableHead>
-          <TableHead className="text-right">Aceptados</TableHead>
-          <TableHead className="text-right">Resueltos</TableHead>
-          <TableHead className="text-right">Puntos</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Cargando…</TableCell></TableRow>}
-        {!isLoading && (data ?? []).length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Aún no hay puntos otorgados en este periodo.</TableCell></TableRow>}
-        {(data ?? []).map((row, i) => (
-          <TableRow key={row.reporter_id} className="even:bg-muted/30">
-            <TableCell><PositionCell pos={i + 1} /></TableCell>
-            <TableCell className="font-medium">{row.reporter_name}</TableCell>
-            <TableCell className="text-right">{row.total_reports}</TableCell>
-            <TableCell className="text-right">{row.accepted_reports}</TableCell>
-            <TableCell className="text-right">{row.resolved_reports}</TableCell>
-            <TableCell className="text-right font-semibold">{row.total_points}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <DataTableV2
+      table={table}
+      isLoading={isLoading}
+      emptyMessage="Aún no hay puntos otorgados en este periodo."
+    />
   );
 }
 
