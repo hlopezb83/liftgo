@@ -1,0 +1,14 @@
+{
+  "version": "6.23.1",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Cobertura de tests: lotes 3, 5, 7 y 9",
+  "category": "chore",
+  "summary": "+38 tests nuevos (28 vitest + 10 deno) cubriendo cotizaciones, contratos, reportes y validadores de Edge Functions.",
+  "details": [
+    "Lote 3 (Cotizaciones): computeRentalLineTotal y computeSaleLineTotal — quantity, descuentos %, descuentos $, clamp ≥ 0 y fechas faltantes.",
+    "Lote 5 (Contratos): buildTemplateReplacements — placeholders completos, semántica de fallbacks de toStr (solo null/undefined) y prioridad mensual > semanal > diario en MONTO_RENTA.",
+    "Lote 7 (Reportes): buildBreakdownRows (orden + suma + isCost), buildCsvRows (formato % vs $), buildComparisonValues (delta, deltaPct con abs(prev), null en prev=0); formatCell/formatRowDelta/cellColor/getBreakdownFor.",
+    "Lote 9 (Edge Functions): _shared/validate.ts (isUUID, isEmail con puntos consecutivos/TLD/rango, isNonEmptyString, isValidRole) y generateSecurePassword (longitud, charset, entropía)."
+  ]
+}
