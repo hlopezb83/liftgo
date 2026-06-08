@@ -97,6 +97,13 @@ export default function SupplierDetailPage() {
         title={supplier.name}
         backTo="/suppliers"
         badges={supplier.category ? <Badge variant="outline">{SUPPLIER_CATEGORIES[supplier.category] || supplier.category}</Badge> : undefined}
+        actions={
+          <RoleGuard module="Proveedores" minAccess="full">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4 mr-2" /> Editar
+            </Button>
+          </RoleGuard>
+        }
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
