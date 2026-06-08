@@ -62,7 +62,7 @@ export default tseslint.config(
     ],
     rules: {
       "no-restricted-syntax": ["error", {
-        selector: "BinaryExpression[operator=/^[*/]$/]",
+        selector: "BinaryExpression[operator=/^[*\\/]$/]",
         message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceHelpers.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
       }],
     },
