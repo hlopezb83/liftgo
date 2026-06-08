@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.8",
+    "date": "2026-06-08",
+    "type": "patch",
+    "title": "Fix: selector ESLint no-restricted-syntax sin regex (esquery incompatibilidad)",
+    "category": "fix"
+  },
+  {
     "version": "6.24.7",
     "date": "2026-06-08",
     "type": "patch",

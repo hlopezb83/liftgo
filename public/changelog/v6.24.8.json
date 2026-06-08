@@ -1,0 +1,11 @@
+{
+  "version": "6.24.8",
+  "date": "2026-06-08",
+  "type": "patch",
+  "title": "Fix: selector ESLint no-restricted-syntax sin regex (esquery incompatibilidad)",
+  "category": "fix",
+  "description": "El guardrail no-restricted-syntax en eslint.config.js usaba un regex con '/' dentro de una clase de caracteres (e.g. /^[*/]$/). El parser de esquery de ESLint no soporta '/' dentro de regex literals, ni siquiera escapado, causando SyntaxError al ejecutar lint. Se reemplazó por dos selectores literales explícitos: BinaryExpression[operator='*'] y BinaryExpression[operator='/'], eliminando el regex por completo y restaurando el paso de lint.",
+  "files": [
+    "eslint.config.js"
+  ]
+}
