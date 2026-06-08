@@ -1,0 +1,30 @@
+{
+  "version": "6.24.0",
+  "date": "2026-06-08",
+  "type": "minor",
+  "category": "security",
+  "title": "Tanda 4 de seguridad: bucket CFDI y funciones internas",
+  "description": "Cierre del último hallazgo abierto del escáner de Lovable Cloud y reducción de superficie en funciones SECURITY DEFINER usadas solo por triggers. Sin cambios funcionales para el usuario final.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "Bucket cfdi-files: políticas explícitas de escritura",
+      "description": "Se añadieron políticas INSERT, UPDATE y DELETE en storage.objects para el bucket cfdi-files, restringidas a admin y administrativo vía has_role(). Edge functions stamp-cfdi y cancel-cfdi siguen operando vía service role. Cierra el hallazgo MISSING_RLS_PROTECTION del escáner."
+    },
+    {
+      "type": "security",
+      "title": "REVOKE EXECUTE en 10 funciones internas de triggers",
+      "description": "Se quitó EXECUTE de authenticated/PUBLIC en audit_trigger_fn, handle_new_user, handle_part_usage, log_activity, set_prospect_created_by, sync_costo_venta_on_forklift_update, generate_feedback_number, create_notification, notify_admins y notify_payment_received. Los triggers siguen ejecutándolas como dueño de la tabla; ningún cliente las invoca directamente."
+    },
+    {
+      "type": "security",
+      "title": "Postura aceptada: invoices sin SELECT directo para customer",
+      "description": "Documentado en security memory que los clientes del portal leen facturas exclusivamente vía RPCs SECURITY DEFINER con validación de ownership. No se añade política directa."
+    },
+    {
+      "type": "security",
+      "title": "Resultado del linter: 35 → 28 warnings",
+      "description": "Las 28 advertencias restantes (linter 0029) están aceptadas por diseño: todas las RPCs conservan guarda interna has_role() y no es posible subdividir EXECUTE a nivel Postgres por app_role."
+    }
+  ]
+}

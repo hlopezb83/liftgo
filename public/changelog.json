@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.24.0",
+    "date": "2026-06-08",
+    "type": "minor",
+    "title": "Tanda 4 de seguridad: bucket CFDI y funciones internas",
+    "category": "security"
+  },
+  {
     "version": "6.23.7",
     "date": "2026-06-08",
     "type": "patch",
