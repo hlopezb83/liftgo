@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { useListFilters } from "@/hooks/useListFilters";
+import { toYMD } from "@/lib/date/toYMD";
 import type { Invoice } from "@/types/rental";
 
 /**
