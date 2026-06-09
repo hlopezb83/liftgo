@@ -1,0 +1,24 @@
+{
+  "version": "6.31.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Flujo de caja proyectado a varias semanas con semáforo de liquidez",
+  "category": "feature",
+  "summary": "Nueva vista en Administración → Flujo de Caja que cruza tus cuentas por cobrar (facturas con saldo) con tus cuentas por pagar (facturas de proveedor aprobadas) por semana, partiendo de un saldo inicial editable. Cada semana muestra un semáforo (verde / ámbar / rojo) según si el acumulado proyectado cae por debajo de tu colchón mínimo de efectivo.",
+  "highlights": [
+    "Tabla semanal con Entradas, Salidas, Neto, Acumulado y semáforo de liquidez.",
+    "Fila inicial 'Vencido' que agrupa todo lo que ya pasó su fecha límite para forzar acción.",
+    "Horizonte configurable: 4, 8 o 12 semanas (default 8).",
+    "Click en una semana abre un panel lateral con la lista de facturas y cuentas por pagar de ese rango, con link al detalle de cada documento.",
+    "Saldo inicial y colchón mínimo se guardan en la configuración de la empresa (editable por Admin / Administrativo).",
+    "Excluye automáticamente las facturas de proveedor pendientes o rechazadas en el flujo de aprobación CxP."
+  ],
+  "technical": [
+    "ALTER TABLE company_settings: nuevas columnas cash_initial_balance y cash_safety_buffer (numeric, default 0).",
+    "Nueva ruta /flujo-de-caja protegida por RoleGuard module='Cuentas por Pagar'.",
+    "useCashFlowProjection cruza invoices (sent/partial/overdue) menos pagos aplicados vs supplier_bills (pending/partial/overdue) en aprobación not_required/approved.",
+    "Conversión a MXN usa el tipo de cambio almacenado por documento (tipo_cambio/exchange_rate).",
+    "cashFlowUtils.bucketByWeek agrupa por lunes-domingo en zona horaria America/Monterrey.",
+    "Semáforo: rojo si acumulado < 0, ámbar si 0 ≤ acumulado < colchón, verde en otro caso."
+  ]
+}

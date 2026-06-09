@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.31.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Flujo de caja proyectado a varias semanas con semáforo de liquidez",
+    "category": "feature"
+  },
+  {
     "version": "6.30.0",
     "date": "2026-06-09",
     "type": "minor",
