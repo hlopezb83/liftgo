@@ -38,7 +38,7 @@ export function SupplierCsfDropzone({ onParsed }: Props) {
         if (data.regimen_fiscal) patch.regimen_fiscal = data.regimen_fiscal;
         if (data.address) patch.address = data.address;
         if (data.representante_legal) patch.contact_person = data.representante_legal;
-        onParsed(patch);
+        onParsed(patch, file);
         setParsed(true);
         toast.success("Datos fiscales extraídos. Revisa y completa la información.");
       },
