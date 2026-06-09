@@ -1,113 +1,82 @@
+# PR 2 — Cuentas por Pagar (UI)
 
-# Auditoría: Proveedores · Gastos · CxP · Pagos
+Construir el módulo `/cuentas-por-pagar` sobre las tablas `supplier_bills` / `supplier_payments` ya creadas en PR 1. El módulo de Gastos Operativos se conserva intacto en este PR (se reemplazará en PR 3 junto con la migración del parser CFDI).
 
-## 1. Qué ya tenemos (estado actual)
+## Alcance
 
-**Proveedores** (`src/features/suppliers/`)
-- CRUD básico + import desde CSF (RFC, régimen fiscal, dirección).
-- Detail page, `SupplierSelector`, vínculo RFC→proveedor desde el diálogo de gasto (v6.25.3).
-- Tabla `suppliers` con 13 columnas (RFC, régimen, categoría, contacto).
+### 1. Navegación y ruta
+- Nueva entrada en sidebar dentro de "Administración": **Cuentas por Pagar** (icono `FileClock`), ruta `/cuentas-por-pagar`.
+- Permisos: admin, administrativo (CRUD); auditor (solo lectura). Sigue patrón `RoleGuard`.
 
-**Gastos operativos** (`src/features/expenses/`)
-- CRUD + filtros (categoría/mes/búsqueda por descripción y proveedor) (v6.25.5).
-- Parser de XML CFDI de gasto (edge function `parse-cfdi-expense`) con conciliación de proveedor.
-- Categorías: renta, nómina, software, depreciación, costo de venta, caja chica, publicidad, otro.
-- Tabla `operating_expenses` con `cfdi_uuid`, `supplier_id`.
+### 2. Listado `CuentasPorPagarPage`
+- KPIs arriba: Total pendiente, Vencido, Por vencer (≤7 días), Pagado mes actual — en MXN.
+- Filtros: búsqueda (folio interno, folio fiscal UUID, descripción, proveedor), proveedor (select), estatus (`pending | partial | paid | overdue | cancelled | draft`), mes de emisión (default "Todos"), categoría.
+- Tabla compacta zebra con columnas: Folio (CXP-XXXX), Proveedor, Emisión, Vence, Total, Saldo, Estatus (StatusBadge), Categoría.
+- Drill-down lateral (Sheet) al hacer click en fila — sin columna de acciones.
+- Mobile: `MobileCardList`.
+- Paginación cliente 25 (`useListPage`).
 
-**Pagos (cobranza de facturas emitidas)** (`src/features/invoices/hooks/usePayments.ts`)
-- Pagos parciales sobre facturas emitidas a clientes, sincronización de estatus, complemento de pago CFDI (REP).
-- Notas de cobranza, recordatorios.
+### 3. Drill-down `SupplierBillDetailSheet`
+- Encabezado: folio, proveedor, estatus, total, saldo destacado.
+- Secciones:
+  - Datos fiscales: UUID, método SAT (PUE/PPD), moneda, tipo de cambio, subtotal, IVA, retenciones.
+  - Fechas: emisión, vencimiento, días restantes / días vencido.
+  - Pagos aplicados: tabla con fecha, monto, método, referencia, comprobante.
+  - Descripción / notas.
+  - Links a XML/PDF si existen.
+- Acciones (según rol): Registrar Pago, Editar, Cancelar (solo si no tiene pagos), Marcar como borrador.
 
-## 2. Brechas críticas (lo que falta)
+### 4. Diálogos
+- **`SupplierBillFormDialog`** (crear/editar manual): proveedor, categoría, descripción, emisión, vencimiento, moneda, tipo de cambio, subtotal, IVA, retenciones, total auto-calculado, UUID opcional, método SAT. Validación Zod. Para editar solo si `status` ∈ {`draft`, `pending`} y sin pagos.
+- **`RegisterSupplierPaymentDialog`**: monto (pre-llenado con saldo), fecha (default hoy), método (efectivo / transferencia / cheque / tarjeta), cuenta bancaria, referencia, notas, comprobante (upload opcional). Llama RPC `register_supplier_payment`. Optimistic update + invalidate.
+- **`CancelSupplierBillDialog`**: confirmación + motivo (notes).
 
-### A. Cuentas por Pagar (CxP) — **no existe**
-Hoy `operating_expenses` asume que el gasto ya se pagó (solo tiene `expense_date` y `amount`). No hay:
-- Concepto de **factura del proveedor** (folio, fecha de emisión vs fecha de vencimiento).
-- **Saldo pendiente** por pagar / abonos parciales.
-- **Antigüedad de saldos** (aging 0-30, 31-60, 61-90, 90+).
-- Programación de pagos / calendario de vencimientos.
-- Estado: borrador / por pagar / parcial / pagada / vencida / cancelada.
+### 5. Hooks (`src/features/accounts-payable/`)
+- `useSupplierBills(filters)` — query con `suppliers(name)` joined.
+- `useSupplierBill(id)` — detalle + pagos.
+- `useSupplierBillMutations` — create / update / cancel.
+- `useRegisterSupplierPayment` — wrapper RPC.
+- `useAccountsPayableKpis` — agregados para los 4 KPIs.
 
-### B. Pagos a proveedores — **no existe**
-- No hay tabla `supplier_payments`. El campo `payments` es solo para facturas a clientes.
-- Falta método de pago, cuenta bancaria origen, referencia, comprobante (PDF/foto).
-- Falta soporte multimoneda con tipo de cambio.
+### 6. Bitácora / actividad
+- Registrar en `activity_feed` eventos: factura creada, pago registrado, cancelación.
 
-### C. CFDI de gastos — incompleto
-- `parse-cfdi-expense` ya existe pero no almacena: subtotal, IVA, retenciones (ISR, IVA ret), folio fiscal completo, forma de pago SAT, método de pago (PUE/PPD), uso CFDI.
-- No hay validación de duplicados por `cfdi_uuid` (debería ser único).
-- No hay verificación de estatus SAT (vigente/cancelado).
-- Falta repositorio de XML/PDF originales (storage bucket).
-- Complementos de pago **emitidos por proveedores PPD** no se procesan.
+### 7. Changelog
+- `public/changelog.json` + `public/changelog/v6.27.0.json` (minor, "Cuentas por Pagar: módulo operativo").
 
-### D. Proveedores — datos financieros faltantes
-- Sin **cuenta bancaria** (CLABE, banco, beneficiario) para transferencias.
-- Sin **términos de crédito** (días de pago, límite de crédito).
-- Sin **moneda preferida**.
-- Sin estado activo/inactivo, sin bloqueo por documentos vencidos.
-- Sin **documentos del proveedor** (constancia fiscal, contrato, opinión de cumplimiento 32-D).
+## Fuera de alcance (queda para PR 3)
+- Reemplazo de `/expenses` por CxP.
+- Enriquecimiento de `parse-cfdi-expense` para auto-crear `supplier_bills` desde XML.
+- Reporte de antigüedad (aging) y flujo de caja proyectado.
+- Aprobaciones por monto / rol.
+- Recurrentes.
 
-### E. Gastos recurrentes — no existe
-- Renta, software, nómina son recurrentes pero hay que capturarlos manualmente cada mes.
-- Falta plantilla de gasto recurrente + generación automática (similar a `generate-recurring-invoices`).
+## Estructura de archivos
 
-### F. Aprobaciones y control interno
-- Sin flujo de **autorización de pago** por monto/rol.
-- Sin **conciliación bancaria** (matching de movimientos vs pagos registrados).
-- Sin **caja chica** con arqueo y reposición (hoy es solo una categoría).
-- Sin órdenes de compra previas a la factura.
+```text
+src/features/accounts-payable/
+  pages/CuentasPorPagarPage.tsx
+  components/
+    SupplierBillDetailSheet.tsx
+    SupplierBillFormDialog.tsx
+    RegisterSupplierPaymentDialog.tsx
+    CancelSupplierBillDialog.tsx
+    AccountsPayableKpiCards.tsx
+    AccountsPayableFilters.tsx
+  hooks/
+    useSupplierBills.ts
+    useSupplierBill.ts
+    useSupplierBillMutations.ts
+    useRegisterSupplierPayment.ts
+    useAccountsPayableKpis.ts
+  lib/
+    supplierBillConstants.ts  (labels estatus, métodos pago, categorías)
+    supplierBillFilters.ts
+```
 
-### G. Reportes y analítica
-- No hay reporte de **antigüedad de CxP**.
-- No hay **flujo de caja proyectado** (CxC + CxP por fecha).
-- Gasto por proveedor / categoría / centro de costo no está expuesto.
-- Falta tablero de "próximos a vencer / vencidos".
-
-### H. Integraciones
-- Sin descarga masiva del SAT (metadata.xml mensual).
-- Sin exportación contable (póliza CONTPAQi/Aspel).
-
-## 3. Roadmap recomendado (por fases)
-
-### Fase 1 — Fundamentos CxP (mayor impacto)
-1. Nueva tabla `supplier_bills` (factura recibida del proveedor): proveedor, folio, UUID CFDI único, fechas emisión/vencimiento, subtotal/IVA/retenciones/total, moneda, TC, método/forma pago SAT, status, saldo, XML/PDF URL.
-2. Nueva tabla `supplier_payments`: bill_id, monto, fecha, método, cuenta origen, referencia, comprobante.
-3. Migrar/extender `operating_expenses` para enlazar opcionalmente con `supplier_bill_id` (gastos sin factura siguen funcionando: caja chica, depreciación).
-4. RPC `register_supplier_payment` (transaccional: inserta pago, recalcula saldo, actualiza status).
-5. Módulo UI **Cuentas por Pagar**: lista con filtros (status, proveedor, vencimiento), drill-down panel, registrar pago.
-6. Enriquecer `parse-cfdi-expense` para crear `supplier_bill` con todos los datos fiscales.
-
-### Fase 2 — Proveedores robustos
-7. Campos bancarios (banco, CLABE, cuenta, beneficiario, SWIFT), términos de crédito (días, límite), moneda default, status activo, documentos adjuntos.
-8. Vista 360° del proveedor: bills, pagos, gastos, saldo total, antigüedad.
-
-### Fase 3 — Recurrencia y aprobaciones
-9. Gastos/bills recurrentes (plantilla + edge function de generación tipo `generate-recurring-bills`).
-10. Flujo de aprobación por monto/rol (admin aprueba > X).
-11. Caja chica como módulo (fondo, gastos, arqueo, reposición).
-
-### Fase 4 — Reportes y conciliación
-12. Reporte de antigüedad CxP, top proveedores, gasto por categoría/mes.
-13. Flujo de caja proyectado (CxC vs CxP por semana).
-14. Conciliación bancaria (importar estado de cuenta CSV, matching).
-15. Exportación de pólizas contables.
-
-### Fase 5 — SAT avanzado
-16. Validación de estatus CFDI vigente/cancelado contra SAT.
-17. Procesamiento de complementos de pago recibidos (PPD).
-18. Bucket de storage para XML/PDF originales con retención fiscal (5 años).
-
-## 4. Detalles técnicos clave
-
-- Toda mutación multi-tabla vía RPC con `SECURITY DEFINER` y `SET search_path = public` (regla del proyecto).
-- `cfdi_uuid` debe ser índice único parcial en `supplier_bills` para prevenir duplicados.
-- Status enum: `draft | pending | partial | paid | overdue | cancelled` con trigger que recalcula `overdue` por fecha.
-- RLS por rol: Admin/Administrativo CRUD total; Ventas/Despachador solo lectura; Auditor solo lectura.
-- Reusar patrones: `MobileCardList`, drill-down panels, `usePagination`, `useListFilters`, `StatusBadge`, `formatCurrency`.
-- Numeración de bills internos con prefijo `CXP-` vía RPC (regla de numeración del proyecto).
-- Toda fecha en `America/Monterrey` con `nowMty()`, formato DD/MM/YYYY.
-- Changelog: cada fase como minor (6.26.0 Fase 1, 6.27.0 Fase 2, etc.).
-
-## 5. Pregunta para priorizar
-
-¿Por dónde quieres arrancar? Mi recomendación es **Fase 1 (CxP + pagos a proveedores + CFDI enriquecido)** porque es el cimiento del resto y desbloquea reportes financieros reales. Podemos partirla en 2-3 PRs si prefieres entregar en incrementos.
+## Notas técnicas
+- Reutiliza `DataTableV2` + `useLiftgoTable`, `ListPageLayout`, `useDialogState`, `SearchBar`, `StatusBadge`, `formatCurrency`, `nowMty`, `toYMD`.
+- Estatus `overdue` se calcula vía trigger DB pero se reverifica visualmente comparando `due_date < hoy` y `balance > 0`.
+- Subida de comprobante: bucket `supplier-payment-receipts` (privado) — si no existe se crea en migración pequeña dentro del PR.
+- Sin tocar `operating_expenses` ni `parse-cfdi-expense`.
+- Tests mínimos: `useAccountsPayableKpis` cálculo, `RegisterSupplierPaymentDialog` validación (no permite monto > saldo).
