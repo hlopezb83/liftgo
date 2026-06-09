@@ -48,6 +48,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { title: "Proveedores", url: "/suppliers", icon: Handshake },
       { title: "Cuentas por Pagar", url: "/cuentas-por-pagar", icon: FileClock },
+      { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
       { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
       { title: "Reportes", url: "/reports", icon: BarChart3 },
       { title: "Actividad", url: "/activity", icon: Activity },
