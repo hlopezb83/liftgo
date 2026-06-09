@@ -52,6 +52,7 @@ const CashFlowPage = lazy(() => import("@/features/cash-flow/pages/CashFlowPage"
 const AgingReportPage = lazy(() => import("@/features/accounts-payable/pages/AgingReportPage"));
 const BankAccountsPage = lazy(() => import("@/features/bank-reconciliation/pages/BankAccountsPage"));
 const BankReconciliationPage = lazy(() => import("@/features/bank-reconciliation/pages/BankReconciliationPage"));
+const BankStatementImportsHistoryPage = lazy(() => import("@/features/bank-reconciliation/pages/BankStatementImportsHistoryPage"));
 
 // Shared fallback con timeout: si tras 10s sigue cargando, sugerimos recargar.
 export const PageFallback = () => {
@@ -124,6 +125,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/flujo-de-caja", component: CashFlowPage, module: "Cuentas por Pagar" },
   { path: "/cuentas-bancarias", component: BankAccountsPage, module: "Cuentas por Pagar" },
   { path: "/conciliacion-bancaria", component: BankReconciliationPage, module: "Cuentas por Pagar" },
+  { path: "/conciliacion-bancaria/historial", component: BankStatementImportsHistoryPage, module: "Cuentas por Pagar" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
   { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },

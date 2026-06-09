@@ -50,6 +50,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Cuentas por Pagar", url: "/cuentas-por-pagar", icon: FileClock },
       { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
       { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
+      { title: "Historial de Imports", url: "/conciliacion-bancaria/historial", icon: History },
       { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: Landmark },
       { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
       { title: "Reportes", url: "/reports", icon: BarChart3 },
