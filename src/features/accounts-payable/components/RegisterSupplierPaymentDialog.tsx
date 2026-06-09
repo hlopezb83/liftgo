@@ -42,6 +42,9 @@ export function RegisterSupplierPaymentDialog({
   open, onOpenChange, billId, billNumber, balance,
 }: Props) {
   const register = useRegisterSupplierPayment();
+  const uploader = useUploadSupplierReceipt();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(
@@ -63,6 +66,7 @@ export function RegisterSupplierPaymentDialog({
 
   useEffect(() => {
     if (open) {
+      setReceiptFile(null);
       form.reset({
         amount: balance,
         payment_date: nowMty(),
@@ -76,7 +80,12 @@ export function RegisterSupplierPaymentDialog({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, balance]);
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
+    let receipt_url = data.receipt_url || undefined;
+    if (receiptFile) {
+      const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });
+      receipt_url = uploaded.signedUrl;
+    }
     register.mutate(
       {
         bill_id: billId,
@@ -85,12 +94,15 @@ export function RegisterSupplierPaymentDialog({
         payment_method: data.payment_method || undefined,
         bank_account: data.bank_account || undefined,
         reference: data.reference || undefined,
-        receipt_url: data.receipt_url || undefined,
+        receipt_url,
         notes: data.notes || undefined,
       },
       { onSuccess: () => onOpenChange(false) },
     );
   };
+
+  const isPending = register.isPending || uploader.isPending;
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -143,8 +155,31 @@ export function RegisterSupplierPaymentDialog({
             <Input placeholder="Folio de transferencia, cheque…" {...form.register("reference")} />
           </div>
           <div className="space-y-1.5">
-            <Label>URL del comprobante</Label>
-            <Input placeholder="Opcional" {...form.register("receipt_url")} />
+            <Label>Comprobante (PDF/JPG/PNG, máx 5 MB)</Label>
+            {receiptFile ? (
+              <div className="flex items-center justify-between rounded-md border p-2 text-sm">
+                <span className="truncate">{receiptFile.name}</span>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setReceiptFile(null)} disabled={isPending}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf,image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) setReceiptFile(f);
+                  }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isPending}>
+                  <Upload className="h-4 w-4 mr-1" />Adjuntar archivo
+                </Button>
+              </div>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>Notas</Label>
@@ -152,11 +187,12 @@ export function RegisterSupplierPaymentDialog({
           </div>
           <DialogFooter>
             <FormActions
-              submitLabel="Registrar pago"
-              isPending={register.isPending}
+              submitLabel={uploader.isPending ? "Subiendo…" : "Registrar pago"}
+              isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />
           </DialogFooter>
+
         </form>
       </DialogContent>
     </Dialog>
