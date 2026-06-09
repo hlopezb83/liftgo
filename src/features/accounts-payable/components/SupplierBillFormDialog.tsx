@@ -168,11 +168,18 @@ export function SupplierBillFormDialog({ open, onOpenChange }: Props) {
               date={form.watch("issue_date")}
               onSelect={(d) => d && form.setValue("issue_date", d)}
             />
-            <DatePickerField
-              label="Vencimiento"
-              date={form.watch("due_date")}
-              onSelect={(d) => form.setValue("due_date", d)}
-            />
+            <div className="space-y-1">
+              <DatePickerField
+                label="Vencimiento"
+                date={form.watch("due_date")}
+                onSelect={(d) => form.setValue("due_date", d)}
+              />
+              {suggestedDueDate && selectedSupplier?.default_payment_terms_days != null && (
+                <p className="text-xs text-muted-foreground">
+                  Sugerido: {formatDateDisplay(toYMD(suggestedDueDate) ?? "")} (proveedor a {selectedSupplier.default_payment_terms_days} días)
+                </p>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
