@@ -9,7 +9,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { capitalize, formatDateDisplay, parseDateLocal } from "@/lib/utils";
 import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
 import { useToggleDialog } from "@/hooks/useDialogState";
@@ -62,7 +62,7 @@ export default function CuentasPorPagarPage() {
       header: "Total",
       accessorKey: "total",
       meta: { align: "right" },
-      cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total), row.original.currency)}</span>,
+      cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.currency)}</span>,
     },
     {
       id: "balance",
@@ -71,7 +71,7 @@ export default function CuentasPorPagarPage() {
       meta: { align: "right" },
       cell: ({ row }) => (
         <span className={`font-mono font-semibold ${Number(row.original.balance) > 0 ? "text-foreground" : "text-muted-foreground"}`}>
-          {formatCurrency(Number(row.original.balance), row.original.currency)}
+          {formatCurrencyWithCode(Number(row.original.balance), row.original.currency)}
         </span>
       ),
     },
@@ -107,11 +107,11 @@ export default function CuentasPorPagarPage() {
         <p className="text-sm">{b.suppliers?.name ?? "—"}</p>
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Saldo</span>
-          <span className="font-mono font-semibold">{formatCurrency(Number(b.balance), b.currency)}</span>
+          <span className="font-mono font-semibold">{formatCurrencyWithCode(Number(b.balance), b.currency)}</span>
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Vence: {formatDateDisplay(b.due_date)}</span>
-          <span>{formatCurrency(Number(b.total), b.currency)}</span>
+          <span>{formatCurrencyWithCode(Number(b.total), b.currency)}</span>
         </div>
       </CardContent>
     </Card>

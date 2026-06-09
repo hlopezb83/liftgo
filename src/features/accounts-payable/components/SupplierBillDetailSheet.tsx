@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { CreditCard, FileText, XCircle, Loader2, ExternalLink } from "lucide-react";
 import { useSupplierBill } from "../hooks/useSupplierBill";
