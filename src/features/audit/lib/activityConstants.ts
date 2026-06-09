@@ -10,7 +10,9 @@ export const ENTITY_LABELS: Record<string, string> = {
   damage_records: "Daños",
   deliveries: "Entregas",
   payments: "Pagos",
-  operating_expenses: "Gastos",
+  operating_expenses: "Gastos (legado)",
+  supplier_bills: "Cuentas por Pagar",
+  supplier_payments: "Pagos a proveedores",
   prospects: "Prospectos",
   suppliers: "Proveedores",
 };
@@ -27,7 +29,9 @@ export const ENTITY_ROUTES: Record<string, string> = {
   damage_records: "/damage",
   deliveries: "/deliveries",
   payments: "/invoices",
-  operating_expenses: "/gastos",
+  operating_expenses: "/cuentas-por-pagar",
+  supplier_bills: "/cuentas-por-pagar",
+  supplier_payments: "/cuentas-por-pagar",
   prospects: "/crm",
   suppliers: "/suppliers",
 };

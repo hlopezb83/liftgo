@@ -4,7 +4,8 @@ import { es } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, FileClock } from "lucide-react";
+import { Plus, FileClock, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { SearchBar } from "@/components/SearchBar";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -124,9 +125,16 @@ export default function CuentasPorPagarPage() {
         subtitle="Facturas de proveedores y su seguimiento de pago"
         totalCount={f.filtered.length}
         actions={
-          <Button onClick={createDialog.openDialog}>
-            <Plus className="h-4 w-4 mr-1" />Nueva Cuenta
-          </Button>
+          <div className="flex gap-2">
+            <Link to="/cuentas-por-pagar/antiguedad">
+              <Button variant="outline">
+                <BarChart3 className="h-4 w-4 mr-1" />Antigüedad
+              </Button>
+            </Link>
+            <Button onClick={createDialog.openDialog}>
+              <Plus className="h-4 w-4 mr-1" />Nueva Cuenta
+            </Button>
+          </div>
         }
         filters={
           <div className="space-y-3">
