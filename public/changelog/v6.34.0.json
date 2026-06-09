@@ -1,0 +1,17 @@
+{
+  "version": "6.34.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Proveedores robustos: contactos múltiples, días de crédito y cuentas bancarias",
+  "description": "Fase 2 de proveedores: cada proveedor ahora soporta múltiples contactos por rol, condiciones de pago default y un catálogo reusable de cuentas bancarias (CLABE).",
+  "changes": [
+    "Nueva tabla supplier_contacts con contacto primario único por proveedor",
+    "Nueva tabla supplier_bank_accounts con validación CLABE de 18 dígitos y cuenta primaria única",
+    "Nuevo campo 'Días de crédito default' en proveedores (0–365)",
+    "Trigger que rellena automáticamente el vencimiento de la CxP usando los días default del proveedor",
+    "Diálogo de Nueva CxP sugiere el vencimiento basado en términos del proveedor",
+    "Nuevas secciones 'Contactos' y 'Cuentas Bancarias' en el detalle del proveedor con drill-down",
+    "Backfill: los contact_person/email/phone existentes se migraron como contacto primario",
+    "Pruebas unitarias: validación CLABE, máscara y cálculo de due_date"
+  ]
+}

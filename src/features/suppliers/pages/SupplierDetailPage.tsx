@@ -13,6 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { SupplierContactCard } from "@/features/suppliers/components/suppliers/SupplierContactCard";
 import { SupplierFormDialog } from "@/features/suppliers/components/suppliers/SupplierFormDialog";
+import { SupplierContactsSection } from "@/features/suppliers/components/suppliers/SupplierContactsSection";
+import { SupplierBankAccountsSection } from "@/features/suppliers/components/suppliers/SupplierBankAccountsSection";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -118,6 +120,11 @@ export default function SupplierDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <SupplierContactCard supplier={supplier} />
         <NotesCard value={supplier.notes || ""} readOnly />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SupplierContactsSection supplierId={supplier.id} />
+        <SupplierBankAccountsSection supplierId={supplier.id} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

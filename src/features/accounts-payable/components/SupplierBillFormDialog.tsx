@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
+import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatDateDisplay } from "@/lib/utils";
 import { nowMty } from "@/lib/utils";
 import {
   EXPENSE_CATEGORY_LABELS,
@@ -67,6 +69,31 @@ export function SupplierBillFormDialog({ open, onOpenChange }: Props) {
     if (open) form.reset();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const { data: suppliersList } = useSuppliers();
+  const supplierId = form.watch("supplier_id");
+  const issueDate = form.watch("issue_date");
+  const dueDate = form.watch("due_date");
+
+  const selectedSupplier = useMemo(
+    () => suppliersList?.find((s) => s.id === supplierId),
+    [suppliersList, supplierId],
+  );
+  const suggestedDueDate = useMemo(() => {
+    const days = selectedSupplier?.default_payment_terms_days;
+    if (!days || !issueDate) return null;
+    const d = new Date(issueDate);
+    d.setDate(d.getDate() + days);
+    return d;
+  }, [selectedSupplier, issueDate]);
+
+  // Prefill due_date when supplier or issue_date changes and field is empty
+  useEffect(() => {
+    if (suggestedDueDate && !dueDate) {
+      form.setValue("due_date", suggestedDueDate);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supplierId, issueDate]);
 
   const subtotal = form.watch("subtotal") || 0;
   const tax = form.watch("tax_amount") || 0;
@@ -141,11 +168,18 @@ export function SupplierBillFormDialog({ open, onOpenChange }: Props) {
               date={form.watch("issue_date")}
               onSelect={(d) => d && form.setValue("issue_date", d)}
             />
-            <DatePickerField
-              label="Vencimiento"
-              date={form.watch("due_date")}
-              onSelect={(d) => form.setValue("due_date", d)}
-            />
+            <div className="space-y-1">
+              <DatePickerField
+                label="Vencimiento"
+                date={form.watch("due_date")}
+                onSelect={(d) => form.setValue("due_date", d)}
+              />
+              {suggestedDueDate && selectedSupplier?.default_payment_terms_days != null && (
+                <p className="text-xs text-muted-foreground">
+                  Sugerido: {formatDateDisplay(toYMD(suggestedDueDate) ?? "")} (proveedor a {selectedSupplier.default_payment_terms_days} días)
+                </p>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">

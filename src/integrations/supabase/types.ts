@@ -2276,6 +2276,56 @@ export type Database = {
           },
         ]
       }
+      supplier_bank_accounts: {
+        Row: {
+          account_holder: string
+          account_number: string | null
+          bank_name: string
+          clabe: string | null
+          created_at: string
+          currency: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          supplier_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder: string
+          account_number?: string | null
+          bank_name: string
+          clabe?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          supplier_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string
+          account_number?: string | null
+          bank_name?: string
+          clabe?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          supplier_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_bank_accounts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_bill_approvals: {
         Row: {
           action: string
@@ -2427,6 +2477,53 @@ export type Database = {
           },
         ]
       }
+      supplier_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_primary: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string | null
+          supplier_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          supplier_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string | null
+          supplier_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_contacts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_payments: {
         Row: {
           amount: number
@@ -2507,6 +2604,7 @@ export type Database = {
           category: string | null
           contact_person: string | null
           created_at: string
+          default_payment_terms_days: number | null
           email: string | null
           id: string
           name: string
@@ -2522,6 +2620,7 @@ export type Database = {
           category?: string | null
           contact_person?: string | null
           created_at?: string
+          default_payment_terms_days?: number | null
           email?: string | null
           id?: string
           name: string
@@ -2537,6 +2636,7 @@ export type Database = {
           category?: string | null
           contact_person?: string | null
           created_at?: string
+          default_payment_terms_days?: number | null
           email?: string | null
           id?: string
           name?: string

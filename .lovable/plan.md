@@ -1,77 +1,102 @@
-# Endurecimiento PR 5 + PR 7
+# Fase 2 — Proveedores Robustos (v6.34.0)
 
-Objetivo: cerrar deuda técnica de las dos features de CxP/Tesorería antes de seguir construyendo encima. Sin features nuevas — solo tests, validaciones y pulido UI.
+Endurece el módulo de Proveedores con datos relacionales que CxP y SPEI necesitan: múltiples contactos por proveedor, condiciones de pago default (días de crédito) y un catálogo reusable de cuentas bancarias (CLABE/banco/titular).
 
----
+## Alcance
 
-## Parte A — PR 5: Complemento de Pago (REP) CFDI
+### A. Base de datos (1 migración)
 
-### A1. Tests del trigger `set_supplier_payment_rep_required`
-Archivo nuevo: `supabase/migrations/_tests/` no aplica — se añade test SQL via test edge function o test Vitest contra DB de pruebas. Camino elegido: **test Vitest** en `src/test/supplierRepTrigger.test.ts` con mocks de Supabase, validando la lógica equivalente del trigger (factura PPD + monto > 0 ⇒ `rep_required=true`; PUE ⇒ `false`; cancelación ⇒ reset).
+**A1. `supplier_contacts`** (nueva tabla)
+- Campos: `supplier_id` (FK), `name`, `role` (texto: "Cobranza", "Ventas", "Almacén", "Operaciones", "Dirección", "Otro"), `email`, `phone`, `is_primary` (bool), `notes`.
+- Índice único parcial: un solo `is_primary=true` por `supplier_id`.
+- RLS: read para `authenticated`; write para admin/administrativo/auditor (igual que `suppliers`).
+- GRANT a `authenticated` y `service_role`.
+- Trigger `updated_at`.
+- **Migración de datos**: por cada `supplier` con `contact_person` o `email`/`phone`, insertar contacto primario con esos valores.
 
-### A2. Tests de la edge function `validate-supplier-rep`
-Archivo nuevo: `supabase/functions/validate-supplier-rep/index_test.ts` siguiendo convención Deno (ver `stamp-cfdi/index_test.ts`). Casos:
-- XML no tipo "P" → 400
-- RFC emisor no coincide con proveedor → 400
-- UUID factura no referenciado → 400
-- Monto no coincide (tolerancia 0.01) → 400
-- UUID REP duplicado en otro pago → 409
-- Caso feliz → 200 + upload XML
+**A2. `suppliers.default_payment_terms_days`** (nueva columna `int`, nullable)
+- Valores típicos: 0 (contado), 15, 30, 45, 60, 90.
+- Sin enum: campo libre numérico con validación en UI (0–365).
+- Backfill: deja en `NULL` (significa "sin default, usar el de la factura").
 
-### A3. Backfill PPD históricos sin REP
-Migración nueva que recorre `supplier_payments` ligados a `supplier_bills` con `payment_method_sat='PPD'` donde `rep_required` esté en `false`/`null` y lo marca como `true` con `rep_status='pending'`. Se ejecuta una sola vez vía migration con `WHERE` defensivo (no toca pagos ya `received` o `not_applicable`).
+**A3. `supplier_bank_accounts`** (nueva tabla)
+- Campos: `supplier_id`, `bank_name`, `account_holder`, `clabe` (text, 18 dígitos), `account_number` (text, opcional), `currency` (MXN/USD, default MXN), `is_primary` (bool), `notes`.
+- Validación CLABE en trigger: longitud 18 + solo dígitos (no checksum por ahora).
+- Índice único parcial: un solo `is_primary=true` por `supplier_id`.
+- RLS y GRANTs idénticos a `supplier_contacts`.
+- Trigger `updated_at`.
 
-### A4. Refinamiento UI del badge REP
-- `SupplierPaymentRepBadge.tsx` (o equivalente actual): tooltip con fecha de carga (`rep_received_at`) y UUID truncado.
-- Botón "Descargar XML/PDF" cuando `rep_status='received'` usando signed URL del bucket `cfdi-files`.
-- Color del badge: `received` verde, `pending` ámbar, `rejected` rojo, `not_applicable` neutro.
+**A4. Auto-fill de `due_date` en `supplier_bills`**
+- Trigger `BEFORE INSERT`: si `due_date IS NULL` y el supplier tiene `default_payment_terms_days`, calcular `due_date = issue_date + dias`.
+- No sobreescribe due_date si ya viene asignada.
 
----
+### B. Hooks de datos
 
-## Parte B — PR 7: Conciliación bancaria
+- `useSupplierContacts(supplierId)` — list/create/update/delete con invalidaciones.
+- `useSupplierBankAccounts(supplierId)` — idem.
+- Extender `useSuppliers` para incluir `default_payment_terms_days` en `Supplier`.
 
-### B1. Tests de matching scoring
-Archivo nuevo: `src/features/bank-reconciliation/lib/__tests__/matchingScore.test.ts` (tests en TS contra una función helper extraída del RPC). Para mantener paridad, se extrae a `matchingScore.ts` la fórmula `score(amount, date, reference)` y se prueba:
-- Match exacto: 100
-- Mismo monto + fecha exacta + sin ref → 85
-- Mismo monto + 3 días + ref parcial → 75-80
-- Monto distinto → 0
+### C. UI
 
-### B2. Badge "Conciliado el DD/MM" en detalle de payments
-- `payments` y `supplier_payments` ya quedan ligados vía `bank_statement_lines.matched_payment_id` / `matched_supplier_payment_id`. Se añade hook `useReconciliationStatus(paymentId)` que consulta la línea conciliada.
-- Se renderiza badge en `PaymentDetailDialog.tsx` y `SupplierPaymentDetailSheet.tsx`: "Conciliado el DD/MM/YYYY · Cuenta ABC ····1234".
+**C1. `SupplierFormFields.tsx`**
+- Agregar campo "Días de crédito (default)" tipo number, 0–365, opcional. Helper: "Se aplicará automáticamente al registrar una nueva CxP."
 
-### B3. Vista de historial de imports
-- Nueva ruta `/conciliacion-bancaria/historial` con tabla zebra de `bank_statement_imports` (cuenta, archivo, período, líneas, % conciliado, importado por, fecha).
-- Drill-down sheet con líneas del import y opción de eliminar import completo (cascade ya configurado en DB; restringido a Admin).
+**C2. `SupplierDetailPage.tsx`** — dos nuevas tarjetas/secciones colapsables:
+- **Contactos**: tabla compacta (Nombre, Rol, Email, Teléfono, Primario badge) + botón "Agregar" → `SupplierContactDialog` (nuevo).
+- **Cuentas bancarias**: tabla compacta (Banco, Titular, CLABE enmascarada `****1234`, Moneda, Primario badge) + botón "Agregar" → `SupplierBankAccountDialog` (nuevo).
+- Acciones drill-down: editar / marcar como primario / eliminar.
 
----
+**C3. `SupplierBillFormDialog.tsx`**
+- Al seleccionar supplier: cargar su `default_payment_terms_days`. Si existe y due_date está vacío, prefill `due_date = issue_date + días`. El usuario puede sobreescribir.
+- Mostrar hint debajo del DatePicker: "Sugerido: <fecha> (proveedor a <N> días)".
 
-## Sección técnica
+### D. Tests
 
-**Migraciones (1 sola):**
-- Backfill PPD: `UPDATE supplier_payments SET rep_required=true, rep_status='pending' WHERE ...`.
+- `supplierContactsPrimary.test.ts` — solo un primario por proveedor (mock supabase).
+- `supplierBankAccountClabe.test.ts` — valida regex CLABE en helper de UI.
+- `supplierBillDueDate.test.ts` — verifica cálculo de due_date desde issue_date + términos.
 
-**Archivos nuevos:**
-- `src/test/supplierRepTrigger.test.ts`
-- `supabase/functions/validate-supplier-rep/index_test.ts`
-- `src/features/bank-reconciliation/lib/matchingScore.ts` + `__tests__/matchingScore.test.ts`
-- `src/features/bank-reconciliation/hooks/useReconciliationStatus.ts`
-- `src/features/bank-reconciliation/hooks/useBankStatementImports.ts`
-- `src/features/bank-reconciliation/pages/BankStatementImportsHistoryPage.tsx`
-- `src/features/bank-reconciliation/components/ImportHistoryDetailSheet.tsx`
-- `public/changelog/v6.33.0.json`
+### E. Changelog
 
-**Archivos editados:**
-- Badge REP en componente de detalle de `supplier_payments`
-- `PaymentDetailDialog.tsx` (CxC) y detalle de `supplier_payments` (CxP) → badge conciliación
-- `src/lib/routes-config.tsx` + `src/layouts/sidebar/navConfig.ts` (sub-ruta historial)
-- `public/changelog.json`
+- `public/changelog/v6.34.0.json` (minor — features nuevas no breaking).
+- Update de `public/changelog.json`.
 
-**Changelog:** `v6.33.0` (patch — endurecimiento, sin features nuevas user-facing salvo historial).
+## Detalles técnicos
 
-**Fuera de alcance:**
-- Cambios al algoritmo de matching (solo se extrae a función testeable).
-- Cancelación / re-envío de REP automatizado.
-- Conciliación de tarjetas de crédito.
-- Recordatorios de REP pendiente por email (queda para fase de notificaciones).
+```text
+SQL clave (resumen):
+
+CREATE TABLE supplier_contacts (
+  id uuid pk, supplier_id uuid FK suppliers,
+  name text NOT NULL, role text, email text, phone text,
+  is_primary boolean DEFAULT false, notes text,
+  created_at, updated_at
+);
+CREATE UNIQUE INDEX supplier_contacts_one_primary
+  ON supplier_contacts(supplier_id) WHERE is_primary;
+
+ALTER TABLE suppliers ADD COLUMN default_payment_terms_days int;
+
+CREATE TABLE supplier_bank_accounts (
+  id uuid pk, supplier_id uuid FK suppliers,
+  bank_name text NOT NULL, account_holder text NOT NULL,
+  clabe text, account_number text,
+  currency text DEFAULT 'MXN' CHECK (currency IN ('MXN','USD')),
+  is_primary boolean DEFAULT false, notes text,
+  created_at, updated_at
+);
+CREATE UNIQUE INDEX supplier_bank_accounts_one_primary
+  ON supplier_bank_accounts(supplier_id) WHERE is_primary;
+
+-- Trigger valida CLABE 18 dígitos si no es NULL.
+-- Trigger en supplier_bills BEFORE INSERT prefill de due_date.
+-- Backfill de contactos primarios desde columnas existentes.
+```
+
+## Fuera de alcance
+
+- CSF de proveedores (PDF SAT) — siguiente sub-fase si lo aprueban.
+- Generación de layouts SPEI (.txt bancario) — requiere catálogo, viene en Fase 3.
+- Recordatorios de cobranza por email a contactos (Fase 4).
+- Validación checksum CLABE (solo longitud por ahora).
+- UI mobile para diálogos de contactos/cuentas (desktop-first como el resto del módulo).
