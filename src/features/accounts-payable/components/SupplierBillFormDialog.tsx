@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
+import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatDateDisplay } from "@/lib/utils";
 import { nowMty } from "@/lib/utils";
 import {
   EXPENSE_CATEGORY_LABELS,
