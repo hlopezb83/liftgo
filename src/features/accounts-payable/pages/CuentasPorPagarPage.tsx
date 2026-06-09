@@ -23,6 +23,10 @@ import {
   APPROVAL_STATUSES,
   APPROVAL_STATUS_LABELS,
 } from "../lib/supplierBillConstants";
+import {
+  SUPPLIER_REP_STATUSES,
+  SUPPLIER_REP_STATUS_LABELS,
+} from "../lib/supplierRepConstants";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 import { AccountsPayableKpiCards } from "../components/AccountsPayableKpiCards";
 import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
@@ -206,6 +210,15 @@ export default function CuentasPorPagarPage() {
                   <SelectItem value="all">Todas aprobaciones</SelectItem>
                   {APPROVAL_STATUSES.map((s) => (
                     <SelectItem key={s} value={s}>{APPROVAL_STATUS_LABELS[s]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={f.rep} onValueChange={(v) => f.set("rep", v as typeof f.rep)}>
+                <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">REP: Todos</SelectItem>
+                  {SUPPLIER_REP_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>REP: {SUPPLIER_REP_STATUS_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
