@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useCreateSupplier, useUpdateSupplier } from "@/features/suppliers/hooks/useSuppliers";
 import type { Supplier } from "@/features/suppliers/hooks/useSuppliers";
+import { useUploadDocument } from "@/hooks/useDocuments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormActions } from "@/components/FormActions";
@@ -9,6 +10,7 @@ import { FormActions } from "@/components/FormActions";
 import { SupplierFormFields } from "./SupplierFormFields";
 import { SupplierCsfDropzone } from "./SupplierCsfDropzone";
 import { emptySupplierForm, type SupplierForm } from "./supplierFormTypes";
+
 
 interface SupplierFormDialogProps {
   open: boolean;
