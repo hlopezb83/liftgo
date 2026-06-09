@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings,
   ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, ShieldCheck,
   ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake,
-  MessageSquare, Trophy, Megaphone,
+  MessageSquare, Trophy, Megaphone, FileClock,
 } from "lucide-react";
 
 export type NavItem = { title: string; url: string; icon: React.ElementType };
