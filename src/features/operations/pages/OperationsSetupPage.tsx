@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Truck, Wrench, FileText, ShieldCheck, Building2, Image as ImageIcon } from "lucide-react";
+import { Settings, Truck, Wrench, FileText, ShieldCheck, Building2, Image as ImageIcon, ShieldAlert } from "lucide-react";
 import { EquipmentModelsTab } from "@/features/operations/components/operations/EquipmentModelsTab";
 import { DriversTab } from "@/features/operations/components/operations/DriversTab";
 import { MechanicsTab } from "@/features/operations/components/operations/MechanicsTab";
@@ -8,12 +8,13 @@ import { ContractTemplateTab } from "@/features/operations/components/operations
 import { MaintenancePoliciesTab } from "@/features/operations/components/operations/MaintenancePoliciesTab";
 import { FiscalDataTab } from "@/features/operations/components/operations/FiscalDataTab";
 import { CompanyLogoTab } from "@/features/operations/components/operations/CompanyLogoTab";
+import { CxpApprovalTab } from "@/features/operations/components/operations/CxpApprovalTab";
 import { RoleGuard } from "@/layouts/RoleGuard";
 
 export default function OperationsSetupPage() {
   return (
     <div className="p-6 max-w-5xl">
-      <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales y logo" />
+      <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales, logo y aprobaciones" />
       <Tabs defaultValue="equipment" className="mt-6">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="equipment" className="gap-2"><Settings className="h-4 w-4" />Modelos de Equipo</TabsTrigger>
@@ -23,6 +24,7 @@ export default function OperationsSetupPage() {
           <TabsTrigger value="contract-template" className="gap-2"><FileText className="h-4 w-4" />Plantilla de Contrato</TabsTrigger>
           <TabsTrigger value="fiscal" className="gap-2"><Building2 className="h-4 w-4" />Datos Fiscales</TabsTrigger>
           <TabsTrigger value="logo" className="gap-2"><ImageIcon className="h-4 w-4" />Logo</TabsTrigger>
+          <TabsTrigger value="cxp-approval" className="gap-2"><ShieldAlert className="h-4 w-4" />Aprobaciones CxP</TabsTrigger>
         </TabsList>
         <TabsContent value="equipment"><EquipmentModelsTab /></TabsContent>
         <TabsContent value="drivers"><DriversTab /></TabsContent>
@@ -45,6 +47,11 @@ export default function OperationsSetupPage() {
         <TabsContent value="logo">
           <RoleGuard module="Configuración" minAccess="full">
             <CompanyLogoTab />
+          </RoleGuard>
+        </TabsContent>
+        <TabsContent value="cxp-approval">
+          <RoleGuard module="Configuración" minAccess="full">
+            <CxpApprovalTab />
           </RoleGuard>
         </TabsContent>
       </Tabs>
