@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.32.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Conciliación bancaria por CSV con emparejamiento automático",
+    "category": "feature"
+  },
+  {
     "version": "6.31.0",
     "date": "2026-06-09",
     "type": "minor",

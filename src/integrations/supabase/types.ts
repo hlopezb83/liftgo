@@ -89,6 +89,195 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_accounts: {
+        Row: {
+          bank: string
+          created_at: string
+          currency: string
+          id: string
+          initial_balance: number
+          is_active: boolean
+          last4: string | null
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank: string
+          created_at?: string
+          currency?: string
+          id?: string
+          initial_balance?: number
+          is_active?: boolean
+          last4?: string | null
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          initial_balance?: number
+          is_active?: boolean
+          last4?: string | null
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bank_statement_imports: {
+        Row: {
+          bank_account_id: string
+          created_at: string
+          file_name: string
+          id: string
+          imported_by: string | null
+          lines_count: number
+          period_end: string | null
+          period_start: string | null
+        }
+        Insert: {
+          bank_account_id: string
+          created_at?: string
+          file_name: string
+          id?: string
+          imported_by?: string | null
+          lines_count?: number
+          period_end?: string | null
+          period_start?: string | null
+        }
+        Update: {
+          bank_account_id?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          imported_by?: string | null
+          lines_count?: number
+          period_end?: string | null
+          period_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_imports_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_statement_lines: {
+        Row: {
+          bank_account_id: string
+          created_at: string
+          description: string
+          hash: string
+          id: string
+          ignored_reason: string | null
+          import_id: string
+          match_score: number | null
+          matched_at: string | null
+          matched_by: string | null
+          matched_payment_id: string | null
+          matched_supplier_payment_id: string | null
+          posted_date: string
+          reference: string | null
+          signed_amount: number
+          status: Database["public"]["Enums"]["bank_line_status"]
+          suggested_payment_id: string | null
+          suggested_supplier_payment_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank_account_id: string
+          created_at?: string
+          description?: string
+          hash: string
+          id?: string
+          ignored_reason?: string | null
+          import_id: string
+          match_score?: number | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_payment_id?: string | null
+          matched_supplier_payment_id?: string | null
+          posted_date: string
+          reference?: string | null
+          signed_amount: number
+          status?: Database["public"]["Enums"]["bank_line_status"]
+          suggested_payment_id?: string | null
+          suggested_supplier_payment_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank_account_id?: string
+          created_at?: string
+          description?: string
+          hash?: string
+          id?: string
+          ignored_reason?: string | null
+          import_id?: string
+          match_score?: number | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_payment_id?: string | null
+          matched_supplier_payment_id?: string | null
+          posted_date?: string
+          reference?: string | null
+          signed_amount?: number
+          status?: Database["public"]["Enums"]["bank_line_status"]
+          suggested_payment_id?: string | null
+          suggested_supplier_payment_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_lines_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_lines_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statement_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_lines_matched_payment_id_fkey"
+            columns: ["matched_payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_lines_matched_supplier_payment_id_fkey"
+            columns: ["matched_supplier_payment_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_lines_suggested_payment_id_fkey"
+            columns: ["suggested_payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_lines_suggested_supplier_payment_id_fkey"
+            columns: ["suggested_supplier_payment_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_secrets: {
         Row: {
           created_at: string
@@ -2478,6 +2667,14 @@ export type Database = {
             }
             Returns: string
           }
+      confirm_bank_match: {
+        Args: {
+          p_line_id: string
+          p_payment_id?: string
+          p_supplier_payment_id?: string
+        }
+        Returns: undefined
+      }
       create_booking: {
         Args: {
           p_customer_contact?: string
@@ -2642,6 +2839,14 @@ export type Database = {
         Args: { p_notes: string; p_payment_id: string }
         Returns: undefined
       }
+      match_bank_statement_lines: {
+        Args: { p_import_id: string }
+        Returns: {
+          matched_count: number
+          suggested_count: number
+          unmatched_count: number
+        }[]
+      }
       next_booking_number: { Args: never; Returns: string }
       next_contract_number: { Args: never; Returns: string }
       next_credit_note_number: { Args: never; Returns: string }
@@ -2688,6 +2893,7 @@ export type Database = {
         Returns: undefined
       }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
+      unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
     }
     Enums: {
       app_role:
@@ -2698,6 +2904,7 @@ export type Database = {
         | "administrativo"
         | "auditor"
         | "ventas"
+      bank_line_status: "unmatched" | "suggested" | "matched" | "ignored"
       expense_category:
         | "renta"
         | "nomina"
@@ -2855,6 +3062,7 @@ export const Constants = {
         "auditor",
         "ventas",
       ],
+      bank_line_status: ["unmatched", "suggested", "matched", "ignored"],
       expense_category: [
         "renta",
         "nomina",

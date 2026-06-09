@@ -1,0 +1,110 @@
+import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { PageTransition } from "@/components/PageTransition";
+import { PageHeader } from "@/components/PageHeader";
+import { RoleGuard } from "@/layouts/RoleGuard";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Settings } from "lucide-react";
+import { useBankAccounts } from "../hooks/useBankAccounts";
+import { useBankStatementLines, type BankStatementLine } from "../hooks/useBankStatementLines";
+import { BankStatementUploader } from "../components/BankStatementUploader";
+import { ReconciliationKpiCards } from "../components/ReconciliationKpiCards";
+import { BankStatementLinesTable } from "../components/BankStatementLinesTable";
+import { BankLineDetailSheet } from "../components/BankLineDetailSheet";
+import type { BankLineStatus } from "../lib/bankReconciliationConstants";
+
+const SECTIONS: { key: BankLineStatus; title: string }[] = [
+  { key: "unmatched", title: "Sin emparejar" },
+  { key: "suggested", title: "Sugeridas" },
+  { key: "matched", title: "Conciliadas" },
+  { key: "ignored", title: "Ignoradas" },
+];
+
+export default function BankReconciliationPage() {
+  const { data: accounts } = useBankAccounts();
+  const [accountId, setAccountId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<BankStatementLine | null>(null);
+  const { data: lines, isLoading } = useBankStatementLines(accountId);
+
+  const grouped = useMemo(() => {
+    const g: Record<BankLineStatus, BankStatementLine[]> = {
+      unmatched: [], suggested: [], matched: [], ignored: [],
+    };
+    for (const l of lines ?? []) g[l.status].push(l);
+    return g;
+  }, [lines]);
+
+  useEffect(() => {
+    if (accountId || !accounts || accounts.length === 0) return;
+    const first = accounts.find((a) => a.is_active) ?? accounts[0];
+    setAccountId(first.id);
+  }, [accountId, accounts]);
+
+  return (
+    <RoleGuard module="Cuentas por Pagar" minAccess="read">
+      <PageTransition>
+        <div className="p-4 sm:p-6 space-y-4">
+          <PageHeader
+            title="Conciliación bancaria"
+            subtitle="Sube tu estado de cuenta y empareja con los pagos del sistema"
+            action={
+              <Button asChild variant="outline" size="sm">
+                <Link to="/cuentas-bancarias"><Settings className="h-4 w-4 mr-2" /> Cuentas bancarias</Link>
+              </Button>
+            }
+          />
+
+          {(accounts ?? []).length === 0 ? (
+            <Card><CardContent className="py-12 text-center text-sm text-muted-foreground space-y-3">
+              <p>Aún no tienes cuentas bancarias registradas.</p>
+              <Button asChild><Link to="/cuentas-bancarias">Crear primera cuenta</Link></Button>
+            </CardContent></Card>
+          ) : (
+            <>
+              <Card><CardContent className="py-3 flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-medium">Cuenta:</span>
+                <Select value={accountId ?? ""} onValueChange={setAccountId}>
+                  <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona una cuenta" /></SelectTrigger>
+                  <SelectContent>
+                    {(accounts ?? []).map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.name} {a.last4 ? `•${a.last4}` : ""} ({a.currency})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent></Card>
+
+              {accountId && (
+                <>
+                  <BankStatementUploader bankAccountId={accountId} />
+                  <ReconciliationKpiCards lines={lines ?? []} />
+                  {isLoading ? (
+                    <Card><CardContent className="py-12 text-center text-muted-foreground">Cargando movimientos…</CardContent></Card>
+                  ) : (
+                    SECTIONS.map((s) => grouped[s.key].length > 0 && (
+                      <div key={s.key} className="space-y-2">
+                        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          {s.title} ({grouped[s.key].length})
+                        </h2>
+                        <BankStatementLinesTable lines={grouped[s.key]} onSelect={setSelected} />
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
+            </>
+          )}
+
+          <BankLineDetailSheet
+            line={selected}
+            open={!!selected}
+            onOpenChange={(o) => { if (!o) setSelected(null); }}
+          />
+        </div>
+      </PageTransition>
+    </RoleGuard>
+  );
+}

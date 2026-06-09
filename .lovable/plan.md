@@ -1,89 +1,92 @@
-# PR 6 — Flujo de caja proyectado
+# PR 7 — Conciliación bancaria
 
 ## Objetivo
-Una vista semanal (próximas 8 semanas por default) que compara, día por día y semana por semana:
-- **Entradas esperadas**: saldos de facturas (`invoices`) con `due_date` en el rango y status `sent`/`overdue`/`partially_paid`.
-- **Salidas esperadas**: saldos de `supplier_bills` con `due_date` en el rango y status `pending`/`overdue`/`partially_paid`, excluyendo facturas con `approval_status` ∈ `pending`/`rejected`.
-- **Neto semanal** y **saldo acumulado proyectado** partiendo de un saldo inicial editable.
-- **Semáforo de liquidez** por semana: verde (acumulado > colchón), ámbar (entre 0 y colchón), rojo (negativo).
+Subir un estado de cuenta bancario en CSV, normalizar los movimientos y emparejarlos contra los pagos ya registrados (cobros de `payments` + pagos a proveedores de `supplier_payments`). Marcar cada movimiento como **conciliado**, **sugerido** o **sin emparejar**, con emparejamiento manual cuando la sugerencia no aplique.
 
-Sin nueva tabla — todo se calcula on-the-fly desde lo que ya existe. Sólo agregamos preferencias (saldo inicial y colchón) en `company_settings`.
+Sin integración con APIs bancarias — sólo CSV manual. Multi-banco mediante un catálogo simple de cuentas.
 
-## Ruta y navegación
-- Nueva ruta `/flujo-de-caja` bajo módulo **Finanzas** en `navConfig.ts`.
-- Acceso: Admin + Administrativo (lectura para Auditor).
-- Entry points adicionales:
-  - KPI card "Próximos 7 días" en `Dashboard` (deep-link a `/flujo-de-caja`).
-  - Botón en `/cuentas-por-pagar` y `/cuentas-por-cobrar` "Ver flujo de caja".
+## Alcance funcional
 
-## UI
+### Catálogo de cuentas bancarias
+- Nueva tabla `bank_accounts` (nombre, banco, últimos 4 dígitos, moneda, saldo inicial opcional, activo).
+- ABC mínimo en `/cuentas-bancarias` (Admin + Administrativo).
+
+### Importación de estado de cuenta
+- Página `/conciliacion-bancaria` con selector de cuenta bancaria y dropzone CSV.
+- Parser cliente acepta formato estándar (fecha, descripción, monto, referencia). Soporta perfiles preconfigurados: **BBVA**, **Banorte**, **Santander**, **Genérico**.
+- Detección de duplicados por hash (`account_id + fecha + monto + referencia`).
+- Cada fila se inserta en `bank_statement_lines` con `status = 'unmatched'`.
+
+### Motor de emparejamiento
+- Al importar, una RPC `match_bank_statement_lines(account_id, date_window)`:
+  1. Para cada línea de **cargo** (salida del banco): busca en `supplier_payments` (mismo importe ±$0.01, fecha ±3 días, cuenta destino opcional) → si hay un único candidato la marca `status = 'matched'` y guarda `matched_payment_id`. Si hay varios, `status = 'suggested'` y guarda el mejor en `suggested_payment_id`.
+  2. Para cada línea de **abono** (entrada al banco): busca en `payments` (cobros a clientes) con la misma lógica.
+- Score: importe exacto (60) + cercanía de fecha (0–25) + match parcial de referencia/folio en descripción (0–15).
+
+### UI de conciliación
+- Tabla con 3 secciones colapsables: **Sin emparejar**, **Sugeridas** (con botón "Confirmar"), **Conciliadas**.
+- Click en una línea → side sheet con detalle del movimiento + candidatos manuales (buscador por monto/fecha/referencia) para emparejar.
+- KPI: total cargos, total abonos, saldo del periodo, % conciliado.
+- Acciones: "Confirmar sugerencia", "Emparejar manualmente", "Marcar como ignorada" (gasto bancario, comisión, etc.), "Desemparejar".
+- `MobileCardList` en móvil.
+
+### Indicadores cruzados
+- En detalle de `payments` y `supplier_payments` mostrar badge "Conciliado el DD/MM/YYYY" cuando exista emparejamiento.
 
 ```text
-[ Saldo inicial: $___ MXN ]  [ Colchón mínimo: $___ ]  [ Horizonte: 4 / 8 / 12 sem ]   [ Exportar CSV ]
+[ Cuenta: BBVA •4521 ▾ ]  [ Subir CSV ]  [ Periodo: 01–31 May ]   42 / 58 conciliados (72%)
 
-┌── KPIs ─────────────────────────────────────────────────────┐
-│ Por cobrar (8 sem)  Por pagar (8 sem)  Neto    Acum. final │
-└─────────────────────────────────────────────────────────────┘
-
-┌── Tabla semanal (sticky header, zebra) ─────────────────────┐
-│ Sem  Rango        Entradas  Salidas  Neto   Acum.   Estado │
-│ 1    09–15 Jun    $120,000  $80,000  +40K   +60K     ●     │
-│ 2    16–22 Jun     $45,000  $90,000  -45K   +15K     ●     │
-│ …                                                           │
-└─────────────────────────────────────────────────────────────┘
-
-Click en una semana → panel lateral con detalle:
-  · Lista de invoices que vencen esa semana (link al detalle)
-  · Lista de supplier_bills que vencen esa semana (link al detalle)
+▾ Sin emparejar (12)
+   05/05  -$12,450.00  PAGO PROV ACME      [Emparejar…]  [Ignorar]
+▾ Sugeridas (8)
+   07/05  -$ 8,300.00  TRANSFER 0012       → SP-2026-014 ($8,300, 07/05)  [Confirmar] [Otro…]
+▾ Conciliadas (38)
+   ...
 ```
-
-Móvil: `MobileCardList` con una tarjeta por semana.
-
-## Lógica de cálculo
-- `nowMty()` define "hoy". Semana inicia lunes (es-MX).
-- Entradas: `invoices` con `status in ('sent','overdue','partially_paid')` y `due_date` entre `monday` y `monday+8w`. Monto = `balance` (no `total`).
-- Salidas: `supplier_bills` con `status in ('pending','overdue','partially_paid')`, `approval_status in ('not_required','approved')`, `due_date` en rango. Monto = `balance`.
-- Vencidos (anteriores a hoy) se agrupan todos en una fila inicial **"Vencido"** para forzar acción.
-- Conversión de moneda: bills/invoices en USD se convierten con `exchange_rate` del documento (ya almacenado). No hay multi-moneda en la vista — todo en MXN.
-- Acumulado = saldo inicial + Σ netos hasta esa semana.
-- Semáforo:
-  - rojo si `acumulado < 0`
-  - ámbar si `0 ≤ acumulado < colchón`
-  - verde si `acumulado ≥ colchón`
 
 ## Cambios técnicos
 
 ### Migración
-`ALTER TABLE public.company_settings ADD COLUMN cash_initial_balance numeric DEFAULT 0, ADD COLUMN cash_safety_buffer numeric DEFAULT 0;`
-Sin nuevas tablas ni RLS.
+- `bank_accounts (id, name, bank, last4, currency default 'MXN', initial_balance numeric default 0, is_active bool default true)` + GRANTs + RLS por rol (Admin/Administrativo CRUD, Auditor read).
+- `bank_statement_imports (id, bank_account_id, file_name, period_start, period_end, lines_count, imported_by)` para historial.
+- `bank_statement_lines (id, import_id, bank_account_id, posted_date, description, amount, signed_amount, reference, hash, status enum 'unmatched'|'suggested'|'matched'|'ignored', matched_payment_id uuid, matched_supplier_payment_id uuid, suggested_payment_id, suggested_supplier_payment_id, match_score int, matched_at, matched_by, ignored_reason)` con índice único en `(bank_account_id, hash)`.
+- RPC `public.match_bank_statement_lines(p_import_id uuid)` `SECURITY DEFINER SET search_path = public` con la lógica de scoring.
+- RPC `public.confirm_bank_match(line_id, payment_id?, supplier_payment_id?)` y `public.unmatch_bank_line(line_id)`.
 
-### Hooks / código nuevo
+### Código nuevo
 ```
-src/features/cash-flow/
-  hooks/useCashFlowProjection.ts        # arma la matriz semanal
-  hooks/useCashFlowSettings.ts          # lee/escribe los 2 campos en company_settings
-  lib/cashFlowUtils.ts                  # bucketByWeek, semáforo, formato
-  components/CashFlowSummaryCards.tsx
-  components/CashFlowTable.tsx
-  components/CashFlowWeekDetailSheet.tsx
-  components/CashFlowSettingsBar.tsx
-  pages/CashFlowPage.tsx
+src/features/bank-reconciliation/
+  pages/BankAccountsPage.tsx
+  pages/BankReconciliationPage.tsx
+  components/BankAccountFormDialog.tsx
+  components/BankStatementUploader.tsx
+  components/BankStatementLineRow.tsx
+  components/BankLineDetailSheet.tsx
+  components/ManualMatchPicker.tsx
+  components/ReconciliationKpiCards.tsx
+  hooks/useBankAccounts.ts
+  hooks/useBankStatementLines.ts
+  hooks/useBankReconciliationMutations.ts
+  lib/csvParsers.ts                # perfiles BBVA / Banorte / Santander / Genérico
+  lib/bankReconciliationConstants.ts
+  lib/__tests__/csvParsers.test.ts
+  lib/__tests__/matching.test.ts
 ```
-Reutilizamos `useSupplierBills` (ya existe) y un nuevo `useInvoicesByDueRange` (o filtro existente en hooks de invoices).
+Navegación: nuevo grupo "Tesorería" o reutilizar "Finanzas" con `Cuentas bancarias` y `Conciliación bancaria`.
 
 ### Tests
-- `cashFlowUtils.bucketByWeek`: agrupa correctamente respetando lunes-domingo America/Monterrey.
-- Semáforo: límites con `colchón=0` y `colchón>0`.
-- Excluye `supplier_bills` con `approval_status='pending'` o `'rejected'`.
+- Parser CSV de cada perfil (encabezados, formato de fecha, signo de monto, descripción multilínea).
+- Dedupe por hash al re-importar el mismo CSV.
+- Matching: caso 1 candidato exacto, múltiples candidatos (score), sin candidatos, fechas en frontera de ±3 días.
 
 ### Permisos
-- `RoleGuard module="Cuentas por Cobrar"` y `"Cuentas por Pagar"` mínimas para abrir la página; la edición de saldo inicial/colchón requiere Admin+Administrativo.
+- `RoleGuard module="Cuentas por Pagar"` mínimo read; mutaciones (importar, confirmar, ignorar) requieren Admin o Administrativo.
 
 ### Changelog
-`v6.31.0` (minor) — "Flujo de caja proyectado a 8 semanas con semáforo de liquidez".
+`v6.32.0` (minor) — "Conciliación bancaria por CSV con emparejamiento automático".
 
 ## Fuera de alcance
-- Pagos recurrentes proyectados (subscripciones de renta) — fase posterior.
-- Escenarios "what-if" (mover fechas hipotéticamente).
-- Múltiples cuentas bancarias — usamos un único saldo inicial agregado.
-- Conversión FX en tiempo real — usamos `exchange_rate` ya guardado por documento.
+- Integración directa con APIs de bancos (Open Banking / SAT) — fase posterior.
+- Conciliación de tarjetas de crédito empresariales.
+- Reglas personalizables de matching por el usuario.
+- Sub-emparejamiento (una línea bancaria contra varios pagos parciales).
