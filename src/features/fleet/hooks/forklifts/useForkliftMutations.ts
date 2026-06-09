@@ -13,14 +13,20 @@ async function insertCostoVentaIfSold(forkliftId: string, toStatus: string) {
     .from("forklifts").select("name, acquisition_cost").eq("id", forkliftId).single();
   const cost = Number(fl?.acquisition_cost ?? 0);
   if (cost <= 0) return;
-  const { error: expError } = await supabase.from("operating_expenses").insert({
+  const today = toYMD(nowMty()) ?? "";
+  const { error: billError } = await supabase.from("supplier_bills").insert({
     category: "costo_venta",
     description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
-    amount: cost,
-    expense_date: toYMD(nowMty()),
+    subtotal: cost,
+    tax_amount: 0,
+    total: cost,
+    currency: "MXN",
+    issue_date: today,
+    due_date: today,
+    status: "paid",
   });
-  if (expError) {
-    notifyWarning({ title: "No se pudo registrar el costo de venta automáticamente", description: expError.message });
+  if (billError) {
+    notifyWarning({ title: "No se pudo registrar el costo de venta automáticamente", description: billError.message });
   }
 }
 
@@ -58,7 +64,7 @@ export function useUpdateForklift() {
       );
       queryClient.setQueryData(["forklifts", data.id], data);
       queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
-      queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
       queryClient.invalidateQueries({ queryKey: ["insurance-alerts"] });
     },
     onError: (err: Error) => {
@@ -108,7 +114,7 @@ export function useUpdateStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forklifts"] });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-      queryClient.invalidateQueries({ queryKey: ["operating_expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
     },
   });
 }

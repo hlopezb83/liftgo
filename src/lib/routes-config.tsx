@@ -36,7 +36,7 @@ const RolePermissionsPage = lazy(() => import("@/features/users/pages/RolePermis
 const CompanySettingsPage = lazy(() => import("@/features/company-settings/pages/CompanySettingsPage"));
 const ChangelogPage = lazy(() => import("@/features/changelog/pages/ChangelogPage"));
 const HelpPage = lazy(() => import("@/features/help/pages/HelpPage"));
-const OperatingExpensesPage = lazy(() => import("@/features/expenses/pages/OperatingExpensesPage"));
+const ExpensesRedirect = lazy(() => import("@/features/accounts-payable/pages/ExpensesRedirect"));
 const IncomeStatementPage = lazy(() => import("@/features/reports/pages/IncomeStatementPage"));
 const InventoryPage = lazy(() => import("@/features/inventory/pages/InventoryPage"));
 const CRMPage = lazy(() => import("@/features/crm/pages/CRMPage"));
@@ -48,6 +48,7 @@ const MyReportsPage = lazy(() => import("@/features/feedback/pages/MyReportsPage
 const LeaderboardPage = lazy(() => import("@/features/feedback/pages/LeaderboardPage"));
 const FeedbackManagementPage = lazy(() => import("@/features/feedback/pages/FeedbackManagementPage"));
 const CuentasPorPagarPage = lazy(() => import("@/features/accounts-payable/pages/CuentasPorPagarPage"));
+const AgingReportPage = lazy(() => import("@/features/accounts-payable/pages/AgingReportPage"));
 
 // Shared fallback con timeout: si tras 10s sigue cargando, sugerimos recargar.
 export const PageFallback = () => {
@@ -114,8 +115,9 @@ export const appRoutes: RouteConfig[] = [
   { path: "/audit", component: AuditTrailPage },
   { path: "/reports", component: ReportsPage, module: "Reportes" },
   { path: "/damage", component: DamageTrackingPage, module: "Daños" },
-  { path: "/expenses", component: OperatingExpensesPage, module: "Gastos" },
+  { path: "/expenses", component: ExpensesRedirect },
   { path: "/cuentas-por-pagar", component: CuentasPorPagarPage, module: "Cuentas por Pagar" },
+  { path: "/cuentas-por-pagar/antiguedad", component: AgingReportPage, module: "Cuentas por Pagar" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
   { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },
