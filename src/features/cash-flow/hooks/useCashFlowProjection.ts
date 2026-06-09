@@ -10,7 +10,7 @@ interface Args {
 }
 
 const ACTIVE_INVOICE_STATUSES = ["sent", "partial", "overdue"] as const;
-const ACTIVE_BILL_STATUSES = ["pending", "overdue", "partially_paid"] as const;
+const ACTIVE_BILL_STATUSES = ["pending", "partial", "overdue"] as const;
 
 /** Convierte a MXN usando el tipo de cambio del documento (USD u otra moneda). */
 function toMxn(amount: number, currency: string | null, fx: number | null | undefined): number {
