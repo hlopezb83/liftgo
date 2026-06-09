@@ -1,102 +1,62 @@
-# Fase 2 — Proveedores Robustos (v6.34.0)
+# Fase 3 (revisada): Export Excel de pagos masivos a proveedores
 
-Endurece el módulo de Proveedores con datos relacionales que CxP y SPEI necesitan: múltiples contactos por proveedor, condiciones de pago default (días de crédito) y un catálogo reusable de cuentas bancarias (CLABE/banco/titular).
+En lugar de generar layouts SPEI bancarios (`.txt`), generaremos un **archivo Excel (.xlsx)** con las facturas aprobadas pendientes de pago, que el usuario puede subir manualmente a su banca en línea o usar como respaldo operativo.
 
 ## Alcance
 
-### A. Base de datos (1 migración)
+### 1. Nueva pantalla / sección en Cuentas por Pagar
 
-**A1. `supplier_contacts`** (nueva tabla)
-- Campos: `supplier_id` (FK), `name`, `role` (texto: "Cobranza", "Ventas", "Almacén", "Operaciones", "Dirección", "Otro"), `email`, `phone`, `is_primary` (bool), `notes`.
-- Índice único parcial: un solo `is_primary=true` por `supplier_id`.
-- RLS: read para `authenticated`; write para admin/administrativo/auditor (igual que `suppliers`).
-- GRANT a `authenticated` y `service_role`.
-- Trigger `updated_at`.
-- **Migración de datos**: por cada `supplier` con `contact_person` o `email`/`phone`, insertar contacto primario con esos valores.
+En `/cuentas-por-pagar`, agregar un botón **"Exportar pagos a Excel"** que abra un diálogo:
 
-**A2. `suppliers.default_payment_terms_days`** (nueva columna `int`, nullable)
-- Valores típicos: 0 (contado), 15, 30, 45, 60, 90.
-- Sin enum: campo libre numérico con validación en UI (0–365).
-- Backfill: deja en `NULL` (significa "sin default, usar el de la factura").
+- **Filtros**:
+  - Rango de fechas de vencimiento (default: hoy + 7 días)
+  - Estado: solo `aprobada` con saldo > 0 (default y único por ahora)
+  - Selección de facturas (checkbox por fila, con "seleccionar todas")
+- **Vista previa** en tabla compacta zebra:
+  - Proveedor, RFC, Banco, CLABE, Cuenta, Folio factura, Vencimiento, Saldo, Monto a pagar (editable, default = saldo)
+- **Totales**: cantidad de pagos + suma total MXN
+- **Validaciones antes de exportar**:
+  - Cada proveedor seleccionado debe tener al menos una `supplier_bank_accounts` activa con CLABE válida (18 dígitos)
+  - Marcar en rojo las filas sin cuenta bancaria y bloquear export hasta resolverlas o desmarcarlas
+- Botón **"Descargar Excel"**
 
-**A3. `supplier_bank_accounts`** (nueva tabla)
-- Campos: `supplier_id`, `bank_name`, `account_holder`, `clabe` (text, 18 dígitos), `account_number` (text, opcional), `currency` (MXN/USD, default MXN), `is_primary` (bool), `notes`.
-- Validación CLABE en trigger: longitud 18 + solo dígitos (no checksum por ahora).
-- Índice único parcial: un solo `is_primary=true` por `supplier_id`.
-- RLS y GRANTs idénticos a `supplier_contacts`.
-- Trigger `updated_at`.
+### 2. Archivo Excel generado
 
-**A4. Auto-fill de `due_date` en `supplier_bills`**
-- Trigger `BEFORE INSERT`: si `due_date IS NULL` y el supplier tiene `default_payment_terms_days`, calcular `due_date = issue_date + dias`.
-- No sobreescribe due_date si ya viene asignada.
+Una sola hoja `Pagos` con columnas:
 
-### B. Hooks de datos
+| Proveedor | RFC | Banco | CLABE | Cuenta | Referencia | Concepto | Folio Factura | Fecha Vencimiento | Monto MXN |
 
-- `useSupplierContacts(supplierId)` — list/create/update/delete con invalidaciones.
-- `useSupplierBankAccounts(supplierId)` — idem.
-- Extender `useSuppliers` para incluir `default_payment_terms_days` en `Supplier`.
+- Formato MXN con separador de miles, fecha DD/MM/YYYY
+- Fila final con TOTAL
+- Nombre archivo: `pagos-proveedores-DDMMYYYY-HHmm.xlsx`
+- Usar librería ya disponible (revisar si hay `xlsx`/`exceljs` en el proyecto; si no, usar `xlsx` SheetJS — ya común en stack o se agrega)
 
-### C. UI
+### 3. Registro del lote (opcional pero recomendado)
 
-**C1. `SupplierFormFields.tsx`**
-- Agregar campo "Días de crédito (default)" tipo number, 0–365, opcional. Helper: "Se aplicará automáticamente al registrar una nueva CxP."
+Crear tabla `supplier_payment_batches` para auditar qué se exportó:
 
-**C2. `SupplierDetailPage.tsx`** — dos nuevas tarjetas/secciones colapsables:
-- **Contactos**: tabla compacta (Nombre, Rol, Email, Teléfono, Primario badge) + botón "Agregar" → `SupplierContactDialog` (nuevo).
-- **Cuentas bancarias**: tabla compacta (Banco, Titular, CLABE enmascarada `****1234`, Moneda, Primario badge) + botón "Agregar" → `SupplierBankAccountDialog` (nuevo).
-- Acciones drill-down: editar / marcar como primario / eliminar.
+- `id`, `exported_by`, `exported_at`, `bill_ids` (uuid[]), `total_amount`, `notes`
+- Tabla puente `supplier_payment_batch_items` o simplemente JSONB con snapshot
+- RLS: Admin/Administrativo lectura y escritura
+- Esto permite ver historial en una pestaña "Lotes exportados"
 
-**C3. `SupplierBillFormDialog.tsx`**
-- Al seleccionar supplier: cargar su `default_payment_terms_days`. Si existe y due_date está vacío, prefill `due_date = issue_date + días`. El usuario puede sobreescribir.
-- Mostrar hint debajo del DatePicker: "Sugerido: <fecha> (proveedor a <N> días)".
+> Si prefieres no auditar todavía, podemos omitir esta tabla y solo generar el Excel.
 
-### D. Tests
+### 4. Marcar facturas como "en proceso de pago" (opcional)
 
-- `supplierContactsPrimary.test.ts` — solo un primario por proveedor (mock supabase).
-- `supplierBankAccountClabe.test.ts` — valida regex CLABE en helper de UI.
-- `supplierBillDueDate.test.ts` — verifica cálculo de due_date desde issue_date + términos.
-
-### E. Changelog
-
-- `public/changelog/v6.34.0.json` (minor — features nuevas no breaking).
-- Update de `public/changelog.json`.
+Agregar columna `payment_in_progress_at` (timestamptz nullable) en `supplier_bills`, que se setea al exportar y se limpia cuando se registra el pago real con `register_supplier_payment`. Sirve para evitar exportar dos veces la misma factura.
 
 ## Detalles técnicos
 
-```text
-SQL clave (resumen):
+- Hook nuevo: `useExportablePayables(filters)` → lista facturas aprobadas con join a `supplier_bank_accounts` (cuenta primaria/activa).
+- Componente nuevo: `src/features/accounts-payable/components/ExportPaymentsDialog.tsx`
+- Utilidad: `src/features/accounts-payable/lib/buildPaymentsXlsx.ts` (genera blob con SheetJS y dispara descarga).
+- Si añadimos tabla de lotes: migración + RPC `create_payment_batch(p_bill_ids uuid[], p_notes text)` que también marca `payment_in_progress_at`.
+- Test unitario para `buildPaymentsXlsx` (estructura de filas, formato monto/fecha, total correcto).
+- Changelog `v6.34.2` (minor): "Export Excel de pagos masivos a proveedores".
 
-CREATE TABLE supplier_contacts (
-  id uuid pk, supplier_id uuid FK suppliers,
-  name text NOT NULL, role text, email text, phone text,
-  is_primary boolean DEFAULT false, notes text,
-  created_at, updated_at
-);
-CREATE UNIQUE INDEX supplier_contacts_one_primary
-  ON supplier_contacts(supplier_id) WHERE is_primary;
+## Preguntas antes de implementar
 
-ALTER TABLE suppliers ADD COLUMN default_payment_terms_days int;
-
-CREATE TABLE supplier_bank_accounts (
-  id uuid pk, supplier_id uuid FK suppliers,
-  bank_name text NOT NULL, account_holder text NOT NULL,
-  clabe text, account_number text,
-  currency text DEFAULT 'MXN' CHECK (currency IN ('MXN','USD')),
-  is_primary boolean DEFAULT false, notes text,
-  created_at, updated_at
-);
-CREATE UNIQUE INDEX supplier_bank_accounts_one_primary
-  ON supplier_bank_accounts(supplier_id) WHERE is_primary;
-
--- Trigger valida CLABE 18 dígitos si no es NULL.
--- Trigger en supplier_bills BEFORE INSERT prefill de due_date.
--- Backfill de contactos primarios desde columnas existentes.
-```
-
-## Fuera de alcance
-
-- CSF de proveedores (PDF SAT) — siguiente sub-fase si lo aprueban.
-- Generación de layouts SPEI (.txt bancario) — requiere catálogo, viene en Fase 3.
-- Recordatorios de cobranza por email a contactos (Fase 4).
-- Validación checksum CLABE (solo longitud por ahora).
-- UI mobile para diálogos de contactos/cuentas (desktop-first como el resto del módulo).
+1. ¿Incluimos el **registro de lotes** (`supplier_payment_batches`) y el flag `payment_in_progress_at`, o solo generamos el Excel sin rastro? La mejor practica
+2. ¿La columna **"Referencia"** del Excel se autogenera (ej. `LIFTGO-FOLIO`) o queremos que el usuario la edite por fila? se autogenera
+3. ¿Mantenemos solo formato **.xlsx**, o también ofrecemos **CSV** como alternativa rápida? solo xlsx
