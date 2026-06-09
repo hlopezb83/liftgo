@@ -1,0 +1,23 @@
+{
+  "version": "6.32.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Conciliación bancaria por CSV con emparejamiento automático",
+  "category": "feature",
+  "summary": "Nueva sección en Administración para conciliar tu estado de cuenta bancario contra los pagos registrados en LiftGo. Sube un CSV (BBVA, Banorte, Santander o formato genérico), el sistema empareja automáticamente cada movimiento con el pago correspondiente y te muestra qué falta por conciliar.",
+  "highlights": [
+    "Nuevo catálogo de Cuentas Bancarias con nombre, banco, últimos 4 dígitos, moneda y saldo inicial.",
+    "Importador de estados de cuenta CSV con 4 perfiles preconfigurados (BBVA, Banorte, Santander, Genérico) y detección de duplicados por hash.",
+    "Motor de emparejamiento automático: monto exacto + cercanía de fecha (±3 días) + referencia parcial, con score 0-100.",
+    "Tabla agrupada en 4 secciones: Sin emparejar, Sugeridas, Conciliadas e Ignoradas, con drill-down lateral para confirmar, emparejar manualmente o marcar como ignorada.",
+    "KPIs del periodo: cargos, abonos, neto y % conciliado.",
+    "Permisos: Admin/Administrativo pueden importar y conciliar; Auditor sólo lectura."
+  ],
+  "technical": [
+    "Nuevas tablas: bank_accounts, bank_statement_imports, bank_statement_lines (con enum bank_line_status y índice único por bank_account_id + hash).",
+    "RPCs SECURITY DEFINER: match_bank_statement_lines, confirm_bank_match, unmatch_bank_line — todas con SET search_path = public y validación de rol.",
+    "Parser de CSV cliente con soporte para columnas amount o cargo/abono y fechas DD/MM/YYYY, DD-MM-YYYY y YYYY-MM-DD.",
+    "Tests unitarios para csvParsers (perfiles, hash, errores de fecha).",
+    "Hooks: useBankAccounts, useBankStatementLines, useBankReconciliationMutations (importar, confirmar, ignorar, deshacer)."
+  ]
+}
