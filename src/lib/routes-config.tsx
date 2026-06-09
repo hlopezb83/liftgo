@@ -119,6 +119,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/expenses", component: ExpensesRedirect },
   { path: "/cuentas-por-pagar", component: CuentasPorPagarPage, module: "Cuentas por Pagar" },
   { path: "/cuentas-por-pagar/antiguedad", component: AgingReportPage, module: "Cuentas por Pagar" },
+  { path: "/flujo-de-caja", component: CashFlowPage, module: "Cuentas por Pagar" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
   { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },
