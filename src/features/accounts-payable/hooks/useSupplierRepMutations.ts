@@ -36,18 +36,12 @@ export function useUploadSupplierRep() {
         body: { payment_id: paymentId, xml_base64, pdf_base64 },
       });
       if (error) {
-        // Edge functions return non-2xx body. Try to extract real error.
-        const ctx = error as { context?: { body?: unknown } } & Error;
-        const ctxBody = ctx.context?.body;
-        if (ctxBody) {
+        type FnErr = Error & { context?: { body?: unknown } };
+        const ctxBody = (error as FnErr).context?.body;
+        if (typeof ctxBody === "string" && ctxBody.length > 0) {
           try {
-            const text = typeof ctxBody === "string"
-              ? ctxBody
-              : await (ctxBody as Response).text?.();
-            if (text) {
-              const parsed = JSON.parse(text);
-              if (parsed?.error) throw new Error(parsed.error);
-            }
+            const parsed = JSON.parse(ctxBody) as { error?: string };
+            if (parsed?.error) throw new Error(parsed.error);
           } catch (e) {
             if (e instanceof Error && e.message) throw e;
           }
