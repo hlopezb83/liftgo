@@ -2245,6 +2245,14 @@ export type Database = {
           payment_method: string | null
           receipt_url: string | null
           reference: string | null
+          rep_cfdi_uuid: string | null
+          rep_notes: string | null
+          rep_pdf_url: string | null
+          rep_received_at: string | null
+          rep_required: boolean
+          rep_status: string
+          rep_uploaded_by: string | null
+          rep_xml_url: string | null
         }
         Insert: {
           amount: number
@@ -2258,6 +2266,14 @@ export type Database = {
           payment_method?: string | null
           receipt_url?: string | null
           reference?: string | null
+          rep_cfdi_uuid?: string | null
+          rep_notes?: string | null
+          rep_pdf_url?: string | null
+          rep_received_at?: string | null
+          rep_required?: boolean
+          rep_status?: string
+          rep_uploaded_by?: string | null
+          rep_xml_url?: string | null
         }
         Update: {
           amount?: number
@@ -2271,6 +2287,14 @@ export type Database = {
           payment_method?: string | null
           receipt_url?: string | null
           reference?: string | null
+          rep_cfdi_uuid?: string | null
+          rep_notes?: string | null
+          rep_pdf_url?: string | null
+          rep_received_at?: string | null
+          rep_required?: boolean
+          rep_status?: string
+          rep_uploaded_by?: string | null
+          rep_xml_url?: string | null
         }
         Relationships: [
           {
@@ -2608,6 +2632,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_supplier_rep_rejected: {
+        Args: { p_notes: string; p_payment_id: string }
+        Returns: undefined
+      }
       next_booking_number: { Args: never; Returns: string }
       next_contract_number: { Args: never; Returns: string }
       next_credit_note_number: { Args: never; Returns: string }
@@ -2647,6 +2675,10 @@ export type Database = {
       }
       request_bill_reapproval: {
         Args: { p_bill_id: string; p_notes?: string }
+        Returns: undefined
+      }
+      reset_supplier_rep_pending: {
+        Args: { p_payment_id: string }
         Returns: undefined
       }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
