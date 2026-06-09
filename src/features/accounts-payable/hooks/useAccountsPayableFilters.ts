@@ -5,6 +5,7 @@ import type {
   SupplierBillApprovalStatus,
   ExpenseCategory,
 } from "../lib/supplierBillConstants";
+import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 
 interface FilterState {
   search: string;
@@ -13,6 +14,7 @@ interface FilterState {
   category: ExpenseCategory | "all";
   month: string;
   approval: SupplierBillApprovalStatus | "all";
+  rep: SupplierRepStatus | "all";
 }
 
 const INITIAL: FilterState = {
@@ -22,7 +24,18 @@ const INITIAL: FilterState = {
   category: "all",
   month: "all",
   approval: "all",
+  rep: "all",
 };
+
+function matchesRep(bill: SupplierBillListItem, rep: FilterState["rep"]): boolean {
+  if (rep === "all") return true;
+  const s = bill.rep_summary;
+  if (rep === "not_required") return s.total === 0;
+  if (rep === "pending") return s.pending > 0;
+  if (rep === "rejected") return s.rejected > 0;
+  if (rep === "received") return s.total > 0 && s.received === s.total;
+  return true;
+}
 
 function matches(bill: SupplierBillListItem, f: FilterState): boolean {
   if (f.status !== "all" && bill.status !== f.status) return false;
@@ -30,6 +43,7 @@ function matches(bill: SupplierBillListItem, f: FilterState): boolean {
   if (f.category !== "all" && bill.category !== f.category) return false;
   if (f.month !== "all" && !bill.issue_date.startsWith(f.month)) return false;
   if (f.approval !== "all" && bill.approval_status !== f.approval) return false;
+  if (!matchesRep(bill, f.rep)) return false;
   if (f.search) {
     const q = f.search.toLowerCase();
     const hay = [

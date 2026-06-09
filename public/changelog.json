@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.30.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Recepción de Complementos de Pago (REP) de proveedores",
+    "category": "feature"
+  },
+  {
     "version": "6.29.0",
     "date": "2026-06-09",
     "type": "minor",
