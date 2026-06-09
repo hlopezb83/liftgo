@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Download, FileClock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { exportCsv } from "@/lib/exportCsv";
+import { exportToCsv } from "@/lib/exportCsv";
 import { TableSkeleton } from "@/components/TableSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useAgingReport } from "../hooks/useAgingReport";
@@ -25,8 +25,8 @@ export default function AgingReportPage() {
     : 0;
 
   const handleExport = () => {
-    exportCsv(
-      "antiguedad-cuentas-por-pagar",
+    exportToCsv(
+      "antiguedad-cuentas-por-pagar.csv",
       rows.map((r) => ({
         Proveedor: r.supplierName,
         Corriente: r.current,
@@ -84,7 +84,7 @@ export default function AgingReportPage() {
           {isLoading ? (
             <div className="p-4"><TableSkeleton columnCount={7} rows={5} /></div>
           ) : rows.length === 0 ? (
-            <EmptyState icon={FileClock} title="Sin saldos pendientes" description="Todas las facturas están pagadas o canceladas." />
+            <EmptyState icon={FileClock} title="Sin saldos pendientes" subtitle="Todas las facturas están pagadas o canceladas." />
           ) : (
             <Table>
               <TableHeader>

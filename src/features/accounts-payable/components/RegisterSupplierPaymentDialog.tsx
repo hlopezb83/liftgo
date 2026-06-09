@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Upload, X, Loader2 } from "lucide-react";
 import { DatePickerField } from "@/components/DatePickerField";
 import { FormActions } from "@/components/FormActions";
 import { formatCurrency } from "@/lib/formatCurrency";
@@ -14,6 +16,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
 import { PAYMENT_METHODS } from "../lib/supplierBillConstants";
 import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
+import { useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
 
 interface Props {
   open: boolean;
