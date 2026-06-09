@@ -55,6 +55,24 @@ export function SupplierFormFields({ form, setField }: Props) {
       </div>
 
       <div className="space-y-3 border-t pt-3">
+        <p className="text-sm font-medium text-muted-foreground">Condiciones Comerciales</p>
+        <div className="space-y-1.5">
+          <Label>Días de crédito (default)</Label>
+          <Input
+            type="number"
+            min={0}
+            max={365}
+            placeholder="Ej. 30"
+            value={form.default_payment_terms_days}
+            onChange={(e) => setField("default_payment_terms_days", e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Se aplicará automáticamente como vencimiento al registrar nuevas CxP.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-3 border-t pt-3">
         <p className="text-sm font-medium text-muted-foreground">Contacto</p>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
