@@ -131,6 +131,7 @@ export default function InvoiceDetail() {
         ppdStamped={invoice.metodo_pago === "PPD" && cfdiStatus === "stamped"}
         creditedAmount={creditedAmount}
       />
+      {id && <PaymentIntentsSection invoiceId={id} />}
       <InvoiceCreditNotesCard invoice={invoice} totalPaid={totalPaid} />
       <InvoiceHistoryCard invoiceId={id} />
 
