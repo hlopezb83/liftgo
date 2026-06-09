@@ -1,82 +1,78 @@
-# PR 2 — Cuentas por Pagar (UI)
+# PR 3 — Consolidación de Gastos en Cuentas por Pagar
 
-Construir el módulo `/cuentas-por-pagar` sobre las tablas `supplier_bills` / `supplier_payments` ya creadas en PR 1. El módulo de Gastos Operativos se conserva intacto en este PR (se reemplazará en PR 3 junto con la migración del parser CFDI).
+Cerrar la transición iniciada en PR 1 y PR 2: el módulo `/expenses` deja de ser la fuente operativa y se redirige hacia `/cuentas-por-pagar`. El parser CFDI se actualiza para crear `supplier_bills` directamente, y se añaden tres capacidades clave de control financiero: antigüedad de saldos, comprobante de pago subido a Storage y bitácora de actividad completa.
 
 ## Alcance
 
-### 1. Navegación y ruta
-- Nueva entrada en sidebar dentro de "Administración": **Cuentas por Pagar** (icono `FileClock`), ruta `/cuentas-por-pagar`.
-- Permisos: admin, administrativo (CRUD); auditor (solo lectura). Sigue patrón `RoleGuard`.
+### 1. Migración del parser CFDI (`parse-cfdi-expense`)
+- La edge function pasa a insertar en `supplier_bills` (no `operating_expenses`).
+- Detecta duplicados por `cfdi_uuid` (índice único parcial ya existe) y devuelve la factura existente en lugar de crear una nueva.
+- Toma de XML: UUID, RFC emisor → match a `suppliers` (auto-crea si no existe vía `link_rfc_to_supplier` ya disponible), fecha de emisión, método SAT (PUE/PPD), moneda, tipo de cambio, subtotal, impuestos trasladados (IVA), retenciones, total.
+- `due_date` = emisión + 30 días si PPD; = emisión si PUE.
+- Se renombra el botón en UI de "Importar XML" hacia el nuevo flujo dentro de `/cuentas-por-pagar`.
 
-### 2. Listado `CuentasPorPagarPage`
-- KPIs arriba: Total pendiente, Vencido, Por vencer (≤7 días), Pagado mes actual — en MXN.
-- Filtros: búsqueda (folio interno, folio fiscal UUID, descripción, proveedor), proveedor (select), estatus (`pending | partial | paid | overdue | cancelled | draft`), mes de emisión (default "Todos"), categoría.
-- Tabla compacta zebra con columnas: Folio (CXP-XXXX), Proveedor, Emisión, Vence, Total, Saldo, Estatus (StatusBadge), Categoría.
-- Drill-down lateral (Sheet) al hacer click en fila — sin columna de acciones.
-- Mobile: `MobileCardList`.
-- Paginación cliente 25 (`useListPage`).
+### 2. Reemplazo de `/expenses`
+- La ruta `/expenses` redirige a `/cuentas-por-pagar` (manteniendo el deep link funcional desde dashboard/reportes).
+- Se elimina la entrada del sidebar "Gastos Operativos".
+- `OperatingExpensesPage` se borra junto con sus hooks/diálogos.
+- Reportes (P&L) consultan `supplier_bills` con `status != 'cancelled'` agrupando por categoría — mantiene la fórmula actual de utilidad y se conserva la regla de excluir software/depreciación.
+- Dashboard KPI "Gastos del mes" pasa a leer `supplier_bills.total` del mes en curso.
 
-### 3. Drill-down `SupplierBillDetailSheet`
-- Encabezado: folio, proveedor, estatus, total, saldo destacado.
-- Secciones:
-  - Datos fiscales: UUID, método SAT (PUE/PPD), moneda, tipo de cambio, subtotal, IVA, retenciones.
-  - Fechas: emisión, vencimiento, días restantes / días vencido.
-  - Pagos aplicados: tabla con fecha, monto, método, referencia, comprobante.
-  - Descripción / notas.
-  - Links a XML/PDF si existen.
-- Acciones (según rol): Registrar Pago, Editar, Cancelar (solo si no tiene pagos), Marcar como borrador.
+### 3. Subida de comprobante de pago
+- Bucket privado `supplier-payment-receipts` (RLS: admin/administrativo upload+read, auditor read).
+- `RegisterSupplierPaymentDialog` añade dropzone (PDF/JPG/PNG, max 5 MB) que sube antes de invocar la RPC y guarda la URL firmada en `supplier_payments.receipt_url`.
+- En el drill-down, los pagos muestran link "Ver comprobante" cuando existe.
 
-### 4. Diálogos
-- **`SupplierBillFormDialog`** (crear/editar manual): proveedor, categoría, descripción, emisión, vencimiento, moneda, tipo de cambio, subtotal, IVA, retenciones, total auto-calculado, UUID opcional, método SAT. Validación Zod. Para editar solo si `status` ∈ {`draft`, `pending`} y sin pagos.
-- **`RegisterSupplierPaymentDialog`**: monto (pre-llenado con saldo), fecha (default hoy), método (efectivo / transferencia / cheque / tarjeta), cuenta bancaria, referencia, notas, comprobante (upload opcional). Llama RPC `register_supplier_payment`. Optimistic update + invalidate.
-- **`CancelSupplierBillDialog`**: confirmación + motivo (notes).
+### 4. Reporte de Antigüedad de Saldos (Aging)
+- Nueva página `/cuentas-por-pagar/antiguedad` (link desde header CxP).
+- Tabla pivote por proveedor con columnas: Corriente, 1–30, 31–60, 61–90, +90, Total.
+- Calculada en cliente desde `supplier_bills` con `balance > 0`, basada en `due_date` vs `nowMty()`.
+- Exportable a CSV (`exportCsv`).
+- KPI extra: total vencido y % vs cartera total.
 
-### 5. Hooks (`src/features/accounts-payable/`)
-- `useSupplierBills(filters)` — query con `suppliers(name)` joined.
-- `useSupplierBill(id)` — detalle + pagos.
-- `useSupplierBillMutations` — create / update / cancel.
-- `useRegisterSupplierPayment` — wrapper RPC.
-- `useAccountsPayableKpis` — agregados para los 4 KPIs.
+### 5. Bitácora de actividad
+- Eventos en `activity_feed`: `supplier_bill.created`, `supplier_bill.cancelled`, `supplier_payment.registered` (con monto y folio).
+- Traducciones en `activityTranslations.ts`.
 
-### 6. Bitácora / actividad
-- Registrar en `activity_feed` eventos: factura creada, pago registrado, cancelación.
+### 6. Audit Trail
+- Añadir `supplier_bills` y `supplier_payments` a las 11 tablas con diff row-level existentes (subir a 13).
 
-### 7. Changelog
-- `public/changelog.json` + `public/changelog/v6.27.0.json` (minor, "Cuentas por Pagar: módulo operativo").
+### 7. Tests
+- `useAccountsPayableKpis` — recalcula correctamente con bills cancelled excluidas.
+- Aging — buckets correctos para fechas frontera (0, 30, 31, 60, 61, 90, 91 días).
+- `parse-cfdi-expense` — duplicado por UUID devuelve existente; PPD asigna due_date +30.
 
-## Fuera de alcance (queda para PR 3)
-- Reemplazo de `/expenses` por CxP.
-- Enriquecimiento de `parse-cfdi-expense` para auto-crear `supplier_bills` desde XML.
-- Reporte de antigüedad (aging) y flujo de caja proyectado.
-- Aprobaciones por monto / rol.
-- Recurrentes.
+### 8. Changelog
+- `public/changelog.json` + `public/changelog/v6.28.0.json` (minor, "Consolidación de Gastos en Cuentas por Pagar").
 
-## Estructura de archivos
-
-```text
-src/features/accounts-payable/
-  pages/CuentasPorPagarPage.tsx
-  components/
-    SupplierBillDetailSheet.tsx
-    SupplierBillFormDialog.tsx
-    RegisterSupplierPaymentDialog.tsx
-    CancelSupplierBillDialog.tsx
-    AccountsPayableKpiCards.tsx
-    AccountsPayableFilters.tsx
-  hooks/
-    useSupplierBills.ts
-    useSupplierBill.ts
-    useSupplierBillMutations.ts
-    useRegisterSupplierPayment.ts
-    useAccountsPayableKpis.ts
-  lib/
-    supplierBillConstants.ts  (labels estatus, métodos pago, categorías)
-    supplierBillFilters.ts
-```
+## Fuera de alcance (queda para PR 4)
+- Aprobaciones por monto / rol antes de pago.
+- Facturas recurrentes (renta, servicios fijos).
+- Flujo de caja proyectado (cash-flow forecast) por semana.
+- Conciliación bancaria.
+- Complemento de pago CFDI 2.0 (PPD) automático.
 
 ## Notas técnicas
-- Reutiliza `DataTableV2` + `useLiftgoTable`, `ListPageLayout`, `useDialogState`, `SearchBar`, `StatusBadge`, `formatCurrency`, `nowMty`, `toYMD`.
-- Estatus `overdue` se calcula vía trigger DB pero se reverifica visualmente comparando `due_date < hoy` y `balance > 0`.
-- Subida de comprobante: bucket `supplier-payment-receipts` (privado) — si no existe se crea en migración pequeña dentro del PR.
-- Sin tocar `operating_expenses` ni `parse-cfdi-expense`.
-- Tests mínimos: `useAccountsPayableKpis` cálculo, `RegisterSupplierPaymentDialog` validación (no permite monto > saldo).
+
+```text
+supabase/
+  migrations/<ts>_cxp_consolidation.sql    # bucket + audit triggers + drop operating_expenses (al final)
+  functions/parse-cfdi-expense/index.ts    # reescritura: target = supplier_bills
+
+src/features/accounts-payable/
+  pages/AgingReportPage.tsx
+  components/AgingMatrix.tsx
+  hooks/useAgingReport.ts
+  components/RegisterSupplierPaymentDialog.tsx   # + dropzone comprobante
+
+src/features/expenses/                     # ELIMINADO
+src/features/reports/hooks/...             # apuntan a supplier_bills
+src/lib/routes-config.tsx                  # /expenses → redirect
+src/layouts/sidebar/navConfig.ts           # quitar entrada Gastos
+```
+
+- La migración drop de `operating_expenses` se hace al final, una vez verificado que `legacy_expense_id` cubre todos los registros históricos (verificación en migración con `RAISE EXCEPTION` si hay huérfanos).
+- El bucket usa políticas RLS scoped por rol vía `has_role`.
+- El parser conserva compatibilidad: si llega un XML sin UUID o malformado, devuelve 400 con detalle.
+
+¿Procedemos con PR 3 o prefieres reordenar (por ejemplo, primero recurrentes/aprobaciones)?
