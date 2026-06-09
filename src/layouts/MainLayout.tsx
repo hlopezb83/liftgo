@@ -40,7 +40,7 @@ function HotkeysHost() {
     combos: {
       "mod+shift+n": () => actions.onNew?.(),
       "mod+shift+f": () => focusSearchInput(),
-      "mod+slash": () => setHelpOpen((v) => !v),
+      "mod+/": () => setHelpOpen((v) => !v),
       "?": () => setHelpOpen((v) => !v),
     },
     sequences,
