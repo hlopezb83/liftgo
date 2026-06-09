@@ -1,0 +1,24 @@
+{
+  "version": "6.27.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Cuentas por Pagar: módulo operativo",
+  "category": "feature",
+  "summary": "Segundo PR de Cuentas por Pagar: nueva sección /cuentas-por-pagar con listado completo, KPIs financieros, drill-down lateral, alta manual de facturas, registro transaccional de pagos y cancelación controlada. El módulo de Gastos Operativos se conserva intacto y se reemplazará en el siguiente PR junto con el parser CFDI enriquecido.",
+  "highlights": [
+    "Nueva ruta /cuentas-por-pagar con tabla compacta, paginación y búsqueda por folio interno, UUID fiscal, proveedor o descripción.",
+    "Filtros por estatus, proveedor, mes de emisión y categoría — default 'todos los meses'.",
+    "Tarjetas de KPI: pendiente total, vencido, por vencer en 7 días y pagado en el mes actual (formateado en MXN).",
+    "Drill-down lateral con datos fiscales, fechas, totales en moneda original, retenciones, pagos aplicados y enlace a comprobante.",
+    "Diálogo de alta manual con cálculo automático de total y validación Zod (proveedor, categoría, subtotal e impuestos).",
+    "Registro de pago vía RPC register_supplier_payment con validación de monto contra saldo y métodos de pago en español.",
+    "Cancelación de factura con motivo, restringida a facturas sin pagos aplicados.",
+    "Permisos: admin y administrativo CRUD total; auditor solo lectura."
+  ],
+  "technical": [
+    "Hooks: useSupplierBills, useSupplierBill, useSupplierBillMutations, useRegisterSupplierPayment, useAccountsPayableKpis, useAccountsPayableFilters.",
+    "Reusa DataTableV2, ListPageLayout, StatusBadge, SupplierSelector, DatePickerField y FormActions.",
+    "Multi-moneda via formatCurrencyWithCode (MXN/USD) — el saldo y totales respetan la moneda de la factura.",
+    "Permisos en role_permissions para el nuevo módulo 'Cuentas por Pagar'."
+  ]
+}
