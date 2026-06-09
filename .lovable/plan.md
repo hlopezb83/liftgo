@@ -1,92 +1,77 @@
-# PR 7 — Conciliación bancaria
+# Endurecimiento PR 5 + PR 7
 
-## Objetivo
-Subir un estado de cuenta bancario en CSV, normalizar los movimientos y emparejarlos contra los pagos ya registrados (cobros de `payments` + pagos a proveedores de `supplier_payments`). Marcar cada movimiento como **conciliado**, **sugerido** o **sin emparejar**, con emparejamiento manual cuando la sugerencia no aplique.
+Objetivo: cerrar deuda técnica de las dos features de CxP/Tesorería antes de seguir construyendo encima. Sin features nuevas — solo tests, validaciones y pulido UI.
 
-Sin integración con APIs bancarias — sólo CSV manual. Multi-banco mediante un catálogo simple de cuentas.
+---
 
-## Alcance funcional
+## Parte A — PR 5: Complemento de Pago (REP) CFDI
 
-### Catálogo de cuentas bancarias
-- Nueva tabla `bank_accounts` (nombre, banco, últimos 4 dígitos, moneda, saldo inicial opcional, activo).
-- ABC mínimo en `/cuentas-bancarias` (Admin + Administrativo).
+### A1. Tests del trigger `set_supplier_payment_rep_required`
+Archivo nuevo: `supabase/migrations/_tests/` no aplica — se añade test SQL via test edge function o test Vitest contra DB de pruebas. Camino elegido: **test Vitest** en `src/test/supplierRepTrigger.test.ts` con mocks de Supabase, validando la lógica equivalente del trigger (factura PPD + monto > 0 ⇒ `rep_required=true`; PUE ⇒ `false`; cancelación ⇒ reset).
 
-### Importación de estado de cuenta
-- Página `/conciliacion-bancaria` con selector de cuenta bancaria y dropzone CSV.
-- Parser cliente acepta formato estándar (fecha, descripción, monto, referencia). Soporta perfiles preconfigurados: **BBVA**, **Banorte**, **Santander**, **Genérico**.
-- Detección de duplicados por hash (`account_id + fecha + monto + referencia`).
-- Cada fila se inserta en `bank_statement_lines` con `status = 'unmatched'`.
+### A2. Tests de la edge function `validate-supplier-rep`
+Archivo nuevo: `supabase/functions/validate-supplier-rep/index_test.ts` siguiendo convención Deno (ver `stamp-cfdi/index_test.ts`). Casos:
+- XML no tipo "P" → 400
+- RFC emisor no coincide con proveedor → 400
+- UUID factura no referenciado → 400
+- Monto no coincide (tolerancia 0.01) → 400
+- UUID REP duplicado en otro pago → 409
+- Caso feliz → 200 + upload XML
 
-### Motor de emparejamiento
-- Al importar, una RPC `match_bank_statement_lines(account_id, date_window)`:
-  1. Para cada línea de **cargo** (salida del banco): busca en `supplier_payments` (mismo importe ±$0.01, fecha ±3 días, cuenta destino opcional) → si hay un único candidato la marca `status = 'matched'` y guarda `matched_payment_id`. Si hay varios, `status = 'suggested'` y guarda el mejor en `suggested_payment_id`.
-  2. Para cada línea de **abono** (entrada al banco): busca en `payments` (cobros a clientes) con la misma lógica.
-- Score: importe exacto (60) + cercanía de fecha (0–25) + match parcial de referencia/folio en descripción (0–15).
+### A3. Backfill PPD históricos sin REP
+Migración nueva que recorre `supplier_payments` ligados a `supplier_bills` con `payment_method_sat='PPD'` donde `rep_required` esté en `false`/`null` y lo marca como `true` con `rep_status='pending'`. Se ejecuta una sola vez vía migration con `WHERE` defensivo (no toca pagos ya `received` o `not_applicable`).
 
-### UI de conciliación
-- Tabla con 3 secciones colapsables: **Sin emparejar**, **Sugeridas** (con botón "Confirmar"), **Conciliadas**.
-- Click en una línea → side sheet con detalle del movimiento + candidatos manuales (buscador por monto/fecha/referencia) para emparejar.
-- KPI: total cargos, total abonos, saldo del periodo, % conciliado.
-- Acciones: "Confirmar sugerencia", "Emparejar manualmente", "Marcar como ignorada" (gasto bancario, comisión, etc.), "Desemparejar".
-- `MobileCardList` en móvil.
+### A4. Refinamiento UI del badge REP
+- `SupplierPaymentRepBadge.tsx` (o equivalente actual): tooltip con fecha de carga (`rep_received_at`) y UUID truncado.
+- Botón "Descargar XML/PDF" cuando `rep_status='received'` usando signed URL del bucket `cfdi-files`.
+- Color del badge: `received` verde, `pending` ámbar, `rejected` rojo, `not_applicable` neutro.
 
-### Indicadores cruzados
-- En detalle de `payments` y `supplier_payments` mostrar badge "Conciliado el DD/MM/YYYY" cuando exista emparejamiento.
+---
 
-```text
-[ Cuenta: BBVA •4521 ▾ ]  [ Subir CSV ]  [ Periodo: 01–31 May ]   42 / 58 conciliados (72%)
+## Parte B — PR 7: Conciliación bancaria
 
-▾ Sin emparejar (12)
-   05/05  -$12,450.00  PAGO PROV ACME      [Emparejar…]  [Ignorar]
-▾ Sugeridas (8)
-   07/05  -$ 8,300.00  TRANSFER 0012       → SP-2026-014 ($8,300, 07/05)  [Confirmar] [Otro…]
-▾ Conciliadas (38)
-   ...
-```
+### B1. Tests de matching scoring
+Archivo nuevo: `src/features/bank-reconciliation/lib/__tests__/matchingScore.test.ts` (tests en TS contra una función helper extraída del RPC). Para mantener paridad, se extrae a `matchingScore.ts` la fórmula `score(amount, date, reference)` y se prueba:
+- Match exacto: 100
+- Mismo monto + fecha exacta + sin ref → 85
+- Mismo monto + 3 días + ref parcial → 75-80
+- Monto distinto → 0
 
-## Cambios técnicos
+### B2. Badge "Conciliado el DD/MM" en detalle de payments
+- `payments` y `supplier_payments` ya quedan ligados vía `bank_statement_lines.matched_payment_id` / `matched_supplier_payment_id`. Se añade hook `useReconciliationStatus(paymentId)` que consulta la línea conciliada.
+- Se renderiza badge en `PaymentDetailDialog.tsx` y `SupplierPaymentDetailSheet.tsx`: "Conciliado el DD/MM/YYYY · Cuenta ABC ····1234".
 
-### Migración
-- `bank_accounts (id, name, bank, last4, currency default 'MXN', initial_balance numeric default 0, is_active bool default true)` + GRANTs + RLS por rol (Admin/Administrativo CRUD, Auditor read).
-- `bank_statement_imports (id, bank_account_id, file_name, period_start, period_end, lines_count, imported_by)` para historial.
-- `bank_statement_lines (id, import_id, bank_account_id, posted_date, description, amount, signed_amount, reference, hash, status enum 'unmatched'|'suggested'|'matched'|'ignored', matched_payment_id uuid, matched_supplier_payment_id uuid, suggested_payment_id, suggested_supplier_payment_id, match_score int, matched_at, matched_by, ignored_reason)` con índice único en `(bank_account_id, hash)`.
-- RPC `public.match_bank_statement_lines(p_import_id uuid)` `SECURITY DEFINER SET search_path = public` con la lógica de scoring.
-- RPC `public.confirm_bank_match(line_id, payment_id?, supplier_payment_id?)` y `public.unmatch_bank_line(line_id)`.
+### B3. Vista de historial de imports
+- Nueva ruta `/conciliacion-bancaria/historial` con tabla zebra de `bank_statement_imports` (cuenta, archivo, período, líneas, % conciliado, importado por, fecha).
+- Drill-down sheet con líneas del import y opción de eliminar import completo (cascade ya configurado en DB; restringido a Admin).
 
-### Código nuevo
-```
-src/features/bank-reconciliation/
-  pages/BankAccountsPage.tsx
-  pages/BankReconciliationPage.tsx
-  components/BankAccountFormDialog.tsx
-  components/BankStatementUploader.tsx
-  components/BankStatementLineRow.tsx
-  components/BankLineDetailSheet.tsx
-  components/ManualMatchPicker.tsx
-  components/ReconciliationKpiCards.tsx
-  hooks/useBankAccounts.ts
-  hooks/useBankStatementLines.ts
-  hooks/useBankReconciliationMutations.ts
-  lib/csvParsers.ts                # perfiles BBVA / Banorte / Santander / Genérico
-  lib/bankReconciliationConstants.ts
-  lib/__tests__/csvParsers.test.ts
-  lib/__tests__/matching.test.ts
-```
-Navegación: nuevo grupo "Tesorería" o reutilizar "Finanzas" con `Cuentas bancarias` y `Conciliación bancaria`.
+---
 
-### Tests
-- Parser CSV de cada perfil (encabezados, formato de fecha, signo de monto, descripción multilínea).
-- Dedupe por hash al re-importar el mismo CSV.
-- Matching: caso 1 candidato exacto, múltiples candidatos (score), sin candidatos, fechas en frontera de ±3 días.
+## Sección técnica
 
-### Permisos
-- `RoleGuard module="Cuentas por Pagar"` mínimo read; mutaciones (importar, confirmar, ignorar) requieren Admin o Administrativo.
+**Migraciones (1 sola):**
+- Backfill PPD: `UPDATE supplier_payments SET rep_required=true, rep_status='pending' WHERE ...`.
 
-### Changelog
-`v6.32.0` (minor) — "Conciliación bancaria por CSV con emparejamiento automático".
+**Archivos nuevos:**
+- `src/test/supplierRepTrigger.test.ts`
+- `supabase/functions/validate-supplier-rep/index_test.ts`
+- `src/features/bank-reconciliation/lib/matchingScore.ts` + `__tests__/matchingScore.test.ts`
+- `src/features/bank-reconciliation/hooks/useReconciliationStatus.ts`
+- `src/features/bank-reconciliation/hooks/useBankStatementImports.ts`
+- `src/features/bank-reconciliation/pages/BankStatementImportsHistoryPage.tsx`
+- `src/features/bank-reconciliation/components/ImportHistoryDetailSheet.tsx`
+- `public/changelog/v6.33.0.json`
 
-## Fuera de alcance
-- Integración directa con APIs de bancos (Open Banking / SAT) — fase posterior.
-- Conciliación de tarjetas de crédito empresariales.
-- Reglas personalizables de matching por el usuario.
-- Sub-emparejamiento (una línea bancaria contra varios pagos parciales).
+**Archivos editados:**
+- Badge REP en componente de detalle de `supplier_payments`
+- `PaymentDetailDialog.tsx` (CxC) y detalle de `supplier_payments` (CxP) → badge conciliación
+- `src/lib/routes-config.tsx` + `src/layouts/sidebar/navConfig.ts` (sub-ruta historial)
+- `public/changelog.json`
+
+**Changelog:** `v6.33.0` (patch — endurecimiento, sin features nuevas user-facing salvo historial).
+
+**Fuera de alcance:**
+- Cambios al algoritmo de matching (solo se extrae a función testeable).
+- Cancelación / re-envío de REP automatizado.
+- Conciliación de tarjetas de crédito.
+- Recordatorios de REP pendiente por email (queda para fase de notificaciones).

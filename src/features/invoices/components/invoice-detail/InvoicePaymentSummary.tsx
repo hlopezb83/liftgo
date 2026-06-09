@@ -11,6 +11,7 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { useStampPaymentComplement, useCancelPaymentComplement } from "@/features/invoices/hooks/invoices/usePaymentComplement";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { ReconciliationBadge } from "@/features/bank-reconciliation/components/ReconciliationBadge";
 
 interface InvoicePaymentSummaryProps {
   totalPaid: number;
@@ -83,7 +84,12 @@ export function InvoicePaymentSummary({ totalPaid, balance, payments, ppdStamped
         header: "Monto",
         accessorFn: (p) => Number(p.amount),
         meta: { align: "right" },
-        cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span>,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-2">
+            <ReconciliationBadge paymentId={row.original.id} />
+            <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span>
+          </div>
+        ),
       },
     ];
 
