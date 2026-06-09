@@ -15,6 +15,7 @@ async function insertCostoVentaIfSold(forkliftId: string, toStatus: string) {
   if (cost <= 0) return;
   const today = toYMD(nowMty()) ?? "";
   const { error: billError } = await supabase.from("supplier_bills").insert({
+    bill_number: "",
     category: "costo_venta",
     description: `Costo de venta: ${fl?.name ?? "Montacargas"}`,
     subtotal: cost,
