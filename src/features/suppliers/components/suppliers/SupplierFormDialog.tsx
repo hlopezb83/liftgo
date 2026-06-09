@@ -21,12 +21,15 @@ interface SupplierFormDialogProps {
 export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFormDialogProps) {
   const createSupplier = useCreateSupplier();
   const updateSupplier = useUpdateSupplier();
+  const uploadDoc = useUploadDocument();
   const [form, setForm] = useState<SupplierForm>(emptySupplierForm);
   const [tab, setTab] = useState("manual");
+  const [csfFile, setCsfFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setTab("manual");
+    setCsfFile(null);
     if (supplier) {
       setForm({
         name: supplier.name,
@@ -53,7 +56,8 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
   const setField = <K extends keyof SupplierForm>(key: K, value: SupplierForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleCsfParsed = useCallback((patch: Partial<SupplierForm>) => {
+  const handleCsfParsed = useCallback((patch: Partial<SupplierForm>, file: File) => {
+    setCsfFile(file);
     setForm((prev) => {
       const next = { ...prev };
       (Object.keys(patch) as (keyof SupplierForm)[]).forEach((k) => {
@@ -66,6 +70,15 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
     });
   }, []);
 
+  const uploadCsfIfAny = async (supplierId: string) => {
+    if (!csfFile) return;
+    try {
+      await uploadDoc.mutateAsync({ file: csfFile, entityType: "supplier", entityId: supplierId });
+    } catch (e) {
+      notifyError({ error: e, message: "Proveedor guardado, pero falló la subida de la CSF" });
+    }
+  };
+
   const handleSave = () => {
     if (!form.name.trim()) { notifyError({ message: "El nombre es requerido" }); return; }
     const termsRaw = form.default_payment_terms_days.trim();
@@ -74,6 +87,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
       notifyError({ message: "Días de crédito debe estar entre 0 y 365" });
       return;
     }
+    const normalizedRfc = form.rfc.trim() ? form.rfc.trim().toUpperCase() : null;
     const payload = {
       name: form.name.trim(),
       contact_person: form.contact_person || null,
@@ -81,18 +95,23 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
       phone: form.phone || null,
       website: form.website || null,
       address: form.address || null,
-      rfc: form.rfc || null,
+      rfc: normalizedRfc,
       regimen_fiscal: form.regimen_fiscal || null,
       category: form.category || null,
       notes: form.notes || null,
       default_payment_terms_days: termsNum,
     };
     if (supplier) {
-      updateSupplier.mutate({ id: supplier.id, ...payload }, { onSuccess: () => onOpenChange(false) });
+      updateSupplier.mutate({ id: supplier.id, ...payload }, {
+        onSuccess: async () => { await uploadCsfIfAny(supplier.id); onOpenChange(false); },
+      });
     } else {
-      createSupplier.mutate(payload, { onSuccess: () => onOpenChange(false) });
+      createSupplier.mutate(payload, {
+        onSuccess: async (created) => { if (created?.id) await uploadCsfIfAny(created.id); onOpenChange(false); },
+      });
     }
   };
+
 
   const formContent = (
     <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
