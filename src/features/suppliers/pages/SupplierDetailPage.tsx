@@ -129,6 +129,10 @@ export default function SupplierDetailPage() {
         <SupplierBankAccountsSection supplierId={supplier.id} />
       </div>
 
+      <DocumentAttachments entityType="supplier" entityId={supplier.id} />
+
+
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="flex items-center gap-4 py-5">
