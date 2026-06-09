@@ -77,13 +77,16 @@ export default function PortalInvoiceDetail() {
         <Button variant="ghost" size="icon" onClick={() => navigate("/portal/invoices")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">{invoice.invoice_number}</h1>
           <div className="flex items-center gap-2 mt-1">
             <StatusBadge status={invoice.status} />
             <span className="text-sm text-muted-foreground">Emitida: {formatDateDisplay(invoice.issued_at)}</span>
           </div>
         </div>
+        {balance > 0 && invoice.status !== "cancelled" && (
+          <Button onClick={() => navigate(`/portal/invoices/${invoice.id}/pago`)}>Pagar factura</Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

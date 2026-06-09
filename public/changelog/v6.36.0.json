@@ -1,0 +1,13 @@
+{
+  "version": "6.36.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Portal cliente: pago STP, aceptación de cotizaciones y estado de cuenta",
+  "category": "feature",
+  "changes": [
+    { "type": "feature", "description": "El cliente puede generar ficha STP (CLABE, monto, concepto) y reportar transferencia con comprobante." },
+    { "type": "feature", "description": "Aceptación o rechazo de cotizaciones desde el portal con checkbox de términos." },
+    { "type": "feature", "description": "Estado de cuenta en vivo con saldos por factura, pagos aplicados y descarga PDF." },
+    { "type": "feature", "description": "Sección admin en factura para aprobar/rechazar los reportes de pago del cliente." }
+  ]
+}

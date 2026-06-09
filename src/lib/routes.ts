@@ -85,8 +85,12 @@ export const ROUTES = {
     login: "/portal/login",
     dashboard: "/portal",
     rentals: "/portal/rentals",
+    quotes: "/portal/quotes",
+    quoteDetail: (id: string) => `/portal/quotes/${id}`,
     invoices: "/portal/invoices",
     invoiceDetail: (id: string) => `/portal/invoices/${id}`,
+    invoicePayment: (id: string) => `/portal/invoices/${id}/pago`,
+    statement: "/portal/estado-cuenta",
     contracts: "/portal/contracts",
   },
 } as const;
