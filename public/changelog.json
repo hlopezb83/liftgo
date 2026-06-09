@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.36.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Portal cliente: pago STP, aceptación de cotizaciones y estado de cuenta",
+    "category": "feature"
+  },
+  {
     "version": "6.35.0",
     "date": "2026-06-09",
     "type": "minor",
