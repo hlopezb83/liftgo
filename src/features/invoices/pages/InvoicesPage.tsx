@@ -17,6 +17,7 @@ import { formatDateDisplay } from "@/lib/utils";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
@@ -26,6 +27,7 @@ export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();
   const navigate = useNavigate();
   const generateRecurring = useGenerateRecurringInvoices();
+  usePageActions({ onNew: () => navigate("/invoices/new"), newLabel: "Nueva factura" });
 
   const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, filtered } =
     useInvoicesFilters(invoices);

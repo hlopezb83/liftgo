@@ -32,6 +32,7 @@ import { AccountsPayableKpiCards } from "../components/AccountsPayableKpiCards";
 import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
 import { SupplierBillDetailSheet } from "../components/SupplierBillDetailSheet";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 export default function CuentasPorPagarPage() {
   const { bills, kpis, isLoading } = useAccountsPayableKpis();
@@ -40,6 +41,8 @@ export default function CuentasPorPagarPage() {
   const createDialog = useToggleDialog();
   const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  usePageActions({ onNew: createDialog.openDialog, newLabel: "Nueva factura de proveedor" });
 
   const columns = useMemo<ColumnDef<SupplierBillListItem>[]>(() => [
     {

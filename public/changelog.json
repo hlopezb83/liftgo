@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.35.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Atajos de teclado globales",
+    "category": "feature"
+  },
+  {
     "version": "6.34.2",
     "date": "2026-06-09",
     "type": "minor",

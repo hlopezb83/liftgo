@@ -16,6 +16,7 @@ import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { FleetMobileCard } from "@/features/fleet/components/fleet/FleetRowAndCard";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useFleetColumns } from "@/features/fleet/hooks/fleet/useFleetColumns";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
@@ -30,6 +31,7 @@ export default function Fleet() {
   const search = searchParams.get("q") || "";
   const statusFilter = searchParams.get("status") || "all";
   const navigate = useNavigate();
+  usePageActions({ onNew: () => navigate("/fleet/new"), newLabel: "Nuevo equipo" });
 
   const locationMap = useMemo(() => {
     const map = new Map<string, string>();

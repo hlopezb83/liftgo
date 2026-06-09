@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { SupplierFormDialog } from "@/features/suppliers/components/suppliers/SupplierFormDialog";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 export default function SuppliersPage() {
   const { data: suppliers, isLoading } = useSuppliers();
@@ -88,6 +89,10 @@ export default function SuppliersPage() {
     setEditing(null);
     setDialogOpen(true);
   };
+
+  usePageActions({ onNew: openCreate, newLabel: "Nuevo proveedor" });
+
+
 
   const handleExport = () => {
     exportToCsv(

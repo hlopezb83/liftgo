@@ -1,0 +1,15 @@
+{
+  "version": "6.35.0",
+  "date": "2026-06-09",
+  "title": "Atajos de teclado globales",
+  "category": "feature",
+  "description": "Sistema completo de atajos de teclado para acelerar el trabajo diario en LiftGo desde escritorio.",
+  "changes": [
+    "Nuevo panel de ayuda de atajos: presiona ? o Ctrl+/ para abrirlo en cualquier página.",
+    "Navegación rápida estilo Gmail: presiona g y luego una letra para ir a otro módulo (g d Panel, g c Clientes, g q Cotizaciones, g b Reservas, g f Facturas, g e Equipos, g m Mantenimiento, g p Proveedores, g x Gastos, g a Cuentas por Pagar, g r Reportes, g s CRM, g k Calendario).",
+    "Atajos contextuales en listados: N abre el formulario de 'Nuevo', R refresca la lista, / enfoca la barra de búsqueda.",
+    "Ctrl+Shift+N dispara la acción 'Nuevo' de la página actual; Ctrl+Shift+F enfoca la búsqueda.",
+    "Atajos disponibles en Clientes, Cotizaciones, Reservas, Facturas, Equipos, Mantenimiento, Proveedores, CRM y Cuentas por Pagar.",
+    "Ctrl+K (búsqueda global) se mantiene como antes; ahora forma parte de un sistema unificado de atajos."
+  ]
+}

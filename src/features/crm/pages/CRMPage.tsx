@@ -13,6 +13,7 @@ import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
 import { useCRMPageDialogs } from "@/features/crm/hooks/useCRMPageDialogs";
 import { ACTIVE_STAGES } from "@/features/crm/lib/constants";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();
@@ -61,6 +62,8 @@ export default function CRMPage() {
     dialogs.setOverrideStage(undefined);
     dialogs.setDialogOpen(true);
   }, [assertCanClose, dialogs]);
+
+  usePageActions({ onNew: () => openCreate("nuevo_prospecto"), newLabel: "Nuevo prospecto" });
 
   const openEdit = useCallback((p: Prospect) => {
     dialogs.setEditingProspect(p);

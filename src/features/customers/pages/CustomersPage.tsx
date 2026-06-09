@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
 import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
+import { usePageActions } from "@/contexts/PageActionsContext";
 import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";
 import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
@@ -101,6 +102,8 @@ export default function CustomersPage() {
   ) : undefined;
 
   const openCreate = () => { setEditId(null); setInitialData(undefined); setDialogOpen(true); };
+
+  usePageActions({ onNew: openCreate, onRefresh: refetch, newLabel: "Nuevo cliente" });
 
   const handleCreateSuccess = (newCustomer: { id?: string } | null | undefined) => {
     toast.success("Cliente agregado");
