@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.28.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Consolidación de Gastos en Cuentas por Pagar (parser CFDI, antigüedad, comprobantes)",
+    "category": "feature"
+  },
+  {
     "version": "6.27.0",
     "date": "2026-06-09",
     "type": "minor",

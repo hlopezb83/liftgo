@@ -1,0 +1,26 @@
+{
+  "version": "6.28.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Consolidación de Gastos en Cuentas por Pagar",
+  "category": "feature",
+  "summary": "Tercer PR de CxP: el módulo de Gastos Operativos desaparece como sección independiente y queda absorbido por Cuentas por Pagar. El parser CFDI ahora crea facturas de proveedor directamente, se añade reporte de antigüedad de saldos, subida real de comprobantes a almacenamiento privado y el Estado de Resultados ya consume las facturas de proveedor.",
+  "highlights": [
+    "Nuevo reporte /cuentas-por-pagar/antiguedad con matriz por proveedor (Corriente, 1-30, 31-60, 61-90, +90) y exportación a CSV.",
+    "El parser de XML CFDI ahora crea supplier_bills (no operating_expenses), detecta duplicados por UUID, calcula vencimiento automático (+30 días si PPD) y puede dar de alta el proveedor si no existe.",
+    "Diálogo de registro de pago acepta archivos (PDF/JPG/PNG/WEBP, máx 5 MB) y los sube al bucket privado supplier-payment-receipts con URL firmada de larga duración.",
+    "La ruta /expenses queda como redirección permanente a /cuentas-por-pagar y la entrada del sidebar 'Gastos Operativos' fue retirada.",
+    "Estado de Resultados (get_income_statement) toma los gastos desde supplier_bills (excluyendo canceladas) usando subtotal e issue_date.",
+    "Costo de venta automático al marcar un montacargas como vendido se registra ahora en supplier_bills (status paid, balance 0).",
+    "Drill-down del proveedor lista las facturas vinculadas en lugar de los gastos legados."
+  ],
+  "technical": [
+    "Hook useAgingReport con bucketización por días vencidos y totales.",
+    "Hook useUploadSupplierReceipt: validación de tipo/tamaño + signedUrl 5 años.",
+    "Edge function parse-cfdi-expense reescrita: extrae retenciones IVA/ISR, TipoCambio, MetodoPago; modo preview vs creación atómica.",
+    "RPC get_income_statement actualizada para consultar supplier_bills.",
+    "Bucket privado supplier-payment-receipts con políticas RLS por rol (admin/administrativo upload+CRUD, auditor solo lectura).",
+    "Tipos compartidos de ExpenseCategory movidos a accounts-payable/lib/supplierBillConstants (reportes ya consumen desde ahí).",
+    "Eliminado src/features/expenses por completo; activity_feed y rutas remapeadas a /cuentas-por-pagar."
+  ]
+}

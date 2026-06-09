@@ -1,5 +1,5 @@
-import type { ExpenseCategory } from "@/features/expenses/hooks/useOperatingExpenses";
-import { EXPENSE_CATEGORY_LABELS } from "@/features/expenses/hooks/useOperatingExpenses";
+import type { ExpenseCategory } from "@/features/accounts-payable/lib/supplierBillConstants";
+import { EXPENSE_CATEGORY_LABELS } from "@/features/accounts-payable/lib/supplierBillConstants";
 import { roundMoney } from "@/lib/money";
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
