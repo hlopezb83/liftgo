@@ -8,6 +8,8 @@ export interface AccountsPayableKpis {
   totalVencido: number;
   totalPorVencer: number;
   pagadoMesActual: number;
+  totalPorAprobar: number;
+  countPorAprobar: number;
 }
 
 export function useAccountsPayableKpis() {
@@ -25,6 +27,8 @@ export function useAccountsPayableKpis() {
     let totalVencido = 0;
     let totalPorVencer = 0;
     let pagadoMesActual = 0;
+    let totalPorAprobar = 0;
+    let countPorAprobar = 0;
 
     for (const b of data ?? []) {
       if (b.status === "cancelled") continue;
@@ -39,9 +43,19 @@ export function useAccountsPayableKpis() {
       if (b.status === "paid" && b.issue_date.startsWith(monthPrefix)) {
         pagadoMesActual += Number(b.total);
       }
+      if (b.approval_status === "pending") {
+        countPorAprobar += 1;
+        const mxn = b.currency === "MXN"
+          ? Number(b.total)
+          : Number(b.total) * Number(b.exchange_rate ?? 1);
+        totalPorAprobar += mxn;
+      }
     }
 
-    return { totalPendiente, totalVencido, totalPorVencer, pagadoMesActual };
+    return {
+      totalPendiente, totalVencido, totalPorVencer, pagadoMesActual,
+      totalPorAprobar, countPorAprobar,
+    };
   }, [data]);
 
   return { kpis, isLoading, bills: (data ?? []) as SupplierBillListItem[] };
