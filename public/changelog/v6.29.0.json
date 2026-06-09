@@ -1,0 +1,28 @@
+{
+  "version": "6.29.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Aprobaciones de Cuentas por Pagar",
+  "category": "feature",
+  "summary": "Cuarto PR de CxP: workflow de aprobaciones por monto. Las facturas de proveedor cuyo total en MXN supere el umbral configurable quedan marcadas como 'Por aprobar' y bloquean el registro de pago hasta que un Administrador las apruebe o rechace. Toda decisión queda en bitácora con usuario, fecha y notas.",
+  "highlights": [
+    "Nuevo umbral configurable en Configuración → Aprobaciones CxP (default $10,000 MXN). Solo Admin puede editarlo.",
+    "Las facturas creadas (manual o vía CFDI) se clasifican automáticamente: 'No requiere' si están bajo el umbral, 'Por aprobar' si lo superan.",
+    "El botón Registrar Pago se deshabilita con tooltip cuando la factura requiere aprobación o fue rechazada.",
+    "Sección de Aprobación en el detalle de la factura con botones Aprobar/Rechazar (solo Admin) y Solicitar reaprobación si fue rechazada.",
+    "Bitácora completa de aprobaciones por factura: quién, cuándo, acción y notas.",
+    "Nueva tarjeta KPI 'Por aprobar' en el dashboard de CxP con monto MXN y cantidad de facturas.",
+    "Filtro 'Aprobación' en el listado y nueva columna de estado de aprobación.",
+    "Eventos en el feed de actividad: solicitud, aprobación, rechazo y reaprobación."
+  ],
+  "technical": [
+    "Nuevo enum supplier_bill_approval_status (not_required, pending, approved, rejected) en supplier_bills.",
+    "Tabla supplier_bill_approvals con RLS (Admin/Administrativo escriben; Auditor solo lee) y bitácora de acciones.",
+    "Columna cxp_approval_threshold_mxn en company_settings (default 10000, evaluado en MXN normalizado por exchange_rate).",
+    "Trigger BEFORE INSERT set_supplier_bill_approval_status: clasifica solo facturas nuevas; cambios de umbral no reclasifican existentes.",
+    "Trigger AFTER INSERT log_supplier_bill_approval_requested: registra 'requested' y emite supplier_bill.approval_requested.",
+    "RPCs SECURITY DEFINER: approve_supplier_bill, reject_supplier_bill (notas obligatorias), request_bill_reapproval.",
+    "register_supplier_payment ahora rechaza con error explícito si approval_status es pending o rejected.",
+    "Hooks: useBillApprovalMutations, useSupplierBillApprovals, useCxpApprovalThreshold."
+  ]
+}
