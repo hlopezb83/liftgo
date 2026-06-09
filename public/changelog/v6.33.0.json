@@ -1,0 +1,20 @@
+{
+  "version": "6.33.0",
+  "date": "2026-06-09",
+  "type": "patch",
+  "title": "Endurecimiento de REP CFDI y Conciliación bancaria",
+  "category": "improvement",
+  "summary": "Cierre de deuda técnica para los módulos de Complemento de Pago a proveedores y Conciliación bancaria. Más pruebas automatizadas, backfill de facturas PPD históricas, badge de conciliación en el detalle de pagos y nueva pantalla de historial de imports bancarios.",
+  "highlights": [
+    "Badge 'Conciliado DD/MM/YYYY' en el detalle de pagos de Facturas y Cuentas por Pagar, con tooltip que muestra la cuenta y los últimos 4 dígitos.",
+    "Nueva pantalla /conciliacion-bancaria/historial: lista todos los estados de cuenta importados con periodo, líneas y porcentaje conciliado. Admin puede eliminar un import completo.",
+    "Backfill automático: todos los pagos a proveedores asociados a facturas PPD que estaban sin REP requerido quedaron marcados como 'pendiente' para que aparezcan en el flujo de carga."
+  ],
+  "technical": [
+    "Tests Vitest del trigger set_supplier_payment_rep_required (5 casos: PPD/PUE/null + estados received/rejected preservados).",
+    "Smoke tests Deno de la edge function validate-supplier-rep (CORS preflight, 401 sin auth, 401 con token inválido).",
+    "Función pura computeMatchScore en TS con 7 tests Vitest, paridad con el RPC match_bank_statement_lines (monto 60 + fecha 0-25 + ref parcial 15).",
+    "Hook useReconciliationStatus + componente ReconciliationBadge reutilizable para CxC y CxP.",
+    "Hook useBankStatementImports con stats de matched/total por import y mutación useDeleteBankImport (cascade en DB)."
+  ]
+}
