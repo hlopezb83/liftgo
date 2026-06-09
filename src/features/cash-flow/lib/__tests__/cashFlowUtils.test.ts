@@ -21,15 +21,14 @@ describe("bucketByWeek", () => {
   });
 
   it("aplica semáforo correcto sobre el acumulado", () => {
-    const items: CashFlowItem[] = [item({ kind: "out", amountMxn: 600 })];
+    const items: CashFlowItem[] = [item({ kind: "out", amountMxn: 600, dueDate: "2026-06-10" })];
     const buckets = bucketByWeek(items, today, 2, 1000, 500);
-    // acumulado tras semana 1: 1000 - 600 = 400 → ámbar (< buffer 500)
     expect(buckets[1].cumulative).toBe(400);
     expect(buckets[1].light).toBe("amber");
   });
 
   it("rojo cuando acumulado es negativo", () => {
-    const items: CashFlowItem[] = [item({ kind: "out", amountMxn: 1500 })];
+    const items: CashFlowItem[] = [item({ kind: "out", amountMxn: 1500, dueDate: "2026-06-10" })];
     const buckets = bucketByWeek(items, today, 2, 1000, 500);
     expect(buckets[1].light).toBe("red");
   });
