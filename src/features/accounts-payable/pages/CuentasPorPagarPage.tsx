@@ -20,6 +20,8 @@ import {
   EXPENSE_CATEGORY_LABELS,
   SUPPLIER_BILL_STATUSES,
   SUPPLIER_BILL_STATUS_LABELS,
+  APPROVAL_STATUSES,
+  APPROVAL_STATUS_LABELS,
 } from "../lib/supplierBillConstants";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 import { AccountsPayableKpiCards } from "../components/AccountsPayableKpiCards";
