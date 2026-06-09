@@ -1,78 +1,91 @@
-# PR 3 — Consolidación de Gastos en Cuentas por Pagar
+# PR 4 — Aprobaciones de Cuentas por Pagar
 
-Cerrar la transición iniciada en PR 1 y PR 2: el módulo `/expenses` deja de ser la fuente operativa y se redirige hacia `/cuentas-por-pagar`. El parser CFDI se actualiza para crear `supplier_bills` directamente, y se añaden tres capacidades clave de control financiero: antigüedad de saldos, comprobante de pago subido a Storage y bitácora de actividad completa.
+Bloquear el pago de facturas de proveedor que superen un umbral configurable hasta que un Admin las apruebe. Toda aprobación/rechazo queda registrado con usuario, fecha y comentario.
 
 ## Alcance
 
-### 1. Migración del parser CFDI (`parse-cfdi-expense`)
-- La edge function pasa a insertar en `supplier_bills` (no `operating_expenses`).
-- Detecta duplicados por `cfdi_uuid` (índice único parcial ya existe) y devuelve la factura existente en lugar de crear una nueva.
-- Toma de XML: UUID, RFC emisor → match a `suppliers` (auto-crea si no existe vía `link_rfc_to_supplier` ya disponible), fecha de emisión, método SAT (PUE/PPD), moneda, tipo de cambio, subtotal, impuestos trasladados (IVA), retenciones, total.
-- `due_date` = emisión + 30 días si PPD; = emisión si PUE.
-- Se renombra el botón en UI de "Importar XML" hacia el nuevo flujo dentro de `/cuentas-por-pagar`.
+### 1. Configuración del umbral
+- Nueva fila en `company_settings` (o columna nueva si la tabla es key-value): `cxp_approval_threshold_mxn` (numeric, default `10000`).
+- UI en `Configuración de Empresa` → sección "Cuentas por Pagar" con un input MXN editable solo por Admin.
+- Reglas:
+  - Bills con `total_mxn ≤ umbral` → quedan `pending` y se pueden pagar directo.
+  - Bills con `total_mxn > umbral` → quedan en nuevo estado `awaiting_approval` y bloquean el botón "Registrar Pago".
+  - `total_mxn` = `total` si `currency='MXN'`, si no `total * exchange_rate`.
 
-### 2. Reemplazo de `/expenses`
-- La ruta `/expenses` redirige a `/cuentas-por-pagar` (manteniendo el deep link funcional desde dashboard/reportes).
-- Se elimina la entrada del sidebar "Gastos Operativos".
-- `OperatingExpensesPage` se borra junto con sus hooks/diálogos.
-- Reportes (P&L) consultan `supplier_bills` con `status != 'cancelled'` agrupando por categoría — mantiene la fórmula actual de utilidad y se conserva la regla de excluir software/depreciación.
-- Dashboard KPI "Gastos del mes" pasa a leer `supplier_bills.total` del mes en curso.
+### 2. Esquema
+- Extender enum `supplier_bill_status` con `awaiting_approval` y `rejected`.
+- Columnas nuevas en `supplier_bills`:
+  - `approval_status` enum (`not_required`, `pending`, `approved`, `rejected`) default `not_required`.
+  - `approved_by uuid` (FK profiles), `approved_at timestamptz`, `approval_notes text`.
+- Nueva tabla `supplier_bill_approvals` (bitácora completa, incluye reversiones):
+  - `id`, `bill_id`, `actor_id`, `action` (`requested`, `approved`, `rejected`, `reset`), `notes`, `created_at`.
+- Trigger BEFORE INSERT/UPDATE en `supplier_bills` que setea `approval_status` según umbral vs `total_mxn`.
 
-### 3. Subida de comprobante de pago
-- Bucket privado `supplier-payment-receipts` (RLS: admin/administrativo upload+read, auditor read).
-- `RegisterSupplierPaymentDialog` añade dropzone (PDF/JPG/PNG, max 5 MB) que sube antes de invocar la RPC y guarda la URL firmada en `supplier_payments.receipt_url`.
-- En el drill-down, los pagos muestran link "Ver comprobante" cuando existe.
+### 3. RPCs
+- `approve_supplier_bill(bill_id, notes)` — solo Admin; valida estado `awaiting_approval`; setea `approved`, libera para pago, inserta en bitácora, emite evento `activity_feed`.
+- `reject_supplier_bill(bill_id, notes)` — solo Admin; notes obligatorio; pasa a `rejected` (no pagable); bitácora + activity_feed.
+- `request_bill_reapproval(bill_id)` — Administrativo/Admin; de `rejected` vuelve a `awaiting_approval` para reintento tras corrección.
+- `register_supplier_payment` existente: añadir validación que rechace si `approval_status IN ('pending','rejected')`.
 
-### 4. Reporte de Antigüedad de Saldos (Aging)
-- Nueva página `/cuentas-por-pagar/antiguedad` (link desde header CxP).
-- Tabla pivote por proveedor con columnas: Corriente, 1–30, 31–60, 61–90, +90, Total.
-- Calculada en cliente desde `supplier_bills` con `balance > 0`, basada en `due_date` vs `nowMty()`.
-- Exportable a CSV (`exportCsv`).
-- KPI extra: total vencido y % vs cartera total.
+### 4. UI — `/cuentas-por-pagar`
+- Filtro adicional "Estado de aprobación" (Todos / Por aprobar / Aprobadas / Rechazadas / No requiere).
+- Badge en lista y detalle: `Por aprobar` (amber), `Aprobada` (green outline), `Rechazada` (destructive), `No requiere` (muted).
+- `SupplierBillDetailSheet`:
+  - Sección "Aprobación" con botones `Aprobar` / `Rechazar` (solo Admin, solo si `awaiting_approval`).
+  - Botón "Solicitar reaprobación" si `rejected` (Admin/Administrativo).
+  - Timeline de aprobaciones (lectura desde `supplier_bill_approvals`).
+  - El botón "Registrar Pago" se deshabilita con tooltip "Requiere aprobación" cuando aplica.
 
-### 5. Bitácora de actividad
-- Eventos en `activity_feed`: `supplier_bill.created`, `supplier_bill.cancelled`, `supplier_payment.registered` (con monto y folio).
-- Traducciones en `activityTranslations.ts`.
+### 5. KPI nuevo
+- `AccountsPayableKpiCards`: tarjeta "Por aprobar" (cantidad + total MXN) que filtra al listado.
 
-### 6. Audit Trail
-- Añadir `supplier_bills` y `supplier_payments` a las 11 tablas con diff row-level existentes (subir a 13).
+### 6. Bitácora y auditoría
+- `activity_feed`: `supplier_bill.approval_requested`, `.approved`, `.rejected`, `.reapproval_requested` con traducciones es-MX.
+- Audit trail: añadir `supplier_bill_approvals` a tablas con diff row-level.
 
-### 7. Tests
-- `useAccountsPayableKpis` — recalcula correctamente con bills cancelled excluidas.
-- Aging — buckets correctos para fechas frontera (0, 30, 31, 60, 61, 90, 91 días).
-- `parse-cfdi-expense` — duplicado por UUID devuelve existente; PPD asigna due_date +30.
+### 7. Permisos
+- `role_permissions`: módulo "Aprobaciones CxP" — Admin full, Administrativo create-only (request_reapproval), Auditor read.
 
-### 8. Changelog
-- `public/changelog.json` + `public/changelog/v6.28.0.json` (minor, "Consolidación de Gastos en Cuentas por Pagar").
+### 8. Tests
+- Trigger: bill creado por debajo del umbral → `not_required`; por encima → `pending`.
+- RPC `approve_supplier_bill` rechaza no-admin (403 / RLS).
+- `register_supplier_payment` falla con `awaiting_approval` y `rejected`.
+- KPI "Por aprobar" excluye `cancelled`.
+- Cambio de umbral no reclasifica facturas existentes (decisión: solo aplica a nuevas).
 
-## Fuera de alcance (queda para PR 4)
-- Aprobaciones por monto / rol antes de pago.
-- Facturas recurrentes (renta, servicios fijos).
-- Flujo de caja proyectado (cash-flow forecast) por semana.
-- Conciliación bancaria.
-- Complemento de pago CFDI 2.0 (PPD) automático.
+### 9. Changelog
+- `v6.29.0` (minor): "Aprobaciones de Cuentas por Pagar".
+
+## Fuera de alcance
+- Aprobaciones multi-nivel (jerárquicas por rangos de monto).
+- Notificaciones push/email a aprobadores.
+- Aprobación delegada o por sustitución temporal.
+- Reclasificación retroactiva al cambiar el umbral.
 
 ## Notas técnicas
 
 ```text
-supabase/
-  migrations/<ts>_cxp_consolidation.sql    # bucket + audit triggers + drop operating_expenses (al final)
-  functions/parse-cfdi-expense/index.ts    # reescritura: target = supplier_bills
+supabase/migrations/<ts>_cxp_approvals.sql
+  - ALTER TYPE supplier_bill_status ADD VALUE 'awaiting_approval', 'rejected'
+  - ALTER TABLE supplier_bills ADD approval_status, approved_by, approved_at, approval_notes
+  - CREATE TABLE supplier_bill_approvals + GRANTs + RLS (has_role admin/administrativo/auditor)
+  - CREATE FUNCTION set_bill_approval_status() trigger
+  - CREATE FUNCTION approve_supplier_bill / reject_supplier_bill / request_bill_reapproval (SECURITY DEFINER, SET search_path=public)
+  - ALTER FUNCTION register_supplier_payment: bloquea si approval_status pending/rejected
 
 src/features/accounts-payable/
-  pages/AgingReportPage.tsx
-  components/AgingMatrix.tsx
-  hooks/useAgingReport.ts
-  components/RegisterSupplierPaymentDialog.tsx   # + dropzone comprobante
+  components/BillApprovalSection.tsx
+  components/ApproveBillDialog.tsx
+  components/RejectBillDialog.tsx
+  hooks/useBillApprovalMutations.ts
+  hooks/useBillApprovalHistory.ts
+  lib/supplierBillConstants.ts          # + APPROVAL_STATUS_LABELS
 
-src/features/expenses/                     # ELIMINADO
-src/features/reports/hooks/...             # apuntan a supplier_bills
-src/lib/routes-config.tsx                  # /expenses → redirect
-src/layouts/sidebar/navConfig.ts           # quitar entrada Gastos
+src/features/company-settings/
+  components/CxpApprovalThresholdCard.tsx
+  hooks/useCxpApprovalThreshold.ts
 ```
 
-- La migración drop de `operating_expenses` se hace al final, una vez verificado que `legacy_expense_id` cubre todos los registros históricos (verificación en migración con `RAISE EXCEPTION` si hay huérfanos).
-- El bucket usa políticas RLS scoped por rol vía `has_role`.
-- El parser conserva compatibilidad: si llega un XML sin UUID o malformado, devuelve 400 con detalle.
-
-¿Procedemos con PR 3 o prefieres reordenar (por ejemplo, primero recurrentes/aprobaciones)?
+- El umbral se evalúa en MXN normalizado para consistencia entre USD/MXN.
+- `awaiting_approval` se considera deuda viva en aging y KPIs (cuenta como pendiente).
+- Bills creados vía CFDI parser siguen el mismo flujo (el trigger aplica antes del INSERT).
