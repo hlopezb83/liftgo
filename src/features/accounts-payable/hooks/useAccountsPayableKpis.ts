@@ -10,6 +10,7 @@ export interface AccountsPayableKpis {
   pagadoMesActual: number;
   totalPorAprobar: number;
   countPorAprobar: number;
+  repPendientes: number;
 }
 
 export function useAccountsPayableKpis() {
@@ -29,6 +30,7 @@ export function useAccountsPayableKpis() {
     let pagadoMesActual = 0;
     let totalPorAprobar = 0;
     let countPorAprobar = 0;
+    let repPendientes = 0;
 
     for (const b of data ?? []) {
       if (b.status === "cancelled") continue;
@@ -50,11 +52,12 @@ export function useAccountsPayableKpis() {
           : Number(b.total) * Number(b.exchange_rate ?? 1);
         totalPorAprobar += mxn;
       }
+      repPendientes += b.rep_summary.pending;
     }
 
     return {
       totalPendiente, totalVencido, totalPorVencer, pagadoMesActual,
-      totalPorAprobar, countPorAprobar,
+      totalPorAprobar, countPorAprobar, repPendientes,
     };
   }, [data]);
 
