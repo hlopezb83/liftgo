@@ -15,6 +15,7 @@ export interface Supplier {
   regimen_fiscal: string | null;
   category: string | null;
   notes: string | null;
+  default_payment_terms_days: number | null;
   created_at: string;
   updated_at: string;
 }
