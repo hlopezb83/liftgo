@@ -1,0 +1,9 @@
+{
+  "description": "La CSF importada del proveedor ahora se guarda como adjunto en su ficha, y se impide registrar dos proveedores con el mismo RFC.",
+  "changes": [
+    "Al importar la CSF de un proveedor, el PDF se guarda en sus adjuntos automáticamente",
+    "Nueva sección de Adjuntos en la ficha del proveedor",
+    "Validación de RFC único por proveedor (insensible a mayúsculas/espacios)",
+    "RFC se normaliza a mayúsculas al guardar"
+  ]
+}

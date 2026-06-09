@@ -43,6 +43,14 @@ export function useSuppliers() {
   });
 }
 
+function translateSupplierError(err: Error): string {
+  const msg = err.message || "";
+  if (msg.includes("suppliers_rfc_unique_idx") || (msg.includes("duplicate key") && msg.toLowerCase().includes("rfc"))) {
+    return "Ya existe un proveedor con ese RFC.";
+  }
+  return msg;
+}
+
 export function useCreateSupplier() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -55,7 +63,7 @@ export function useCreateSupplier() {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });
       toast.success("Proveedor creado");
     },
-    onError: (err: Error) => notifyError({ error: err, message: `Error al crear proveedor: ${err.message}` }),
+    onError: (err: Error) => notifyError({ error: err, message: `Error al crear proveedor: ${translateSupplierError(err)}` }),
   });
 }
 
@@ -71,7 +79,8 @@ export function useUpdateSupplier() {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });
       toast.success("Proveedor actualizado");
     },
-    onError: (err: Error) => notifyError({ error: err, message: `Error al actualizar proveedor: ${err.message}` }),
+    onError: (err: Error) => notifyError({ error: err, message: `Error al actualizar proveedor: ${translateSupplierError(err)}` }),
   });
 }
+
 

@@ -15,6 +15,8 @@ import { SupplierContactCard } from "@/features/suppliers/components/suppliers/S
 import { SupplierFormDialog } from "@/features/suppliers/components/suppliers/SupplierFormDialog";
 import { SupplierContactsSection } from "@/features/suppliers/components/suppliers/SupplierContactsSection";
 import { SupplierBankAccountsSection } from "@/features/suppliers/components/suppliers/SupplierBankAccountsSection";
+import { DocumentAttachments } from "@/features/fleet/components/forklift-detail/DocumentAttachments";
+
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -126,6 +128,10 @@ export default function SupplierDetailPage() {
         <SupplierContactsSection supplierId={supplier.id} />
         <SupplierBankAccountsSection supplierId={supplier.id} />
       </div>
+
+      <DocumentAttachments entityType="supplier" entityId={supplier.id} />
+
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>

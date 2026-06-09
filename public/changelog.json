@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.34.1",
+    "date": "2026-06-09",
+    "type": "patch",
+    "title": "CSF de proveedores se adjunta y RFC único",
+    "category": "improvement"
+  },
+  {
+
     "version": "6.34.0",
     "date": "2026-06-09",
     "type": "minor",
