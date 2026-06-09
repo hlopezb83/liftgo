@@ -91,36 +91,48 @@ export type Database = {
       }
       bank_accounts: {
         Row: {
+          account_holder: string | null
+          account_number: string | null
           bank: string
+          clabe: string | null
           created_at: string
           currency: string
           id: string
           initial_balance: number
           is_active: boolean
+          is_default_collection: boolean
           last4: string | null
           name: string
           notes: string | null
           updated_at: string
         }
         Insert: {
+          account_holder?: string | null
+          account_number?: string | null
           bank: string
+          clabe?: string | null
           created_at?: string
           currency?: string
           id?: string
           initial_balance?: number
           is_active?: boolean
+          is_default_collection?: boolean
           last4?: string | null
           name: string
           notes?: string | null
           updated_at?: string
         }
         Update: {
+          account_holder?: string | null
+          account_number?: string | null
           bank?: string
+          clabe?: string | null
           created_at?: string
           currency?: string
           id?: string
           initial_balance?: number
           is_active?: boolean
+          is_default_collection?: boolean
           last4?: string | null
           name?: string
           notes?: string | null
@@ -792,6 +804,78 @@ export type Database = {
           },
           {
             foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_payment_intents: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          invoice_id: string
+          proof_url: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sender_bank: string | null
+          sender_last4: string | null
+          status: Database["public"]["Enums"]["payment_intent_status"]
+          tracking_key: string | null
+          transfer_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          invoice_id: string
+          proof_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_bank?: string | null
+          sender_last4?: string | null
+          status?: Database["public"]["Enums"]["payment_intent_status"]
+          tracking_key?: string | null
+          transfer_date: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          invoice_id?: string
+          proof_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_bank?: string | null
+          sender_last4?: string | null
+          status?: Database["public"]["Enums"]["payment_intent_status"]
+          tracking_key?: string | null
+          transfer_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_payment_intents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_payment_intents_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
@@ -2041,6 +2125,9 @@ export type Database = {
       }
       quotes: {
         Row: {
+          accepted_at: string | null
+          accepted_by_user_id: string | null
+          accepted_ip: string | null
           created_at: string
           currency: string
           customer_id: string | null
@@ -2053,6 +2140,8 @@ export type Database = {
           notes: string | null
           quote_number: string
           quote_type: string
+          rejected_at: string | null
+          rejection_reason: string | null
           rental_meta: Json | null
           start_date: string | null
           status: string
@@ -2064,6 +2153,9 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          accepted_ip?: string | null
           created_at?: string
           currency?: string
           customer_id?: string | null
@@ -2076,6 +2168,8 @@ export type Database = {
           notes?: string | null
           quote_number: string
           quote_type?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
           rental_meta?: Json | null
           start_date?: string | null
           status?: string
@@ -2087,6 +2181,9 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          accepted_ip?: string | null
           created_at?: string
           currency?: string
           customer_id?: string | null
@@ -2099,6 +2196,8 @@ export type Database = {
           notes?: string | null
           quote_number?: string
           quote_type?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
           rental_meta?: Json | null
           start_date?: string | null
           status?: string
@@ -2814,6 +2913,43 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_quote_from_portal: {
+        Args: { p_ip?: string; p_quote_id: string }
+        Returns: {
+          accepted_at: string | null
+          accepted_by_user_id: string | null
+          accepted_ip: string | null
+          created_at: string
+          currency: string
+          customer_id: string | null
+          customer_name: string | null
+          end_date: string | null
+          equipment_model_id: string | null
+          forklift_id: string | null
+          id: string
+          line_items: Json
+          notes: string | null
+          quote_number: string
+          quote_type: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          rental_meta: Json | null
+          start_date: string | null
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "quotes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       approve_supplier_bill: {
         Args: { p_bill_id: string; p_notes?: string }
         Returns: undefined
@@ -3006,6 +3142,16 @@ export type Database = {
       }
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
+      get_portal_collection_account: {
+        Args: never
+        Returns: {
+          account_holder: string
+          account_number: string
+          bank: string
+          clabe: string
+          currency: string
+        }[]
+      }
       get_portal_contracts: {
         Args: never
         Returns: {
@@ -3102,6 +3248,43 @@ export type Database = {
         }
         Returns: string
       }
+      reject_quote_from_portal: {
+        Args: { p_quote_id: string; p_reason: string }
+        Returns: {
+          accepted_at: string | null
+          accepted_by_user_id: string | null
+          accepted_ip: string | null
+          created_at: string
+          currency: string
+          customer_id: string | null
+          customer_name: string | null
+          end_date: string | null
+          equipment_model_id: string | null
+          forklift_id: string | null
+          id: string
+          line_items: Json
+          notes: string | null
+          quote_number: string
+          quote_type: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          rental_meta: Json | null
+          start_date: string | null
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "quotes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       reject_supplier_bill: {
         Args: { p_bill_id: string; p_notes: string }
         Returns: undefined
@@ -3136,6 +3319,7 @@ export type Database = {
         | "costo_venta"
         | "caja_chica"
         | "publicidad"
+      payment_intent_status: "pending_review" | "approved" | "rejected"
       supplier_bill_approval_status:
         | "not_required"
         | "pending"
@@ -3295,6 +3479,7 @@ export const Constants = {
         "caja_chica",
         "publicidad",
       ],
+      payment_intent_status: ["pending_review", "approved", "rejected"],
       supplier_bill_approval_status: [
         "not_required",
         "pending",
