@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
-import { useOperatingExpenses } from "@/features/expenses/hooks/useOperatingExpenses";
+import { useSupplierBills } from "@/features/accounts-payable/hooks/useSupplierBills";
 import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
@@ -19,21 +19,30 @@ import { formatDateDisplay } from "@/lib/utils";
 import { FileText, Wrench, DollarSign, Pencil } from "lucide-react";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
+
 type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string; service_type: string; cost: number | null };
 
 export default function SupplierDetailPage() {
   const { id } = useParams();
   const { data: suppliers, isLoading } = useSuppliers();
-  const { data: expenses } = useOperatingExpenses();
+  const { data: bills } = useSupplierBills();
   const { data: maintenanceLogs } = useMaintenanceLogs();
   const { forkliftMap } = useForkliftMap();
 
   const supplier = suppliers?.find((s) => s.id === id);
   const [editOpen, setEditOpen] = useState(false);
 
-  const linkedExpenses = useMemo(
-    () => (expenses || []).filter((e) => e.supplier_id === id),
-    [expenses, id],
+  const linkedExpenses = useMemo<LinkedExpense[]>(
+    () => (bills || [])
+      .filter((b) => b.supplier_id === id && b.status !== "cancelled")
+      .map((b) => ({
+        id: b.id,
+        expense_date: b.issue_date,
+        category: b.category ?? "—",
+        description: b.description,
+        amount: Number(b.total),
+      })),
+    [bills, id],
   );
   const linkedMaintenance = useMemo(
     () => (maintenanceLogs || []).filter((m) => m.supplier_id === id),
