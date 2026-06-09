@@ -11,6 +11,7 @@ import { ReadOnlyLineItemsTable } from "@/components/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/DetailPageHeader";
 import { InvoiceFiscalDataCard } from "@/features/invoices/components/invoice-detail/InvoiceFiscalDataCard";
 import { InvoicePaymentSummary } from "@/features/invoices/components/invoice-detail/InvoicePaymentSummary";
+import { PaymentIntentsSection } from "@/features/invoices/components/invoice-detail/PaymentIntentsSection";
 import { InvoiceHistoryCard } from "@/features/invoices/components/invoice-detail/InvoiceHistoryCard";
 import { InvoiceDetailActions } from "@/features/invoices/components/invoice-detail/InvoiceDetailActions";
 import { InvoiceSourceLinks } from "@/features/invoices/components/invoice-detail/InvoiceSourceLinks";
