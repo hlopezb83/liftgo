@@ -42,7 +42,7 @@ export default function CuentasPorPagarPage() {
   const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  usePageActions({ onNew: () => createDialog.setDialogOpen(true), newLabel: "Nueva factura de proveedor" });
+  usePageActions({ onNew: createDialog.openDialog, newLabel: "Nueva factura de proveedor" });
 
   const columns = useMemo<ColumnDef<SupplierBillListItem>[]>(() => [
     {
