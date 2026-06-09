@@ -20,7 +20,6 @@ function attr(tag: string, name: string): string | null {
 }
 
 function findTag(xml: string, localName: string): string | null {
-  // matches <(any:)?LocalName ... /> or opening tag
   const re = new RegExp(`<(?:[\\w-]+:)?${localName}\\b[^>]*\\/?>`, "i");
   const m = xml.match(re);
   return m ? m[0] : null;
@@ -35,8 +34,13 @@ interface ParsedCfdi {
   cfdi_uuid: string;
   total: number;
   subtotal: number;
+  tax_amount: number;
+  retention_iva: number;
+  retention_isr: number;
   moneda: string;
-  fecha: string; // YYYY-MM-DD
+  tipo_cambio: number;
+  payment_method_sat: string;
+  fecha: string;
   folio: string;
   serie: string;
   emisor: { rfc: string; nombre: string; regimen_fiscal: string };
@@ -57,11 +61,39 @@ function parseCfdi(xml: string): ParsedCfdi {
   const fechaRaw = attr(comprobante, "Fecha") ?? "";
   const fecha = fechaRaw.slice(0, 10);
 
+  // Impuestos totales
+  const impuestosTag = findTag(xml, "Impuestos");
+  const trasladosTotales = impuestosTag ? Number(attr(impuestosTag, "TotalImpuestosTrasladados") ?? "0") : 0;
+  const retencionesIvaTotales = (() => {
+    if (!impuestosTag) return 0;
+    // Try totalImpuestosRetenidos as approximation, then refine via Retenciones if needed
+    return Number(attr(impuestosTag, "TotalImpuestosRetenidos") ?? "0");
+  })();
+
+  // Distinguir retenciones IVA / ISR
+  let retIva = 0;
+  let retIsr = 0;
+  const retencionesTags = findAllTags(xml, "Retencion");
+  for (const t of retencionesTags) {
+    const impuesto = attr(t, "Impuesto");
+    const importe = Number(attr(t, "Importe") ?? "0");
+    if (impuesto === "002") retIva += importe;
+    else if (impuesto === "001") retIsr += importe;
+  }
+  if (retIva === 0 && retIsr === 0 && retencionesIvaTotales > 0) {
+    retIva = retencionesIvaTotales;
+  }
+
   return {
     cfdi_uuid: uuid.toLowerCase(),
     total: Number(attr(comprobante, "Total") ?? "0"),
     subtotal: Number(attr(comprobante, "SubTotal") ?? "0"),
+    tax_amount: trasladosTotales,
+    retention_iva: retIva,
+    retention_isr: retIsr,
     moneda: attr(comprobante, "Moneda") ?? "MXN",
+    tipo_cambio: Number(attr(comprobante, "TipoCambio") ?? "1"),
+    payment_method_sat: attr(comprobante, "MetodoPago") ?? "PUE",
     fecha,
     folio: attr(comprobante, "Folio") ?? "",
     serie: attr(comprobante, "Serie") ?? "",
@@ -92,10 +124,7 @@ ${conceptosText}`;
 
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "google/gemini-3-flash-preview",
       messages: [
@@ -103,11 +132,9 @@ ${conceptosText}`;
           role: "system",
           content:
             "Clasificas gastos operativos de una empresa mexicana de renta de montacargas en exactamente una categoría: " +
-            "renta (rentas de oficina/bodega), nomina (sueldos/honorarios/imss/sat retenciones), " +
-            "software (licencias, SaaS), depreciacion (no aplica para CFDI), " +
-            "costo_venta (refacciones, partes, reparaciones que se cobran al cliente), " +
-            "caja_chica (gastos pequeños misceláneos), publicidad (marketing, ads), " +
-            "otro (cualquier otra cosa). Usa la herramienta classify_expense.",
+            "renta, nomina, software, depreciacion (no aplica para CFDI), " +
+            "costo_venta (refacciones, partes, reparaciones), caja_chica, publicidad, otro. " +
+            "Usa la herramienta classify_expense.",
         },
         { role: "user", content: userMsg },
       ],
@@ -142,6 +169,12 @@ ${conceptosText}`;
   return "otro";
 }
 
+function addDays(ymd: string, days: number): string {
+  const d = new Date(ymd + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
@@ -159,6 +192,7 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => null);
     const xml: unknown = body?.xml;
+    const create: boolean = body?.create === true;
     if (typeof xml !== "string" || xml.length === 0) {
       return new Response(JSON.stringify({ error: "xml es requerido" }), {
         status: 400, headers: jsonHeaders,
@@ -180,10 +214,10 @@ serve(async (req) => {
       });
     }
 
-    // Verificar duplicado
+    // Duplicate by UUID in supplier_bills
     const { data: existing } = await auth.adminClient
-      .from("operating_expenses")
-      .select("id, expense_date, amount")
+      .from("supplier_bills")
+      .select("id, bill_number, issue_date, total")
       .eq("cfdi_uuid", cfdi.cfdi_uuid)
       .maybeSingle();
 
@@ -191,22 +225,43 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         duplicate: true,
         existing_id: existing.id,
+        bill_number: existing.bill_number,
         cfdi_uuid: cfdi.cfdi_uuid,
       }), { headers: jsonHeaders });
     }
 
-    // Match proveedor por RFC
+    // Match supplier by RFC (auto-create if missing)
+    let supplier_id: string | null = null;
     let supplier_match: { id: string; name: string } | null = null;
     if (cfdi.emisor.rfc) {
+      const rfc = cfdi.emisor.rfc.toUpperCase();
       const { data: sup } = await auth.adminClient
         .from("suppliers")
         .select("id, name")
-        .ilike("rfc", cfdi.emisor.rfc)
+        .ilike("rfc", rfc)
         .maybeSingle();
-      if (sup) supplier_match = { id: sup.id, name: sup.name };
+      if (sup) {
+        supplier_id = sup.id;
+        supplier_match = { id: sup.id, name: sup.name };
+      } else if (create) {
+        const { data: created, error: supErr } = await auth.adminClient
+          .from("suppliers")
+          .insert({
+            name: cfdi.emisor.nombre || rfc,
+            rfc,
+          })
+          .select("id, name")
+          .single();
+        if (supErr) {
+          console.error("supplier create failed", supErr);
+        } else if (created) {
+          supplier_id = created.id;
+          supplier_match = { id: created.id, name: created.name };
+        }
+      }
     }
 
-    // Clasificar categoría
+    // Classify category
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     let categoria_sugerida: ExpenseCategory = "otro";
     if (LOVABLE_API_KEY) {
@@ -226,19 +281,72 @@ serve(async (req) => {
       conceptos_resumen ? `— ${conceptos_resumen}` : "",
     ].filter(Boolean).join(" ").trim();
 
+    const due_date = cfdi.payment_method_sat === "PPD"
+      ? addDays(cfdi.fecha, 30)
+      : cfdi.fecha;
+
+    // Preview mode: just return parsed payload
+    if (!create) {
+      return new Response(JSON.stringify({
+        duplicate: false,
+        cfdi_uuid: cfdi.cfdi_uuid,
+        folio: cfdi.folio,
+        serie: cfdi.serie,
+        total: cfdi.total,
+        subtotal: cfdi.subtotal,
+        tax_amount: cfdi.tax_amount,
+        retention_iva: cfdi.retention_iva,
+        retention_isr: cfdi.retention_isr,
+        moneda: cfdi.moneda,
+        tipo_cambio: cfdi.tipo_cambio,
+        payment_method_sat: cfdi.payment_method_sat,
+        fecha: cfdi.fecha,
+        due_date,
+        emisor: cfdi.emisor,
+        description,
+        conceptos_resumen,
+        categoria_sugerida,
+        supplier_match,
+      }), { headers: jsonHeaders });
+    }
+
+    // Create supplier_bill
+    const { data: bill, error: billErr } = await auth.adminClient
+      .from("supplier_bills")
+      .insert({
+        supplier_id,
+        cfdi_uuid: cfdi.cfdi_uuid,
+        folio: cfdi.folio || null,
+        serie: cfdi.serie || null,
+        issue_date: cfdi.fecha,
+        due_date,
+        subtotal: cfdi.subtotal,
+        tax_amount: cfdi.tax_amount,
+        retention_iva: cfdi.retention_iva,
+        retention_isr: cfdi.retention_isr,
+        total: cfdi.total,
+        currency: cfdi.moneda,
+        exchange_rate: cfdi.tipo_cambio || 1,
+        payment_method_sat: cfdi.payment_method_sat,
+        category: categoria_sugerida,
+        description,
+        status: "pending",
+        created_by: auth.userId,
+      })
+      .select("id, bill_number")
+      .single();
+
+    if (billErr) {
+      console.error("bill insert error", billErr);
+      return new Response(JSON.stringify({ error: billErr.message }), {
+        status: 500, headers: jsonHeaders,
+      });
+    }
+
     return new Response(JSON.stringify({
-      duplicate: false,
-      cfdi_uuid: cfdi.cfdi_uuid,
-      folio: cfdi.folio,
-      serie: cfdi.serie,
-      total: cfdi.total,
-      subtotal: cfdi.subtotal,
-      moneda: cfdi.moneda,
-      fecha: cfdi.fecha,
-      emisor: cfdi.emisor,
-      description,
-      conceptos_resumen,
-      categoria_sugerida,
+      created: true,
+      bill_id: bill.id,
+      bill_number: bill.bill_number,
       supplier_match,
     }), { headers: jsonHeaders });
   } catch (e) {
