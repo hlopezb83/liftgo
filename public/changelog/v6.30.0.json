@@ -1,0 +1,25 @@
+{
+  "version": "6.30.0",
+  "date": "2026-06-09",
+  "type": "minor",
+  "title": "Recepción de Complementos de Pago (REP) de proveedores",
+  "category": "feature",
+  "summary": "Quinto PR de CxP: cuando pagas una factura PPD, el sistema queda pendiente del Complemento de Pago (REP) que el proveedor debe emitirte. Puedes cargar el XML y se valida automáticamente que sea tipo P, que el RFC coincida con el proveedor y que el monto y UUID de la factura cuadren. Todo queda con bitácora y trazabilidad.",
+  "highlights": [
+    "Cada pago a factura PPD nace con estado 'REP: Pendiente' (las PUE no requieren).",
+    "Diálogo 'Cargar REP' por pago: sube XML (obligatorio) y PDF (opcional); valida estructura y datos.",
+    "Validaciones: TipoDeComprobante='P', RFC emisor = RFC del proveedor, monto del nodo Pago coincide con el pago (±0.01), UUID de la factura aparece en DoctoRelacionado.",
+    "Botones Rechazar (con motivo obligatorio) y Reiniciar para REPs cargados, restringidos a Admin/Administrativo.",
+    "Descarga rápida del XML y PDF cargados mediante URLs firmadas temporales.",
+    "Nueva tarjeta KPI 'REP pendientes' y filtro 'REP' en el listado (Pendiente / Recibido / Rechazado / No requiere).",
+    "Pagos existentes en facturas PPD se migraron a estado pendiente para poder cargarles el REP retroactivo."
+  ],
+  "technical": [
+    "Edge function validate-supplier-rep: parsea XML sin DOM, valida estructura y unicidad del UUID, sube archivos al bucket cfdi-files bajo supplier-rep/<bill_id>/<payment_id>.{xml,pdf}.",
+    "Nuevas columnas en supplier_payments: rep_required, rep_status, rep_cfdi_uuid, rep_xml_url, rep_pdf_url, rep_received_at, rep_notes, rep_uploaded_by.",
+    "Trigger BEFORE INSERT set_supplier_payment_rep_required: deriva el estado del REP a partir de payment_method_sat de la factura.",
+    "RPCs SECURITY DEFINER mark_supplier_rep_rejected (notas obligatorias) y reset_supplier_rep_pending, restringidos a Admin/Administrativo.",
+    "useSupplierBills ahora agrega un resumen rep_summary por factura (pending/received/rejected/total) consumido por filtros y KPIs.",
+    "Hooks nuevos: useUploadSupplierRep, useRejectSupplierRep, useResetSupplierRep."
+  ]
+}
