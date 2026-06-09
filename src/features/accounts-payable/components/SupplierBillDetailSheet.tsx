@@ -15,6 +15,8 @@ import {
 } from "../lib/supplierBillConstants";
 import { RegisterSupplierPaymentDialog } from "./RegisterSupplierPaymentDialog";
 import { CancelSupplierBillDialog } from "./CancelSupplierBillDialog";
+import { BillApprovalSection } from "./BillApprovalSection";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   billId: string | null;
@@ -128,17 +130,45 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
               )}
             </div>
 
+            <BillApprovalSection
+              billId={bill.id}
+              billNumber={bill.bill_number}
+              approvalStatus={bill.approval_status}
+              approvalNotes={bill.approval_notes}
+              approvedAt={bill.approved_at}
+            />
+
             <Separator />
             <RoleGuard module="Cuentas por Pagar" minAccess="full">
               <div className="flex gap-2">
-                <Button
-                  className="flex-1"
-                  disabled={bill.status === "paid" || bill.status === "cancelled"}
-                  onClick={() => setPayDialog(true)}
-                >
-                  <CreditCard className="h-4 w-4 mr-1" />
-                  Registrar pago
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex-1">
+                        <Button
+                          className="w-full"
+                          disabled={
+                            bill.status === "paid" ||
+                            bill.status === "cancelled" ||
+                            bill.approval_status === "pending" ||
+                            bill.approval_status === "rejected"
+                          }
+                          onClick={() => setPayDialog(true)}
+                        >
+                          <CreditCard className="h-4 w-4 mr-1" />
+                          Registrar pago
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {(bill.approval_status === "pending" || bill.approval_status === "rejected") && (
+                      <TooltipContent>
+                        {bill.approval_status === "pending"
+                          ? "Requiere aprobación"
+                          : "La factura fue rechazada"}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
                 <Button
                   variant="outline"
                   disabled={bill.status === "cancelled" || bill.payments.length > 0}

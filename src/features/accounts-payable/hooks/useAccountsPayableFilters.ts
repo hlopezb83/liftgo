@@ -1,6 +1,10 @@
 import { useMemo, useState, useCallback } from "react";
 import type { SupplierBillListItem } from "./useSupplierBills";
-import type { SupplierBillStatus, ExpenseCategory } from "../lib/supplierBillConstants";
+import type {
+  SupplierBillStatus,
+  SupplierBillApprovalStatus,
+  ExpenseCategory,
+} from "../lib/supplierBillConstants";
 
 interface FilterState {
   search: string;
@@ -8,6 +12,7 @@ interface FilterState {
   supplierId: string | "all";
   category: ExpenseCategory | "all";
   month: string;
+  approval: SupplierBillApprovalStatus | "all";
 }
 
 const INITIAL: FilterState = {
@@ -16,6 +21,7 @@ const INITIAL: FilterState = {
   supplierId: "all",
   category: "all",
   month: "all",
+  approval: "all",
 };
 
 function matches(bill: SupplierBillListItem, f: FilterState): boolean {
@@ -23,6 +29,7 @@ function matches(bill: SupplierBillListItem, f: FilterState): boolean {
   if (f.supplierId !== "all" && bill.supplier_id !== f.supplierId) return false;
   if (f.category !== "all" && bill.category !== f.category) return false;
   if (f.month !== "all" && !bill.issue_date.startsWith(f.month)) return false;
+  if (f.approval !== "all" && bill.approval_status !== f.approval) return false;
   if (f.search) {
     const q = f.search.toLowerCase();
     const hay = [

@@ -1,7 +1,29 @@
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierBillStatus = Database["public"]["Enums"]["supplier_bill_status"];
+export type SupplierBillApprovalStatus = Database["public"]["Enums"]["supplier_bill_approval_status"];
 export type ExpenseCategory = Database["public"]["Enums"]["expense_category"];
+
+export const APPROVAL_STATUS_LABELS: Record<SupplierBillApprovalStatus, string> = {
+  not_required: "No requiere",
+  pending: "Por aprobar",
+  approved: "Aprobada",
+  rejected: "Rechazada",
+};
+
+export const APPROVAL_STATUSES: SupplierBillApprovalStatus[] = [
+  "not_required",
+  "pending",
+  "approved",
+  "rejected",
+];
+
+export const APPROVAL_ACTION_LABELS: Record<string, string> = {
+  requested: "Aprobación solicitada",
+  approved: "Aprobada",
+  rejected: "Rechazada",
+  reapproval_requested: "Reaprobación solicitada",
+};
 
 export const SUPPLIER_BILL_STATUS_LABELS: Record<SupplierBillStatus, string> = {
   draft: "Borrador",

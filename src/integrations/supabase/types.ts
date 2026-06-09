@@ -306,6 +306,7 @@ export type Database = {
       company_settings: {
         Row: {
           created_at: string
+          cxp_approval_threshold_mxn: number
           facturapi_mode: string | null
           id: string
           logo_url: string | null
@@ -317,6 +318,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          cxp_approval_threshold_mxn?: number
           facturapi_mode?: string | null
           id?: string
           logo_url?: string | null
@@ -328,6 +330,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          cxp_approval_threshold_mxn?: number
           facturapi_mode?: string | null
           id?: string
           logo_url?: string | null
@@ -2078,8 +2081,47 @@ export type Database = {
           },
         ]
       }
+      supplier_bill_approvals: {
+        Row: {
+          action: string
+          actor_id: string | null
+          bill_id: string
+          created_at: string
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          bill_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          bill_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_bill_approvals_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_bills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_bills: {
         Row: {
+          approval_notes: string | null
+          approval_status: Database["public"]["Enums"]["supplier_bill_approval_status"]
+          approved_at: string | null
+          approved_by: string | null
           balance: number
           bill_number: string
           category: Database["public"]["Enums"]["expense_category"] | null
@@ -2111,6 +2153,10 @@ export type Database = {
           xml_url: string | null
         }
         Insert: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["supplier_bill_approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           balance?: number
           bill_number: string
           category?: Database["public"]["Enums"]["expense_category"] | null
@@ -2142,6 +2188,10 @@ export type Database = {
           xml_url?: string | null
         }
         Update: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["supplier_bill_approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           balance?: number
           bill_number?: string
           category?: Database["public"]["Enums"]["expense_category"] | null
@@ -2327,6 +2377,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_supplier_bill: {
+        Args: { p_bill_id: string; p_notes?: string }
+        Returns: undefined
+      }
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
       change_feedback_status: {
         Args: { _comment?: string; _new_status: string; _report_id: string }
@@ -2587,6 +2641,14 @@ export type Database = {
         }
         Returns: string
       }
+      reject_supplier_bill: {
+        Args: { p_bill_id: string; p_notes: string }
+        Returns: undefined
+      }
+      request_bill_reapproval: {
+        Args: { p_bill_id: string; p_notes?: string }
+        Returns: undefined
+      }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
     }
     Enums: {
@@ -2607,6 +2669,11 @@ export type Database = {
         | "costo_venta"
         | "caja_chica"
         | "publicidad"
+      supplier_bill_approval_status:
+        | "not_required"
+        | "pending"
+        | "approved"
+        | "rejected"
       supplier_bill_status:
         | "draft"
         | "pending"
@@ -2759,6 +2826,12 @@ export const Constants = {
         "costo_venta",
         "caja_chica",
         "publicidad",
+      ],
+      supplier_bill_approval_status: [
+        "not_required",
+        "pending",
+        "approved",
+        "rejected",
       ],
       supplier_bill_status: [
         "draft",

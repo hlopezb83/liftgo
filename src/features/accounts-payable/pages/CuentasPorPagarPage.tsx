@@ -20,6 +20,8 @@ import {
   EXPENSE_CATEGORY_LABELS,
   SUPPLIER_BILL_STATUSES,
   SUPPLIER_BILL_STATUS_LABELS,
+  APPROVAL_STATUSES,
+  APPROVAL_STATUS_LABELS,
 } from "../lib/supplierBillConstants";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 import { AccountsPayableKpiCards } from "../components/AccountsPayableKpiCards";
@@ -83,6 +85,20 @@ export default function CuentasPorPagarPage() {
       cell: ({ row }) => (
         <StatusBadge status={row.original.status} label={SUPPLIER_BILL_STATUS_LABELS[row.original.status]} />
       ),
+    },
+    {
+      id: "approval_status",
+      header: "Aprobación",
+      accessorKey: "approval_status",
+      cell: ({ row }) => {
+        const s = row.original.approval_status;
+        if (s === "not_required") return <span className="text-xs text-muted-foreground">—</span>;
+        const tone =
+          s === "pending" ? "text-amber-600 dark:text-amber-400" :
+          s === "approved" ? "text-emerald-600 dark:text-emerald-400" :
+          "text-destructive";
+        return <span className={`text-xs font-medium ${tone}`}>{APPROVAL_STATUS_LABELS[s]}</span>;
+      },
     },
     {
       id: "category",
@@ -181,6 +197,15 @@ export default function CuentasPorPagarPage() {
                   <SelectItem value="all">Todas las categorías</SelectItem>
                   {Object.entries(EXPENSE_CATEGORY_LABELS).map(([v, l]) => (
                     <SelectItem key={v} value={v}>{l}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={f.approval} onValueChange={(v) => f.set("approval", v as typeof f.approval)}>
+                <SelectTrigger className="w-full sm:w-[170px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas aprobaciones</SelectItem>
+                  {APPROVAL_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>{APPROVAL_STATUS_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

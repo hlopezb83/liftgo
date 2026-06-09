@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.29.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Aprobaciones de Cuentas por Pagar (umbral configurable y bitácora)",
+    "category": "feature"
+  },
+  {
     "version": "6.28.0",
     "date": "2026-06-09",
     "type": "minor",

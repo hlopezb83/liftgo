@@ -13,6 +13,8 @@ export const ENTITY_LABELS: Record<string, string> = {
   operating_expenses: "Gastos (legado)",
   supplier_bills: "Cuentas por Pagar",
   supplier_payments: "Pagos a proveedores",
+  supplier_bill_approvals: "Aprobaciones CxP",
+  supplier_bill: "Cuentas por Pagar",
   prospects: "Prospectos",
   suppliers: "Proveedores",
 };
@@ -32,6 +34,8 @@ export const ENTITY_ROUTES: Record<string, string> = {
   operating_expenses: "/cuentas-por-pagar",
   supplier_bills: "/cuentas-por-pagar",
   supplier_payments: "/cuentas-por-pagar",
+  supplier_bill_approvals: "/cuentas-por-pagar",
+  supplier_bill: "/cuentas-por-pagar",
   prospects: "/crm",
   suppliers: "/suppliers",
 };
