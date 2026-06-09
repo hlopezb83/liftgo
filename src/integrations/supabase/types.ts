@@ -305,6 +305,8 @@ export type Database = {
       }
       company_settings: {
         Row: {
+          cash_initial_balance: number
+          cash_safety_buffer: number
           created_at: string
           cxp_approval_threshold_mxn: number
           facturapi_mode: string | null
@@ -317,6 +319,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cash_initial_balance?: number
+          cash_safety_buffer?: number
           created_at?: string
           cxp_approval_threshold_mxn?: number
           facturapi_mode?: string | null
@@ -329,6 +333,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cash_initial_balance?: number
+          cash_safety_buffer?: number
           created_at?: string
           cxp_approval_threshold_mxn?: number
           facturapi_mode?: string | null

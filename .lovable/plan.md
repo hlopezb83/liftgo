@@ -1,108 +1,89 @@
+# PR 6 — Flujo de caja proyectado
 
-# PR 5 — Complemento de Pago CFDI (PPD) en CxP
+## Objetivo
+Una vista semanal (próximas 8 semanas por default) que compara, día por día y semana por semana:
+- **Entradas esperadas**: saldos de facturas (`invoices`) con `due_date` en el rango y status `sent`/`overdue`/`partially_paid`.
+- **Salidas esperadas**: saldos de `supplier_bills` con `due_date` en el rango y status `pending`/`overdue`/`partially_paid`, excluyendo facturas con `approval_status` ∈ `pending`/`rejected`.
+- **Neto semanal** y **saldo acumulado proyectado** partiendo de un saldo inicial editable.
+- **Semáforo de liquidez** por semana: verde (acumulado > colchón), ámbar (entre 0 y colchón), rojo (negativo).
 
-## Concepto clave (importante)
+Sin nueva tabla — todo se calcula on-the-fly desde lo que ya existe. Sólo agregamos preferencias (saldo inicial y colchón) en `company_settings`.
 
-En CxC nosotros **emitimos** el REP vía Facturapi cuando un cliente nos paga. En CxP es al revés: cuando le pagamos a un proveedor con factura PPD, **el proveedor es quien emite el REP** y nos lo envía. Nosotros no lo timbramos; lo **recibimos, validamos y guardamos** como respaldo fiscal del pago.
+## Ruta y navegación
+- Nueva ruta `/flujo-de-caja` bajo módulo **Finanzas** en `navConfig.ts`.
+- Acceso: Admin + Administrativo (lectura para Auditor).
+- Entry points adicionales:
+  - KPI card "Próximos 7 días" en `Dashboard` (deep-link a `/flujo-de-caja`).
+  - Botón en `/cuentas-por-pagar` y `/cuentas-por-cobrar` "Ver flujo de caja".
 
-Por eso el flujo no es "timbrar", sino "registrar/cargar" el REP del proveedor.
-
-## Alcance
-
-### 1. Modelo de datos
-Extender `supplier_payments` con campos del REP recibido:
-- `rep_required boolean` — derivado: `true` si la factura es PPD y el pago no liquida en el mismo día de emisión.
-- `rep_cfdi_uuid uuid` — UUID del REP que mandó el proveedor.
-- `rep_xml_url text`, `rep_pdf_url text` — paths en storage (`cfdi-files/supplier-rep/<bill_id>/<payment_id>.xml|pdf`).
-- `rep_status text` — enum textual: `not_required`, `pending`, `received`, `rejected`.
-- `rep_received_at timestamptz`, `rep_notes text`, `rep_uploaded_by uuid`.
-
-Trigger `set_supplier_payment_rep_required` BEFORE INSERT:
-- Si `bill.payment_method_sat = 'PPD'` → `rep_status = 'pending'`, `rep_required = true`.
-- Si no → `rep_status = 'not_required'`.
-
-### 2. Validación del XML recibido
-Nueva edge function `validate-supplier-rep`:
-- Input: `payment_id`, archivo XML (base64).
-- Parsea el XML del REP, valida:
-  - Es un CFDI tipo `P` (Pago).
-  - Contiene `pago20:Pago` con `Monto` que cuadra (±0.01) con `supplier_payments.amount`.
-  - El `RfcEmisor` coincide con `suppliers.rfc`.
-  - Hay un `pago20:DoctoRelacionado` cuyo `IdDocumento` coincide con `supplier_bills.cfdi_uuid`.
-- Si valida: sube XML al bucket `cfdi-files`, guarda `rep_cfdi_uuid`, `rep_status='received'`, `rep_received_at=now()`.
-- Si no valida: regresa `400` con motivo y deja `rep_status='pending'` con `rep_notes`.
-- Opcional: PDF — si el usuario carga PDF, se sube sin validación a `rep_pdf_url`.
-
-### 3. RPCs
-- `mark_supplier_rep_rejected(p_payment_id, p_notes)` — Admin/Administrativo; pasa a `rejected` cuando el XML del proveedor está mal y queremos pedirle reenvío.
-- `reset_supplier_rep_pending(p_payment_id)` — vuelve a `pending` para reintento.
-- Borrado: si `rep_status='received'` y rol Admin → permite borrar archivos y volver a `pending`.
-
-### 4. UI — Detalle de la factura
-En `SupplierBillDetailSheet`, dentro de cada pago listado:
-- Badge `REP: pendiente / recibido / rechazado / no requiere`.
-- Botón "Cargar REP" → abre `UploadSupplierRepDialog`:
-  - Dropzone XML obligatorio + PDF opcional.
-  - Llama a `validate-supplier-rep`; muestra errores de validación inline.
-- Si `received`: links a descargar XML/PDF, mostrar UUID, botón "Marcar rechazado" (Admin).
-- Si `rejected`: badge + notas + botón "Reintentar carga".
-
-### 5. KPI y filtros
-- En `AccountsPayableKpiCards`: nueva tarjeta **"REP pendientes"** = cantidad de pagos PPD con `rep_status='pending'` (clickeable al listado filtrado).
-- En `/cuentas-por-pagar`: filtro adicional "REP" (`Todos / Pendiente / Recibido / Rechazado / No requiere`); aplica a nivel factura (incluye facturas con al menos un pago en ese estado).
-
-### 6. Bitácora y actividad
-- `activity_feed`: `supplier_payment.rep_uploaded`, `supplier_payment.rep_rejected`, `supplier_payment.rep_reset` (es-MX).
-- Audit trail: incluir `supplier_payments` con diff row-level (ya está la infra).
-
-### 7. Permisos
-- Cargar REP: Admin + Administrativo.
-- Marcar rechazado / reset: Admin + Administrativo.
-- Auditor: solo lectura y descarga.
-
-### 8. Tests
-- Trigger: pago en factura PUE → `not_required`; en PPD → `pending`.
-- `validate-supplier-rep` rechaza XML que:
-  - no es tipo P,
-  - monto no cuadra,
-  - RFC emisor != supplier.rfc,
-  - UUID del DoctoRelacionado != bill.cfdi_uuid.
-- `validate-supplier-rep` exige rol Admin/Administrativo (401/403 para Ventas).
-- KPI "REP pendientes" no cuenta pagos `not_required` ni `received`.
-
-### 9. Changelog
-`v6.30.0` (minor) — "Recepción de Complementos de Pago (REP) de proveedores".
-
-## Fuera de alcance
-- Solicitar/automatizar la descarga del REP desde el SAT (requiere CIEC del proveedor; no aplica).
-- Validar el sello SAT del REP criptográficamente (solo validamos estructura y datos de negocio).
-- Generar nuestro propio REP (no aplica, somos el receptor).
-- OCR de PDF para extraer UUID (solo XML).
-
-## Notas técnicas
+## UI
 
 ```text
-supabase/migrations/<ts>_cxp_rep_intake.sql
-  - ALTER TABLE supplier_payments ADD rep_required, rep_cfdi_uuid, rep_xml_url, rep_pdf_url,
-        rep_status, rep_received_at, rep_notes, rep_uploaded_by
-  - CREATE INDEX supplier_payments_rep_status_idx (WHERE rep_status='pending')
-  - CREATE FUNCTION set_supplier_payment_rep_required() trigger BEFORE INSERT
-  - CREATE FUNCTION mark_supplier_rep_rejected / reset_supplier_rep_pending (SECURITY DEFINER, SET search_path=public)
+[ Saldo inicial: $___ MXN ]  [ Colchón mínimo: $___ ]  [ Horizonte: 4 / 8 / 12 sem ]   [ Exportar CSV ]
 
-supabase/functions/validate-supplier-rep/index.ts
-  - JWT validate, role check (admin/administrativo)
-  - Parse XML con regex/DOMParser (cfdi:Comprobante TipoDeComprobante='P', cfdi:Emisor Rfc, pago20:Pago Monto, pago20:DoctoRelacionado IdDocumento)
-  - Upload a storage; update supplier_payments
+┌── KPIs ─────────────────────────────────────────────────────┐
+│ Por cobrar (8 sem)  Por pagar (8 sem)  Neto    Acum. final │
+└─────────────────────────────────────────────────────────────┘
 
-src/features/accounts-payable/
-  components/UploadSupplierRepDialog.tsx
-  components/SupplierRepStatusBadge.tsx
-  components/SupplierPaymentRepRow.tsx        # render dentro de la lista de pagos
-  hooks/useSupplierRepMutations.ts            # validate, reject, reset
-  lib/supplierRepConstants.ts                 # REP_STATUS_LABELS
+┌── Tabla semanal (sticky header, zebra) ─────────────────────┐
+│ Sem  Rango        Entradas  Salidas  Neto   Acum.   Estado │
+│ 1    09–15 Jun    $120,000  $80,000  +40K   +60K     ●     │
+│ 2    16–22 Jun     $45,000  $90,000  -45K   +15K     ●     │
+│ …                                                           │
+└─────────────────────────────────────────────────────────────┘
+
+Click en una semana → panel lateral con detalle:
+  · Lista de invoices que vencen esa semana (link al detalle)
+  · Lista de supplier_bills que vencen esa semana (link al detalle)
 ```
 
-- El bucket `cfdi-files` ya existe; reutilizamos con prefijo `supplier-rep/<bill_id>/<payment_id>.xml`.
-- Si el proveedor manda un REP con varios `DoctoRelacionado`, solo validamos que **uno** de ellos sea nuestra factura; el monto total del REP puede ser mayor (caso pago consolidado a varias facturas suyas).
-- En `supplier_payments` existente sin REP: trigger solo aplica a nuevos. Ofrecemos botón "Cargar REP" en pagos viejos PPD que migren a `pending` por backfill: una sentencia `UPDATE` en la migración marca todos los pagos existentes ligados a facturas PPD como `pending`; el resto queda `not_required`.
+Móvil: `MobileCardList` con una tarjeta por semana.
 
+## Lógica de cálculo
+- `nowMty()` define "hoy". Semana inicia lunes (es-MX).
+- Entradas: `invoices` con `status in ('sent','overdue','partially_paid')` y `due_date` entre `monday` y `monday+8w`. Monto = `balance` (no `total`).
+- Salidas: `supplier_bills` con `status in ('pending','overdue','partially_paid')`, `approval_status in ('not_required','approved')`, `due_date` en rango. Monto = `balance`.
+- Vencidos (anteriores a hoy) se agrupan todos en una fila inicial **"Vencido"** para forzar acción.
+- Conversión de moneda: bills/invoices en USD se convierten con `exchange_rate` del documento (ya almacenado). No hay multi-moneda en la vista — todo en MXN.
+- Acumulado = saldo inicial + Σ netos hasta esa semana.
+- Semáforo:
+  - rojo si `acumulado < 0`
+  - ámbar si `0 ≤ acumulado < colchón`
+  - verde si `acumulado ≥ colchón`
+
+## Cambios técnicos
+
+### Migración
+`ALTER TABLE public.company_settings ADD COLUMN cash_initial_balance numeric DEFAULT 0, ADD COLUMN cash_safety_buffer numeric DEFAULT 0;`
+Sin nuevas tablas ni RLS.
+
+### Hooks / código nuevo
+```
+src/features/cash-flow/
+  hooks/useCashFlowProjection.ts        # arma la matriz semanal
+  hooks/useCashFlowSettings.ts          # lee/escribe los 2 campos en company_settings
+  lib/cashFlowUtils.ts                  # bucketByWeek, semáforo, formato
+  components/CashFlowSummaryCards.tsx
+  components/CashFlowTable.tsx
+  components/CashFlowWeekDetailSheet.tsx
+  components/CashFlowSettingsBar.tsx
+  pages/CashFlowPage.tsx
+```
+Reutilizamos `useSupplierBills` (ya existe) y un nuevo `useInvoicesByDueRange` (o filtro existente en hooks de invoices).
+
+### Tests
+- `cashFlowUtils.bucketByWeek`: agrupa correctamente respetando lunes-domingo America/Monterrey.
+- Semáforo: límites con `colchón=0` y `colchón>0`.
+- Excluye `supplier_bills` con `approval_status='pending'` o `'rejected'`.
+
+### Permisos
+- `RoleGuard module="Cuentas por Cobrar"` y `"Cuentas por Pagar"` mínimas para abrir la página; la edición de saldo inicial/colchón requiere Admin+Administrativo.
+
+### Changelog
+`v6.31.0` (minor) — "Flujo de caja proyectado a 8 semanas con semáforo de liquidez".
+
+## Fuera de alcance
+- Pagos recurrentes proyectados (subscripciones de renta) — fase posterior.
+- Escenarios "what-if" (mover fechas hipotéticamente).
+- Múltiples cuentas bancarias — usamos un único saldo inicial agregado.
+- Conversión FX en tiempo real — usamos `exchange_rate` ya guardado por documento.
