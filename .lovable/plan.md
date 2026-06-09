@@ -1,62 +1,65 @@
-# Fase 3 (revisada): Export Excel de pagos masivos a proveedores
+# Atajos de teclado globales (#8) — Cierre del plan original
 
-En lugar de generar layouts SPEI bancarios (`.txt`), generaremos un **archivo Excel (.xlsx)** con las facturas aprobadas pendientes de pago, que el usuario puede subir manualmente a su banca en línea o usar como respaldo operativo.
+Hoy existe `Ctrl+K` (búsqueda/navegación) en `src/layouts/GlobalSearch.tsx`. Vamos a expandirlo a un sistema completo de atajos productivos para usuarios de escritorio.
 
 ## Alcance
 
-### 1. Nueva pantalla / sección en Cuentas por Pagar
+### 1. Hook central `useHotkeys`
+- `src/hooks/useHotkeys.ts`: registra atajos con scope (`global`, `page`, `dialog`), respeta inputs (no dispara si el foco está en `input/textarea/contentEditable`, salvo atajos marcados `allowInInput`).
+- Soporta combos (`mod+k`, `mod+shift+n`) y secuencias tipo Gmail (`g` luego `c` → ir a Clientes).
+- Cleanup obligatorio (regla Power of 10).
 
-En `/cuentas-por-pagar`, agregar un botón **"Exportar pagos a Excel"** que abra un diálogo:
+### 2. Registro global de navegación (secuencias `g + letra`)
+Se monta una vez en `MainLayout`:
 
-- **Filtros**:
-  - Rango de fechas de vencimiento (default: hoy + 7 días)
-  - Estado: solo `aprobada` con saldo > 0 (default y único por ahora)
-  - Selección de facturas (checkbox por fila, con "seleccionar todas")
-- **Vista previa** en tabla compacta zebra:
-  - Proveedor, RFC, Banco, CLABE, Cuenta, Folio factura, Vencimiento, Saldo, Monto a pagar (editable, default = saldo)
-- **Totales**: cantidad de pagos + suma total MXN
-- **Validaciones antes de exportar**:
-  - Cada proveedor seleccionado debe tener al menos una `supplier_bank_accounts` activa con CLABE válida (18 dígitos)
-  - Marcar en rojo las filas sin cuenta bancaria y bloquear export hasta resolverlas o desmarcarlas
-- Botón **"Descargar Excel"**
+```text
+g d → Panel              g c → Clientes        g q → Cotizaciones
+g b → Reservas           g f → Facturas        g e → Equipos
+g m → Mantenimiento      g x → Gastos          g r → Reportes
+g k → Calendario         g p → Proveedores     g a → CxP
+```
 
-### 2. Archivo Excel generado
+### 3. Atajos globales con modificador
+| Atajo | Acción |
+|---|---|
+| `Ctrl+K` | Paleta de comandos (ya existe) |
+| `Ctrl+/` o `?` | Abrir panel de ayuda de atajos |
+| `Ctrl+Shift+N` | Acción "nuevo" contextual a la página actual |
+| `Ctrl+Shift+F` | Enfocar barra de búsqueda local de la página |
+| `Esc` | Cerrar dialogo/panel activo (ya nativo en shadcn, validar) |
 
-Una sola hoja `Pagos` con columnas:
+### 4. Atajos por página (contextuales)
+Cada listado expone su acción "nuevo" vía un contexto ligero `PageActionsContext`:
+- `N` → abre formulario nuevo (cotización, factura, cliente, reserva, etc.)
+- `/` → enfoca búsqueda de la página
+- `R` → refresca query principal
 
-| Proveedor | RFC | Banco | CLABE | Cuenta | Referencia | Concepto | Folio Factura | Fecha Vencimiento | Monto MXN |
+Páginas a instrumentar en esta entrega:
+Clientes, Cotizaciones, Reservas, Facturas, Equipos, Mantenimiento, Proveedores, Gastos, CxP, CRM.
 
-- Formato MXN con separador de miles, fecha DD/MM/YYYY
-- Fila final con TOTAL
-- Nombre archivo: `pagos-proveedores-DDMMYYYY-HHmm.xlsx`
-- Usar librería ya disponible (revisar si hay `xlsx`/`exceljs` en el proyecto; si no, usar `xlsx` SheetJS — ya común en stack o se agrega)
+### 5. Panel de ayuda de atajos
+`src/components/KeyboardShortcutsDialog.tsx`:
+- Se abre con `?` o `Ctrl+/`, o desde un botón discreto en el header (icono teclado).
+- Lista agrupada: Global · Navegación (`g + …`) · Página actual.
+- Cada combo se renderiza con `<kbd>` estilizado consistente con el badge del Ctrl+K actual.
 
-### 3. Registro del lote (opcional pero recomendado)
+### 6. Integración visual
+- En tablas de cabeceras de página, mostrar tooltip discreto `N` en el botón "Nuevo".
+- Sin cambios de paleta ni rediseños.
 
-Crear tabla `supplier_payment_batches` para auditar qué se exportó:
+## Cambios técnicos clave
 
-- `id`, `exported_by`, `exported_at`, `bill_ids` (uuid[]), `total_amount`, `notes`
-- Tabla puente `supplier_payment_batch_items` o simplemente JSONB con snapshot
-- RLS: Admin/Administrativo lectura y escritura
-- Esto permite ver historial en una pestaña "Lotes exportados"
+- **Nuevo**: `src/hooks/useHotkeys.ts`, `src/contexts/PageActionsContext.tsx`, `src/components/KeyboardShortcutsDialog.tsx`, `src/lib/shortcuts/registry.ts` (catálogo central tipado para que el panel de ayuda y los handlers compartan fuente de verdad).
+- **Editar**: `src/layouts/MainLayout.tsx` (monta provider + dialog + atajos navegación), `src/layouts/GlobalSearch.tsx` (consume registry para evitar duplicar definiciones), páginas listadas arriba (registrar acción "Nuevo" + búsqueda vía `usePageActions`).
+- **Sin migraciones SQL.** Sin cambios de RLS. Sin dependencias nuevas (usamos listeners nativos; no añadimos `react-hotkeys-hook`).
 
-> Si prefieres no auditar todavía, podemos omitir esta tabla y solo generar el Excel.
+## Fuera de alcance
+- Personalización de atajos por usuario.
+- Macros / multi-paso encadenadas.
+- Atajos en vista móvil (sigue desktop-first).
 
-### 4. Marcar facturas como "en proceso de pago" (opcional)
+## Cierre
+Tras esta entrega marcamos #8 como ✅ y damos por cerrado el plan original. Pendientes restantes (#2 Mi Día, #5 acciones masivas, #6 Kanban cotizaciones, #10 link público, #13 mapa, #15 pago online, #16 PWA, #17 QR, #18 mantenimiento predictivo, #20 offline) pasan a backlog para un nuevo plan.
 
-Agregar columna `payment_in_progress_at` (timestamptz nullable) en `supplier_bills`, que se setea al exportar y se limpia cuando se registra el pago real con `register_supplier_payment`. Sirve para evitar exportar dos veces la misma factura.
-
-## Detalles técnicos
-
-- Hook nuevo: `useExportablePayables(filters)` → lista facturas aprobadas con join a `supplier_bank_accounts` (cuenta primaria/activa).
-- Componente nuevo: `src/features/accounts-payable/components/ExportPaymentsDialog.tsx`
-- Utilidad: `src/features/accounts-payable/lib/buildPaymentsXlsx.ts` (genera blob con SheetJS y dispara descarga).
-- Si añadimos tabla de lotes: migración + RPC `create_payment_batch(p_bill_ids uuid[], p_notes text)` que también marca `payment_in_progress_at`.
-- Test unitario para `buildPaymentsXlsx` (estructura de filas, formato monto/fecha, total correcto).
-- Changelog `v6.34.2` (minor): "Export Excel de pagos masivos a proveedores".
-
-## Preguntas antes de implementar
-
-1. ¿Incluimos el **registro de lotes** (`supplier_payment_batches`) y el flag `payment_in_progress_at`, o solo generamos el Excel sin rastro? La mejor practica
-2. ¿La columna **"Referencia"** del Excel se autogenera (ej. `LIFTGO-FOLIO`) o queremos que el usuario la edite por fila? se autogenera
-3. ¿Mantenemos solo formato **.xlsx**, o también ofrecemos **CSV** como alternativa rápida? solo xlsx
+## Changelog
+Versión **minor** `v6.35.0` — "Atajos de teclado globales": entrada en `public/changelog.json` + `public/changelog/v6.35.0.json` con detalle de combos y panel `?`.
