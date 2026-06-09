@@ -30,10 +30,10 @@ export function useSupplierBillApprovals(billId: string | null | undefined) {
       if (actorIds.length > 0) {
         const { data: profs } = await supabase
           .from("profiles")
-          .select("id, full_name, email")
-          .in("id", actorIds);
+          .select("user_id, full_name, email")
+          .in("user_id", actorIds);
         names = Object.fromEntries(
-          (profs ?? []).map((p) => [p.id, p.full_name || p.email || ""]),
+          (profs ?? []).map((p) => [p.user_id, p.full_name || p.email || ""]),
         );
       }
       return rows.map((r) => ({
