@@ -200,6 +200,15 @@ export default function CuentasPorPagarPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={f.approval} onValueChange={(v) => f.set("approval", v as typeof f.approval)}>
+                <SelectTrigger className="w-full sm:w-[170px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas aprobaciones</SelectItem>
+                  {APPROVAL_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>{APPROVAL_STATUS_LABELS[s]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         }
