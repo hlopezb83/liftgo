@@ -90,6 +90,10 @@ export default function SuppliersPage() {
     setDialogOpen(true);
   };
 
+  usePageActions({ onNew: openCreate, newLabel: "Nuevo proveedor" });
+
+
+
   const handleExport = () => {
     exportToCsv(
       "proveedores.csv",

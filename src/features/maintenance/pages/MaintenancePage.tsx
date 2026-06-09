@@ -19,6 +19,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateDisplay } from "@/lib/utils";
 import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "@/features/maintenance/lib/maintenancePageHelpers";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
@@ -30,6 +31,7 @@ export default function MaintenancePage() {
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
   const formCtl = useMaintenanceForm(forkliftMap);
+  usePageActions({ onNew: formCtl.openCreate, newLabel: "Nuevo servicio" });
 
   const enrichedLogs = useMemo(() => enrichLogs(logs, forkliftMap), [logs, forkliftMap]);
 
