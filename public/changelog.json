@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.27.0",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Cuentas por Pagar: módulo operativo (listado, KPIs, registro de pagos y cancelación)",
+    "category": "feature"
+  },
+  {
     "version": "6.26.0",
     "date": "2026-06-08",
     "type": "minor",
