@@ -15,6 +15,8 @@ import {
 } from "../lib/supplierBillConstants";
 import { RegisterSupplierPaymentDialog } from "./RegisterSupplierPaymentDialog";
 import { CancelSupplierBillDialog } from "./CancelSupplierBillDialog";
+import { BillApprovalSection } from "./BillApprovalSection";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   billId: string | null;
