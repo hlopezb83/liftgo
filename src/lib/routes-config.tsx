@@ -47,6 +47,7 @@ const MrrDetailPage = lazy(() => import("@/features/dashboard/pages/MrrDetailPag
 const MyReportsPage = lazy(() => import("@/features/feedback/pages/MyReportsPage"));
 const LeaderboardPage = lazy(() => import("@/features/feedback/pages/LeaderboardPage"));
 const FeedbackManagementPage = lazy(() => import("@/features/feedback/pages/FeedbackManagementPage"));
+const CuentasPorPagarPage = lazy(() => import("@/features/accounts-payable/pages/CuentasPorPagarPage"));
 
 // Shared fallback con timeout: si tras 10s sigue cargando, sugerimos recargar.
 export const PageFallback = () => {
@@ -114,6 +115,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/reports", component: ReportsPage, module: "Reportes" },
   { path: "/damage", component: DamageTrackingPage, module: "Daños" },
   { path: "/expenses", component: OperatingExpensesPage, module: "Gastos" },
+  { path: "/cuentas-por-pagar", component: CuentasPorPagarPage, module: "Cuentas por Pagar" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
   { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },

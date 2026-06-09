@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings,
   ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, ShieldCheck,
   ScrollText, History, HelpCircle, Wallet, Package, Target, DollarSign, Handshake,
-  MessageSquare, Trophy, Megaphone,
+  MessageSquare, Trophy, Megaphone, FileClock,
 } from "lucide-react";
 
 export type NavItem = { title: string; url: string; icon: React.ElementType };
@@ -47,6 +47,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Administración",
     items: [
       { title: "Proveedores", url: "/suppliers", icon: Handshake },
+      { title: "Cuentas por Pagar", url: "/cuentas-por-pagar", icon: FileClock },
       { title: "Gastos Operativos", url: "/expenses", icon: Wallet },
       { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
       { title: "Reportes", url: "/reports", icon: BarChart3 },
