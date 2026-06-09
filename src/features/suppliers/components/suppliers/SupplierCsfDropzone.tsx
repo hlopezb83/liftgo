@@ -7,8 +7,9 @@ import { useParseCsf } from "@/features/customers/hooks/useParseCsf";
 import type { SupplierForm } from "./supplierFormTypes";
 
 interface Props {
-  onParsed: (patch: Partial<SupplierForm>) => void;
+  onParsed: (patch: Partial<SupplierForm>, file: File) => void;
 }
+
 
 export function SupplierCsfDropzone({ onParsed }: Props) {
   const parseCsf = useParseCsf();
