@@ -9,6 +9,7 @@ import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { PAYMENT_METHOD_LABELS } from "../lib/supplierBillConstants";
 import { SupplierRepStatusBadge } from "./SupplierRepStatusBadge";
 import { UploadSupplierRepDialog } from "./UploadSupplierRepDialog";
+import { ReconciliationBadge } from "@/features/bank-reconciliation/components/ReconciliationBadge";
 import { useRejectSupplierRep, useResetSupplierRep } from "../hooks/useSupplierRepMutations";
 import type { SupplierPayment } from "../hooks/useSupplierBill";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
@@ -55,6 +56,7 @@ export function SupplierPaymentRow({ payment: p, billId, currency }: Props) {
         <span className="font-medium">{formatDateDisplay(p.payment_date)}</span>
         <span className="font-mono font-bold">{formatCurrencyWithCode(Number(p.amount), currency)}</span>
       </div>
+      <ReconciliationBadge supplierPaymentId={p.id} />
       <p className="text-muted-foreground">
         {p.payment_method ? PAYMENT_METHOD_LABELS[p.payment_method] ?? p.payment_method : "—"}
         {p.reference && <> · ref. {p.reference}</>}

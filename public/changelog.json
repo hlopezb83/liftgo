@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.33.0",
+    "date": "2026-06-09",
+    "type": "patch",
+    "title": "Endurecimiento de REP CFDI y Conciliación bancaria",
+    "category": "improvement"
+  },
+  {
     "version": "6.32.0",
     "date": "2026-06-09",
     "type": "minor",
