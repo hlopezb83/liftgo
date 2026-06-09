@@ -56,7 +56,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
               <StatusBadge status={bill.status} label={SUPPLIER_BILL_STATUS_LABELS[bill.status]} />
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Saldo</p>
-                <p className="text-xl font-bold font-mono">{formatCurrency(Number(bill.balance), bill.currency)}</p>
+                <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(Number(bill.balance), bill.currency)}</p>
               </div>
             </div>
 
@@ -71,15 +71,15 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
 
             <Separator />
             <div className="space-y-0">
-              <Row label="Subtotal" value={formatCurrency(Number(bill.subtotal), bill.currency)} />
-              <Row label="IVA" value={formatCurrency(Number(bill.tax_amount), bill.currency)} />
+              <Row label="Subtotal" value={formatCurrencyWithCode(Number(bill.subtotal), bill.currency)} />
+              <Row label="IVA" value={formatCurrencyWithCode(Number(bill.tax_amount), bill.currency)} />
               {Number(bill.retention_iva) > 0 && (
-                <Row label="Ret. IVA" value={`-${formatCurrency(Number(bill.retention_iva), bill.currency)}`} />
+                <Row label="Ret. IVA" value={`-${formatCurrencyWithCode(Number(bill.retention_iva), bill.currency)}`} />
               )}
               {Number(bill.retention_isr) > 0 && (
-                <Row label="Ret. ISR" value={`-${formatCurrency(Number(bill.retention_isr), bill.currency)}`} />
+                <Row label="Ret. ISR" value={`-${formatCurrencyWithCode(Number(bill.retention_isr), bill.currency)}`} />
               )}
-              <Row label="Total" value={<strong>{formatCurrency(Number(bill.total), bill.currency)}</strong>} />
+              <Row label="Total" value={<strong>{formatCurrencyWithCode(Number(bill.total), bill.currency)}</strong>} />
               {bill.currency !== "MXN" && (
                 <Row label="Tipo de cambio" value={bill.exchange_rate} />
               )}
@@ -110,7 +110,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
                     <div key={p.id} className="rounded-md border p-2 text-xs space-y-0.5">
                       <div className="flex items-center justify-between">
                         <span className="font-medium">{formatDateDisplay(p.payment_date)}</span>
-                        <span className="font-mono font-bold">{formatCurrency(Number(p.amount), bill.currency)}</span>
+                        <span className="font-mono font-bold">{formatCurrencyWithCode(Number(p.amount), bill.currency)}</span>
                       </div>
                       <p className="text-muted-foreground">
                         {p.payment_method ? PAYMENT_METHOD_LABELS[p.payment_method] ?? p.payment_method : "—"}
