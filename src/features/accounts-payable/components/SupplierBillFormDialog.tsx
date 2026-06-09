@@ -70,6 +70,31 @@ export function SupplierBillFormDialog({ open, onOpenChange }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const { data: suppliersList } = useSuppliers();
+  const supplierId = form.watch("supplier_id");
+  const issueDate = form.watch("issue_date");
+  const dueDate = form.watch("due_date");
+
+  const selectedSupplier = useMemo(
+    () => suppliersList?.find((s) => s.id === supplierId),
+    [suppliersList, supplierId],
+  );
+  const suggestedDueDate = useMemo(() => {
+    const days = selectedSupplier?.default_payment_terms_days;
+    if (!days || !issueDate) return null;
+    const d = new Date(issueDate);
+    d.setDate(d.getDate() + days);
+    return d;
+  }, [selectedSupplier, issueDate]);
+
+  // Prefill due_date when supplier or issue_date changes and field is empty
+  useEffect(() => {
+    if (suggestedDueDate && !dueDate) {
+      form.setValue("due_date", suggestedDueDate);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supplierId, issueDate]);
+
   const subtotal = form.watch("subtotal") || 0;
   const tax = form.watch("tax_amount") || 0;
   const retIva = form.watch("retention_iva") || 0;
