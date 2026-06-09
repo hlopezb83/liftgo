@@ -15,6 +15,7 @@ import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "@/features/
 import { PlusCircle, ChevronRight } from "lucide-react";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 
@@ -23,6 +24,7 @@ type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
 export default function QuotesPage() {
   const { data: quotes, isLoading, refetch } = useQuotes();
   const navigate = useNavigate();
+  usePageActions({ onNew: () => navigate("/quotes/new"), onRefresh: refetch, newLabel: "Nueva cotización" });
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(quotes, {
     searchFields: ["quote_number", "customer_name"],

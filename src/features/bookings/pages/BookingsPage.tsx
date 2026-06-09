@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, ChevronRight, CalendarDays } from "lucide-react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { usePageActions } from "@/contexts/PageActionsContext";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 
@@ -29,6 +30,7 @@ const getDuration = (start: string, end: string) => {
 export default function BookingsPage() {
   const { data: bookings, isLoading, refetch } = useBookings();
   const navigate = useNavigate();
+  usePageActions({ onNew: () => navigate("/bookings/new"), onRefresh: refetch, newLabel: "Nueva reserva" });
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(bookings, {
     searchFields: ["customer_name", "booking_number"],
