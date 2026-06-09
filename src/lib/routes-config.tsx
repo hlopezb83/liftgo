@@ -115,6 +115,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/reports", component: ReportsPage, module: "Reportes" },
   { path: "/damage", component: DamageTrackingPage, module: "Daños" },
   { path: "/expenses", component: OperatingExpensesPage, module: "Gastos" },
+  { path: "/cuentas-por-pagar", component: CuentasPorPagarPage, module: "Cuentas por Pagar" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
   { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },
