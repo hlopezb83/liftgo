@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.34.2",
+    "date": "2026-06-09",
+    "type": "minor",
+    "title": "Exportación de pagos a proveedores en Excel",
+    "category": "feature"
+  },
+  {
     "version": "6.34.1",
     "date": "2026-06-09",
     "type": "patch",

@@ -2384,6 +2384,7 @@ export type Database = {
           legacy_expense_id: string | null
           notes: string | null
           payment_form_sat: string | null
+          payment_in_progress_at: string | null
           payment_method_sat: string | null
           pdf_url: string | null
           retention_isr: number
@@ -2419,6 +2420,7 @@ export type Database = {
           legacy_expense_id?: string | null
           notes?: string | null
           payment_form_sat?: string | null
+          payment_in_progress_at?: string | null
           payment_method_sat?: string | null
           pdf_url?: string | null
           retention_isr?: number
@@ -2454,6 +2456,7 @@ export type Database = {
           legacy_expense_id?: string | null
           notes?: string | null
           payment_form_sat?: string | null
+          payment_in_progress_at?: string | null
           payment_method_sat?: string | null
           pdf_url?: string | null
           retention_isr?: number
@@ -2523,6 +2526,121 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      supplier_payment_batch_items: {
+        Row: {
+          account_holder: string | null
+          account_number: string | null
+          amount: number
+          bank_name: string | null
+          batch_id: string
+          bill_id: string | null
+          bill_number: string
+          clabe: string | null
+          concept: string | null
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          reference: string
+          supplier_id: string | null
+          supplier_name: string
+          supplier_rfc: string | null
+        }
+        Insert: {
+          account_holder?: string | null
+          account_number?: string | null
+          amount: number
+          bank_name?: string | null
+          batch_id: string
+          bill_id?: string | null
+          bill_number: string
+          clabe?: string | null
+          concept?: string | null
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          reference: string
+          supplier_id?: string | null
+          supplier_name: string
+          supplier_rfc?: string | null
+        }
+        Update: {
+          account_holder?: string | null
+          account_number?: string | null
+          amount?: number
+          bank_name?: string | null
+          batch_id?: string
+          bill_id?: string | null
+          bill_number?: string
+          clabe?: string | null
+          concept?: string | null
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          reference?: string
+          supplier_id?: string | null
+          supplier_name?: string
+          supplier_rfc?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_payment_batch_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_payment_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_payment_batch_items_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_payment_batch_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_payment_batches: {
+        Row: {
+          bill_count: number
+          created_at: string
+          currency: string
+          exported_at: string
+          exported_by: string | null
+          id: string
+          notes: string | null
+          total_amount: number
+        }
+        Insert: {
+          bill_count?: number
+          created_at?: string
+          currency?: string
+          exported_at?: string
+          exported_by?: string | null
+          id?: string
+          notes?: string | null
+          total_amount?: number
+        }
+        Update: {
+          bill_count?: number
+          created_at?: string
+          currency?: string
+          exported_at?: string
+          exported_by?: string | null
+          id?: string
+          notes?: string | null
+          total_amount?: number
+        }
+        Relationships: []
       }
       supplier_payments: {
         Row: {
@@ -2797,6 +2915,10 @@ export type Database = {
           p_type: string
           p_user_id: string
         }
+        Returns: string
+      }
+      create_supplier_payment_batch: {
+        Args: { p_items: Json; p_notes?: string }
         Returns: string
       }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }

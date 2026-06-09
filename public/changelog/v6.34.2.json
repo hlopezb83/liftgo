@@ -1,0 +1,17 @@
+{
+  "version": "6.34.2",
+  "date": "2026-06-09",
+  "title": "Exportación de pagos a proveedores en Excel",
+  "category": "feature",
+  "description": "Nuevo flujo en Cuentas por Pagar para exportar lotes de pago a Excel y registrar el lote para auditoría.",
+  "changes": [
+    "Botón 'Exportar pagos' en Cuentas por Pagar abre diálogo con facturas aprobadas con saldo.",
+    "Validación automática: bloquea proveedores sin CLABE válida (18 dígitos).",
+    "Monto a pagar editable por fila, con default al saldo total y total general en MXN.",
+    "Descarga archivo XLSX con Proveedor, RFC, Banco, CLABE, Cuenta, Titular, Referencia (LIFTGO-folio autogenerada), Concepto, Folio, Vencimiento, Monto y Moneda; fila TOTAL al final.",
+    "Registra el lote en nuevas tablas supplier_payment_batches y supplier_payment_batch_items (snapshot completo).",
+    "Marca facturas como 'en proceso de pago' (payment_in_progress_at) para evitar duplicados; se limpia automáticamente al registrar el pago real.",
+    "RPC create_supplier_payment_batch valida aprobación, saldo y CLABE de forma atómica.",
+    "Solo Admin y Administrativo pueden crear y consultar lotes."
+  ]
+}

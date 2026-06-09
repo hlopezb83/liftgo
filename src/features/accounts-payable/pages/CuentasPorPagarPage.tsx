@@ -4,7 +4,7 @@ import { es } from "date-fns/locale";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, FileClock, BarChart3 } from "lucide-react";
+import { Plus, FileClock, BarChart3, FileSpreadsheet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "@/components/SearchBar";
 import { ListPageLayout } from "@/components/ListPageLayout";
@@ -31,12 +31,14 @@ import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 import { AccountsPayableKpiCards } from "../components/AccountsPayableKpiCards";
 import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
 import { SupplierBillDetailSheet } from "../components/SupplierBillDetailSheet";
+import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
 
 export default function CuentasPorPagarPage() {
   const { bills, kpis, isLoading } = useAccountsPayableKpis();
   const { data: suppliers } = useSuppliers();
   const f = useAccountsPayableFilters(bills);
   const createDialog = useToggleDialog();
+  const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const columns = useMemo<ColumnDef<SupplierBillListItem>[]>(() => [
@@ -151,6 +153,9 @@ export default function CuentasPorPagarPage() {
                 <BarChart3 className="h-4 w-4 mr-1" />Antigüedad
               </Button>
             </Link>
+            <Button variant="outline" onClick={exportDialog.openDialog}>
+              <FileSpreadsheet className="h-4 w-4 mr-1" />Exportar pagos
+            </Button>
             <Button onClick={createDialog.openDialog}>
               <Plus className="h-4 w-4 mr-1" />Nueva Cuenta
             </Button>
@@ -237,6 +242,7 @@ export default function CuentasPorPagarPage() {
       />
 
       <SupplierBillFormDialog open={createDialog.open} onOpenChange={createDialog.setOpen} />
+      <ExportPaymentsDialog open={exportDialog.open} onOpenChange={exportDialog.setOpen} />
       <SupplierBillDetailSheet
         billId={selectedId}
         open={selectedId !== null}
