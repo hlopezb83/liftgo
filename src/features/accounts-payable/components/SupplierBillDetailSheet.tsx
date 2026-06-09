@@ -6,16 +6,16 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { CreditCard, FileText, XCircle, Loader2, ExternalLink } from "lucide-react";
+import { CreditCard, FileText, XCircle, Loader2 } from "lucide-react";
 import { useSupplierBill } from "../hooks/useSupplierBill";
 import {
   SUPPLIER_BILL_STATUS_LABELS,
   EXPENSE_CATEGORY_LABELS,
-  PAYMENT_METHOD_LABELS,
 } from "../lib/supplierBillConstants";
 import { RegisterSupplierPaymentDialog } from "./RegisterSupplierPaymentDialog";
 import { CancelSupplierBillDialog } from "./CancelSupplierBillDialog";
 import { BillApprovalSection } from "./BillApprovalSection";
+import { SupplierPaymentRow } from "./SupplierPaymentRow";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
@@ -109,22 +109,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
               ) : (
                 <div className="space-y-2">
                   {bill.payments.map((p) => (
-                    <div key={p.id} className="rounded-md border p-2 text-xs space-y-0.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{formatDateDisplay(p.payment_date)}</span>
-                        <span className="font-mono font-bold">{formatCurrencyWithCode(Number(p.amount), bill.currency)}</span>
-                      </div>
-                      <p className="text-muted-foreground">
-                        {p.payment_method ? PAYMENT_METHOD_LABELS[p.payment_method] ?? p.payment_method : "—"}
-                        {p.reference && <> · ref. {p.reference}</>}
-                        {p.bank_account && <> · {p.bank_account}</>}
-                      </p>
-                      {p.receipt_url && (
-                        <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-primary inline-flex items-center gap-1 hover:underline">
-                          Comprobante <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
+                    <SupplierPaymentRow key={p.id} payment={p} billId={bill.id} currency={bill.currency} />
                   ))}
                 </div>
               )}
