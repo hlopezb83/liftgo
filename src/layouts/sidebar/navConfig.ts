@@ -22,16 +22,15 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "CRM", url: "/crm", icon: Target },
       { title: "Clientes", url: "/customers", icon: Users },
       { title: "Cotizaciones", url: "/quotes", icon: FileText },
+      { title: "Contratos", url: "/contracts", icon: ScrollText },
       { title: "Reservas", url: "/bookings", icon: BookOpen },
     ],
   },
   {
     label: "Operaciones",
     items: [
-      { title: "Contratos", url: "/contracts", icon: ScrollText },
       { title: "Entregas", url: "/deliveries", icon: TruckIcon },
       { title: "Devoluciones", url: "/returns", icon: ClipboardCheck },
-      { title: "Facturas", url: "/invoices", icon: Receipt },
     ],
   },
   {
@@ -44,22 +43,22 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Administración",
+    label: "Finanzas",
     items: [
-      { title: "Proveedores", url: "/suppliers", icon: Handshake },
+      { title: "Facturas", url: "/invoices", icon: Receipt },
       { title: "Cuentas por Pagar", url: "/cuentas-por-pagar", icon: FileClock },
+      { title: "Proveedores", url: "/suppliers", icon: Handshake },
       { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
-      { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
-      { title: "Historial de Imports", url: "/conciliacion-bancaria/historial", icon: History },
       { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: Landmark },
+      { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
       { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
+    ],
+  },
+  {
+    label: "Reportes y Análisis",
+    items: [
       { title: "Reportes", url: "/reports", icon: BarChart3 },
-      { title: "Actividad", url: "/activity", icon: Activity },
-      { title: "Bitácora", url: "/audit", icon: History },
-      { title: "Configuración", url: "/settings/operations", icon: Settings },
-      { title: "Usuarios", url: "/users", icon: ShieldCheck },
-      { title: "Changelog", url: "/changelog", icon: ScrollText },
-      { title: "Ayuda", url: "/help", icon: HelpCircle },
+      { title: "MRR / Métricas", url: "/mrr", icon: TrendingUp },
     ],
   },
   {
@@ -70,7 +69,20 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Gestión de Feedback", url: "/feedback", icon: Megaphone },
     ],
   },
+  {
+    label: "Sistema",
+    items: [
+      { title: "Usuarios", url: "/users", icon: ShieldCheck },
+      { title: "Configuración", url: "/settings/operations", icon: Settings },
+      { title: "Actividad", url: "/activity", icon: Activity },
+      { title: "Bitácora", url: "/audit", icon: History },
+      { title: "Historial de Imports", url: "/conciliacion-bancaria/historial", icon: History },
+      { title: "Changelog", url: "/changelog", icon: ScrollText },
+      { title: "Ayuda", url: "/help", icon: HelpCircle },
+    ],
+  },
 ];
 
 // Items that bypass the permissions check
 export const ALWAYS_VISIBLE_ROUTES = ["/changelog", "/help", "/activity", "/audit", "/mis-reportes", "/leaderboard"];
+
