@@ -34,7 +34,7 @@ export function useForkliftFormState(
         id: "fallback", manufacturer, model: existing.model,
         default_capacity_kg: null, default_mast_height_m: null, default_fuel_type: "Diesel",
         default_daily_rate: 0, default_weekly_rate: 0, default_monthly_rate: 0,
-        created_at: "", updated_at: "", is_e2e: false,
+        created_at: "", updated_at: "", is_e2e: false, e2e_scope: null,
       });
     }
     return models;

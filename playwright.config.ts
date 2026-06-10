@@ -15,20 +15,25 @@ import { defineConfig, devices } from "@playwright/test";
  *   VITE_SUPABASE_PUBLISHABLE_KEY  (already in .env)
  */
 const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:4173";
+// SHARD_INDEX is set per-job in CI matrix sharding ("1", "2", …). Used to scope artifact paths so
+// shards don't overwrite each other when uploaded.
+const shardSuffix = process.env.SHARD_INDEX ? `-shard${process.env.SHARD_INDEX}` : "";
 
 export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 30_000,
   expect: { timeout: 5_000 },
-  fullyParallel: false,
-  workers: 1,
+  // Each test gets a unique `e2e_scope` from the seed fixture, so workers can run in parallel without
+  // racing on the global teardown. Tune CI workers per shard (2 × N shards = effective parallelism).
+  fullyParallel: true,
+  workers: process.env.CI ? 2 : 4,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI
     ? [
         ["list"],
-        ["html", { outputFolder: "playwright-report", open: "never" }],
-        ["junit", { outputFile: "reports/playwright-junit.xml" }],
-        ["json", { outputFile: "reports/playwright.json" }],
+        ["html", { outputFolder: `playwright-report${shardSuffix}`, open: "never" }],
+        ["junit", { outputFile: `reports/playwright-junit${shardSuffix}.xml` }],
+        ["json", { outputFile: `reports/playwright${shardSuffix}.json` }],
         ["github"],
       ]
     : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
