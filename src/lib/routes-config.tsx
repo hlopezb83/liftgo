@@ -127,7 +127,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/conciliacion-bancaria", component: BankReconciliationPage, module: "Conciliación Bancaria" },
   { path: "/conciliacion-bancaria/historial", component: BankStatementImportsHistoryPage, module: "Conciliación Bancaria" },
   { path: "/income-statement", component: IncomeStatementPage, module: "Reportes" },
-  { path: "/mrr", component: MrrDetailPage, module: "Reportes" },
+  { path: "/mrr", component: MrrDetailPage, module: "MRR" },
   { path: "/inventory", component: InventoryPage, module: "Refacciones" },
   { path: "/crm", component: CRMPage, module: "CRM / Prospectos" },
   { path: "/crm/cerrados", component: CRMClosedPage, module: "CRM / Prospectos" },
