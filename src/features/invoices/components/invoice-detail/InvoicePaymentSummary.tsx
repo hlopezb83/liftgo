@@ -9,8 +9,8 @@ import { EditPaymentDialog } from "./EditPaymentDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useStampPaymentComplement, useCancelPaymentComplement } from "@/features/invoices/hooks/invoices/usePaymentComplement";
-import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { downloadCfdiBlob, type CfdiFormat } from "@/features/invoices/lib/downloadCfdiBlob";
 import { ReconciliationBadge } from "@/features/bank-reconciliation/components/ReconciliationBadge";
 
 interface InvoicePaymentSummaryProps {
@@ -24,20 +24,9 @@ interface InvoicePaymentSummaryProps {
 
 type Payment = Tables<"payments">;
 
-async function downloadRep(paymentId: string, format: "pdf" | "xml") {
+async function downloadRep(paymentId: string, format: CfdiFormat) {
   try {
-    const { data, error } = await supabase.functions.invoke("download-cfdi", {
-      body: { payment_id: paymentId, format },
-    });
-    if (error) throw error;
-    if (data instanceof Blob) {
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `REP-${paymentId}.${format}`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    await downloadCfdiBlob({ payment_id: paymentId }, format, `REP-${paymentId}.${format}`);
   } catch (err) {
     notifyError({ error: err, message: "Error al descargar REP" });
   }
