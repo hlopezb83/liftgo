@@ -36,7 +36,7 @@ describe("useSupplierBankAccounts — RLS contract", () => {
     };
     const { result } = renderHook(() => useSupplierBankAccounts("sup-1"), { wrapper });
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error).toMatchObject({ code: "42501" });
   });
 
   it("staff (admin) recibe cuentas bancarias", async () => {
