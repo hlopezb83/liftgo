@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.41.1",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Fix de 2 pruebas E2E desalineadas con la UI",
+    "category": "tooling"
+  },
+  {
     "version": "6.41.0",
     "date": "2026-06-10",
     "type": "minor",
