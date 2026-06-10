@@ -359,6 +359,7 @@ export type Database = {
           end_date: string
           forklift_id: string
           id: string
+          is_e2e: boolean
           last_billed_date: string | null
           quote_id: string | null
           recurring_billing: boolean
@@ -378,6 +379,7 @@ export type Database = {
           end_date: string
           forklift_id: string
           id?: string
+          is_e2e?: boolean
           last_billed_date?: string | null
           quote_id?: string | null
           recurring_billing?: boolean
@@ -397,6 +399,7 @@ export type Database = {
           end_date?: string
           forklift_id?: string
           id?: string
+          is_e2e?: boolean
           last_billed_date?: string | null
           quote_id?: string | null
           recurring_billing?: boolean
@@ -893,6 +896,7 @@ export type Database = {
           domicilio_fiscal_cp: string | null
           email: string | null
           id: string
+          is_e2e: boolean
           name: string
           notes: string | null
           phone: string | null
@@ -915,6 +919,7 @@ export type Database = {
           domicilio_fiscal_cp?: string | null
           email?: string | null
           id?: string
+          is_e2e?: boolean
           name: string
           notes?: string | null
           phone?: string | null
@@ -937,6 +942,7 @@ export type Database = {
           domicilio_fiscal_cp?: string | null
           email?: string | null
           id?: string
+          is_e2e?: boolean
           name?: string
           notes?: string | null
           phone?: string | null
@@ -1206,6 +1212,7 @@ export type Database = {
           default_monthly_rate: number | null
           default_weekly_rate: number | null
           id: string
+          is_e2e: boolean
           manufacturer: string
           model: string
           updated_at: string
@@ -1219,6 +1226,7 @@ export type Database = {
           default_monthly_rate?: number | null
           default_weekly_rate?: number | null
           id?: string
+          is_e2e?: boolean
           manufacturer: string
           model: string
           updated_at?: string
@@ -1232,6 +1240,7 @@ export type Database = {
           default_monthly_rate?: number | null
           default_weekly_rate?: number | null
           id?: string
+          is_e2e?: boolean
           manufacturer?: string
           model?: string
           updated_at?: string
@@ -1352,6 +1361,7 @@ export type Database = {
           insurance_expiry: string | null
           insurance_policy_number: string | null
           insurance_provider: string | null
+          is_e2e: boolean
           manufacturer: string | null
           mast_height_m: number | null
           model: string
@@ -1376,6 +1386,7 @@ export type Database = {
           insurance_expiry?: string | null
           insurance_policy_number?: string | null
           insurance_provider?: string | null
+          is_e2e?: boolean
           manufacturer?: string | null
           mast_height_m?: number | null
           model: string
@@ -1400,6 +1411,7 @@ export type Database = {
           insurance_expiry?: string | null
           insurance_policy_number?: string | null
           insurance_provider?: string | null
+          is_e2e?: boolean
           manufacturer?: string | null
           mast_height_m?: number | null
           model?: string
@@ -1456,6 +1468,7 @@ export type Database = {
           forma_pago: string | null
           id: string
           invoice_number: string
+          is_e2e: boolean
           issued_at: string
           line_items: Json
           metodo_pago: string | null
@@ -1501,6 +1514,7 @@ export type Database = {
           forma_pago?: string | null
           id?: string
           invoice_number: string
+          is_e2e?: boolean
           issued_at?: string
           line_items?: Json
           metodo_pago?: string | null
@@ -1546,6 +1560,7 @@ export type Database = {
           forma_pago?: string | null
           id?: string
           invoice_number?: string
+          is_e2e?: boolean
           issued_at?: string
           line_items?: Json
           metodo_pago?: string | null
@@ -1908,6 +1923,7 @@ export type Database = {
           id: string
           installment_number: number | null
           invoice_id: string
+          is_e2e: boolean
           notes: string | null
           payment_date: string
           payment_form_sat: string | null
@@ -1930,6 +1946,7 @@ export type Database = {
           id?: string
           installment_number?: number | null
           invoice_id: string
+          is_e2e?: boolean
           notes?: string | null
           payment_date?: string
           payment_form_sat?: string | null
@@ -1952,6 +1969,7 @@ export type Database = {
           id?: string
           installment_number?: number | null
           invoice_id?: string
+          is_e2e?: boolean
           notes?: string | null
           payment_date?: string
           payment_form_sat?: string | null
@@ -2136,6 +2154,7 @@ export type Database = {
           equipment_model_id: string | null
           forklift_id: string | null
           id: string
+          is_e2e: boolean
           line_items: Json
           notes: string | null
           quote_number: string
@@ -2164,6 +2183,7 @@ export type Database = {
           equipment_model_id?: string | null
           forklift_id?: string | null
           id?: string
+          is_e2e?: boolean
           line_items?: Json
           notes?: string | null
           quote_number: string
@@ -2192,6 +2212,7 @@ export type Database = {
           equipment_model_id?: string | null
           forklift_id?: string | null
           id?: string
+          is_e2e?: boolean
           line_items?: Json
           notes?: string | null
           quote_number?: string
@@ -2927,6 +2948,7 @@ export type Database = {
           equipment_model_id: string | null
           forklift_id: string | null
           id: string
+          is_e2e: boolean
           line_items: Json
           notes: string | null
           quote_number: string
@@ -3062,6 +3084,8 @@ export type Database = {
         Args: { p_quote_id: string }
         Returns: undefined
       }
+      e2e_seed_scenario: { Args: never; Returns: Json }
+      e2e_teardown: { Args: never; Returns: Json }
       generate_feedback_number: { Args: never; Returns: string }
       get_available_forklifts: {
         Args: { p_end_date: string; p_start_date: string }
@@ -3077,6 +3101,7 @@ export type Database = {
           insurance_expiry: string | null
           insurance_policy_number: string | null
           insurance_provider: string | null
+          is_e2e: boolean
           manufacturer: string | null
           mast_height_m: number | null
           model: string
@@ -3262,6 +3287,7 @@ export type Database = {
           equipment_model_id: string | null
           forklift_id: string | null
           id: string
+          is_e2e: boolean
           line_items: Json
           notes: string | null
           quote_number: string
