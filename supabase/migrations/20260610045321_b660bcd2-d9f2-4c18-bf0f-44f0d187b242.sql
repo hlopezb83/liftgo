@@ -1,0 +1,32 @@
+INSERT INTO public.role_permissions (role, module, access_level) VALUES
+  ('admin','Flujo de Caja','full'),
+  ('admin','Cuentas Bancarias','full'),
+  ('admin','Conciliación Bancaria','full'),
+  ('admin','MRR','full'),
+  ('administrativo','Flujo de Caja','full'),
+  ('administrativo','Cuentas Bancarias','full'),
+  ('administrativo','Conciliación Bancaria','full'),
+  ('administrativo','MRR','read'),
+  ('auditor','Flujo de Caja','read'),
+  ('auditor','Cuentas Bancarias','read'),
+  ('auditor','Conciliación Bancaria','read'),
+  ('auditor','MRR','read'),
+  ('ventas','Flujo de Caja','none'),
+  ('ventas','Cuentas Bancarias','none'),
+  ('ventas','Conciliación Bancaria','none'),
+  ('ventas','MRR','read'),
+  ('dispatcher','Flujo de Caja','none'),
+  ('dispatcher','Cuentas Bancarias','none'),
+  ('dispatcher','Conciliación Bancaria','none'),
+  ('dispatcher','MRR','none'),
+  ('mechanic','Flujo de Caja','none'),
+  ('mechanic','Cuentas Bancarias','none'),
+  ('mechanic','Conciliación Bancaria','none'),
+  ('mechanic','MRR','none'),
+  ('customer','Flujo de Caja','none'),
+  ('customer','Cuentas Bancarias','none'),
+  ('customer','Conciliación Bancaria','none'),
+  ('customer','MRR','none')
+ON CONFLICT (role, module) DO NOTHING;
+
+DELETE FROM public.role_permissions WHERE module = 'Pagos';
