@@ -1,0 +1,13 @@
+{
+  "version": "6.37.0",
+  "date": "2026-06-10",
+  "type": "minor",
+  "title": "Reorganización del sidebar y permisos por módulo",
+  "category": "improvement",
+  "changes": [
+    { "type": "improvement", "description": "Nueva agrupación del menú: Comercial, Operaciones, Flota y Mantenimiento, Finanzas, Reportes y Análisis, Comunidad, Sistema." },
+    { "type": "improvement", "description": "Facturas movido a Finanzas; Contratos movido a Comercial; Proveedores movido a Finanzas." },
+    { "type": "fix", "description": "Permisos por rol para Flujo de Caja, Cuentas Bancarias, Conciliación Bancaria y MRR — se elimina el bloqueo NoAccess." },
+    { "type": "improvement", "description": "Eliminación del módulo huérfano 'Pagos' del catálogo de permisos." }
+  ]
+}

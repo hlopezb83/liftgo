@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.37.0",
+    "date": "2026-06-10",
+    "type": "minor",
+    "title": "Reorganización del sidebar y permisos por módulo",
+    "category": "improvement"
+  },
+  {
     "version": "6.36.0",
     "date": "2026-06-09",
     "type": "minor",
