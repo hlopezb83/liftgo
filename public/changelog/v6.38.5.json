@@ -1,0 +1,18 @@
+{
+  "version": "6.38.5",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Refactor Lote 6: useInvoiceDetailActions desacoplado",
+  "category": "architecture",
+  "description": "Se dividió el hook orquestador en piezas más pequeñas para respetar Power of 10 (hooks ≤80 LOC).",
+  "changes": [
+    "Nuevo `src/features/invoices/lib/backfillStampSnapshot.ts` (función pura sin React).",
+    "Nuevo `useStampInvoiceFlow` que compone backfill + precheck + `stampCfdi`.",
+    "Nuevo `useDownloadInvoiceXml` que reutiliza `fetchCfdiBlob`/`triggerBlobDownload` con fallback `cfdi_xml`.",
+    "`useInvoiceDetailActions` queda como orquestador: estado de diálogos + composición de los hooks anteriores."
+  ],
+  "validation": [
+    "tsc --noEmit: limpio.",
+    "bunx vitest run: 493/493."
+  ]
+}

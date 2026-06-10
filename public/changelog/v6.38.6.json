@@ -1,0 +1,18 @@
+{
+  "version": "6.38.6",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Refactor Lote 7: usePortalExtras dividido por dominio",
+  "category": "architecture",
+  "description": "Se separó el hook monolítico del portal en tres módulos de dominio. Se preserva el import legacy vía barrel.",
+  "changes": [
+    "Nuevo `src/features/portal/hooks/usePortalCollectionAccount.ts`.",
+    "Nuevo `src/features/portal/hooks/usePortalQuotes.ts` con quotes + accept/reject.",
+    "Nuevo `src/features/portal/hooks/usePaymentIntents.ts` con cliente, admin y review.",
+    "`usePortalExtras.ts` queda como barrel de re-exports — sin cambios en consumidores."
+  ],
+  "validation": [
+    "tsc --noEmit: limpio.",
+    "bunx vitest run: 493/493."
+  ]
+}
