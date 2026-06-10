@@ -1,0 +1,20 @@
+{
+  "version": "6.41.1",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Fix de 2 pruebas E2E desalineadas con la UI",
+  "category": "tooling",
+  "description": "Los 2 fallos del shard 1 eran aserciones que ya no coincidían con la UI; no relacionados con el sharding.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "customer-create.spec ahora usa el flujo real",
+      "description": "Reemplaza la navegación a /customers/new (ruta inexistente que disparaba 'invalid uuid: new') por abrir CustomerFormDialog desde el botón 'Agregar Cliente' en /customers."
+    },
+    {
+      "type": "fix",
+      "title": "booking-to-invoice valida link a /bookings",
+      "description": "El detalle de factura no renderiza el booking_number; ahora la prueba verifica 'Generada desde reserva:' y el link a /bookings que sí existen en InvoiceSourceLinks."
+    }
+  ]
+}

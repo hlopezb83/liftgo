@@ -1,65 +1,46 @@
-## Diagnóstico actual
+## Hallazgos de los reportes E2E
 
-`playwright.config.ts` corre con `fullyParallel: false` y `workers: 1` (8 specs, ~25 min de timeout en CI). El cuello no es Playwright — es la fixture de datos:
+Shard 2: ✅ 20/20 pasaron.  
+Shard 1: ❌ 2 fallos reales (no flakes, no problema de sharding).
 
-- `e2e_seed_scenario` y `e2e_teardown` (en `tests/e2e/fixtures/seed.ts`) **no aceptan un scope**: el teardown borra TODOS los datos `e2e_*` globalmente.
-- Cualquier paralelismo (workers locales o shards CI concurrentes contra la misma DB Supabase) hace que el teardown de un test elimine el seed de otro a medio vuelo.
+### Fallo 1 — `customer-create.spec.ts`
+La prueba navega a `/customers/new`, pero **esa ruta no existe**. `routes-config.tsx` solo registra `/customers/:id`, así que React Router interpreta `"new"` como UUID y la página dispara dos toasts `Error: query — invalid input syntax for type uuid: "new"`. El input `getByLabel(/nombre/i)` nunca aparece y la prueba expira a los 60s.
 
-Por eso simplemente subir `workers` o agregar `--shard` no es seguro hoy.
+En la app real, crear cliente se hace desde `/customers` abriendo `CustomerFormDialog` con el botón "Nuevo cliente".
 
-## Plan en 3 fases (de menor a mayor ganancia/riesgo)
+### Fallo 2 — `booking-to-invoice.spec.ts > invoice detail renders booking number link`
+La prueba espera ver `seed.booking_number` (p.ej. `RSV-0018`) en la página de detalle de factura. Pero `InvoiceSourceLinks.tsx` **no renderiza el número de reserva**: en la sección "Generada desde reserva" muestra `sourceBooking.forklifts?.name` como label del badge y el link apunta a `/bookings` (no a la reserva). El texto `RSV-XXXX` nunca está en el DOM del detalle de factura.
 
-### Fase A — Sharding por matriz CI (rápido, ~2x sin tocar tests)
+Ambos fallos son aserciones que ya estaban desalineadas con la UI actual; quedaron expuestos al correr en shard 1 con seeds nuevos. No tienen que ver con el sharding ni con el aislamiento por `e2e_scope`.
 
-Aprovecha la matriz de GitHub Actions para correr shards en **jobs serializados** (no concurrentes a nivel DB) usando `max-parallel: 1`. Cada job ejecuta `bunx playwright test --shard=N/M`. Reparte la suite pero evita la condición de carrera del teardown global.
+---
 
-```text
-e2e (shard 1/3) ─┐
-e2e (shard 2/3) ─┼─ max-parallel: 1  (mismo Supabase, sin race)
-e2e (shard 3/3) ─┘
-```
+## Plan de corrección (solo tests, sin tocar la app)
 
-- Ganancia real: ninguna en wallclock (es serial), pero **aísla fallos** y permite reintentar solo el shard caído.
-- Costo: bajo, solo edita `.github/workflows/ci.yml`.
+### 1. Reescribir `tests/e2e/customer-create.spec.ts`
+Flujo real desde la UI:
+1. `page.goto("/customers")`.
+2. Click en el botón "Nuevo cliente" (texto exacto del header de `CustomersPage`).
+3. Esperar a que el `CustomerFormDialog` abra (rol `dialog`).
+4. Llenar nombre, RFC `XAXX010101000` y email dentro del dialog (scoping con `page.getByRole("dialog")`).
+5. Click "Guardar".
+6. Verificar que el nombre aparezca en la tabla/lista de clientes.
 
-**Solo vale la pena si se acompaña de Fase B.** En su forma pura, Fase A no acelera nada.
+Mantener `test.setTimeout(60_000)`, prefijo `E2E UI ${Date.now()}` y sin uso del fixture `seed` (la prueba crea su propio cliente y depende del `e2e_teardown` por nombre/prefijo — verificar que el RPC borre por patrón o agregar `is_e2e=true` si la UI lo soporta; si no, dejar comentario TODO).
 
-### Fase B — Namespacing de la fixture de seed (clave para paralelizar)
+### 2. Ajustar `tests/e2e/booking-to-invoice.spec.ts > "invoice detail renders booking number link"`
+Reemplazar la aserción sobre `seed.booking_number` por aserciones reales que sí existen en el DOM:
+- `seed.invoice_number` visible.
+- Texto "Generada desde reserva:" visible (confirma que se renderizó `InvoiceSourceLinks` con `sourceBooking`).
+- Un link cuyo `href="/bookings"` esté presente (`page.getByRole("link").filter({ has: page.getByText("/...") })` o `page.locator('a[href="/bookings"]')`).
 
-Modificar la RPC `e2e_seed_scenario` y `e2e_teardown` para aceptar un parámetro `p_scope text` (ej. `shard-1`, `worker-2`, o `crypto.randomUUID()` por test). El teardown filtra por scope en lugar de borrar todo.
+Renombrar opcionalmente el test a `"invoice detail shows source booking link"` para reflejar la aserción real.
 
-En la fixture TS:
-- Generar scope = `${process.env.TEST_WORKER_INDEX ?? "0"}-${test.info().testId}` y propagarlo.
-- Prefijar identificadores de seed (`customer_name`, `quote_number`, etc.) con el scope para evitar colisiones en índices únicos.
+### 3. Verificación
+- Correr localmente `bunx playwright test customer-create.spec.ts booking-to-invoice.spec.ts --workers=2` (con credenciales `E2E_TEST_EMAIL`/`E2E_TEST_PASSWORD`).
+- Si pasa, añadir entrada de changelog **v6.41.1 (patch)** describiendo los dos arreglos de E2E.
 
-Una vez aislado el dataset por test:
-- `fullyParallel: true` y `workers: process.env.CI ? 2 : 4` en `playwright.config.ts`.
-- Ganancia esperada: **2-4x** dependiendo de recursos del runner.
-
-### Fase C — Sharding CI concurrente (combinable con B)
-
-Con datos namespaced ya es seguro correr shards en paralelo:
-
-```yaml
-strategy:
-  fail-fast: false
-  matrix:
-    shard: [1, 2, 3]
-steps:
-  - run: bunx playwright test --shard=${{ matrix.shard }}/3
-```
-
-- Cada job paga su propio `bun install` + `playwright install` + `build` (~3-4 min de overhead fijo por shard).
-- Ganancia combinada con Fase B: **3-4x wallclock** (25 min → 7-9 min) en suites pesadas. En la suite actual (8 specs), 2 shards × 2 workers es probablemente el sweet spot.
-- Reportes: agregar paso para fusionar blobs con `npx playwright merge-reports`.
-
-## Detalles técnicos
-
-- `tests/e2e/global.setup.ts` ya escribe `storageState` — cada shard puede reutilizarlo si se cachea, o reauténticar (rápido). El paso `setup` ya está como `dependencies: ["setup"]` en el proyecto chromium, así corre una vez por shard.
-- Migración SQL requerida en Fase B (no destructiva): `CREATE OR REPLACE FUNCTION e2e_seed_scenario(p_scope text DEFAULT 'default') ...` + filtro `WHERE scope = p_scope` en teardown. Default mantiene compat con tests no actualizados.
-- El proyecto `portal` (sin auth) queda fuera del scoping — corre rápido solo.
-- Riesgo principal: Supabase tiene rate limits y la DB es compartida; >4 shards concurrentes puede degradar más que ayudar.
-
-## Recomendación
-
-Saltar Fase A. Implementar **B + C juntas** con 2 shards × 2 workers como configuración inicial. Si necesitas que lo implemente, dame luz verde y arranco con la migración SQL del seed + el cambio de config.
+### Notas
+- No se toca código de producto: ambas pruebas estaban verificando comportamientos que la UI nunca tuvo (ruta inexistente y texto no renderizado).
+- No se modifica el RPC `e2e_seed_scenario`/`e2e_teardown` ni `playwright.config.ts`. El sharding y paralelización quedan como están.
+- Si el equipo prefiere que el detalle de factura sí muestre el `booking_number` (como liga a la reserva), eso sería un cambio de UI separado — avísame y abro otro plan para `InvoiceSourceLinks`.
