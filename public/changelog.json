@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.38.2",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Refactor Lote 3: helper downloadCfdiBlob centralizado",
+    "category": "architecture"
+  },
+  {
     "version": "6.38.1",
     "date": "2026-06-10",
     "type": "patch",

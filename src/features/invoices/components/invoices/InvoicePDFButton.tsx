@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useInvoicePdfDownload } from "@/features/invoices/hooks/invoices/useInvoicePdfDownload";
+import { downloadCfdiBlob } from "@/features/invoices/lib/downloadCfdiBlob";
 
 interface InvoicePDFButtonProps {
   invoiceId: string;
@@ -23,17 +23,7 @@ export function InvoicePDFButton({ invoiceId, cfdiStatus, invoiceNumber }: Invoi
     }
     setSatLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("download-cfdi", {
-        body: { invoice_id: invoiceId, format: "pdf" },
-      });
-      if (error) throw error;
-      const blob = data instanceof Blob ? data : new Blob([data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${invoiceNumber || invoiceId}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await downloadCfdiBlob({ invoice_id: invoiceId }, "pdf", `${invoiceNumber || invoiceId}.pdf`);
     } catch (err: unknown) {
       notifyError({ error: err, message: "Error al descargar PDF SAT" });
     } finally {

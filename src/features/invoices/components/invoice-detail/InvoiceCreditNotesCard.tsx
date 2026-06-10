@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Stamp, FileText, Download, XCircle, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { downloadCfdiBlob, type CfdiFormat } from "@/features/invoices/lib/downloadCfdiBlob";
 import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
 import {
@@ -25,20 +25,9 @@ const MOTIVE_LABELS: Record<string, string> = {
   credit_balance: "Saldo a favor",
 };
 
-async function downloadCreditNote(creditNoteId: string, format: "pdf" | "xml", number: string) {
+async function downloadCreditNote(creditNoteId: string, format: CfdiFormat, number: string) {
   try {
-    const { data, error } = await supabase.functions.invoke("download-cfdi", {
-      body: { credit_note_id: creditNoteId, format },
-    });
-    if (error) throw error;
-    if (data instanceof Blob) {
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${number}.${format}`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    await downloadCfdiBlob({ credit_note_id: creditNoteId }, format, `${number}.${format}`);
   } catch (err) {
     notifyError({ error: err, message: "Error al descargar" });
   }
