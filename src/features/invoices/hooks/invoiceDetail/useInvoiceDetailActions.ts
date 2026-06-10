@@ -113,24 +113,12 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
   const handleDownloadXml = async () => {
     if (!invoice) return;
     const filename = `${invoice.invoice_number}.xml`;
-    const triggerDownload = (blob: Blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
     try {
-      const { data, error } = await supabase.functions.invoke("download-cfdi", {
-        body: { invoice_id: invoice.id, format: "xml" },
-      });
-      if (error) throw error;
-      const blob = data instanceof Blob ? data : new Blob([data], { type: "application/xml" });
-      triggerDownload(blob);
+      const blob = await fetchCfdiBlob({ invoice_id: invoice.id }, "xml");
+      triggerBlobDownload(blob, filename);
     } catch (err) {
       if (invoice.cfdi_xml) {
-        triggerDownload(new Blob([invoice.cfdi_xml], { type: "application/xml" }));
+        triggerBlobDownload(new Blob([invoice.cfdi_xml], { type: "application/xml" }), filename);
         return;
       }
       toast.error("Error al descargar XML", {
