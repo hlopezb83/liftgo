@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.42.0",
+    "date": "2026-06-10",
+    "type": "minor",
+    "title": "Aislamiento reforzado de E2E (folios y CFDI seguros)",
+    "category": "tooling"
+  },
+  {
     "version": "6.41.2",
     "date": "2026-06-10",
     "type": "patch",
