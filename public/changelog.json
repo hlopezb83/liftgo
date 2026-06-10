@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.37.4",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "CI: artifacts y reportes para E2E, RLS y Vitest",
+    "category": "improvement"
+  },
+  {
     "version": "6.37.3",
     "date": "2026-06-10",
     "type": "patch",
