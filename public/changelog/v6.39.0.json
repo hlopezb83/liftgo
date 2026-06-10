@@ -1,0 +1,21 @@
+{
+  "version": "6.39.0",
+  "date": "2026-06-10",
+  "type": "minor",
+  "title": "Refactor Lote 8: constantes de dominio centralizadas",
+  "category": "architecture",
+  "description": "Se extrajeron constantes duplicadas a `src/lib/domain/` para una única fuente de verdad.",
+  "changes": [
+    "Nuevo `src/lib/domain/creditNoteMotives.ts` con `CREDIT_NOTE_MOTIVES` (label largo + shortLabel + desc) y `CREDIT_NOTE_MOTIVE_LABELS`.",
+    "Nuevo `src/lib/domain/paymentIntentStatus.ts` con `PAYMENT_INTENT_STATUS` (label + variant).",
+    "`InvoiceCreditNotesCard` y `CreateCreditNoteDialog` consumen los motivos compartidos.",
+    "`PaymentIntentsSection` consume el mapa de estados compartido."
+  ],
+  "notes": [
+    "MXN se mantiene en `APP_CONFIG` (`src/lib/config.ts`) — no se duplica un módulo separado de currency."
+  ],
+  "validation": [
+    "tsc --noEmit: limpio.",
+    "bunx vitest run: 493/493."
+  ]
+}

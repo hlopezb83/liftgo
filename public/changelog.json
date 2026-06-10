@@ -1,5 +1,33 @@
 [
   {
+    "version": "6.39.0",
+    "date": "2026-06-10",
+    "type": "minor",
+    "title": "Refactor Lote 8: constantes de dominio centralizadas",
+    "category": "architecture"
+  },
+  {
+    "version": "6.38.6",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Refactor Lote 7: usePortalExtras dividido por dominio",
+    "category": "architecture"
+  },
+  {
+    "version": "6.38.5",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Refactor Lote 6: useInvoiceDetailActions desacoplado",
+    "category": "architecture"
+  },
+  {
+    "version": "6.38.4",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Refactor Lote 5: ManualMatchPicker con React Query",
+    "category": "architecture"
+  },
+  {
     "version": "6.38.3",
     "date": "2026-06-10",
     "type": "patch",

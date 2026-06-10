@@ -1,0 +1,16 @@
+{
+  "version": "6.38.4",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Refactor Lote 5: ManualMatchPicker con React Query",
+  "category": "architecture",
+  "description": "Se reemplazó el fetch manual del picker de conciliación bancaria por un hook React Query reutilizable con caché.",
+  "changes": [
+    "Nuevo `useManualMatchCandidates(kind, enabled?)` en `src/features/bank-reconciliation/hooks/`, queryKey `['manual-match-candidates', kind]`, staleTime 30s.",
+    "`ManualMatchPicker` consume el hook y elimina `useEffect`/`useState` para loading y resultados; la UI queda idéntica."
+  ],
+  "validation": [
+    "tsc --noEmit: limpio.",
+    "bunx vitest run: 493/493."
+  ]
+}

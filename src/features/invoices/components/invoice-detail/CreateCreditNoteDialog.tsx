@@ -11,6 +11,7 @@ import { parseLineItems } from "@/lib/lineItems";
 import { useCreateCreditNote } from "@/features/invoices/hooks/creditNotes/useCreditNotes";
 import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { CREDIT_NOTE_MOTIVES as MOTIVES } from "@/lib/domain/creditNoteMotives";
 
 interface Props {
   open: boolean;
@@ -18,13 +19,6 @@ interface Props {
   invoice: Tables<"invoices">;
   maxCreditable: number;
 }
-
-const MOTIVES = [
-  { value: "return", label: "Devolución de equipo / renta", desc: "El cliente devolvió equipo o renta" },
-  { value: "discount", label: "Descuento / bonificación", desc: "Descuento posterior a la factura" },
-  { value: "correction", label: "Corrección de monto", desc: "Reducción por error en el monto facturado" },
-  { value: "credit_balance", label: "Saldo a favor", desc: "Saldo a favor del cliente" },
-] as const;
 
 type EditableLine = LineItem & { _selected: boolean };
 

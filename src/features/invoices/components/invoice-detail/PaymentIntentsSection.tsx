@@ -17,16 +17,12 @@ import {
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
+import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/lib/domain/paymentIntentStatus";
 
 interface Props {
   invoiceId: string;
 }
 
-const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  pending_review: { label: "En revisión", variant: "outline" },
-  approved: { label: "Aprobado", variant: "default" },
-  rejected: { label: "Rechazado", variant: "destructive" },
-};
 
 export function PaymentIntentsSection({ invoiceId }: Props) {
   const { data: intents } = useAdminPaymentIntents(invoiceId);
