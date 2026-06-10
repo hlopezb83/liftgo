@@ -1,78 +1,77 @@
-# Refactor Lotes 5–10 — Cierre de la auditoría arquitectónica
+# Auditoría arquitectónica — Fase 2 (post v6.39.0)
 
-Continuación de la auditoría (Lotes 1–4 ya entregados en v6.38.0–v6.38.3). Cada lote es un commit independiente con su propia entrada de changelog y validación `bun run lint` + `bunx vitest run`.
+Síntesis de 3 subagentes (tamaño/complejidad, SoC, estructura/naming). El código ya está sano (Lotes 1–8 entregados); estas son las brechas restantes. Cada lote es independiente, con changelog propio y validación `tsc --noEmit` + `bunx vitest run`.
 
-## Lote 5 — `ManualMatchPicker` con React Query (v6.38.4 · patch)
+## Hallazgos clave
 
-**Problema:** El componente hace `fetch` manual a Supabase, gestiona `loading`/`error` con `useState`/`useEffect` y no cachea entre aperturas.
+- **Estructura plana sobrecargada**: `src/features/` tiene 591 archivos sin agrupación; `src/lib/` mezcla genérico con dominio.
+- **Hooks "god"**: `useInvoiceFormLogic` toca 6 entidades; `usePaymentIntents` (127 LOC), `useBankReconciliationMutations` (125), `usePayments` (123), `useForkliftMutations` (123), `useCreditNotes` (121) violan el límite Power-of-10 de 80 LOC.
+- **Acoplamiento data↔presentación**: 3 archivos PDF importan `supabase` + `@react-pdf`.
+- **Duplicación sistemática**: boilerplate de TanStack Query, celdas de tabla con `formatCurrency`, mapas de status inline.
+- **Naming inconsistente**: kebab/camel/Pascal mezclados a nivel archivo y carpeta.
+- **Misplaced**: `src/lib/lineItems.ts`, `src/features/quotes/utils/`, `src/features/quotes/constants.ts`, `src/lib/rpc.ts`.
 
-**Acciones:**
-- Crear `src/features/bank-reconciliation/hooks/useManualMatchCandidates.ts` (`useQuery`, queryKey `["manual-match-candidates", txId]`, `enabled` cuando el dialog está abierto).
-- Reemplazar el `useEffect` + `supabase.from(...)` dentro del componente por el hook.
-- Mantener la UI idéntica; usar `isPending`/`error` del query.
+## Lotes (crítico → opcional)
 
-## Lote 6 — Romper `useInvoiceDetailActions` (160 LOC) (v6.38.5 · patch)
+### Lote 11 — Romper hooks "god" de mutaciones (v6.39.1 · patch) — CRÍTICO
+- `useBankReconciliationMutations` (125 LOC) → un archivo por mutación (`useMatchTransaction`, `useUnmatchTransaction`, `useIgnoreTransaction`, …) + barrel.
+- `usePayments` (123) → separar CRUD (`usePaymentMutations`) de sincronización de status de factura (`useSyncInvoiceStatus`).
+- `useForkliftMutations` (123) → dividir por verbo (create/update/delete/assign) ya que cada uno trae lógica de status logs.
+- `useCreditNotes` (121) → ya separado por dominio; sub-extraer `useCancelCreditNote` y `useStampCreditNote` a archivos propios.
 
-**Problema:** Hook concentra timbrado, descarga XML, edición, eliminación y backfill snapshot fiscal en un solo archivo.
+### Lote 12 — Desacoplar `useInvoiceFormLogic` (v6.39.2 · patch) — CRÍTICO
+Toca 6 entidades (invoices, bookings, forklifts, customers, quotes, assignments). Split:
+- `useInvoiceFromBooking.ts` (prefill desde reserva).
+- `useInvoiceFromQuote.ts` (prefill desde cotización + assignments).
+- `useInvoiceCustomerSnapshot.ts` (hidratación fiscal del cliente).
+- `useInvoiceFormLogic` queda como orquestador ≤80 LOC.
 
-**Acciones:**
-- Extraer `backfillStampSnapshot` a `src/features/invoices/lib/backfillStampSnapshot.ts` (función pura, sin React).
-- Crear `useStampInvoiceFlow.ts` (precheck + backfill + `stampCfdi.mutate`).
-- Crear `useDownloadInvoiceXml.ts` (consume `fetchCfdiBlob` de Lote 3, con fallback `cfdi_xml`).
-- `useInvoiceDetailActions.ts` queda como orquestador ≤80 LOC que compone los hooks anteriores + delete/update.
+Aplicar el mismo patrón a `useQuoteFormLogic` y `useAssignForklifts`.
 
-## Lote 7 — Romper `usePortalExtras` (225 LOC) (v6.38.6 · patch)
+### Lote 13 — Romper data↔presentación en PDFs (v6.39.3 · patch) — ALTO
+`src/lib/pdf/quote/build.tsx`, `src/lib/pdf/customerStatement.tsx`, `src/features/invoices/lib/pdf/build.tsx` mezclan `supabase` con `@react-pdf`. Patrón:
+- `…/pdf/<doc>/data.ts` ← lee de Supabase, devuelve VM tipado.
+- `…/pdf/<doc>/Document.tsx` ← presentación pura sobre el VM.
+- `build.tsx` queda en 1 función: `data() → Document()`.
 
-**Problema:** Un solo hook expone payment intents, public quotes, public contracts, reviews, etc.
+### Lote 14 — Extraer formateadores de celda y mapas de status (v6.39.4 · patch) — ALTO
+Eliminar duplicación detectada en 20+ páginas:
+- `src/components/dataTable/cells/`: `CurrencyCell`, `DateCell`, `StatusCell`, `BadgeCell` reutilizables.
+- `src/lib/domain/statusVariants.ts`: helper único `statusVariant(entity, status)` que reemplace los maps inline en `BankAccountsPage`, `BankStatementImportsHistoryPage`, `CashFlowSummaryCards`, etc.
 
-**Acciones:** dividir por dominio en `src/features/portal/hooks/`:
-- `usePaymentIntents.ts` (admin + cliente + review mutation).
-- `usePortalQuotes.ts` y `usePortalContracts.ts`.
-- `usePortalExtras.ts` se mantiene como barrel re-export para no romper imports existentes.
-- Cada hook ≤80 LOC.
+### Lote 15 — Reorganizar `src/lib/` y `src/features/` (v6.40.0 · minor) — MEDIO
+- Mover `src/lib/lineItems.ts` → `src/lib/domain/lineItems.ts` (ya es dominio).
+- Mover `src/features/quotes/utils/` y `src/features/quotes/constants.ts` → `src/features/quotes/lib/`.
+- Crear `src/features/{system,operations,reports,returns,suppliers,company-settings,maintenance}/lib/` cuando aplique para uniformar shape `{components, hooks, lib, pages}`.
+- Unificar `src/lib/formatCurrency.ts` y `src/lib/money.ts` en un solo módulo (`src/lib/money.ts`) con re-export deprecado.
+- Mover `src/lib/rpc.ts` bajo `src/integrations/supabase/` o renombrar a `src/lib/supabaseRpc.ts` para clarificar pertenencia.
 
-## Lote 8 — Centralizar constantes de dominio (v6.39.0 · minor)
+### Lote 16 — Convenciones de naming (v6.40.1 · patch) — MEDIO
+Definir y aplicar:
+- Archivos: `PascalCase.tsx` para componentes, `camelCase.ts` para utils/hooks.
+- Carpetas: `kebab-case`.
+- Renombrar offenders: `src/components/DatePickerField.tsx` ↔ `src/hooks/use-mobile.tsx` (decidir uno), `src/components/dataTable/` → `src/components/data-table/`.
+- Documentar la convención en `.workspace/skills/` o `README.md`.
 
-**Problema:** `"MXN"` y `STATUS_LABELS`/`MOTIVE_LABELS` inline duplicados en 8+ archivos.
+### Lote 17 — Constantes de queryKeys (v6.40.2 · patch) — BAJO
+Cada hook redefine `"forklifts"`, `"quotes"`, `"invoices"`, etc. como literales. Crear `src/lib/queryKeys.ts` con `QK = { forklifts: 'forklifts', quotes: 'quotes', … } as const` y reemplazar usos.
 
-**Acciones:**
-- `src/lib/domain/currency.ts`: `DEFAULT_CURRENCY = "MXN"`, `SUPPORTED_CURRENCIES`.
-- `src/lib/domain/creditNoteMotives.ts`: `MOTIVES`, `MOTIVE_LABELS` (extraído de `InvoiceCreditNotesCard`, `CreateCreditNoteDialog`).
-- `src/lib/domain/paymentIntentStatus.ts`: status + label + variant (extraído de `PaymentIntentsSection`).
-- Reemplazar literales en consumidores (sin cambios de comportamiento).
-- Resolver el residual de Lote 1: mover `IncomeStatement` types a `src/lib/domain/`.
+### Lote 18 — Limpieza de comentarios/dead code residual (v6.40.3 · patch) — OPCIONAL
+- Borrar comentarios placeholder en `client.ts:9`, `useUserManagement.ts:1`.
+- Convertir bloques explicativos en `matchingScore.ts`, `StatusBadge.tsx`, `cfdiPrechecks.test.ts` en JSDoc o moverlos a `/docs`.
 
-## Lote 9 — RPC atómico para credit notes (v6.39.1 · patch)
-
-**Problema:** `useCreateCreditNote` ejecuta varios `INSERT`/`UPDATE` desde el cliente — riesgo de inconsistencia si falla a mitad.
-
-**Acciones:**
-- Migración SQL: `public.create_credit_note(p_invoice_id, p_motive, p_lines jsonb, ...)` `SECURITY DEFINER`, `SET search_path = public`, transaccional, devuelve la nota creada.
-- Reescribir `useCreateCreditNote` para llamar al RPC (una sola request).
-- Mantener invalidaciones de query existentes.
-
-## Lote 10 — Limpieza estructural final (v6.39.2 · patch)
-
-**Acciones menores ordenadas por riesgo:**
-1. Mover `src/features/quotes/utils/` (puros, sin deps de React) a `src/lib/quotes/`.
-2. Crear `src/features/operations/{hooks,lib}/` y reubicar utilidades operativas dispersas.
-3. Lazy-load del portal (`React.lazy` sobre las rutas `/portal/*`).
-4. Sub-extraer componentes >300 LOC detectados por la auditoría (`InvoicePaymentSummary`, `InvoiceCreditNotesCard`, `SupplierFormDialog`) en subcomponentes de presentación.
-
-## Validación por lote
-
-Cada lote termina con:
-- `bun run lint` → 0 errores.
-- `bunx vitest run` → 493/493 pasando (más si se añaden tests).
-- Entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`.
+### Lote 19 — Reducir complejidad ciclomática (v6.40.4 · patch) — OPCIONAL
+- `calculateRentalCost` y `buildDailyRemainder` en `invoiceHelpers.ts`: extraer rate-resolver puro con tabla de prioridades.
+- `useAccountsPayableKpis`: separar accumulator por tipo en funciones pequeñas.
+- Ternarios anidados de `ListPageLayout`, `CashFlowSummaryCards`, `InvoicePaymentSummary` → helpers `getSubtitle()`, `getTone()`.
 
 ## Detalles técnicos
 
-- Sin cambios de UI visible salvo en Lote 7 si se detectan regresiones del portal.
-- Sin `any`/`!`/`as`, hooks ≤80 LOC, componentes ≤150 LOC (Power of 10).
-- Lote 9 requiere aprobación de migración SQL antes de continuar con el código consumidor.
-- Imports legacy se preservan vía re-exports en Lotes 7 y 8 para evitar diffs masivos.
+- Power of 10: hooks ≤80 LOC, componentes ≤150 LOC, sin `any`/`!`/`as`.
+- Cambios sin impacto visible al usuario salvo Lote 13 (regenera PDFs — validar visualmente).
+- Lote 15 y 16 son los que más diffs producen; ejecutarlos en lotes separados para keep PRs revisables.
+- Sin cambios de schema ni de RLS en esta fase — sólo código cliente.
 
-## Orden de ejecución
+## Orden recomendado
 
-5 → 6 → 7 → 8 → 9 (espera aprobación de migración) → 10. Cada uno se entrega secuencial; el cierre de Lote 10 marca el fin de la auditoría.
+11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19. Critical-path (11–14) entrega la mayor parte del valor arquitectónico; del 15 en adelante es pulido.
