@@ -1,0 +1,19 @@
+{
+  "version": "6.37.3",
+  "date": "2026-06-10",
+  "type": "patch",
+  "category": "improvement",
+  "title": "Lote 10 de auditoría: happy paths E2E con seed reproducible",
+  "description": "Cierra el Lote 10 de la auditoría de tests añadiendo infraestructura de seed por RPC admin-only y 5 specs Playwright que cubren los flujos Quote→Booking→Invoice→Payment, PDF de cotización y alta de cliente. Los datos efímeros se marcan con is_e2e=true y se limpian en cada test.",
+  "changes": [
+    { "type": "feature", "title": "Columna is_e2e en 7 tablas", "description": "customers, forklifts, quotes, bookings, invoices, payments y equipment_models reciben la bandera is_e2e BOOLEAN NOT NULL DEFAULT false con índices parciales para limpieza rápida." },
+    { "type": "feature", "title": "RPC e2e_seed_scenario (admin-only)", "description": "Crea un escenario completo en una sola llamada: modelo, montacargas disponible, cliente, cotización aceptada, reserva confirmada y factura emitida. Devuelve todos los ids para que los tests los consuman." },
+    { "type": "feature", "title": "RPC e2e_teardown (admin-only)", "description": "Borra en orden seguro (payments → invoices → bookings → quotes → forklifts → equipment_models → customers) sólo filas con is_e2e=true. Devuelve conteos por tabla." },
+    { "type": "test", "title": "Fixture Playwright seed", "description": "tests/e2e/fixtures/seed.ts extiende test() inyectando seed antes y limpiando después usando el JWT persistido en storageState." },
+    { "type": "test", "title": "quote-to-booking.spec.ts", "description": "Verifica que la reserva seed (RSV-) aparezca en /bookings y que la cotización aceptada renderice su detalle." },
+    { "type": "test", "title": "booking-to-invoice.spec.ts", "description": "Verifica factura seed en /invoices y que el detalle muestre el número de reserva ligado." },
+    { "type": "test", "title": "invoice-payment.spec.ts", "description": "Registra pago completo sobre factura seed y verifica transición a estado pagada." },
+    { "type": "test", "title": "quote-pdf.spec.ts", "description": "Descarga PDF de cotización seed y verifica que el nombre del archivo empiece con COT-." },
+    { "type": "test", "title": "customer-create.spec.ts", "description": "Crea un cliente vía UI con RFC genérico y verifica que aparezca en la lista." }
+  ]
+}
