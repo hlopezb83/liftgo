@@ -16,8 +16,7 @@ import {
 } from "@/features/portal/hooks/usePortalExtras";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { openStorageFile } from "@/lib/storage/openStorageFile";
 
 interface Props {
   invoiceId: string;
