@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.37.2",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Lote 11 de auditoría: cobertura RLS por hook (46 tests nuevos)",
+    "category": "improvement"
+  },
+  {
     "version": "6.37.1",
     "date": "2026-06-10",
     "type": "patch",
