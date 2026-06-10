@@ -31,6 +31,12 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
       if (filters?.table_name) query = query.eq("table_name", filters.table_name);
       if (filters?.record_id) query = query.eq("record_id", filters.record_id);
 
+      // Defensa en profundidad: excluir cualquier residuo de tests E2E.
+      // El trigger de auditoría ya los filtra desde 2026-06-10.
+      query = query
+        .not("old_data->>is_e2e", "eq", "true")
+        .not("new_data->>is_e2e", "eq", "true");
+
       const { data, error } = await query;
       if (error) throw error;
 

@@ -1,0 +1,12 @@
+{
+  "version": "6.41.2",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Bitácora limpia de ruido E2E",
+  "category": "tooling",
+  "changes": [
+    "El trigger de auditoría (`audit_trigger_fn`) ahora ignora cualquier operación sobre registros marcados con `is_e2e = true`, evitando que los tests automatizados contaminen la bitácora de producción.",
+    "Se eliminaron ~760 registros históricos de la bitácora provenientes de ejecuciones E2E previas.",
+    "El hook `useAuditLogs` filtra adicionalmente en cliente cualquier registro residual con `is_e2e = true` como defensa en profundidad."
+  ]
+}
