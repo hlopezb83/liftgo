@@ -1,0 +1,17 @@
+{
+  "version": "6.42.5",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "CI: permisos de checks, acciones actualizadas y fix de PDF flaky",
+  "description": "Eliminadas las anotaciones del workflow de CI: permisos a nivel workflow para que mikepenz/action-junit-report pueda publicar checks, bump de acciones a versiones que ya corren en Node 24 (checkout@v5, upload-artifact@v5, action-junit-report@v5, setup-deno@v2) y fix del regex del filename del PDF de cotización para aceptar el prefijo E2E-.",
+  "changes": [
+    "Agregado bloque permissions (contents: read, checks: write, pull-requests: write) en .github/workflows/ci.yml",
+    "Bump actions/checkout@v4 → v5 (5 jobs)",
+    "Bump actions/upload-artifact@v4 → v5 (8 ocurrencias)",
+    "Bump mikepenz/action-junit-report@v4 → v5 (2 ocurrencias)",
+    "Bump denoland/setup-deno@v1 → v2",
+    "Eliminada variable FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 (ya innecesaria)",
+    "tests/e2e/quote-pdf.spec.ts: regex acepta /^(E2E-)?COT-/i para evitar flaky en shard 2"
+  ],
+  "category": "tooling"
+}
