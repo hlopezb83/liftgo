@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.37.5",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Fix E2E: fixture seed con publishable key embebida",
+    "category": "bugfix"
+  },
+  {
     "version": "6.37.4",
     "date": "2026-06-10",
     "type": "patch",
