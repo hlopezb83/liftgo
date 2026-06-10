@@ -36,11 +36,8 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
 
   if (!intents || intents.length === 0) return null;
 
-  const openProof = async (path: string) => {
-    const { data, error } = await supabase.storage.from("payment-proofs").createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) { toast.error("No se pudo abrir el comprobante"); return; }
-    window.open(data.signedUrl, "_blank");
-  };
+  const openProof = (path: string) =>
+    openStorageFile("payment-proofs", path, { errorMessage: "No se pudo abrir el comprobante" });
 
   return (
     <Card>
