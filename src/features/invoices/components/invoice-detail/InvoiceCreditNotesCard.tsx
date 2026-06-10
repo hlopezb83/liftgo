@@ -18,12 +18,7 @@ import {
 } from "@/features/invoices/hooks/creditNotes/useCreditNotes";
 import type { Tables } from "@/integrations/supabase/types";
 
-const MOTIVE_LABELS: Record<string, string> = {
-  return: "Devolución",
-  discount: "Descuento",
-  correction: "Corrección",
-  credit_balance: "Saldo a favor",
-};
+import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/lib/domain/creditNoteMotives";
 
 async function downloadCreditNote(creditNoteId: string, format: CfdiFormat, number: string) {
   try {
