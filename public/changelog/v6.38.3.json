@@ -1,0 +1,18 @@
+{
+  "version": "6.38.3",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Refactor Lote 4: openStorageFile + AlertDialog reemplaza window.prompt/confirm",
+  "category": "architecture",
+  "description": "Se centralizó la apertura de archivos en buckets de Storage y se eliminaron los diálogos nativos del navegador en favor de componentes accesibles.",
+  "changes": [
+    "Nuevo helper `src/lib/storage/openStorageFile.ts` que firma URLs y maneja errores vía sonner.",
+    "Nuevo componente `src/components/ui/confirm-dialog.tsx` reutilizable sobre AlertDialog.",
+    "`SupplierPaymentRow`: `window.prompt` reemplazado por Dialog con Textarea y `window.confirm` por `ConfirmDialog`; usa `openStorageFile` para XML/PDF de REP.",
+    "`PaymentIntentsSection`: `openProof` ahora delega en `openStorageFile`; elimina dependencias de `supabase` y `toast` directos."
+  ],
+  "validation": [
+    "bun run lint: 0 errores, 34 warnings preexistentes.",
+    "bunx vitest run: 493/493 tests passing."
+  ]
+}

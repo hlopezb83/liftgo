@@ -1,8 +1,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Upload, X, RotateCcw, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { openStorageFile } from "@/lib/storage/openStorageFile";
 import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
@@ -22,32 +32,30 @@ interface Props {
 
 const BUCKET = "cfdi-files";
 
-async function openSignedUrl(path: string) {
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 60);
-  if (error || !data?.signedUrl) {
-    toast.error("No se pudo abrir el archivo");
-    return;
-  }
-  window.open(data.signedUrl, "_blank", "noopener");
-}
-
 export function SupplierPaymentRow({ payment: p, billId, currency }: Props) {
   const { data: role } = useUserRole();
   const canAct = role === "admin" || role === "administrativo";
 
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectNotes, setRejectNotes] = useState("");
+  const [resetOpen, setResetOpen] = useState(false);
   const reject = useRejectSupplierRep();
   const reset = useResetSupplierRep();
   const repStatus = (p.rep_status as SupplierRepStatus | null) ?? "not_required";
 
-  const handleReject = () => {
-    const notes = window.prompt("Motivo del rechazo del REP:")?.trim();
+  const confirmReject = () => {
+    const notes = rejectNotes.trim();
     if (!notes) return;
-    reject.mutate({ paymentId: p.id, notes, billId });
+    reject.mutate({ paymentId: p.id, notes, billId }, {
+      onSuccess: () => { setRejectOpen(false); setRejectNotes(""); },
+    });
   };
-  const handleReset = () => {
-    if (!window.confirm("¿Reiniciar el REP a pendiente y borrar archivos cargados?")) return;
-    reset.mutate({ paymentId: p.id, billId });
+
+  const confirmReset = () => {
+    reset.mutate({ paymentId: p.id, billId }, {
+      onSuccess: () => setResetOpen(false),
+    });
   };
 
   return (
@@ -95,13 +103,13 @@ export function SupplierPaymentRow({ payment: p, billId, currency }: Props) {
             )}
             <div className="flex gap-2 flex-wrap">
               {p.rep_xml_url && (
-                <button type="button" onClick={() => openSignedUrl(p.rep_xml_url as string)}
+                <button type="button" onClick={() => openStorageFile(BUCKET, p.rep_xml_url as string)}
                   className="text-primary inline-flex items-center gap-1 hover:underline">
                   XML <ExternalLink className="h-3 w-3" />
                 </button>
               )}
               {p.rep_pdf_url && (
-                <button type="button" onClick={() => openSignedUrl(p.rep_pdf_url as string)}
+                <button type="button" onClick={() => openStorageFile(BUCKET, p.rep_pdf_url as string)}
                   className="text-primary inline-flex items-center gap-1 hover:underline">
                   PDF <ExternalLink className="h-3 w-3" />
                 </button>
@@ -109,11 +117,11 @@ export function SupplierPaymentRow({ payment: p, billId, currency }: Props) {
               {canAct && (
                 <>
                   <Button size="sm" variant="ghost" className="h-6 text-[11px] text-destructive"
-                    disabled={reject.isPending} onClick={handleReject}>
+                    disabled={reject.isPending} onClick={() => setRejectOpen(true)}>
                     <X className="h-3 w-3 mr-1" /> Rechazar
                   </Button>
                   <Button size="sm" variant="ghost" className="h-6 text-[11px]"
-                    disabled={reset.isPending} onClick={handleReset}>
+                    disabled={reset.isPending} onClick={() => setResetOpen(true)}>
                     <RotateCcw className="h-3 w-3 mr-1" /> Reiniciar
                   </Button>
                 </>
@@ -137,6 +145,45 @@ export function SupplierPaymentRow({ payment: p, billId, currency }: Props) {
         paymentId={p.id}
         billId={billId}
         paymentAmountLabel={formatCurrencyWithCode(Number(p.amount), currency)}
+      />
+
+      <Dialog open={rejectOpen} onOpenChange={(o) => { setRejectOpen(o); if (!o) setRejectNotes(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rechazar REP</DialogTitle>
+            <DialogDescription>Indica el motivo del rechazo del complemento de pago.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor={`reject-notes-${p.id}`}>Motivo</Label>
+            <Textarea
+              id={`reject-notes-${p.id}`}
+              value={rejectNotes}
+              onChange={(e) => setRejectNotes(e.target.value)}
+              placeholder="Ej. UUID no corresponde a la factura"
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectOpen(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={!rejectNotes.trim() || reject.isPending}
+              onClick={confirmReject}
+            >
+              Rechazar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        title="Reiniciar REP"
+        description="Esto regresa el REP a pendiente y borra los archivos cargados. ¿Continuar?"
+        confirmLabel="Reiniciar"
+        destructive
+        onConfirm={confirmReset}
       />
     </div>
   );

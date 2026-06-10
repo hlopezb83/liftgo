@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.38.3",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Refactor Lote 4: openStorageFile + AlertDialog reemplaza window.prompt/confirm",
+    "category": "architecture"
+  },
+  {
     "version": "6.38.2",
     "date": "2026-06-10",
     "type": "patch",
