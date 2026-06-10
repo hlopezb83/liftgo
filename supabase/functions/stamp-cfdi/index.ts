@@ -74,6 +74,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Guard: never stamp E2E test invoices against Facturapi / SAT
+    if ((invoice as Record<string, unknown>).is_e2e === true) {
+      return new Response(
+        JSON.stringify({ error: "E2E invoices cannot be stamped" }),
+        { status: 403, headers: jsonHeaders }
+      );
+    }
+
     const { data: company } = await supabase
       .from("company_settings")
       .select("*")
