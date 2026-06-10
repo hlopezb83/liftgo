@@ -23,7 +23,9 @@ export function useActivityFeed(limit = 50, filters: ActivityFilters = {}) {
         .from("activity_feed")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(limit);
+        .limit(limit)
+        .or("is_e2e.is.null,is_e2e.eq.false");
+
 
       if (filters.from) query = query.gte("created_at", filters.from.toISOString());
       if (filters.to) query = query.lte("created_at", filters.to.toISOString());
