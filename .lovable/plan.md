@@ -1,33 +1,30 @@
-## Arreglar Bitácora vacía y filtrar Actividad de tests E2E
+Verifiqué visualmente `/activity` y sí aparece `e2e-admin@liftgo.test` en el dashboard:
 
-### Diagnóstico
+- KPIs muestran `543` acciones en 7 días.
+- Lista de miembros muestra `e2e-admin@liftgo.test`.
+- La línea de tiempo ya se ve limpia: las filas visibles son de Sonia Hernandez y la petición trae `is_e2e=false`.
 
-**Bitácora (audit_logs):** Hay 1369 filas en DB y 0 marcadas con `is_e2e`. Pero `useAuditLogs` aplica `.not("old_data->>is_e2e", "eq", "true")` y `.not("new_data->>is_e2e", "eq", "true")`. PostgREST evalúa `NULL eq true` como UNKNOWN, y `NOT UNKNOWN` es UNKNOWN → la fila se descarta. **Resultado:** todas las filas (cuyo JSON no contiene la clave `is_e2e`) quedan excluidas y la UI sale vacía.
+También confirmé en base de datos que en los últimos 7 días hay:
 
-**Actividad (activity_feed):** La tabla no tiene columna `is_e2e`. El trigger `log_activity` corre sobre TODO INSERT/UPDATE/DELETE de las 14 tablas auditadas, incluyendo registros con `is_e2e=true`. Hay 490 filas del usuario E2E que la UI sigue mostrando.
+- `530` movimientos E2E marcados como `is_e2e=true`.
+- `13` movimientos reales marcados como `is_e2e=false`.
 
-### Cambios
+## Causa
 
-**1. `src/features/audit/hooks/useAuditLogs.ts`**
-Quitar los dos `.not(...->>is_e2e, eq, true)`. El trigger de `audit_logs` ya filtra desde el 2026-06-10 (confirmado: 0 filas con `is_e2e` en DB), así que el filtro cliente es redundante y rompe la consulta.
+El filtro E2E ya está aplicado en `useActivityFeed`, por eso la línea de tiempo está limpia. El problema está en el dashboard superior de Actividad del Equipo: `activityMetricsCalculators.ts` calcula KPIs, usuarios, módulos y horas desde `activity_feed` sin filtrar `is_e2e`, entonces suma los 530 registros de tests.
 
-**2. Migración SQL** (`..._activity_feed_e2e_isolation.sql`)
-- `ALTER TABLE activity_feed ADD COLUMN is_e2e boolean NOT NULL DEFAULT false`.
-- Crear índice parcial `WHERE is_e2e = false` para listados.
-- Modificar `log_activity()` trigger: leer `NEW.is_e2e` / `OLD.is_e2e` cuando la columna existe en la tabla origen (via `to_jsonb(NEW)->>'is_e2e'`), y propagarlo al INSERT en `activity_feed`.
-- **Backfill:** `UPDATE activity_feed SET is_e2e = true WHERE actor_id = '47b14d44-caef-4ff1-bece-37883b060450'` (el usuario `e2e-admin@liftgo.test`). Además, marcar como `is_e2e=true` filas cuyo `entity_id` corresponda a registros con `is_e2e=true` en cualquiera de las 7 tablas E2E.
-- Opción de purga: NO borramos historial, solo lo ocultamos (consistente con la estrategia E2E actual). Si querés que se borre en lugar de ocultar, lo agrego.
+## Plan de implementación
 
-**3. `src/features/dashboard/hooks/useActivityFeed.ts`**
-Agregar `.or("is_e2e.is.null,is_e2e.eq.false")` al query por defecto.
+1. Actualizar `src/features/audit/lib/activityMetricsCalculators.ts`
+   - Agregar el filtro `is_e2e IS NULL OR is_e2e = false` a la consulta principal de métricas.
+   - Agregar el mismo filtro al conteo del periodo anterior.
+   - Mantener los cálculos existentes de miembros, módulos y hora pico, pero ya sólo con actividad real.
 
-**4. Verificar `activityMetricsCalculators.ts`**
-Asegurar que las métricas también ignoren filas `is_e2e=true` (o que reciban data ya filtrada del hook).
+2. Verificar visualmente `/activity`
+   - Confirmar que desaparece `e2e-admin@liftgo.test` de miembros.
+   - Confirmar que el KPI de 7 días baja de `543` a `13` aproximadamente, según la data actual.
+   - Confirmar que la línea de tiempo sigue limpia.
 
-### Changelog
-`v6.42.2` (patch — bugfix): "Bitácora visible y Actividad filtra movimientos de tests E2E".
-
-### No se toca
-- Trigger de `audit_logs` (ya correcto).
-- `is_e2e` en las 7 tablas core (ya correcto desde v6.42.0).
-- Edge functions, otras vistas.
+3. Actualizar changelog
+   - Crear `public/changelog/v6.42.3.json` como patch.
+   - Agregar la entrada al inicio de `public/changelog.json`.

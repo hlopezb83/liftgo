@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.42.3",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Actividad del Equipo excluye métricas de E2E",
+    "category": "bugfix"
+  },
+  {
     "version": "6.42.2",
     "date": "2026-06-10",
     "type": "patch",

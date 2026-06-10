@@ -1,0 +1,12 @@
+{
+  "version": "6.42.3",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Actividad del Equipo excluye métricas de E2E",
+  "category": "bugfix",
+  "description": "Los KPIs, lista de miembros, módulos y hora pico del dashboard /activity ya no incluyen movimientos generados por tests E2E.",
+  "changes": [
+    "activityMetricsCalculators: se agregó filtro is_e2e.is.null,is_e2e.eq.false a las consultas del periodo actual y del periodo previo en activity_feed.",
+    "Sin cambios en línea de tiempo (ya filtraba E2E) ni en la bitácora."
+  ]
+}

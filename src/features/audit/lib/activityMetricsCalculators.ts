@@ -54,18 +54,21 @@ export function aggregateActivity(rows: Row[]): {
 export async function fetchActivityRanges(range: ActivityRange) {
   const spanMs = range.to.getTime() - range.from.getTime();
   const prevFrom = new Date(range.from.getTime() - spanMs);
+  const excludeE2E = "is_e2e.is.null,is_e2e.eq.false";
   const [current, previous] = await Promise.all([
     supabase
       .from("activity_feed")
       .select("actor_id,actor_name,actor_role,entity_type,created_at")
       .gte("created_at", range.from.toISOString())
       .lte("created_at", range.to.toISOString())
+      .or(excludeE2E)
       .limit(10000),
     supabase
       .from("activity_feed")
       .select("id", { count: "exact", head: true })
       .gte("created_at", prevFrom.toISOString())
-      .lt("created_at", range.from.toISOString()),
+      .lt("created_at", range.from.toISOString())
+      .or(excludeE2E),
   ]);
   if (current.error) throw current.error;
   if (previous.error) throw previous.error;
