@@ -512,6 +512,7 @@ export type Database = {
       }
       company_settings: {
         Row: {
+          allow_e2e_seed: boolean
           cash_initial_balance: number
           cash_safety_buffer: number
           created_at: string
@@ -526,6 +527,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_e2e_seed?: boolean
           cash_initial_balance?: number
           cash_safety_buffer?: number
           created_at?: string
@@ -540,6 +542,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_e2e_seed?: boolean
           cash_initial_balance?: number
           cash_safety_buffer?: number
           created_at?: string
@@ -3106,12 +3109,9 @@ export type Database = {
         Args: { p_quote_id: string }
         Returns: undefined
       }
-      e2e_seed_scenario:
-        | { Args: never; Returns: Json }
-        | { Args: { p_scope?: string }; Returns: Json }
-      e2e_teardown:
-        | { Args: never; Returns: Json }
-        | { Args: { p_scope?: string }; Returns: Json }
+      e2e_purge_all: { Args: never; Returns: Json }
+      e2e_seed_scenario: { Args: { p_scope: string }; Returns: Json }
+      e2e_teardown: { Args: { p_scope: string }; Returns: Json }
       generate_feedback_number: { Args: never; Returns: string }
       get_available_forklifts: {
         Args: { p_end_date: string; p_start_date: string }
@@ -3268,12 +3268,15 @@ export type Database = {
         }[]
       }
       next_booking_number: { Args: never; Returns: string }
+      next_booking_number_e2e: { Args: never; Returns: string }
       next_contract_number: { Args: never; Returns: string }
       next_credit_note_number: { Args: never; Returns: string }
       next_delivery_number: { Args: never; Returns: string }
       next_inspection_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
+      next_invoice_number_e2e: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
+      next_quote_number_e2e: { Args: never; Returns: string }
       next_supplier_bill_number: { Args: never; Returns: string }
       notify_admins: {
         Args: {
