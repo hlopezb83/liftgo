@@ -1,0 +1,24 @@
+{
+  "version": "6.38.1",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Refactor Lote 2: dead code eliminado",
+  "category": "cleanup",
+  "description": "Segundo lote del plan de mejora arquitectónica. Se eliminaron exports sin consumidores reales detectados por knip + rg, validados manualmente para evitar falsos positivos. Resultado: 493/493 tests pasan, lint sin errores, sin cambios funcionales para el usuario final.",
+  "changes": [
+    "Eliminado: `useUpdateSupplierBill` (cuentas por pagar) — mutación nunca invocada; el dialog usaba flujo distinto",
+    "Eliminado: `notifySuccess` (lib/ui/appFeedback.ts) — todos los call-sites usan `toast.success` directo",
+    "Eliminado: `msg` y `getMessage` (lib/domain/errorCatalog.ts) — el catálogo se consume vía `ERROR_CODES`/`extractErrorDetails`",
+    "Eliminado: `parseSaleDescription` (quotes/utils/saleLines.ts) — sin consumidores; se conservan `isSaleLine` y `getSaleLines` que sí se usan",
+    "Limpiado: `usePaymentBatches.ts` queda solo con el `PAYMENT_BATCHES_QK` que sí consume `useCreatePaymentBatch` (el hook de listado completo nunca se montó en UI)"
+  ],
+  "verified": [
+    "bun run tsc --noEmit → sin errores",
+    "bun run lint → 0 errores, 34 warnings preexistentes",
+    "bun run test → 493/493 pasan en 82 archivos"
+  ],
+  "false_positives_kept": [
+    "`exportIncomeStatementPdf` SÍ se usa en `IncomeStatementReport.tsx` (el sub-agente lo marcó por error). Se mantiene.",
+    "`useCreatePaymentBatch` SÍ se usa en `ExportPaymentsDialog.tsx` con import relativo. Se mantiene."
+  ]
+}
