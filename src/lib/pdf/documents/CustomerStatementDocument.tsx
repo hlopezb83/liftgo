@@ -10,7 +10,7 @@ import { fmtDate, type CompanyData } from "@/lib/pdf/shared";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { roundMoney } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
-import type { CustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
+import type { CustomerSummary } from "@/lib/domain/customerTypes";
 
 export interface CustomerStatementDocumentProps {
   company: CompanyData | null;

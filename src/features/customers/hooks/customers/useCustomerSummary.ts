@@ -1,29 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { callRpc } from "@/lib/rpc";
+import type {
+  CustomerSummary,
+  CustomerSummaryBooking,
+  CustomerSummaryInvoice,
+} from "@/lib/domain/customerTypes";
 
-export interface CustomerSummaryBooking {
-  id: string;
-  booking_number: string;
-  start_date: string;
-  end_date: string;
-  status: string;
-  forklift: { name: string | null; model: string | null } | null;
-}
+// Re-export para compatibilidad con consumidores existentes. La fuente de
+// verdad de estos tipos vive en `@/lib/domain/customerTypes`.
+export type { CustomerSummary, CustomerSummaryBooking, CustomerSummaryInvoice };
 
-export interface CustomerSummaryInvoice {
-  id: string;
-  invoice_number: string;
-  issued_at: string;
-  due_date: string | null;
-  total: number;
-  status: string;
-}
-
-export interface CustomerSummary {
-  bookings: CustomerSummaryBooking[];
-  invoices: CustomerSummaryInvoice[];
-  totals: { total_invoiced: number; total_paid: number };
-}
 
 export function useCustomerSummary(customerId: string | undefined) {
   return useQuery({

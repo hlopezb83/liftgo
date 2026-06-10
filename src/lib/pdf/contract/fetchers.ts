@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
-import type { ContractClause, ChecklistSection } from "@/features/contracts/hooks/useContractTemplates";
+import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import type { ContractViewModel } from "@/types/rental";
 import { parseJsonbArray } from "@/lib/lineItems";
 import {
