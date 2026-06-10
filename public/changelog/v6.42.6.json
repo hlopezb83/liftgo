@@ -1,0 +1,11 @@
+{
+  "version": "6.42.6",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "CI: forzar Node 24 para silenciar warnings de deprecación",
+  "description": "Restaurada la variable de entorno FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true a nivel de workflow para eliminar las anotaciones de deprecación de Node.js 20 en actions/upload-artifact@v5 y mikepenz/action-junit-report@v5. GitHub hará Node 24 el default el 16 de junio de 2026, por lo que esta variable será temporal.",
+  "changes": [
+    "Agregada env FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true en .github/workflows/ci.yml"
+  ],
+  "category": "tooling"
+}
