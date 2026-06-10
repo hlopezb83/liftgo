@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.38.1",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Refactor Lote 2: dead code eliminado",
+    "category": "cleanup"
+  },
+  {
     "version": "6.38.0",
     "date": "2026-06-10",
     "type": "minor",

@@ -57,15 +57,5 @@ const MESSAGES: Record<ErrorCode, string> = {
   ROLE_FORBIDDEN: "Tu rol no permite esta acción.",
 };
 
-export function msg(code: ErrorCode): string {
-  return MESSAGES[code] ?? MESSAGES.UNKNOWN;
-}
 
-/** Interpola `{var}` en el mensaje con los valores dados. */
-export function getMessage(code: ErrorCode, vars: Record<string, string | number> = {}): string {
-  const template = msg(code);
-  return template.replace(/\{(\w+)\}/g, (_, key: string) => {
-    const value = vars[key];
-    return value === undefined || value === null ? `{${key}}` : String(value);
-  });
-}
+
