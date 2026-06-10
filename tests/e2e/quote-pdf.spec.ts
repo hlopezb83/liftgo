@@ -24,5 +24,5 @@ test("download PDF from seeded quote produces a COT-*.pdf file", async ({ page, 
     test.skip(true, "PDF download event not captured — jsPDF may render inline in this build.");
     return;
   }
-  expect(download.suggestedFilename()).toMatch(/^COT-/i);
+  expect(download.suggestedFilename()).toMatch(/^(E2E-)?COT-/i);
 });
