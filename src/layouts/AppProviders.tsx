@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@ta
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorDetailsDialog } from "@/components/ui/ErrorDetailsDialog";
-import { AuthSnapshotSync } from "@/lib/ui/AuthSnapshotSync";
+import { AuthSnapshotSync } from "@/features/users/components/AuthSnapshotSync";
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
 import { notifyError } from "@/lib/ui/appFeedback";
 
