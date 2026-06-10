@@ -15,6 +15,9 @@ import { defineConfig, devices } from "@playwright/test";
  *   VITE_SUPABASE_PUBLISHABLE_KEY  (already in .env)
  */
 const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:4173";
+// SHARD_INDEX is set per-job in CI matrix sharding ("1", "2", …). Used to scope artifact paths so
+// shards don't overwrite each other when uploaded.
+const shardSuffix = process.env.SHARD_INDEX ? `-shard${process.env.SHARD_INDEX}` : "";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -28,9 +31,9 @@ export default defineConfig({
   reporter: process.env.CI
     ? [
         ["list"],
-        ["html", { outputFolder: "playwright-report", open: "never" }],
-        ["junit", { outputFile: "reports/playwright-junit.xml" }],
-        ["json", { outputFile: "reports/playwright.json" }],
+        ["html", { outputFolder: `playwright-report${shardSuffix}`, open: "never" }],
+        ["junit", { outputFile: `reports/playwright-junit${shardSuffix}.xml` }],
+        ["json", { outputFile: `reports/playwright${shardSuffix}.json` }],
         ["github"],
       ]
     : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
