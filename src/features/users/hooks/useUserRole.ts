@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import type { Database } from "@/integrations/supabase/types";
+import type { AppRole } from "@/lib/domain/roles";
 
-export type AppRole = Database["public"]["Enums"]["app_role"];
+// Re-export para compatibilidad con consumidores existentes. La fuente de
+// verdad del tipo vive en `@/lib/domain/roles`.
+export type { AppRole };
+
 
 // Priority order when a user has multiple roles: highest privilege wins.
 const ROLE_PRIORITY: AppRole[] = [
