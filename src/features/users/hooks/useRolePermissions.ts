@@ -11,10 +11,11 @@ export type PermissionsMap = Record<string, Record<string, AccessLevel>>;
 
 export const MODULES = [
   "Dashboard", "Flota", "Reservas", "Calendario", "Entregas",
-  "Facturas", "Pagos", "Contratos", "Cotizaciones", "Clientes",
+  "Facturas", "Contratos", "Cotizaciones", "Clientes",
   "CRM / Prospectos", "Mantenimiento", "Daños", "Refacciones",
-  "Gastos", "Proveedores", "Reportes", "Configuración", "Gestión de Usuarios",
+  "Gastos", "Proveedores", "Reportes", "MRR", "Configuración", "Gestión de Usuarios",
   "Feedback",
+  "Cuentas por Pagar", "Flujo de Caja", "Cuentas Bancarias", "Conciliación Bancaria",
 ] as const;
 
 /** Map sidebar route → module name */
@@ -35,13 +36,21 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/expenses": "Gastos",
   "/suppliers": "Proveedores",
   "/reports": "Reportes",
+  "/mrr": "MRR",
   "/settings/operations": "Configuración",
   "/settings/company": "Configuración",
   "/users": "Gestión de Usuarios",
   "/returns": "Entregas",
   "/income-statement": "Reportes",
   "/feedback": "Feedback",
+  "/cuentas-por-pagar": "Cuentas por Pagar",
+  "/cuentas-por-pagar/antiguedad": "Cuentas por Pagar",
+  "/flujo-de-caja": "Flujo de Caja",
+  "/cuentas-bancarias": "Cuentas Bancarias",
+  "/conciliacion-bancaria": "Conciliación Bancaria",
+  "/conciliacion-bancaria/historial": "Conciliación Bancaria",
 };
+
 
 export function useRolePermissions() {
   const { user } = useAuth();
