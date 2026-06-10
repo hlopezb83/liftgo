@@ -7,6 +7,7 @@ import { useUpdateInvoice, useDeleteInvoice } from "@/features/invoices/hooks/in
 import { useUpdateBooking } from "@/features/bookings/hooks/useBookings";
 import { useStampCfdi } from "@/features/invoices/hooks/invoices/useStampCfdi";
 import { getMissingStampFields } from "@/features/invoices/lib/cfdiPrechecks";
+import { fetchCfdiBlob, triggerBlobDownload } from "@/features/invoices/lib/downloadCfdiBlob";
 
 import type { Tables } from "@/integrations/supabase/types";
 
