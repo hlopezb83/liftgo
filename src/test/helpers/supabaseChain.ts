@@ -43,8 +43,9 @@ export function createSupabaseChainMock(opts: {
   const fromR = opts.fromResolver ?? (() => ({ data: [], error: null }));
   const rpcR = opts.rpcResolver ?? (() => ({ data: null, error: null }));
   return {
-    from: vi.fn(() => createChainable(fromR)),
-    rpc: vi.fn(() => Promise.resolve(rpcR())),
+    from: vi.fn((_table?: string) => createChainable(fromR)),
+    rpc: vi.fn((_name?: string, _args?: unknown) => Promise.resolve(rpcR())),
+
     storage: {
       from: vi.fn(() => ({
         createSignedUrl:
