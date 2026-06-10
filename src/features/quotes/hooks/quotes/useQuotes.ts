@@ -14,6 +14,7 @@ export function useQuotes() {
       const { data, error } = await supabase
         .from("quotes")
         .select("*")
+        .or("is_e2e.is.null,is_e2e.eq.false")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
