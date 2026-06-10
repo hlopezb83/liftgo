@@ -1,0 +1,13 @@
+{
+  "version": "6.42.4",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Specs E2E alineadas al filtro is_e2e",
+  "category": "bugfix",
+  "description": "Se ajustaron specs Playwright para convivir con el filtro is_e2e ya aplicado a hooks de listas (invoices, bookings, quotes, customers, forklifts).",
+  "changes": [
+    "booking-to-invoice: verificación por detalle (/invoices/:id) en lugar de buscar en la lista.",
+    "quote-to-booking: verificación por detalle (/bookings/:id) en lugar de buscar en la lista.",
+    "customer-create: regex del botón submit ahora incluye 'agregar cliente' y usa .last() para evitar colisión con el botón disparador."
+  ]
+}
