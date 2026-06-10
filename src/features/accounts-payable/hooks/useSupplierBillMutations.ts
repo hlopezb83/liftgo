@@ -7,7 +7,6 @@ import type { Database } from "@/integrations/supabase/types";
 import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
 
 type Insert = Database["public"]["Tables"]["supplier_bills"]["Insert"];
-type Update = Database["public"]["Tables"]["supplier_bills"]["Update"];
 
 export type SupplierBillInput = Omit<Insert, "bill_number" | "balance" | "status"> & {
   status?: Insert["status"];
@@ -39,23 +38,8 @@ export function useCreateSupplierBill() {
   });
 }
 
-export function useUpdateSupplierBill() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Update }) => {
-      const { error } = await supabase.from("supplier_bills").update(patch).eq("id", id);
-      if (error) throw error;
-      return id;
-    },
-    onSuccess: (id) => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-      qc.invalidateQueries({ queryKey: ["supplier_bill", id] });
-      toast.success("Factura actualizada");
-    },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo actualizar la factura" }),
-  });
-}
+
+
 
 export function useCancelSupplierBill() {
   const qc = useQueryClient();

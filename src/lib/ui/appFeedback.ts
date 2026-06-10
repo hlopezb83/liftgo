@@ -83,9 +83,4 @@ export function notifyWarning(input: NotifySimpleInput): string | number {
   });
 }
 
-export function notifySuccess(input: NotifySimpleInput): string | number {
-  return toast.success(input.title, {
-    description: input.description,
-    className: "liftgo-toast-success",
-  });
-}
+
