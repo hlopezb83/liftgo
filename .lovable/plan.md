@@ -1,59 +1,56 @@
-# Plan — Retomar Auditoría de Tests · Lote 11 (RLS sin red)
+# Plan — Lote 10 · E2E happy paths (Playwright)
 
 ## Contexto
 
-De los 12 lotes de la auditoría (3076 mensajes atrás), están cerrados los lotes **1–9 y 12** (≈93 tests nuevos vitest + Deno + 31 rutas smoke). Quedan dos pendientes:
-
-- **Lote 10 — E2E happy paths (Playwright)**: ya con el secret admin configurado, sigue requiriendo un helper de seed por RPC para datos reproducibles. **Fuera de scope de este plan** (se retoma después).
-- **Lote 11 — RLS / policies**: ahora lo cerramos como **suite Vitest con mocks de Supabase**, sin necesidad de usuarios reales en BD.
-
-## Por qué unit tests y no integration
-
-Las RLS reales se prueban en BD; aquí validamos el **contrato cliente↔RLS**: que cada hook construya el query correcto, maneje los `permission denied` y arreglos vacíos como "no acceso", y respete los roles definidos en `useRolePermissions`. Esto complementa (no reemplaza) los tests de integración futuros con `pg_tap` o usuarios sembrados.
-
-## Cobertura propuesta (10 tests, 1 archivo por dominio)
-
-| # | Archivo | Caso | Verifica |
-|---|---|---|---|
-| 1 | `useSupplierBankAccounts.rls.test.ts` | customer/ventas/dispatcher reciben `permission denied` | hook propaga error vía `notifyError`, query no rompe UI |
-| 2 | `useSupplierContacts.rls.test.ts` | customer recibe `permission denied`; staff lee normal | mismo patrón que arriba |
-| 3 | `useForklifts.rls.test.ts` | customer recibe `[]` y `useCustomerForklifts` (RPC brief) entrega solo id/nombre/modelo/fabricante | que el portal use la RPC, no la tabla |
-| 4 | `useInvoicesRLS.test.ts` | mecánico recibe `[]` en lista de facturas; admin recibe filas | hook trata `[]` como "sin acceso" sin loop infinito |
-| 5 | `useBookingsRLS.test.ts` | mecánico no lee `bookings`; customer solo ve las suyas (mock filtrado por `customer_id`) | filtros correctos antes del query |
-| 6 | `useDocumentsRLS.test.ts` | mecánico solo ve docs `forklift`/`maintenance`; customer signed URL falla si doc no le pertenece | `useDocuments` lanza error claro |
-| 7 | `useCollectionRemindersLog.rls.test.ts` | auditor lee; dispatcher recibe denied | nuevo policy v5.81.3 |
-| 8 | `useCompanySettings.rls.test.ts` | mecánico recibe denied; público lee solo branding vía RPC `get_public_branding` | post-hardening v5.81.4 |
-| 9 | `useBillingSecretsStatus.test.ts` | hook nunca pide columnas crudas; solo flags vía RPC `get_billing_secrets_status` | confirma postura aceptada |
-| 10 | `roleMatrix.test.ts` | `getAccessLevel` retorna el nivel correcto para los 28 módulos × 7 roles según seeds de `role_permissions` | regresión de la reorganización v6.37.0 |
-
-Todos los archivos viven junto a la unidad bajo prueba (`src/features/.../__tests__/`) excepto `roleMatrix.test.ts` que va en `src/test/`.
-
-## Patrón técnico (igual al `rolePermissions.test.ts` existente)
-
-```text
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: () => ({ select: () => ({ eq: () => mock() }) }) } }));
-vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => ({ user: { id: "uid", role: "customer" } }) }));
-```
-
-- `mock()` devuelve `{ data: null, error: { code: "42501", message: "permission denied for table X" } }` para simular rechazo RLS, y `{ data: [...], error: null }` para acceso permitido.
-- Se renderiza el hook con `QueryClientProvider` (retry: false), se espera `isFetching=false`, y se asserta `data`/`error`.
-- Para RPCs (`get_public_branding`, `get_billing_secrets_status`, `get_customer_forklifts_brief`) se mockea `supabase.rpc("name")`.
-
-## Cambios fuera de tests
-
-Ninguno previsto. Si algún test descubre un bug real (p. ej. hook sin manejo de `error`), se documenta y se aborda como follow-up separado — **este lote es solo cobertura**.
+Con el secret `E2E_TEST_EMAIL` ya apuntando a un usuario admin, el bloqueo restante es disponer de datos reproducibles por corrida. Resolvemos con un **helper de seed por RPC** que crea y limpia datos efímeros marcados `is_e2e = true`, y luego cubrimos los 5 happy paths que faltan.
 
 ## Entregables
 
-1. 10 archivos `*.rls.test.ts` (+`roleMatrix.test.ts`) — ~40–50 casos totales.
-2. Entrada `public/changelog.json` + `public/changelog/v6.37.2.json` documentando "Lote 11 — RLS coverage (unit, sin red)".
-3. Suite verde (`bunx vitest run`) y resumen por archivo en la respuesta final.
+### 1. RPCs de seed/teardown (migración)
+
+Una sola migración que añade:
+
+- Columna `is_e2e BOOLEAN NOT NULL DEFAULT false` en: `customers`, `forklifts`, `quotes`, `bookings`, `invoices`, `payments`, `equipment_models`.
+- RPC `e2e_seed_scenario()` → admin-only (`has_role(auth.uid(),'admin')`). Crea: 1 modelo, 1 montacargas disponible, 1 cliente, 1 cotización en estado `accepted` lista para convertir, 1 booking confirmado, 1 factura `issued` con saldo pendiente. Devuelve JSON con todos los ids.
+- RPC `e2e_teardown()` → admin-only. Borra en orden (payments → invoices → bookings → quotes → forklifts → equipment_models → customers) solo filas con `is_e2e = true`.
+- Ambas con `SECURITY DEFINER`, `SET search_path = public`, fallan si caller no es admin.
+
+### 2. Fixture Playwright `tests/e2e/fixtures/seed.ts`
+
+- `seedScenario(page)`: llama `supabase.rpc('e2e_seed_scenario')` con el token de la sesión persistida y devuelve los ids.
+- `teardownScenario(page)`: llama `e2e_teardown` en `afterEach`.
+- Se integra como fixture extendido de Playwright (`test.extend`).
+
+### 3. 5 specs nuevos (happy paths)
+
+| Spec | Flujo |
+|---|---|
+| `quote-to-booking.spec.ts` | Abrir cotización seed → "Convertir a reserva" → asignar montacargas → confirmar → verificar `RSV-XXXX` en lista |
+| `booking-to-invoice.spec.ts` | Abrir booking seed → "Generar factura" → verificar borrador en `/invoices` |
+| `invoice-payment.spec.ts` | Abrir factura seed → "Registrar pago" → monto total → verificar status `paid` y aparición en `/payments` |
+| `quote-pdf.spec.ts` | Abrir cotización seed → "Descargar PDF" → verificar `download` event con nombre `COT-*.pdf` |
+| `customer-create.spec.ts` | `/customers/new` → llenar RFC genérico → guardar → verificar redirect a detalle |
+
+Cada spec usa el fixture seed + teardown, evita acoplarse a IDs existentes, y agrega `data-testid` mínimos solo donde sea estrictamente necesario (el resto via roles/labels accesibles).
+
+### 4. Documentación
+
+- `docs/e2e-roadmap.md`: marcar Lote 10 como completado, documentar el patrón seed/teardown.
+- `public/changelog.json` + `public/changelog/v6.37.3.json`: "Lote 10 — E2E happy paths con RPC de seed".
+
+## Detalles técnicos
+
+- Las RPCs son las únicas en escribir `is_e2e=true`; la app normal nunca toca esa columna → cero riesgo de borrar datos reales.
+- El teardown corre en `afterEach`, no en `afterAll`, para aislamiento por test.
+- Específicamente para `payments` y `bookings` se respeta el orden de FKs.
+- `quote-pdf.spec.ts` usa `page.waitForEvent('download')` — no parsea el PDF.
+- No tocamos `playwright.config.ts` (ya soporta el flow).
+- Los specs placeholder actuales (`booking.spec.ts`, `quote-to-invoice.spec.ts`) se eliminan al estar reemplazados por los nuevos.
 
 ## Fuera de scope
 
-- Lote 10 (Playwright happy paths) — se retoma después con helper de seed por RPC.
-- Tests de integración reales contra Postgres (pgTAP / usuarios sembrados) — propuesta separada.
-- Refactor de hooks descubiertos como buggy durante la suite.
-- Cambios en RLS o migraciones.
+- pgTAP / tests RLS reales contra Postgres (propuesta separada).
+- Refactor de componentes para añadir `data-testid` masivos — solo los mínimos imprescindibles.
+- Specs para módulos fuera del happy path (CRM, mantenimiento, retornos, contratos).
 
 ¿Apruebas y arranco?
