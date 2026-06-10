@@ -59,12 +59,15 @@ Deno.serve(async (req) => {
 
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
-      .select("cfdi_status, total, facturapi_invoice_id")
+      .select("cfdi_status, total, facturapi_invoice_id, is_e2e")
       .eq("id", invoice_id)
       .single();
 
     if (invErr || !invoice) {
       return new Response(JSON.stringify({ error: "Invoice not found" }), { status: 404, headers: jsonHeaders });
+    }
+    if ((invoice as Record<string, unknown>).is_e2e === true) {
+      return new Response(JSON.stringify({ error: "E2E invoices cannot be cancelled at SAT" }), { status: 403, headers: jsonHeaders });
     }
     if (invoice.cfdi_status !== "stamped") {
       return new Response(JSON.stringify({ error: "Only stamped invoices can be cancelled" }), { status: 400, headers: jsonHeaders });
