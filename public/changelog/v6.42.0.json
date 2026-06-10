@@ -1,0 +1,17 @@
+{
+  "version": "6.42.0",
+  "date": "2026-06-10",
+  "type": "minor",
+  "title": "Aislamiento reforzado de E2E (folios y CFDI seguros)",
+  "category": "tooling",
+  "summary": "Las pruebas automáticas E2E ya no pueden afectar folios fiscales reales ni timbrar CFDIs contra el SAT.",
+  "details": [
+    "Series fiscales separadas: los tests consumen una serie paralela con prefijo E2E-COT-, E2E-RSV- y E2E-FAC-. La serie real (COT-, RSV-, FAC-) excluye registros E2E del cálculo, eliminando el riesgo de huecos ante el SAT.",
+    "Bloqueo CFDI a nivel base de datos: constraint que rechaza guardar UUID de CFDI en facturas marcadas como prueba. Imposible timbrar accidentalmente.",
+    "Edge functions stamp-cfdi y cancel-cfdi: validan is_e2e antes de llamar a Facturapi. Cualquier intento devuelve 403.",
+    "Scope obligatorio: cada registro E2E debe tener un identificador e2e_scope (validado por constraint en 7 tablas).",
+    "Flag de apagado: nueva columna allow_e2e_seed en company_settings. Si se pone en falso, los RPC e2e_seed_scenario se rechazan.",
+    "Limpieza manual: nuevo RPC e2e_purge_all (solo admin) para emergencias.",
+    "Filtrado por defecto en frontend: hooks de forklifts, customers, quotes, bookings, invoices y equipment_models excluyen registros E2E."
+  ]
+}

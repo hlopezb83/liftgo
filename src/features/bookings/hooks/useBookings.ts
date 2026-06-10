@@ -8,7 +8,7 @@ export function useBookings(forkliftId?: string) {
     queryKey: ["bookings", forkliftId],
     staleTime: 60_000,
     queryFn: async () => {
-      let query = supabase.from("bookings").select("*, forklifts(name, model)").order("start_date", { ascending: false }).limit(500);
+      let query = supabase.from("bookings").select("*, forklifts(name, model)").or("is_e2e.is.null,is_e2e.eq.false").order("start_date", { ascending: false }).limit(500);
       if (forkliftId) query = query.eq("forklift_id", forkliftId);
       const { data, error } = await query;
       if (error) throw error;
@@ -33,6 +33,7 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
       const { data, error } = await supabase
         .from("bookings")
         .select("*, forklifts(name, model)")
+        .or("is_e2e.is.null,is_e2e.eq.false")
         .gte("end_date", fromStr)
         .lte("start_date", toStr)
         .order("start_date", { ascending: true });

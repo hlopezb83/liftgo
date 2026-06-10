@@ -24,6 +24,7 @@ export function useEquipmentModels() {
       const { data, error } = await supabase
         .from("equipment_models")
         .select("*")
+        .or("is_e2e.is.null,is_e2e.eq.false")
         .order("manufacturer")
         .order("model");
       if (error) throw error;
