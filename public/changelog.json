@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.42.2",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Bitácora visible y Actividad sin movimientos de tests E2E",
+    "category": "bugfix"
+  },
+  {
     "version": "6.42.1",
     "date": "2026-06-10",
     "type": "patch",

@@ -31,11 +31,11 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
       if (filters?.table_name) query = query.eq("table_name", filters.table_name);
       if (filters?.record_id) query = query.eq("record_id", filters.record_id);
 
-      // Defensa en profundidad: excluir cualquier residuo de tests E2E.
-      // El trigger de auditoría ya los filtra desde 2026-06-10.
-      query = query
-        .not("old_data->>is_e2e", "eq", "true")
-        .not("new_data->>is_e2e", "eq", "true");
+      // Nota: el trigger de auditoría ya descarta filas con is_e2e=true desde 2026-06-10.
+      // Un filtro client-side sobre old_data->>is_e2e en PostgREST descarta también los NULL,
+      // lo cual vaciaba la bitácora. Se confía en el trigger.
+
+
 
       const { data, error } = await query;
       if (error) throw error;

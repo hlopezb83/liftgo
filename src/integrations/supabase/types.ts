@@ -25,6 +25,7 @@ export type Database = {
           entity_type: string
           event_type: string
           id: string
+          is_e2e: boolean
           title: string
         }
         Insert: {
@@ -37,6 +38,7 @@ export type Database = {
           entity_type: string
           event_type: string
           id?: string
+          is_e2e?: boolean
           title: string
         }
         Update: {
@@ -49,6 +51,7 @@ export type Database = {
           entity_type?: string
           event_type?: string
           id?: string
+          is_e2e?: boolean
           title?: string
         }
         Relationships: []

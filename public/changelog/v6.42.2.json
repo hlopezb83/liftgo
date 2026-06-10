@@ -1,0 +1,15 @@
+{
+  "version": "6.42.2",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Bitácora visible y Actividad sin movimientos de tests E2E",
+  "category": "bugfix",
+  "description": "Se corrigió la bitácora que aparecía vacía por un filtro PostgREST mal evaluado sobre claves JSON inexistentes, y se aisló la actividad de tests automatizados con una columna is_e2e en activity_feed propagada por el trigger log_activity.",
+  "changes": [
+    "useAuditLogs: se eliminó el filtro client-side .not(old_data->>is_e2e, eq, true) que descartaba todas las filas cuyo JSON no incluía la clave is_e2e (NULL eq true es UNKNOWN en PostgREST). El trigger del backend ya excluye filas E2E.",
+    "activity_feed: nueva columna is_e2e (boolean, default false) e índice parcial idx_activity_feed_created_not_e2e.",
+    "log_activity trigger actualizado: detecta is_e2e en la fila origen (vía to_jsonb) y lo propaga al insert en activity_feed.",
+    "Backfill: se marcaron como is_e2e=true las 490 filas del usuario e2e-admin@liftgo.test y las filas cuyo entity_id pertenece a un registro con is_e2e=true en las 7 tablas core.",
+    "useActivityFeed: filtra por defecto .or(is_e2e.is.null,is_e2e.eq.false)."
+  ]
+}
