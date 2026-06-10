@@ -1,0 +1,14 @@
+{
+  "version": "6.42.1",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Proyecto fijado a Node 24",
+  "category": "tooling",
+  "description": "Se agregó el campo engines.node >=24.0.0 en package.json y se crearon los archivos .nvmrc y .node-version con valor 24 para que herramientas locales (nvm, fnm, asdf, nodenv, Volta) seleccionen Node 24 automáticamente. CI no requirió cambios: usa Bun y ya tenía FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 activado.",
+  "changes": [
+    "package.json: agregado bloque engines con node >=24.0.0",
+    ".nvmrc creado con valor 24",
+    ".node-version creado con valor 24",
+    "Sin cambios en CI (workflows ya corren con Bun y forzan Node 24 para JS actions)"
+  ]
+}
