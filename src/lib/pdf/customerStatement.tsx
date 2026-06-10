@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import { nowMty } from "@/lib/utils";
-import type { CustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
+import type { CustomerSummary } from "@/lib/domain/customerTypes";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ExportStatementParams {

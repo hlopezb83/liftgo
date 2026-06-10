@@ -1,5 +1,5 @@
 import currency from "currency.js";
-import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
+import type { Forklift } from "@/types/rental";
 import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
 
 export interface LineItem {
