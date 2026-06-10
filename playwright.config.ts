@@ -23,7 +23,15 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
+  reporter: process.env.CI
+    ? [
+        ["list"],
+        ["html", { outputFolder: "playwright-report", open: "never" }],
+        ["junit", { outputFile: "reports/playwright-junit.xml" }],
+        ["json", { outputFile: "reports/playwright.json" }],
+        ["github"],
+      ]
+    : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
     baseURL,
     trace: "on-first-retry",
