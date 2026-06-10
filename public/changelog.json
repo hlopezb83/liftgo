@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.37.3",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Lote 10 de auditoría: happy paths E2E con seed reproducible",
+    "category": "improvement"
+  },
+  {
     "version": "6.37.2",
     "date": "2026-06-10",
     "type": "patch",
