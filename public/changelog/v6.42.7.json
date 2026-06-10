@@ -1,0 +1,13 @@
+{
+  "version": "6.42.7",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "CI: actions actualizadas a versiones con Node.js 24 nativo",
+  "description": "Bump de actions/upload-artifact a v7 (8 ocurrencias) y mikepenz/action-junit-report a v6 (2 ocurrencias) para eliminar definitivamente los warnings de deprecación de Node.js 20. Removida la variable temporal FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 ya que las nuevas versiones corren nativamente en Node 24.",
+  "changes": [
+    "actions/upload-artifact@v5 → @v7 en .github/workflows/ci.yml",
+    "mikepenz/action-junit-report@v5 → @v6 en .github/workflows/ci.yml",
+    "Eliminada env FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 del workflow"
+  ],
+  "category": "tooling"
+}
