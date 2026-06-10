@@ -16,10 +16,14 @@ export type SeedIds = {
 };
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? "https://zxefrzfaynnfwazqhwxp.supabase.co";
+// Publishable (anon) key — safe to embed; RLS sigue aplicando. Permite que la
+// fixture funcione en CI sin propagar secrets adicionales.
+const PUBLISHABLE_FALLBACK =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4ZWZyemZheW5uZndhenFod3hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NTg3MzksImV4cCI6MjA4NjQzNDczOX0.CWTcUqTDNQ-YBU1ZzjdyFl3RblobAdfL2YbVN2XPwY8";
 const SUPABASE_KEY =
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
   process.env.SUPABASE_PUBLISHABLE_KEY ??
-  "";
+  PUBLISHABLE_FALLBACK;
 
 /**
  * Build a Supabase client authenticated with the JWT persisted by the auth
