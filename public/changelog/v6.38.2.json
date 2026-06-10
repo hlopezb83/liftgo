@@ -1,0 +1,18 @@
+{
+  "version": "6.38.2",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Refactor Lote 3: helper downloadCfdiBlob centralizado",
+  "category": "architecture",
+  "description": "Se extrajo el flujo de descarga de CFDI a un único helper compartido eliminando 4 duplicaciones en componentes y hooks de facturas.",
+  "changes": [
+    "Nuevo módulo `src/features/invoices/lib/downloadCfdiBlob.ts` con `fetchCfdiBlob`, `triggerBlobDownload` y `downloadCfdiBlob` tipados (invoice_id | credit_note_id | payment_id).",
+    "`InvoicePDFButton`, `InvoiceCreditNotesCard` e `InvoicePaymentSummary` ya no importan `@/integrations/supabase/client`; consumen el helper.",
+    "`useInvoiceDetailActions.handleDownloadXml` reutiliza el helper conservando el fallback a `invoice.cfdi_xml`.",
+    "Cualquier ajuste futuro al edge `download-cfdi` (auth, headers, MIME) se hace en un único lugar."
+  ],
+  "validation": [
+    "bun run lint: 0 errores, 34 warnings preexistentes.",
+    "bunx vitest run: 493/493 tests passing."
+  ]
+}
