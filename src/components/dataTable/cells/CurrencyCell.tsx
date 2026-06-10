@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { cn } from "@/lib/utils";
 
 interface CurrencyCellProps {
@@ -27,7 +27,7 @@ export function CurrencyCell({ value, currency, highlightNegative, emphasized, c
         className,
       )}
     >
-      {formatCurrency(numeric, currency)}
+      {currency ? formatCurrencyWithCode(numeric, currency) : formatCurrency(numeric)}
     </span>
   );
 }
