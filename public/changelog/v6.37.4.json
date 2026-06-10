@@ -1,0 +1,18 @@
+{
+  "version": "6.37.4",
+  "date": "2026-06-10",
+  "type": "patch",
+  "category": "improvement",
+  "title": "CI: artifacts y reportes para E2E, RLS y Vitest",
+  "description": "Automatiza la ejecución completa de las suites en GitHub Actions con publicación de reportes JUnit/JSON, subida de artifacts de Playwright (HTML, traces, videos, screenshots) y un job dedicado a contratos RLS.",
+  "changes": [
+    { "type": "feature", "title": "Job dedicado de RLS", "description": "Nuevo job rls en CI que corre el subconjunto roleMatrix + rolePermissions + *.rls.test.ts (script test:rls) en paralelo a la suite completa." },
+    { "type": "feature", "title": "Reportes Vitest en CI", "description": "vitest.config.ts emite JUnit + JSON + coverage (lcov/html) cuando CI=1, y el workflow los sube como artifact vitest-reports (14 días)." },
+    { "type": "feature", "title": "Reportes Playwright completos", "description": "playwright.config.ts agrega reporters junit/json/github en CI. El workflow sube tres artifacts: playwright-report (HTML), playwright-test-results (traces/videos/screenshots) y playwright-reports (JUnit/JSON)." },
+    { "type": "feature", "title": "Resumen JUnit en el PR", "description": "mikepenz/action-junit-report publica los resultados de Vitest y Playwright en el summary del PR sin bloquear el merge." },
+    { "type": "feature", "title": "Deno JUnit", "description": "Los smoke tests de Edge Functions ahora emiten JUnit (--junit-path) y se suben como artifact deno-reports." },
+    { "type": "feature", "title": "Artifacts siempre", "description": "Los uploads pasan a if: always() con retención de 14 días, para poder auditar éxitos también, no solo fallos." },
+    { "type": "chore", "title": ".gitignore", "description": "reports/, playwright-report/ y test-results/ excluidos del repo." },
+    { "type": "chore", "title": "Scripts nuevos", "description": "package.json gana test:rls y test:coverage." }
+  ]
+}

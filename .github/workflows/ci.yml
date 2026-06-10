@@ -45,8 +45,54 @@ jobs:
       - name: Tests (Vitest)
         run: bun run test
 
+      - name: Upload Vitest reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Publish Vitest results to PR summary
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: reports/vitest-junit.xml
+          check_name: Vitest results
+          fail_on_failure: false
+          require_tests: false
+
       - name: Build
         run: bun run build
+
+  rls:
+    name: RLS contract tests (Vitest subset)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: RLS subset (roleMatrix + *.rls.test.ts)
+        run: bun run test:rls
+
+      - name: Upload RLS reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rls-reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: ignore
 
   edge-functions:
     name: Edge Functions (Deno smoke tests)
@@ -64,14 +110,24 @@ jobs:
       - name: Run Deno tests
         run: |
           find supabase/functions -name 'index_test.ts' -print0 \
-            | xargs -0 deno test --allow-net --allow-env --allow-read
+            | xargs -0 deno test --allow-net --allow-env --allow-read --junit-path reports/deno-junit.xml
+
+      - name: Upload Deno reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deno-reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: ignore
 
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     # Requiere los secrets E2E_TEST_EMAIL y E2E_TEST_PASSWORD (usuario admin de prueba).
     # Los tests usan login normal y respetan RLS — no se requiere service role key.
+    # El seed se hace vía RPC admin-only e2e_seed_scenario; teardown automático por fixture.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -93,11 +149,38 @@ jobs:
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
         run: bun run test:e2e
 
-      - name: Upload Playwright report
-        if: failure()
+      - name: Upload Playwright HTML report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 7
+          retention-days: 14
+          if-no-files-found: ignore
 
+      - name: Upload Playwright traces, videos & screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload Playwright JUnit/JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Publish Playwright results to PR summary
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: reports/playwright-junit.xml
+          check_name: Playwright results
+          fail_on_failure: false
+          require_tests: false

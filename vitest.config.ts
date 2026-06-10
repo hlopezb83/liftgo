@@ -9,8 +9,20 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    // En CI emitimos JUnit + JSON para que el job pueda subir artifacts y
+    // GitHub muestre el resumen de tests fallidos sin perder la salida humana.
+    reporters: process.env.CI
+      ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }], ["json", { outputFile: "reports/vitest.json" }]]
+      : ["default"],
+    coverage: {
+      reporter: ["text", "html", "lcov"],
+      reportsDirectory: "reports/coverage",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/integrations/supabase/types.ts"],
+    },
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
 });
+
