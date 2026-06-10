@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.40.0",
+    "date": "2026-06-10",
+    "type": "minor",
+    "title": "Refactor Fase 2: lógica pura extraída + celdas de tabla centralizadas",
+    "category": "architecture"
+  },
+  {
     "version": "6.39.0",
     "date": "2026-06-10",
     "type": "minor",
