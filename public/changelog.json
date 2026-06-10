@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.38.0",
+    "date": "2026-06-10",
+    "type": "minor",
+    "title": "Refactor Lote 1: capa lib/ desacoplada de features/",
+    "category": "architecture"
+  },
+  {
     "version": "6.37.5",
     "date": "2026-06-10",
     "type": "patch",

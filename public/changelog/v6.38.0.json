@@ -1,0 +1,20 @@
+{
+  "version": "6.38.0",
+  "date": "2026-06-10",
+  "type": "minor",
+  "title": "Refactor Lote 1: capa lib/ desacoplada de features/",
+  "category": "architecture",
+  "description": "Primer lote del plan de mejora arquitectónica. La capa `src/lib/` (utilidades, dominio, PDFs) ya no importa de `src/features/`, eliminando el riesgo de dependencias circulares y permitiendo a futuro activar reglas ESLint de capas. Los tipos de dominio compartidos viven ahora en `src/lib/domain/` como fuente de verdad, con re-exports en los hooks originales para no romper consumidores existentes.",
+  "changes": [
+    "Nuevo: src/lib/domain/roles.ts — tipo canónico AppRole",
+    "Nuevo: src/lib/domain/customerTypes.ts — CustomerSummary y derivados",
+    "Nuevo: src/lib/domain/contractTypes.ts — ContractClause y ChecklistSection",
+    "Movido: src/lib/ui/AuthSnapshotSync.tsx → src/features/users/components/AuthSnapshotSync.tsx (era un hook de feature mal ubicado en lib/)",
+    "src/lib/constants.ts, src/lib/domain/invoiceHelpers.ts, src/lib/pdf/customerStatement.tsx, src/lib/pdf/documents/CustomerStatementDocument.tsx, src/lib/pdf/contract/{fetchers,data-templates}.ts ahora importan tipos desde @/lib/domain o @/types/rental",
+    "Re-exports backward-compatible en useUserRole, useCustomerSummary y useContractTemplates para no romper los 20+ consumidores existentes",
+    "Reducidas violaciones lib→features de 6 a 2 (las restantes son tipos del estado de resultados, agendadas para Lote 8)"
+  ],
+  "deferred": [
+    "src/lib/pdf/incomeStatement.tsx y IncomeStatementDocument.tsx siguen importando tipos de features/reports/hooks/useIncomeStatementData — se moverán a lib/domain cuando se centralicen las constantes de dominio en Lote 8"
+  ]
+}
