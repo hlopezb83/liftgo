@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.42.5",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "CI: permisos de checks, acciones actualizadas y fix de PDF flaky",
+    "category": "tooling"
+  },
+  {
     "version": "6.42.4",
     "date": "2026-06-10",
     "type": "patch",
