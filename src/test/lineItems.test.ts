@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseLineItems, parseRentalMeta, parseJsonbArray, toJsonArray, type LineItem } from "@/lib/lineItems";
+import { parseLineItems, parseRentalMeta, parseJsonbArray, toJsonArray, type LineItem } from "@/lib/domain/lineItems";
 
 describe("parseLineItems", () => {
   it("devuelve array vacío para null/undefined/no-array", () => {

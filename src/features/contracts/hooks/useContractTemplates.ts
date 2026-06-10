@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
-import { parseJsonbArray } from "@/lib/lineItems";
+import { parseJsonbArray } from "@/lib/domain/lineItems";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de

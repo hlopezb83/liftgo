@@ -7,7 +7,7 @@ import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
 import { useEquipmentModels } from "@/features/fleet/hooks/useEquipmentModels";
 import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-import { parseLineItems, parseRentalMeta } from "@/lib/lineItems";
+import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
 
 export const isPublicoGeneral = (name?: string | null) =>
   !!name && (name.trim().toLowerCase().includes("público en general") || name.trim().toLowerCase().includes("publico en general"));
