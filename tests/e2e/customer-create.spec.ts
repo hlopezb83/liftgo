@@ -8,6 +8,8 @@ import { test, expect } from "@playwright/test";
  * no SAT lookup is needed. We mark the customer name with the E2E prefix
  * so a manual cleanup is easy if the test is interrupted.
  */
+test.setTimeout(60_000);
+
 test("create a customer through the UI and find it in the list", async ({ page }) => {
   const customerName = `E2E UI ${Date.now()}`;
 

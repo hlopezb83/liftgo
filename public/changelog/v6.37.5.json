@@ -1,0 +1,12 @@
+{
+  "version": "6.37.5",
+  "date": "2026-06-10",
+  "type": "patch",
+  "title": "Fix E2E: fixture seed con publishable key embebida",
+  "category": "bugfix",
+  "description": "Resuelve los 6 fallos de Playwright en CI provocados por 'supabaseKey is required'. La fixture tests/e2e/fixtures/seed.ts ahora cae a la publishable (anon) key embebida cuando VITE_SUPABASE_PUBLISHABLE_KEY no está definido en el entorno de CI. RLS sigue aplicando — el token de usuario inyectado vía Authorization header es lo que autoriza las llamadas. Adicionalmente, customer-create.spec.ts sube su timeout a 60s para tolerar arranques fríos del preview.",
+  "changes": [
+    "tests/e2e/fixtures/seed.ts: fallback a publishable key embebida (segura, RLS-protegida)",
+    "tests/e2e/customer-create.spec.ts: test.setTimeout(60_000) para evitar timeouts esporádicos"
+  ]
+}
