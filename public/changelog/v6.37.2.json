@@ -1,0 +1,21 @@
+{
+  "version": "6.37.2",
+  "date": "2026-06-10",
+  "type": "patch",
+  "category": "improvement",
+  "title": "Lote 11 de auditoría: cobertura RLS por hook (46 tests nuevos)",
+  "description": "Cierra el Lote 11 de la auditoría de tests como suite Vitest con mocks de Supabase. Valida el contrato cliente↔RLS de cada hook crítico: permission denied, listas vacías por RLS positiva, RPCs SECURITY DEFINER y matriz de roles vs módulos.",
+  "changes": [
+    { "type": "test", "title": "Helper supabaseChain", "description": "Nuevo src/test/helpers/supabaseChain.ts con createSupabaseChainMock para mockear cadenas .from().select().eq()... y .rpc() de manera flexible y tipada." },
+    { "type": "test", "title": "useSupplierBankAccounts (3 tests)", "description": "Propaga permission denied (42501) para customer, staff lee, no consulta sin supplierId." },
+    { "type": "test", "title": "useSupplierContacts (2 tests)", "description": "Customer recibe denied, staff lee email/teléfono." },
+    { "type": "test", "title": "useForklifts (2 tests)", "description": "Customer recibe [] por RLS positiva sin policy, staff ve costo de adquisición." },
+    { "type": "test", "title": "useInvoices (3 tests)", "description": "Mecánico recibe [] sin loop infinito, admin recibe filas, permission denied se propaga." },
+    { "type": "test", "title": "useBookings (3 tests)", "description": "Mecánico sin acceso, customer filtrado por customer_id, error explícito propagado." },
+    { "type": "test", "title": "useDocuments (3 tests)", "description": "Permission denied propagado, signed URL inyectada al file_url, no consulta sin entityId." },
+    { "type": "test", "title": "usePublicBranding (3 tests)", "description": "RPC get_public_branding funciona sin sesión, null cuando vacío, error propagado." },
+    { "type": "test", "title": "useBillingSecrets (2 tests)", "description": "Solo usa RPC get_billing_secrets_status, NUNCA accede a la tabla billing_secrets (spy verifica from() no llamado con ese nombre)." },
+    { "type": "test", "title": "useCompanySettings (2 tests)", "description": "Mecánico recibe denied (post v5.81.4), staff ve config fiscal completa." },
+    { "type": "test", "title": "roleMatrix (23 tests)", "description": "Matriz de getAccessLevel para los 7 roles × módulos críticos. Regresión de la reorganización v6.37.0 y fail-closed para módulos/roles desconocidos." }
+  ]
+}
