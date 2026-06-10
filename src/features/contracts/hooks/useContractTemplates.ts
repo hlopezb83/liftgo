@@ -3,16 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
 import { parseJsonbArray } from "@/lib/lineItems";
+import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 
-export interface ContractClause {
-  title: string;
-  body: string;
-}
+// Re-export para compatibilidad con consumidores existentes. La fuente de
+// verdad de estos tipos vive en `@/lib/domain/contractTypes`.
+export type { ContractClause, ChecklistSection };
 
-export interface ChecklistSection {
-  title: string;
-  items: string[];
-}
 
 export interface ContractTemplate {
   id: string;
