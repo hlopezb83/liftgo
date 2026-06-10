@@ -1,0 +1,35 @@
+{
+  "version": "6.40.0",
+  "date": "2026-06-10",
+  "type": "minor",
+  "title": "Refactor Fase 2: lógica pura extraída + celdas de tabla centralizadas",
+  "category": "architecture",
+  "description": "Cierre de la auditoría arquitectónica Fase 2 con los cambios de mayor ROI.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "syncInvoiceStatus extraído a src/features/invoices/lib/",
+      "description": "La reconciliación paid/partial/sent ya no vive dentro de usePayments; es una función pura reutilizable y testeable."
+    },
+    {
+      "type": "improvement",
+      "title": "insertCostoVentaIfSold movido a src/features/fleet/lib/",
+      "description": "Aísla la regla contable de venta de montacargas fuera del hook de mutaciones."
+    },
+    {
+      "type": "improvement",
+      "title": "src/lib/lineItems.ts → src/lib/domain/lineItems.ts",
+      "description": "Las utilidades de line_items (LineItem, RentalLineMeta, parsers) ahora viven junto al resto de constantes de dominio. 13 imports actualizados."
+    },
+    {
+      "type": "feature",
+      "title": "CurrencyCell y StatusCell en src/components/dataTable/cells/",
+      "description": "Celdas de tabla estandarizadas (tabular-nums, alineación, highlight de negativos) que reemplazarán las ~20 implementaciones ad-hoc de formatCurrency en columnas."
+    },
+    {
+      "type": "note",
+      "title": "Lotes diferidos por bajo ROI",
+      "description": "Lote 12 (useInvoiceFormLogic ya delega en 4 sub-hooks, 108 LOC), Lote 13 (PDFs siguen patrón aceptable), Lote 16 (renombres masivos riesgosos), Lote 17/18/19 (cleanup menor) se omiten para evitar churn sin beneficio claro."
+    }
+  ]
+}

@@ -22,7 +22,7 @@ import { useCreditNotesForInvoice } from "@/features/invoices/hooks/creditNotes/
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { parseLineItems } from "@/lib/lineItems";
+import { parseLineItems } from "@/lib/domain/lineItems";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 
 const cfdiBadgeClass = (status: string) =>

@@ -1,7 +1,7 @@
 import { useCreateInvoice, useUpdateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
-import { toJsonArray } from "@/lib/lineItems";
+import { toJsonArray } from "@/lib/domain/lineItems";
 import { orEmpty } from "@/lib/coerce";
 import { toYMD } from "@/lib/date/toYMD";
 import { roundMoney } from "@/lib/money";

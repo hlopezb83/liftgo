@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { parseLineItems } from "@/lib/lineItems";
+import { parseLineItems } from "@/lib/domain/lineItems";
 import { useCreateCreditNote } from "@/features/invoices/hooks/creditNotes/useCreditNotes";
 import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";

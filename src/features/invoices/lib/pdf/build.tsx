@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
-import { parseLineItems } from "@/lib/lineItems";
+import { parseLineItems } from "@/lib/domain/lineItems";
 
 async function resolveCustomerFiscal(invoice: { customer_id: string | null; receptor_rfc: string | null }) {
   let customerRfc: string | null = null;

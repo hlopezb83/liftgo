@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/formatCurrency";
-import type { RentalLineMeta } from "@/lib/lineItems";
+import type { RentalLineMeta } from "@/lib/domain/lineItems";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Forklift = Tables<"forklifts">;

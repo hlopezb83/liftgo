@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-import { toJsonArray } from "@/lib/lineItems";
+import { toJsonArray } from "@/lib/domain/lineItems";
 import { nowMty } from "@/lib/utils";
 import { roundMoney } from "@/lib/money";
 import type { RentalLine, SaleLine } from "./quoteFormBuilders";
