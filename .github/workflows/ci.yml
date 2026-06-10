@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload Vitest reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: vitest-reports
           path: reports/
@@ -61,7 +61,7 @@ jobs:
 
       - name: Publish Vitest results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: reports/vitest-junit.xml
           check_name: Vitest results
@@ -92,7 +92,7 @@ jobs:
 
       - name: Upload RLS reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: rls-reports
           path: reports/
@@ -119,7 +119,7 @@ jobs:
 
       - name: Upload Deno reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: deno-reports
           path: reports/
@@ -162,7 +162,7 @@ jobs:
 
       - name: Upload Playwright HTML report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-shard${{ matrix.shard }}
           path: playwright-report-shard${{ matrix.shard }}/
@@ -171,7 +171,7 @@ jobs:
 
       - name: Upload Playwright traces, videos & screenshots
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-test-results-shard${{ matrix.shard }}
           path: test-results/
@@ -180,7 +180,7 @@ jobs:
 
       - name: Upload Playwright JUnit/JSON
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-reports-shard${{ matrix.shard }}
           path: reports/
@@ -189,7 +189,7 @@ jobs:
 
       - name: Publish Playwright results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
           check_name: Playwright results (shard ${{ matrix.shard }})
