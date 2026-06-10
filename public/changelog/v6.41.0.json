@@ -1,0 +1,35 @@
+{
+  "version": "6.41.0",
+  "date": "2026-06-10",
+  "type": "minor",
+  "title": "E2E paralelo con sharding por scope",
+  "category": "tooling",
+  "description": "Aislamiento de datos E2E para correr Playwright en paralelo y reducir el wallclock de CI ~3-4x.",
+  "changes": [
+    {
+      "type": "feature",
+      "title": "Columna e2e_scope en 7 tablas de seed",
+      "description": "equipment_models, forklifts, customers, quotes, bookings, invoices y payments ganan una columna opcional e2e_scope (nullable) con índices parciales. Permite etiquetar cada registro sembrado por test."
+    },
+    {
+      "type": "improvement",
+      "title": "e2e_seed_scenario(p_scope) y e2e_teardown(p_scope)",
+      "description": "Ambos RPC aceptan ahora un scope opcional. Sin scope conservan el comportamiento legacy (borrar todo lo marcado como E2E); con scope, el teardown solo borra los registros de ese test específico."
+    },
+    {
+      "type": "feature",
+      "title": "Fixture seed con scope por test",
+      "description": "tests/e2e/fixtures/seed.ts genera w{workerIndex}-{testId}-{rand} y lo propaga al RPC. Workers paralelos ya no se pisan."
+    },
+    {
+      "type": "improvement",
+      "title": "playwright.config: fullyParallel + 2 workers en CI",
+      "description": "Workers locales: 4, CI: 2 por shard. Reporter junit/html/json incluyen sufijo -shard{N} para evitar colisiones al subir artefactos."
+    },
+    {
+      "type": "improvement",
+      "title": "CI workflow con matrix sharding (2 shards)",
+      "description": "El job E2E ahora corre como matriz de 2 shards concurrentes (4 tests en paralelo en total). Cada shard publica su propio reporte JUnit y artefactos independientes."
+    }
+  ]
+}

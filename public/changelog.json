@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.41.0",
+    "date": "2026-06-10",
+    "type": "minor",
+    "title": "E2E paralelo con sharding por scope",
+    "category": "tooling"
+  },
+  {
     "version": "6.40.0",
     "date": "2026-06-10",
     "type": "minor",
