@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.37.1",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Hardening RLS en proveedores: cuentas bancarias y contactos restringidos a personal interno",
+    "category": "security"
+  },
+  {
     "version": "6.37.0",
     "date": "2026-06-10",
     "type": "minor",

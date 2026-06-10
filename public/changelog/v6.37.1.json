@@ -1,0 +1,25 @@
+{
+  "version": "6.37.1",
+  "date": "2026-06-10",
+  "type": "patch",
+  "category": "security",
+  "title": "Hardening RLS en proveedores: cuentas bancarias y contactos restringidos a personal interno",
+  "description": "Se cierran 2 hallazgos críticos del escáner: las políticas SELECT USING(true) de supplier_bank_accounts y supplier_contacts permitían que cualquier usuario autenticado (incluyendo clientes del portal) leyera CLABE, números de cuenta, titulares, correos y teléfonos de proveedores.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "supplier_bank_accounts: lectura solo para admin, administrativo y auditor",
+      "description": "Reemplazada la política supplier_bank_accounts_select_auth (USING true) por supplier_bank_accounts_select_staff que valida has_role para los tres roles financieros. Clientes y operativos ya no pueden ver CLABE ni número de cuenta de proveedores."
+    },
+    {
+      "type": "security",
+      "title": "supplier_contacts: lectura limitada a personal interno",
+      "description": "Reemplazada la política supplier_contacts_select_auth (USING true) por supplier_contacts_select_staff restringida a admin, administrativo, auditor, dispatcher, mechanic y ventas. El rol customer ya no expone PII de contactos de terceros."
+    },
+    {
+      "type": "security",
+      "title": "forklifts: postura aceptada (RLS positiva)",
+      "description": "Confirmado que el rol customer no tiene política SELECT en forklifts; el portal usa la RPC SECURITY DEFINER get_customer_forklifts_brief, que solo devuelve id, nombre, modelo y fabricante."
+    }
+  ]
+}
