@@ -33,7 +33,7 @@ test("create a customer through the UI and find it in the list", async ({ page }
   const emailInput = dialog.getByLabel(/email|correo/i).first();
   if ((await emailInput.count()) > 0) await emailInput.fill("e2e-ui@test.local");
 
-  await dialog.getByRole("button", { name: /guardar|crear|registrar/i }).first().click();
+  await dialog.getByRole("button", { name: /agregar cliente|guardar|crear|registrar/i }).last().click();
 
   // El dialog se cierra al éxito; el cliente debe aparecer en la lista.
   await expect(dialog).toBeHidden({ timeout: 15_000 });

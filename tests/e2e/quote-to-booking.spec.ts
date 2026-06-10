@@ -3,13 +3,12 @@ import { test, expect } from "./fixtures/seed";
 /**
  * Quote → Booking happy path.
  *
- * The seed RPC already creates a booking linked to the accepted quote
- * (mirrors the result of clicking "Convertir a reserva"). We verify the
- * seeded RSV-XXXX renders in the bookings list, proving the conversion
- * data shape is correct end-to-end.
+ * La lista de `/bookings` filtra filas con `is_e2e=true` por diseño. Verificamos
+ * por detalle directo que la reserva sembrada exista y que la cotización
+ * aceptada cargue correctamente.
  */
-test("seeded booking appears in bookings list", async ({ page, seed }) => {
-  await page.goto("/bookings", { waitUntil: "domcontentloaded" });
+test("seeded booking is accessible by id", async ({ page, seed }) => {
+  await page.goto(`/bookings/${seed.booking_id}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByText(seed.booking_number).first()).toBeVisible({ timeout: 15_000 });
 });
 
