@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test reports & Playwright artifacts (CI uploads them)
+reports/
+playwright-report/
+test-results/
