@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.42.4",
+    "date": "2026-06-10",
+    "type": "patch",
+    "title": "Specs E2E alineadas al filtro is_e2e",
+    "category": "bugfix"
+  },
+  {
     "version": "6.42.3",
     "date": "2026-06-10",
     "type": "patch",
