@@ -1,0 +1,25 @@
+{
+  "version": "6.46.7",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Tests E2E: prevenir contaminación de datos",
+  "summary": "Tres correcciones para que las corridas de pruebas end-to-end nunca vuelvan a dejar registros en la base de datos demo.",
+  "sections": [
+    {
+      "heading": "Causas raíz corregidas",
+      "items": [
+        "La función e2e_teardown no borraba eventos en activity_feed: cada corrida dejaba 100-150 eventos fantasma generados por triggers durante la siembra.",
+        "El fixture de Playwright envolvía el teardown en try/catch silencioso: si la limpieza fallaba, el test pasaba en verde y los datos quedaban contaminando la BD.",
+        "El test customer-create creaba la fila sin marcar is_e2e=true, así que un fallo en su borrado dejaba un cliente huérfano que purge_e2e_data() no podía recoger."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "e2e_teardown ahora recolecta los IDs de invoices/bookings/quotes/forklifts/equipment_models/customers/payments del scope y borra activity_feed donde entity_id pertenezca a ese conjunto (sólo filas is_e2e=true).",
+        "tests/e2e/fixtures/seed.ts: teardownScenario lanza error si el RPC falla, en vez de console.warn.",
+        "tests/e2e/customer-create.spec.ts: marca la fila como is_e2e=true antes de borrarla y exige que el delete tenga éxito."
+      ]
+    }
+  ]
+}
