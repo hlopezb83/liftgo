@@ -7,10 +7,10 @@ import { PlusCircle, TruckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FormActions } from "@/components/FormActions";
-import { useForkliftMap } from "@/features/fleet/hooks/useEquipmentModels";
+import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
 import { useActiveDrivers } from "@/features/fleet/hooks/useDrivers";
-import { useCreateDelivery } from "@/features/deliveries/hooks/deliveries/useDeliveries";
+import { useCreateDelivery } from "@/features/deliveries/hooks/useDeliveries";
 import { deliverySchema } from "@/features/deliveries/lib/deliveryFormSchema";
 import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormFields";
 
