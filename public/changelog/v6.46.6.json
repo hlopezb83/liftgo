@@ -1,0 +1,43 @@
+{
+  "version": "6.46.6",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Purga de datos E2E contaminados",
+  "summary": "Limpieza completa de 1,533 registros de pruebas E2E que contaminaban la base de datos demo, más una función RPC reutilizable para futuras corridas.",
+  "sections": [
+    {
+      "heading": "Problema",
+      "items": [
+        "La base de datos acumulaba registros marcados con la bandera is_e2e provenientes de corridas de testing automatizado.",
+        "Estos datos aparecían en listados, reportes y KPIs del dashboard, distorsionando la información visible."
+      ]
+    },
+    {
+      "heading": "Conteo eliminado",
+      "items": [
+        "activity_feed: 1,462 eventos",
+        "payments: 11 pagos huérfanos asociados a facturas E2E",
+        "invoices: 12 facturas",
+        "bookings: 12 reservas",
+        "quotes: 12 cotizaciones (más sus quote_assigned_forklifts)",
+        "forklifts: 12 montacargas",
+        "equipment_models: 12 modelos de equipo",
+        "customers: 12 clientes"
+      ]
+    },
+    {
+      "heading": "Herramienta nueva",
+      "items": [
+        "Función purge_e2e_data() (SECURITY DEFINER, restringida a admin vía has_role) que borra en orden seguro respetando llaves foráneas.",
+        "Devuelve un JSON con el conteo borrado por tabla para auditoría.",
+        "Reutilizable para futuras corridas de testing sin riesgo de tocar datos reales."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Conteo posterior confirma 0 registros con is_e2e = true en las 8 tablas afectadas."
+      ]
+    }
+  ]
+}
