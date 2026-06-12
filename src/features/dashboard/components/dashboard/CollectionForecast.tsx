@@ -10,6 +10,8 @@ interface OverdueInvoice {
   id: string;
   invoice_number: string;
   total: number;
+  /** Saldo pendiente (total - pagos). Si no está, se usa total como fallback. */
+  balance?: number | null;
   due_date: string | null;
 }
 
