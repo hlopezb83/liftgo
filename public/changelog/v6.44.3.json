@@ -1,0 +1,6 @@
+{
+  "version": "6.44.3",
+  "date": "2025-06-12",
+  "title": "Eliminación de código muerto detectado por knip",
+  "description": "Se remueve el archivo src/test/helpers/mockSupabase.ts identificado como no utilizado mediante análisis estático con knip."
+}
