@@ -117,6 +117,12 @@ jobs:
         with:
           deno-version: v1.x
 
+      - name: Deno fmt --check
+        run: cd supabase/functions && deno fmt --check
+
+      - name: Deno lint
+        run: cd supabase/functions && deno lint
+
       - name: Run Deno tests
         # Cargamos los archivos en un array para detectar el caso "0 tests" (exit 1).
         # `mkdir -p reports` evita que `--junit-path` falle si el directorio no existe.
