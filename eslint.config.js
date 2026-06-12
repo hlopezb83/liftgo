@@ -55,7 +55,8 @@ export default tseslint.config(
     },
   },
   {
-    // Guardrail: matemática monetaria SOLO en src/lib/domain/invoiceHelpers.ts.
+    // Guardrail: matemática monetaria SOLO en src/lib/domain/invoiceTotals.ts
+    // (re-exportado vía invoiceHelpers.ts) o rentalCalculation.ts.
     files: [
       "src/features/quotes/components/quotes/*LineHelpers.ts",
       "src/features/invoices/hooks/invoiceForm/*.ts",
@@ -64,13 +65,31 @@ export default tseslint.config(
       "no-restricted-syntax": ["error",
         {
           selector: "BinaryExpression[operator='*']",
-          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceHelpers.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
+          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceTotals.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
         },
         {
           selector: "BinaryExpression[operator='/']",
-          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceHelpers.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
+          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceTotals.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
         },
       ],
+    },
+  },
+  {
+    // Cross-feature import guardrail (paso 2 auditoría): un feature no debe
+    // importar hooks de otra feature. Para datos compartidos, usar contratos
+    // ligeros en src/lib/domain/ o expandir el set de hooks de dominio.
+    files: ["src/features/**/*.{ts,tsx}"],
+    ignores: [
+      "src/features/**/*.test.{ts,tsx}",
+      "src/features/**/__tests__/**",
+    ],
+    rules: {
+      "no-restricted-imports": ["warn", {
+        patterns: [{
+          group: ["@/features/*/hooks/*", "@/features/*/components/*"],
+          message: "Cross-feature import detectado. Mueve el tipo/contrato a src/lib/domain/ o expón un hook compartido en src/hooks/. Ver architecture.md §19.",
+        }],
+      }],
     },
   },
 );
