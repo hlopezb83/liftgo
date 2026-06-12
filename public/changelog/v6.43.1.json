@@ -1,0 +1,35 @@
+{
+  "version": "6.43.1",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Tests: flow tests reescritos contra hooks reales (Lote 2 — Parte 1)",
+  "category": "tooling",
+  "summary": "bookingFlow, invoiceFlow y paymentFlow ahora ejercen los hooks de producción (useCreateBooking, useCreateInvoice, useCreatePayment) con renderHook + createSupabaseChainMock por tabla, eliminando falsos positivos que solo validaban el mock.",
+  "changes": [
+    {
+      "type": "improved",
+      "title": "Helper supabaseChain extendido",
+      "description": "Nuevo modo `tableResolvers` y `rpcResolvers` que permiten dispatch por tabla/RPC y exponen el historial de llamadas encadenadas al resolver (insert vs update vs select). API legacy `fromResolver`/`rpcResolver` mantiene compatibilidad con useDocuments.rls.test."
+    },
+    {
+      "type": "added",
+      "title": "createQueryWrapper helper",
+      "description": "Wrapper compartido en src/test/helpers/queryClient.tsx que monta un QueryClient aislado por test (retries off, gcTime 0) y expone el cliente para espiar invalidateQueries."
+    },
+    {
+      "type": "fixed",
+      "title": "bookingFlow.test.ts ahora prueba useCreateBooking",
+      "description": "3 casos: payload p_* correcto + invalidación de bookings/forklifts/status_logs, propagación de error con notifyError, default recurring_billing=false."
+    },
+    {
+      "type": "fixed",
+      "title": "invoiceFlow.test.ts ahora prueba useCreateInvoice",
+      "description": "3 casos: numera vía next_invoice_number e inserta con ese número, no inserta si el RPC falla, propaga error de RLS al notifyError."
+    },
+    {
+      "type": "fixed",
+      "title": "paymentFlow.test.ts ahora prueba useCreatePayment + syncInvoiceStatus",
+      "description": "4 casos: pago completo marca paid con paid_at = max(payment_date), pago parcial marca partial sin paid_at, error 42501 en insert no toca la factura, factura ya paid sin pagos nuevos no se reescribe."
+    }
+  ]
+}
