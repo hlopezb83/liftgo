@@ -16,13 +16,19 @@ export type SeedIds = {
   scope: string;
 };
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? "https://zxefrzfaynnfwazqhwxp.supabase.co";
-const PUBLISHABLE_FALLBACK =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4ZWZyemZheW5uZndhenFod3hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4NTg3MzksImV4cCI6MjA4NjQzNDczOX0.CWTcUqTDNQ-YBU1ZzjdyFl3RblobAdfL2YbVN2XPwY8";
+// Requeridos como env vars en CI (job e2e) y en .env local. No hay fallback:
+// embeber credenciales en el repo es un riesgo de seguridad y enmascara errores
+// de configuración (un build sin VITE_* compilaría con URLs vacías sin avisar).
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY =
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-  process.env.SUPABASE_PUBLISHABLE_KEY ??
-  PUBLISHABLE_FALLBACK;
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  throw new Error(
+    "[e2e] VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY son obligatorios. " +
+      "Configura los secrets en CI o un .env local antes de correr Playwright.",
+  );
+}
 
 async function clientFromPage(page: Page): Promise<SupabaseClient> {
   const token = await page.evaluate(() => {

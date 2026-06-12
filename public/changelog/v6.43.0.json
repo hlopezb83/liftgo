@@ -1,0 +1,17 @@
+{
+  "version": "6.43.0",
+  "date": "2026-06-12",
+  "type": "minor",
+  "title": "Auditoría CI/Tests — Lote 1: hotfix de seguridad y CI silencioso",
+  "description": "Auditoría completa de CI y suite de tests (Vitest, Playwright, Edge Functions Deno) ejecutada por 4 subagentes especializados. Identificados ~71 hallazgos. Este lote ejecuta las 6 correcciones de prioridad 0 que eliminan credenciales del repositorio y bugs que ocultan fallos en CI. Los siguientes lotes (cobertura efectiva, hardening de CI, cobertura E2E faltante) están documentados en .lovable/plan.md y se implementarán por separado.",
+  "changes": [
+    "Removida la anon key de Supabase hardcodeada en tests/e2e/fixtures/seed.ts. Ahora exige VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY como env vars; lanza error explícito si faltan.",
+    "Removida la URL de producción hardcodeada en supabase/functions/_shared/test-helpers.ts. Fallback ahora apunta a http://localhost:54321 (Supabase CLI local) para evitar tocar producción por accidente.",
+    "Agregadas VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY y VITE_SUPABASE_PROJECT_ID como env vars del job e2e en ci.yml. Vite las necesita en build time para embeber el cliente en el bundle.",
+    "Reemplazado 'find | xargs deno test' por mapfile + validación de array vacío + mkdir -p reports. Si no hay archivos de test el job ahora falla con error claro (antes pasaba en verde silenciosamente).",
+    "Cambiado fail_on_failure y require_tests a true en ambos steps de mikepenz/action-junit-report (Vitest + Playwright). Antes los tests fallidos no rompían el check de PR.",
+    "Eliminados los 3 test.skip(true) condicionales en tests/e2e/quote-pdf.spec.ts (x2) e invoice-payment.spec.ts que enmascaraban fallos reales (causa del flaky reciente). Reemplazados por expect().toBeVisible() + Promise.all([waitForEvent, click]) sin .catch silencioso."
+  ],
+  "category": "tooling",
+  "notes": "ACCIÓN REQUERIDA: los secrets VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY y VITE_SUPABASE_PROJECT_ID deben estar configurados en GitHub Actions (Settings → Secrets and variables → Actions) para que el job e2e funcione. Si no existen, el build de Vite producirá un bundle sin credenciales y todas las E2E fallarán."
+}

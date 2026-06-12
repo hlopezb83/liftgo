@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.0",
+    "date": "2026-06-12",
+    "type": "minor",
+    "title": "Auditoría CI/Tests — Lote 1: hotfix de seguridad y CI silencioso",
+    "category": "tooling"
+  },
+  {
     "version": "6.42.7",
     "date": "2026-06-10",
     "type": "patch",
