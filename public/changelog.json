@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.1",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "División de hooks grandes (paso 5 auditoría)",
+    "description": "Se dividieron 4 archivos de hooks que superaban 100 LOC (usePaymentIntents, useBankReconciliationMutations, useCreditNotes, useAssignForklifts) separando queries de mutaciones en archivos por responsabilidad. Los archivos originales quedan como barriles de re-export, sin cambios para los consumidores.",
+    "category": "improvement"
+  },
+  {
     "version": "6.46.0",
     "date": "2026-06-12",
     "type": "minor",
