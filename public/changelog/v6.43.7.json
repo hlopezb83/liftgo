@@ -1,0 +1,30 @@
+{
+  "version": "6.43.7",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Stamp-Credit-Note: handler puro con tests Facturapi mock (Lote 3 — Parte 1)",
+  "category": "tooling",
+  "description": "Réplica del patrón aplicado a stamp-cfdi sobre stamp-credit-note: lógica extraída a handler puro con dependencias inyectadas (createCallerClient, createServiceClient, fetchImpl, env) y suite Deno con mocks de Facturapi/Supabase.",
+  "changes": [
+    {
+      "type": "Refactor",
+      "title": "supabase/functions/stamp-credit-note/handler.ts",
+      "details": "Lógica extraída de index.ts a handleStampCreditNote(req, deps). Reutiliza SupabaseLike de stamp-cfdi para consistencia entre handlers."
+    },
+    {
+      "type": "Refactor",
+      "title": "supabase/functions/stamp-credit-note/index.ts",
+      "details": "Entry-point Deno.serve que cablea createClient real, fetch nativo y Deno.env. Sin lógica de negocio."
+    },
+    {
+      "type": "Tests",
+      "title": "supabase/functions/stamp-credit-note/handler_test.ts",
+      "details": "9 casos: 401 sin Authorization, 403 sin rol, 400 UUID inválido, 404 NC no existe, 409 ya timbrada, 400 factura origen no timbrada, happy path con Facturapi mock + upload XML/PDF, 502 cuando PAC falla (sin marcar stamped) y stub mode sin API key."
+    },
+    {
+      "type": "Verificación",
+      "title": "Deno tests",
+      "details": "11/11 pasaron (9 handler + 2 smoke index). Vitest frontend no afectado."
+    }
+  ]
+}
