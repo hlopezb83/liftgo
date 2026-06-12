@@ -99,10 +99,10 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
         <DialogHeader><DialogTitle>Registrar Pago</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Monto</Label>
+            <Label htmlFor="paymentAmount">Monto</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-              <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="pl-7" />
+              <Input id="paymentAmount" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="pl-7" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">Saldo pendiente: {formatCurrency(balance)}</p>
           </div>
