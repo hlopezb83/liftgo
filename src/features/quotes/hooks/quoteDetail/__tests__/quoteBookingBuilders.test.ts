@@ -58,7 +58,7 @@ describe("resolveLegacyForkliftIds", () => {
   });
 
   it("cae al forklift_id legacy cuando no hay match en descripciones", () => {
-    const quote: { forklift_id: string; line_items: unknown[] } = { forklift_id: "f3", line_items: [] };
+    const quote = { forklift_id: "f3", line_items: [] as never[] };
     expect(resolveLegacyForkliftIds(quote, forklifts)).toEqual(["f3"]);
   });
 
