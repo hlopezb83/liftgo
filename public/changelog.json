@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.44.8",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Cartera vencida ahora descuenta pagos parciales",
+    "description": "La cartera vencida del dashboard y el reporte de antigüedad ahora calculan el saldo real (total menos pagos) en lugar del total bruto de la factura. Además, las facturas en estado parcial ya aparecen en la lista de vencidas y los ingresos por cobrar reflejan el saldo pendiente real.",
+    "category": "bug-fix"
+  },
+  {
     "version": "6.44.7",
     "date": "2026-06-12",
     "type": "patch",
