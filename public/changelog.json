@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.6",
+    "date": "2026-06-12",
+    "type": "minor",
+    "title": "Stamp-CFDI: handler refactorizado con deps inyectadas y suite Facturapi mock (Lote 2 — Parte 6)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.5",
     "date": "2026-06-12",
     "type": "patch",
