@@ -550,7 +550,20 @@ Solo cuando se cumple **al menos uno**:
 
 ---
 
-## 21. Referencias
+## 21. Contratos cross-feature
+
+Para evitar el acoplamiento "feature A importa hooks internos de feature B sólo para reutilizar un tipo", todos los tipos de dominio compartidos viven en **`src/lib/domain/sharedTypes.ts`**:
+
+- `Customer`, `Forklift`, `Booking`, `BookingWithForklift`, `EquipmentModel`, `Supplier`, `ForkliftSnippet`.
+- Re-exporta desde `@/types/rental` (view models) y `@/integrations/supabase/types` (filas crudas). Punto único de mantenimiento.
+
+**Regla**: si una feature necesita *solo el tipo* de otra (sin invocar su hook), importarlo desde `@/lib/domain/sharedTypes`. Si necesita los datos, sigue invocando el hook público de la feature dueña (p. ej. `useCustomers`, `useForklifts`). Nunca importar archivos de `@/features/X/hooks/*/...` (internos) desde otra feature.
+
+Beneficio: las features siguen siendo dueñas de su I/O, pero los contratos públicos son estables y descubribles.
+
+---
+
+## 22. Referencias
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
