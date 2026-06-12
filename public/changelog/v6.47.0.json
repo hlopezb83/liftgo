@@ -1,0 +1,56 @@
+{
+  "version": "6.47.0",
+  "date": "2026-06-12",
+  "type": "minor",
+  "title": "Auditoría de arquitectura — fundamentos del refactor",
+  "category": "refactor",
+  "summary": "Se completó una auditoría integral del código base (resultado: arquitectura sana, sin hallazgos críticos) y se entregaron los dos primeros pasos del plan aprobado: factories de query keys por feature y guardrail de ESLint contra imports profundos cross-feature.",
+  "audit_findings": {
+    "critical": [],
+    "high": [
+      "Acoplamiento centrípeto en fleet/invoices/customers/crm/bookings (importadas 50-78 veces) sin barrel público; cualquier mover-archivo rompe consumidores remotos.",
+      "Feature invoices roza el límite de complejidad organizativa: subcarpeta invoices/hooks/invoices con 13 archivos mezclando CFDI, pagos, recurrentes y PDF.",
+      "Sin convención centralizada de queryKey: literales sueltos generan invalidaciones desincronizadas (ej. ['invoice', id] vs ['invoices', id])."
+    ],
+    "medium": [
+      "src/components/ mezcla primitivas neutrales y componentes de dominio.",
+      "Receta 'list + filters + dialog' duplicada en >25 páginas.",
+      "Cross-imports profundos en lugar de barrels."
+    ],
+    "low": [
+      "src/lib/pdf/theme/styles.ts en 360 líneas, divisible por sección.",
+      "3 archivos constants.ts dispersos por features.",
+      "Feature quotes mantiene utils/ y lib/ en paralelo.",
+      "No hay types.ts público por feature."
+    ]
+  },
+  "changes_in_this_release": {
+    "step_1_query_keys_factories": [
+      "src/features/invoices/lib/queryKeys.ts (invoiceKeys, paymentKeys, creditNoteKeys, collectionNoteKeys)",
+      "src/features/bookings/lib/queryKeys.ts (bookingKeys)",
+      "src/features/fleet/lib/queryKeys.ts (forkliftKeys, equipmentModelKeys, driverKeys, insuranceAlertKeys)",
+      "src/features/customers/lib/queryKeys.ts (customerKeys)",
+      "src/features/crm/lib/queryKeys.ts (dealKeys, dealActivityKeys)"
+    ],
+    "step_2_eslint_guardrail": [
+      "eslint.config.js: regla no-restricted-imports (warning) bajo src/features/**/hooks y src/features/**/lib que desincentiva @/features/*/hooks|components|lib|pages cross-feature. Scope acotado a hooks/lib para no sobreescribir el guardrail Supabase de pages/components."
+    ]
+  },
+  "next_steps": [
+    "Migrar consumidores existentes de query keys literales a las factories (incremental, feature por feature).",
+    "Crear barrels src/features/<feature>/index.ts y subir la regla ESLint a 'error'.",
+    "Reorganizar src/features/invoices/hooks/invoices/ en cfdi/, payments/, recurring/, pdf/ (~20 imports afectados).",
+    "Dividir src/components/ en ui-ext/ y layout/.",
+    "Extraer hook genérico useResourceList y migrar 2-3 páginas piloto."
+  ],
+  "files_changed": [
+    "src/features/invoices/lib/queryKeys.ts (nuevo)",
+    "src/features/bookings/lib/queryKeys.ts (nuevo)",
+    "src/features/fleet/lib/queryKeys.ts (nuevo)",
+    "src/features/customers/lib/queryKeys.ts (nuevo)",
+    "src/features/crm/lib/queryKeys.ts (nuevo)",
+    "eslint.config.js",
+    "public/changelog.json",
+    "public/changelog/v6.47.0.json (nuevo)"
+  ]
+}
