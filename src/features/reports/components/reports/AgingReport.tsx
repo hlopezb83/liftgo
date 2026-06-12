@@ -55,7 +55,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
     () => [
       { id: "invoice_number", header: "Factura", accessorKey: "invoice_number", cell: ({ row }) => <span className="font-mono font-medium">{row.original.invoice_number}</span> },
       { id: "customer_name", header: "Cliente", accessorKey: "customer_name", cell: ({ row }) => row.original.customer_name || "—" },
-      { id: "total", header: "Monto", accessorFn: (i) => Number(i.total), meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total))}</span> },
+      { id: "total", header: "Saldo", accessorFn: (i) => i.balance, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.balance)}</span> },
       { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateDisplay(row.original.due_date) },
       { id: "days_overdue", header: "Días", accessorKey: "days_overdue", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono font-semibold text-destructive">{row.original.days_overdue}</span> },
       { id: "bucket", header: "Bucket", accessorKey: "bucket", cell: ({ row }) => `${row.original.bucket}d` },
@@ -75,7 +75,8 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
     exportToCsv("antiguedad_cartera.csv", overdueInvoices.map((i) => ({
       Factura: i.invoice_number,
       Cliente: i.customer_name || "",
-      Monto: Number(i.total),
+      Total: i.total,
+      Saldo: i.balance,
       "Fecha Vencimiento": i.due_date || "",
       "Días Vencida": i.days_overdue,
       Bucket: i.bucket,
