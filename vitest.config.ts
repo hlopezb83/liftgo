@@ -19,6 +19,14 @@ export default defineConfig({
       reportsDirectory: "reports/coverage",
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/integrations/supabase/types.ts"],
+      // Umbrales conservadores: la suite todavía cubre poco. Suben gradualmente
+      // por lote para evitar regresiones en la cobertura efectiva ya alcanzada.
+      thresholds: {
+        lines: 5,
+        functions: 5,
+        statements: 5,
+        branches: 5,
+      },
     },
   },
   resolve: {
