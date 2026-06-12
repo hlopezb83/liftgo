@@ -1,113 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { requireRole, enforceRateLimit } from "../_shared/auth.ts";
+import {
+  parseCfdi,
+  CATEGORIES,
+  type ExpenseCategory,
+  type ParsedCfdi,
+} from "./cfdi-parser.ts";
 
 const MAX_XML_BYTES = 1024 * 1024; // 1 MB
 
-type ExpenseCategory =
-  | "renta" | "nomina" | "software" | "depreciacion"
-  | "otro" | "costo_venta" | "caja_chica" | "publicidad";
-
-const CATEGORIES: ExpenseCategory[] = [
-  "renta", "nomina", "software", "depreciacion",
-  "otro", "costo_venta", "caja_chica", "publicidad",
-];
-
-function attr(tag: string, name: string): string | null {
-  const re = new RegExp(`${name}\\s*=\\s*"([^"]*)"`, "i");
-  const m = tag.match(re);
-  return m ? m[1] : null;
-}
-
-function findTag(xml: string, localName: string): string | null {
-  const re = new RegExp(`<(?:[\\w-]+:)?${localName}\\b[^>]*\\/?>`, "i");
-  const m = xml.match(re);
-  return m ? m[0] : null;
-}
-
-function findAllTags(xml: string, localName: string): string[] {
-  const re = new RegExp(`<(?:[\\w-]+:)?${localName}\\b[^>]*\\/?>`, "gi");
-  return xml.match(re) ?? [];
-}
-
-interface ParsedCfdi {
-  cfdi_uuid: string;
-  total: number;
-  subtotal: number;
-  tax_amount: number;
-  retention_iva: number;
-  retention_isr: number;
-  moneda: string;
-  tipo_cambio: number;
-  payment_method_sat: string;
-  fecha: string;
-  folio: string;
-  serie: string;
-  emisor: { rfc: string; nombre: string; regimen_fiscal: string };
-  conceptos: Array<{ descripcion: string; clave_prod_serv: string }>;
-}
-
-function parseCfdi(xml: string): ParsedCfdi {
-  const comprobante = findTag(xml, "Comprobante");
-  if (!comprobante) throw new Error("XML no es un CFDI válido (sin nodo Comprobante)");
-
-  const tfd = findTag(xml, "TimbreFiscalDigital");
-  const uuid = tfd ? attr(tfd, "UUID") : null;
-  if (!uuid) throw new Error("CFDI sin timbre fiscal (UUID)");
-
-  const emisorTag = findTag(xml, "Emisor");
-  const conceptosTags = findAllTags(xml, "Concepto");
-
-  const fechaRaw = attr(comprobante, "Fecha") ?? "";
-  const fecha = fechaRaw.slice(0, 10);
-
-  // Impuestos totales
-  const impuestosTag = findTag(xml, "Impuestos");
-  const trasladosTotales = impuestosTag ? Number(attr(impuestosTag, "TotalImpuestosTrasladados") ?? "0") : 0;
-  const retencionesIvaTotales = (() => {
-    if (!impuestosTag) return 0;
-    // Try totalImpuestosRetenidos as approximation, then refine via Retenciones if needed
-    return Number(attr(impuestosTag, "TotalImpuestosRetenidos") ?? "0");
-  })();
-
-  // Distinguir retenciones IVA / ISR
-  let retIva = 0;
-  let retIsr = 0;
-  const retencionesTags = findAllTags(xml, "Retencion");
-  for (const t of retencionesTags) {
-    const impuesto = attr(t, "Impuesto");
-    const importe = Number(attr(t, "Importe") ?? "0");
-    if (impuesto === "002") retIva += importe;
-    else if (impuesto === "001") retIsr += importe;
-  }
-  if (retIva === 0 && retIsr === 0 && retencionesIvaTotales > 0) {
-    retIva = retencionesIvaTotales;
-  }
-
-  return {
-    cfdi_uuid: uuid.toLowerCase(),
-    total: Number(attr(comprobante, "Total") ?? "0"),
-    subtotal: Number(attr(comprobante, "SubTotal") ?? "0"),
-    tax_amount: trasladosTotales,
-    retention_iva: retIva,
-    retention_isr: retIsr,
-    moneda: attr(comprobante, "Moneda") ?? "MXN",
-    tipo_cambio: Number(attr(comprobante, "TipoCambio") ?? "1"),
-    payment_method_sat: attr(comprobante, "MetodoPago") ?? "PUE",
-    fecha,
-    folio: attr(comprobante, "Folio") ?? "",
-    serie: attr(comprobante, "Serie") ?? "",
-    emisor: {
-      rfc: (emisorTag ? attr(emisorTag, "Rfc") : null) ?? "",
-      nombre: (emisorTag ? attr(emisorTag, "Nombre") : null) ?? "",
-      regimen_fiscal: (emisorTag ? attr(emisorTag, "RegimenFiscal") : null) ?? "",
-    },
-    conceptos: conceptosTags.map((t) => ({
-      descripcion: attr(t, "Descripcion") ?? "",
-      clave_prod_serv: attr(t, "ClaveProdServ") ?? "",
-    })),
-  };
-}
 
 async function classifyCategory(
   cfdi: ParsedCfdi,
