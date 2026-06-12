@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { buildDeliveryInfos, resolveLegacyForkliftIds } from "../quoteBookingBuilders";
+import type { Json } from "@/integrations/supabase/types";
+
+const emptyLineItems: Json = [];
 
 const forklifts = [
   { id: "f1", name: "MC-001" },
@@ -58,11 +61,11 @@ describe("resolveLegacyForkliftIds", () => {
   });
 
   it("cae al forklift_id legacy cuando no hay match en descripciones", () => {
-    const quote = { forklift_id: "f3", line_items: [] as never[] };
+    const quote = { forklift_id: "f3", line_items: emptyLineItems };
     expect(resolveLegacyForkliftIds(quote, forklifts)).toEqual(["f3"]);
   });
 
   it("devuelve [] si no hay forklift_id ni matches", () => {
-    expect(resolveLegacyForkliftIds({ line_items: [] }, forklifts)).toEqual([]);
+    expect(resolveLegacyForkliftIds({ line_items: emptyLineItems }, forklifts)).toEqual([]);
   });
 });
