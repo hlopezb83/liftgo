@@ -447,11 +447,13 @@ Ejemplos correctos:
 - `src/features/invoices/hooks/usePayments.ts`
 - `src/features/help/hooks/useUserManual.ts`
 
-Cuando un hook supera ~80 LOC, divídelo en `<entity>Query.ts` + `<entity>Mutations.ts` y deja el archivo original como barril que re-exporta ambos (patrón usado en `useForklifts`, `useBookings`, `useProspects`).
+Cuando un hook supera ~80 LOC, divídelo en `<entity>Query.ts` + `<entity>Mutations.ts` y deja el archivo original como barril que re-exporta ambos (patrón usado en `useForklifts`, `useBookings`, `useProspects`, `usePaymentIntents`, `useCreditNotes`, `useAssignForklifts`, `useBankReconciliationMutations`).
 
 ### Nomenclatura de `lib/`
-- `*Helpers.ts` — funciones puras, sin efectos secundarios (`deliveryDetailHelpers.ts`, `invoiceHelpers.ts`).
+- `*Helpers.ts` — funciones puras, sin efectos secundarios (`deliveryDetailHelpers.ts`).
 - `*Builder.ts` — generadores con efectos colaterales (creación de PDF, side effects): `contractPdfBuilder.ts`.
+- **Dominio monetario y de renta** vive en `src/lib/domain/invoiceTotals.ts` (totales, descuentos, IVA) y `src/lib/domain/rentalCalculation.ts` (renta diaria/semanal/mensual). El antiguo `invoiceHelpers.ts` se conserva como barril de compatibilidad.
+- **Saldo de facturas**: fuente única en la vista SQL `v_invoices_with_balance` y el hook `useInvoicesWithBalance`. Nunca recalcular `balance = total − Σ pagos` ad-hoc; consumir la vista/hook.
 
 No usar el sufijo `*Utils.ts` en código nuevo.
 
