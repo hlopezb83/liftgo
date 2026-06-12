@@ -42,9 +42,9 @@ describe("cellColor", () => {
 });
 
 describe("getBreakdownFor", () => {
-  const dep = [{ label: "d", values: [], total: 0 }];
-  const rental = [{ label: "r", values: [], total: 0 }];
-  const sales = [{ label: "s", values: [], total: 0 }];
+  const dep: Array<{ label: string; values: number[]; total: number }> = [{ label: "d", values: [], total: 0 }];
+  const rental: Array<{ label: string; values: number[]; total: number }> = [{ label: "r", values: [], total: 0 }];
+  const sales: Array<{ label: string; values: number[]; total: number }> = [{ label: "s", values: [], total: 0 }];
 
   it("mapea labels conocidos a su breakdown", () => {
     expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, rental, sales)?.key).toBe("dep");

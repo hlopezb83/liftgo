@@ -20,7 +20,8 @@ export function useQuoteSaleAssignmentStatus(
   return useMemo(() => {
     const saleLines = getSaleLines(lineItems);
     if (saleLines.length === 0) {
-      return { hasSaleLines: false, totalRequired: 0, totalAssigned: 0, isComplete: true, missingByLine: [] };
+      const empty: SaleAssignmentStatus["missingByLine"] = [];
+      return { hasSaleLines: false, totalRequired: 0, totalAssigned: 0, isComplete: true, missingByLine: empty };
     }
 
     const missingByLine: SaleAssignmentStatus["missingByLine"] = [];

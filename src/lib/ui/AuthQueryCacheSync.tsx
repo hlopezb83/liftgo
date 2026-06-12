@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
  *
  * Se monta dentro de AuthProvider + QueryClientProvider.
  */
-export function AuthQueryCacheSync() {
+export function AuthQueryCacheSync(): null {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const prevUserId = useRef<string | null | undefined>(undefined);

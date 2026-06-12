@@ -8,7 +8,7 @@ import { setAppVersion } from "@/lib/ui/errorReport";
  * Puente entre los hooks de React y el snapshot sincrónico usado por
  * `buildErrorReport`. Montar una vez dentro de `AuthProvider`. Sin UI.
  */
-export function AuthSnapshotSync() {
+export function AuthSnapshotSync(): null {
   const { user } = useAuth();
   const { data: role } = useUserRole();
 

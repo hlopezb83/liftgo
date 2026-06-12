@@ -45,7 +45,7 @@ export function buildQuotePayload(a: BuildQuotePayloadArgs) {
     quote_number: a.existingQuote?.quote_number || a.nextNumber || "COT-0001",
     customer_id: a.customerId || null,
     customer_name: a.customerName || null,
-    forklift_id: null,
+    forklift_id: null as string | null,
     equipment_model_id: pickFirstModelId(a),
     start_date: startStr,
     end_date: endStr,

@@ -7,7 +7,7 @@ type Invoice = Tables<"invoices">;
 // Construye un Invoice mínimo — solo tipa los 7 campos inspeccionados;
 // el resto se rellena con cast loose para evitar arrastre del schema completo.
 function makeInvoice(over: Partial<Invoice>): Invoice {
-  const base = {
+  const base: Partial<Invoice> = {
     receptor_rfc: null,
     receptor_razon_social: null,
     receptor_regimen_fiscal: null,
@@ -16,7 +16,7 @@ function makeInvoice(over: Partial<Invoice>): Invoice {
     forma_pago: null,
     metodo_pago: null,
   };
-  return { ...base, ...over } as unknown as Invoice;
+  return { ...base, ...over } as Invoice;
 }
 
 describe("getMissingStampFields", () => {

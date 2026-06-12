@@ -23,7 +23,7 @@ export function buildContractPayload(form: ContractFormShape, bookingId: string 
     notes: nn(form.notes),
     booking_id: bookingId || null,
     status: "draft",
-    signed_at: null,
+    signed_at: null as string | null,
     usage_location: nn(form.usage_location),
     max_hours_per_month: numOrNull(form.max_hours_per_month),
     extra_hour_rate: numOrNull(form.extra_hour_rate),
