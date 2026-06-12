@@ -65,7 +65,8 @@ export function xmlResponse(xml: string): Response {
 }
 
 export function pdfResponse(bytes: Uint8Array): Response {
-  return new Response(bytes, {
+  const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+  return new Response(ab, {
     status: 200,
     headers: { "Content-Type": "application/pdf" },
   });
