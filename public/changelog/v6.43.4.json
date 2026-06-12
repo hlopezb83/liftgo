@@ -1,0 +1,25 @@
+{
+  "version": "6.43.4",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "CFDI parser: extraído, testeado y bug de matching de atributos corregido (Lote 2 — Parte 4)",
+  "category": "tooling",
+  "summary": "El parser CFDI 4.0 de parse-cfdi-expense ahora vive en un módulo puro y testeable. Los tests cazaron un bug pre-existente donde attr('Total') matcheaba SubTotal — corregido anclando el regex al inicio del atributo.",
+  "changes": [
+    {
+      "type": "added",
+      "title": "cfdi-parser.ts extraído como módulo puro",
+      "description": "parseCfdi, attr, findTag, findAllTags y tipos salen de index.ts a cfdi-parser.ts. Sin Deno APIs, sin fetch — testeable con Deno.test sin permisos."
+    },
+    {
+      "type": "added",
+      "title": "cfdi-parser_test.ts con 6 casos sobre XMLs anonimizados",
+      "description": "Cubre extracción básica, distinción de retenciones IVA (002) vs ISR (001), normalización de UUID a minúsculas, multi-moneda con tipo de cambio, errores cuando falta Comprobante o TimbreFiscalDigital, y defaults seguros."
+    },
+    {
+      "type": "fixed",
+      "title": "Bug de matching de atributos en CFDI parser",
+      "description": "attr(comprobante, 'Total') retornaba el valor de SubTotal porque el regex no estaba anclado al inicio del nombre del atributo. Ahora exige (^|whitespace|<) antes del nombre. Sin tests previos esto pasó desapercibido en producción."
+    }
+  ]
+}

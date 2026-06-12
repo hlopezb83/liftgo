@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.4",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "CFDI parser: extraído, testeado y bug de matching de atributos corregido (Lote 2 — Parte 4)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.3",
     "date": "2026-06-12",
     "type": "patch",
