@@ -26,11 +26,14 @@ function bucketFor(days: number): "0-30" | "31-60" | "61-90" | "90+" {
   return "90+";
 }
 
-function computeAgingBuckets(overdueInvoices: Array<{ due_date: string; total: number | string }>) {
+function computeAgingBuckets(
+  overdueInvoices: Array<{ due_date: string; total: number | string; balance?: number | string | null }>,
+) {
   const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
   for (const inv of overdueInvoices) {
     const days = differenceInDays(nowMty(), parseISO(inv.due_date));
-    buckets[bucketFor(days)] += Number(inv.total);
+    const amount = inv.balance != null ? Number(inv.balance) : Number(inv.total);
+    buckets[bucketFor(days)] += amount;
   }
   return Object.entries(buckets).map(([range, total]) => ({ range, total })).filter((b) => b.total > 0);
 }
