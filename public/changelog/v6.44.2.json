@@ -1,0 +1,16 @@
+{
+  "version": "6.44.2",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "TypeScript: strict completo activado (Lote B.2 + B.3)",
+  "category": "tooling",
+  "changes": [
+    "Activado `strict: true` en `tsconfig.app.json` (incluye strictNullChecks, strictFunctionTypes, etc.)",
+    "Corregidos 25 errores de tipos en 19 archivos al límite null/undefined entre componentes",
+    "Ampliados tipos compartidos para reflejar la realidad de la DB: Extension.created_at, ExistingInvoice.customer_id, SourceQuote.customer_id, CollectionForecast.OverdueInvoice.due_date ahora aceptan null",
+    "Coerciones explícitas en boundaries: AppSidebar (role), useVisibleNavGroups, InvoiceDetail (userRole/dueDate), ContractDetail (fechas), DamageTrackingPage (estimated_cost), CustomerFormDialog (isPending), BookingPostDialogs (customerAddress), MaintenancePoliciesTab (description), usePortalQuotes (p_ip)",
+    "Guards añadidos donde el valor podía ser null: CollectionForecast.due_date, CollectionNotesCard.created_at",
+    "Tests: anotación de tipo en statementRowFactories.test.ts; cast unknown en InvoicesPage.test.tsx",
+    "Suite verde 503/503 y `tsc --noEmit` cero errores"
+  ]
+}
