@@ -26,18 +26,6 @@ interface Props {
   balance: number;
 }
 
-const schema = z.object({
-  amount: z.coerce.number().positive("El monto debe ser mayor a 0"),
-  payment_date: z.date(),
-  payment_method: z.string().default("transferencia"),
-  bank_account: z.string().default(""),
-  reference: z.string().default(""),
-  receipt_url: z.string().default(""),
-  notes: z.string().default(""),
-});
-
-type FormData = z.infer<typeof schema>;
-
 export function RegisterSupplierPaymentDialog({
   open, onOpenChange, billId, billNumber, balance,
 }: Props) {
@@ -46,9 +34,9 @@ export function RegisterSupplierPaymentDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
-  const form = useForm<FormData>({
+  const form = useForm<SupplierPaymentFormData>({
     resolver: zodResolver(
-      schema.refine((d) => d.amount <= balance + 0.0001, {
+      supplierPaymentSchema.refine((d) => d.amount <= balance + 0.0001, {
         message: "El monto no puede ser mayor al saldo",
         path: ["amount"],
       }),
