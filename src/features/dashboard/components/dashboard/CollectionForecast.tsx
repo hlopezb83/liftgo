@@ -10,6 +10,8 @@ interface OverdueInvoice {
   id: string;
   invoice_number: string;
   total: number;
+  /** Saldo pendiente (total - pagos). Si no está, se usa total como fallback. */
+  balance?: number | null;
   due_date: string | null;
 }
 
@@ -34,7 +36,10 @@ export const CollectionForecast = memo(function CollectionForecast({
     const in7 = addDays(today, 7);
     const in30 = addDays(today, 30);
 
-    const overdueTotal = overdueInvoices.reduce((sum, inv) => sum + Number(inv.total), 0);
+    const amountOf = (inv: OverdueInvoice) =>
+      inv.balance != null ? Number(inv.balance) : Number(inv.total);
+
+    const overdueTotal = overdueInvoices.reduce((sum, inv) => sum + amountOf(inv), 0);
 
     const within7 = upcomingInvoices
       .filter((inv) => {
@@ -42,7 +47,7 @@ export const CollectionForecast = memo(function CollectionForecast({
         const due = parseISO(inv.due_date);
         return due >= today && due <= in7;
       })
-      .reduce((sum, inv) => sum + Number(inv.total), 0);
+      .reduce((sum, inv) => sum + amountOf(inv), 0);
 
     const within30 = upcomingInvoices
       .filter((inv) => {
@@ -50,7 +55,7 @@ export const CollectionForecast = memo(function CollectionForecast({
         const due = parseISO(inv.due_date);
         return due >= today && due <= in30;
       })
-      .reduce((sum, inv) => sum + Number(inv.total), 0);
+      .reduce((sum, inv) => sum + amountOf(inv), 0);
 
     const expected7 = overdueTotal + within7;
     const expected30 = overdueTotal + within30;
