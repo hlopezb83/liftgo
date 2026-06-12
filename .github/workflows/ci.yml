@@ -63,8 +63,10 @@ jobs:
         with:
           report_paths: reports/vitest-junit.xml
           check_name: Vitest results
-          fail_on_failure: false
-          require_tests: false
+          # Gates de CI: el job debe fallar si un test falla o si no se generó
+          # ningún XML (corrida sin tests = bug, no éxito silencioso).
+          fail_on_failure: true
+          require_tests: true
 
       - name: Build
         run: bun run build
@@ -111,9 +113,24 @@ jobs:
           deno-version: v1.x
 
       - name: Run Deno tests
+        # Cargamos los archivos en un array para detectar el caso "0 tests" (exit 1).
+        # `mkdir -p reports` evita que `--junit-path` falle si el directorio no existe.
+        # `SUPABASE_URL` se inyecta explícito para no depender del fallback localhost
+        # del helper (que es solo una red de seguridad para evitar tocar producción).
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         run: |
-          find supabase/functions -name 'index_test.ts' -print0 \
-            | xargs -0 deno test --allow-net --allow-env --allow-read --junit-path reports/deno-junit.xml
+          set -euo pipefail
+          mkdir -p reports
+          mapfile -d '' TEST_FILES < <(find supabase/functions -name 'index_test.ts' -print0)
+          if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
+            echo "::error::No se encontraron archivos index_test.ts en supabase/functions"
+            exit 1
+          fi
+          echo "Ejecutando ${#TEST_FILES[@]} archivos de test Deno"
+          deno test --allow-net --allow-env --allow-read \
+            --junit-path reports/deno-junit.xml \
+            "${TEST_FILES[@]}"
 
       - name: Upload Deno reports
         if: always()
@@ -156,6 +173,12 @@ jobs:
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
           SHARD_INDEX: ${{ matrix.shard }}
+          # Vite necesita estas variables en build time para embeber el cliente
+          # de Supabase en el bundle. Sin ellas el preview compila sin URL/key
+          # y todas las E2E fallan de forma opaca.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
         run: bunx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
 
       - name: Upload Playwright HTML report
@@ -191,5 +214,6 @@ jobs:
         with:
           report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
           check_name: Playwright results (shard ${{ matrix.shard }})
-          fail_on_failure: false
-          require_tests: false
+          # Gates de CI: si un test falla o no se generó el XML, el check rompe.
+          fail_on_failure: true
+          require_tests: true
