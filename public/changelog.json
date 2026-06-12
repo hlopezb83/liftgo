@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.0",
+    "date": "2026-06-12",
+    "type": "minor",
+    "title": "Refactor de componentes grandes (paso 3 auditoría)",
+    "description": "Se rompieron los 5 componentes de negocio más grandes (>200 LOC) extrayendo hooks de lógica y subcomponentes de presentación. Mejora mantenibilidad sin cambios funcionales visibles para el usuario.",
+    "category": "improvement"
+  },
+  {
     "version": "6.45.0",
     "date": "2026-06-12",
     "type": "minor",

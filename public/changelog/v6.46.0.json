@@ -1,0 +1,11 @@
+{
+  "description": "Auditoría arquitectónica — paso 3 (componentes grandes). Se aplicaron extracciones de hook + subcomponentes para los 5 componentes que superaban 200 líneas en código de negocio. La función no cambia: misma UI, mismo flujo, misma red. Solo mejora estructura y testabilidad.",
+  "changes": [
+    "ExportPaymentsDialog: 261 → 64 LOC. Se extrajeron useExportPaymentsForm (hook de estado y handlers), PaymentsExportTable y PaymentsExportSummary.",
+    "CuentasPorPagarPage: 256 → 81 LOC. Se extrajeron useSupplierBillColumns (definición de columnas y mobile card) y SupplierBillsFilters (barra completa de filtros + KPIs).",
+    "SupplierBillFormDialog: 242 → 143 LOC. Se extrajo useSupplierBillForm con el schema Zod, los efectos de prefill y el handler de submit.",
+    "InvoicePaymentSummary: 214 → 87 LOC. Se extrajo usePaymentHistoryColumns con la lógica REP (timbrar, cancelar, descargar PDF/XML).",
+    "CreateCreditNoteDialog: 211 → 100 LOC. Se extrajeron useCreditNoteForm (totales, validación, submit) y CreditNoteLinesTable (UI de partidas editables).",
+    "Tipos pasan sin errores (tsc --noEmit limpio)."
+  ]
+}
