@@ -74,9 +74,19 @@ Deno.serve(async (req) => {
 
     if (pErr) throw pErr;
 
-    const toGenerate = (policies ?? []).filter(
-      (p: any) =>
-        !p.last_generated_month || p.last_generated_month < currentMonth,
+    type Policy = {
+      id: string;
+      forklift_id: string;
+      service_type: string;
+      description: string | null;
+      provider_name: string | null;
+      monthly_cost: number;
+      last_generated_month: string | null;
+      forklifts?: { name?: string | null } | null;
+    };
+
+    const toGenerate = ((policies ?? []) as Policy[]).filter(
+      (p) => !p.last_generated_month || p.last_generated_month < currentMonth,
     );
 
     let generated = 0;
@@ -84,7 +94,7 @@ Deno.serve(async (req) => {
     const details: string[] = [];
 
     if (toGenerate.length > 0) {
-      const logsToInsert = toGenerate.map((policy: any) => ({
+      const logsToInsert = toGenerate.map((policy) => ({
         forklift_id: policy.forklift_id,
         service_type: policy.service_type,
         description: policy.description ||
@@ -103,7 +113,7 @@ Deno.serve(async (req) => {
       if (bulkInsertErr) {
         details.push(`Error en inserción masiva: ${bulkInsertErr.message}`);
       } else {
-        const policyIds = toGenerate.map((p: any) => p.id);
+        const policyIds = toGenerate.map((p) => p.id);
         const { error: bulkUpdateErr } = await supabase
           .from("maintenance_policies")
           .update({ last_generated_month: currentMonth })
@@ -116,7 +126,7 @@ Deno.serve(async (req) => {
         }
         generated = toGenerate.length;
         for (const policy of toGenerate) {
-          details.push(`✓ ${(policy as any).forklifts?.name}`);
+          details.push(`✓ ${policy.forklifts?.name ?? "(sin nombre)"}`);
         }
       }
     }

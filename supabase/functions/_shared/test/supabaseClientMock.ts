@@ -51,12 +51,12 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   ): QueryBuilderLike {
     const filters: Array<{ col: string; val: unknown }> = [];
 
-    const resolveSelect = async (): Promise<TableResponse> =>
-      selects[table] ?? { data: null, error: null };
+    const resolveSelect = (): Promise<TableResponse> =>
+      Promise.resolve(selects[table] ?? { data: null, error: null });
 
-    const resolveUpdate = async (): Promise<TableResponse> => {
+    const resolveUpdate = (): Promise<TableResponse> => {
       state.updates.push({ table, patch: patch ?? {}, filters: [...filters] });
-      return updates[table] ?? { data: null, error: null };
+      return Promise.resolve(updates[table] ?? { data: null, error: null });
     };
 
     const builder: QueryBuilderLike = {
@@ -80,19 +80,20 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
 
   state.client = {
     auth: {
-      getClaims: async () => ({
-        data: cfg.claims === undefined
-          ? null
-          : { claims: cfg.claims ?? undefined },
-        error: cfg.claimsError ?? null,
-      }),
+      getClaims: () =>
+        Promise.resolve({
+          data: cfg.claims === undefined
+            ? null
+            : { claims: cfg.claims ?? undefined },
+          error: cfg.claimsError ?? null,
+        }),
     },
     from: (table: string) => makeBuilder(table, "select"),
     storage: {
       from: (bucket: string) => ({
-        upload: async (path: string) => {
+        upload: (path: string) => {
           state.uploads.push({ bucket, path });
-          return storage[bucket] ?? { error: null };
+          return Promise.resolve(storage[bucket] ?? { error: null });
         },
       }),
     },

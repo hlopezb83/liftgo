@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     const facturApiId = invoice.facturapi_invoice_id;
 
     let satStatus: string = "accepted"; // default when stub
-    let isStub = !apiKey || !facturApiId;
+    const isStub = !apiKey || !facturApiId;
 
     if (apiKey && facturApiId) {
       const params = new URLSearchParams({ motive });
