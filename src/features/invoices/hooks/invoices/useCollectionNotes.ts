@@ -34,7 +34,7 @@ export function useCreateCollectionNote() {
       return data;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["collection_notes", variables.invoice_id] });
+      queryClient.invalidateQueries({ queryKey: collectionNoteKeys.byInvoice(variables.invoice_id) });
       toast.success("Nota de cobranza registrada");
     },
     onError: (err: Error) => notifyError({ title: "Error al registrar nota", error: err }),

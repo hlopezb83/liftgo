@@ -30,8 +30,8 @@ export function useStampCfdi() {
       toast.success(
         `CFDI timbrado${data.stub ? " (modo prueba)" : " exitosamente"} — UUID: ${data.cfdi_uuid}`,
       );
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
     },
     onError: (err: unknown) => {
       const raw = err instanceof Error ? err.message : String(err);

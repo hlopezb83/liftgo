@@ -20,8 +20,8 @@ export function useRefreshCancellationStatus() {
       else if (status === "rejected") toast.error("Cancelación rechazada por el receptor");
       else if (status === "expired") toast.warning("Cancelación expirada");
       else toast.info(`Estado SAT: ${status}`);
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
     },
     onError: (err) => notifyError({ error: err, message: "Error al consultar estado SAT" }),
   });

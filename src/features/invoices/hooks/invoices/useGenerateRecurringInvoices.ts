@@ -28,7 +28,7 @@ export function useGenerateRecurringInvoices() {
             ? "Se crearon borradores de facturas recurrentes."
             : "No hay reservas con facturación recurrente pendiente.",
       });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
     onError: (err: unknown) => {
       notifyError({ error: err, title: "Error al generar facturas", description: err instanceof Error ? err.message : "Intenta de nuevo.", });

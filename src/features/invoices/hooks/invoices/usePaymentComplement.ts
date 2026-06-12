@@ -16,8 +16,8 @@ export function useStampPaymentComplement() {
     },
     onSuccess: (_d, _vars) => {
       toast.success("Complemento de Pago timbrado");
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
     onError: (err) => notifyError({ error: err, message: "Error al timbrar REP" }),
   });
@@ -36,8 +36,8 @@ export function useCancelPaymentComplement() {
     },
     onSuccess: () => {
       toast.success("REP cancelado");
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
     onError: (err) => notifyError({ error: err, message: "Error al cancelar REP" }),
   });
