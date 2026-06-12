@@ -1,16 +1,13 @@
-import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
-import { differenceInDays, parseISO } from "date-fns";
-import { nowMty } from "@/lib/utils";
+import { formatDateDisplay, nowMty } from "@/lib/utils";
+import { differenceInDays, format, parseISO } from "date-fns";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useMemo } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { useInvoicesWithBalance } from "@/features/invoices/hooks/invoices/useInvoicesWithBalance";
 
 interface AgingReportProps {
   startDate: Date;
@@ -25,44 +22,29 @@ function getAgingBucket(days: number): string {
 }
 
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
-  const { data: invoices } = useInvoices();
-  const { data: payments } = useQuery({
-    queryKey: ["payments", "all"],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("payments").select("invoice_id, amount");
-      if (error) throw error;
-      return data;
-    },
+  const todayYmd = format(nowMty(), "yyyy-MM-dd");
+  // Vista unificada: ya viene con balance > 0 y status filtrado.
+  const { data: rawOverdue } = useInvoicesWithBalance({
+    statuses: ["sent", "partial", "overdue"],
+    dueTo: todayYmd,
   });
 
-  const paidByInvoice = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const p of payments ?? []) {
-      map.set(p.invoice_id, (map.get(p.invoice_id) ?? 0) + Number(p.amount));
-    }
-    return map;
-  }, [payments]);
-
   const overdueInvoices = useMemo(() => {
-    if (!invoices) return [];
-    return invoices
-      .filter((i) => ["sent", "overdue", "partial"].includes(i.status) && i.due_date && parseISO(i.due_date) < nowMty())
+    return (rawOverdue ?? [])
+      .filter((i) => i.due_date && parseISO(i.due_date) < nowMty())
       .map((i) => {
-        const balance = Math.max(Number(i.total) - (paidByInvoice.get(i.id) ?? 0), 0);
+        const days = differenceInDays(nowMty(), parseISO(i.due_date as string));
         return {
           ...i,
-          balance,
-          days_overdue: differenceInDays(nowMty(), parseISO(i.due_date as string)),
-          bucket: getAgingBucket(differenceInDays(nowMty(), parseISO(i.due_date as string))),
+          days_overdue: days,
+          bucket: getAgingBucket(days),
         };
-      })
-      .filter((i) => i.balance > 0);
-  }, [invoices, paidByInvoice]);
+      });
+  }, [rawOverdue]);
 
   const bucketTotals = useMemo(() => {
     const buckets: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
-    overdueInvoices.forEach((i) => { buckets[i.bucket] += Number(i.total); });
+    overdueInvoices.forEach((i) => { buckets[i.bucket] += i.balance; });
     return buckets;
   }, [overdueInvoices]);
 
