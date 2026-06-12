@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.44.5",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Fix seed E2E: factura en status 'sent' para mostrar Registrar Pago",
+    "description": "Se corrige el RPC e2e_seed_scenario para insertar la factura sembrada con status 'sent' en lugar de 'issued', valor no reconocido por la UI. Resuelve la falla del test invoice-payment en Playwright.",
+    "category": "testing"
+  },
+  {
     "version": "6.44.4",
     "date": "2026-06-12",
     "type": "patch",
