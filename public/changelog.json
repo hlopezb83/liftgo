@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.7",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Stamp-Credit-Note: handler puro con tests Facturapi mock (Lote 3 — Parte 1)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.6",
     "date": "2026-06-12",
     "type": "minor",
