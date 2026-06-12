@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.44.4",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Formateo deno fmt en 26 archivos Edge Function",
+    "description": "Se aplica deno fmt para corregir inconsistencias de formato detectadas por el CI en archivos de funciones edge.",
+    "category": "tooling"
+  },
+  {
     "version": "6.44.3",
     "date": "2026-06-12",
     "type": "patch",
