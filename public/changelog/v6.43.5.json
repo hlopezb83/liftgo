@@ -1,0 +1,20 @@
+{
+  "version": "6.43.5",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Cobertura: umbrales subidos a 10/10/9/7 con @vitest/coverage-v8 (Lote 2 — Parte 5)",
+  "category": "tooling",
+  "summary": "Se instaló el proveedor de cobertura v8 alineado a Vitest 4 y se elevaron los umbrales mínimos. La suite (84 archivos, 503 tests) mide ahora 11.63% líneas, 10.38% ramas, 8.18% funciones y 11.82% statements, todos por encima del nuevo piso.",
+  "changes": [
+    {
+      "type": "added",
+      "title": "@vitest/coverage-v8@4.0.18 como devDependency",
+      "description": "Necesario para que `bunx vitest run --coverage` no caiga con 'MISSING DEPENDENCY'. Versión alineada al Vitest 4 del proyecto."
+    },
+    {
+      "type": "changed",
+      "title": "Umbrales de cobertura: 5% → 10/10/9/7",
+      "description": "vitest.config.ts: lines 10, statements 10, branches 9, functions 7. Dejamos ~1-2 puntos de margen sobre la medición real para evitar falsos rojos por flakiness de cobertura, y subimos por lote a medida que se agregan tests reales."
+    }
+  ]
+}

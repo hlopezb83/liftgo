@@ -22,10 +22,10 @@ export default defineConfig({
       // Umbrales conservadores: la suite todavía cubre poco. Suben gradualmente
       // por lote para evitar regresiones en la cobertura efectiva ya alcanzada.
       thresholds: {
-        lines: 5,
-        functions: 5,
-        statements: 5,
-        branches: 5,
+        lines: 10,
+        functions: 7,
+        statements: 10,
+        branches: 9,
       },
     },
   },

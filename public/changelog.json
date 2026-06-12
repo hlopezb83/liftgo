@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.5",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Cobertura: umbrales subidos a 10/10/9/7 con @vitest/coverage-v8 (Lote 2 — Parte 5)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.4",
     "date": "2026-06-12",
     "type": "patch",
