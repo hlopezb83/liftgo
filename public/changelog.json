@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.47.0",
+    "date": "2026-06-12",
+    "type": "minor",
+    "title": "Auditoría de arquitectura — fundamentos del refactor",
+    "description": "Auditoría completa del código base entregada en .lovable/plan.md (sin hallazgos críticos). Como paso 1 del plan se introducen factories de query keys tipadas por feature (invoices, bookings, fleet, customers, crm) para eliminar inconsistencias detectadas como ['invoice', id] vs ['invoices', id]. Como paso 2 se agrega regla ESLint (warning) que desincentiva imports profundos cross-feature en hooks/lib, preparando barrels públicos. Sin cambios de UI ni de lógica de negocio; la migración hook-por-hook y la reorganización de invoices/hooks/invoices/ son pasos incrementales agendados.",
+    "category": "refactor"
+  },
+  {
     "version": "6.46.8",
     "date": "2026-06-12",
     "type": "patch",
