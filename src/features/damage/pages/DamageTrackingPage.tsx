@@ -83,7 +83,7 @@ export default function DamageTrackingPage() {
         id: "estimated_cost",
         header: "Costo Est.",
         accessorFn: (r) => r.estimated_cost || 0,
-        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.estimated_cost)}</span>,
+        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.estimated_cost ?? 0)}</span>,
       },
       {
         id: "status",
@@ -142,7 +142,7 @@ export default function DamageTrackingPage() {
               <p className="text-sm font-medium">{r.forklifts?.name || "—"}</p>
               <p className="text-sm text-muted-foreground">{r.customers?.name || "—"}</p>
               <p className="text-sm text-muted-foreground truncate">{r.description}</p>
-              <span className="font-mono text-sm">{formatCurrency(r.estimated_cost)}</span>
+              <span className="font-mono text-sm">{formatCurrency(r.estimated_cost ?? 0)}</span>
             </CardContent>
           </Card>
         )}

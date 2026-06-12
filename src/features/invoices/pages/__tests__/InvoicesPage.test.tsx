@@ -79,7 +79,7 @@ describe("InvoicesPage smoke tests", () => {
   });
 
   it("shows empty state when no invoices match", () => {
-    vi.mocked(hooks.useInvoices).mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof hooks.useInvoices>);
+    vi.mocked(hooks.useInvoices).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof hooks.useInvoices>);
     const container = renderPage();
     expect(container.textContent).toContain("No se encontraron facturas");
   });

@@ -45,7 +45,7 @@ export function useAcceptPortalQuote() {
     mutationFn: async (quoteId: string) => {
       const { data, error } = await supabase.rpc("accept_quote_from_portal", {
         p_quote_id: quoteId,
-        p_ip: null,
+        p_ip: undefined,
       });
       if (error) throw error;
       return data;

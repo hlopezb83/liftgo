@@ -79,7 +79,7 @@ export function useUpdateFeedbackStatus() {
       const { data, error } = await supabase.rpc("change_feedback_status", {
         _report_id: reportId,
         _new_status: newStatus,
-        _comment: comment ?? null,
+        _comment: comment ?? undefined,
       });
       if (error) throw error;
       return data;

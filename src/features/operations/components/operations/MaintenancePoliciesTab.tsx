@@ -61,7 +61,7 @@ export function MaintenancePoliciesTab() {
       provider_name: form.provider_name,
       monthly_cost: parseFloat(form.monthly_cost) || 0,
       service_type: form.service_type || "Póliza de Mantenimiento",
-      description: form.description || null,
+      description: form.description || undefined,
     };
     if (editId) {
       update.mutate({ id: editId, ...payload }, { onSuccess: () => setOpen(false) });

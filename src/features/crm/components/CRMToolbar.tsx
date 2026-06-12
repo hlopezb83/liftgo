@@ -113,9 +113,11 @@ export function CRMToolbar({
           </Button>
         )}
 
-        <div className="ml-auto">
-          <CRMHeaderKPIs metrics={metrics} />
-        </div>
+        {metrics && (
+          <div className="ml-auto">
+            <CRMHeaderKPIs metrics={metrics} />
+          </div>
+        )}
       </div>
     </div>
   );

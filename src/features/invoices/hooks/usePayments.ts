@@ -33,7 +33,7 @@ export function useCreatePayment() {
         .select()
         .single();
       if (error) throw error;
-      await syncInvoiceStatus(payment.invoice_id, payment.payment_date);
+      await syncInvoiceStatus(payment.invoice_id, payment.payment_date ?? null);
       return data;
     },
     onSuccess: (_d, vars) => {

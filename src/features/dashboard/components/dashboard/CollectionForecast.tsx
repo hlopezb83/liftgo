@@ -10,7 +10,7 @@ interface OverdueInvoice {
   id: string;
   invoice_number: string;
   total: number;
-  due_date: string;
+  due_date: string | null;
 }
 
 interface CollectionForecastProps {
