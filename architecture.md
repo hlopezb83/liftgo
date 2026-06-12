@@ -550,7 +550,7 @@ Solo cuando se cumple **al menos uno**:
 
 ---
 
-## 22. Contratos cross-feature
+## 21. Contratos cross-feature
 
 Para evitar el acoplamiento "feature A importa hooks internos de feature B sólo para reutilizar un tipo", todos los tipos de dominio compartidos viven en **`src/lib/domain/sharedTypes.ts`**:
 
@@ -563,7 +563,7 @@ Beneficio: las features siguen siendo dueñas de su I/O, pero los contratos púb
 
 ---
 
-## 21. Referencias
+## 22. Referencias
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
