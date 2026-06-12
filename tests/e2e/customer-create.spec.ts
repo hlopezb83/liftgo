@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
  *  2. Click "Agregar Cliente" → abre CustomerFormDialog
  *  3. Llenar nombre + RFC genérico XAXX010101000 (sin lookup SAT)
  *  4. Guardar
- *  5. Verificar que el nombre aparece en la lista
+ *  5. Verificar en BD que el registro quedó marcado como E2E y limpiarlo
  *
  * No usa el fixture `seed`: crea su propio cliente con prefijo "E2E UI" para
  * que el cleanup post-test pueda borrarlo por nombre vía el JWT del usuario logueado.
@@ -20,7 +20,7 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY =
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
 
-test("create a customer through the UI and find it in the list", async ({ page }) => {
+test("create a customer through the UI with E2E isolation", async ({ page }) => {
   const customerName = `E2E UI ${Date.now()}`;
   const e2eScope = `customer-create-${Date.now()}`;
 
