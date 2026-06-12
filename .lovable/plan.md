@@ -1,106 +1,84 @@
-# Auditoría de Arquitectura — LiftGo ERP
+# Validación de la alerta "Equipos sin costo de adquisición"
 
-## Veredicto general
+## Veredicto: la alerta es REAL, pero apunta a datos contaminados
 
-La arquitectura está en muy buen estado. Confirmado:
+La alerta del Estado de Resultados **no es un falso positivo**: los dos montacargas (`E2E-FL-2129da5e`, `E2E-FL-34dcc8a8`) sí existen en la BD con `acquisition_cost = 0` y sí tienen reservas activas, por lo tanto el RPC `get_income_statement` los marca correctamente.
 
-- **Tamaño de archivos**: ningún archivo de producto supera 300 líneas (el más grande es `ListPageLayout.tsx` con 251). Solo `src/integrations/supabase/types.ts` es enorme (3,675), pero es auto-generado y no se toca.
-- **Separación por feature**: las 29 features siguen el mismo patrón `components/ + hooks/ + lib/ + pages/`. Consistente.
-- **Sin fugas de datos en UI**: cero `supabase.from(...)` dentro de `*Page.tsx`, `*Dialog.tsx` o `src/components/`. Toda lectura/escritura pasa por hooks de dominio.
-- **Higiene**: 0 `TODO/FIXME`, 0 `console.log`, 1 solo uso de `any`. `useEffect` con cleanup, paginación, zod, sonner globales: todo aplicado.
-- **Documentación viva**: changelog versionado y `mem://` actualizado.
+El problema es **qué hacen ahí**: son datos sembrados por la suite Playwright (`e2e_seed_scenario`) que nunca se limpiaron. Verificación en BD:
 
-Lo que sigue son oportunidades de mejora reales, no errores. Ordenadas por impacto.
+| name | is_e2e | e2e_scope | created_at | acquisition_cost |
+|---|---|---|---|---|
+| E2E-FL-f93ac1aa | true | w3-921d6224-wwez | 2026-06-12 23:13 | 0 |
+| E2E-FL-54e4fd4d | true | w1-921d6224-o0vx | 2026-06-12 23:13 | 0 |
+| E2E-FL-2129da5e | true | w3-921d6224-0ane | 2026-06-12 23:01 | 0 |
+| E2E-FL-34dcc8a8 | true | w1-921d6224-jmvg | 2026-06-12 23:01 | 0 |
 
----
+Más residuos en cadena: 4 bookings, 4 invoices, 4 quotes, 4 customers, 4 equipment_models, 28 activity_feed — todos con `is_e2e = true` y los mismos scopes.
 
-## Hallazgos priorizados
+## Causas raíz (dos capas)
 
-### CRÍTICO
+**1. Los reportes financieros NO filtran `is_e2e = true`.**
+El RPC `get_income_statement` agrega de `invoices`, `bookings`, `forklifts`, `maintenance_logs`, `damage_records`, `supplier_bills` sin excluir filas marcadas como E2E. Cualquier dato de prueba que sobreviva al teardown se cuela al P&L. Probablemente ocurre lo mismo en otros RPCs/queries de reportes (MRR, cash flow, dashboard).
 
-Ninguno. No hay riesgo arquitectónico inmediato.
+**2. El teardown de Playwright se salta cuando el worker muere.**
+En `tests/e2e/fixtures/seed.ts`:
 
-### ALTO
+```ts
+seed: async ({ page }, use, testInfo) => {
+  const scope = buildScope(testInfo);
+  const ids = await seedScenario(page, scope);
+  await use(ids);                 // ← si Playwright mata el worker aquí
+  await teardownScenario(...);    // ← esta línea nunca corre
+},
+```
 
-**1. Acoplamiento centrípeto en `fleet`, `invoices`, `customers`**
+Los testId repetidos (`921d6224` en w1 y w3, dos corridas distintas) confirman que el mismo spec se interrumpió a media corrida — el dev server probablemente lo desconectó. El teardown debe ir en `try/finally` y la suite debería tener un seguro de "purga por prefijo `E2E-`" al inicio de cada corrida, no solo por scope.
 
-`src/features/fleet` es importado **78** veces desde otras features; `invoices` 68, `crm` 58, `customers` 55, `bookings` 53. Eso es normal porque son entidades centrales, pero hoy esas features exponen su superficie completa (hooks internos, tipos, componentes) sin un `index.ts` que actúe como contrato público. Cualquier refactor interno de `fleet` puede romper consumidores remotos sin que el compilador lo señale como ruptura de API.
+## Plan de remediación, ordenado
 
-> Riesgo si no se atiende: cambios internos rompen features lejanas; refactors se vuelven caros.
-> Fix: definir un `src/features/<feature>/index.ts` (barrel acotado) que reexporte solo lo que es público (hooks de lectura, tipos, selectores). Marcar el resto como interno mediante regla ESLint `no-restricted-imports` que prohíba importar rutas profundas entre features.
+### Paso 1 — Limpieza inmediata de la contaminación visible (data)
+Ejecutar `purge_e2e_data()` (ya existe desde v6.46.6) para barrer las 4 forklifts + cadenas asociadas + activity_feed. La alerta del P&L desaparece en cuanto se borren.
 
-**2. La feature `invoices` está rozando el límite de complejidad**
+### Paso 2 — Blindar reportes contra residuos E2E (alto impacto)
+Modificar `get_income_statement` para añadir `AND COALESCE(is_e2e, false) = false` en:
+- `inv` (CTE de facturas)
+- `active_bookings` (CTE de reservas)
+- subquery final `v_rented_without_cost` (forklifts)
+- `maintenance_logs`, `damage_records`, `supplier_bills` (aunque hoy no tienen `is_e2e`, dejarlo previsto)
 
-31 archivos de hooks divididos en `invoices/`, `invoiceDetail/`, `invoiceForm/`, `creditNotes/`, más 8 hooks sueltos en la raíz (`useCancelCfdi`, `useCollectionNotes`, `useGenerateRecurringInvoices`, `usePaymentComplement`, `useInvoicePdfDownload`, `useInvoicesWithBalance`, `useNextInvoiceNumber`, `usePayments`). Es la única feature donde la organización ya no es obvia.
+Después de esto, aunque queden datos E2E olvidados, **nunca contaminarán el Estado de Resultados**.
 
-> Riesgo: dificulta encontrar el hook correcto, fomenta duplicación accidental.
-> Fix: mover los 8 hooks sueltos a subcarpetas temáticas (`cfdi/`, `payments/`, `recurring/`, `pdf/`) y documentar el árbol en `mem://features/invoicing`.
+Auditar y aplicar el mismo filtro a:
+- RPCs/queries del dashboard (MRR, KPIs)
+- RPC de cash flow
+- Página `/mrr`
+- Reportes de utilización
 
-**3. Sin convención centralizada de `queryKey`**
+### Paso 3 — Endurecer el teardown de Playwright (alto impacto)
+En `tests/e2e/fixtures/seed.ts`:
 
-Cada hook arma su propio array literal (`["invoices", id]`). No hay un `queryKeys.ts` por feature. Eso ya causó (y puede volver a causar) invalidaciones desincronizadas: una mutación invalida `["invoices"]` y otra `["invoices","list"]` y la UI no se refresca.
+```ts
+seed: async ({ page }, use, testInfo) => {
+  const scope = buildScope(testInfo);
+  const ids = await seedScenario(page, scope);
+  try {
+    await use(ids);
+  } finally {
+    await teardownScenario(page, scope).catch((e) => {
+      // log pero no enmascarar el fallo del test original
+      console.error(`[e2e] teardown falló para ${scope}:`, e);
+    });
+  }
+},
+```
 
-> Riesgo: bugs intermitentes de caché stale.
-> Fix: crear `src/features/<feature>/lib/queryKeys.ts` con factories tipadas (`invoiceKeys.list(filters)`, `invoiceKeys.detail(id)`) y migrar incrementalmente. Patrón estándar de TanStack Query.
+Agregar un `globalTeardown` en `playwright.config.ts` que ejecute `purge_e2e_data()` al final de toda la suite como red final.
 
-### MEDIO
-
-**4. `src/components/` mezcla primitivas de UI y componentes de dominio**
-
-En la raíz conviven primitivas neutrales (`SearchBar`, `EmptyState`, `TablePagination`, `StatusBadge`) con componentes que conocen reglas de negocio (`DetailPageHeader`, `ListPageLayout` 251 líneas, `TotalsSummary`, `ReadOnlyLineItemsTable`, `NotesCard`). Hoy todo está en un solo nivel.
-
-> Riesgo: difícil saber qué es seguro reutilizar vs. qué arrastra dependencias.
-> Fix: dividir en `src/components/ui-ext/` (primitivas extendidas sobre shadcn) y `src/components/layout/` (layouts compuestos de página). Cero cambio de comportamiento, solo movimientos + actualización de imports.
-
-**5. Hooks de feature duplicando patrón "list + filters + dialog"**
-
-Cada feature implementa su propia composición de `useListPage + useListFilters + useDialogState + useQuery`. Ya existen los hooks genéricos en `src/hooks/`, pero la "receta" se reescribe en cada `*Page.tsx`. Hay >25 páginas con el mismo molde.
-
-> Riesgo: divergencia sutil de comportamiento (un `Page` debounce 300ms, otro 500ms, etc.).
-> Fix: extraer `useResourceList<T>({ queryKey, fetcher, filterDefs })` en `src/hooks/`. Migrar página por página, no big-bang.
-
-**6. Cross-imports profundos en lugar de barrels**
-
-Búsquedas muestran imports tipo `@/features/fleet/hooks/forklifts/useForklifts`. Es válido pero frágil: mover un archivo dentro de `fleet` rompe imports remotos.
-
-> Fix: misma solución que el hallazgo 1 (barrels + ESLint).
-
-### BAJO / OPCIONAL
-
-**7. `src/lib/pdf/theme/styles.ts` con 360 líneas**
-
-Único archivo de `lib/` que se acerca al límite. Dividir por sección (`tableStyles`, `headerStyles`, `colors`) ayuda a la legibilidad. No urgente.
-
-**8. 3 archivos llamados `constants.ts`** en distintas features
-
-No es duplicación, pero conviene auditar que cada uno solo contenga constantes de su dominio y no constantes globales que deberían vivir en `src/lib/constants.ts`.
-
-**9. `quotes/` tiene `utils/` además de `lib/`**
-
-Es la única feature con esa duplicidad de carpeta. Consolidar a `lib/` para mantener consistencia con el resto.
-
-**10. Sin index de tipos por feature**
-
-Los tipos se importan desde archivos individuales. Un `src/features/<feature>/types.ts` por feature mejora descubribilidad. Opcional.
+### Paso 4 — Recordatorio en el aviso del P&L (opcional, baja prio)
+Si después del paso 2 sigue mostrándose la alerta, significa que hay forklifts **reales** sin costo. Pero hoy el mensaje no distingue entre olvido administrativo y basura de pruebas. Podríamos agregar al texto un hint del tipo "(si son equipos de prueba, archívalos o asígnales costo cero explícito)". No bloqueante.
 
 ---
 
-## Plan de acción ordenado
+## Recomendación
 
-| # | Acción | Esfuerzo | Impacto | Riesgo de regresión |
-|---|--------|----------|---------|---------------------|
-| 1 | Crear `queryKeys.ts` por feature (empezando por `invoices`, `bookings`, `fleet`) y migrar hooks | Medio | Alto | Bajo |
-| 2 | Definir barrels `index.ts` públicos en `fleet`, `invoices`, `customers`, `crm`, `bookings` + regla ESLint `no-restricted-imports` para imports profundos cross-feature | Medio | Alto | Bajo |
-| 3 | Reorganizar hooks de `invoices` en subcarpetas (`cfdi/`, `payments/`, `recurring/`, `pdf/`) | Bajo | Medio | Bajo |
-| 4 | Dividir `src/components/` en `ui-ext/` (primitivas) y `layout/` (compuestos) | Bajo | Medio | Bajo (solo mover + actualizar imports) |
-| 5 | Extraer hook genérico `useResourceList` y migrar 2-3 páginas piloto | Medio | Medio | Medio (validar UX por página) |
-| 6 | Consolidar `quotes/utils` dentro de `quotes/lib` | Bajo | Bajo | Bajo |
-| 7 | Dividir `src/lib/pdf/theme/styles.ts` por sección | Bajo | Bajo | Muy bajo |
-| 8 | Auditar los 3 `constants.ts` y mover globales reales a `src/lib/constants.ts` | Bajo | Bajo | Bajo |
-| 9 | Añadir `types.ts` público por feature | Bajo | Bajo (DX) | Muy bajo |
-
----
-
-## Cómo continuar
-
-Si apruebas, puedo arrancar por los puntos **1, 2 y 3** que son los que más reducen el riesgo de regresiones futuras sin tocar UI ni lógica de negocio. Los demás los podemos agendar como mejoras incrementales.
+Empezar por los pasos 1 + 2 + 3 en la misma entrega: borra el problema visible **y** lo previene a futuro tanto a nivel de datos (reports) como a nivel de proceso (tests). Aprueba para implementar.
