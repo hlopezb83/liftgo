@@ -1,0 +1,8 @@
+{
+  "version": "6.46.5",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Guardrail ESLint: no Supabase en componentes (paso 8 auditoría)",
+  "description": "Se añadió una regla no-restricted-imports que prohíbe importar @/integrations/supabase/client desde src/features/**/pages/**, src/features/**/components/** y src/components/**. Toda I/O debe pasar por un hook bajo features/*/hooks. Única excepción documentada: AuthPage (flujo de login pre-sesión). Paso 6 (DRY de RPCs) ya quedó cubierto por la vista v_invoices_with_balance del paso 1, y Paso 9 (TODOs) ya estaba resuelto (0 TODO/FIXME en el código).",
+  "category": "improvement"
+}
