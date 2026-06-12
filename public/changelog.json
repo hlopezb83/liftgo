@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.2",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Tests: smoke fiscales, teardown E2E y umbrales de cobertura (Lote 2 — Parte 2)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.1",
     "date": "2026-06-12",
     "type": "patch",
