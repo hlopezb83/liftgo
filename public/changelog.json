@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.1",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Tests: flow tests reescritos contra hooks reales (Lote 2 — Parte 1)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.0",
     "date": "2026-06-12",
     "type": "minor",
