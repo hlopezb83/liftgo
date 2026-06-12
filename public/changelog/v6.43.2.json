@@ -1,0 +1,25 @@
+{
+  "version": "6.43.2",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Tests: smoke fiscales, teardown E2E y umbrales de cobertura (Lote 2 — Parte 2)",
+  "category": "tooling",
+  "summary": "Smoke tests Deno para 4 edge functions fiscales sin cobertura previa, teardown del E2E customer-create vía JWT del usuario y umbrales mínimos de cobertura en vitest.",
+  "changes": [
+    {
+      "type": "added",
+      "title": "Smoke tests Deno para edge functions fiscales",
+      "description": "stamp-credit-note, cancel-payment-complement, parse-cfdi-expense (CORS preflight + 401 sin Authorization) y generate-recurring-invoices (CORS preflight). Replican el patrón existente en stamp-cfdi/index_test.ts."
+    },
+    {
+      "type": "added",
+      "title": "Teardown best-effort en customer-create.spec.ts",
+      "description": "Tras la aserción, el test borra el cliente creado usando el JWT del usuario autenticado en la página (mismo patrón que tests/e2e/fixtures/seed.ts). Si falla, no rompe el test — el prefijo 'E2E UI' permite limpieza semanal posterior."
+    },
+    {
+      "type": "added",
+      "title": "Umbrales mínimos de cobertura en vitest.config.ts",
+      "description": "lines/functions/statements/branches ≥ 5% como red de seguridad anti-regresión. Se incrementan por lote conforme suba la cobertura efectiva real."
+    }
+  ]
+}
