@@ -91,4 +91,25 @@ export default tseslint.config(
       }],
     },
   },
+  {
+    // Auditoría arquitectura — paso 2: desincentivar imports profundos
+    // cross-feature. Cada feature debería exponer su API pública vía
+    // `src/features/<feature>/index.ts`. Importar rutas internas de OTRA
+    // feature acopla refactors internos con consumidores remotos.
+    //
+    // Hoy lo dejamos como `warn` para no romper la build; los nuevos
+    // archivos deben respetarlo y la migración es incremental.
+    files: ["src/features/**/*.{ts,tsx}"],
+    ignores: ["**/__tests__/**", "**/*.test.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["warn", {
+        patterns: [
+          {
+            group: ["@/features/*/hooks/**", "@/features/*/components/**", "@/features/*/lib/**", "@/features/*/pages/**"],
+            message: "No importes rutas internas de otra feature. Usa el barrel público @/features/<feature>.",
+          },
+        ],
+      }],
+    },
+  },
 );
