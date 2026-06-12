@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.7",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Tests E2E: prevenir contaminación de datos",
+    "description": "Se corrigieron las causas raíz que dejaban registros de pruebas end-to-end en la BD demo. (1) La función e2e_teardown ahora también borra eventos relacionados en activity_feed dentro del scope del escenario, evitando que queden 1,400+ eventos fantasma por corrida. (2) El fixture de Playwright dejó de tragarse errores de teardown con try/catch: ahora cualquier fallo en la limpieza hace fallar el test para detectar la contaminación en CI antes de propagarla a producción. (3) El test customer-create marca la fila como is_e2e=true antes de borrarla, como red de seguridad para que purge_e2e_data() pueda recogerla en caso de un teardown parcial.",
+    "category": "fix"
+  },
+  {
     "version": "6.46.6",
     "date": "2026-06-12",
     "type": "patch",
