@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { bookingKeys } from "@/features/bookings/lib/queryKeys";
 import { toast } from "sonner";
 
 export function useBookingExtensions(bookingId?: string) {
   return useQuery({
-    queryKey: ["booking_extensions", bookingId],
+    queryKey: bookingId ? bookingKeys.extensions(bookingId) : [...bookingKeys.all, "extensions"],
     enabled: !!bookingId,
     staleTime: 60_000,
     queryFn: async () => {
@@ -45,8 +46,8 @@ export function useCreateBookingExtension() {
       return data;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["booking_extensions", variables.booking_id] });
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: bookingKeys.extensions(variables.booking_id) });
+      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
       toast.success("Reserva extendida exitosamente");
     },
     onError: (err: Error) => notifyError({ title: "Error al extender reserva", error: err }),

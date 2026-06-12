@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
 import { toast } from "sonner";
 
 export function useUnassignForklift() {
@@ -35,7 +36,7 @@ export function useUnassignForklift() {
     onError: (err: Error) => notifyError({ error: err }),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
   });
