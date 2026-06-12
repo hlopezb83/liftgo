@@ -1,30 +1,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { FormActions } from "@/components/FormActions";
-import { useCreateDelivery } from "@/features/deliveries/hooks/useDeliveries";
-import { useActiveDrivers } from "@/features/fleet/hooks/useDrivers";
-import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
-import { useBookings } from "@/features/bookings/hooks/useBookings";
-import { TruckIcon, PlusCircle } from "lucide-react";
-import { toast } from "sonner";
-import { format } from "date-fns";
+import { deliverySchema } from "@/features/deliveries/lib/deliveryFormSchema";
 import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormFields";
-
-const deliverySchema = z.object({
-  forkliftId: z.string().min(1, "Selecciona un montacargas"),
-  bookingId: z.string(),
-  type: z.string().min(1),
-  scheduledDate: z.date({ required_error: "Fecha requerida" }),
-  scheduledTime: z.string(),
-  address: z.string(),
-  driverName: z.string(),
-  driverPhone: z.string(),
-  notes: z.string(),
-});
 
 const initialForm: DeliveryFormValues = {
   forkliftId: "", bookingId: "", type: "delivery",
