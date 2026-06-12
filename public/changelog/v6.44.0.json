@@ -1,0 +1,55 @@
+{
+  "version": "6.44.0",
+  "date": "2026-06-12",
+  "type": "minor",
+  "title": "CI Gates: typecheck blocker, deno fmt/lint, thresholds Vitest +1pp (Lote A)",
+  "category": "tooling",
+  "description": "Refuerzo de gates de CI según auditoría: tsc --noEmit ahora es blocker (verificado pasando hoy), deno fmt --check y deno lint activos en el job edge-functions tras autofix de 45 archivos, y umbrales Vitest subidos de 10/9/7/10 a 11/10/8/11 con margen de ~0.5pp sobre la cobertura real (11.63/10.38/8.18/11.82).",
+  "changes": [
+    {
+      "type": "CI",
+      "title": ".github/workflows/ci.yml",
+      "details": "Añadido paso 'Typecheck (tsc --noEmit)' en job quality. Añadidos pasos 'Deno fmt --check' y 'Deno lint' en job edge-functions."
+    },
+    {
+      "type": "Configuración",
+      "title": "supabase/functions/deno.json",
+      "details": "Nuevo archivo que deshabilita la regla no-import-prefix (incompatible con el patrón de Edge Functions Lovable que usa imports https://esm.sh/...)."
+    },
+    {
+      "type": "Refactor",
+      "title": "supabase/functions/generate-recurring-maintenance/index.ts",
+      "details": "Eliminados 4 usos de any: tipado explícito de Policy con campos del join forklifts."
+    },
+    {
+      "type": "Refactor",
+      "title": "supabase/functions/cancel-cfdi/index.ts",
+      "details": "let isStub → const isStub (prefer-const)."
+    },
+    {
+      "type": "Refactor",
+      "title": "supabase/functions/_shared/test/supabaseClientMock.ts",
+      "details": "Reemplazado async sin await por Promise.resolve en 4 funciones (resolveSelect, resolveUpdate, getClaims, upload)."
+    },
+    {
+      "type": "Formato",
+      "title": "supabase/functions/**",
+      "details": "Aplicado deno fmt en 45 archivos (cosmético, sin cambios de comportamiento)."
+    },
+    {
+      "type": "Tooling",
+      "title": "vitest.config.ts",
+      "details": "Thresholds subidos: lines 10→11, branches 9→10, functions 7→8, statements 10→11."
+    },
+    {
+      "type": "Tooling",
+      "title": "package.json",
+      "details": "Añadido script 'typecheck' para reproducir el gate localmente."
+    },
+    {
+      "type": "Verificación",
+      "title": "Suite completa",
+      "details": "Vitest 503/503 verde. Deno tests todos verdes. tsc --noEmit limpio."
+    }
+  ]
+}
