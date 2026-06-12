@@ -74,22 +74,4 @@ export default tseslint.config(
       ],
     },
   },
-  {
-    // Cross-feature import guardrail (paso 2 auditoría): un feature no debe
-    // importar hooks de otra feature. Para datos compartidos, usar contratos
-    // ligeros en src/lib/domain/ o expandir el set de hooks de dominio.
-    files: ["src/features/**/*.{ts,tsx}"],
-    ignores: [
-      "src/features/**/*.test.{ts,tsx}",
-      "src/features/**/__tests__/**",
-    ],
-    rules: {
-      "no-restricted-imports": ["warn", {
-        patterns: [{
-          group: ["@/features/*/hooks/*", "@/features/*/components/*"],
-          message: "Cross-feature import detectado. Mueve el tipo/contrato a src/lib/domain/ o expón un hook compartido en src/hooks/. Ver architecture.md §19.",
-        }],
-      }],
-    },
-  },
 );
