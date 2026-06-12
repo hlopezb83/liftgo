@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
 import { PAYMENT_METHODS } from "../lib/supplierBillConstants";
+import { supplierPaymentSchema, type SupplierPaymentFormData } from "../lib/supplierPaymentSchema";
 import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
 import { useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
 

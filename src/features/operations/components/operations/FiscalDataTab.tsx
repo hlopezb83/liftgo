@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   useCompanySettings,
   useUpsertCompanySettings,
@@ -16,19 +15,7 @@ import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import { CompanyFiscalForm } from "@/features/company-settings/components/company-settings/CompanyFiscalForm";
 import { PacConfigForm } from "@/features/company-settings/components/company-settings/PacConfigForm";
-
-const fiscalSchema = z.object({
-  rfc: z.string().min(1, "RFC requerido"),
-  razon_social: z.string().min(1, "Razón social requerida"),
-  regimen_fiscal: z.string().min(1, "Régimen fiscal requerido"),
-  lugar_expedicion: z.string().min(1, "Lugar de expedición requerido"),
-  logo_url: z.string(),
-  facturapi_mode: z.string(),
-  facturapi_test_key: z.string(),
-  facturapi_live_key: z.string(),
-});
-
-type FiscalDataValues = z.infer<typeof fiscalSchema>;
+import { fiscalSchema, type FiscalDataValues } from "@/features/operations/lib/operationsSchemas";
 
 const defaultValues: FiscalDataValues = {
   rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "",
