@@ -28,7 +28,9 @@ export interface ParsedCfdi {
 }
 
 export function attr(tag: string, name: string): string | null {
-  const re = new RegExp(`${name}\\s*=\\s*"([^"]*)"`, "i");
+  // Anclar al inicio del nombre del atributo: (^|whitespace|<) para evitar que
+  // `attr(..., "Total")` matchee `SubTotal="..."` (bug pre-existente sin anchor).
+  const re = new RegExp(`(?:^|[\\s<])${name}\\s*=\\s*"([^"]*)"`, "i");
   const m = tag.match(re);
   return m ? m[1] : null;
 }
