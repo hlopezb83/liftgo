@@ -1,0 +1,29 @@
+{
+  "version": "6.47.1",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Estado de Resultados blindado contra datos de pruebas",
+  "category": "fix",
+  "problem": "La alerta 'Equipos sin costo de adquisición' del Estado de Resultados estaba listando montacargas E2E (E2E-FL-2129da5e, E2E-FL-34dcc8a8, E2E-FL-f93ac1aa, E2E-FL-54e4fd4d) con acquisition_cost=0 que habían sido sembrados por Playwright y nunca se limpiaron. La causa raíz fue doble: el RPC get_income_statement no excluía registros is_e2e=true, y el teardown por scope se saltaba cuando el worker de Playwright moría a media corrida (no había try/finally).",
+  "changes": {
+    "rpc": [
+      "get_income_statement filtra COALESCE(is_e2e,false)=false en: rental_quotes, invoices (CTE inv), bookings (active_bookings), forklifts (depreciation_per_month y v_rented_without_cost)."
+    ],
+    "tests": [
+      "tests/e2e/fixtures/seed.ts: el fixture `seed` envuelve `use(ids)` en try/finally para garantizar que teardownScenario corra incluso cuando el test falla. El error de teardown se loguea pero no se relanza para no enmascarar el fallo original.",
+      "tests/e2e/global.teardown.ts (nuevo): autenticarse como admin y ejecutar el RPC purge_e2e_data al finalizar la suite Playwright completa. Última red de seguridad contra residuos.",
+      "playwright.config.ts: registrar globalTeardown."
+    ],
+    "data_cleanup": [
+      "Borrados 4 forklifts E2E + cascada (4 bookings, 4 invoices, 4 quotes, 4 customers, 4 equipment_models, 28 activity_feed) que estaban contaminando el P&L."
+    ]
+  },
+  "files_changed": [
+    "supabase/migrations/<timestamp>_get_income_statement_e2e_filter.sql",
+    "tests/e2e/fixtures/seed.ts",
+    "tests/e2e/global.teardown.ts (nuevo)",
+    "playwright.config.ts",
+    "public/changelog.json",
+    "public/changelog/v6.47.1.json (nuevo)"
+  ]
+}

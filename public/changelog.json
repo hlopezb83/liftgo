@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.47.1",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Estado de Resultados blindado contra datos de pruebas",
+    "description": "El reporte mostraba 'Equipos sin costo de adquisición' apuntando a montacargas E2E (E2E-FL-...) que sobrevivieron al teardown de Playwright. Tres capas de defensa: (1) get_income_statement ahora ignora facturas, reservas, cotizaciones y montacargas marcados como is_e2e=true; (2) el fixture de seed envuelve el teardown en try/finally para que corra aunque el test falle o el worker muera; (3) playwright.config registra un globalTeardown que ejecuta purge_e2e_data al terminar la suite como red final. Además se borraron de la BD los 4 equipos + cadena (bookings/invoices/quotes/customers/models) y 28 eventos del feed que estaban contaminando el P&L.",
+    "category": "fix"
+  },
+  {
     "version": "6.47.0",
     "date": "2026-06-12",
     "type": "minor",

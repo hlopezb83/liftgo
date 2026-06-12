@@ -21,6 +21,9 @@ const shardSuffix = process.env.SHARD_INDEX ? `-shard${process.env.SHARD_INDEX}`
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  // Red final contra contaminación E2E: purga todas las filas con is_e2e=true
+  // al terminar la suite, aunque algún teardown por scope se haya saltado.
+  globalTeardown: "./tests/e2e/global.teardown.ts",
   timeout: 30_000,
   expect: { timeout: 5_000 },
   // Each test gets a unique `e2e_scope` from the seed fixture, so workers can run in parallel without

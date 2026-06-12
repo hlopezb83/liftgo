@@ -98,8 +98,22 @@ export const test = base.extend<{ seed: SeedIds }>({
   seed: async ({ page }, use, testInfo) => {
     const scope = buildScope(testInfo);
     const ids = await seedScenario(page, scope);
-    await use(ids);
-    await teardownScenario(page, scope);
+    try {
+      await use(ids);
+    } finally {
+      // try/finally garantiza que el teardown corra incluso si el test falla o
+      // Playwright cancela el worker a media corrida. Antes (sin finally), los
+      // datos sembrados quedaban en la BD y contaminaban reportes financieros
+      // (ver Estado de Resultados v6.47.1).
+      //
+      // Si el teardown falla lo logueamos pero NO relanzamos: queremos ver el
+      // error original del test, no enmascararlo. La red de seguridad final es
+      // el globalTeardown de Playwright que purga por bandera is_e2e=true.
+      await teardownScenario(page, scope).catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(`[e2e] teardown falló para scope=${scope}:`, err);
+      });
+    }
   },
 });
 
