@@ -1,0 +1,25 @@
+{
+  "version": "6.43.3",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Tests: contratos RLS para invoices, customers y bookings (Lote 2 — Parte 3)",
+  "category": "tooling",
+  "summary": "Tests de contrato RLS para los hooks de lectura más críticos, replicando el patrón de useDocuments.rls.test: propagan permission denied (42501), manejan listas vacías por filtros RLS y devuelven datos cuando hay acceso.",
+  "changes": [
+    {
+      "type": "added",
+      "title": "useInvoices.rls.test.ts",
+      "description": "3 casos: propaga 42501, devuelve [] cuando RLS oculta filas, entrega datos cuando staff tiene acceso."
+    },
+    {
+      "type": "added",
+      "title": "useCustomers.rls.test.ts",
+      "description": "2 casos: propaga 42501 y lista vacía cuando RLS filtra todo."
+    },
+    {
+      "type": "added",
+      "title": "useBookings.rls.test.ts",
+      "description": "2 casos: propaga 42501 y entrega filas con join a forklifts cuando hay acceso."
+    }
+  ]
+}
