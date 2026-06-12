@@ -77,12 +77,12 @@ export async function seedScenario(page: Page, scope: string): Promise<SeedIds> 
 }
 
 export async function teardownScenario(page: Page, scope: string): Promise<void> {
-  try {
-    const client = await clientFromPage(page);
-    const { error } = await client.rpc("e2e_teardown", { p_scope: scope });
-    if (error) console.warn(`[e2e_teardown] ${error.message}`);
-  } catch (err) {
-    console.warn("[e2e_teardown] skipped:", err instanceof Error ? err.message : err);
+  // Falla ruidosamente: si el teardown no corre, los datos E2E contaminan la BD demo.
+  // Antes esto se tragaba con try/catch y por eso quedaban 1,400+ registros fantasma.
+  const client = await clientFromPage(page);
+  const { error } = await client.rpc("e2e_teardown", { p_scope: scope });
+  if (error) {
+    throw new Error(`[e2e_teardown:${scope}] ${error.message}`);
   }
 }
 
