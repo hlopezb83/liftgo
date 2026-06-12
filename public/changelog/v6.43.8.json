@@ -1,0 +1,30 @@
+{
+  "version": "6.43.8",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Cancel-Payment-Complement: handler puro con tests Facturapi mock (Lote 3 — Parte 2)",
+  "category": "tooling",
+  "description": "Continuación del Lote 3: cancel-payment-complement refactorizado al patrón handler-puro + deps inyectadas con suite de 9 tests unitarios cubriendo cancelación de REP ante Facturapi.",
+  "changes": [
+    {
+      "type": "Refactor",
+      "title": "supabase/functions/cancel-payment-complement/handler.ts",
+      "details": "Lógica extraída a handleCancelPaymentComplement(req, deps). Reutiliza SupabaseLike/StampCfdiDeps de stamp-cfdi."
+    },
+    {
+      "type": "Refactor",
+      "title": "supabase/functions/cancel-payment-complement/index.ts",
+      "details": "Entry-point Deno.serve que cablea dependencias reales."
+    },
+    {
+      "type": "Tests",
+      "title": "supabase/functions/cancel-payment-complement/handler_test.ts",
+      "details": "9 casos: 401 sin auth, 403 sin rol, 400 UUID inválido, 404 payment no existe, 400 REP no timbrado, 400 sin API key, happy path (DELETE Facturapi + update cancelled), 502 cuando Facturapi falla (sin marcar cancelled) y normalización de motivo inválido a '02'."
+    },
+    {
+      "type": "Verificación",
+      "title": "Deno tests",
+      "details": "11/11 pasaron (9 handler + 2 smoke index)."
+    }
+  ]
+}

@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.8",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Cancel-Payment-Complement: handler puro con tests Facturapi mock (Lote 3 — Parte 2)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.7",
     "date": "2026-06-12",
     "type": "patch",
