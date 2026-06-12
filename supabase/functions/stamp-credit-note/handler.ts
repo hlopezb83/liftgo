@@ -48,9 +48,7 @@ export async function handleStampCreditNote(
     const roles = (rolesRes as { data: unknown }).data as
       | Array<{ role: string }>
       | null;
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
+    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
     if (!allowed) {
       return json({ error: "Forbidden" }, 403, jsonHeaders);
     }

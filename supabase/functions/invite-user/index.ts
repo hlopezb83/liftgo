@@ -1,9 +1,5 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import {
-  enforceRateLimit,
-  generateSecurePassword,
-  requireAdmin,
-} from "../_shared/auth.ts";
+import { enforceRateLimit, generateSecurePassword, requireAdmin } from "../_shared/auth.ts";
 import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {

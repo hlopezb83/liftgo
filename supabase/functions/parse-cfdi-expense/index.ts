@@ -1,12 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
-import {
-  CATEGORIES,
-  type ExpenseCategory,
-  parseCfdi,
-  type ParsedCfdi,
-} from "./cfdi-parser.ts";
+import { CATEGORIES, type ExpenseCategory, parseCfdi, type ParsedCfdi } from "./cfdi-parser.ts";
 
 const MAX_XML_BYTES = 1024 * 1024; // 1 MB
 
@@ -19,8 +14,7 @@ async function classifyCategory(
     .map((c, i) => `${i + 1}. (${c.clave_prod_serv}) ${c.descripcion}`)
     .join("\n");
 
-  const userMsg =
-    `Emisor: ${cfdi.emisor.nombre} (Régimen ${cfdi.emisor.regimen_fiscal}).
+  const userMsg = `Emisor: ${cfdi.emisor.nombre} (Régimen ${cfdi.emisor.regimen_fiscal}).
 Conceptos:
 ${conceptosText}`;
 
@@ -213,9 +207,7 @@ serve(async (req) => {
       conceptos_resumen ? `— ${conceptos_resumen}` : "",
     ].filter(Boolean).join(" ").trim();
 
-    const due_date = cfdi.payment_method_sat === "PPD"
-      ? addDays(cfdi.fecha, 30)
-      : cfdi.fecha;
+    const due_date = cfdi.payment_method_sat === "PPD" ? addDays(cfdi.fecha, 30) : cfdi.fecha;
 
     // Preview mode: just return parsed payload
     if (!create) {

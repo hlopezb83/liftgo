@@ -11,5 +11,4 @@ export const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ??
   Deno.env.get("VITE_SUPABASE_URL") ??
   "http://localhost:54321";
 
-export const fnUrl = (name: string): string =>
-  `${SUPABASE_URL}/functions/v1/${name}`;
+export const fnUrl = (name: string): string => `${SUPABASE_URL}/functions/v1/${name}`;

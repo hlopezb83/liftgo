@@ -129,9 +129,7 @@ Deno.serve(async (req) => {
       ? MODULES.filter((m) =>
         m.startsWith("Mis ") || m.startsWith("Panel") || m === "Otro / General"
       )
-      : MODULES.filter((m) =>
-        !m.startsWith("Mis ") && !m.startsWith("Panel del")
-      );
+      : MODULES.filter((m) => !m.startsWith("Mis ") && !m.startsWith("Panel del"));
 
     const prompt =
       `Eres un clasificador de reportes de bugs/mejoras para un ERP de renta de montacargas en español mexicano.
@@ -173,8 +171,7 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
           messages: [
             {
               role: "system",
-              content:
-                "Devuelve únicamente JSON válido. Sin markdown, sin explicación adicional.",
+              content: "Devuelve únicamente JSON válido. Sin markdown, sin explicación adicional.",
             },
             { role: "user", content: prompt },
           ],
@@ -233,9 +230,7 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
     const { data: updated, error: updateErr } = await admin
       .from("feedback_reports")
       .update({
-        severity: report.type === "bug"
-          ? classification.severity
-          : classification.severity,
+        severity: report.type === "bug" ? classification.severity : classification.severity,
         module: classification.module,
         context_json: newContext,
       })

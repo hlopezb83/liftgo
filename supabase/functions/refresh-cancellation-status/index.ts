@@ -126,13 +126,11 @@ Deno.serve(async (req) => {
       },
     );
     const facturApiInv = await invRes.json().catch(() => ({}));
-    const rawStatus =
-      (facturApiInv?.cancellation_status as string | undefined) ??
-        invoice.cancellation_status ?? "pending";
-    const satStatus =
-      ["accepted", "pending", "rejected", "expired", "none"].includes(rawStatus)
-        ? rawStatus
-        : "pending";
+    const rawStatus = (facturApiInv?.cancellation_status as string | undefined) ??
+      invoice.cancellation_status ?? "pending";
+    const satStatus = ["accepted", "pending", "rejected", "expired", "none"].includes(rawStatus)
+      ? rawStatus
+      : "pending";
 
     const update: Record<string, unknown> = { cancellation_status: satStatus };
     if (satStatus === "accepted") {

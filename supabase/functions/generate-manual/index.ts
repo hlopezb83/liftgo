@@ -143,8 +143,7 @@ serve(async (req) => {
               type: "function",
               function: {
                 name: "save_manual",
-                description:
-                  "Guarda las secciones del manual de usuario generado",
+                description: "Guarda las secciones del manual de usuario generado",
                 parameters: {
                   type: "object",
                   properties: {

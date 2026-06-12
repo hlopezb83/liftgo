@@ -56,9 +56,7 @@ Deno.serve(async (req) => {
     }
 
     const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${
-      String(now.getMonth() + 1).padStart(2, "0")
-    }`;
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const firstOfMonth = `${currentMonth}-01`;
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const firstOfNextMonth = `${nextMonth.getFullYear()}-${

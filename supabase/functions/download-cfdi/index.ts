@@ -70,9 +70,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const contentType = format === "pdf"
-      ? "application/pdf"
-      : "application/xml";
+    const contentType = format === "pdf" ? "application/pdf" : "application/xml";
 
     // --- Credit Note download branch ---
     if (isUUID(credit_note_id)) {
@@ -154,9 +152,7 @@ Deno.serve(async (req) => {
         await supabase
           .from("credit_notes")
           .update(
-            format === "pdf"
-              ? { cfdi_pdf_url: newPath }
-              : { cfdi_xml_url: newPath },
+            format === "pdf" ? { cfdi_pdf_url: newPath } : { cfdi_xml_url: newPath },
           )
           .eq("id", credit_note_id);
       }
@@ -188,10 +184,9 @@ Deno.serve(async (req) => {
         });
       }
       const repFilename = `REP-${payment.rep_cfdi_uuid}.${format}`;
-      const repPath =
-        (format === "pdf" ? payment.rep_pdf_url : payment.rep_xml_url) as
-          | string
-          | null;
+      const repPath = (format === "pdf" ? payment.rep_pdf_url : payment.rep_xml_url) as
+        | string
+        | null;
       if (repPath) {
         const { data: file } = await supabase.storage.from(BUCKET).download(
           repPath,
@@ -244,8 +239,7 @@ Deno.serve(async (req) => {
         );
       }
       const bytes = new Uint8Array(await res.arrayBuffer());
-      const newPath =
-        `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${format}`;
+      const newPath = `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${format}`;
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(
         newPath,
         bytes,
@@ -255,9 +249,7 @@ Deno.serve(async (req) => {
         await supabase
           .from("payments")
           .update(
-            format === "pdf"
-              ? { rep_pdf_url: newPath }
-              : { rep_xml_url: newPath },
+            format === "pdf" ? { rep_pdf_url: newPath } : { rep_xml_url: newPath },
           )
           .eq("id", payment_id);
       }
@@ -291,10 +283,9 @@ Deno.serve(async (req) => {
     }
 
     const filename = `${invoice.invoice_number || invoice.cfdi_uuid}.${format}`;
-    const storagePath =
-      (format === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as
-        | string
-        | null;
+    const storagePath = (format === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as
+      | string
+      | null;
 
     // 1) Try Storage
     if (storagePath) {
@@ -382,9 +373,7 @@ Deno.serve(async (req) => {
       await supabase
         .from("invoices")
         .update(
-          format === "pdf"
-            ? { cfdi_pdf_url: newPath }
-            : { cfdi_xml_url: newPath },
+          format === "pdf" ? { cfdi_pdf_url: newPath } : { cfdi_xml_url: newPath },
         )
         .eq("id", invoice_id);
     } else {

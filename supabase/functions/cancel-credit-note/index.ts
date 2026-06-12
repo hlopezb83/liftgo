@@ -42,9 +42,7 @@ Deno.serve(async (req) => {
       "user_id",
       userId,
     );
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
+    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
     if (!allowed) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
@@ -53,8 +51,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => null);
-    const { credit_note_id, motive, substitution_uuid, cancellation_reason } =
-      body ?? {};
+    const { credit_note_id, motive, substitution_uuid, cancellation_reason } = body ?? {};
 
     if (!isUUID(credit_note_id)) {
       return new Response(
@@ -120,8 +117,7 @@ Deno.serve(async (req) => {
       if (motive === "01" && substitution_uuid) {
         params.set("substitution", substitution_uuid);
       }
-      const url =
-        `${FACTURAPI_BASE}/invoices/${nc.facturapi_invoice_id}?${params.toString()}`;
+      const url = `${FACTURAPI_BASE}/invoices/${nc.facturapi_invoice_id}?${params.toString()}`;
       const cancelRes = await fetch(url, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${apiKey}` },
@@ -142,10 +138,9 @@ Deno.serve(async (req) => {
       const cancelJson = await cancelRes.json().catch(() => ({}));
       const raw = (cancelJson?.cancellation_status as string | undefined) ??
         "accepted";
-      satStatus =
-        ["accepted", "pending", "rejected", "expired", "none"].includes(raw)
-          ? raw
-          : "pending";
+      satStatus = ["accepted", "pending", "rejected", "expired", "none"].includes(raw)
+        ? raw
+        : "pending";
     }
 
     const isAccepted = satStatus === "accepted";
