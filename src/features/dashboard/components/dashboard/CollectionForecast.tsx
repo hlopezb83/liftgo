@@ -38,6 +38,7 @@ export const CollectionForecast = memo(function CollectionForecast({
 
     const within7 = upcomingInvoices
       .filter((inv) => {
+        if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
         return due >= today && due <= in7;
       })
@@ -45,6 +46,7 @@ export const CollectionForecast = memo(function CollectionForecast({
 
     const within30 = upcomingInvoices
       .filter((inv) => {
+        if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
         return due >= today && due <= in30;
       })
@@ -59,6 +61,7 @@ export const CollectionForecast = memo(function CollectionForecast({
       expected30,
       overdueCount: overdueInvoices.length,
       upcoming7Count: upcomingInvoices.filter((inv) => {
+        if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
         return due >= today && due <= in7;
       }).length,
