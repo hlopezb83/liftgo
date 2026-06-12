@@ -10,7 +10,13 @@ export function useCustomers() {
     queryKey: ["customers"],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("customers").select("*").or("is_e2e.is.null,is_e2e.eq.false").order("name");
+      const { data, error } = await supabase
+        .from("customers")
+        .select("*")
+        .or("is_e2e.is.null,is_e2e.eq.false")
+        .not("name", "ilike", "E2E%")
+        .or("email.is.null,email.not.ilike.%test.local")
+        .order("name");
       if (error) throw error;
       return data;
     },
