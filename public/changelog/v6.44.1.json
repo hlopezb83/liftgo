@@ -1,0 +1,30 @@
+{
+  "version": "6.44.1",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "TypeScript: noImplicitAny activado (Lote B.1)",
+  "category": "tooling",
+  "description": "Primer paso del endurecimiento TS según Power-of-10: tsconfig.app.json ahora exige tipado explícito para anys. 22 errores resueltos en 10 archivos sin cambios funcionales — solo anotaciones de tipo para empty arrays, returns y object literals con null. Strict completo se aborda en B.2/B.3.",
+  "changes": [
+    {
+      "type": "Configuración",
+      "title": "tsconfig.app.json",
+      "details": "noImplicitAny: false → true."
+    },
+    {
+      "type": "Tipado",
+      "title": "Componentes y hooks",
+      "details": "Anotaciones explícitas en ActivityPage (ActivityMetrics), contractPayload (signed_at), useQuoteSaleAssignmentStatus (missingByLine), quoteFormPayload (forklift_id), AuthSnapshotSync y AuthQueryCacheSync (return type :null)."
+    },
+    {
+      "type": "Tipado",
+      "title": "Tests",
+      "details": "cfdiPrechecks.test (base como Partial<Invoice>), quoteBookingBuilders.test (emptyLineItems: Json), incomeStatementHelpers.test (values: number[]), setup.ts (interface MatchMediaMock)."
+    },
+    {
+      "type": "Verificación",
+      "title": "Suite completa",
+      "details": "Vitest 503/503 verde, tsc --noEmit --noImplicitAny limpio."
+    }
+  ]
+}
