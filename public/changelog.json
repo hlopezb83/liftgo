@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.48.0",
+    "date": "2026-06-12",
+    "type": "minor",
+    "title": "Refactor arquitectónico — pasos 1 a 3 del plan de auditoría",
+    "description": "Paso 1: migración de hooks a las factories de query keys creadas en v6.47.0. 18 hooks de invoices/bookings/fleet/customers ahora usan invoiceKeys/bookingKeys/forkliftKeys/customerKeys/paymentKeys/creditNoteKeys/collectionNoteKeys en lugar de literales sueltos, corrigiendo el bug latente donde useInvoice(id) usaba ['invoices', id] y colisionaba con la lista. Paso 2: 5 esquemas Zod sacados de componentes de UI a sus respectivos features/*/lib/*Schema.ts (DeliveryFormDialog, FiscalDataTab, CompanyLogoTab, RegisterSupplierPaymentDialog, useReturnInspectionDialog). Paso 3: barrels públicos src/features/{invoices,bookings,fleet,customers,crm}/index.ts para que consumidores cross-feature importen sólo la API pública. Sin cambios de UI ni de lógica.",
+    "category": "refactor"
+  },
+  {
     "version": "6.47.1",
     "date": "2026-06-12",
     "type": "patch",

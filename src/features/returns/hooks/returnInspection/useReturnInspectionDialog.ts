@@ -3,35 +3,18 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useCreateReturnInspection } from "@/features/returns/hooks/useReturnInspections";
+import {
+  returnInspectionSchema,
+  initialReturnInspectionForm,
+  type ReturnInspectionFormValues,
+} from "@/features/returns/lib/returnInspectionSchema";
 import type { Booking } from "@/features/bookings/hooks/useBookings";
 
-export const returnInspectionSchema = z.object({
-  bookingId: z.string().min(1, "Selecciona una reserva para devolver"),
-  inspectedAt: z.date(),
-  condition: z.string().min(1),
-  damageNotes: z.string(),
-  damageCost: z.string(),
-  hoursUsed: z.string(),
-  fuelLevel: z.string(),
-  inspectedBy: z.string(),
-});
-
-export type ReturnInspectionFormValues = z.infer<typeof returnInspectionSchema>;
-
-export const initialReturnInspectionForm: ReturnInspectionFormValues = {
-  bookingId: "",
-  inspectedAt: new Date(),
-  condition: "good",
-  damageNotes: "",
-  damageCost: "",
-  hoursUsed: "",
-  fuelLevel: "",
-  inspectedBy: "",
-};
+export { returnInspectionSchema, initialReturnInspectionForm } from "@/features/returns/lib/returnInspectionSchema";
+export type { ReturnInspectionFormValues } from "@/features/returns/lib/returnInspectionSchema";
 
 export function useReturnInspectionDialog(bookings: Booking[] | undefined, activeBookings: Booking[] | undefined) {
   const [dialogOpen, setDialogOpen] = useState(false);

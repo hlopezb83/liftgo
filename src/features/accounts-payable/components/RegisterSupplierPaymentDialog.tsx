@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
 import { PAYMENT_METHODS } from "../lib/supplierBillConstants";
+import { supplierPaymentSchema, type SupplierPaymentFormData } from "../lib/supplierPaymentSchema";
 import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
 import { useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
 
@@ -26,18 +26,6 @@ interface Props {
   balance: number;
 }
 
-const schema = z.object({
-  amount: z.coerce.number().positive("El monto debe ser mayor a 0"),
-  payment_date: z.date(),
-  payment_method: z.string().default("transferencia"),
-  bank_account: z.string().default(""),
-  reference: z.string().default(""),
-  receipt_url: z.string().default(""),
-  notes: z.string().default(""),
-});
-
-type FormData = z.infer<typeof schema>;
-
 export function RegisterSupplierPaymentDialog({
   open, onOpenChange, billId, billNumber, balance,
 }: Props) {
@@ -46,9 +34,9 @@ export function RegisterSupplierPaymentDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
-  const form = useForm<FormData>({
+  const form = useForm<SupplierPaymentFormData>({
     resolver: zodResolver(
-      schema.refine((d) => d.amount <= balance + 0.0001, {
+      supplierPaymentSchema.refine((d) => d.amount <= balance + 0.0001, {
         message: "El monto no puede ser mayor al saldo",
         path: ["amount"],
       }),
@@ -80,7 +68,7 @@ export function RegisterSupplierPaymentDialog({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, balance]);
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: SupplierPaymentFormData) => {
     let receipt_url = data.receipt_url || undefined;
     if (receiptFile) {
       const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });

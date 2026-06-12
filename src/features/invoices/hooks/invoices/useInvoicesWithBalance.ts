@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 
 export interface InvoiceWithBalance {
   id: string;
@@ -44,7 +45,7 @@ export function useInvoicesWithBalance(filter: Filter = {}) {
   } = filter;
 
   return useQuery({
-    queryKey: ["invoices_with_balance", statuses, dueFrom, dueTo, withBalanceOnly],
+    queryKey: invoiceKeys.withBalance({ statuses, dueFrom, dueTo, withBalanceOnly }),
     staleTime: 60_000,
     queryFn: async (): Promise<InvoiceWithBalance[]> => {
       // La vista no está tipada en types.ts (es runtime view); usamos cast controlado.

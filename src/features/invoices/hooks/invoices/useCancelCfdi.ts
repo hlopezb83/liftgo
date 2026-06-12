@@ -3,6 +3,7 @@ import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 interface CancelCfdiVars {
   invoiceId: string;
   motive: string;
@@ -44,8 +45,8 @@ export function useCancelCfdi() {
         toast.info("Solicitud de cancelación enviada al SAT");
       }
       if (data?.warning) notifyWarning({ title: data.warning });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
     },
     onError: (err: unknown) => {
       notifyError({ error: err, message: "Error al cancelar" });

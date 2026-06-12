@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateFacturapiError } from "@/features/invoices/lib/facturapiErrors";
 
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 
 interface StampCfdiResponse {
   cfdi_uuid: string;
@@ -30,8 +31,8 @@ export function useStampCfdi() {
       toast.success(
         `CFDI timbrado${data.stub ? " (modo prueba)" : " exitosamente"} — UUID: ${data.cfdi_uuid}`,
       );
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
     },
     onError: (err: unknown) => {
       const raw = err instanceof Error ? err.message : String(err);

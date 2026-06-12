@@ -1,84 +1,95 @@
-# Validación de la alerta "Equipos sin costo de adquisición"
+# Auditoría de arquitectura — LiftGo
 
-## Veredicto: la alerta es REAL, pero apunta a datos contaminados
+## Resumen ejecutivo
 
-La alerta del Estado de Resultados **no es un falso positivo**: los dos montacargas (`E2E-FL-2129da5e`, `E2E-FL-34dcc8a8`) sí existen en la BD con `acquisition_cost = 0` y sí tienen reservas activas, por lo tanto el RPC `get_income_statement` los marca correctamente.
+La base está **sana**. Métricas globales:
+- Ningún archivo de aplicación supera **360 LOC** (excluyendo `supabase/types.ts` autogenerado y `components/ui/*` de shadcn). Sólo 2 archivos pasan de 250.
+- **0** llamadas directas a `supabase` en `pages/` o `components/` de features (todo pasa por hooks).
+- **3** TODO/FIXME, **1** `as any`, **4** `console.*` en código de producción. Excelente higiene.
+- 28 features con estructura uniforme `pages/ components/ hooks/ lib/`.
 
-El problema es **qué hacen ahí**: son datos sembrados por la suite Playwright (`e2e_seed_scenario`) que nunca se limpiaron. Verificación en BD:
-
-| name | is_e2e | e2e_scope | created_at | acquisition_cost |
-|---|---|---|---|---|
-| E2E-FL-f93ac1aa | true | w3-921d6224-wwez | 2026-06-12 23:13 | 0 |
-| E2E-FL-54e4fd4d | true | w1-921d6224-o0vx | 2026-06-12 23:13 | 0 |
-| E2E-FL-2129da5e | true | w3-921d6224-0ane | 2026-06-12 23:01 | 0 |
-| E2E-FL-34dcc8a8 | true | w1-921d6224-jmvg | 2026-06-12 23:01 | 0 |
-
-Más residuos en cadena: 4 bookings, 4 invoices, 4 quotes, 4 customers, 4 equipment_models, 28 activity_feed — todos con `is_e2e = true` y los mismos scopes.
-
-## Causas raíz (dos capas)
-
-**1. Los reportes financieros NO filtran `is_e2e = true`.**
-El RPC `get_income_statement` agrega de `invoices`, `bookings`, `forklifts`, `maintenance_logs`, `damage_records`, `supplier_bills` sin excluir filas marcadas como E2E. Cualquier dato de prueba que sobreviva al teardown se cuela al P&L. Probablemente ocurre lo mismo en otros RPCs/queries de reportes (MRR, cash flow, dashboard).
-
-**2. El teardown de Playwright se salta cuando el worker muere.**
-En `tests/e2e/fixtures/seed.ts`:
-
-```ts
-seed: async ({ page }, use, testInfo) => {
-  const scope = buildScope(testInfo);
-  const ids = await seedScenario(page, scope);
-  await use(ids);                 // ← si Playwright mata el worker aquí
-  await teardownScenario(...);    // ← esta línea nunca corre
-},
-```
-
-Los testId repetidos (`921d6224` en w1 y w3, dos corridas distintas) confirman que el mismo spec se interrumpió a media corrida — el dev server probablemente lo desconectó. El teardown debe ir en `try/finally` y la suite debería tener un seguro de "purga por prefijo `E2E-`" al inicio de cada corrida, no solo por scope.
-
-## Plan de remediación, ordenado
-
-### Paso 1 — Limpieza inmediata de la contaminación visible (data)
-Ejecutar `purge_e2e_data()` (ya existe desde v6.46.6) para barrer las 4 forklifts + cadenas asociadas + activity_feed. La alerta del P&L desaparece en cuanto se borren.
-
-### Paso 2 — Blindar reportes contra residuos E2E (alto impacto)
-Modificar `get_income_statement` para añadir `AND COALESCE(is_e2e, false) = false` en:
-- `inv` (CTE de facturas)
-- `active_bookings` (CTE de reservas)
-- subquery final `v_rented_without_cost` (forklifts)
-- `maintenance_logs`, `damage_records`, `supplier_bills` (aunque hoy no tienen `is_e2e`, dejarlo previsto)
-
-Después de esto, aunque queden datos E2E olvidados, **nunca contaminarán el Estado de Resultados**.
-
-Auditar y aplicar el mismo filtro a:
-- RPCs/queries del dashboard (MRR, KPIs)
-- RPC de cash flow
-- Página `/mrr`
-- Reportes de utilización
-
-### Paso 3 — Endurecer el teardown de Playwright (alto impacto)
-En `tests/e2e/fixtures/seed.ts`:
-
-```ts
-seed: async ({ page }, use, testInfo) => {
-  const scope = buildScope(testInfo);
-  const ids = await seedScenario(page, scope);
-  try {
-    await use(ids);
-  } finally {
-    await teardownScenario(page, scope).catch((e) => {
-      // log pero no enmascarar el fallo del test original
-      console.error(`[e2e] teardown falló para ${scope}:`, e);
-    });
-  }
-},
-```
-
-Agregar un `globalTeardown` en `playwright.config.ts` que ejecute `purge_e2e_data()` al final de toda la suite como red final.
-
-### Paso 4 — Recordatorio en el aviso del P&L (opcional, baja prio)
-Si después del paso 2 sigue mostrándose la alerta, significa que hay forklifts **reales** sin costo. Pero hoy el mensaje no distingue entre olvido administrativo y basura de pruebas. Podríamos agregar al texto un hint del tipo "(si son equipos de prueba, archívalos o asígnales costo cero explícito)". No bloqueante.
+Los problemas restantes son de **organización fina y consistencia**, no de deuda crítica.
 
 ---
 
-## Recomendación
+## Hallazgos por severidad
 
-Empezar por los pasos 1 + 2 + 3 en la misma entrega: borra el problema visible **y** lo previene a futuro tanto a nivel de datos (reports) como a nivel de proceso (tests). Aprueba para implementar.
+### ALTO
+
+**1. Query keys inconsistentes y sin invalidaciones jerárquicas** — `src/features/**/hooks/**`
+- 18 ocurrencias de `["invoices"]`, 13 de `["forklifts"]`, 8 de `["bookings"]`, etc., como strings literales repetidos.
+- Ya se crearon factories en `src/features/{invoices,bookings,fleet,customers,crm}/lib/queryKeys.ts` (v6.47.0) pero **ningún hook los está usando todavía**.
+- Riesgo: invalidaciones que olvidan keys hermanas → datos rancios en UI tras mutaciones.
+
+**2. Schemas Zod dentro de componentes UI** — acoplamiento de validación con render
+- `features/deliveries/components/deliveries/DeliveryFormDialog.tsx`
+- `features/operations/components/operations/FiscalDataTab.tsx`
+- `features/operations/components/operations/CompanyLogoTab.tsx`
+- `features/accounts-payable/components/RegisterSupplierPaymentDialog.tsx`
+- `features/returns/hooks/returnInspection/useReturnInspectionDialog.ts`
+- El resto del proyecto ya sigue el patrón `features/*/lib/*FormSchema.ts`. Estos 5 rompen separación de capas y no son reutilizables/testeables.
+
+**3. Acoplamiento cross-feature por imports profundos** — sin barrels públicos
+- 78 imports cruzados a `@/features/fleet/(hooks|lib|components)/...`, 68 a `invoices`, 58 a `crm`, 55 a `users` y `customers`.
+- No existe ningún `src/features/*/index.ts`. El lint guardrail añadido en v6.47.0 está en **warning**, no en error, y no tiene barrels a los que apuntar.
+- Riesgo: cualquier rename interno rompe consumidores remotos; imposible saber qué es API pública de un feature.
+
+### MEDIO
+
+**4. Nesting redundante en hooks** — `features/X/hooks/X/...`
+- `features/invoices/hooks/invoices/` (13 hooks), `features/fleet/hooks/fleet/`, `features/bookings/hooks/bookingDetail/`, `bookingForm/`, etc.
+- Mezcla: algunos hooks viven al nivel `hooks/` (p.ej. `useBookings.ts`, `usePayments.ts`) y otros en subcarpetas temáticas. No hay regla.
+- Sugerencia: subcarpetas **por tema funcional** (`cfdi/`, `payments/`, `recurring/`, `pdf/` para invoices) y eliminar la subcarpeta espejo del nombre del feature.
+
+**5. Carpeta `hooks/invoices/` mezcla 4 dominios distintos**
+`useCancelCfdi`, `useStampCfdi`, `useRefreshCancellationStatus`, `usePaymentComplement` (CFDI) conviven con `useCollectionNotes`, `useGenerateRecurringInvoices`, `useInvoicePdfDownload`, `useUpcomingInvoices`. Reagrupar.
+
+**6. Hooks "Logic" como God-hooks delgados**
+`useInvoiceFormLogic.ts`, `useBookingActionsLogic.ts`, `useForkliftFormLogic.ts`, `useContractFormPrefill.ts`. El sufijo "Logic" suele esconder orquestación que mezcla submit + fetch + navegación + toast. Revisar uno por uno y separar en (a) form state, (b) submit mutation, (c) side-effects.
+
+**7. Patrones repetidos de "lista paginada"** sin hook genérico
+Cada `*Page.tsx` (invoices, bookings, customers, suppliers, fleet, quotes, contracts…) instancia manualmente `useListPage` + `useListFilters` + `useSort` + `usePagination` + `MobileCardList`. Existe ya scaffolding (`ListPageLayout.tsx`, 251 LOC, el archivo más grande de la app) pero falta un `useResourceList<T>` que envuelva el quinteto.
+
+### BAJO / OPCIONAL
+
+**8. `src/components/` mezcla primitivos genéricos y compuestos de dominio**
+22 archivos sueltos: hay layout (`ListPageLayout`, `PageHeader`, `DetailPageHeader`, `FormPageHeader`), inputs (`DatePickerField`, `SearchBar`), feedback (`EmptyState`, `TableSkeleton`, `StatusBadge`) y dominio (`ReadOnlyLineItemsTable`, `TotalsSummary`, `NotesCard`). Mover a subcarpetas `layout/`, `forms/`, `feedback/`, `domain/`.
+
+**9. `src/lib/` raíz tiene 14 ficheros + 9 subcarpetas mezclados**
+`coerce.ts`, `config.ts`, `constants.ts`, `money.ts`, `formatCurrency.ts`, `rpc.ts`, `routes-config.tsx`, `routes.ts`, `telemetry.ts`, `utils.ts`, `exportCsv.ts`. `formatCurrency.ts` debería vivir bajo `lib/money/` o `lib/format/`. `routes-config.tsx` y `routes.ts` deberían moverse a `src/app/routes/`.
+
+**10. PDFs gigantes en `lib/pdf/theme/styles.ts`** (360 LOC)
+El archivo más grande de la app (sin contar autogenerados). Considerar dividir por documento (invoice styles, quote styles, statement styles).
+
+**11. Cobertura de tests desbalanceada**
+Sólo carpetas con `__tests__`: `bookings/hooks`, `invoices/hooks/invoices`, `lib/domain`, `lib/__tests__`, `customers/lib`, `hooks/__tests__`. Features críticos (fleet, quotes, maintenance, returns, deliveries) no tienen tests unitarios. No es bloqueo arquitectónico pero amplifica riesgo de refactors.
+
+---
+
+## Plan ordenado (crítico → opcional)
+
+```text
+Paso 1  Adoptar queryKeys factories existentes en hooks (invoices/bookings/fleet/customers/crm)
+Paso 2  Mover los 5 schemas Zod fuera de componentes a features/*/lib/*Schema.ts
+Paso 3  Crear src/features/*/index.ts (barrels) exponiendo sólo API pública;
+        subir el lint guardrail no-restricted-imports de warning → error
+Paso 4  Reagrupar features/invoices/hooks/invoices/ en cfdi/ payments/ recurring/ pdf/
+        y aplicar la misma poda de nesting redundante en fleet/, bookings/
+Paso 5  Extraer useResourceList<T> que combine useListPage+filters+sort+pagination
+        y migrar 2-3 páginas piloto (InvoicesPage, BookingsPage)
+Paso 6  Revisar hooks *Logic (invoiceForm, bookingActions, forkliftForm, contractFormPrefill)
+        y separar form-state vs mutation vs side-effects
+Paso 7  Reorganizar src/components/ en layout/ forms/ feedback/ domain/
+Paso 8  Reorganizar src/lib/ raíz: money/, format/; mover routes-config y routes a src/app/routes/
+Paso 9  Dividir lib/pdf/theme/styles.ts por tipo de documento
+Paso 10 Añadir tests unitarios a features críticos sin cobertura (fleet, quotes, maintenance)
+```
+
+## Detalle técnico
+
+- **Pasos 1-3 son los de mayor ROI**: eliminan bugs latentes de invalidación, desacoplan validación, y bloquean a nivel lint la deuda futura. Bajo riesgo de regresión (cambios mecánicos guiados por TypeScript).
+- **Paso 4** requiere actualizar imports masivamente (`rg -l` + sed seguro o `tsc --noEmit` como red).
+- **Paso 5** es el único con riesgo real de regresión visual; hacerlo página por página detrás de los tests existentes.
+- **Pasos 6-10** son mejoras incrementales que se pueden intercalar entre features nuevos sin sprint dedicado.
+
+Sin cambios de código todavía; espero tu aprobación para arrancar por el Paso 1 (o el que prefieras saltar/priorizar).

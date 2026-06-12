@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useInvoices() {
   return useQuery({
-    queryKey: ["invoices"],
+    queryKey: invoiceKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("invoices").select("*").or("is_e2e.is.null,is_e2e.eq.false").order("created_at", { ascending: false }).limit(500);
@@ -18,7 +19,7 @@ export function useInvoices() {
 
 export function useInvoice(id: string | undefined) {
   return useQuery({
-    queryKey: ["invoices", id],
+    queryKey: id ? invoiceKeys.detail(id) : invoiceKeys.details(),
     enabled: !!id,
     queryFn: async () => {
       if (!id) throw new Error("Invoice ID is required");
@@ -43,7 +44,7 @@ export function useCreateInvoice() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["invoices"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: invoiceKeys.all }),
     onError: (err: Error) => {
       notifyError({ title: "Error al crear factura", error: err });
     },
@@ -59,8 +60,8 @@ export function useUpdateInvoice() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoices", data.id] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(data.id) });
     },
     onError: (err: Error) => {
       notifyError({ title: "Error al actualizar factura", error: err });
@@ -76,7 +77,7 @@ export function useDeleteInvoice() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
       toast.success("Factura eliminada");
     },
     onError: (err: Error) => {

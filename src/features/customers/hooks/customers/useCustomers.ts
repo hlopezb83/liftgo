@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { customerKeys } from "@/features/customers/lib/queryKeys";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Customer = Tables<"customers">;
 
 export function useCustomers() {
   return useQuery({
-    queryKey: ["customers"],
+    queryKey: customerKeys.all,
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,7 +32,7 @@ export function useCreateCustomer() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: customerKeys.all }),
     onError: (err: Error) => {
       notifyError({ title: "Error al crear cliente", error: err });
     },
@@ -46,7 +47,7 @@ export function useUpdateCustomer() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: customerKeys.all }),
     onError: (err: Error) => {
       notifyError({ title: "Error al actualizar cliente", error: err });
     },
@@ -60,7 +61,7 @@ export function useDeleteCustomer() {
       const { error } = await supabase.from("customers").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: customerKeys.all }),
     onError: (err: Error) => {
       notifyError({ title: "Error al eliminar cliente", error: err });
     },

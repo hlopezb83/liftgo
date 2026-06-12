@@ -4,9 +4,10 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
 
+import { creditNoteKeys, invoiceKeys } from "@/features/invoices/lib/queryKeys";
 function invalidateCreditNotes(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({ queryKey: ["credit_notes"] });
-  qc.invalidateQueries({ queryKey: ["invoices"] });
+  qc.invalidateQueries({ queryKey: creditNoteKeys.all });
+  qc.invalidateQueries({ queryKey: invoiceKeys.all });
 }
 
 export function useCreateCreditNote() {
@@ -97,7 +98,7 @@ export function useDeleteCreditNote() {
     },
     onSuccess: () => {
       toast.success("Nota de crédito eliminada");
-      qc.invalidateQueries({ queryKey: ["credit_notes"] });
+      qc.invalidateQueries({ queryKey: creditNoteKeys.all });
     },
     onError: (err) => notifyError({ error: err, message: "Error al eliminar" }),
   });

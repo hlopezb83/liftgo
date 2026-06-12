@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,9 +11,7 @@ import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import { toast } from "sonner";
 import { Image as ImageIcon, Save, CheckCircle2, AlertCircle, ImageOff } from "lucide-react";
 import { LogoUploader } from "@/features/company-settings/components/company-settings/LogoUploader";
-
-const logoSchema = z.object({ logo_url: z.string() });
-type LogoFormValues = z.infer<typeof logoSchema>;
+import { logoSchema, type LogoFormValues } from "@/features/operations/lib/operationsSchemas";
 
 export function CompanyLogoTab() {
   const { data: settings, isLoading } = useCompanySettings();

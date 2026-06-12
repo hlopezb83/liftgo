@@ -3,6 +3,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 interface GenerateRecurringResponse {
   invoicesCreated?: number;
 }
@@ -28,7 +29,7 @@ export function useGenerateRecurringInvoices() {
             ? "Se crearon borradores de facturas recurrentes."
             : "No hay reservas con facturación recurrente pendiente.",
       });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
     onError: (err: unknown) => {
       notifyError({ error: err, title: "Error al generar facturas", description: err instanceof Error ? err.message : "Intenta de nuevo.", });
