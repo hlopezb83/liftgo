@@ -1,29 +1,16 @@
-# Fix: E2E `invoice-payment` falla porque el seed crea facturas con status inválido
+Plan propuesto
 
-## Diagnóstico
+1. Hacer el campo de monto inequívoco para accesibilidad y pruebas
+- En `RecordPaymentDialog.tsx`, mantener `Label htmlFor` e `Input id`, y agregar un nombre accesible explícito al input: `aria-label="Monto del pago"`.
+- Usar un `id` más específico/estable para evitar colisiones: `recordPaymentAmount`.
 
-- El test `tests/e2e/invoice-payment.spec.ts` espera el botón **"Registrar Pago"** en `/invoices/:id`.
-- En `InvoiceDetailActions.tsx` el botón sólo aparece si `invoice.status ∈ {sent, overdue, partial}`.
-- El RPC `e2e_seed_scenario` (migración `20260610171252_…sql`, línea 149) inserta la factura con `status = 'issued'`, valor que la UI no contempla → el botón nunca se renderiza → timeout.
+2. Ajustar el E2E para apuntar al diálogo correcto
+- En `tests/e2e/invoice-payment.spec.ts`, después de abrir “Registrar Pago”, localizar primero el diálogo por rol/nombre `Registrar Pago`.
+- Buscar el input dentro de ese diálogo con `dialog.getByLabel(/monto/i)` en vez de usar `page.getByLabel(...).first()`, evitando que Playwright tome otro campo oculto o no relacionado.
 
-Otros tests del shard verde no tocan el botón, por eso solo falla este.
+3. Mantener trazabilidad del cambio
+- Agregar `public/changelog/v6.44.7.json`.
+- Insertar la entrada `6.44.7` al inicio de `public/changelog.json`, como patch de testing, describiendo que el E2E ahora usa un selector accesible y acotado al modal de registrar pago.
 
-## Cambios
-
-1. **Migración nueva** `supabase/migrations/<timestamp>_fix_e2e_seed_invoice_status.sql`:
-   - `CREATE OR REPLACE FUNCTION public.e2e_seed_scenario(...)` reemplazando únicamente el literal `'issued'` por `'sent'` en el `INSERT INTO public.invoices`. Se preserva el resto del cuerpo, grants, y `SECURITY DEFINER`/`search_path`.
-   - Sin cambios de schema, sin GRANTs nuevos (la función ya existe y conserva permisos).
-
-2. **Changelog** `public/changelog/v6.44.5.json` + entrada al inicio de `public/changelog.json`:
-   - Tipo: `patch`, categoría `testing`/`tooling`.
-   - Título: "Fix: seed E2E genera factura en status válido para botón Registrar Pago".
-
-## Verificación
-
-- Re-ejecutar `bunx playwright test tests/e2e/invoice-payment.spec.ts` (manual / siguiente run de CI).
-- Confirmar que `supabase/linter` y `tsc` siguen verdes (no se tocan tipos generados).
-
-## Fuera de alcance
-
-- No se modifica `InvoiceDetailActions` ni la lógica de estados de factura.
-- No se tocan otros seeds ni otros tests del shard.
+Validación esperada
+- El test `invoice-payment.spec.ts` debe dejar de fallar en la línea del campo “Monto”, porque el locator ya no depende de `.first()` a nivel página y el control tiene un nombre accesible estable.
