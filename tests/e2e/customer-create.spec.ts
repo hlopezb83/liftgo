@@ -45,34 +45,34 @@ test("create a customer through the UI and find it in the list", async ({ page }
   await page.waitForLoadState("networkidle").catch(() => {});
   await expect(page.getByText(customerName).first()).toBeVisible({ timeout: 15_000 });
 
-  // Teardown: borrar el cliente creado vía el JWT del usuario autenticado en la página.
-  // Si falla, el test no se rompe (best-effort) pero el nombre tiene prefijo "E2E UI"
-  // para que la limpieza semanal lo identifique.
-  if (SUPABASE_URL && SUPABASE_KEY) {
-    try {
-      const token = await page.evaluate(() => {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
-            try {
-              const parsed = JSON.parse(localStorage.getItem(key) ?? "{}");
-              return parsed?.access_token ?? null;
-            } catch {
-              return null;
-            }
-          }
-        }
-        return null;
-      });
-      if (token) {
-        const client = createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: { persistSession: false, autoRefreshToken: false },
-          global: { headers: { Authorization: `Bearer ${token}` } },
-        });
-        await client.from("customers").delete().eq("name", customerName);
-      }
-    } catch {
-      // best-effort
-    }
+  // Teardown obligatorio: marcamos primero is_e2e=true para que cualquier purga
+  // posterior (purge_e2e_data) lo capture, y luego borramos por nombre. Si falla,
+  // el test DEBE fallar para que la contaminación se detecte en CI, no en producción.
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error("VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY requeridos para teardown");
   }
+  const token = await page.evaluate(() => {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(key) ?? "{}");
+          return parsed?.access_token ?? null;
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
+  if (!token) throw new Error("No se encontró token de sesión para teardown");
+
+  const client = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+  // Marca como E2E (red de seguridad) antes de borrar.
+  await client.from("customers").update({ is_e2e: true }).eq("name", customerName);
+  const { error: delErr } = await client.from("customers").delete().eq("name", customerName);
+  if (delErr) throw new Error(`Teardown falló: ${delErr.message}`);
 });
