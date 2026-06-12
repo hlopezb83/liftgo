@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.43.3",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Tests: contratos RLS para invoices, customers y bookings (Lote 2 — Parte 3)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.2",
     "date": "2026-06-12",
     "type": "patch",

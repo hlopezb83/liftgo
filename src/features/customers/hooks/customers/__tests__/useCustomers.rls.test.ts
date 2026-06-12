@@ -12,9 +12,9 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ fromResolver: () => resp }),
 }));
 
-import { useBookings } from "@/features/bookings/hooks/useBookings";
+import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 
-describe("useBookings — RLS contract", () => {
+describe("useCustomers — RLS contract", () => {
   beforeEach(() => {
     resp = { data: [], error: null };
   });
@@ -22,32 +22,17 @@ describe("useBookings — RLS contract", () => {
   it("propaga permission denied del backend", async () => {
     resp = {
       data: null,
-      error: { code: "42501", message: "permission denied for table bookings" },
+      error: { code: "42501", message: "permission denied for table customers" },
     };
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useBookings(), { wrapper: Wrapper });
+    const { result } = renderHook(() => useCustomers(), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
 
-  it("entrega filas con join a forklifts cuando hay acceso", async () => {
-    resp = {
-      data: [
-        {
-          id: "b-1",
-          booking_number: "RSV-0001",
-          start_date: "2026-03-01",
-          end_date: "2026-03-15",
-          forklifts: { name: "F-1", model: "Toyota" },
-        },
-      ],
-      error: null,
-    };
+  it("lista vacia cuando RLS oculta todo", async () => {
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useBookings(), { wrapper: Wrapper });
+    const { result } = renderHook(() => useCustomers(), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data?.[0]).toMatchObject({
-      booking_number: "RSV-0001",
-      forklifts: { name: "F-1" },
-    });
+    expect(result.current.data).toEqual([]);
   });
 });
