@@ -21,11 +21,12 @@ export default defineConfig({
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/integrations/supabase/types.ts"],
       // Umbrales conservadores: la suite todavía cubre poco. Suben gradualmente
       // por lote para evitar regresiones en la cobertura efectiva ya alcanzada.
+      // Actuales (Lote A.1): 11.63/10.38/8.18/11.82 medidos; margen de ~0.5pp.
       thresholds: {
-        lines: 10,
-        functions: 7,
-        statements: 10,
-        branches: 9,
+        lines: 11,
+        functions: 8,
+        statements: 11,
+        branches: 10,
       },
     },
   },
