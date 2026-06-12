@@ -68,7 +68,7 @@ export function RegisterSupplierPaymentDialog({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, balance]);
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: SupplierPaymentFormData) => {
     let receipt_url = data.receipt_url || undefined;
     if (receiptFile) {
       const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });
