@@ -3,6 +3,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 interface GenerateRecurringResponse {
   invoicesCreated?: number;
 }

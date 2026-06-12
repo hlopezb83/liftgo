@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { translateFacturapiError } from "@/features/invoices/lib/facturapiErrors";
 
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 
 interface StampCfdiResponse {
   cfdi_uuid: string;
