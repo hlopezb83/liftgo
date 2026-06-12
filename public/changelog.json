@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.44.9",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Pronóstico de Cobranza descuenta pagos parciales",
+    "description": "El widget de Pronóstico de Cobranza del Panel ahora suma el saldo pendiente (total menos pagos) en lugar del total bruto, tanto para facturas vencidas como para las próximas a vencer a 7 y 30 días.",
+    "category": "bug-fix"
+  },
+  {
     "version": "6.44.8",
     "date": "2026-06-12",
     "type": "patch",
