@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { bookingKeys } from "@/features/bookings/lib/queryKeys";
+import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useCreateBooking() {
@@ -20,8 +22,8 @@ export function useCreateBooking() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
+      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {
@@ -39,7 +41,7 @@ export function useUpdateBooking() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
     },
     onError: (err: Error) => {
       notifyError({ title: "Error al actualizar reserva", error: err });
@@ -55,8 +57,8 @@ export function useDeleteBooking() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
+      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
     },
     onError: (err: Error) => {
       notifyError({ title: "Error al eliminar reserva", error: err });
@@ -72,8 +74,8 @@ export function useCancelBooking() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
+      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
     },
     onError: (err: Error) => {

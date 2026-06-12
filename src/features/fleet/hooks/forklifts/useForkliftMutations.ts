@@ -3,6 +3,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { insertCostoVentaIfSold } from "@/features/fleet/lib/insertCostoVentaIfSold";
+import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type { Forklift } from "@/types/rental";
 
@@ -19,7 +20,7 @@ export function useCreateForklift() {
       });
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: forkliftKeys.all }),
     onError: (err: Error) => {
       notifyError({ title: "Error al crear montacargas", error: err });
     },
@@ -35,10 +36,10 @@ export function useUpdateForklift() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData<Forklift[]>(["forklifts"], (old) =>
+      queryClient.setQueryData<Forklift[]>(forkliftKeys.lists(), (old) =>
         old ? old.map((f) => (f.id === data.id ? { ...f, ...data } : f)) : old
       );
-      queryClient.setQueryData(["forklifts", data.id], data);
+      queryClient.setQueryData(forkliftKeys.detail(data.id), data);
       queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
       queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
       queryClient.invalidateQueries({ queryKey: ["insurance-alerts"] });
@@ -57,15 +58,15 @@ export function useDeleteForklift() {
       if (error) throw error;
     },
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ["forklifts"] });
-      const previous = queryClient.getQueryData<Forklift[]>(["forklifts"]);
-      queryClient.setQueryData<Forklift[]>(["forklifts"], (old) => old?.filter((f) => f.id !== id));
+      await queryClient.cancelQueries({ queryKey: forkliftKeys.all });
+      const previous = queryClient.getQueryData<Forklift[]>(forkliftKeys.lists());
+      queryClient.setQueryData<Forklift[]>(forkliftKeys.lists(), (old) => old?.filter((f) => f.id !== id));
       return { previous };
     },
     onError: (_err, _id, context) => {
-      if (context?.previous) queryClient.setQueryData(["forklifts"], context.previous);
+      if (context?.previous) queryClient.setQueryData(forkliftKeys.lists(), context.previous);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: forkliftKeys.all }),
   });
 }
 
@@ -88,7 +89,7 @@ export function useUpdateStatus() {
       await insertCostoVentaIfSold(forkliftId, toStatus);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
+      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
       queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
     },

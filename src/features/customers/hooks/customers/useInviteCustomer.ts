@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { customerKeys } from "@/features/customers/lib/queryKeys";
 import { toast } from "sonner";
 
 interface InviteCustomerVars {
@@ -32,7 +33,7 @@ export function useInviteCustomer() {
       toast.success("Invitación enviada", {
         description: `Acceso al portal creado para ${email}`,
       });
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
     },
     onError: (err: unknown) => {
       notifyError({ error: err, title: "Error", description: err instanceof Error ? err.message : "Error desconocido", });

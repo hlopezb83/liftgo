@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
+import { bookingKeys } from "@/features/bookings/lib/queryKeys";
 export type { Booking, BookingWithForklift } from "@/types/rental";
 
 export function useBookings(forkliftId?: string) {
   return useQuery({
-    queryKey: ["bookings", forkliftId],
+    queryKey: forkliftId ? bookingKeys.byForklift(forkliftId) : bookingKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
       let query = supabase.from("bookings").select("*, forklifts(name, model)").or("is_e2e.is.null,is_e2e.eq.false").order("start_date", { ascending: false }).limit(500);
@@ -27,7 +28,7 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
   const toStr = typeof to === "string" ? to : toYMD(to);
 
   return useQuery({
-    queryKey: ["bookings", "range", fromStr, toStr],
+    queryKey: [...bookingKeys.all, "range", fromStr, toStr] as const,
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -45,7 +46,7 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
 
 export function useBooking(bookingId?: string) {
   return useQuery({
-    queryKey: ["booking", bookingId],
+    queryKey: bookingId ? bookingKeys.detail(bookingId) : bookingKeys.details(),
     enabled: !!bookingId,
     staleTime: 60_000,
     queryFn: async () => {

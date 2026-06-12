@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { syncInvoiceStatus } from "@/features/invoices/lib/syncInvoiceStatus";
+import { invoiceKeys, paymentKeys } from "@/features/invoices/lib/queryKeys";
 
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
@@ -8,7 +9,7 @@ export type Payment = Tables<"payments">;
 
 export function usePayments(invoiceId: string | undefined) {
   return useQuery({
-    queryKey: ["payments", invoiceId],
+    queryKey: invoiceId ? paymentKeys.byInvoice(invoiceId) : paymentKeys.all,
     enabled: !!invoiceId,
     staleTime: 60_000,
     queryFn: async () => {
@@ -37,8 +38,8 @@ export function useCreatePayment() {
       return data;
     },
     onSuccess: (_d, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["payments", vars.invoice_id] });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: paymentKeys.byInvoice(vars.invoice_id) });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
   });
 }
@@ -58,8 +59,8 @@ export function useUpdatePayment() {
       return data;
     },
     onSuccess: (_d, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["payments", vars.invoice_id] });
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: paymentKeys.byInvoice(vars.invoice_id) });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
   });
 }

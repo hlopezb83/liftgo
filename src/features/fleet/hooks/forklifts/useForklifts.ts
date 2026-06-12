@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
 
 export type { Forklift } from "@/types/rental";
 
 export function useForklifts() {
   return useQuery({
-    queryKey: ["forklifts"],
+    queryKey: forkliftKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("forklifts").select("*").or("is_e2e.is.null,is_e2e.eq.false").order("name");
@@ -17,7 +18,7 @@ export function useForklifts() {
 
 export function useForklift(id: string | undefined) {
   return useQuery({
-    queryKey: ["forklifts", id],
+    queryKey: id ? forkliftKeys.detail(id) : forkliftKeys.details(),
     enabled: !!id,
     queryFn: async () => {
       if (!id) throw new Error("Forklift ID is required");
