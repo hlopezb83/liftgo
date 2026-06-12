@@ -1,0 +1,8 @@
+{
+  "version": "6.44.6",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Fix E2E: campo Monto accesible en Registrar Pago",
+  "description": "Se asocia explícitamente la etiqueta Monto con el input del modal Registrar Pago para que Playwright y lectores de pantalla lo identifiquen por label.",
+  "category": "testing"
+}
