@@ -1,8 +1,20 @@
 // Unit tests for cancel-payment-complement pure handler.
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { type CancelRepDeps, handleCancelPaymentComplement } from "./handler.ts";
-import { buildSupabaseMock, type MockConfig } from "../_shared/test/supabaseClientMock.ts";
-import { facturapiBadRequest, installFacturapiMock } from "../_shared/test/facturapiMock.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  type CancelRepDeps,
+  handleCancelPaymentComplement,
+} from "./handler.ts";
+import {
+  buildSupabaseMock,
+  type MockConfig,
+} from "../_shared/test/supabaseClientMock.ts";
+import {
+  facturapiBadRequest,
+  installFacturapiMock,
+} from "../_shared/test/facturapiMock.ts";
 
 const PAYMENT_ID = "11111111-1111-4111-8111-111111111111";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
@@ -179,7 +191,9 @@ Deno.test("handler: happy path llama Facturapi DELETE y marca cancelled", async 
     assert(upd, "expected cancelled update");
     assert(typeof upd!.patch.rep_cancelled_at === "string");
     assert(
-      mock.calls.some((c) => c.method === "DELETE" && c.url.includes("motive=02")),
+      mock.calls.some((c) =>
+        c.method === "DELETE" && c.url.includes("motive=02")
+      ),
     );
   } finally {
     mock.restore();
@@ -213,7 +227,9 @@ Deno.test("handler: 502 si Facturapi falla y NO marca cancelled", async () => {
     await res.json();
     assertEquals(res.status, 502);
     assert(
-      !serviceState.updates.some((u) => u.patch.rep_cfdi_status === "cancelled"),
+      !serviceState.updates.some((u) =>
+        u.patch.rep_cfdi_status === "cancelled"
+      ),
     );
   } finally {
     mock.restore();
@@ -222,7 +238,8 @@ Deno.test("handler: 502 si Facturapi falla y NO marca cancelled", async () => {
 
 Deno.test("handler: motivo inválido cae a default '02'", async () => {
   const mock = installFacturapiMock({
-    "/invoices/fapi_xx": () => new Response(JSON.stringify({ ok: true }), { status: 200 }),
+    "/invoices/fapi_xx": () =>
+      new Response(JSON.stringify({ ok: true }), { status: 200 }),
   });
   try {
     const { deps } = makeDeps({

@@ -1,7 +1,13 @@
 // Unit tests for stamp-cfdi pure handler (no network, no Supabase).
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handleStampCfdi, type StampCfdiDeps } from "./handler.ts";
-import { buildSupabaseMock, type MockConfig } from "../_shared/test/supabaseClientMock.ts";
+import {
+  buildSupabaseMock,
+  type MockConfig,
+} from "../_shared/test/supabaseClientMock.ts";
 import {
   facturapiBadRequest,
   facturapiOk,
@@ -133,7 +139,8 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
       return new Response("not found", { status: 404 });
     },
     "/invoices/fapi_123/xml": () => xmlResponse("<xml/>"),
-    "/invoices/fapi_123/pdf": () => pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+    "/invoices/fapi_123/pdf": () =>
+      pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
   });
 
   try {
@@ -185,7 +192,9 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
 
     // Facturapi was called for create + xml + pdf.
     assertEquals(
-      mock.calls.filter((c) => c.url.endsWith("/v2/invoices") && c.method === "POST").length,
+      mock.calls.filter((c) =>
+        c.url.endsWith("/v2/invoices") && c.method === "POST"
+      ).length,
       1,
     );
     assert(mock.calls.some((c) => c.url.endsWith("/xml")));
@@ -277,6 +286,8 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
   assertEquals(body.stub, true);
   assert(typeof body.cfdi_uuid === "string" && body.cfdi_uuid.length > 0);
 
-  const stampUpdate = serviceState.updates.find((u) => u.patch.cfdi_status === "stamped");
+  const stampUpdate = serviceState.updates.find((u) =>
+    u.patch.cfdi_status === "stamped"
+  );
   assert(stampUpdate, "stub mode still stamps the invoice in DB");
 });

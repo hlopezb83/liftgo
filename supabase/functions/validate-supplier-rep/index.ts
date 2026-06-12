@@ -86,7 +86,9 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: roles } = await supabase
       .from("user_roles").select("role").eq("user_id", userId);
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    const allowed = (roles ?? []).some((r) =>
+      r.role === "admin" || r.role === "administrativo"
+    );
     if (!allowed) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
@@ -169,7 +171,8 @@ Deno.serve(async (req) => {
     if (tipo !== "P") {
       return new Response(
         JSON.stringify({
-          error: "El XML no es un Complemento de Pago (TipoDeComprobante distinto de P)",
+          error:
+            "El XML no es un Complemento de Pago (TipoDeComprobante distinto de P)",
         }),
         { status: 400, headers: jsonHeaders },
       );
@@ -187,7 +190,9 @@ Deno.serve(async (req) => {
     if (!rfcEmisor || rfcEmisor.trim().toUpperCase() !== supplierRfc) {
       return new Response(
         JSON.stringify({
-          error: `RFC emisor (${rfcEmisor ?? "n/a"}) no coincide con el proveedor (${supplierRfc})`,
+          error: `RFC emisor (${
+            rfcEmisor ?? "n/a"
+          }) no coincide con el proveedor (${supplierRfc})`,
         }),
         { status: 400, headers: jsonHeaders },
       );
@@ -221,7 +226,9 @@ Deno.serve(async (req) => {
     );
 
     if (!match) {
-      const partial = pagos.some((p) => p.doctos.some((d) => d.toLowerCase() === targetUuid));
+      const partial = pagos.some((p) =>
+        p.doctos.some((d) => d.toLowerCase() === targetUuid)
+      );
       const msg = partial
         ? `El REP referencia la factura pero el monto no coincide (esperado ${
           expectedAmount.toFixed(2)
@@ -310,7 +317,8 @@ Deno.serve(async (req) => {
         entity_type: "supplier_payments",
         entity_id: payment_id,
         title: "REP cargado",
-        description: `Complemento de pago ${repUuid} cargado para la factura ${bill.cfdi_uuid}`,
+        description:
+          `Complemento de pago ${repUuid} cargado para la factura ${bill.cfdi_uuid}`,
         actor_id: userId,
       });
     } catch (e) {

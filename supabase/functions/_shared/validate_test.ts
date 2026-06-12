@@ -1,5 +1,8 @@
 // Tests unitarios para validate.ts y generateSecurePassword (Lote 9).
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { isEmail, isNonEmptyString, isUUID, isValidRole } from "./validate.ts";
 import { generateSecurePassword } from "./auth.ts";
 

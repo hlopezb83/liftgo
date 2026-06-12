@@ -1,6 +1,9 @@
 // Helpers compartidos de autenticación / autorización para Edge Functions admin.
 // Centralizan validación de JWT, lookup de rol y generación de contraseñas seguras.
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "./cors.ts";
 
 export type AuthSuccess = {
@@ -87,7 +90,8 @@ export function requireAdmin(req: Request): Promise<AuthResult> {
  * que introduce `% charset.length` cuando 256 no es múltiplo del tamaño del charset.
  */
 export function generateSecurePassword(length = 20): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
   const max = Math.floor(256 / charset.length) * charset.length;
   const out: string[] = [];
   const buf = new Uint8Array(1);

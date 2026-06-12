@@ -1,5 +1,9 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { enforceRateLimit, generateSecurePassword, requireAdmin } from "../_shared/auth.ts";
+import {
+  enforceRateLimit,
+  generateSecurePassword,
+  requireAdmin,
+} from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 function passwordValidationResponse(

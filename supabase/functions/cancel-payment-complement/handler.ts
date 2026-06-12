@@ -40,7 +40,9 @@ export async function handleCancelPaymentComplement(
     const roles = (rolesRes as { data: unknown }).data as
       | Array<{ role: string }>
       | null;
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    const allowed = (roles ?? []).some((r) =>
+      r.role === "admin" || r.role === "administrativo"
+    );
     if (!allowed) {
       return json({ error: "Forbidden" }, 403, jsonHeaders);
     }
@@ -57,7 +59,9 @@ export async function handleCancelPaymentComplement(
         jsonHeaders,
       );
     }
-    const motiveCode = typeof motive === "string" && VALID_MOTIVES.has(motive) ? motive : "02";
+    const motiveCode = typeof motive === "string" && VALID_MOTIVES.has(motive)
+      ? motive
+      : "02";
 
     const { data: payment } = await supabase
       .from("payments").select("rep_facturapi_id, rep_cfdi_status").eq(

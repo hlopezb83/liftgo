@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { invoice_id, motive, substitution_uuid, cancellation_reason } = body ?? {};
+    const { invoice_id, motive, substitution_uuid, cancellation_reason } =
+      body ?? {};
 
     if (!isUUID(invoice_id)) {
       return new Response(
@@ -69,7 +70,8 @@ Deno.serve(async (req) => {
     if (motive === "01" && !isUUID(substitution_uuid)) {
       return new Response(
         JSON.stringify({
-          error: "substitution_uuid (UUID de factura sustituta) es requerido para motivo 01",
+          error:
+            "substitution_uuid (UUID de factura sustituta) es requerido para motivo 01",
         }),
         { status: 400, headers: jsonHeaders },
       );
@@ -135,7 +137,8 @@ Deno.serve(async (req) => {
       if (motive === "01" && substitution_uuid) {
         params.set("substitution", substitution_uuid);
       }
-      const url = `${FACTURAPI_BASE}/invoices/${facturApiId}?${params.toString()}`;
+      const url =
+        `${FACTURAPI_BASE}/invoices/${facturApiId}?${params.toString()}`;
       const cancelRes = await fetch(url, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${apiKey}` },
@@ -155,12 +158,14 @@ Deno.serve(async (req) => {
 
       const cancelJson = await cancelRes.json().catch(() => ({}));
       // Facturapi returns: { status: "canceled"|"valid", cancellation_status: "accepted"|"pending"|... }
-      const rawStatus = (cancelJson?.cancellation_status as string | undefined) ?? "accepted";
-      satStatus = ["accepted", "pending", "rejected", "expired", "none"].includes(
-          rawStatus,
-        )
-        ? rawStatus
-        : "pending";
+      const rawStatus =
+        (cancelJson?.cancellation_status as string | undefined) ?? "accepted";
+      satStatus =
+        ["accepted", "pending", "rejected", "expired", "none"].includes(
+            rawStatus,
+          )
+          ? rawStatus
+          : "pending";
     }
 
     const isAccepted = satStatus === "accepted";
