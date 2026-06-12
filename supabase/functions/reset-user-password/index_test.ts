@@ -7,7 +7,10 @@ const FN_URL = fnUrl("reset-user-password");
 Deno.test("reset-user-password: CORS preflight returns 200", async () => {
   const res = await fetch(FN_URL, {
     method: "OPTIONS",
-    headers: { Origin: "https://example.com", "Access-Control-Request-Method": "POST" },
+    headers: {
+      Origin: "https://example.com",
+      "Access-Control-Request-Method": "POST",
+    },
   });
   await res.text();
   assertEquals(res.status, 200);

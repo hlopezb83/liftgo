@@ -9,6 +9,7 @@ import { ActivityTimeline } from "@/features/audit/components/activity/ActivityT
 import { useActivityMetrics } from "@/features/audit/hooks/useActivityMetrics";
 import { getRange, type RangeKey } from "@/features/audit/lib/activityConstants";
 import type { ActivityFilters } from "@/features/dashboard/hooks/useActivityFeed";
+import type { ActivityMetrics } from "@/features/audit/hooks/activityMetricsTypes";
 
 export default function ActivityPage() {
   const [rangeKey, setRangeKey] = useState<RangeKey>("7d");
@@ -27,7 +28,7 @@ export default function ActivityPage() {
     to: range.to,
   };
 
-  const empty = {
+  const empty: ActivityMetrics = {
     totalCurrent: 0, totalPrevious: 0, uniqueActors: 0,
     topModule: null, peakHour: null,
     byMember: [], byModule: [], byHour: [],

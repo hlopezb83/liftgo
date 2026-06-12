@@ -20,7 +20,9 @@ Deno.test("validate-supplier-rep: rechaza sin Authorization (401)", async () => 
   const res = await fetch(FN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ payment_id: "00000000-0000-0000-0000-000000000000" }),
+    body: JSON.stringify({
+      payment_id: "00000000-0000-0000-0000-000000000000",
+    }),
   });
   await res.text();
   assertEquals(res.status, 401);

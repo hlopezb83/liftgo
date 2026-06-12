@@ -13,7 +13,10 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: jsonHeaders,
+      });
     }
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -22,9 +25,13 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
+    const { data: claimsData, error: claimsErr } = await callerClient.auth
+      .getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: jsonHeaders,
+      });
     }
     const userId = claimsData.claims.sub as string;
 
@@ -33,14 +40,22 @@ Deno.serve(async (req) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    const allowed = (rolesRows ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    const allowed = (rolesRows ?? []).some((r) =>
+      r.role === "admin" || r.role === "administrativo"
+    );
     if (!allowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: jsonHeaders,
+      });
     }
 
     const { invoice_id } = await req.json().catch(() => ({}));
     if (!isUUID(invoice_id)) {
-      return new Response(JSON.stringify({ error: "invoice_id must be a valid UUID" }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "invoice_id must be a valid UUID" }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
     const { data: invoice } = await supabase
@@ -49,7 +64,10 @@ Deno.serve(async (req) => {
       .eq("id", invoice_id)
       .single();
     if (!invoice?.facturapi_invoice_id) {
-      return new Response(JSON.stringify({ error: "Invoice has no Facturapi reference" }), { status: 404, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "Invoice has no Facturapi reference" }),
+        { status: 404, headers: jsonHeaders },
+      );
     }
 
     const { data: company } = await supabase
@@ -65,33 +83,54 @@ Deno.serve(async (req) => {
 
     const mode = (company?.facturapi_mode as string | undefined) || "test";
     const apiKey = mode === "live"
-      ? ((secrets?.facturapi_live_key as string | null) || Deno.env.get("FACTURAPI_LIVE_KEY"))
-      : ((secrets?.facturapi_test_key as string | null) || Deno.env.get("FACTURAPI_TEST_KEY"));
+      ? ((secrets?.facturapi_live_key as string | null) ||
+        Deno.env.get("FACTURAPI_LIVE_KEY"))
+      : ((secrets?.facturapi_test_key as string | null) ||
+        Deno.env.get("FACTURAPI_TEST_KEY"));
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Facturapi key not configured" }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "Facturapi key not configured" }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
     // Force Facturapi to re-query SAT
-    const updateRes = await fetch(`${FACTURAPI_BASE}/invoices/${invoice.facturapi_invoice_id}/status`, {
-      method: "PUT",
-      headers: { "Authorization": `Bearer ${apiKey}` },
-    });
+    const updateRes = await fetch(
+      `${FACTURAPI_BASE}/invoices/${invoice.facturapi_invoice_id}/status`,
+      {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      },
+    );
     if (!updateRes.ok) {
       const errBody = await updateRes.text();
       console.error("Facturapi status update error:", errBody);
-      return new Response(JSON.stringify({ error: `Facturapi status error: ${updateRes.status}`, detail: errBody }), {
-        status: 502, headers: jsonHeaders,
-      });
+      return new Response(
+        JSON.stringify({
+          error: `Facturapi status error: ${updateRes.status}`,
+          detail: errBody,
+        }),
+        {
+          status: 502,
+          headers: jsonHeaders,
+        },
+      );
     }
 
     // Then fetch the invoice
-    const invRes = await fetch(`${FACTURAPI_BASE}/invoices/${invoice.facturapi_invoice_id}`, {
-      headers: { "Authorization": `Bearer ${apiKey}` },
-    });
+    const invRes = await fetch(
+      `${FACTURAPI_BASE}/invoices/${invoice.facturapi_invoice_id}`,
+      {
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      },
+    );
     const facturApiInv = await invRes.json().catch(() => ({}));
-    const rawStatus = (facturApiInv?.cancellation_status as string | undefined) ?? invoice.cancellation_status ?? "pending";
-    const satStatus = ["accepted", "pending", "rejected", "expired", "none"].includes(rawStatus) ? rawStatus : "pending";
+    const rawStatus = (facturApiInv?.cancellation_status as string | undefined) ??
+      invoice.cancellation_status ?? "pending";
+    const satStatus = ["accepted", "pending", "rejected", "expired", "none"].includes(rawStatus)
+      ? rawStatus
+      : "pending";
 
     const update: Record<string, unknown> = { cancellation_status: satStatus };
     if (satStatus === "accepted") {

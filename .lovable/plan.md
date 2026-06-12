@@ -1,80 +1,141 @@
-# Lote 2 — Parte 6: Mock de Facturapi y tests reales para `stamp-cfdi`
+# Plan de remediación — CI y Tests (LiftGo)
 
-## Contexto
+5 lotes ordenados por ROI. Cada lote es independiente: si paramos en cualquier punto, lo entregado queda funcionando. Cada cambio cierra con entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`.
 
-Pendientes del Lote 2 después de v6.43.5:
+---
 
-1. Mock server de Facturapi para fiscales.
-2. Seed E2E para portal/damage/maintenance/returns.
-3. Subir umbrales de cobertura (ya en 10/10/9/7, siguiente meta 15%).
+## Lote A — Gates de seguridad en CI (alto ROI, bajo costo)
 
-De los tres, el de mayor ROI es el **mock de Facturapi**: hoy `stamp-cfdi/index_test.ts` solo cubre CORS + 401 sin Authorization. Toda la lógica de timbrado (validación de invoice, llamada al PAC, persistencia de UUID, manejo de errores Facturapi) está sin red de seguridad. Un cambio en el payload del PAC o en el flujo de update rompe en producción sin que ningún test reaccione.
+**Objetivo:** que ningún PR pueda romper tipos, formato Deno, ni introducir CVEs conocidos.
 
-El seed E2E es más caro (necesita datos sembrados en una DB real / staging) y bloqueará la sesión; lo dejo para un lote dedicado.
+1. **`tsc --noEmit` en CI**
+   - Añadir paso en el job `quality` de `.github/workflows/ci.yml` con `bunx tsc --noEmit -p tsconfig.app.json`.
+   - Tiempo esperado: +30-60s.
 
-## Objetivo
+2. **`deno lint` + `deno fmt --check`** en el job `edge-functions`.
+   - Si hay deuda de formato existente, corregirla en un commit aparte antes de activar el gate.
 
-Sustituir el smoke test de `stamp-cfdi` por una suite que ejercite el flujo completo del Edge Function usando:
+3. **`bun audit`** en el job `quality` (continue-on-error inicialmente para no bloquear).
+   - Reporte a summary del PR. Después de 1 sprint, hacerlo blocker.
 
-- Un **mock HTTP de Facturapi** (intercept de `fetch` a `https://www.facturapi.io/v2/*`) configurable por test: respuesta exitosa, error 400 (datos inválidos), error 5xx (PAC caído), timeout.
-- Un **mock de `createClient` de Supabase** ya disponible en el repo (mismo patrón que los otros tests Deno), parametrizable para devolver una invoice válida, una `not found`, una con `is_e2e=true`, y user sin rol admin/administrativo.
+4. **Subir thresholds Vitest a 13/12/10/13** (de 10/9/7/10) para reflejar el estado real y evitar regresión.
 
-## Alcance
+**Riesgos:** typecheck puede destapar errores acumulados (los resolvemos en Lote B). Mitigación: si son muchos, primero hacer `tsc --noEmit` con `continue-on-error: true` por 1 PR para inventariar.
 
-### 1. `supabase/functions/_shared/test/facturapiMock.ts` (nuevo)
+---
 
-Helper reutilizable. Exporta:
+## Lote B — TypeScript estricto (deuda Power-of-10)
 
-- `installFacturapiMock(handlers: Record<string, (req: Request) => Response | Promise<Response>>)`: parchea `globalThis.fetch` solo para URLs que empiecen con `https://www.facturapi.io/v2/`. Resto pasa al `fetch` original.
-- `restoreFetch()`: revierte el parche en `afterEach`.
-- Respuestas pre-armadas: `facturapiOk(uuid)`, `facturapiBadRequest(message)`, `facturapiServerError()`.
+**Objetivo:** alinear `tsconfig.app.json` con la doctrina ya declarada.
 
-### 2. `supabase/functions/_shared/test/supabaseClientMock.ts` (nuevo)
+1. Activar gradualmente en `tsconfig.app.json`:
+   - Paso 1: `noImplicitAny: true`
+   - Paso 2: `strictNullChecks: true`
+   - Paso 3: `strict: true` (incluye los anteriores + más)
 
-Helper que parchea el módulo `https://esm.sh/@supabase/supabase-js@2` con `createClient` que retorna chains configurables (similar a `createSupabaseChainMock` del frontend, pero para Deno). Permite stubbear:
+2. Por cada paso, corregir errores. Heurística: la mayoría vendrán de:
+   - Mocks en tests con `as unknown as X` → reemplazar por factories tipadas.
+   - Funciones que reciben `data` de Supabase sin guardar contra `null`.
+   - Catch blocks sin `unknown`.
 
-- `auth.getClaims(token)` → `{ data: { claims: { sub } } }` o error.
-- `from('user_roles').select().eq()` → roles del usuario.
-- `from('invoices').select().eq().single()` → invoice o not found.
-- `from('invoices').update().eq()` → ok / error de RLS.
+3. Eliminar `as any` y `!` residuales (rg muestra ~ docena en tests viejos).
 
-Si reutilizar `createSupabaseChainMock` cruzando frontend/Deno es viable lo intentamos primero; si no, helper Deno-only.
+**Validación:** cero errores en `bunx tsc --noEmit`, suite 503/503 sigue verde, `bunx vitest run` en CI sigue pasando.
 
-### 3. `supabase/functions/stamp-cfdi/index_test.ts` (reescritura)
+---
 
-Mantiene los 2 casos actuales (CORS, 401 sin Authorization) y añade:
+## Lote C — Refactor `_shared/cfdi/` y tests de cancelación
 
-- **403** cuando el usuario no es admin/administrativo.
-- **400** cuando `invoice_id` no es UUID.
-- **404** cuando la invoice no existe.
-- **400** cuando `is_e2e === true` (no debe llegar al PAC).
-- **Happy path**: invoice válida + rol admin + Facturapi 200 → response 200 con UUID, y el mock de Supabase recibió un `update` con el UUID y `status='stamped'` (o equivalente al campo real).
-- **502/PAC error**: Facturapi responde 400 → el endpoint propaga error legible, NO marca la invoice como timbrada.
+**Objetivo:** deduplicar 4 handlers Facturapi y cerrar el gap fiscal crítico.
 
-### 4. `supabase/functions/stamp-cfdi/deno.json` o import map (si hace falta)
+1. **Extraer helpers compartidos en `supabase/functions/_shared/cfdi/`:**
+   - `authGate.ts` → `requireAdmin(req, deps)` retorna `{ userId }` o `Response` 401/403.
+   - `facturapiKeyResolver.ts` → `resolveFacturapiKey(supabase, env)` retorna `{ apiKey, mode }` o `null`.
+   - `storage.ts` → `uploadCfdiArtifacts(supabase, facturApiId, baseDir, apiKey, fetchImpl)` retorna `{ xmlPath, pdfPath }`.
 
-Algunos test runners de Deno necesitan import map para parchear módulos `https://esm.sh/...`. Si el approach de parchear `createClient` por intercept de import no es directo, alternativa: refactorizar `index.ts` para inyectar el cliente vía argumento (`stampInvoice(req, deps)`), exportar la función pura, y testear sobre la función pura. Esta segunda vía es más limpia y la prefiero si el primer intento se complica.
+2. **Refactor de los 4 handlers actuales** (`stamp-cfdi`, `stamp-credit-note`, `stamp-payment-complement`, `cancel-payment-complement`) para usar los helpers. Resultado esperado: -200 LOC duplicado.
 
-### 5. Changelog
+3. **Tests nuevos para funciones críticas sin cobertura real:**
+   - `cancel-cfdi/handler.ts` + `handler_test.ts` (8-9 casos como stamp-credit-note).
+   - `cancel-credit-note/handler.ts` + `handler_test.ts` (la función ni siquiera tiene smoke hoy).
+   - `generate-recurring-invoices/handler.ts` extraer lógica de fechas + tests unitarios (cubre cálculo de ciclos mensuales, casos de fin de mes).
 
-`public/changelog.json` + `public/changelog/v6.43.6.json` documentando el mock helper y los nuevos casos cubiertos.
+4. **Extender `_shared/test/supabaseClientMock.ts`** para soportar:
+   - `.rpc(name, args)` con respuestas configurables por nombre.
+   - Múltiples respuestas secuenciales por tabla (cola FIFO) para tests que hacen varios `.select()` al mismo recurso.
+   - Errores RLS simulados (`{ code: '42501' }`).
 
-## Fuera de alcance
+**Validación:** todos los handler_test verdes; cobertura de funciones críticas pasa de smoke a comportamiento real.
 
-- Seed E2E para portal/damage/maintenance/returns (lote propio).
-- Replicar el mock para `stamp-credit-note`, `cancel-payment-complement`, `parse-cfdi-expense`, `generate-recurring-invoices` — primero validamos el patrón con `stamp-cfdi`, después se replica en lote 3.
-- Subir umbrales de cobertura (estos tests son Deno, no entran al `vitest --coverage`).
+---
 
-## Riesgos
+## Lote D — Cerrar gaps de cobertura por feature
 
-- **Parcheo de `fetch` global en Deno**: si Facturapi se llama vía un cliente que no usa `globalThis.fetch` (poco probable, pero a verificar leyendo `index.ts`), el mock no intercepta. Mitigación: el refactor a función pura con deps inyectadas.
-- **Mock de `createClient` cross-runtime**: el helper del frontend usa Vitest `vi.mock`; en Deno hay que usar `Deno.test` con import map o refactor. El fallback a función pura es el plan B.
+**Objetivo:** atacar los módulos 🔴 sin tests.
 
-## Validación
+Por orden de impacto:
 
-- `deno test supabase/functions/stamp-cfdi/` debe pasar todos los casos nuevos.
-- `bunx vitest run` debe seguir en 503/503 verde (sin tocar frontend).
+1. **`features/returns/`** — hooks de inspección de retorno, cálculo de daños/horómetro, marca de DEV-XXXX. 6-8 unit tests + 1 integración.
+2. **`features/damage/`** — hooks `useDamageRecords`, transición de estados, cálculo de costo de reparación. 5-7 unit tests.
+3. **`features/portal/`** — hooks read-only del cliente (`useMyInvoices`, `useMyPayments`). 4-5 unit tests + activar `tests/e2e/portal.spec.ts`:
+   - Añadir bloque al RPC `e2e_seed_scenario` que cree un usuario portal con `customer_id` ligado al cliente seed.
+   - Quitar `test.skip()` y validar listado de facturas + descarga.
+4. **`features/accounts-payable/`** y **`features/operations/`** — al menos smoke tests de hooks principales.
+
+5. **Sanear tests frágiles existentes** identificados por el subagente:
+   - `cfdiPrechecks.test.ts`: reemplazar `as unknown as Invoice` por factory.
+   - `InvoicesPage.test.tsx`: cambiar asserts por `textContent` a `getByRole`/`getByTestId`.
+
+**Validación:** cobertura sube; mapa por feature pasa de 🔴 a 🟡 mínimo en los 5 módulos atacados.
+
+---
+
+## Lote E — Limpieza de ruido y mantenimiento
+
+1. **Reemplazar smoke tests redundantes `index_test.ts`** (CORS + 401) por un helper compartido `_shared/test/smokeSuite.ts` que reciba `fnName` y genere los 2 casos. Reduce ~150 LOC de boilerplate.
+
+2. **Script de limpieza E2E** para basura por crash:
+   - Cron en CI (job semanal) que ejecute un RPC `e2e_teardown_stale(p_prefix => 'w', p_older_than => '24 hours')` que purge filas con `e2e_scope` antiguas.
+
+3. **Lighthouse CI** (opcional, baja prioridad): activar `scripts/lighthouse-baseline.sh` en un job nocturno para detectar regresiones de performance.
+
+4. **Subir thresholds Vitest a 20/18/15/20** una vez los lotes D estén entregados (objetivo intermedio; meta final 30% en lotes posteriores).
+
+---
+
+## Detalles técnicos clave
+
+- **No cambiamos** `supabase/config.toml`, ni el `client.ts`/`types.ts` autogenerados.
+- **No agregamos** anon grants nuevos: los helpers `_shared/cfdi/` no tocan DB schema.
+- **Convención de versiones:** cada lote es una versión `minor` (`6.44.0`, `6.45.0`, ...), cada paso intermedio es `patch`.
+- **Orden de mergeo:** A → B → C → D → E. A y B se pueden traslapar si typecheck no destapa demasiado.
+- **Sin cambios visuales** para el usuario final en ningún lote.
+
+---
+
+## Métricas de éxito
+
+| Métrica | Hoy | Meta post-plan |
+|---|---|---|
+| Typecheck en CI | ❌ | ✅ blocker |
+| `strict: true` | ❌ | ✅ |
+| Edge functions con handler test real | 4/15 | 8/15 |
+| Features 🔴 sin tests | 6 | 1-2 |
+| Coverage thresholds | 10/9/7/10 | 20/18/15/20 |
+| LOC duplicado en handlers Facturapi | ~600 | ~400 |
+| E2E portal | skip | activo |
+
+---
+
+## Out of scope (lote futuro)
+
+- Migrar a `pg-mem` para tests de filtrado real (mencionado por subagente; alto costo, ROI medio).
+- Subir thresholds a >50% (requiere meses de trabajo sostenido).
+- Reescribir tests de integración como E2E full (caro y lento).
+- Lighthouse blocker (solo informativo por ahora).
+
+---
 
 ## Pregunta abierta
 
-¿Procedo con esta Parte 6 (mock Facturapi + stamp-cfdi), o prefieres saltar al seed E2E aunque sea más costoso? El seed E2E requiere decidir antes si lo corremos contra la DB de preview o si montamos staging dedicado.
+¿Procedo lote por lote pidiendo confirmación entre cada uno, o autorizas correr A+B seguidos (los más mecánicos) y paramos para revisar antes de C?

@@ -15,13 +15,19 @@ export function installFacturapiMock(
   const original = globalThis.fetch;
   const state: FacturapiMockState = {
     calls: [],
-    restore: () => { globalThis.fetch = original; },
+    restore: () => {
+      globalThis.fetch = original;
+    },
   };
 
   globalThis.fetch = (async (input: Request | string | URL, init?: RequestInit) => {
-    const url = typeof input === "string" ? input : (input instanceof URL ? input.toString() : input.url);
+    const url = typeof input === "string"
+      ? input
+      : (input instanceof URL ? input.toString() : input.url);
     if (!url.startsWith(FACTURAPI_PREFIX)) {
-      throw new Error(`Unexpected fetch call to ${url} (facturapi mock active)`);
+      throw new Error(
+        `Unexpected fetch call to ${url} (facturapi mock active)`,
+      );
     }
     const req = input instanceof Request ? input : new Request(url, init);
     const body = init?.body ? String(init.body) : null;
@@ -65,7 +71,10 @@ export function xmlResponse(xml: string): Response {
 }
 
 export function pdfResponse(bytes: Uint8Array): Response {
-  const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+  const ab = bytes.buffer.slice(
+    bytes.byteOffset,
+    bytes.byteOffset + bytes.byteLength,
+  ) as ArrayBuffer;
   return new Response(ab, {
     status: 200,
     headers: { "Content-Type": "application/pdf" },

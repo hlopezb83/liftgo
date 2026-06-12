@@ -37,6 +37,11 @@ jobs:
       - name: ESLint
         run: bun run lint
 
+      # Typecheck blocker: previene que código con errores de tipos se mergee
+      # aunque los tests pasen. Verificado pasando hoy con tsconfig.app.json.
+      - name: Typecheck (tsc --noEmit)
+        run: bunx tsc --noEmit -p tsconfig.app.json
+
       # Falla el PR si aparecen archivos huérfanos o dependencias sin uso.
       - name: Knip (archivos y dependencias sin uso)
         run: bunx knip --include files,dependencies,binaries --reporter compact
@@ -111,6 +116,12 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v1.x
+
+      - name: Deno fmt --check
+        run: cd supabase/functions && deno fmt --check
+
+      - name: Deno lint
+        run: cd supabase/functions && deno lint
 
       - name: Run Deno tests
         # Cargamos los archivos en un array para detectar el caso "0 tests" (exit 1).

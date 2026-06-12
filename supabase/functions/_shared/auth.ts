@@ -53,7 +53,10 @@ export async function requireAuth(req: Request): Promise<AuthResult> {
 }
 
 /** Valida el JWT y exige que el caller tenga uno de los roles indicados. */
-export async function requireRole(req: Request, roles: string[]): Promise<AuthResult> {
+export async function requireRole(
+  req: Request,
+  roles: string[],
+): Promise<AuthResult> {
   const auth = await requireAuth(req);
   if (!auth.ok) return auth;
 
@@ -65,7 +68,10 @@ export async function requireRole(req: Request, roles: string[]): Promise<AuthRe
     .maybeSingle();
 
   if (!roleData) {
-    return { ok: false, response: jsonError(req, 403, "Forbidden: insufficient role") };
+    return {
+      ok: false,
+      response: jsonError(req, 403, "Forbidden: insufficient role"),
+    };
   }
 
   return { ...auth, role: roleData.role as string };
@@ -126,7 +132,8 @@ export async function enforceRateLimit(
   if (data === false) {
     return new Response(
       JSON.stringify({
-        error: `Demasiadas peticiones. Espera unos segundos antes de reintentar (límite ${maxRequests}/${windowSeconds}s).`,
+        error:
+          `Demasiadas peticiones. Espera unos segundos antes de reintentar (límite ${maxRequests}/${windowSeconds}s).`,
       }),
       {
         status: 429,

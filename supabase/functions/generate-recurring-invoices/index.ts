@@ -19,7 +19,16 @@ function nowInMonterrey(): Date {
   const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
   // Construimos fecha como UTC pero con los componentes de Monterrey,
   // de modo que getFullYear/getMonth/getDate (UTC) reflejen el calendario MTY.
-  return new Date(Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second")));
+  return new Date(
+    Date.UTC(
+      get("year"),
+      get("month") - 1,
+      get("day"),
+      get("hour"),
+      get("minute"),
+      get("second"),
+    ),
+  );
 }
 
 /** Parsea YYYY-MM-DD como medianoche en Monterrey (sin desfase). */
@@ -76,7 +85,8 @@ Deno.serve(async (req) => {
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+    const { data: claimsData, error: claimsError } = await callerClient.auth
+      .getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -101,7 +111,9 @@ Deno.serve(async (req) => {
 
     const { data: bookings, error: bErr } = await supabase
       .from("bookings")
-      .select("*, forklifts(name, model, daily_rate, weekly_rate, monthly_rate)")
+      .select(
+        "*, forklifts(name, model, daily_rate, weekly_rate, monthly_rate)",
+      )
       .eq("recurring_billing", true)
       .eq("status", "confirmed");
 
@@ -117,7 +129,13 @@ Deno.serve(async (req) => {
       if (booking.last_billed_date) {
         // Mes siguiente al último facturado (calculado en wall-clock Monterrey).
         const lastBilled = dateOnlyToMty(booking.last_billed_date);
-        billingStart = new Date(Date.UTC(lastBilled.getUTCFullYear(), lastBilled.getUTCMonth() + 1, 1));
+        billingStart = new Date(
+          Date.UTC(
+            lastBilled.getUTCFullYear(),
+            lastBilled.getUTCMonth() + 1,
+            1,
+          ),
+        );
       } else {
         const startDate = dateOnlyToMty(booking.start_date);
         billingStart = firstOfMonth(startDate);
@@ -129,7 +147,13 @@ Deno.serve(async (req) => {
       if (nowMty < billingStart) continue;
 
       const forklift = booking.forklifts as
-        | { name?: string; model?: string; daily_rate?: number; weekly_rate?: number; monthly_rate?: number }
+        | {
+          name?: string;
+          model?: string;
+          daily_rate?: number;
+          weekly_rate?: number;
+          monthly_rate?: number;
+        }
         | null;
       const monthlyRate = forklift?.monthly_rate || 0;
       if (monthlyRate === 0) continue;
@@ -150,7 +174,8 @@ Deno.serve(async (req) => {
         duplicatesSkipped++;
         // Mantén last_billed_date sincronizado por si quedó atrás.
         if (booking.last_billed_date !== endStr) {
-          await supabase.from("bookings").update({ last_billed_date: endStr }).eq("id", booking.id);
+          await supabase.from("bookings").update({ last_billed_date: endStr })
+            .eq("id", booking.id);
         }
         continue;
       }
@@ -158,7 +183,9 @@ Deno.serve(async (req) => {
       const { data: invNum } = await supabase.rpc("next_invoice_number");
 
       const lineItems = [{
-        description: `${forklift?.name || "Montacargas"} — Renta mensual (${fmtMx(billingStart)} al ${fmtMx(billingEnd)})`,
+        description: `${forklift?.name || "Montacargas"} — Renta mensual (${
+          fmtMx(billingStart)
+        } al ${fmtMx(billingEnd)})`,
         quantity: 1,
         unit_price: monthlyRate,
         total: monthlyRate,
@@ -171,12 +198,16 @@ Deno.serve(async (req) => {
       // Snapshot CFDI 4.0: hidrata datos fiscales del receptor desde el cliente
       const { data: customer } = await supabase
         .from("customers")
-        .select("rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi")
+        .select(
+          "rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi",
+        )
         .eq("id", booking.customer_id)
         .maybeSingle();
 
       if (!customer?.rfc) {
-        console.warn(`[recurring-invoices] Cliente ${booking.customer_id} sin RFC; factura se creará pero no podrá timbrarse hasta completar datos fiscales.`);
+        console.warn(
+          `[recurring-invoices] Cliente ${booking.customer_id} sin RFC; factura se creará pero no podrá timbrarse hasta completar datos fiscales.`,
+        );
       }
 
       const { error: invErr } = await supabase.from("invoices").insert({
@@ -216,13 +247,19 @@ Deno.serve(async (req) => {
         throw invErr;
       }
 
-      await supabase.from("bookings").update({ last_billed_date: endStr }).eq("id", booking.id);
+      await supabase.from("bookings").update({ last_billed_date: endStr }).eq(
+        "id",
+        booking.id,
+      );
       invoicesCreated++;
     }
 
-    return new Response(JSON.stringify({ success: true, invoicesCreated, duplicatesSkipped }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ success: true, invoicesCreated, duplicatesSkipped }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {

@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { handleCors, getCorsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
@@ -28,7 +28,8 @@ Deno.serve(async (req) => {
       const callerClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
       });
-      const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+      const { data: claimsData, error: claimsError } = await callerClient.auth
+        .getClaims(token);
       if (claimsError || !claimsData?.claims) {
         return new Response(JSON.stringify({ error: "No autorizado" }), {
           status: 401,
@@ -42,10 +43,15 @@ Deno.serve(async (req) => {
         .eq("user_id", callerId);
       const roles = (roleData ?? []).map((r: { role: string }) => r.role);
       if (!roles.includes("admin") && !roles.includes("administrativo")) {
-        return new Response(JSON.stringify({ error: "Solo admin/administrativo puede ejecutar esta función" }), {
-          status: 403,
-          headers: { ...headers, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            error: "Solo admin/administrativo puede ejecutar esta función",
+          }),
+          {
+            status: 403,
+            headers: { ...headers, "Content-Type": "application/json" },
+          },
+        );
       }
     }
 
@@ -53,7 +59,9 @@ Deno.serve(async (req) => {
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const firstOfMonth = `${currentMonth}-01`;
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const firstOfNextMonth = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, "0")}-01`;
+    const firstOfNextMonth = `${nextMonth.getFullYear()}-${
+      String(nextMonth.getMonth() + 1).padStart(2, "0")
+    }-01`;
 
     // Get active policies where forklift is rented and not yet generated for this month
     const { data: policies, error: pErr } = await supabase
@@ -64,8 +72,19 @@ Deno.serve(async (req) => {
 
     if (pErr) throw pErr;
 
-    const toGenerate = (policies ?? []).filter(
-      (p: any) => !p.last_generated_month || p.last_generated_month < currentMonth
+    type Policy = {
+      id: string;
+      forklift_id: string;
+      service_type: string;
+      description: string | null;
+      provider_name: string | null;
+      monthly_cost: number;
+      last_generated_month: string | null;
+      forklifts?: { name?: string | null } | null;
+    };
+
+    const toGenerate = ((policies ?? []) as Policy[]).filter(
+      (p) => !p.last_generated_month || p.last_generated_month < currentMonth,
     );
 
     let generated = 0;
@@ -73,10 +92,11 @@ Deno.serve(async (req) => {
     const details: string[] = [];
 
     if (toGenerate.length > 0) {
-      const logsToInsert = toGenerate.map((policy: any) => ({
+      const logsToInsert = toGenerate.map((policy) => ({
         forklift_id: policy.forklift_id,
         service_type: policy.service_type,
-        description: policy.description || `Póliza mensual - ${policy.provider_name}`,
+        description: policy.description ||
+          `Póliza mensual - ${policy.provider_name}`,
         cost: policy.monthly_cost,
         performed_by: policy.provider_name,
         performed_at: firstOfMonth,
@@ -91,31 +111,39 @@ Deno.serve(async (req) => {
       if (bulkInsertErr) {
         details.push(`Error en inserción masiva: ${bulkInsertErr.message}`);
       } else {
-        const policyIds = toGenerate.map((p: any) => p.id);
+        const policyIds = toGenerate.map((p) => p.id);
         const { error: bulkUpdateErr } = await supabase
           .from("maintenance_policies")
           .update({ last_generated_month: currentMonth })
           .in("id", policyIds);
 
         if (bulkUpdateErr) {
-          details.push(`Logs insertados pero error al marcar pólizas: ${bulkUpdateErr.message}`);
+          details.push(
+            `Logs insertados pero error al marcar pólizas: ${bulkUpdateErr.message}`,
+          );
         }
         generated = toGenerate.length;
         for (const policy of toGenerate) {
-          details.push(`✓ ${(policy as any).forklifts?.name}`);
+          details.push(`✓ ${policy.forklifts?.name ?? "(sin nombre)"}`);
         }
       }
     }
 
     return new Response(
       JSON.stringify({ generated, skipped, month: currentMonth, details }),
-      { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...headers, "Content-Type": "application/json" },
+      },
     );
   } catch (err) {
     console.error("[generate-recurring-maintenance]", err);
     return new Response(
       JSON.stringify({ error: "Error interno del servidor" }),
-      { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...headers, "Content-Type": "application/json" },
+      },
     );
   }
 });

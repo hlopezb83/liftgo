@@ -1,5 +1,19 @@
 [
   {
+    "version": "6.44.1",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "TypeScript: noImplicitAny activado (Lote B.1)",
+    "category": "tooling"
+  },
+  {
+    "version": "6.44.0",
+    "date": "2026-06-12",
+    "type": "minor",
+    "title": "CI Gates: typecheck blocker, deno fmt/lint, thresholds Vitest +1pp (Lote A)",
+    "category": "tooling"
+  },
+  {
     "version": "6.43.8",
     "date": "2026-06-12",
     "type": "patch",

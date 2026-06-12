@@ -1,6 +1,6 @@
 // Tests unitarios para validate.ts y generateSecurePassword (Lote 9).
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { isUUID, isEmail, isNonEmptyString, isValidRole } from "./validate.ts";
+import { isEmail, isNonEmptyString, isUUID, isValidRole } from "./validate.ts";
 import { generateSecurePassword } from "./auth.ts";
 
 Deno.test("isUUID acepta v4 válido", () => {
@@ -45,7 +45,16 @@ Deno.test("isNonEmptyString respeta whitespace y maxLen", () => {
 });
 
 Deno.test("isValidRole acepta solo roles canónicos", () => {
-  for (const r of ["admin", "administrativo", "dispatcher", "mechanic", "auditor", "ventas"]) {
+  for (
+    const r of [
+      "admin",
+      "administrativo",
+      "dispatcher",
+      "mechanic",
+      "auditor",
+      "ventas",
+    ]
+  ) {
     assert(isValidRole(r));
   }
   assertEquals(isValidRole("ADMIN"), false);

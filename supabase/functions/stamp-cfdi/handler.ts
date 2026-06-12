@@ -8,7 +8,11 @@ export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 // Minimal shape of Supabase JS client we use here. Tests provide a stub.
 export interface SupabaseLike {
   auth: {
-    getClaims: (token: string) => Promise<{ data: { claims?: { sub?: string } } | null; error: unknown }>;
+    getClaims: (
+      token: string,
+    ) => Promise<
+      { data: { claims?: { sub?: string } } | null; error: unknown }
+    >;
   };
   from: (table: string) => QueryBuilderLike;
   storage: {
@@ -30,7 +34,9 @@ export interface QueryBuilderLike {
   limit: (n: number) => QueryBuilderLike;
   single: () => Promise<{ data: unknown; error: unknown }>;
   maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
-  then: <T>(onfulfilled: (v: { data: unknown; error: unknown }) => T) => Promise<T>;
+  then: <T>(
+    onfulfilled: (v: { data: unknown; error: unknown }) => T,
+  ) => Promise<T>;
 }
 
 export interface StampCfdiDeps {
@@ -40,7 +46,10 @@ export interface StampCfdiDeps {
   env: (key: string) => string | undefined;
 }
 
-export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promise<Response> {
+export async function handleStampCfdi(
+  req: Request,
+  deps: StampCfdiDeps,
+): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
   const corsHeaders = getCorsHeaders(req);
@@ -54,15 +63,21 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
     const token = authHeader.replace("Bearer ", "");
 
     const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
+    const { data: claimsData, error: claimsErr } = await callerClient.auth
+      .getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
       return json({ error: "Unauthorized" }, 401, jsonHeaders);
     }
     const userId = claimsData.claims.sub;
 
     const supabase = deps.createServiceClient();
-    const rolesRes = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const roles = (rolesRes as { data: unknown; error: unknown }).data as Array<{ role: string }> | null;
+    const rolesRes = await supabase.from("user_roles").select("role").eq(
+      "user_id",
+      userId,
+    );
+    const roles = (rolesRes as { data: unknown; error: unknown }).data as
+      | Array<{ role: string }>
+      | null;
     const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
     if (rolesErr) {
       return json({ error: "Authorization check failed" }, 500, jsonHeaders);
@@ -76,7 +91,11 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
     const { invoice_id } = body as { invoice_id?: unknown };
 
     if (!isUUID(invoice_id)) {
-      return json({ error: "invoice_id must be a valid UUID" }, 400, jsonHeaders);
+      return json(
+        { error: "invoice_id must be a valid UUID" },
+        400,
+        jsonHeaders,
+      );
     }
 
     const { data: invoice, error: invErr } = await supabase
@@ -89,7 +108,11 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
     const inv = invoice as Record<string, unknown>;
 
     if (inv.is_e2e === true) {
-      return json({ error: "E2E invoices cannot be stamped" }, 403, jsonHeaders);
+      return json(
+        { error: "E2E invoices cannot be stamped" },
+        403,
+        jsonHeaders,
+      );
     }
 
     const { data: company } = await supabase
@@ -100,14 +123,20 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
       .limit(1).maybeSingle();
 
     if (!company) {
-      return json({ error: "Company settings not configured" }, 400, jsonHeaders);
+      return json(
+        { error: "Company settings not configured" },
+        400,
+        jsonHeaders,
+      );
     }
 
     const co = company as Record<string, unknown>;
     const sec = (secrets ?? {}) as Record<string, unknown>;
     const mode = (co.facturapi_mode as string) || "test";
-    const dbTestKey = (sec.facturapi_test_key as string | null | undefined) ?? null;
-    const dbLiveKey = (sec.facturapi_live_key as string | null | undefined) ?? null;
+    const dbTestKey = (sec.facturapi_test_key as string | null | undefined) ??
+      null;
+    const dbLiveKey = (sec.facturapi_live_key as string | null | undefined) ??
+      null;
     const apiKey = mode === "live"
       ? (dbLiveKey || deps.env("FACTURAPI_LIVE_KEY"))
       : (dbTestKey || deps.env("FACTURAPI_TEST_KEY"));
@@ -123,10 +152,18 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
 </cfdi:Comprobante>`;
 
       await supabase.from("invoices")
-        .update({ cfdi_uuid: mockUuid, cfdi_xml: mockXml, cfdi_status: "stamped" })
+        .update({
+          cfdi_uuid: mockUuid,
+          cfdi_xml: mockXml,
+          cfdi_status: "stamped",
+        })
         .eq("id", invoice_id);
 
-      return json({ success: true, cfdi_uuid: mockUuid, stub: true }, 200, jsonHeaders);
+      return json(
+        { success: true, cfdi_uuid: mockUuid, stub: true },
+        200,
+        jsonHeaders,
+      );
     }
 
     const facturApiHeaders = {
@@ -136,22 +173,30 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
 
     const taxRate = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
     const items = Array.isArray(inv.line_items)
-      ? (inv.line_items as Array<{ description?: string; quantity?: number; unit_price?: number; product_key?: string }>).map((li) => ({
-          product: {
-            description: li.description || "Servicio de renta",
-            product_key: li.product_key || "78101803",
-            price: li.unit_price || 0,
-            tax_included: false,
-            taxes: [{ type: "IVA", rate: taxRate > 0 ? taxRate / 100 : 0.16 }],
-          },
-          quantity: li.quantity || 1,
-        }))
+      ? (inv.line_items as Array<
+        {
+          description?: string;
+          quantity?: number;
+          unit_price?: number;
+          product_key?: string;
+        }
+      >).map((li) => ({
+        product: {
+          description: li.description || "Servicio de renta",
+          product_key: li.product_key || "78101803",
+          price: li.unit_price || 0,
+          tax_included: false,
+          taxes: [{ type: "IVA", rate: taxRate > 0 ? taxRate / 100 : 0.16 }],
+        },
+        quantity: li.quantity || 1,
+      }))
       : [];
 
     const payload: Record<string, unknown> = {
       type: "I",
       customer: {
-        legal_name: inv.receptor_razon_social || inv.customer_name || "Público General",
+        legal_name: inv.receptor_razon_social || inv.customer_name ||
+          "Público General",
         tax_id: inv.receptor_rfc || "XAXX010101000",
         tax_system: inv.receptor_regimen_fiscal || "616",
         address: { zip: inv.receptor_domicilio_fiscal_cp || "06600" },
@@ -175,7 +220,10 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
     if (!createRes.ok) {
       const errBody = await createRes.text();
       await supabase.from("invoices")
-        .update({ cfdi_status: "error", cfdi_error_message: errBody.slice(0, 1000) })
+        .update({
+          cfdi_status: "error",
+          cfdi_error_message: errBody.slice(0, 1000),
+        })
         .eq("id", invoice_id);
       return json(
         { error: `Facturapi error: ${createRes.status}`, detail: errBody },
@@ -193,33 +241,41 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
     let pdfStoragePath: string | null = null;
 
     try {
-      const xmlRes = await deps.fetchImpl(`${FACTURAPI_BASE}/invoices/${facturApiId}/xml`, {
-        headers: { "Authorization": `Bearer ${apiKey}` },
-      });
+      const xmlRes = await deps.fetchImpl(
+        `${FACTURAPI_BASE}/invoices/${facturApiId}/xml`,
+        {
+          headers: { "Authorization": `Bearer ${apiKey}` },
+        },
+      );
       if (xmlRes.ok) {
         cfdiXml = await xmlRes.text();
         const path = `${invoice_id}/${cfdiUuid}.xml`;
-        const { error: upErr } = await supabase.storage.from("cfdi-files").upload(
-          path,
-          new Blob([cfdiXml], { type: "application/xml" }),
-          { contentType: "application/xml", upsert: true },
-        );
+        const { error: upErr } = await supabase.storage.from("cfdi-files")
+          .upload(
+            path,
+            new Blob([cfdiXml], { type: "application/xml" }),
+            { contentType: "application/xml", upsert: true },
+          );
         if (!upErr) xmlStoragePath = path;
       }
     } catch (_e) { /* keep null */ }
 
     try {
-      const pdfRes = await deps.fetchImpl(`${FACTURAPI_BASE}/invoices/${facturApiId}/pdf`, {
-        headers: { "Authorization": `Bearer ${apiKey}` },
-      });
+      const pdfRes = await deps.fetchImpl(
+        `${FACTURAPI_BASE}/invoices/${facturApiId}/pdf`,
+        {
+          headers: { "Authorization": `Bearer ${apiKey}` },
+        },
+      );
       if (pdfRes.ok) {
         const pdfBytes = new Uint8Array(await pdfRes.arrayBuffer());
         const path = `${invoice_id}/${cfdiUuid}.pdf`;
-        const { error: upErr } = await supabase.storage.from("cfdi-files").upload(
-          path,
-          pdfBytes,
-          { contentType: "application/pdf", upsert: true },
-        );
+        const { error: upErr } = await supabase.storage.from("cfdi-files")
+          .upload(
+            path,
+            pdfBytes,
+            { contentType: "application/pdf", upsert: true },
+          );
         if (!upErr) pdfStoragePath = path;
       }
     } catch (_e) { /* keep null */ }
@@ -236,11 +292,20 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
 
     const updateErr = (updRes as { error: unknown }).error;
     if (updateErr) {
-      return json({ error: "Stamped but failed to save to DB" }, 500, jsonHeaders);
+      return json(
+        { error: "Stamped but failed to save to DB" },
+        500,
+        jsonHeaders,
+      );
     }
 
     return json(
-      { success: true, cfdi_uuid: cfdiUuid, facturapi_invoice_id: facturApiId, stub: false },
+      {
+        success: true,
+        cfdi_uuid: cfdiUuid,
+        facturapi_invoice_id: facturApiId,
+        stub: false,
+      },
       200,
       jsonHeaders,
     );
@@ -252,6 +317,10 @@ export async function handleStampCfdi(req: Request, deps: StampCfdiDeps): Promis
   }
 }
 
-function json(body: unknown, status: number, headers: Record<string, string>): Response {
+function json(
+  body: unknown,
+  status: number,
+  headers: Record<string, string>,
+): Response {
   return new Response(JSON.stringify(body), { status, headers });
 }

@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 
-const SYSTEM_PROMPT = `Eres un redactor técnico experto en sistemas ERP y software de gestión. Tu tarea es generar un manual de usuario completo, detallado y profesional para la aplicación "Lift Go" — un sistema de gestión de renta de montacargas.
+const SYSTEM_PROMPT =
+  `Eres un redactor técnico experto en sistemas ERP y software de gestión. Tu tarea es generar un manual de usuario completo, detallado y profesional para la aplicación "Lift Go" — un sistema de gestión de renta de montacargas.
 
 El manual debe estar en español, ser extremadamente detallado, incluir ejemplos prácticos y flujos de trabajo paso a paso que un usuario real seguiría en su día a día.
 
@@ -16,7 +17,8 @@ Para CADA sección debes incluir:
 
 Usa formato Markdown rico: encabezados ##, ###, listas numeradas, listas con viñetas, **negritas** para campos y botones, y bloques de tip con > para notas importantes.`;
 
-const USER_PROMPT = `Genera un manual de usuario completo para la aplicación "Lift Go" con las siguientes 18 secciones. Cada sección debe tener al menos 400 palabras de contenido detallado.
+const USER_PROMPT =
+  `Genera un manual de usuario completo para la aplicación "Lift Go" con las siguientes 18 secciones. Cada sección debe tener al menos 400 palabras de contenido detallado.
 
 SECCIONES:
 
@@ -65,7 +67,6 @@ serve(async (req) => {
   if (corsRes) return corsRes;
   const corsHeaders = getCorsHeaders(req);
 
-
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -81,10 +82,15 @@ serve(async (req) => {
 
     // Verify user is admin or administrativo
     const token = authHeader.replace("Bearer ", "");
-    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    const anonClient = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      {
+        global: { headers: { Authorization: authHeader } },
+      },
+    );
+    const { data: claimsData, error: claimsError } = await anonClient.auth
+      .getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "No autorizado" }), {
         status: 401,
@@ -108,85 +114,109 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Call Lovable AI with tool calling to get structured JSON
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: USER_PROMPT },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "save_manual",
-              description: "Guarda las secciones del manual de usuario generado",
-              parameters: {
-                type: "object",
-                properties: {
-                  sections: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        title: { type: "string", description: "Título de la sección" },
-                        icon: {
-                          type: "string",
-                          description: "Nombre del icono lucide-react sugerido (ej: LayoutDashboard, Truck, Users)",
+    const aiResponse = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: USER_PROMPT },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "save_manual",
+                description: "Guarda las secciones del manual de usuario generado",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    sections: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          title: {
+                            type: "string",
+                            description: "Título de la sección",
+                          },
+                          icon: {
+                            type: "string",
+                            description:
+                              "Nombre del icono lucide-react sugerido (ej: LayoutDashboard, Truck, Users)",
+                          },
+                          content: {
+                            type: "string",
+                            description:
+                              "Contenido completo de la sección en formato Markdown con al menos 400 palabras",
+                          },
                         },
-                        content: {
-                          type: "string",
-                          description: "Contenido completo de la sección en formato Markdown con al menos 400 palabras",
-                        },
+                        required: ["title", "icon", "content"],
+                        additionalProperties: false,
                       },
-                      required: ["title", "icon", "content"],
-                      additionalProperties: false,
                     },
                   },
+                  required: ["sections"],
+                  additionalProperties: false,
                 },
-                required: ["sections"],
-                additionalProperties: false,
               },
             },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "save_manual" } },
-      }),
-    });
+          ],
+          tool_choice: { type: "function", function: { name: "save_manual" } },
+        }),
+      },
+    );
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error("AI gateway error:", aiResponse.status, errText);
 
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Límite de solicitudes excedido, intenta más tarde." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            error: "Límite de solicitudes excedido, intenta más tarde.",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
       if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "Se requieren créditos adicionales para generar el manual." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            error: "Se requieren créditos adicionales para generar el manual.",
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
-      return new Response(JSON.stringify({ error: "Error al generar el manual con IA" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Error al generar el manual con IA" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const aiData = await aiResponse.json();
@@ -194,20 +224,26 @@ serve(async (req) => {
 
     if (!toolCall?.function?.arguments) {
       console.error("No tool call in AI response:", JSON.stringify(aiData));
-      return new Response(JSON.stringify({ error: "La IA no retornó el formato esperado" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "La IA no retornó el formato esperado" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const parsedArgs = JSON.parse(toolCall.function.arguments);
     const sections = parsedArgs.sections;
 
     if (!Array.isArray(sections) || sections.length === 0) {
-      return new Response(JSON.stringify({ error: "No se generaron secciones" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "No se generaron secciones" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Calculate next version
@@ -237,10 +273,13 @@ serve(async (req) => {
 
     if (insertError) {
       console.error("Insert error:", insertError);
-      return new Response(JSON.stringify({ error: "Error al guardar el manual" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Error al guardar el manual" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     return new Response(JSON.stringify({ success: true, manual }), {
@@ -250,7 +289,10 @@ serve(async (req) => {
     console.error("[generate-manual] error:", e);
     return new Response(
       JSON.stringify({ error: "Error interno del servidor" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
