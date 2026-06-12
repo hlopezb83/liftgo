@@ -55,7 +55,8 @@ export default tseslint.config(
     },
   },
   {
-    // Guardrail: matemática monetaria SOLO en src/lib/domain/invoiceHelpers.ts.
+    // Guardrail: matemática monetaria SOLO en src/lib/domain/invoiceTotals.ts
+    // (re-exportado vía invoiceHelpers.ts) o rentalCalculation.ts.
     files: [
       "src/features/quotes/components/quotes/*LineHelpers.ts",
       "src/features/invoices/hooks/invoiceForm/*.ts",
@@ -64,11 +65,11 @@ export default tseslint.config(
       "no-restricted-syntax": ["error",
         {
           selector: "BinaryExpression[operator='*']",
-          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceHelpers.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
+          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceTotals.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
         },
         {
           selector: "BinaryExpression[operator='/']",
-          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceHelpers.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
+          message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceTotals.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
         },
       ],
     },

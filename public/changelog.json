@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.3",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Documentación arquitectónica (paso 7 auditoría)",
+    "description": "Se actualizó architecture.md §19 con los nuevos módulos de dominio (invoiceTotals, rentalCalculation, useInvoicesWithBalance) y se reforzó el guardrail ESLint que prohíbe aritmética monetaria fuera de invoiceTotals.ts. Documenta el patrón de barril de re-export usado en los pasos 4 y 5.",
+    "category": "improvement"
+  },
+  {
     "version": "6.46.2",
     "date": "2026-06-12",
     "type": "patch",
