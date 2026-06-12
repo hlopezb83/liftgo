@@ -1,59 +1,106 @@
-## Diagnóstico
+# Auditoría de Arquitectura — LiftGo ERP
 
-Tu base ya cuenta con la columna `is_e2e` en las tablas críticas (decisión previa para aislar datos de testing). El conteo actual de contaminación es:
+## Veredicto general
 
-| Tabla | Filas E2E | Total |
-|-------|-----------|-------|
-| customers | 12 | 30 |
-| forklifts | 12 | 70 |
-| equipment_models | 12 | 20 |
-| quotes | 12 | 78 |
-| bookings | 12 | 29 |
-| invoices | 12 | 76 |
-| payments (vía invoice) | 11 | 54 |
-| activity_feed | 1,462 | 3,061 |
+La arquitectura está en muy buen estado. Confirmado:
 
-Tablas dependientes (deliveries, return_inspections, contracts, damage_records, booking_extensions, quote_assigned_forklifts, maintenance_logs) **no tienen filas asociadas a los E2E actuales**, así que la limpieza es directa.
+- **Tamaño de archivos**: ningún archivo de producto supera 300 líneas (el más grande es `ListPageLayout.tsx` con 251). Solo `src/integrations/supabase/types.ts` es enorme (3,675), pero es auto-generado y no se toca.
+- **Separación por feature**: las 29 features siguen el mismo patrón `components/ + hooks/ + lib/ + pages/`. Consistente.
+- **Sin fugas de datos en UI**: cero `supabase.from(...)` dentro de `*Page.tsx`, `*Dialog.tsx` o `src/components/`. Toda lectura/escritura pasa por hooks de dominio.
+- **Higiene**: 0 `TODO/FIXME`, 0 `console.log`, 1 solo uso de `any`. `useEffect` con cleanup, paginación, zod, sonner globales: todo aplicado.
+- **Documentación viva**: changelog versionado y `mem://` actualizado.
 
-## Objetivo
+Lo que sigue son oportunidades de mejora reales, no errores. Ordenadas por impacto.
 
-Eliminar los 1,533 registros marcados `is_e2e = true` (más los pagos huérfanos asociados a invoices E2E) de forma **atómica y reversible vía revisión de migración**, sin tocar datos reales.
+---
 
-## Plan
+## Hallazgos priorizados
 
-### 1. Migración con RPC `purge_e2e_data()`
-Función `SECURITY DEFINER`, restringida a rol `admin` vía `has_role(auth.uid(),'admin')`. Borra en este orden (respeta FKs):
+### CRÍTICO
 
-```text
-1.  activity_feed         WHERE is_e2e
-2.  payments              WHERE invoice_id IN (SELECT id FROM invoices WHERE is_e2e)
-3.  invoices              WHERE is_e2e
-4.  bookings              WHERE is_e2e
-5.  quote_assigned_forklifts WHERE quote_id IN (SELECT id FROM quotes WHERE is_e2e)
-6.  quotes                WHERE is_e2e
-7.  forklifts             WHERE is_e2e
-8.  equipment_models      WHERE is_e2e
-9.  customers             WHERE is_e2e
-```
+Ninguno. No hay riesgo arquitectónico inmediato.
 
-Todo dentro de una sola transacción de la función. Devuelve un JSON con el conteo borrado por tabla para auditoría.
+### ALTO
 
-### 2. Ejecución única
-Una vez aprobada la migración, llamo `SELECT public.purge_e2e_data();` desde el tool de datos para ejecutar la purga real. Muestro el conteo borrado por tabla.
+**1. Acoplamiento centrípeto en `fleet`, `invoices`, `customers`**
 
-### 3. Verificación
-Re-query final confirmando `count(*) FILTER (WHERE is_e2e) = 0` en todas las tablas.
+`src/features/fleet` es importado **78** veces desde otras features; `invoices` 68, `crm` 58, `customers` 55, `bookings` 53. Eso es normal porque son entidades centrales, pero hoy esas features exponen su superficie completa (hooks internos, tipos, componentes) sin un `index.ts` que actúe como contrato público. Cualquier refactor interno de `fleet` puede romper consumidores remotos sin que el compilador lo señale como ruptura de API.
 
-### 4. Changelog
-Entrada `v6.46.6` patch: "Purga de datos E2E contaminados en producción demo".
+> Riesgo si no se atiende: cambios internos rompen features lejanas; refactors se vuelven caros.
+> Fix: definir un `src/features/<feature>/index.ts` (barrel acotado) que reexporte solo lo que es público (hooks de lectura, tipos, selectores). Marcar el resto como interno mediante regla ESLint `no-restricted-imports` que prohíba importar rutas profundas entre features.
 
-## Lo que NO se toca
+**2. La feature `invoices` está rozando el límite de complejidad**
 
-- Cualquier fila sin `is_e2e = true`.
-- Pagos no vinculados a invoices E2E.
-- Tablas sin flag `is_e2e` (no hay dependencias detectadas).
-- Esquema (no se elimina la columna `is_e2e`; sigue siendo útil para futuros tests).
+31 archivos de hooks divididos en `invoices/`, `invoiceDetail/`, `invoiceForm/`, `creditNotes/`, más 8 hooks sueltos en la raíz (`useCancelCfdi`, `useCollectionNotes`, `useGenerateRecurringInvoices`, `usePaymentComplement`, `useInvoicePdfDownload`, `useInvoicesWithBalance`, `useNextInvoiceNumber`, `usePayments`). Es la única feature donde la organización ya no es obvia.
 
-## Riesgo
+> Riesgo: dificulta encontrar el hook correcto, fomenta duplicación accidental.
+> Fix: mover los 8 hooks sueltos a subcarpetas temáticas (`cfdi/`, `payments/`, `recurring/`, `pdf/`) y documentar el árbol en `mem://features/invoicing`.
 
-Bajo. Los flags `is_e2e` fueron escritos por el propio harness de testing y no pueden haber sido marcados accidentalmente desde la UI. Aun así, la migración crea la función pero **no la ejecuta**; la ejecución es un paso separado que puedes cancelar.
+**3. Sin convención centralizada de `queryKey`**
+
+Cada hook arma su propio array literal (`["invoices", id]`). No hay un `queryKeys.ts` por feature. Eso ya causó (y puede volver a causar) invalidaciones desincronizadas: una mutación invalida `["invoices"]` y otra `["invoices","list"]` y la UI no se refresca.
+
+> Riesgo: bugs intermitentes de caché stale.
+> Fix: crear `src/features/<feature>/lib/queryKeys.ts` con factories tipadas (`invoiceKeys.list(filters)`, `invoiceKeys.detail(id)`) y migrar incrementalmente. Patrón estándar de TanStack Query.
+
+### MEDIO
+
+**4. `src/components/` mezcla primitivas de UI y componentes de dominio**
+
+En la raíz conviven primitivas neutrales (`SearchBar`, `EmptyState`, `TablePagination`, `StatusBadge`) con componentes que conocen reglas de negocio (`DetailPageHeader`, `ListPageLayout` 251 líneas, `TotalsSummary`, `ReadOnlyLineItemsTable`, `NotesCard`). Hoy todo está en un solo nivel.
+
+> Riesgo: difícil saber qué es seguro reutilizar vs. qué arrastra dependencias.
+> Fix: dividir en `src/components/ui-ext/` (primitivas extendidas sobre shadcn) y `src/components/layout/` (layouts compuestos de página). Cero cambio de comportamiento, solo movimientos + actualización de imports.
+
+**5. Hooks de feature duplicando patrón "list + filters + dialog"**
+
+Cada feature implementa su propia composición de `useListPage + useListFilters + useDialogState + useQuery`. Ya existen los hooks genéricos en `src/hooks/`, pero la "receta" se reescribe en cada `*Page.tsx`. Hay >25 páginas con el mismo molde.
+
+> Riesgo: divergencia sutil de comportamiento (un `Page` debounce 300ms, otro 500ms, etc.).
+> Fix: extraer `useResourceList<T>({ queryKey, fetcher, filterDefs })` en `src/hooks/`. Migrar página por página, no big-bang.
+
+**6. Cross-imports profundos en lugar de barrels**
+
+Búsquedas muestran imports tipo `@/features/fleet/hooks/forklifts/useForklifts`. Es válido pero frágil: mover un archivo dentro de `fleet` rompe imports remotos.
+
+> Fix: misma solución que el hallazgo 1 (barrels + ESLint).
+
+### BAJO / OPCIONAL
+
+**7. `src/lib/pdf/theme/styles.ts` con 360 líneas**
+
+Único archivo de `lib/` que se acerca al límite. Dividir por sección (`tableStyles`, `headerStyles`, `colors`) ayuda a la legibilidad. No urgente.
+
+**8. 3 archivos llamados `constants.ts`** en distintas features
+
+No es duplicación, pero conviene auditar que cada uno solo contenga constantes de su dominio y no constantes globales que deberían vivir en `src/lib/constants.ts`.
+
+**9. `quotes/` tiene `utils/` además de `lib/`**
+
+Es la única feature con esa duplicidad de carpeta. Consolidar a `lib/` para mantener consistencia con el resto.
+
+**10. Sin index de tipos por feature**
+
+Los tipos se importan desde archivos individuales. Un `src/features/<feature>/types.ts` por feature mejora descubribilidad. Opcional.
+
+---
+
+## Plan de acción ordenado
+
+| # | Acción | Esfuerzo | Impacto | Riesgo de regresión |
+|---|--------|----------|---------|---------------------|
+| 1 | Crear `queryKeys.ts` por feature (empezando por `invoices`, `bookings`, `fleet`) y migrar hooks | Medio | Alto | Bajo |
+| 2 | Definir barrels `index.ts` públicos en `fleet`, `invoices`, `customers`, `crm`, `bookings` + regla ESLint `no-restricted-imports` para imports profundos cross-feature | Medio | Alto | Bajo |
+| 3 | Reorganizar hooks de `invoices` en subcarpetas (`cfdi/`, `payments/`, `recurring/`, `pdf/`) | Bajo | Medio | Bajo |
+| 4 | Dividir `src/components/` en `ui-ext/` (primitivas) y `layout/` (compuestos) | Bajo | Medio | Bajo (solo mover + actualizar imports) |
+| 5 | Extraer hook genérico `useResourceList` y migrar 2-3 páginas piloto | Medio | Medio | Medio (validar UX por página) |
+| 6 | Consolidar `quotes/utils` dentro de `quotes/lib` | Bajo | Bajo | Bajo |
+| 7 | Dividir `src/lib/pdf/theme/styles.ts` por sección | Bajo | Bajo | Muy bajo |
+| 8 | Auditar los 3 `constants.ts` y mover globales reales a `src/lib/constants.ts` | Bajo | Bajo | Bajo |
+| 9 | Añadir `types.ts` público por feature | Bajo | Bajo (DX) | Muy bajo |
+
+---
+
+## Cómo continuar
+
+Si apruebas, puedo arrancar por los puntos **1, 2 y 3** que son los que más reducen el riesgo de regresiones futuras sin tocar UI ni lógica de negocio. Los demás los podemos agendar como mejoras incrementales.
