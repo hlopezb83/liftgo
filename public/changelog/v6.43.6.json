@@ -1,0 +1,39 @@
+{
+  "version": "6.43.6",
+  "date": "2026-06-12",
+  "type": "minor",
+  "title": "Stamp-CFDI: handler refactorizado con deps inyectadas y suite Facturapi mock (Lote 2 — Parte 6)",
+  "category": "tooling",
+  "description": "Edge Function stamp-cfdi se separó en handler puro + entrypoint Deno.serve. Se añadieron helpers de test reutilizables para mockear Facturapi (intercept de fetch a https://www.facturapi.io/v2/*) y el cliente Supabase en Deno. Cobertura del flujo de timbrado pasa de 2 smoke tests (CORS + 401) a 10 casos: 401 sin auth, 403 sin rol, 400 UUID inválido, 404 invoice inexistente, 403 invoice E2E, happy path completo (verifica payload a Facturapi + persistencia de UUID + uploads XML/PDF), Facturapi 400 → 502 sin marcar como stamped, y stub mode sin API key.",
+  "changes": [
+    {
+      "type": "added",
+      "description": "supabase/functions/stamp-cfdi/handler.ts — handler puro con interfaz StampCfdiDeps inyectable (createCallerClient, createServiceClient, fetchImpl, env)."
+    },
+    {
+      "type": "added",
+      "description": "supabase/functions/_shared/test/facturapiMock.ts — installFacturapiMock parchea globalThis.fetch solo para URLs de Facturapi; helpers facturapiOk / facturapiBadRequest / facturapiServerError / xmlResponse / pdfResponse."
+    },
+    {
+      "type": "added",
+      "description": "supabase/functions/_shared/test/supabaseClientMock.ts — buildSupabaseMock configurable por tabla, captura updates y uploads para aserciones."
+    },
+    {
+      "type": "added",
+      "description": "supabase/functions/stamp-cfdi/handler_test.ts — 8 tests Deno del handler puro, sin red ni Supabase real."
+    },
+    {
+      "type": "changed",
+      "description": "supabase/functions/stamp-cfdi/index.ts ahora es un wrapper delgado que cablea las deps reales sobre handleStampCfdi."
+    }
+  ],
+  "files": [
+    "supabase/functions/stamp-cfdi/handler.ts",
+    "supabase/functions/stamp-cfdi/handler_test.ts",
+    "supabase/functions/stamp-cfdi/index.ts",
+    "supabase/functions/_shared/test/facturapiMock.ts",
+    "supabase/functions/_shared/test/supabaseClientMock.ts",
+    "public/changelog.json",
+    "public/changelog/v6.43.6.json"
+  ]
+}

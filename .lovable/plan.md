@@ -1,65 +1,80 @@
-# Lote 2 — Parte 1: Reescritura de flow tests
+# Lote 2 — Parte 6: Mock de Facturapi y tests reales para `stamp-cfdi`
 
-## Problema actual
+## Contexto
 
-Los tres tests en `src/test/` (`bookingFlow.test.ts`, `invoiceFlow.test.ts`, `paymentFlow.test.ts`) son **falsos positivos**: definen mocks de Supabase y luego llaman a esos mocks directamente, validando solo que el mock funcione. No invocan ninguna línea de código de producción, así que una regresión real en los hooks no rompería los tests.
+Pendientes del Lote 2 después de v6.43.5:
+
+1. Mock server de Facturapi para fiscales.
+2. Seed E2E para portal/damage/maintenance/returns.
+3. Subir umbrales de cobertura (ya en 10/10/9/7, siguiente meta 15%).
+
+De los tres, el de mayor ROI es el **mock de Facturapi**: hoy `stamp-cfdi/index_test.ts` solo cubre CORS + 401 sin Authorization. Toda la lógica de timbrado (validación de invoice, llamada al PAC, persistencia de UUID, manejo de errores Facturapi) está sin red de seguridad. Un cambio en el payload del PAC o en el flujo de update rompe en producción sin que ningún test reaccione.
+
+El seed E2E es más caro (necesita datos sembrados en una DB real / staging) y bloqueará la sesión; lo dejo para un lote dedicado.
 
 ## Objetivo
 
-Sustituirlos por tests que ejerciten los hooks reales (`useBookingMutations`, `useInvoices`/`useNextInvoiceNumber`, hook de pagos) usando `renderHook` de `@testing-library/react`, con `createSupabaseChainMock` como capa de mock. Esto sí detecta regresiones en payload de RPC, mapeo de columnas, manejo de errores, e invalidación de queries.
+Sustituir el smoke test de `stamp-cfdi` por una suite que ejercite el flujo completo del Edge Function usando:
+
+- Un **mock HTTP de Facturapi** (intercept de `fetch` a `https://www.facturapi.io/v2/*`) configurable por test: respuesta exitosa, error 400 (datos inválidos), error 5xx (PAC caído), timeout.
+- Un **mock de `createClient` de Supabase** ya disponible en el repo (mismo patrón que los otros tests Deno), parametrizable para devolver una invoice válida, una `not found`, una con `is_e2e=true`, y user sin rol admin/administrativo.
 
 ## Alcance
 
-### 1. `src/test/bookingFlow.test.ts`
-- Importar `useCreateBooking` desde `src/features/bookings/hooks/useBookingMutations.ts`.
-- Mockear `@/integrations/supabase/client` con `createSupabaseChainMock` (rpc resolver configurable).
-- Mockear `sonner` para verificar `toast.success`/`toast.error`.
-- Casos:
-  - Happy path: dispara `create_booking` con el payload `p_*` exacto, retorna id, llama `toast.success` y invalida `bookings`/`forklifts`.
-  - Error RPC (forklift no disponible): propaga error, `toast.error` con el mensaje del backend.
-  - Recurring billing flag se pasa correctamente.
+### 1. `supabase/functions/_shared/test/facturapiMock.ts` (nuevo)
 
-### 2. `src/test/invoiceFlow.test.ts`
-- Importar el hook real de creación de facturas (`useCreateInvoice` o equivalente en `useInvoices.ts`) y `useNextInvoiceNumber`.
-- Casos:
-  - Genera número vía `next_invoice_number` y luego inserta en `invoices` con el `invoice_number` resuelto.
-  - Si el RPC de numeración falla, no se ejecuta el insert.
-  - Calcula `subtotal/tax/total` y los persiste.
+Helper reutilizable. Exporta:
 
-### 3. `src/test/paymentFlow.test.ts`
-- Importar el hook real de creación de pago.
-- Casos:
-  - Pago completo → invoice pasa a `paid`.
-  - Pago parcial → invoice pasa a `partial`.
-  - Error de RLS en insert → `toast.error` y no se actualiza la factura.
+- `installFacturapiMock(handlers: Record<string, (req: Request) => Response | Promise<Response>>)`: parchea `globalThis.fetch` solo para URLs que empiecen con `https://www.facturapi.io/v2/`. Resto pasa al `fetch` original.
+- `restoreFetch()`: revierte el parche en `afterEach`.
+- Respuestas pre-armadas: `facturapiOk(uuid)`, `facturapiBadRequest(message)`, `facturapiServerError()`.
 
-### 4. Helper compartido
-- Extender `src/test/helpers/mockSupabase.ts` si hace falta (ej. permitir distintos resolvers por tabla). Mantener API retrocompatible con los tests existentes (`useDocuments.rls.test.ts` ya lo usa).
+### 2. `supabase/functions/_shared/test/supabaseClientMock.ts` (nuevo)
 
-### 5. QueryClient wrapper
-- Añadir `src/test/helpers/queryClient.tsx` con un `createWrapper()` que monte un `QueryClientProvider` fresco por test (retries off, gcTime 0). Lo usarán los tres tests.
+Helper que parchea el módulo `https://esm.sh/@supabase/supabase-js@2` con `createClient` que retorna chains configurables (similar a `createSupabaseChainMock` del frontend, pero para Deno). Permite stubbear:
 
-## Fuera de alcance (lo veremos en sub-lotes siguientes)
-- Tests RLS faltantes
-- Tests Deno fiscales (`stamp-credit-note`, `cancel-payment-complement`, `generate-recurring-invoices`, `parse-cfdi-expense`)
-- Teardown en `customer-create.spec.ts` E2E
-- `coverage.thresholds` en `vitest.config.ts`
+- `auth.getClaims(token)` → `{ data: { claims: { sub } } }` o error.
+- `from('user_roles').select().eq()` → roles del usuario.
+- `from('invoices').select().eq().single()` → invoice o not found.
+- `from('invoices').update().eq()` → ok / error de RLS.
 
-## Cambios técnicos
+Si reutilizar `createSupabaseChainMock` cruzando frontend/Deno es viable lo intentamos primero; si no, helper Deno-only.
 
-```
-src/test/helpers/queryClient.tsx        (nuevo)
-src/test/helpers/mockSupabase.ts        (ampliar resolvers por tabla)
-src/test/bookingFlow.test.ts            (reescritura completa)
-src/test/invoiceFlow.test.ts            (reescritura completa)
-src/test/paymentFlow.test.ts            (reescritura completa)
-public/changelog.json                   (entrada v6.43.1)
-public/changelog/v6.43.1.json           (nuevo, patch)
-```
+### 3. `supabase/functions/stamp-cfdi/index_test.ts` (reescritura)
+
+Mantiene los 2 casos actuales (CORS, 401 sin Authorization) y añade:
+
+- **403** cuando el usuario no es admin/administrativo.
+- **400** cuando `invoice_id` no es UUID.
+- **404** cuando la invoice no existe.
+- **400** cuando `is_e2e === true` (no debe llegar al PAC).
+- **Happy path**: invoice válida + rol admin + Facturapi 200 → response 200 con UUID, y el mock de Supabase recibió un `update` con el UUID y `status='stamped'` (o equivalente al campo real).
+- **502/PAC error**: Facturapi responde 400 → el endpoint propaga error legible, NO marca la invoice como timbrada.
+
+### 4. `supabase/functions/stamp-cfdi/deno.json` o import map (si hace falta)
+
+Algunos test runners de Deno necesitan import map para parchear módulos `https://esm.sh/...`. Si el approach de parchear `createClient` por intercept de import no es directo, alternativa: refactorizar `index.ts` para inyectar el cliente vía argumento (`stampInvoice(req, deps)`), exportar la función pura, y testear sobre la función pura. Esta segunda vía es más limpia y la prefiero si el primer intento se complica.
+
+### 5. Changelog
+
+`public/changelog.json` + `public/changelog/v6.43.6.json` documentando el mock helper y los nuevos casos cubiertos.
+
+## Fuera de alcance
+
+- Seed E2E para portal/damage/maintenance/returns (lote propio).
+- Replicar el mock para `stamp-credit-note`, `cancel-payment-complement`, `parse-cfdi-expense`, `generate-recurring-invoices` — primero validamos el patrón con `stamp-cfdi`, después se replica en lote 3.
+- Subir umbrales de cobertura (estos tests son Deno, no entran al `vitest --coverage`).
+
+## Riesgos
+
+- **Parcheo de `fetch` global en Deno**: si Facturapi se llama vía un cliente que no usa `globalThis.fetch` (poco probable, pero a verificar leyendo `index.ts`), el mock no intercepta. Mitigación: el refactor a función pura con deps inyectadas.
+- **Mock de `createClient` cross-runtime**: el helper del frontend usa Vitest `vi.mock`; en Deno hay que usar `Deno.test` con import map o refactor. El fallback a función pura es el plan B.
 
 ## Validación
-- `bunx vitest run src/test/bookingFlow.test.ts src/test/invoiceFlow.test.ts src/test/paymentFlow.test.ts` debe pasar verde.
-- La suite completa no debe regresionar.
+
+- `deno test supabase/functions/stamp-cfdi/` debe pasar todos los casos nuevos.
+- `bunx vitest run` debe seguir en 503/503 verde (sin tocar frontend).
 
 ## Pregunta abierta
-¿Avanzo solo con esta Parte 1 (flow tests reescritos), o quieres que también empuje en la misma vuelta el teardown del E2E `customer-create` y los `coverage.thresholds`? Lo más limpio es esta Parte 1 sola para mantener el PR pequeño y verificable.
+
+¿Procedo con esta Parte 6 (mock Facturapi + stamp-cfdi), o prefieres saltar al seed E2E aunque sea más costoso? El seed E2E requiere decidir antes si lo corremos contra la DB de preview o si montamos staging dedicado.
