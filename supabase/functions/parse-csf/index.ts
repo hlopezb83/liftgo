@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { requireRole, enforceRateLimit } from "../_shared/auth.ts";
+import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -12,36 +12,60 @@ serve(async (req) => {
 
   try {
     // --- AuthN + role check (back-office only) ---
-    const auth = await requireRole(req, ["admin", "administrativo", "dispatcher", "ventas"]);
+    const auth = await requireRole(req, [
+      "admin",
+      "administrativo",
+      "dispatcher",
+      "ventas",
+    ]);
     if (!auth.ok) return auth.response;
 
-    const limited = await enforceRateLimit(req, auth.adminClient, "parse-csf", auth.userId, 5, 60);
+    const limited = await enforceRateLimit(
+      req,
+      auth.adminClient,
+      "parse-csf",
+      auth.userId,
+      5,
+      60,
+    );
     if (limited) return limited;
 
     const { pdf_base64 } = await req.json();
     if (!pdf_base64 || typeof pdf_base64 !== "string") {
-      return new Response(JSON.stringify({ error: "pdf_base64 es requerido" }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return new Response(
+        JSON.stringify({ error: "pdf_base64 es requerido" }),
+        {
+          status: 400,
+          headers: jsonHeaders,
+        },
+      );
     }
     // Approx size: base64 length * 3/4
     if (pdf_base64.length > Math.ceil(MAX_PDF_BYTES * 4 / 3)) {
-      return new Response(JSON.stringify({ error: "El PDF excede el tamaño máximo permitido (5MB)" }), {
-        status: 413,
-        headers: jsonHeaders,
-      });
+      return new Response(
+        JSON.stringify({
+          error: "El PDF excede el tamaño máximo permitido (5MB)",
+        }),
+        {
+          status: 413,
+          headers: jsonHeaders,
+        },
+      );
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }), {
-        status: 500,
-        headers: jsonHeaders,
-      });
+      return new Response(
+        JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }),
+        {
+          status: 500,
+          headers: jsonHeaders,
+        },
+      );
     }
 
-    const systemPrompt = `Eres un extractor de datos fiscales mexicanos. El usuario te enviará el contenido de una Constancia de Situación Fiscal (CSF) del SAT en formato PDF (como imagen base64).
+    const systemPrompt =
+      `Eres un extractor de datos fiscales mexicanos. El usuario te enviará el contenido de una Constancia de Situación Fiscal (CSF) del SAT en formato PDF (como imagen base64).
 
 Extrae los siguientes campos del documento y devuélvelos usando la función extract_csf_data:
 - rfc: El RFC del contribuyente (13 caracteres para personas morales, 12 para personas físicas)
@@ -69,84 +93,116 @@ Extrae los siguientes campos del documento y devuélvelos usando la función ext
 
 Si un campo no se encuentra, devuelve una cadena vacía.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: { url: `data:application/pdf;base64,${pdf_base64}` },
-              },
-              {
-                type: "text",
-                text: "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
-              },
-            ],
-          },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "extract_csf_data",
-              description: "Devuelve los datos fiscales extraídos de la CSF",
-              parameters: {
-                type: "object",
-                properties: {
-                  rfc: { type: "string" },
-                  name: { type: "string" },
-                  domicilio_fiscal_cp: { type: "string" },
-                  address: { type: "string" },
-                  regimen_fiscal: { type: "string" },
-                  representante_legal: { type: "string" },
+    const response = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:application/pdf;base64,${pdf_base64}`,
+                  },
                 },
-                required: ["rfc", "name", "domicilio_fiscal_cp", "address", "regimen_fiscal", "representante_legal"],
-                additionalProperties: false,
+                {
+                  type: "text",
+                  text:
+                    "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
+                },
+              ],
+            },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "extract_csf_data",
+                description: "Devuelve los datos fiscales extraídos de la CSF",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    rfc: { type: "string" },
+                    name: { type: "string" },
+                    domicilio_fiscal_cp: { type: "string" },
+                    address: { type: "string" },
+                    regimen_fiscal: { type: "string" },
+                    representante_legal: { type: "string" },
+                  },
+                  required: [
+                    "rfc",
+                    "name",
+                    "domicilio_fiscal_cp",
+                    "address",
+                    "regimen_fiscal",
+                    "representante_legal",
+                  ],
+                  additionalProperties: false,
+                },
               },
             },
+          ],
+          tool_choice: {
+            type: "function",
+            function: { name: "extract_csf_data" },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "extract_csf_data" } },
-      }),
-    });
+        }),
+      },
+    );
 
     if (!response.ok) {
       const errText = await response.text();
       console.error("AI gateway error:", response.status, errText);
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Demasiadas solicitudes, intenta de nuevo en un momento." }), {
-          status: 429,
-          headers: jsonHeaders,
-        });
+        return new Response(
+          JSON.stringify({
+            error: "Demasiadas solicitudes, intenta de nuevo en un momento.",
+          }),
+          {
+            status: 429,
+            headers: jsonHeaders,
+          },
+        );
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes para el servicio de IA." }), {
-          status: 402,
-          headers: jsonHeaders,
-        });
+        return new Response(
+          JSON.stringify({
+            error: "Créditos insuficientes para el servicio de IA.",
+          }),
+          {
+            status: 402,
+            headers: jsonHeaders,
+          },
+        );
       }
-      return new Response(JSON.stringify({ error: "Error al procesar el documento con IA" }), {
-        status: 500,
-        headers: jsonHeaders,
-      });
+      return new Response(
+        JSON.stringify({ error: "Error al procesar el documento con IA" }),
+        {
+          status: 500,
+          headers: jsonHeaders,
+        },
+      );
     }
 
     const aiResult = await response.json();
     const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall?.function?.arguments) {
-      return new Response(JSON.stringify({ error: "No se pudieron extraer datos del documento" }), {
-        status: 422,
-        headers: jsonHeaders,
-      });
+      return new Response(
+        JSON.stringify({ error: "No se pudieron extraer datos del documento" }),
+        {
+          status: 422,
+          headers: jsonHeaders,
+        },
+      );
     }
 
     const extracted = JSON.parse(toolCall.function.arguments);
@@ -154,9 +210,12 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
     return new Response(JSON.stringify(extracted), { headers: jsonHeaders });
   } catch (e) {
     console.error("[parse-csf] error:", e);
-    return new Response(JSON.stringify({ error: "Error interno del servidor" }), {
-      status: 500,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Error interno del servidor" }),
+      {
+        status: 500,
+        headers: { ...cors, "Content-Type": "application/json" },
+      },
+    );
   }
 });

@@ -1,6 +1,10 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shared/auth.ts";
-import { isUUID, isEmail } from "../_shared/validate.ts";
+import {
+  enforceRateLimit,
+  generateSecurePassword,
+  requireAdmin,
+} from "../_shared/auth.ts";
+import { isEmail, isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -11,7 +15,12 @@ Deno.serve(async (req) => {
     const auth = await requireAdmin(req);
     if (!auth.ok) return auth.response;
 
-    const limited = await enforceRateLimit(req, auth.adminClient, "invite-customer", auth.userId);
+    const limited = await enforceRateLimit(
+      req,
+      auth.adminClient,
+      "invite-customer",
+      auth.userId,
+    );
     if (limited) return limited;
 
     const body = await req.json();
@@ -20,13 +29,19 @@ Deno.serve(async (req) => {
     if (!isUUID(customer_id)) {
       return new Response(
         JSON.stringify({ error: "customer_id must be a valid UUID" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
     if (!isEmail(email)) {
       return new Response(
         JSON.stringify({ error: "A valid email is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -46,14 +61,17 @@ Deno.serve(async (req) => {
     if (customer.user_id) {
       return new Response(
         JSON.stringify({ error: "Customer already has portal access" }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
     // Contraseña segura no predecible (rejection sampling, sin sufijo fijo).
     const tempPassword = generateSecurePassword(24);
-    const { data: newUser, error: createErr } =
-      await auth.adminClient.auth.admin.createUser({
+    const { data: newUser, error: createErr } = await auth.adminClient.auth
+      .admin.createUser({
         email,
         password: tempPassword,
         email_confirm: true,
@@ -63,7 +81,10 @@ Deno.serve(async (req) => {
     if (createErr) {
       return new Response(
         JSON.stringify({ error: createErr.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -88,8 +109,10 @@ Deno.serve(async (req) => {
       .update({ user_id: userId })
       .eq("id", customer_id);
 
-    const { error: resetErr } =
-      await auth.adminClient.auth.admin.generateLink({ type: "recovery", email });
+    const { error: resetErr } = await auth.adminClient.auth.admin.generateLink({
+      type: "recovery",
+      email,
+    });
 
     if (resetErr) {
       console.error("Password reset email error:", resetErr.message);
@@ -97,13 +120,19 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, user_id: userId }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (_err) {
     console.error("invite-customer error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

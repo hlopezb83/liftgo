@@ -15,7 +15,10 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: jsonHeaders,
+      });
     }
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -24,9 +27,13 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
+    const { data: claimsData, error: claimsErr } = await callerClient.auth
+      .getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: jsonHeaders,
+      });
     }
     const userId = claimsData.claims.sub as string;
 
@@ -35,14 +42,22 @@ Deno.serve(async (req) => {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    const allowed = (rolesRows ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    const allowed = (rolesRows ?? []).some((r) =>
+      r.role === "admin" || r.role === "administrativo"
+    );
     if (!allowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: jsonHeaders,
+      });
     }
 
     const { payment_id } = await req.json().catch(() => ({}));
     if (!isUUID(payment_id)) {
-      return new Response(JSON.stringify({ error: "payment_id must be a valid UUID" }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "payment_id must be a valid UUID" }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
     // Load payment
@@ -52,29 +67,53 @@ Deno.serve(async (req) => {
       .eq("id", payment_id)
       .single();
     if (payErr || !payment) {
-      return new Response(JSON.stringify({ error: "Payment not found" }), { status: 404, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Payment not found" }), {
+        status: 404,
+        headers: jsonHeaders,
+      });
     }
     if (payment.rep_cfdi_status === "stamped") {
-      return new Response(JSON.stringify({ error: "Este pago ya tiene un REP timbrado" }), { status: 409, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "Este pago ya tiene un REP timbrado" }),
+        { status: 409, headers: jsonHeaders },
+      );
     }
     if (!payment.payment_form_sat) {
-      return new Response(JSON.stringify({ error: "Falta forma de pago SAT en el pago" }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "Falta forma de pago SAT en el pago" }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
     // Load invoice
     const { data: invoice } = await supabase
       .from("invoices")
-      .select("id, customer_id, total, metodo_pago, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name")
+      .select(
+        "id, customer_id, total, metodo_pago, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
+      )
       .eq("id", payment.invoice_id)
       .single();
     if (!invoice) {
-      return new Response(JSON.stringify({ error: "Invoice not found" }), { status: 404, headers: jsonHeaders });
+      return new Response(JSON.stringify({ error: "Invoice not found" }), {
+        status: 404,
+        headers: jsonHeaders,
+      });
     }
     if (invoice.metodo_pago !== "PPD") {
-      return new Response(JSON.stringify({ error: "Solo facturas PPD requieren Complemento de Pago" }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({
+          error: "Solo facturas PPD requieren Complemento de Pago",
+        }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
     if (invoice.cfdi_status !== "stamped" || !invoice.cfdi_uuid) {
-      return new Response(JSON.stringify({ error: "La factura debe estar timbrada para generar REP" }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({
+          error: "La factura debe estar timbrada para generar REP",
+        }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
     // Calculate prior_balance: sum of all stamped/none REP payments BEFORE this one
@@ -85,7 +124,9 @@ Deno.serve(async (req) => {
       .order("payment_date", { ascending: true })
       .order("created_at", { ascending: true });
 
-    const ordered = (allPayments ?? []) as Array<{ id: string; amount: number; rep_cfdi_status: string }>;
+    const ordered = (allPayments ?? []) as Array<
+      { id: string; amount: number; rep_cfdi_status: string }
+    >;
     let priorPaid = 0;
     let installmentNumber = 1;
     for (const p of ordered) {
@@ -99,7 +140,12 @@ Deno.serve(async (req) => {
     const priorBalance = Number((invoiceTotal - priorPaid).toFixed(2));
     const amount = Number(payment.amount);
     if (amount <= 0 || amount > priorBalance + 0.01) {
-      return new Response(JSON.stringify({ error: `Monto inválido. Saldo previo: ${priorBalance}` }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({
+          error: `Monto inválido. Saldo previo: ${priorBalance}`,
+        }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
     // Tax breakdown (IVA 16% único)
@@ -117,10 +163,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const mode = (company?.facturapi_mode as string | undefined) || "test";
     const apiKey = mode === "live"
-      ? ((secrets?.facturapi_live_key as string | null) || Deno.env.get("FACTURAPI_LIVE_KEY"))
-      : ((secrets?.facturapi_test_key as string | null) || Deno.env.get("FACTURAPI_TEST_KEY"));
+      ? ((secrets?.facturapi_live_key as string | null) ||
+        Deno.env.get("FACTURAPI_LIVE_KEY"))
+      : ((secrets?.facturapi_test_key as string | null) ||
+        Deno.env.get("FACTURAPI_TEST_KEY"));
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Facturapi key not configured" }), { status: 400, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "Facturapi key not configured" }),
+        { status: 400, headers: jsonHeaders },
+      );
     }
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;
@@ -150,7 +201,8 @@ Deno.serve(async (req) => {
     const payload = {
       type: "P",
       customer: {
-        legal_name: invoice.receptor_razon_social || invoice.customer_name || "Público General",
+        legal_name: invoice.receptor_razon_social || invoice.customer_name ||
+          "Público General",
         tax_id: invoice.receptor_rfc || "XAXX010101000",
         tax_system: invoice.receptor_regimen_fiscal || "616",
         address: { zip: invoice.receptor_domicilio_fiscal_cp || "06600" },
@@ -160,7 +212,10 @@ Deno.serve(async (req) => {
 
     const createRes = await fetch(`${FACTURAPI_BASE}/invoices`, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
     });
 
@@ -169,11 +224,21 @@ Deno.serve(async (req) => {
       console.error("Facturapi REP create error:", errBody);
       await supabase
         .from("payments")
-        .update({ rep_cfdi_status: "error", rep_error_message: errBody.slice(0, 1000) })
+        .update({
+          rep_cfdi_status: "error",
+          rep_error_message: errBody.slice(0, 1000),
+        })
         .eq("id", payment_id);
-      return new Response(JSON.stringify({ error: `Facturapi error: ${createRes.status}`, detail: errBody }), {
-        status: 502, headers: jsonHeaders,
-      });
+      return new Response(
+        JSON.stringify({
+          error: `Facturapi error: ${createRes.status}`,
+          detail: errBody,
+        }),
+        {
+          status: 502,
+          headers: jsonHeaders,
+        },
+      );
     }
 
     const repInvoice = await createRes.json();
@@ -190,12 +255,19 @@ Deno.serve(async (req) => {
       if (xmlRes.ok) {
         const xmlTxt = await xmlRes.text();
         const p = `${invoice.id}/rep-${repUuid}.xml`;
-        const { error: upErr } = await supabase.storage.from(BUCKET).upload(p, new Blob([xmlTxt], { type: "application/xml" }), {
-          contentType: "application/xml", upsert: true,
-        });
+        const { error: upErr } = await supabase.storage.from(BUCKET).upload(
+          p,
+          new Blob([xmlTxt], { type: "application/xml" }),
+          {
+            contentType: "application/xml",
+            upsert: true,
+          },
+        );
         if (!upErr) xmlPath = p;
       }
-    } catch (e) { console.error("REP XML download failed:", e); }
+    } catch (e) {
+      console.error("REP XML download failed:", e);
+    }
 
     try {
       const pdfRes = await fetch(`${FACTURAPI_BASE}/invoices/${repId}/pdf`, {
@@ -204,12 +276,19 @@ Deno.serve(async (req) => {
       if (pdfRes.ok) {
         const pdfBytes = new Uint8Array(await pdfRes.arrayBuffer());
         const p = `${invoice.id}/rep-${repUuid}.pdf`;
-        const { error: upErr } = await supabase.storage.from(BUCKET).upload(p, pdfBytes, {
-          contentType: "application/pdf", upsert: true,
-        });
+        const { error: upErr } = await supabase.storage.from(BUCKET).upload(
+          p,
+          pdfBytes,
+          {
+            contentType: "application/pdf",
+            upsert: true,
+          },
+        );
         if (!upErr) pdfPath = p;
       }
-    } catch (e) { console.error("REP PDF download failed:", e); }
+    } catch (e) {
+      console.error("REP PDF download failed:", e);
+    }
 
     const { error: updErr } = await supabase
       .from("payments")
@@ -227,11 +306,19 @@ Deno.serve(async (req) => {
 
     if (updErr) {
       console.error("DB update error after REP stamp:", updErr);
-      return new Response(JSON.stringify({ error: "REP timbrado pero no se pudo guardar en DB" }), { status: 500, headers: jsonHeaders });
+      return new Response(
+        JSON.stringify({ error: "REP timbrado pero no se pudo guardar en DB" }),
+        { status: 500, headers: jsonHeaders },
+      );
     }
 
     return new Response(
-      JSON.stringify({ success: true, rep_cfdi_uuid: repUuid, rep_facturapi_id: repId, installment_number: installmentNumber }),
+      JSON.stringify({
+        success: true,
+        rep_cfdi_uuid: repUuid,
+        rep_facturapi_id: repId,
+        installment_number: installmentNumber,
+      }),
       { headers: jsonHeaders },
     );
   } catch (err) {

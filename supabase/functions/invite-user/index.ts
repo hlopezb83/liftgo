@@ -1,5 +1,9 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { requireAdmin, enforceRateLimit, generateSecurePassword } from "../_shared/auth.ts";
+import {
+  enforceRateLimit,
+  generateSecurePassword,
+  requireAdmin,
+} from "../_shared/auth.ts";
 import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
@@ -11,7 +15,12 @@ Deno.serve(async (req) => {
     const auth = await requireAdmin(req);
     if (!auth.ok) return auth.response;
 
-    const limited = await enforceRateLimit(req, auth.adminClient, "invite-user", auth.userId);
+    const limited = await enforceRateLimit(
+      req,
+      auth.adminClient,
+      "invite-user",
+      auth.userId,
+    );
     if (limited) return limited;
 
     const body = await req.json();
@@ -20,31 +29,46 @@ Deno.serve(async (req) => {
     if (!isEmail(email)) {
       return new Response(
         JSON.stringify({ error: "A valid email is required (max 255 chars)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
     if (!isNonEmptyString(full_name, 200)) {
       return new Response(
         JSON.stringify({ error: "full_name is required (max 200 chars)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
     if (!isValidRole(role)) {
       return new Response(
         JSON.stringify({ error: "Invalid role" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
-    if (password !== undefined && (typeof password !== "string" || password.length < 8)) {
+    if (
+      password !== undefined &&
+      (typeof password !== "string" || password.length < 8)
+    ) {
       return new Response(
         JSON.stringify({ error: "Password must be at least 8 characters" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
     const finalPassword = password || generateSecurePassword();
-    const { data: newUser, error: createErr } =
-      await auth.adminClient.auth.admin.createUser({
+    const { data: newUser, error: createErr } = await auth.adminClient.auth
+      .admin.createUser({
         email,
         password: finalPassword,
         email_confirm: true,
@@ -61,7 +85,10 @@ Deno.serve(async (req) => {
     const userId = newUser.user.id;
 
     if (role !== "dispatcher") {
-      await auth.adminClient.from("user_roles").update({ role }).eq("user_id", userId);
+      await auth.adminClient.from("user_roles").update({ role }).eq(
+        "user_id",
+        userId,
+      );
     }
 
     await auth.adminClient
@@ -71,13 +98,19 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, user_id: userId, email }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (_err) {
     console.error("invite-user error:", _err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

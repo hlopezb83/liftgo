@@ -4,12 +4,34 @@ import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const MODULES = [
-  "Dashboard", "Calendario", "CRM", "Clientes", "Cotizaciones", "Reservas",
-  "Contratos", "Entregas", "Devoluciones", "Facturas", "Equipos / Flota",
-  "Mantenimiento", "Daños", "Refacciones", "Proveedores", "Gastos Operativos",
-  "Estado de Resultados", "Reportes", "Actividad", "Bitácora", "Configuración",
-  "Gestión de Usuarios", "Changelog", "Ayuda",
-  "Panel del Cliente", "Mis Rentas", "Mis Facturas", "Mis Contratos",
+  "Dashboard",
+  "Calendario",
+  "CRM",
+  "Clientes",
+  "Cotizaciones",
+  "Reservas",
+  "Contratos",
+  "Entregas",
+  "Devoluciones",
+  "Facturas",
+  "Equipos / Flota",
+  "Mantenimiento",
+  "Daños",
+  "Refacciones",
+  "Proveedores",
+  "Gastos Operativos",
+  "Estado de Resultados",
+  "Reportes",
+  "Actividad",
+  "Bitácora",
+  "Configuración",
+  "Gestión de Usuarios",
+  "Changelog",
+  "Ayuda",
+  "Panel del Cliente",
+  "Mis Rentas",
+  "Mis Facturas",
+  "Mis Contratos",
   "Otro / General",
 ] as const;
 
@@ -24,12 +46,18 @@ const ClassificationSchema = z.object({
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
-  const headers = { ...getCorsHeaders(req), "Content-Type": "application/json" };
+  const headers = {
+    ...getCorsHeaders(req),
+    "Content-Type": "application/json",
+  };
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers,
+      });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -37,16 +65,24 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableKey) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }), { status: 500, headers });
+      return new Response(
+        JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }),
+        { status: 500, headers },
+      );
     }
 
     const caller = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
     const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsErr } = await caller.auth.getClaims(token);
+    const { data: claims, error: claimsErr } = await caller.auth.getClaims(
+      token,
+    );
     if (claimsErr || !claims?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers,
+      });
     }
 
     const admin = createClient(supabaseUrl, serviceRoleKey);
@@ -58,12 +94,18 @@ Deno.serve(async (req) => {
       .in("role", ["admin", "administrativo"])
       .maybeSingle();
     if (!roleRow) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers });
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers,
+      });
     }
 
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error.flatten() }), { status: 400, headers });
+      return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
+        status: 400,
+        headers,
+      });
     }
 
     const { data: report, error: reportErr } = await admin
@@ -72,17 +114,27 @@ Deno.serve(async (req) => {
       .eq("id", parsed.data.report_id)
       .maybeSingle();
     if (reportErr || !report) {
-      return new Response(JSON.stringify({ error: "Reporte no encontrado" }), { status: 404, headers });
+      return new Response(JSON.stringify({ error: "Reporte no encontrado" }), {
+        status: 404,
+        headers,
+      });
     }
 
     const ctx = (report.context_json ?? {}) as Record<string, unknown>;
-    const selectedEl = ctx.selected_element as Record<string, unknown> | undefined;
+    const selectedEl = ctx.selected_element as
+      | Record<string, unknown>
+      | undefined;
     const isPortal = report.reporter_type === "customer";
     const moduleHint = isPortal
-      ? MODULES.filter((m) => m.startsWith("Mis ") || m.startsWith("Panel") || m === "Otro / General")
-      : MODULES.filter((m) => !m.startsWith("Mis ") && !m.startsWith("Panel del"));
+      ? MODULES.filter((m) =>
+        m.startsWith("Mis ") || m.startsWith("Panel") || m === "Otro / General"
+      )
+      : MODULES.filter((m) =>
+        !m.startsWith("Mis ") && !m.startsWith("Panel del")
+      );
 
-    const prompt = `Eres un clasificador de reportes de bugs/mejoras para un ERP de renta de montacargas en español mexicano.
+    const prompt =
+      `Eres un clasificador de reportes de bugs/mejoras para un ERP de renta de montacargas en español mexicano.
 
 Reporte:
 - Tipo: ${report.type}
@@ -90,7 +142,11 @@ Reporte:
 - Descripción: ${report.description}
 - URL: ${ctx.route ?? "desconocida"}
 - Reportero: ${report.reporter_type}
-${selectedEl ? `- Elemento señalado: <${selectedEl.tagName}> "${selectedEl.text}" (selector: ${selectedEl.cssPath})` : ""}
+${
+        selectedEl
+          ? `- Elemento señalado: <${selectedEl.tagName}> "${selectedEl.text}" (selector: ${selectedEl.cssPath})`
+          : ""
+      }
 
 Criterios de severidad (para bugs):
 - critical: bloquea operación, pérdida de datos, problema fiscal/legal, sistema caído.
@@ -104,31 +160,49 @@ Elige el módulo más probable basándote en la URL y la descripción. Si nada e
 
 Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning": "1-2 frases en español"}`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${lovableKey}`,
+    const aiResp = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${lovableKey}`,
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content:
+                "Devuelve únicamente JSON válido. Sin markdown, sin explicación adicional.",
+            },
+            { role: "user", content: prompt },
+          ],
+          response_format: { type: "json_object" },
+        }),
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: "Devuelve únicamente JSON válido. Sin markdown, sin explicación adicional." },
-          { role: "user", content: prompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
+    );
 
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       if (aiResp.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit excedido, intenta de nuevo en unos segundos" }), { status: 429, headers });
+        return new Response(
+          JSON.stringify({
+            error: "Rate limit excedido, intenta de nuevo en unos segundos",
+          }),
+          { status: 429, headers },
+        );
       }
       if (aiResp.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de AI agotados" }), { status: 402, headers });
+        return new Response(
+          JSON.stringify({ error: "Créditos de AI agotados" }),
+          { status: 402, headers },
+        );
       }
-      return new Response(JSON.stringify({ error: `AI gateway error: ${errText.slice(0, 200)}` }), { status: 500, headers });
+      return new Response(
+        JSON.stringify({ error: `AI gateway error: ${errText.slice(0, 200)}` }),
+        { status: 500, headers },
+      );
     }
 
     const aiJson = await aiResp.json();
@@ -139,7 +213,10 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       classification = ClassificationSchema.parse(parsedAi);
     } catch (parseErr) {
       console.error("[classify-feedback] parse fail", parseErr, rawContent);
-      return new Response(JSON.stringify({ error: "Respuesta de AI inválida" }), { status: 502, headers });
+      return new Response(
+        JSON.stringify({ error: "Respuesta de AI inválida" }),
+        { status: 502, headers },
+      );
     }
 
     const newContext = {
@@ -156,7 +233,9 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
     const { data: updated, error: updateErr } = await admin
       .from("feedback_reports")
       .update({
-        severity: report.type === "bug" ? classification.severity : classification.severity,
+        severity: report.type === "bug"
+          ? classification.severity
+          : classification.severity,
         module: classification.module,
         context_json: newContext,
       })
@@ -165,12 +244,21 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       .single();
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: updateErr.message }), { status: 500, headers });
+      return new Response(JSON.stringify({ error: updateErr.message }), {
+        status: 500,
+        headers,
+      });
     }
 
-    return new Response(JSON.stringify({ report: updated, classification }), { status: 200, headers });
+    return new Response(JSON.stringify({ report: updated, classification }), {
+      status: 200,
+      headers,
+    });
   } catch (err) {
     console.error("[classify-feedback] fatal", err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "unknown" }), { status: 500, headers });
+    return new Response(
+      JSON.stringify({ error: err instanceof Error ? err.message : "unknown" }),
+      { status: 500, headers },
+    );
   }
 });

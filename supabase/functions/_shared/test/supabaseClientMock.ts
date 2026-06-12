@@ -1,6 +1,9 @@
 // Lightweight Supabase client mock for Deno tests.
 // Configure per-table responses, then build a SupabaseLike via buildClient().
-import type { SupabaseLike, QueryBuilderLike } from "../../stamp-cfdi/handler.ts";
+import type {
+  QueryBuilderLike,
+  SupabaseLike,
+} from "../../stamp-cfdi/handler.ts";
 
 export interface TableResponse {
   data: unknown;
@@ -41,7 +44,11 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   const updates = cfg.updates ?? {};
   const storage = cfg.storage ?? {};
 
-  function makeBuilder(table: string, mode: "select" | "update", patch?: Record<string, unknown>): QueryBuilderLike {
+  function makeBuilder(
+    table: string,
+    mode: "select" | "update",
+    patch?: Record<string, unknown>,
+  ): QueryBuilderLike {
     const filters: Array<{ col: string; val: unknown }> = [];
 
     const resolveSelect = async (): Promise<TableResponse> =>
@@ -56,11 +63,14 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
       select: () => builder,
       insert: () => builder,
       update: (p) => makeBuilder(table, "update", p),
-      eq: (col, val) => { filters.push({ col, val }); return builder; },
+      eq: (col, val) => {
+        filters.push({ col, val });
+        return builder;
+      },
       limit: () => builder,
       single: () => resolveSelect(),
       maybeSingle: () => resolveSelect(),
-      then: <T,>(onfulfilled: (v: TableResponse) => T) => {
+      then: <T>(onfulfilled: (v: TableResponse) => T) => {
         const p = mode === "update" ? resolveUpdate() : resolveSelect();
         return p.then(onfulfilled);
       },
@@ -71,7 +81,9 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   state.client = {
     auth: {
       getClaims: async () => ({
-        data: cfg.claims === undefined ? null : { claims: cfg.claims ?? undefined },
+        data: cfg.claims === undefined
+          ? null
+          : { claims: cfg.claims ?? undefined },
         error: cfg.claimsError ?? null,
       }),
     },

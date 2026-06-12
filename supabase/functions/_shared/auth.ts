@@ -1,6 +1,9 @@
 // Helpers compartidos de autenticación / autorización para Edge Functions admin.
 // Centralizan validación de JWT, lookup de rol y generación de contraseñas seguras.
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "./cors.ts";
 
 export type AuthSuccess = {
@@ -53,7 +56,10 @@ export async function requireAuth(req: Request): Promise<AuthResult> {
 }
 
 /** Valida el JWT y exige que el caller tenga uno de los roles indicados. */
-export async function requireRole(req: Request, roles: string[]): Promise<AuthResult> {
+export async function requireRole(
+  req: Request,
+  roles: string[],
+): Promise<AuthResult> {
   const auth = await requireAuth(req);
   if (!auth.ok) return auth;
 
@@ -65,7 +71,10 @@ export async function requireRole(req: Request, roles: string[]): Promise<AuthRe
     .maybeSingle();
 
   if (!roleData) {
-    return { ok: false, response: jsonError(req, 403, "Forbidden: insufficient role") };
+    return {
+      ok: false,
+      response: jsonError(req, 403, "Forbidden: insufficient role"),
+    };
   }
 
   return { ...auth, role: roleData.role as string };
@@ -81,7 +90,8 @@ export function requireAdmin(req: Request): Promise<AuthResult> {
  * que introduce `% charset.length` cuando 256 no es múltiplo del tamaño del charset.
  */
 export function generateSecurePassword(length = 20): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
   const max = Math.floor(256 / charset.length) * charset.length;
   const out: string[] = [];
   const buf = new Uint8Array(1);
@@ -126,7 +136,8 @@ export async function enforceRateLimit(
   if (data === false) {
     return new Response(
       JSON.stringify({
-        error: `Demasiadas peticiones. Espera unos segundos antes de reintentar (límite ${maxRequests}/${windowSeconds}s).`,
+        error:
+          `Demasiadas peticiones. Espera unos segundos antes de reintentar (límite ${maxRequests}/${windowSeconds}s).`,
       }),
       {
         status: 429,

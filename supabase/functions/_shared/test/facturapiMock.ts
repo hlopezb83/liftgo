@@ -15,26 +15,33 @@ export function installFacturapiMock(
   const original = globalThis.fetch;
   const state: FacturapiMockState = {
     calls: [],
-    restore: () => { globalThis.fetch = original; },
+    restore: () => {
+      globalThis.fetch = original;
+    },
   };
 
-  globalThis.fetch = (async (input: Request | string | URL, init?: RequestInit) => {
-    const url = typeof input === "string" ? input : (input instanceof URL ? input.toString() : input.url);
-    if (!url.startsWith(FACTURAPI_PREFIX)) {
-      throw new Error(`Unexpected fetch call to ${url} (facturapi mock active)`);
-    }
-    const req = input instanceof Request ? input : new Request(url, init);
-    const body = init?.body ? String(init.body) : null;
-    state.calls.push({ url, method: req.method, body });
+  globalThis.fetch =
+    (async (input: Request | string | URL, init?: RequestInit) => {
+      const url = typeof input === "string"
+        ? input
+        : (input instanceof URL ? input.toString() : input.url);
+      if (!url.startsWith(FACTURAPI_PREFIX)) {
+        throw new Error(
+          `Unexpected fetch call to ${url} (facturapi mock active)`,
+        );
+      }
+      const req = input instanceof Request ? input : new Request(url, init);
+      const body = init?.body ? String(init.body) : null;
+      state.calls.push({ url, method: req.method, body });
 
-    // Match longest path key first.
-    const path = url.slice(FACTURAPI_PREFIX.length);
-    const keys = Object.keys(handlers).sort((a, b) => b.length - a.length);
-    for (const k of keys) {
-      if (path.startsWith(k)) return await handlers[k](req);
-    }
-    throw new Error(`No facturapi mock handler for ${path}`);
-  }) as typeof fetch;
+      // Match longest path key first.
+      const path = url.slice(FACTURAPI_PREFIX.length);
+      const keys = Object.keys(handlers).sort((a, b) => b.length - a.length);
+      for (const k of keys) {
+        if (path.startsWith(k)) return await handlers[k](req);
+      }
+      throw new Error(`No facturapi mock handler for ${path}`);
+    }) as typeof fetch;
 
   return state;
 }
@@ -65,7 +72,10 @@ export function xmlResponse(xml: string): Response {
 }
 
 export function pdfResponse(bytes: Uint8Array): Response {
-  const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+  const ab = bytes.buffer.slice(
+    bytes.byteOffset,
+    bytes.byteOffset + bytes.byteLength,
+  ) as ArrayBuffer;
   return new Response(ab, {
     status: 200,
     headers: { "Content-Type": "application/pdf" },

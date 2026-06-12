@@ -2,12 +2,24 @@
 // Extraído de index.ts para ser testeable en isolation con Deno.test.
 
 export type ExpenseCategory =
-  | "renta" | "nomina" | "software" | "depreciacion"
-  | "otro" | "costo_venta" | "caja_chica" | "publicidad";
+  | "renta"
+  | "nomina"
+  | "software"
+  | "depreciacion"
+  | "otro"
+  | "costo_venta"
+  | "caja_chica"
+  | "publicidad";
 
 export const CATEGORIES: ExpenseCategory[] = [
-  "renta", "nomina", "software", "depreciacion",
-  "otro", "costo_venta", "caja_chica", "publicidad",
+  "renta",
+  "nomina",
+  "software",
+  "depreciacion",
+  "otro",
+  "costo_venta",
+  "caja_chica",
+  "publicidad",
 ];
 
 export interface ParsedCfdi {
@@ -48,7 +60,9 @@ export function findAllTags(xml: string, localName: string): string[] {
 
 export function parseCfdi(xml: string): ParsedCfdi {
   const comprobante = findTag(xml, "Comprobante");
-  if (!comprobante) throw new Error("XML no es un CFDI válido (sin nodo Comprobante)");
+  if (!comprobante) {
+    throw new Error("XML no es un CFDI válido (sin nodo Comprobante)");
+  }
 
   const tfd = findTag(xml, "TimbreFiscalDigital");
   const uuid = tfd ? attr(tfd, "UUID") : null;
@@ -61,7 +75,9 @@ export function parseCfdi(xml: string): ParsedCfdi {
   const fecha = fechaRaw.slice(0, 10);
 
   const impuestosTag = findTag(xml, "Impuestos");
-  const trasladosTotales = impuestosTag ? Number(attr(impuestosTag, "TotalImpuestosTrasladados") ?? "0") : 0;
+  const trasladosTotales = impuestosTag
+    ? Number(attr(impuestosTag, "TotalImpuestosTrasladados") ?? "0")
+    : 0;
   const retencionesIvaTotales = impuestosTag
     ? Number(attr(impuestosTag, "TotalImpuestosRetenidos") ?? "0")
     : 0;
@@ -95,7 +111,8 @@ export function parseCfdi(xml: string): ParsedCfdi {
     emisor: {
       rfc: (emisorTag ? attr(emisorTag, "Rfc") : null) ?? "",
       nombre: (emisorTag ? attr(emisorTag, "Nombre") : null) ?? "",
-      regimen_fiscal: (emisorTag ? attr(emisorTag, "RegimenFiscal") : null) ?? "",
+      regimen_fiscal: (emisorTag ? attr(emisorTag, "RegimenFiscal") : null) ??
+        "",
     },
     conceptos: conceptosTags.map((t) => ({
       descripcion: attr(t, "Descripcion") ?? "",

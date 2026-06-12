@@ -1,8 +1,8 @@
 // Unit tests for the pure CFDI 4.0 parser. No network, no Deno APIs beyond test runtime.
 import {
+  assertAlmostEquals,
   assertEquals,
   assertThrows,
-  assertAlmostEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { parseCfdi } from "./cfdi-parser.ts";
 
@@ -90,7 +90,10 @@ Deno.test("parseCfdi: lanza si falta nodo Comprobante", () => {
 });
 
 Deno.test("parseCfdi: lanza si falta TimbreFiscalDigital (sin UUID)", () => {
-  const noTimbre = FIXTURE_BASIC.replace(/<cfdi:Complemento>[\s\S]*<\/cfdi:Complemento>/, "");
+  const noTimbre = FIXTURE_BASIC.replace(
+    /<cfdi:Complemento>[\s\S]*<\/cfdi:Complemento>/,
+    "",
+  );
   assertThrows(() => parseCfdi(noTimbre), Error, "timbre");
 });
 
