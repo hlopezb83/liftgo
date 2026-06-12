@@ -1,0 +1,31 @@
+{
+  "version": "6.46.8",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Clientes E2E ocultos y aislados desde UI",
+  "summary": "Corrección puntual para que el componente Clientes no muestre registros de pruebas y para que el test que crea clientes por UI los marque desde el momento de inserción.",
+  "sections": [
+    {
+      "heading": "Problema detectado",
+      "items": [
+        "El test customer-create creaba clientes reales desde la UI con prefijo E2E UI y correo e2e-ui@test.local, pero al momento de insertar la fila todavía no existía is_e2e=true.",
+        "Si el borrado final fallaba o una corrida quedaba interrumpida, esos clientes pasaban el filtro normal de Clientes porque is_e2e=false."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "El test customer-create ahora inyecta liftgo:e2e=true y un e2e_scope en localStorage antes de abrir /customers.",
+        "CustomersPage agrega esa metadata al payload de creación sólo durante corridas E2E, así el registro nace aislado y no aparece en la lista productiva.",
+        "El test verifica por BD que is_e2e=true y que e2e_scope coincide, y borra el cliente por id.",
+        "useCustomers también oculta residuos legacy con nombre E2E% o correo e2e-ui@test.local para evitar que vuelvan a mostrarse en Clientes."
+      ]
+    },
+    {
+      "heading": "Limpieza aplicada",
+      "items": [
+        "Se eliminaron los clientes E2E UI visibles restantes y los residuos E2E marcados correctamente en clientes, modelos, equipos, cotizaciones, reservas, facturas y activity_feed."
+      ]
+    }
+  ]
+}

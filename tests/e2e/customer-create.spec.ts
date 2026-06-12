@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
  *  2. Click "Agregar Cliente" → abre CustomerFormDialog
  *  3. Llenar nombre + RFC genérico XAXX010101000 (sin lookup SAT)
  *  4. Guardar
- *  5. Verificar que el nombre aparece en la lista
+ *  5. Verificar en BD que el registro quedó marcado como E2E y limpiarlo
  *
  * No usa el fixture `seed`: crea su propio cliente con prefijo "E2E UI" para
  * que el cleanup post-test pueda borrarlo por nombre vía el JWT del usuario logueado.
@@ -20,8 +20,14 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY =
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
 
-test("create a customer through the UI and find it in the list", async ({ page }) => {
+test("create a customer through the UI with E2E isolation", async ({ page }) => {
   const customerName = `E2E UI ${Date.now()}`;
+  const e2eScope = `customer-create-${Date.now()}`;
+
+  await page.addInitScript((scope) => {
+    window.localStorage.setItem("liftgo:e2e", "true");
+    window.localStorage.setItem("liftgo:e2e_scope", scope);
+  }, e2eScope);
 
   await page.goto("/customers", { waitUntil: "domcontentloaded" });
 
@@ -43,10 +49,10 @@ test("create a customer through the UI and find it in the list", async ({ page }
   // El dialog se cierra al éxito; el cliente debe aparecer en la lista.
   await expect(dialog).toBeHidden({ timeout: 15_000 });
   await page.waitForLoadState("networkidle").catch(() => {});
-  await expect(page.getByText(customerName).first()).toBeVisible({ timeout: 15_000 });
 
-  // Teardown obligatorio: marcamos primero is_e2e=true para que cualquier purga
-  // posterior (purge_e2e_data) lo capture, y luego borramos por nombre. Si falla,
+  // Teardown obligatorio: el cliente nace marcado is_e2e=true desde la UI, por lo
+  // que no aparece en la lista productiva y purge_e2e_data puede capturarlo.
+  // Después verificamos por BD y borramos por id. Si falla,
   // el test DEBE fallar para que la contaminación se detecte en CI, no en producción.
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error("VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY requeridos para teardown");
@@ -71,8 +77,15 @@ test("create a customer through the UI and find it in the list", async ({ page }
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
-  // Marca como E2E (red de seguridad) antes de borrar.
-  await client.from("customers").update({ is_e2e: true }).eq("name", customerName);
-  const { error: delErr } = await client.from("customers").delete().eq("name", customerName);
+  const { data: created, error: selectErr } = await client
+    .from("customers")
+    .select("id,is_e2e,e2e_scope")
+    .eq("name", customerName)
+    .single();
+  if (selectErr) throw new Error(`Verificación E2E falló: ${selectErr.message}`);
+  expect(created.is_e2e).toBe(true);
+  expect(created.e2e_scope).toBe(e2eScope);
+
+  const { error: delErr } = await client.from("customers").delete().eq("id", created.id);
   if (delErr) throw new Error(`Teardown falló: ${delErr.message}`);
 });

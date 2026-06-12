@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
+import { buildCustomerPayload, getE2ECustomerMetadata } from "@/features/customers/lib/customerPayload";
 import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
 
 const base: CustomerFormData = {
@@ -31,5 +31,14 @@ describe("buildCustomerPayload", () => {
     const r = buildCustomerPayload({ ...base, email: "a@b.c", rfc: "XAXX010101000" });
     expect(r.email).toBe("a@b.c");
     expect(r.rfc).toBe("XAXX010101000");
+  });
+
+  it("agrega metadata E2E sólo cuando Playwright la activa", () => {
+    window.localStorage.removeItem("liftgo:e2e");
+    expect(getE2ECustomerMetadata()).toEqual({});
+
+    window.localStorage.setItem("liftgo:e2e", "true");
+    window.localStorage.setItem("liftgo:e2e_scope", "customer-create-test");
+    expect(getE2ECustomerMetadata()).toEqual({ is_e2e: true, e2e_scope: "customer-create-test" });
   });
 });

@@ -14,7 +14,7 @@ import { CustomerFormDialog } from "@/features/customers/components/customers/Cu
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";
 import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
-import { buildCustomerPayload } from "@/features/customers/lib/customerPayload";
+import { buildCustomerPayload, getE2ECustomerMetadata } from "@/features/customers/lib/customerPayload";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useCustomersColumns } from "@/features/customers/hooks/customers/useCustomersColumns";
 
@@ -122,7 +122,7 @@ export default function CustomersPage() {
       });
       return;
     }
-    createCustomer.mutate(payload, { onSuccess: handleCreateSuccess });
+    createCustomer.mutate({ ...payload, ...getE2ECustomerMetadata() }, { onSuccess: handleCreateSuccess });
   };
 
   return (

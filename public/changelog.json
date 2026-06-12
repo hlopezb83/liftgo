@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.8",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Clientes E2E ocultos y aislados desde UI",
+    "description": "Se eliminó la contaminación visible en Clientes y se reforzó el test customer-create: ahora activa una marca local de Playwright para que las altas hechas desde la UI nazcan con is_e2e=true y e2e_scope, verifica esa bandera contra la BD y las borra por id. Además, la consulta de clientes oculta residuos legacy con prefijo E2E o correo e2e-ui@test.local aunque no estén marcados correctamente.",
+    "category": "fix"
+  },
+  {
     "version": "6.46.7",
     "date": "2026-06-12",
     "type": "patch",
