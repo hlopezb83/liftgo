@@ -1,0 +1,14 @@
+{
+  "version": "6.46.1",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "División de hooks grandes (paso 5 auditoría)",
+  "description": "Se dividieron 4 archivos de hooks que superaban 100 LOC en archivos por responsabilidad (queries vs mutations), manteniendo los archivos originales como barriles de re-export.",
+  "changes": [
+    "src/features/portal/hooks/usePaymentIntents.ts (127 → 9 LOC barrel) → 3 archivos en paymentIntents/",
+    "src/features/bank-reconciliation/hooks/useBankReconciliationMutations.ts (125 → 6 LOC barrel) → 2 archivos en mutations/",
+    "src/features/invoices/hooks/creditNotes/useCreditNotes.ts (121 → 8 LOC barrel) → useCreditNotesQueries + useCreditNoteMutations",
+    "src/features/fleet/hooks/forklifts/useAssignForklifts.ts (115 → 4 LOC barrel) → 3 archivos en assignForklifts/",
+    "Type-check limpio (npx tsc --noEmit) — sin cambios para los consumidores"
+  ]
+}
