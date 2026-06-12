@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.45.0",
+    "date": "2026-06-12",
+    "type": "minor",
+    "title": "Fuente única de saldo de facturas",
+    "description": "Auditoría arquitectónica paso 1: se centralizó el cálculo de saldo (total menos pagos) en una vista SQL unificada y un hook compartido. Cartera vencida, pronóstico de cobranza, dashboard y reporte de antigüedad ahora leen la misma fórmula. Cierra una familia entera de bugs por divergencia entre vistas financieras.",
+    "category": "improvement"
+  },
+  {
     "version": "6.44.9",
     "date": "2026-06-12",
     "type": "patch",

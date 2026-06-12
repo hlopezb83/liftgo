@@ -1,0 +1,11 @@
+{
+  "description": "Auditoría arquitectónica — paso 1 (fundación). Se elimina la duplicación de la fórmula de saldo de facturas que había causado los bugs de v6.44.8 y v6.44.9. Ahora hay una única fuente de verdad consumida por todas las pantallas financieras y RPCs.",
+  "changes": [
+    "Nueva vista SQL public.v_invoices_with_balance: cada factura con paid_amount y balance (total - pagos, mínimo 0), respetando RLS vía security_invoker.",
+    "Nuevo hook compartido useInvoicesWithBalance(filter) con filtros por estado, rango de vencimiento y umbral de saldo.",
+    "Refactor get_financial_kpis y get_dashboard_stats: ambos RPCs consumen la vista en lugar de recalcular el saldo con LEFT JOIN ad-hoc.",
+    "Refactor useUpcomingInvoices (Pronóstico de Cobranza): ya no hace doble query a invoices+payments; delega a useInvoicesWithBalance.",
+    "Refactor AgingReport: columna 'Monto' renombrada a 'Saldo' y todos los buckets/CSV calculan sobre el saldo real, no sobre el total bruto.",
+    "Próximos pasos planeados (no implementados aún): reducir acoplamiento entre features, romper componentes >200 LOC, dividir hooks >100 LOC, regla ESLint que prohíba imports cruzados entre features."
+  ]
+}
