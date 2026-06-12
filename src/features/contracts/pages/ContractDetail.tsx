@@ -55,8 +55,8 @@ export default function ContractDetail() {
       </div>
 
       <ContractDetailsCard
-        startDate={contract.start_date}
-        endDate={contract.end_date}
+        startDate={contract.start_date ?? ""}
+        endDate={contract.end_date ?? ""}
         depositAmount={contract.deposit_amount}
         dailyRate={contract.daily_rate}
         weeklyRate={contract.weekly_rate}
@@ -70,8 +70,8 @@ export default function ContractDetail() {
       {showFinancials && (
         <RentalFinancialSummary
           bookingId={contract.booking_id ?? ""}
-          startDate={contract.start_date}
-          endDate={contract.end_date}
+          startDate={contract.start_date ?? ""}
+          endDate={contract.end_date ?? ""}
           dailyRate={contract.daily_rate}
           weeklyRate={contract.weekly_rate}
           monthlyRate={contract.monthly_rate}

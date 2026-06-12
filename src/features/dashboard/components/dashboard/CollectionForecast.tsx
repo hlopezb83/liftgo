@@ -10,7 +10,7 @@ interface OverdueInvoice {
   id: string;
   invoice_number: string;
   total: number;
-  due_date: string;
+  due_date: string | null;
 }
 
 interface CollectionForecastProps {
@@ -38,6 +38,7 @@ export const CollectionForecast = memo(function CollectionForecast({
 
     const within7 = upcomingInvoices
       .filter((inv) => {
+        if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
         return due >= today && due <= in7;
       })
@@ -45,6 +46,7 @@ export const CollectionForecast = memo(function CollectionForecast({
 
     const within30 = upcomingInvoices
       .filter((inv) => {
+        if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
         return due >= today && due <= in30;
       })
@@ -59,6 +61,7 @@ export const CollectionForecast = memo(function CollectionForecast({
       expected30,
       overdueCount: overdueInvoices.length,
       upcoming7Count: upcomingInvoices.filter((inv) => {
+        if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
         return due >= today && due <= in7;
       }).length,

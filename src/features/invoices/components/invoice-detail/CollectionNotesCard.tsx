@@ -75,7 +75,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
           <div key={n.id} className="p-3 rounded-lg bg-muted/40 space-y-1">
             <p className="text-sm">{n.note}</p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span>{format(new Date(n.created_at), "dd/MM/yyyy HH:mm")}</span>
+              <span>{n.created_at ? format(new Date(n.created_at), "dd/MM/yyyy HH:mm") : "—"}</span>
               {n.next_followup_date && (
                 <span className="flex items-center gap-1 text-primary">
                   <Calendar className="h-3 w-3" /> Seguimiento: {formatDateDisplay(n.next_followup_date)}

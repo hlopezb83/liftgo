@@ -1,5 +1,12 @@
 [
   {
+    "version": "6.44.2",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "TypeScript: strict completo activado (Lote B.2 + B.3)",
+    "category": "tooling"
+  },
+  {
     "version": "6.44.1",
     "date": "2026-06-12",
     "type": "patch",

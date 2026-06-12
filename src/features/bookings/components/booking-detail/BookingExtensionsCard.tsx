@@ -6,7 +6,7 @@ interface Extension {
   id: string;
   original_end_date: string;
   new_end_date: string;
-  created_at: string;
+  created_at: string | null;
   reason?: string | null;
 }
 

@@ -47,7 +47,7 @@ export function ProspectFormFields({
           quoteId={fields.quoteId}
           onChange={setters.handleQuoteChange}
           matchingQuotes={matchingQuotes}
-          selectedQuote={selectedQuote}
+          selectedQuote={selectedQuote ?? null}
         />
       )}
 

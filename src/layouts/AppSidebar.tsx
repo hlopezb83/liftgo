@@ -25,7 +25,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarUserFooter
         email={user?.email}
-        role={role}
+        role={role ?? undefined}
         currentVersion={currentVersion}
         onSignOut={signOut}
       />

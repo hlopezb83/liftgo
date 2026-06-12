@@ -29,7 +29,7 @@ export function BookingPostDialogs({ postBooking, showPolicyDialog, forkliftName
           forkliftId={postBooking.forkliftId}
           forkliftName={forkliftName}
           startDate={postBooking.startDate}
-          customerAddress={postBooking.customerAddress}
+          customerAddress={postBooking.customerAddress ?? null}
           onSkip={onDeliveryDone}
         />
       )}

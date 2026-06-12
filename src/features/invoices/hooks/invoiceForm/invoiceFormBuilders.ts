@@ -14,7 +14,7 @@ export type Customer = {
 };
 
 export type ExistingInvoice = {
-  customer_name?: string | null; customer_id: string; booking_id?: string | null;
+  customer_name?: string | null; customer_id: string | null; booking_id?: string | null;
   line_items?: unknown; tax_rate?: number | string; due_date?: string | null;
   issued_at?: string | null; notes?: string | null;
   serie?: string | null; folio?: string | null; forma_pago?: string | null;
@@ -25,7 +25,7 @@ export type ExistingInvoice = {
 };
 
 export type SourceQuote = {
-  customer_name?: string | null; customer_id: string;
+  customer_name?: string | null; customer_id: string | null;
   line_items?: unknown; tax_rate?: number | string; notes?: string | null;
   quote_type?: string;
 };

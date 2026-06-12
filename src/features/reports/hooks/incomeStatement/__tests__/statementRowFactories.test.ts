@@ -34,7 +34,7 @@ describe("buildBreakdownRows", () => {
   });
 
   it("usa 0 cuando una llave falta en algún mes", () => {
-    const sel = (m: MonthData) => (m.month === "Ene" ? { Solo: 10 } : {});
+    const sel = (m: MonthData): Record<string, number> => (m.month === "Ene" ? { Solo: 10 } : {});
     const rows = buildBreakdownRows(monthsBase, sel);
     expect(rows[0].values).toEqual([10, 0]);
     expect(rows[0].total).toBe(10);

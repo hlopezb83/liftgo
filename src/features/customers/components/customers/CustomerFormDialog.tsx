@@ -65,7 +65,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
         <FiscalSection />
         <ContactSection />
         <AddressNotesSection />
-        <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Agregar Cliente"} isPending={isPending} onCancel={() => onOpenChange(false)} />
+        <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Agregar Cliente"} isPending={isPending ?? false} onCancel={() => onOpenChange(false)} />
       </form>
     </Form>
   );

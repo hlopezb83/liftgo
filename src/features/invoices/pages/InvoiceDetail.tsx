@@ -95,7 +95,7 @@ export default function InvoiceDetail() {
           <InvoiceDetailActions
             invoice={invoice}
             cfdiStatus={cfdiStatus}
-            userRole={userRole}
+            userRole={userRole ?? undefined}
             isStamping={actions.stampCfdi.isPending}
             onSent={() => actions.setStatus("sent")}
             onOpenPayment={() => actions.setPaymentDialogOpen(true)}
@@ -112,7 +112,7 @@ export default function InvoiceDetail() {
         customerName={invoice.customer_name}
         rfc={invoice.receptor_rfc}
         issuedAt={invoice.issued_at}
-        dueDate={invoice.due_date}
+        dueDate={invoice.due_date ?? ""}
         paidAt={invoice.paid_at}
         cfdiUuid={invoice.cfdi_uuid}
         cfdiErrorMessage={invoice.cfdi_error_message}
