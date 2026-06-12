@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.6",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Purga de datos E2E contaminados",
+    "description": "Se eliminaron 1,533 registros marcados con la bandera is_e2e (1,462 en activity_feed, 11 pagos, 12 facturas, 12 reservas, 12 cotizaciones, 12 montacargas, 12 modelos de equipo y 12 clientes) que provenían de corridas de pruebas end-to-end y habían quedado en la base de datos. Se añadió la función RPC purge_e2e_data() (restringida a rol admin vía has_role) que ejecuta la limpieza de forma atómica respetando el orden de llaves foráneas y devuelve un JSON con el conteo borrado por tabla para futuras corridas seguras.",
+    "category": "fix"
+  },
+  {
     "version": "6.46.5",
     "date": "2026-06-12",
     "type": "patch",
