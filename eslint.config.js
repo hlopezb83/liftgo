@@ -74,4 +74,21 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Paso 8 auditoría: las páginas y componentes no deben hablar con Supabase
+    // directamente. Toda I/O debe pasar por un hook bajo features/*/hooks.
+    // Excepción: src/features/auth/pages/AuthPage.tsx (login flow, pre-sesión).
+    files: ["src/features/**/pages/**/*.{ts,tsx}", "src/features/**/components/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    ignores: ["src/features/auth/pages/AuthPage.tsx", "src/components/ui/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: [
+          {
+            name: "@/integrations/supabase/client",
+            message: "Páginas y componentes no deben importar el cliente Supabase. Mover la I/O a un hook bajo src/features/*/hooks/.",
+          },
+        ],
+      }],
+    },
+  },
 );
