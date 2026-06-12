@@ -26,7 +26,15 @@ function getAgingBucket(days: number): string {
 
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
   const { data: invoices } = useInvoices();
-  const { data: payments } = usePayments();
+  const { data: payments } = useQuery({
+    queryKey: ["payments", "all"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("payments").select("invoice_id, amount");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const paidByInvoice = useMemo(() => {
     const map = new Map<string, number>();
