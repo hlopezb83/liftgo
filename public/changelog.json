@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.4",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Contratos cross-feature (paso 2 auditoría)",
+    "description": "Se creó src/lib/domain/sharedTypes.ts como barril único de tipos de dominio compartidos entre features (Customer, Forklift, Booking, BookingWithForklift, EquipmentModel, Supplier). Documentado en architecture.md §22: una feature no debe importar hooks internos de otra sólo para obtener un tipo; debe importarlo desde sharedTypes. Sin cambios en consumidores existentes (migración gradual).",
+    "category": "improvement"
+  },
+  {
     "version": "6.46.3",
     "date": "2026-06-12",
     "type": "patch",
