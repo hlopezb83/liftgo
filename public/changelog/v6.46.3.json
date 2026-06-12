@@ -1,0 +1,13 @@
+{
+  "version": "6.46.3",
+  "date": "2026-06-12",
+  "type": "patch",
+  "title": "Documentación arquitectónica (paso 7 auditoría)",
+  "description": "Se documentaron en architecture.md las nuevas decisiones de la auditoría y se actualizó el guardrail ESLint de aritmética monetaria.",
+  "changes": [
+    "architecture.md §19: lista actualizada de hooks divididos en queries+mutations",
+    "architecture.md §19: regla explícita — saldo de factura SOLO vía v_invoices_with_balance / useInvoicesWithBalance",
+    "architecture.md §19: módulos de dominio invoiceTotals.ts + rentalCalculation.ts documentados",
+    "eslint.config.js: mensaje del guardrail apunta a invoiceTotals.ts (nuevo home de la aritmética monetaria)"
+  ]
+}
