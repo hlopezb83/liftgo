@@ -1,4 +1,5 @@
 import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
+import { usePayments } from "@/features/invoices/hooks/usePayments";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -24,17 +25,31 @@ function getAgingBucket(days: number): string {
 
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
   const { data: invoices } = useInvoices();
+  const { data: payments } = usePayments();
+
+  const paidByInvoice = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of payments ?? []) {
+      map.set(p.invoice_id, (map.get(p.invoice_id) ?? 0) + Number(p.amount));
+    }
+    return map;
+  }, [payments]);
 
   const overdueInvoices = useMemo(() => {
     if (!invoices) return [];
     return invoices
       .filter((i) => ["sent", "overdue", "partial"].includes(i.status) && i.due_date && parseISO(i.due_date) < nowMty())
-      .map((i) => ({
-        ...i,
-        days_overdue: differenceInDays(nowMty(), parseISO(i.due_date as string)),
-        bucket: getAgingBucket(differenceInDays(nowMty(), parseISO(i.due_date as string))),
-      }));
-  }, [invoices]);
+      .map((i) => {
+        const balance = Math.max(Number(i.total) - (paidByInvoice.get(i.id) ?? 0), 0);
+        return {
+          ...i,
+          balance,
+          days_overdue: differenceInDays(nowMty(), parseISO(i.due_date as string)),
+          bucket: getAgingBucket(differenceInDays(nowMty(), parseISO(i.due_date as string))),
+        };
+      })
+      .filter((i) => i.balance > 0);
+  }, [invoices, paidByInvoice]);
 
   const bucketTotals = useMemo(() => {
     const buckets: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
