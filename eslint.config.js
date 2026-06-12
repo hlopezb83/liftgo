@@ -97,9 +97,13 @@ export default tseslint.config(
     // `src/features/<feature>/index.ts`. Importar rutas internas de OTRA
     // feature acopla refactors internos con consumidores remotos.
     //
+    // Scope acotado a hooks/ y lib/ para NO sobreescribir el guardrail
+    // de Supabase definido sobre pages/components (en flat config, dos
+    // bloques que coinciden y definen la misma regla, la última gana).
+    //
     // Hoy lo dejamos como `warn` para no romper la build; los nuevos
     // archivos deben respetarlo y la migración es incremental.
-    files: ["src/features/**/*.{ts,tsx}"],
+    files: ["src/features/**/hooks/**/*.{ts,tsx}", "src/features/**/lib/**/*.{ts,tsx}"],
     ignores: ["**/__tests__/**", "**/*.test.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["warn", {
