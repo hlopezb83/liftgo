@@ -16,7 +16,8 @@ function nowInMonterrey(): Date {
     second: "2-digit",
     hour12: false,
   }).formatToParts(new Date());
-  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
+  const get = (t: string) =>
+    Number(parts.find((p) => p.type === t)?.value ?? "0");
   // Construimos fecha como UTC pero con los componentes de Monterrey,
   // de modo que getFullYear/getMonth/getDate (UTC) reflejen el calendario MTY.
   return new Date(

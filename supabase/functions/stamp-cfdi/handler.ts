@@ -82,7 +82,9 @@ export async function handleStampCfdi(
     if (rolesErr) {
       return json({ error: "Authorization check failed" }, 500, jsonHeaders);
     }
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    const allowed = (roles ?? []).some((r) =>
+      r.role === "admin" || r.role === "administrativo"
+    );
     if (!allowed) {
       return json({ error: "Forbidden" }, 403, jsonHeaders);
     }

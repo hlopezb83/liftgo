@@ -1,7 +1,13 @@
 // Unit tests for stamp-credit-note pure handler (no network, no Supabase).
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handleStampCreditNote, type StampCreditNoteDeps } from "./handler.ts";
-import { buildSupabaseMock, type MockConfig } from "../_shared/test/supabaseClientMock.ts";
+import {
+  buildSupabaseMock,
+  type MockConfig,
+} from "../_shared/test/supabaseClientMock.ts";
 import {
   facturapiBadRequest,
   facturapiOk,
@@ -162,7 +168,8 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
         ? facturapiOk({ id: "fapi_nc_1", uuid: "NC-UUID-OK" })
         : new Response("not found", { status: 404 }),
     "/invoices/fapi_nc_1/xml": () => xmlResponse("<xml/>"),
-    "/invoices/fapi_nc_1/pdf": () => pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+    "/invoices/fapi_nc_1/pdf": () =>
+      pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
   });
   try {
     const { deps, serviceState } = makeDeps({

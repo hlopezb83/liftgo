@@ -116,7 +116,8 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
                 },
                 {
                   type: "text",
-                  text: "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
+                  text:
+                    "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
                 },
               ],
             },
