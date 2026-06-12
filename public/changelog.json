@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.46.2",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "División de invoiceHelpers (paso 4 auditoría)",
+    "description": "Se separó src/lib/domain/invoiceHelpers.ts (191 LOC) en dos módulos por responsabilidad: invoiceTotals (tipos, descuentos, totales) y rentalCalculation (cálculo de renta diaria/semanal/mensual). El archivo original quedó como barril de re-export, sin cambios para los 30+ consumidores. 46/46 tests pasan.",
+    "category": "improvement"
+  },
+  {
     "version": "6.46.1",
     "date": "2026-06-12",
     "type": "patch",
