@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.44.7",
+    "date": "2026-06-12",
+    "type": "patch",
+    "title": "Fix E2E: selector de Monto acotado al modal Registrar Pago",
+    "description": "El input de monto en RecordPaymentDialog ahora expone aria-label e id estables, y el test E2E invoice-payment acota la búsqueda al diálogo Registrar Pago y al botón de submit del mismo, evitando colisiones con otros campos Monto o botones Registrar de la página.",
+    "category": "testing"
+  },
+  {
     "version": "6.44.6",
     "date": "2026-06-12",
     "type": "patch",

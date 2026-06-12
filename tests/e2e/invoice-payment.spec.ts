@@ -17,11 +17,14 @@ test("can register a full payment on a seeded invoice", async ({ page, seed }) =
   await expect(payButton).toBeVisible({ timeout: 10_000 });
   await payButton.click();
 
-  const amountInput = page.getByLabel(/monto|importe/i).first();
+  const dialog = page.getByRole("dialog", { name: /registrar pago/i });
+  await expect(dialog).toBeVisible({ timeout: 5_000 });
+
+  const amountInput = dialog.getByLabel(/monto/i).first();
   await expect(amountInput).toBeVisible({ timeout: 5_000 });
   await amountInput.fill(String(seed.total));
 
-  await page.getByRole("button", { name: /guardar|registrar|confirmar/i }).first().click();
+  await dialog.getByRole("button", { name: /^registrar pago$/i }).click();
 
   await expect(page.getByText(/pagad[ao]/i).first()).toBeVisible({ timeout: 15_000 });
 });
