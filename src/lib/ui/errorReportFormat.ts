@@ -10,37 +10,42 @@ function fmtKV(obj: Record<string, unknown>): string {
     .join("\n");
 }
 
-/** Formatea un ErrorReport como texto plano listo para copiar/pegar. */
-export function formatReportText(report: ErrorReport): string {
-  const header = fmtKV({
-    requestId: report.requestId,
-    errorCode: report.errorCode,
-    title: report.title,
-    phase: report.phase ?? "—",
-    step: report.step ?? "—",
-    method: report.method ?? "—",
-    version: report.version,
-    timestamp: report.timestampIso,
-    timezone: report.timezone,
-    route: report.route,
+function headerBlock(r: ErrorReport): string {
+  return fmtKV({
+    requestId: r.requestId,
+    errorCode: r.errorCode,
+    title: r.title,
+    phase: r.phase ?? "—",
+    step: r.step ?? "—",
+    method: r.method ?? "—",
+    version: r.version,
+    timestamp: r.timestampIso,
+    timezone: r.timezone,
+    route: r.route,
   });
+}
 
-  const user = fmtKV({
-    id: report.user.id ?? "—",
-    email: report.user.email ?? "—",
-    role: report.user.effectiveRole ?? "—",
-    organizationId: report.user.organizationId ?? "—",
-    organizationName: report.user.organizationName ?? "—",
+function userBlock(r: ErrorReport): string {
+  return fmtKV({
+    id: r.user.id ?? "—",
+    email: r.user.email ?? "—",
+    role: r.user.effectiveRole ?? "—",
+    organizationId: r.user.organizationId ?? "—",
+    organizationName: r.user.organizationName ?? "—",
   });
+}
 
-  const client = fmtKV({
-    userAgent: report.client.userAgent,
-    viewport: `${report.client.viewport.width}x${report.client.viewport.height}`,
-    dpr: report.client.devicePixelRatio,
+function clientBlock(r: ErrorReport): string {
+  return fmtKV({
+    userAgent: r.client.userAgent,
+    viewport: `${r.client.viewport.width}x${r.client.viewport.height}`,
+    dpr: r.client.devicePixelRatio,
   });
+}
 
-  const d = report.errorDetails;
-  const errorBlock = fmtKV({
+function errorBlock(r: ErrorReport): string {
+  const d = r.errorDetails;
+  return fmtKV({
     message: d.message,
     name: d.name ?? "—",
     code: d.code ?? "—",
@@ -48,12 +53,16 @@ export function formatReportText(report: ErrorReport): string {
     details: d.details ?? "—",
     hint: d.hint ?? "—",
   });
+}
 
+/** Formatea un ErrorReport como texto plano listo para copiar/pegar. */
+export function formatReportText(report: ErrorReport): string {
+  const d = report.errorDetails;
   const parts: string[] = [
-    section("REPORTE DE ERROR — LiftGo", header),
-    section("USUARIO", user),
-    section("CLIENTE", client),
-    section("ERROR", errorBlock),
+    section("REPORTE DE ERROR — LiftGo", headerBlock(report)),
+    section("USUARIO", userBlock(report)),
+    section("CLIENTE", clientBlock(report)),
+    section("ERROR", errorBlock(report)),
   ];
 
   if (d.validationErrors && d.validationErrors.length > 0) {
@@ -64,18 +73,11 @@ export function formatReportText(report: ErrorReport): string {
       ),
     );
   }
-
   if (report.context && Object.keys(report.context).length > 0) {
     parts.push(section("CONTEXTO", JSON.stringify(report.context, null, 2)));
   }
-
-  if (report.description) {
-    parts.push(section("DESCRIPCIÓN", report.description));
-  }
-
-  if (d.stack) {
-    parts.push(section("STACK", d.stack));
-  }
+  if (report.description) parts.push(section("DESCRIPCIÓN", report.description));
+  if (d.stack) parts.push(section("STACK", d.stack));
 
   return parts.join("\n\n");
 }
