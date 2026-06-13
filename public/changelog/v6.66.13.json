@@ -1,0 +1,38 @@
+{
+  "version": "6.66.13",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 7 (mutaciones CRM y daños)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Vitest — useProspectMutations (7 tests)",
+      "items": [
+        "useCreateProspect: calcula stage_order = max existente + 1 al crear tarjeta en kanban.",
+        "useCreateProspect: cuando la columna está vacía usa stage_order = 0.",
+        "useCreateProspect: propaga error de insert sin mostrar toast de éxito.",
+        "useUpdateProspect: actualiza solo los campos provistos.",
+        "useUpdateProspect: propaga errores de RLS.",
+        "useDeleteProspect: elimina y muestra toast localizado.",
+        "useDeleteProspect: propaga errores de FK sin toast de éxito."
+      ]
+    },
+    {
+      "heading": "Vitest — useDamageRecords (4 tests)",
+      "items": [
+        "useCreateDamageRecord: inserta payload completo y devuelve fila creada.",
+        "useCreateDamageRecord: propaga error con título 'Error al crear registro de daño'.",
+        "useUpdateDamageRecord: el patch excluye el id (solo va al .eq).",
+        "useUpdateDamageRecord: propaga error con título 'Error al actualizar registro de daño'."
+      ]
+    },
+    {
+      "heading": "Resultados",
+      "items": [
+        "11/11 tests verde.",
+        "Riesgo cerrado: kanban CRM con tarjetas duplicadas por stage_order mal calculado.",
+        "Riesgo cerrado: daños registrados silenciosamente sin facturar reparación al cliente."
+      ]
+    }
+  ]
+}
