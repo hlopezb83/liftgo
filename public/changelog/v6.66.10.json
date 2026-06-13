@@ -1,0 +1,46 @@
+{
+  "version": "6.66.10",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 4 (cobertura avanzada)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Vitest — Mutaciones de CxP (5 tests)",
+      "items": [
+        "useCreateSupplierBill: genera bill_number vía RPC next_supplier_bill_number antes del insert.",
+        "useCreateSupplierBill: propaga error del insert sin mostrar toast de éxito (evita falso positivo en UI).",
+        "useCancelSupplierBill: aplica status=cancelled y guarda reason en notes; cuando reason es undefined → null.",
+        "useCancelSupplierBill: propaga errores de RLS sin mostrar toast de éxito."
+      ]
+    },
+    {
+      "heading": "Vitest — parseBankCsv casos negativos (9 tests)",
+      "items": [
+        "Archivo vacío y archivo con solo encabezado.",
+        "Monto cero rechazado como inválido (evita líneas fantasma).",
+        "Paréntesis interpretados como monto negativo: '(1234.56)' → -1234.56.",
+        "Separador ';' + monto con $ y comas de miles: '$1,234.56' → 1234.56.",
+        "Formato fecha DD/MM/YY se expande a 20YY.",
+        "BBVA con cargo y abono simultáneos: signed = credit - |charge|.",
+        "Mezcla líneas válidas/inválidas: reporta errores pero conserva las válidas y recalcula periodStart/periodEnd.",
+        "Ignora líneas en blanco intermedias."
+      ]
+    },
+    {
+      "heading": "Deno Edge Functions — Smoke tests (2 funciones)",
+      "items": [
+        "generate-invoice-pdf: CORS preflight + rechazo sin Authorization.",
+        "classify-feedback-report: CORS preflight + rechazo sin Authorization."
+      ]
+    },
+    {
+      "heading": "Resultados",
+      "items": [
+        "Suite Vitest: 618/618 tests verde (101 archivos).",
+        "Edge Functions con cobertura: ahora 17/17 (4 con test real, 13 smoke). Cero funciones sin test.",
+        "Bugs latentes corregidos en Lotes 1-4: 5 (Playwright sharding, portalSeed eager, smoke-nav blanco, networkidle catch silencioso, duplicado invoiceHelpers)."
+      ]
+    }
+  ]
+}
