@@ -1,0 +1,20 @@
+{
+  "version": "6.66.6",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "E2E portal: espera estable y seed idempotente",
+  "category": "testing",
+  "description": "El test del portal hacía `waitForURL` contra `/portal*`, lo cual podía resolverse inmediatamente en `/portal/login` antes de que la sesión quedara lista. Ahora espera el shell real del portal antes de navegar a facturas. Además, el seed del portal elimina clientes E2E previos del mismo usuario para que retries o corridas paralelas no apunten a datos antiguos.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "portal.spec.ts espera el layout autenticado",
+      "description": "Reemplazado el wait por URL con una espera visible del encabezado `Lift Go - Portal`, evitando navegar a `/portal/invoices` antes de que AuthGuard cargue el rol customer."
+    },
+    {
+      "type": "fix",
+      "title": "Seed E2E del portal limpia datos previos",
+      "description": "La RPC `e2e_seed_portal_scenario` limpia clientes/facturas E2E anteriores del usuario `portal-e2e@liftgo.test` antes de sembrar el nuevo escenario."
+    }
+  ]
+}
