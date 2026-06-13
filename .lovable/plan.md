@@ -69,12 +69,10 @@ Sólo carpetas con `__tests__`: `bookings/hooks`, `invoices/hooks/invoices`, `li
 ## Plan ordenado (crítico → opcional)
 
 ```text
-Paso 1  Adoptar queryKeys factories existentes en hooks (invoices/bookings/fleet/customers/crm)
-Paso 2  Mover los 5 schemas Zod fuera de componentes a features/*/lib/*Schema.ts
-Paso 3  Crear src/features/*/index.ts (barrels) exponiendo sólo API pública;
-        subir el lint guardrail no-restricted-imports de warning → error
-Paso 4  Reagrupar features/invoices/hooks/invoices/ en cfdi/ payments/ recurring/ pdf/
-        y aplicar la misma poda de nesting redundante en fleet/, bookings/
+Paso 1  ✅ v6.48.0 — queryKeys factories adoptadas en invoices/bookings/fleet/customers
+Paso 2  ✅ v6.48.0 — 5 schemas Zod movidos a features/*/lib/*Schema.ts
+Paso 3  ✅ v6.48.0 — barrels src/features/*/index.ts creados
+Paso 4  ✅ v6.49.0 — features/invoices/hooks/invoices/ reagrupado en cfdi/ recurring/ pdf/ collections/
 Paso 5  Extraer useResourceList<T> que combine useListPage+filters+sort+pagination
         y migrar 2-3 páginas piloto (InvoicesPage, BookingsPage)
 Paso 6  Revisar hooks *Logic (invoiceForm, bookingActions, forkliftForm, contractFormPrefill)
