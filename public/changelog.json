@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.54.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor arquitectónico — paso 9: estilos PDF divididos por familia de documento",
+    "description": "src/lib/pdf/theme/styles.ts (360 LOC, el archivo de aplicación más grande) se dividió en carpeta styles/ con dos archivos enfocados: shared.ts (sharedStyles usados por invoice, quote, statement e income) y contract.ts (contractStyles exclusivos de contrato, checklist y pagaré). Barrel index.ts mantiene el import @/lib/pdf/theme/styles intacto: cero cambios en los 14 consumidores. Sin cambios visuales.",
+    "category": "refactor"
+  },
+  {
     "version": "6.53.0",
     "date": "2026-06-13",
     "type": "minor",
