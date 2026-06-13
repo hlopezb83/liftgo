@@ -4,7 +4,7 @@
  */
 import "./__mocks__/reactPdf";
 import { describe, it, expect } from "vitest";
-import renderer from "react-test-renderer";
+import { render } from "@testing-library/react";
 import {
   company, lineItems, totals, customerSummary,
   incomeStatement, contract, template,
@@ -16,14 +16,14 @@ import { CustomerStatementDocument } from "../CustomerStatementDocument";
 import { IncomeStatementDocument } from "../IncomeStatementDocument";
 import { ContractDocument } from "../ContractDocument";
 
-function renderJson(el: React.ReactElement) {
-  let tree: renderer.ReactTestRenderer | null = null;
-  renderer.act(() => { tree = renderer.create(el); });
-  expect(tree).not.toBeNull();
-  const json = tree!.toJSON();
-  tree!.unmount();
-  return json;
+function snap(el: React.ReactElement) {
+  const { container, unmount } = render(el);
+  const html = container.innerHTML;
+  unmount();
+  expect(html.length).toBeGreaterThan(0);
+  return html;
 }
+
 
 describe("PDF Documents — smoke", () => {
   it("QuoteDocument renderiza sin lanzar", () => {
