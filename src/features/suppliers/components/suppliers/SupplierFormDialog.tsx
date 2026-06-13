@@ -35,28 +35,42 @@ function supplierToForm(supplier: Supplier): SupplierForm {
   };
 }
 
-function validateSupplierForm(form: SupplierForm) {
-  if (!form.name.trim()) { notifyError({ message: "El nombre es requerido" }); return null; }
-  const termsRaw = form.default_payment_terms_days.trim();
-  const termsNum = termsRaw === "" ? null : Number(termsRaw);
-  if (termsNum !== null && (!Number.isFinite(termsNum) || termsNum < 0 || termsNum > 365)) {
-    notifyError({ message: "Días de crédito debe estar entre 0 y 365" });
-    return null;
-  }
+function parseTermsDays(raw: string): number | null | "invalid" {
+  const t = raw.trim();
+  if (t === "") return null;
+  const n = Number(t);
+  if (!Number.isFinite(n) || n < 0 || n > 365) return "invalid";
+  return n;
+}
+
+function nullable(v: string): string | null { return v || null; }
+
+function buildSupplierPayload(form: SupplierForm, termsNum: number | null) {
   return {
     name: form.name.trim(),
-    contact_person: form.contact_person || null,
-    email: form.email || null,
-    phone: form.phone || null,
-    website: form.website || null,
-    address: form.address || null,
+    contact_person: nullable(form.contact_person),
+    email: nullable(form.email),
+    phone: nullable(form.phone),
+    website: nullable(form.website),
+    address: nullable(form.address),
     rfc: form.rfc.trim() ? form.rfc.trim().toUpperCase() : null,
-    regimen_fiscal: form.regimen_fiscal || null,
-    category: form.category || null,
-    notes: form.notes || null,
+    regimen_fiscal: nullable(form.regimen_fiscal),
+    category: nullable(form.category),
+    notes: nullable(form.notes),
     default_payment_terms_days: termsNum,
   };
 }
+
+function validateSupplierForm(form: SupplierForm) {
+  if (!form.name.trim()) { notifyError({ message: "El nombre es requerido" }); return null; }
+  const terms = parseTermsDays(form.default_payment_terms_days);
+  if (terms === "invalid") {
+    notifyError({ message: "Días de crédito debe estar entre 0 y 365" });
+    return null;
+  }
+  return buildSupplierPayload(form, terms);
+}
+
 
 
 export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFormDialogProps) {
