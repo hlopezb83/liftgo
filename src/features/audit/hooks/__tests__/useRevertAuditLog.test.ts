@@ -9,14 +9,16 @@ import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
  * el operador cree que revirtió y no lo hizo.
  */
 
-const toastSuccess = vi.fn();
-const notifyErrorMock = vi.fn();
+const { toastSuccess, notifyErrorMock } = vi.hoisted(() => ({
+  toastSuccess: vi.fn(),
+  notifyErrorMock: vi.fn(),
+}));
 
 vi.mock("sonner", () => ({
   toast: { success: toastSuccess, error: vi.fn() },
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({
-  notifyError: (...args: unknown[]) => notifyErrorMock(...args),
+  notifyError: notifyErrorMock,
 }));
 
 let rpcResp: { data: unknown; error: { message: string } | null } = {

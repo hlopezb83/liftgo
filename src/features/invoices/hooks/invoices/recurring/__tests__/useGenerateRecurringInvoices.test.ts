@@ -10,15 +10,17 @@ import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
  * incorrecto, las facturas no se generan y el MRR se inflama sin facturar.
  */
 
-const toastSuccess = vi.fn();
-const toastInfo = vi.fn();
-const notifyErrorMock = vi.fn();
+const { toastSuccess, toastInfo, notifyErrorMock } = vi.hoisted(() => ({
+  toastSuccess: vi.fn(),
+  toastInfo: vi.fn(),
+  notifyErrorMock: vi.fn(),
+}));
 
 vi.mock("sonner", () => ({
   toast: { success: toastSuccess, info: toastInfo, error: vi.fn() },
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({
-  notifyError: (...args: unknown[]) => notifyErrorMock(...args),
+  notifyError: notifyErrorMock,
 }));
 
 let invokeResp: { data: unknown; error: { message: string } | null } = {

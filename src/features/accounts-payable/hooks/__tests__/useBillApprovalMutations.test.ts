@@ -8,14 +8,16 @@ import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
  * Riesgo: aprobar una factura rechazada o viceversa = pago indebido.
  */
 
-const toastSuccess = vi.fn();
-const notifyErrorMock = vi.fn();
+const { toastSuccess, notifyErrorMock } = vi.hoisted(() => ({
+  toastSuccess: vi.fn(),
+  notifyErrorMock: vi.fn(),
+}));
 
 vi.mock("sonner", () => ({
   toast: { success: toastSuccess, error: vi.fn() },
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({
-  notifyError: (...args: unknown[]) => notifyErrorMock(...args),
+  notifyError: notifyErrorMock,
 }));
 
 const rpcCalls: Array<{ name: string; args: unknown }> = [];

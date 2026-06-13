@@ -14,14 +14,16 @@ import { createSupabaseChainMock, type ChainCall } from "@/test/helpers/supabase
  * la UI lo refleja; el toast debe ser de error, NO de éxito).
  */
 
-const toastSuccess = vi.fn();
-const notifyErrorMock = vi.fn();
+const { toastSuccess, notifyErrorMock } = vi.hoisted(() => ({
+  toastSuccess: vi.fn(),
+  notifyErrorMock: vi.fn(),
+}));
 
 vi.mock("sonner", () => ({
   toast: { success: toastSuccess, info: vi.fn(), error: vi.fn() },
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({
-  notifyError: (...args: unknown[]) => notifyErrorMock(...args),
+  notifyError: notifyErrorMock,
 }));
 
 const creditNotesCalls: ChainCall[] = [];
