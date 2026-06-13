@@ -23,10 +23,9 @@ function bill(over: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-beforeEach(() => useFakeTimeMty("2026-06-13T12:00:00"));
-afterEach(() => vi.useRealTimers());
-
 describe("useAgingReport", () => {
+  useFakeTimeMty("2026-06-13T12:00:00");
+
   it("clasifica buckets por días vencidos (current, 1-30, 31-60, 61-90, 90+)", () => {
     useSupplierBillsMock.mockReturnValue({
       data: [
