@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "@/features/deliveries/hooks/useDeliveries";
-import { useBookings } from "@/features/bookings/hooks/useBookings";
-import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
+import { useBookings } from "@/features/bookings";
+import { useForkliftMap } from "@/features/fleet";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { NotesCard } from "@/components/domain/NotesCard";

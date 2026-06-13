@@ -33,7 +33,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
 }));
 
-import { useCreateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useCreateInvoice } from "@/features/invoices";
 
 describe("useCreateInvoice — hook real", () => {
   beforeEach(() => {

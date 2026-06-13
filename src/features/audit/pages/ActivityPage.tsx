@@ -8,7 +8,7 @@ import { ActivityByModule } from "@/features/audit/components/activity/ActivityB
 import { ActivityTimeline } from "@/features/audit/components/activity/ActivityTimeline";
 import { useActivityMetrics } from "@/features/audit/hooks/useActivityMetrics";
 import { getRange, type RangeKey } from "@/features/audit/lib/activityConstants";
-import type { ActivityFilters } from "@/features/dashboard/hooks/useActivityFeed";
+import type { ActivityFilters } from "@/features/dashboard";
 import type { ActivityMetrics } from "@/features/audit/hooks/activityMetricsTypes";
 
 export default function ActivityPage() {

@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
-import { useCreateBooking } from "@/features/bookings/hooks/useBookings";
+import { useCreateBooking } from "@/features/bookings";
 import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
 import type { useQuoteConversionState } from "./useQuoteConversionState";

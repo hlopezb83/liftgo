@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { differenceInDays, parseISO } from "date-fns";
 import { useDashboardStats } from "@/features/dashboard/hooks/useDashboardStats";
 import { useFinancialKpis } from "@/features/dashboard/hooks/useFinancialKpis";
-import { useInsuranceAlerts } from "@/features/fleet/hooks/useInsuranceAlerts";
-import { useUpcomingInvoices } from "@/features/invoices/hooks/invoices/useUpcomingInvoices";
+import { useInsuranceAlerts } from "@/features/fleet";
+import { useUpcomingInvoices } from "@/features/invoices";
 import { nowMty } from "@/lib/utils";
 import {
   EMPTY_COUNTS,

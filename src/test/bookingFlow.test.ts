@@ -23,7 +23,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
 }));
 
-import { useCreateBooking } from "@/features/bookings/hooks/useBookingMutations";
+import { useCreateBooking } from "@/features/bookings";
 
 describe("useCreateBooking — hook real", () => {
   beforeEach(() => {

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { DateRange } from "react-day-picker";
-import { useAvailableForklifts } from "@/features/fleet/hooks/forklifts/useAvailableForklifts";
+import { useAvailableForklifts } from "@/features/fleet";
 import { bookingFormSchema, type BookingFormData } from "@/features/bookings/lib/bookingFormSchema";
 
 export function useBookingFormState() {

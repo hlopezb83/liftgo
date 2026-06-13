@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import { useMaintenancePolicies } from "@/features/maintenance/hooks/maintenance/useMaintenancePolicies";
-import { useContracts } from "@/features/contracts/hooks/useContracts";
-import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
+import { useMaintenancePolicies } from "@/features/maintenance";
+import { useContracts } from "@/features/contracts";
+import { useDeliveries } from "@/features/deliveries";
 import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 
 import { ListPageLayout } from "@/components/layout/ListPageLayout";

@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
-import { useSupplierBills } from "@/features/accounts-payable/hooks/useSupplierBills";
-import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
-import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
+import { useSupplierBills } from "@/features/accounts-payable";
+import { useMaintenanceLogs } from "@/features/maintenance";
+import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,8 +15,6 @@ import { SupplierContactCard } from "@/features/suppliers/components/suppliers/S
 import { SupplierFormDialog } from "@/features/suppliers/components/suppliers/SupplierFormDialog";
 import { SupplierContactsSection } from "@/features/suppliers/components/suppliers/SupplierContactsSection";
 import { SupplierBankAccountsSection } from "@/features/suppliers/components/suppliers/SupplierBankAccountsSection";
-import { DocumentAttachments } from "@/features/fleet/components/forklift-detail/DocumentAttachments";
-
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";

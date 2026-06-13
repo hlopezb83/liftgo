@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getAccessLevel, type PermissionsMap } from "@/features/users/hooks/useRolePermissions";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import { getAccessLevel, type PermissionsMap } from "@/features/users";
+import type { AppRole } from "@/features/users";
 
 /**
  * Lote 11 — Matriz de roles vs módulos (regresión de la reorganización v6.37.0).

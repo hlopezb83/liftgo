@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "@/features/audit/hooks/useAuditLogs";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

@@ -1,5 +1,5 @@
 import { ROLE_COLORS, ROLE_LABELS } from "@/lib/constants";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import type { AppRole } from "@/features/users";
 import { cn } from "@/lib/utils";
 
 const PALETTE = [

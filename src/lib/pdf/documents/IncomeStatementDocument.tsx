@@ -9,7 +9,7 @@ import { nowMty } from "@/lib/utils";
 import type { CompanyData } from "@/lib/pdf/shared";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
-} from "@/features/reports/hooks/useIncomeStatementData";
+} from "@/features/reports";
 
 export interface IncomeStatementDocumentProps {
   company: CompanyData | null;

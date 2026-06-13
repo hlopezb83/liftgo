@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
+import { useSuppliers } from "@/features/suppliers";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
 import { useCreateSupplierBill } from "./useSupplierBillMutations";

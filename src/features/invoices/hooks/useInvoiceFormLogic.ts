@@ -1,13 +1,11 @@
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useBookings, type BookingWithForklift } from "@/features/bookings/hooks/useBookings";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useBookings, type BookingWithForklift } from "@/features/bookings";
+import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useInvoice, useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
-import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
-import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
-import { useQuoteAssignments } from "@/features/fleet/hooks/forklifts/useAssignForklifts";
-import { useQuoteSaleAssignmentStatus } from "@/features/quotes/hooks/quoteDetail/useQuoteSaleAssignmentStatus";
+import { useCustomers } from "@/features/customers";
+import { useQuote, useQuoteSaleAssignmentStatus } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import {
   invoiceFormSchema,

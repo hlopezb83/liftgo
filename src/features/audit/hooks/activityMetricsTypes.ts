@@ -1,4 +1,4 @@
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import type { AppRole } from "@/features/users";
 
 export interface ActivityRange {
   from: Date;

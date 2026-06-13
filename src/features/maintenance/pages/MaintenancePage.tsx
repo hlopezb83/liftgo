@@ -1,11 +1,10 @@
 import { useState, useMemo } from "react";
 import { useDialogState } from "@/hooks/useDialogState";
-import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
+import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
 import { useMaintenanceLogs, type MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { useGenerateRecurringMaintenance } from "@/features/maintenance/hooks/maintenance/useGenerateRecurringMaintenance";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { MarkAvailableDialog } from "@/features/fleet/components/fleet/MarkAvailableDialog";
 import { MaintenanceDetailSheet } from "@/features/maintenance/components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFormDialog } from "@/features/maintenance/components/maintenance/MaintenanceFormDialog";
 import { MaintenanceFiltersBar } from "@/features/maintenance/components/maintenance/MaintenanceFiltersBar";

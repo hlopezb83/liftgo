@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
+import { useForkliftMap } from "@/features/fleet";
 import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { StatusBadge } from "@/components/feedback/StatusBadge";

@@ -51,7 +51,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useCreatePayment } from "@/features/invoices/hooks/usePayments";
+import { useCreatePayment } from "@/features/invoices";
 
 describe("useCreatePayment + syncInvoiceStatus — hooks reales", () => {
   beforeEach(() => {

@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { MaintenancePartsSection } from "@/features/maintenance/components/maintenance/MaintenancePartsSection";
 import { useDeleteMaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
-import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
+import { useSuppliers } from "@/features/suppliers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { Pencil, Trash2, Wrench, Calendar, User, DollarSign, Truck, FileText } from "lucide-react";

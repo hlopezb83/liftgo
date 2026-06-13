@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trash2, ArrowLeft } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { useBankStatementImports, useDeleteBankImport } from "../hooks/useBankStatementImports";
 
 export default function BankStatementImportsHistoryPage() {

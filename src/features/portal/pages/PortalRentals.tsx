@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { usePortalBookings } from "@/features/customers/hooks/customers/useCustomerPortal";
+import { usePortalBookings } from "@/features/customers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";

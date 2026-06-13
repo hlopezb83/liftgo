@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useQuotes } from "@/features/quotes";
 import type { Prospect } from "@/features/crm/hooks/useProspects";
 import {
   STAGES_REQUIRING_DEAL_VALUE,

@@ -8,7 +8,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import {
   useCxpApprovalThreshold,
   useUpdateCxpApprovalThreshold,
-} from "@/features/company-settings/hooks/useCxpApprovalThreshold";
+} from "@/features/company-settings";
 
 export function CxpApprovalTab() {
   const { data, isLoading } = useCxpApprovalThreshold();

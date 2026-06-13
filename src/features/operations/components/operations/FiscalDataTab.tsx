@@ -2,19 +2,10 @@ import { useEffect } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  useCompanySettings,
-  useUpsertCompanySettings,
-} from "@/features/company-settings/hooks/useCompanySettings";
-import {
-  useBillingSecrets,
-  useUpsertBillingSecrets,
-} from "@/features/company-settings/hooks/useBillingSecrets";
+import { CompanyFiscalForm, PacConfigForm, useBillingSecrets, useCompanySettings, useUpsertBillingSecrets, useUpsertCompanySettings } from "@/features/company-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
-import { CompanyFiscalForm } from "@/features/company-settings/components/company-settings/CompanyFiscalForm";
-import { PacConfigForm } from "@/features/company-settings/components/company-settings/PacConfigForm";
 import { fiscalSchema, type FiscalDataValues } from "@/features/operations/lib/operationsSchemas";
 
 const defaultValues: FiscalDataValues = {

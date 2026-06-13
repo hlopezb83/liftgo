@@ -11,7 +11,7 @@ import {
   usePortalInvoices,
   usePortalPayments,
   usePortalCustomer,
-} from "@/features/customers/hooks/customers/useCustomerPortal";
+} from "@/features/customers";
 import { usePortalPaymentIntents } from "@/features/portal/hooks/usePortalExtras";
 import { StpTransferCard } from "@/features/portal/components/StpTransferCard";
 import { ReportTransferDialog } from "@/features/portal/components/ReportTransferDialog";

@@ -6,7 +6,7 @@ import { CRMPageDialogs } from "@/features/crm/components/CRMPageDialogs";
 import { CRMKanbanGrid } from "@/features/crm/components/CRMKanbanGrid";
 import { CRMToolbar } from "@/features/crm/components/CRMToolbar";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "@/features/crm/hooks/useProspects";
-import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useQuotes } from "@/features/quotes";
 import { useProspectGuard } from "@/features/crm/hooks/useProspectGuard";
 import { useCRMFilters } from "@/features/crm/hooks/useCRMFilters";
 import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";

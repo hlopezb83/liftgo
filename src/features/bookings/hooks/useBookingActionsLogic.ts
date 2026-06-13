@@ -1,4 +1,4 @@
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
 import { useBookingDialogsState } from "./bookingActions/useBookingDialogsState";
 import {

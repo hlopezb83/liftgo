@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQuoteAssignments } from "@/features/fleet/hooks/forklifts/useAssignForklifts";
+import { useQuoteAssignments } from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { getSaleLines } from "@/features/quotes/utils/saleLines";
 

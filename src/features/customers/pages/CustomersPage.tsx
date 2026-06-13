@@ -9,7 +9,7 @@ import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { ChevronRight, Plus, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
+import { useUpdateProspect } from "@/features/crm";
 import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { parseISO, isToday } from "date-fns";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
+import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { useGanttSegments } from "@/features/calendar/hooks/calendar/useGanttSegments";
 import { GanttHeader } from "./GanttHeader";

@@ -1,5 +1,5 @@
 import { useCreateInvoice, useUpdateInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
-import { useUpdateQuote } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useUpdateQuote } from "@/features/quotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
 import { orEmpty } from "@/lib/coerce";

@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { CustomerSelector } from "@/features/customers/components/customers/CustomerSelector";
+import { CustomerSelector } from "@/features/customers";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
-import { ForkliftSelector } from "@/features/fleet/components/fleet/ForkliftSelector";
+import { ForkliftSelector } from "@/features/fleet";
 import { BookingPostDialogs } from "@/features/bookings/components/bookings/BookingPostDialogs";
 import { differenceInDays } from "date-fns";
 import { useBookingFormLogic } from "@/features/bookings/hooks/bookingForm/useBookingFormLogic";

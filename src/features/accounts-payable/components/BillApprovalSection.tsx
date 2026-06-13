@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Check, X, RotateCcw, ShieldCheck, ShieldAlert, Loader2 } from "lucide-react";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { formatDateDisplay } from "@/lib/utils";
 import { ApproveBillDialog } from "./ApproveBillDialog";
 import { RejectBillDialog } from "./RejectBillDialog";

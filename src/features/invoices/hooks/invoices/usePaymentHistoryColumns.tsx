@@ -8,7 +8,7 @@ import { type ColumnDef } from "@/components/dataTable/v2";
 import { useStampPaymentComplement, useCancelPaymentComplement } from "@/features/invoices/hooks/invoices/cfdi/usePaymentComplement";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { downloadCfdiBlob, type CfdiFormat } from "@/features/invoices/lib/downloadCfdiBlob";
-import { ReconciliationBadge } from "@/features/bank-reconciliation/components/ReconciliationBadge";
+import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Payment = Tables<"payments">;

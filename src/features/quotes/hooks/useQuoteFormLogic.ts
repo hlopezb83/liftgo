@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
-import { useEquipmentModels } from "@/features/fleet/hooks/useEquipmentModels";
+import { useCustomers } from "@/features/customers";
+import { useEquipmentModels } from "@/features/fleet";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "@/features/quotes/hooks/quotes/useQuotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toast } from "sonner";

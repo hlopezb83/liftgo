@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { useDrivers, useCreateDriver, useUpdateDriver, useDeleteDriver, Driver } from "@/features/fleet/hooks/useDrivers";
+import { useDrivers, useCreateDriver, useUpdateDriver, useDeleteDriver, Driver } from "@/features/fleet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

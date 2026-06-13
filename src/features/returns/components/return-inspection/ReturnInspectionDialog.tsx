@@ -10,8 +10,8 @@ import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { formatDateRange } from "@/lib/utils";
-import type { Booking } from "@/features/bookings/hooks/useBookings";
-import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
+import type { Booking } from "@/features/bookings";
+import type { Forklift } from "@/features/fleet";
 import type { ReturnInspectionFormValues } from "@/features/returns/hooks/returnInspection/useReturnInspectionDialog";
 
 interface Props {

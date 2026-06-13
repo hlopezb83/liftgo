@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { useFeedbackContext } from "@/features/feedback/hooks/useFeedbackContext";
 import { useCreateFeedback } from "@/features/feedback/hooks/useCreateFeedback";
 import { feedbackFormSchema, type FeedbackFormValues } from "@/features/feedback/lib/schema";

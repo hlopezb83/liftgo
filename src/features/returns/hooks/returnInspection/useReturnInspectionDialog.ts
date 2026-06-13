@@ -11,7 +11,7 @@ import {
   initialReturnInspectionForm,
   type ReturnInspectionFormValues,
 } from "@/features/returns/lib/returnInspectionSchema";
-import type { Booking } from "@/features/bookings/hooks/useBookings";
+import type { Booking } from "@/features/bookings";
 
 export { returnInspectionSchema, initialReturnInspectionForm } from "@/features/returns/lib/returnInspectionSchema";
 export type { ReturnInspectionFormValues } from "@/features/returns/lib/returnInspectionSchema";

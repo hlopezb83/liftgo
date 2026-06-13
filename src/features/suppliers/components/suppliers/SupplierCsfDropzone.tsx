@@ -3,7 +3,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { useParseCsf } from "@/features/customers/hooks/useParseCsf";
+import { useParseCsf } from "@/features/customers";
 import type { SupplierForm } from "./supplierFormTypes";
 
 interface Props {

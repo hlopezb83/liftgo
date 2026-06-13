@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
-import { useBookings } from "@/features/bookings/hooks/useBookings";
-import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
+import { useBookings } from "@/features/bookings";
+import { useForkliftMap } from "@/features/fleet";
 import { useReturnInspections } from "@/features/returns/hooks/useReturnInspections";
 import { useReturnInspectionDialog } from "@/features/returns/hooks/returnInspection/useReturnInspectionDialog";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";

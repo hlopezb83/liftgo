@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { useChangelog } from "@/features/changelog/hooks/useChangelog";
+import { useChangelog } from "@/features/changelog";
 
 export interface FeedbackContext {
   route: string;

@@ -2,10 +2,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Lock, RefreshCw, UserX, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { ROLE_LABELS } from "@/lib/constants";
 import { useAuth } from "@/contexts/AuthContext";
-import type { AccessLevel } from "@/features/users/hooks/useRolePermissions";
+import type { AccessLevel } from "@/features/users";
 
 export type NoAccessReason = "forbidden" | "no-role" | "error";
 

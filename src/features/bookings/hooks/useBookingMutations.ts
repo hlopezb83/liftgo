@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { bookingKeys } from "@/features/bookings/lib/queryKeys";
-import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
+import { forkliftKeys } from "@/features/fleet";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useCreateBooking() {

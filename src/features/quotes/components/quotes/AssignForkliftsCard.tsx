@@ -2,12 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PackageCheck, AlertTriangle } from "lucide-react";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import {
-  useQuoteAssignments,
-  useAssignForklift,
-  useUnassignForklift,
-} from "@/features/fleet/hooks/forklifts/useAssignForklifts";
+import { useAssignForklift, useForklifts, useQuoteAssignments, useUnassignForklift } from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
 

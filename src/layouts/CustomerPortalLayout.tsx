@@ -1,10 +1,10 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePublicBranding } from "@/features/company-settings/hooks/usePublicBranding";
+import { usePublicBranding } from "@/features/company-settings";
 import { LogOut, LayoutDashboard, CalendarDays, Receipt, FileText, MessageSquare, Trophy, FileCheck2, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FeedbackFab } from "@/features/feedback/components/FeedbackFab";
+import { FeedbackFab } from "@/features/feedback";
 
 const tabs = [
   { path: "/portal", label: "Panel", icon: LayoutDashboard },
