@@ -10,10 +10,10 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock("../usePayments", () => ({
+vi.mock("@/features/invoices/hooks/usePayments", () => ({
   useCreatePayment: () => ({ mutate: createPaymentMutate, isPending: false }),
 }));
-vi.mock("../invoices/cfdi/usePaymentComplement", () => ({
+vi.mock("@/features/invoices/hooks/invoices/cfdi/usePaymentComplement", () => ({
   useStampPaymentComplement: () => ({ mutate: stampMutate, isPending: false }),
 }));
 
