@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.11",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de tests — Lote 5 (schemas Zod + conciliación bancaria)",
+    "description": "22 tests Vitest nuevos: customerFormSchema (6 — name requerido, email opcional pero validado, campos CFDI 4.0), invoiceFormSchema/cfdiSchema/lineItemSchema (10 — partida válida, trim de description, quantity≥1, unit_price≥0, tipoCambio≥0, lineItems no vacíos), useBankLineActions (6 — confirm_bank_match con payment vs supplier, unmatch_bank_line, ignored con reason, propagación de errores RPC/RLS sin toast de éxito). Suite total: 634 tests verde (103 archivos).",
+    "category": "testing"
+  },
+  {
     "version": "6.66.10",
     "date": "2026-06-13",
     "type": "minor",
