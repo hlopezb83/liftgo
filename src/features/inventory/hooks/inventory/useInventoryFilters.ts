@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { PartInventory } from "@/features/inventory/hooks/usePartsInventory";
+import type { PartInventory } from "../usePartsInventory";
 
 /**
  * Encapsulates Inventory page filtering: search by name/SKU, category filter,

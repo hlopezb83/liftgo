@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CREDIT_NOTE_MOTIVES as MOTIVES } from "@/lib/domain/creditNoteMotives";
-import { useCreditNoteForm } from "@/features/invoices/hooks/creditNotes/useCreditNoteForm";
+import { useCreditNoteForm } from "../../hooks/creditNotes/useCreditNoteForm";
 import { CreditNoteLinesTable } from "./CreditNoteLinesTable";
 import type { Tables } from "@/integrations/supabase/types";
 

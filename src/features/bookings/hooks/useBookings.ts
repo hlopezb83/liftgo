@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
-import { bookingKeys } from "@/features/bookings/lib/queryKeys";
+import { bookingKeys } from "../lib/queryKeys";
 export type { Booking, BookingWithForklift } from "@/types/rental";
 
 export function useBookings(forkliftId?: string) {

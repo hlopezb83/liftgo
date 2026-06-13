@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
+import { forkliftKeys } from "../../lib/queryKeys";
 
 export type { Forklift } from "@/types/rental";
 

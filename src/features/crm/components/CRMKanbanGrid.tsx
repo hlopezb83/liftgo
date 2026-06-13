@@ -1,7 +1,7 @@
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { KanbanColumn } from "@/features/crm/components/KanbanColumn";
-import { ACTIVE_STAGES } from "@/features/crm/lib/constants";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import { KanbanColumn } from "./KanbanColumn";
+import { ACTIVE_STAGES } from "../lib/constants";
+import type { Prospect } from "../hooks/useProspects";
 
 interface StageData {
   key: string;

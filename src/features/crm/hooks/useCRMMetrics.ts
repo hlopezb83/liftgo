@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useProspects, type Prospect } from "@/features/crm/hooks/useProspects";
+import { useProspects, type Prospect } from "./useProspects";
 
 export interface CRMMetrics {
   activeCount: number;

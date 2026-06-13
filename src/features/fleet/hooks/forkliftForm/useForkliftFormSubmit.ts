@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
-import { useCreateForklift, useUpdateForklift, useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
+import { useCreateForklift, useUpdateForklift, useForklifts } from "../forklifts/useForklifts";
+import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 import {
   buildForkliftPayload,
   validateForkliftUniqueness,
   mapForkliftMutationError,
-} from "@/features/fleet/lib/forkliftPayload";
+} from "../../lib/forkliftPayload";
 
 interface Args {
   id?: string;

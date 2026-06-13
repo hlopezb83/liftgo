@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { StatementRow, ComparisonRow } from "@/features/reports/hooks/useIncomeStatementData";
+import type { StatementRow, ComparisonRow } from "../../hooks/useIncomeStatementData";
 import { ComparisonTable } from "./incomeStatement/ComparisonTable";
 import { StatementTableRow } from "./incomeStatement/StatementTableRow";
 import { getBreakdownFor, type BreakdownRow } from "./incomeStatement/incomeStatementHelpers";

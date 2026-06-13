@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { UserRow } from "@/features/users/hooks/useUserManagement";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import type { UserRow } from "../useUserManagement";
+import type { AppRole } from "../useUserRole";
 
 export function useUserManagementDialogs() {
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);

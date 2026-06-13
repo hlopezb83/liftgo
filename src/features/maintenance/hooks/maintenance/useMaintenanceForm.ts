@@ -4,12 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
   useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog,
-} from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+} from "./useMaintenanceLogs";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   maintenanceFormSchema, initialMaintenanceForm, maintenanceLogToFormValues,
   buildMaintenancePayload, type MaintenanceFormValues,
-} from "@/features/maintenance/lib/maintenanceFormHelpers";
+} from "../../lib/maintenanceFormHelpers";
 
 export { maintenanceFormSchema, type MaintenanceFormValues };
 

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
-import { useCreateDamageRecord } from "@/features/damage/hooks/useDamageRecords";
+import { useCreateDamageRecord } from "./useDamageRecords";
 import { useUploadDocument } from "@/hooks/useDocuments";
 
 export interface DamagePreview { file: File; url: string }

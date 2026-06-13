@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
-import type { FeedbackStatus } from "@/features/feedback/lib/constants";
+import type { FeedbackStatus } from "../lib/constants";
 
 export type FeedbackReport = Tables<"feedback_reports">;
 

@@ -2,7 +2,7 @@ import { useDropzone } from "react-dropzone";
 import { Label } from "@/components/ui/label";
 import { Upload, X, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { DamagePreview } from "@/features/damage/hooks/useReportDamageForm";
+import type { DamagePreview } from "../../hooks/useReportDamageForm";
 
 interface Props {
   previews: DamagePreview[];

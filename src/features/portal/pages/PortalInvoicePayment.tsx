@@ -12,9 +12,9 @@ import {
   usePortalPayments,
   usePortalCustomer,
 } from "@/features/customers";
-import { usePortalPaymentIntents } from "@/features/portal/hooks/usePortalExtras";
-import { StpTransferCard } from "@/features/portal/components/StpTransferCard";
-import { ReportTransferDialog } from "@/features/portal/components/ReportTransferDialog";
+import { usePortalPaymentIntents } from "../hooks/usePortalExtras";
+import { StpTransferCard } from "../components/StpTransferCard";
+import { ReportTransferDialog } from "../components/ReportTransferDialog";
 
 export default function PortalInvoicePayment() {
   const { id } = useParams();

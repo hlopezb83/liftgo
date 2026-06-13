@@ -1,8 +1,8 @@
-import { ProspectDetailSheet } from "@/features/crm/components/ProspectDetailSheet";
-import { ProspectFormDialog } from "@/features/crm/components/ProspectFormDialog";
-import type { useCRMPageDialogs } from "@/features/crm/hooks/useCRMPageDialogs";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
-import type { ProspectFormPayload } from "@/features/crm/hooks/useProspectForm";
+import { ProspectDetailSheet } from "./ProspectDetailSheet";
+import { ProspectFormDialog } from "./ProspectFormDialog";
+import type { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
+import type { Prospect } from "../hooks/useProspects";
+import type { ProspectFormPayload } from "../hooks/useProspectForm";
 
 interface Props {
   dialogs: ReturnType<typeof useCRMPageDialogs>;

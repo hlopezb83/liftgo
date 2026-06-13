@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
-import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
+import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import { computeTotals } from "@/lib/domain/invoiceHelpers";
 
 export function useInvoiceFormTotals(form: UseFormReturn<InvoiceFormValues>) {

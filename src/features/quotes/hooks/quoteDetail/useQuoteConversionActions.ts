@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
-import { quoteStatusLabel } from "@/features/quotes/constants";
-import { useUpdateQuote, useDeleteQuote } from "@/features/quotes/hooks/quotes/useQuotes";
+import { quoteStatusLabel } from "../../constants";
+import { useUpdateQuote, useDeleteQuote } from "../quotes/useQuotes";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
 import { isPublicoGeneral } from "./useQuoteDetailData";
 import type { useQuoteConversionState } from "./useQuoteConversionState";

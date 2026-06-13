@@ -7,8 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useCreatePart, useUpdatePart, type PartInventory } from "@/features/inventory/hooks/usePartsInventory";
-import { partFormSchema, type PartFormData } from "@/features/inventory/lib/partFormSchema";
+import { useCreatePart, useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
+import { partFormSchema, type PartFormData } from "../../lib/partFormSchema";
 
 const PART_CATEGORIES = ["Filtros", "Llantas", "Aceites", "Baterías", "Otros"] as const;
 

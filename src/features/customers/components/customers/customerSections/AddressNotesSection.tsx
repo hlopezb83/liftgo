@@ -2,7 +2,7 @@ import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
+import type { CustomerFormData } from "../../../lib/customerFormSchema";
 import { SectionHeading } from "./SectionHeading";
 
 export function AddressNotesSection() {

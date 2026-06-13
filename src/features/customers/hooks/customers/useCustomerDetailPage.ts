@@ -1,9 +1,9 @@
-import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
-import { useCustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
-import { useCustomerProfitability } from "@/features/customers/hooks/customers/useCustomerProfitability";
+import { useCustomers } from "./useCustomers";
+import { useCustomerSummary } from "./useCustomerSummary";
+import { useCustomerProfitability } from "./useCustomerProfitability";
 import { useUserRole } from "@/features/users";
-import { useCustomerDetailDialogs } from "@/features/customers/hooks/customerDetail/useCustomerDetailDialogs";
-import { useCustomerDetailActions } from "@/features/customers/hooks/customerDetail/useCustomerDetailActions";
+import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
+import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Customer = Tables<"customers">;

@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useMyFeedbackReports } from "@/features/feedback/hooks/useFeedbackReports";
-import { FeedbackStatusBadge } from "@/features/feedback/components/FeedbackStatusBadge";
-import { FEEDBACK_TYPE_LABELS } from "@/features/feedback/lib/constants";
+import { useMyFeedbackReports } from "../hooks/useFeedbackReports";
+import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
+import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
 import { DataTableV2, DataTablePaginationV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { format } from "date-fns";
 

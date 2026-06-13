@@ -1,4 +1,4 @@
-import type { ContractFormShape } from "@/features/contracts/hooks/contractForm/contractFormDefaults";
+import type { ContractFormShape } from "../hooks/contractForm/contractFormDefaults";
 import { roundMoney } from "@/lib/money";
 
 const nn = (v: string): string | null => v || null;

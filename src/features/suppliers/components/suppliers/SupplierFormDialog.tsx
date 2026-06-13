@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { useCreateSupplier, useUpdateSupplier } from "@/features/suppliers/hooks/useSuppliers";
-import type { Supplier } from "@/features/suppliers/hooks/useSuppliers";
+import { useCreateSupplier, useUpdateSupplier } from "../../hooks/useSuppliers";
+import type { Supplier } from "../../hooks/useSuppliers";
 import { useUploadDocument } from "@/hooks/useDocuments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

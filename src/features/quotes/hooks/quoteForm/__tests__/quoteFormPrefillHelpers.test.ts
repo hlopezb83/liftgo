@@ -4,7 +4,7 @@ import {
   type ExistingQuote, type EquipmentModel, type QuoteFormState,
 } from "../quoteFormPrefillHelpers";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-import type { RentalLine } from "@/features/quotes/components/quotes/RentalLineItems";
+import type { RentalLine } from "../../../components/quotes/RentalLineItems";
 
 function makeState(): QuoteFormState {
   return {

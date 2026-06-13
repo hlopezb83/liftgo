@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { forkliftFormSchema } from "@/features/fleet/lib/forkliftFormSchema";
+import { forkliftFormSchema } from "../forkliftFormSchema";
 
 describe("forkliftFormSchema", () => {
   it("acepta payload mínimo válido", () => {

@@ -12,7 +12,7 @@ import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } 
 import { formatDateRange } from "@/lib/utils";
 import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
-import type { ReturnInspectionFormValues } from "@/features/returns/hooks/returnInspection/useReturnInspectionDialog";
+import type { ReturnInspectionFormValues } from "../../hooks/returnInspection/useReturnInspectionDialog";
 
 interface Props {
   open: boolean;

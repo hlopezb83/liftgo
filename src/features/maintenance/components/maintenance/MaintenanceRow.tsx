@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ForkliftMap = Map<string, Tables<"forklifts">>;

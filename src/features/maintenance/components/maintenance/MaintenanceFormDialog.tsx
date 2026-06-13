@@ -9,7 +9,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { SupplierSelector } from "@/features/suppliers";
 import { Wrench } from "lucide-react";
 import { SERVICE_TYPES } from "@/lib/constants";
-import type { MaintenanceFormValues } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
+import type { MaintenanceFormValues } from "../../hooks/maintenance/useMaintenanceForm";
 
 interface ForkliftOption { id: string; name: string; model: string }
 interface MechanicOption { id: string; name: string; specialization?: string | null }

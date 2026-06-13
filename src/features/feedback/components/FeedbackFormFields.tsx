@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Target, X, Loader2 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
-import type { FeedbackFormValues } from "@/features/feedback/lib/schema";
-import type { SelectedElementInfo } from "@/features/feedback/lib/cssPath";
+import type { FeedbackFormValues } from "../lib/schema";
+import type { SelectedElementInfo } from "../lib/cssPath";
 
 interface Props {
   form: UseFormReturn<FeedbackFormValues>;

@@ -6,7 +6,7 @@ import { CompanyFiscalForm, PacConfigForm, useBillingSecrets, useCompanySettings
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
-import { fiscalSchema, type FiscalDataValues } from "@/features/operations/lib/operationsSchemas";
+import { fiscalSchema, type FiscalDataValues } from "../../lib/operationsSchemas";
 
 const defaultValues: FiscalDataValues = {
   rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "",

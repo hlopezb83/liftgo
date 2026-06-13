@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bookingFormSchema } from "@/features/bookings/lib/bookingFormSchema";
+import { bookingFormSchema } from "../bookingFormSchema";
 
 const baseValid = {
   forklift_id: "fk-1",

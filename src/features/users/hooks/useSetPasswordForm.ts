@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useResetPassword, type UserRow } from "@/features/users/hooks/useUserManagement";
+import { useResetPassword, type UserRow } from "./useUserManagement";
 
 function generatePassword(length = 16): string {
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";

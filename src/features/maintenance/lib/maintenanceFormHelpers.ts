@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
-import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
 
 export const maintenanceFormSchema = z.object({
   forkliftId: z.string().min(1, "Montacargas requerido"),

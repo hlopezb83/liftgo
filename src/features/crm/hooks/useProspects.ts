@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { mapProspectRow } from "@/features/crm/lib/prospectMapper";
-import type { Prospect, ProspectRow } from "@/features/crm/lib/prospectTypes";
+import { mapProspectRow } from "../lib/prospectMapper";
+import type { Prospect, ProspectRow } from "../lib/prospectTypes";
 
-export type { Prospect, ProspectRow } from "@/features/crm/lib/prospectTypes";
+export type { Prospect, ProspectRow } from "../lib/prospectTypes";
 
 export type ProspectInsert = Omit<
   ProspectRow,

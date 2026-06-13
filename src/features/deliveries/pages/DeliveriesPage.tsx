@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { useForkliftMap } from "@/features/fleet";
-import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
+import { useDeliveries } from "../hooks/useDeliveries";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateDisplay } from "@/lib/utils";
-import { DeliveryFormDialog } from "@/features/deliveries/components/deliveries/DeliveryFormDialog";
+import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];

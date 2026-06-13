@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { AuditLog } from "@/features/audit/hooks/useAuditLogs";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 import { actionIcon, translateAction, translateTable } from "./auditTrailConstants";
 import { AuditLogDetailBody } from "./AuditLogDetailBody";
 

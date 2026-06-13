@@ -5,14 +5,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { MaintenancePartsSection } from "@/features/maintenance/components/maintenance/MaintenancePartsSection";
-import { useDeleteMaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { MaintenancePartsSection } from "./MaintenancePartsSection";
+import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import { useSuppliers } from "@/features/suppliers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { Pencil, Trash2, Wrench, Calendar, User, DollarSign, Truck, FileText } from "lucide-react";
 import { toast } from "sonner";
-import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pendiente", variant: "secondary" },

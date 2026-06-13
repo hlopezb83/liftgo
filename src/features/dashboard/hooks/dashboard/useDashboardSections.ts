@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { differenceInDays, parseISO } from "date-fns";
-import { useDashboardStats } from "@/features/dashboard/hooks/useDashboardStats";
-import { useFinancialKpis } from "@/features/dashboard/hooks/useFinancialKpis";
+import { useDashboardStats } from "../useDashboardStats";
+import { useFinancialKpis } from "../useFinancialKpis";
 import { useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
 import { nowMty } from "@/lib/utils";
@@ -17,7 +17,7 @@ import {
   buildFinancials,
   buildAlertsProps,
   computeUtilizationPercent,
-} from "@/features/dashboard/lib/dashboardSectionHelpers";
+} from "../../lib/dashboardSectionHelpers";
 
 function bucketFor(days: number): "0-30" | "31-60" | "61-90" | "90+" {
   if (days <= 30) return "0-30";

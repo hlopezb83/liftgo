@@ -5,9 +5,9 @@ import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { ForkliftSelector } from "@/features/fleet";
-import { BookingPostDialogs } from "@/features/bookings/components/bookings/BookingPostDialogs";
+import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { differenceInDays } from "date-fns";
-import { useBookingFormLogic } from "@/features/bookings/hooks/bookingForm/useBookingFormLogic";
+import { useBookingFormLogic } from "../hooks/bookingForm/useBookingFormLogic";
 
 export default function BookingForm() {
   const {

@@ -1,4 +1,4 @@
-import { useContractFormLogic } from "@/features/contracts/hooks/useContractFormLogic";
+import { useContractFormLogic } from "../hooks/useContractFormLogic";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { FormActions } from "@/components/forms/FormActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

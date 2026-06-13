@@ -1,12 +1,12 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useProspectForm, type ProspectFormPayload } from "@/features/crm/hooks/useProspectForm";
+import { useProspectForm, type ProspectFormPayload } from "../hooks/useProspectForm";
 import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActions";
 import { ProspectFormFields } from "./prospect-form/ProspectFormFields";
 import {
   ProspectDialogHeader, ProspectCreatorBlock, ProspectDialogFooter,
 } from "./prospect-form/ProspectDialogParts";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
   open: boolean;

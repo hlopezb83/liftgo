@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { STATUS_LABELS } from "@/lib/constants";
-import { useContracts } from "@/features/contracts/hooks/useContracts";
+import { useContracts } from "../hooks/useContracts";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";

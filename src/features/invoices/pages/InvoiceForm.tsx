@@ -1,6 +1,6 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { BookingWithForklift } from "@/features/bookings";
-import { useInvoiceFormLogic } from "@/features/invoices/hooks/useInvoiceFormLogic";
+import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,13 +12,13 @@ import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
-import { CfdiFieldsCard } from "@/features/invoices/components/invoice-form/CfdiFieldsCard";
-import { EditableLineItemsTable } from "@/features/invoices/components/invoice-form/EditableLineItemsTable";
+import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
+import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 import { formatDateRange } from "@/lib/utils";
-import { useNextInvoiceNumber } from "@/features/invoices/hooks/invoices/useNextInvoiceNumber";
-import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
+import { useNextInvoiceNumber } from "../hooks/invoices/useNextInvoiceNumber";
+import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();

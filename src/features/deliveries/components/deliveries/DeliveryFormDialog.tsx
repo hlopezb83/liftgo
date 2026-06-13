@@ -9,8 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { FormActions } from "@/components/forms/FormActions";
 import { useActiveDrivers, useForkliftMap } from "@/features/fleet";
 import { useBookings } from "@/features/bookings";
-import { useCreateDelivery } from "@/features/deliveries/hooks/useDeliveries";
-import { deliverySchema } from "@/features/deliveries/lib/deliveryFormSchema";
+import { useCreateDelivery } from "../../hooks/useDeliveries";
+import { deliverySchema } from "../../lib/deliveryFormSchema";
 import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormFields";
 
 const initialForm: DeliveryFormValues = {

@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { InvoicePDFButton } from "@/features/invoices/components/invoices/InvoicePDFButton";
+import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
 import { Send, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { useRefreshCancellationStatus } from "@/features/invoices/hooks/invoices/cfdi/useRefreshCancellationStatus";
+import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 
 interface Props {
   invoice: Tables<"invoices">;

@@ -2,11 +2,11 @@ import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ContractDetailActions } from "@/features/contracts/components/contracts/ContractDetailActions";
-import { RentalFinancialSummary } from "@/features/contracts/components/contracts/RentalFinancialSummary";
-import { ContractConditionsCard } from "@/features/contracts/components/contracts/ContractConditionsCard";
-import { ContractDetailsCard, ContractTextCard } from "@/features/contracts/components/contracts/ContractDetailCards";
-import { useContractDetailLogic } from "@/features/contracts/hooks/contractDetail/useContractDetailLogic";
+import { ContractDetailActions } from "../components/contracts/ContractDetailActions";
+import { RentalFinancialSummary } from "../components/contracts/RentalFinancialSummary";
+import { ContractConditionsCard } from "../components/contracts/ContractConditionsCard";
+import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
+import { useContractDetailLogic } from "../hooks/contractDetail/useContractDetailLogic";
 
 export default function ContractDetail() {
   const { id, contract, isLoading, setStatus } = useContractDetailLogic();

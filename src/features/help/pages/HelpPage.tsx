@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUserManual } from "@/features/help/hooks/useUserManual";
+import { useUserManual } from "../hooks/useUserManual";
 import { useUserRole } from "@/features/users";
 import { HelpPageHeader } from "../components/HelpPageHeader";
 import { ManualEmptyCard, ManualGeneratingCard } from "../components/ManualStateCards";

@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUpdateName, type UserRow } from "@/features/users/hooks/useUserManagement";
+import { useUpdateName, type UserRow } from "../../hooks/useUserManagement";
 import { useState, useEffect } from "react";
 
 interface EditNameDialogProps {

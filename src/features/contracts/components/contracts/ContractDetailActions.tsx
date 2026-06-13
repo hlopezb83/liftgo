@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Send, CheckCircle, XCircle, Edit } from "lucide-react";
-import { ContractPDFButton, type ContractData } from "@/features/contracts/components/contracts/ContractPDFButton";
+import { ContractPDFButton, type ContractData } from "./ContractPDFButton";
 
 interface ContractDetailActionsProps {
   id: string;

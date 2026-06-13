@@ -1,5 +1,5 @@
-import { PostBookingDeliveryDialog } from "@/features/bookings/components/bookings/PostBookingDeliveryDialog";
-import { PostBookingPolicyDialog } from "@/features/bookings/components/bookings/PostBookingPolicyDialog";
+import { PostBookingDeliveryDialog } from "./PostBookingDeliveryDialog";
+import { PostBookingPolicyDialog } from "./PostBookingPolicyDialog";
 
 type PostBooking = {
   bookingId: string;

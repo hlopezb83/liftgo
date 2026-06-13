@@ -5,15 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchBar } from "@/components/forms/SearchBar";
-import { useChangelog } from "@/features/changelog/hooks/useChangelog";
-import { getCurrentVersion } from "@/features/changelog/lib/changelog";
+import { useChangelog } from "../hooks/useChangelog";
+import { getCurrentVersion } from "../lib/changelog";
 import { useListPage } from "@/hooks/useListPage";
 import { TablePagination } from "@/components/feedback/TablePagination";
-import { ChangelogEntryCard } from "@/features/changelog/components/changelog/ChangelogEntryCard";
-import { useChangelogDeepLink } from "@/features/changelog/hooks/useChangelogDeepLink";
+import { ChangelogEntryCard } from "../components/changelog/ChangelogEntryCard";
+import { useChangelogDeepLink } from "../hooks/useChangelogDeepLink";
 import {
   TYPE_FILTERS, CATEGORY_FILTERS, type FilterType, type FilterCategory,
-} from "@/features/changelog/lib/changelogConstants";
+} from "../lib/changelogConstants";
 
 export default function ChangelogPage() {
   const { data: changelog = [], isLoading, error } = useChangelog();

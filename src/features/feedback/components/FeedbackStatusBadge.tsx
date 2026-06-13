@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { FEEDBACK_STATUS_LABELS, type FeedbackStatus } from "@/features/feedback/lib/constants";
+import { FEEDBACK_STATUS_LABELS, type FeedbackStatus } from "../lib/constants";
 
 const VARIANT: Record<FeedbackStatus, string> = {
   new: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",

@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { Pencil, Trash2, Trophy, XCircle, RotateCcw } from "lucide-react";
-import { useDeleteProspect, useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
-import { useProspectGuard } from "@/features/crm/hooks/useProspectGuard";
+import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
+import { useProspectGuard } from "../../hooks/useProspectGuard";
 import { CloseWonDialog } from "../CloseWonDialog";
 import { CloseLostDialog } from "../CloseLostDialog";
 

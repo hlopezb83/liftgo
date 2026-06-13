@@ -23,7 +23,7 @@ vi.mock("@/integrations/supabase/client", () => {
   };
 });
 
-import { useBillingSecrets } from "@/features/company-settings/hooks/useBillingSecrets";
+import { useBillingSecrets } from "../useBillingSecrets";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

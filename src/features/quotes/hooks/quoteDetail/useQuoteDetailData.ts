@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { differenceInDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { useQuote } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useQuote } from "../quotes/useQuotes";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels, useForklifts } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";

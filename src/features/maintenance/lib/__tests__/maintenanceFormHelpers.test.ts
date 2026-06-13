@@ -5,7 +5,7 @@ import {
   initialMaintenanceForm,
   maintenanceFormSchema,
 } from "../maintenanceFormHelpers";
-import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 
 describe("maintenanceFormSchema", () => {
   it("acepta payload mínimo válido", () => {

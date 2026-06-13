@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users } from "lucide-react";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
-import { AuthForm, type AuthMode } from "@/features/auth/components/AuthForm";
+import { AuthForm, type AuthMode } from "../components/AuthForm";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },

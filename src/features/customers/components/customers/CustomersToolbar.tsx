@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { PlusCircle, Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
-import type { Customer } from "@/features/customers/hooks/customers/useCustomers";
+import type { Customer } from "../../hooks/customers/useCustomers";
 
 interface Props {
   filtered: Customer[] | undefined;

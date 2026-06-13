@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import { toast } from "sonner";
 import { Image as ImageIcon, Save, CheckCircle2, AlertCircle, ImageOff } from "lucide-react";
-import { logoSchema, type LogoFormValues } from "@/features/operations/lib/operationsSchemas";
+import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
 
 export function CompanyLogoTab() {
   const { data: settings, isLoading } = useCompanySettings();

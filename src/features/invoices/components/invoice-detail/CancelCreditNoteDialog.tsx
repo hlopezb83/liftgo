@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
-import { useCancelCreditNote, type CreditNote } from "@/features/invoices/hooks/creditNotes/useCreditNotes";
+import { useCancelCreditNote, type CreditNote } from "../../hooks/creditNotes/useCreditNotes";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

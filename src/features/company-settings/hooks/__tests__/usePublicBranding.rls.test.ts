@@ -13,7 +13,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ rpcResolver: () => rpcResp }),
 }));
 
-import { usePublicBranding } from "@/features/company-settings/hooks/usePublicBranding";
+import { usePublicBranding } from "../usePublicBranding";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { buildInvoicePdf } from "@/features/invoices/lib/pdf/build";
+import { buildInvoicePdf } from "../../../lib/pdf/build";
 
 export function useInvoicePdfDownload() {
   const [loading, setLoading] = useState(false);

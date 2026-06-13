@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from "react";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useForklifts } from "../hooks/forklifts/useForklifts";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useContracts } from "@/features/contracts";
 import { useDeliveries } from "@/features/deliveries";
-import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
+import type { Forklift } from "../hooks/forklifts/useForklifts";
 
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,9 @@ import { PlusCircle, Download, Forklift as ForkliftIcon } from "lucide-react";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { FleetMobileCard } from "@/features/fleet/components/fleet/FleetRowAndCard";
+import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { useFleetColumns } from "@/features/fleet/hooks/fleet/useFleetColumns";
+import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { usePageActions } from "@/contexts/PageActionsContext";
 
 export default function Fleet() {

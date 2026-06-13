@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { aggregateActivity, fetchActivityRanges } from "@/features/audit/lib/activityMetricsCalculators";
+import { aggregateActivity, fetchActivityRanges } from "../lib/activityMetricsCalculators";
 import type { ActivityRange, ActivityMetrics } from "./activityMetricsTypes";
 
 export type { ActivityRange, ActivityMetrics, MemberStat, ModuleStat, HourStat } from "./activityMetricsTypes";

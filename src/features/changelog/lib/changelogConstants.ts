@@ -1,4 +1,4 @@
-import type { ChangelogType, ChangelogCategory } from "@/features/changelog/lib/changelog";
+import type { ChangelogType, ChangelogCategory } from "./changelog";
 
 export type FilterType = "all" | ChangelogType;
 export type FilterCategory = "all" | ChangelogCategory;

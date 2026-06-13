@@ -5,16 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useCreateReturnInspection } from "@/features/returns/hooks/useReturnInspections";
+import { useCreateReturnInspection } from "../useReturnInspections";
 import {
   returnInspectionSchema,
   initialReturnInspectionForm,
   type ReturnInspectionFormValues,
-} from "@/features/returns/lib/returnInspectionSchema";
+} from "../../lib/returnInspectionSchema";
 import type { Booking } from "@/features/bookings";
 
-export { returnInspectionSchema, initialReturnInspectionForm } from "@/features/returns/lib/returnInspectionSchema";
-export type { ReturnInspectionFormValues } from "@/features/returns/lib/returnInspectionSchema";
+export { returnInspectionSchema, initialReturnInspectionForm } from "../../lib/returnInspectionSchema";
+export type { ReturnInspectionFormValues } from "../../lib/returnInspectionSchema";
 
 export function useReturnInspectionDialog(bookings: Booking[] | undefined, activeBookings: Booking[] | undefined) {
   const [dialogOpen, setDialogOpen] = useState(false);

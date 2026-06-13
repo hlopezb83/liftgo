@@ -4,7 +4,7 @@ import {
 } from "./auditTrailConstants";
 import { AuditSnapshotTable, AuditUpdateDiffTable } from "./AuditDiffTables";
 import { visibleFields } from "./auditDiffHelpers";
-import type { AuditLog } from "@/features/audit/hooks/useAuditLogs";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 
 function renderDataBlock(log: AuditLog) {
   const oldData = (log.old_data as Record<string, unknown> | null) ?? {};

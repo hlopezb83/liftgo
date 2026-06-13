@@ -13,9 +13,9 @@ import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
-import { CalendarStatCards } from "@/features/calendar/components/calendar/CalendarStatCards";
-import { GanttChart } from "@/features/calendar/components/calendar/GanttChart";
-import { EquipmentListView } from "@/features/calendar/components/calendar/EquipmentListView";
+import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
+import { GanttChart } from "../components/calendar/GanttChart";
+import { EquipmentListView } from "../components/calendar/EquipmentListView";
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(nowMty());

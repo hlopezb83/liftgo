@@ -13,7 +13,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ fromResolver: () => fromResp }),
 }));
 
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useForklifts } from "../useForklifts";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

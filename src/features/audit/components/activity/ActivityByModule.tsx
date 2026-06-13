@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ModuleStat } from "@/features/audit/hooks/useActivityMetrics";
-import { ENTITY_LABELS } from "@/features/audit/lib/activityConstants";
+import type { ModuleStat } from "../../hooks/useActivityMetrics";
+import { ENTITY_LABELS } from "../../lib/activityConstants";
 
 interface Props {
   modules: ModuleStat[];

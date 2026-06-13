@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { fetchCfdiBlob, triggerBlobDownload } from "@/features/invoices/lib/downloadCfdiBlob";
+import { fetchCfdiBlob, triggerBlobDownload } from "../../lib/downloadCfdiBlob";
 import type { Tables } from "@/integrations/supabase/types";
 
 export function useDownloadInvoiceXml() {

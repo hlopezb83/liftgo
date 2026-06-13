@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { STATUS_LABELS } from "@/lib/constants";
-import { useUpdateInvoice, useDeleteInvoice } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useUpdateInvoice, useDeleteInvoice } from "../invoices/useInvoices";
 import { useUpdateBooking } from "@/features/bookings";
 import { useStampInvoiceFlow } from "./useStampInvoiceFlow";
 import { useDownloadInvoiceXml } from "./useDownloadInvoiceXml";

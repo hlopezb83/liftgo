@@ -11,10 +11,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
-import { useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
+import { useCRMMetrics } from "../hooks/useCRMMetrics";
+import { useUpdateProspect, type Prospect } from "../hooks/useProspects";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
+import { LOST_REASON_LABELS } from "../lib/constants";
 
 type ClosedKind = "won" | "lost";
 

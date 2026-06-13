@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { bookingKeys } from "@/features/bookings/lib/queryKeys";
+import { bookingKeys } from "../lib/queryKeys";
 import { toast } from "sonner";
 
 export function useBookingExtensions(bookingId?: string) {

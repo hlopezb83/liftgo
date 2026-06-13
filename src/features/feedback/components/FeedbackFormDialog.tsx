@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
-import { useFeedbackContext } from "@/features/feedback/hooks/useFeedbackContext";
-import { useCreateFeedback } from "@/features/feedback/hooks/useCreateFeedback";
-import { feedbackFormSchema, type FeedbackFormValues } from "@/features/feedback/lib/schema";
-import type { SelectedElementInfo } from "@/features/feedback/lib/cssPath";
-import { captureScreenshotFile } from "@/features/feedback/lib/captureScreenshot";
+import { useFeedbackContext } from "../hooks/useFeedbackContext";
+import { useCreateFeedback } from "../hooks/useCreateFeedback";
+import { feedbackFormSchema, type FeedbackFormValues } from "../lib/schema";
+import type { SelectedElementInfo } from "../lib/cssPath";
+import { captureScreenshotFile } from "../lib/captureScreenshot";
 import { FeedbackFormFields } from "./FeedbackFormFields";
 import { ElementPicker } from "./ElementPicker";
 

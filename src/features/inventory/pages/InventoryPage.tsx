@@ -4,13 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { usePartsInventory, type PartInventory } from "@/features/inventory/hooks/usePartsInventory";
-import { PartDetailSheet } from "@/features/inventory/components/inventory/PartDetailSheet";
-import { PartFormDialog, PART_CATEGORIES } from "@/features/inventory/components/inventory/PartFormDialog";
+import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
+import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
+import { PartFormDialog, PART_CATEGORIES } from "../components/inventory/PartFormDialog";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
-import { useInventoryFilters } from "@/features/inventory/hooks/inventory/useInventoryFilters";
+import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
 import { useState, useCallback, useMemo } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 

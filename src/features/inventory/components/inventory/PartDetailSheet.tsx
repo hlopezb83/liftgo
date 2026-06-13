@@ -5,7 +5,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { useDeletePart, type PartInventory } from "@/features/inventory/hooks/usePartsInventory";
+import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

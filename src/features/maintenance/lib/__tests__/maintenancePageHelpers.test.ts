@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { enrichLogs, forkliftName, maintenanceCsvRows, sumCost } from "../maintenancePageHelpers";
-import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import type { Tables } from "@/integrations/supabase/types";
 
 const forkliftMap = new Map<string, Tables<"forklifts">>([

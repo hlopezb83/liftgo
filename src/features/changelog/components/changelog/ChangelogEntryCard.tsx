@@ -6,9 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useChangelogEntry } from "@/features/changelog/hooks/useChangelog";
-import type { ChangelogIndexEntry } from "@/features/changelog/lib/changelog";
-import { TYPE_LABELS, TYPE_COLORS, DOT_COLORS, CATEGORY_LABELS } from "@/features/changelog/lib/changelogConstants";
+import { useChangelogEntry } from "../../hooks/useChangelog";
+import type { ChangelogIndexEntry } from "../../lib/changelog";
+import { TYPE_LABELS, TYPE_COLORS, DOT_COLORS, CATEGORY_LABELS } from "../../lib/changelogConstants";
 import { formatMtyDate } from "@/lib/utils";
 
 interface Props {

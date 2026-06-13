@@ -5,10 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { TrendingUp, TrendingDown, DollarSign, Percent, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { useIncomeStatementData } from "@/features/reports/hooks/useIncomeStatementData";
+import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
 import { exportIncomeStatementPdf } from "@/lib/pdf/incomeStatement";
-import { IncomeStatementToolbar } from "@/features/reports/components/reports/IncomeStatementToolbar";
-import { IncomeStatementTable } from "@/features/reports/components/reports/IncomeStatementTable";
+import { IncomeStatementToolbar } from "./IncomeStatementToolbar";
+import { IncomeStatementTable } from "./IncomeStatementTable";
 
 interface Props {
   startDate: Date;

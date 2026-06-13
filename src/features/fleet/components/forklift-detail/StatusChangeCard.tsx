@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUpdateStatus } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { toast } from "sonner";
 

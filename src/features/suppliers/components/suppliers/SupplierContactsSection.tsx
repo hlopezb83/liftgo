@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, Users, Star } from "lucide-react";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { useSupplierContacts, useDeleteSupplierContact, type SupplierContact } from "@/features/suppliers/hooks/useSupplierContacts";
+import { useSupplierContacts, useDeleteSupplierContact, type SupplierContact } from "../../hooks/useSupplierContacts";
 import { SupplierContactFormDialog } from "./SupplierContactFormDialog";
 
 export function SupplierContactsSection({ supplierId }: { supplierId: string }) {

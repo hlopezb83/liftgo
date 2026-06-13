@@ -8,9 +8,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RecordPaymentDialog } from "@/features/invoices/components/invoices/RecordPaymentDialog";
-import { CancelCfdiDialog } from "@/features/invoices/components/invoice-detail/CancelCfdiDialog";
-import { CollectionNotesCard } from "@/features/invoices/components/invoice-detail/CollectionNotesCard";
+import { RecordPaymentDialog } from "../invoices/RecordPaymentDialog";
+import { CancelCfdiDialog } from "./CancelCfdiDialog";
+import { CollectionNotesCard } from "./CollectionNotesCard";
 import { NotesCard } from "@/components/domain/NotesCard";
 
 type Props = {

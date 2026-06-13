@@ -1,5 +1,5 @@
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import type { AppRole } from "../../hooks/useUserRole";
 
 export function RoleBadge({ role }: { role: AppRole }) {
   return (

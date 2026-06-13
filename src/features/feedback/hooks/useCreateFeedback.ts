@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
-import type { FeedbackFormValues } from "@/features/feedback/lib/schema";
+import type { FeedbackFormValues } from "../lib/schema";
 import type { FeedbackContext } from "./useFeedbackContext";
-import type { SelectedElementInfo } from "@/features/feedback/lib/cssPath";
+import type { SelectedElementInfo } from "../lib/cssPath";
 
 interface ExtendedContext extends FeedbackContext {
   selected_element: SelectedElementInfo | null;

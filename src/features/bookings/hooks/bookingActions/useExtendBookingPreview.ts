@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { useForklifts } from "@/features/fleet";
-import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
+import type { BookingWithForklift } from "../useBookings";
 import { generateLineItems, computeTotals } from "@/lib/domain/invoiceHelpers";
 
 /**

@@ -1,7 +1,7 @@
-import { AlertsRow } from "@/features/dashboard/components/dashboard/AlertsRow";
-import { CollectionForecast } from "@/features/dashboard/components/dashboard/CollectionForecast";
-import { ExpiringContractsAlert } from "@/features/dashboard/components/dashboard/ExpiringContractsAlert";
-import { InsuranceAlert } from "@/features/dashboard/components/dashboard/InsuranceAlert";
+import { AlertsRow } from "./AlertsRow";
+import { CollectionForecast } from "./CollectionForecast";
+import { ExpiringContractsAlert } from "./ExpiringContractsAlert";
+import { InsuranceAlert } from "./InsuranceAlert";
 import type { ComponentProps } from "react";
 
 type AlertsRowProps = ComponentProps<typeof AlertsRow>;

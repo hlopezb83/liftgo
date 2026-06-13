@@ -17,7 +17,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: vi.fn(),
 }));
 
-import { useSupplierBankAccounts } from "@/features/suppliers/hooks/useSupplierBankAccounts";
+import { useSupplierBankAccounts } from "../useSupplierBankAccounts";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

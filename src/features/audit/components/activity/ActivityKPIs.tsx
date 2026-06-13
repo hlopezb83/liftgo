@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingDown, TrendingUp, Activity, Users, Layers, Clock } from "lucide-react";
-import type { ActivityMetrics } from "@/features/audit/hooks/useActivityMetrics";
-import { ENTITY_LABELS } from "@/features/audit/lib/activityConstants";
+import type { ActivityMetrics } from "../../hooks/useActivityMetrics";
+import { ENTITY_LABELS } from "../../lib/activityConstants";
 import { cn } from "@/lib/utils";
 
 interface Props {

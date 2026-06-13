@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { UserRow } from "@/features/users/hooks/useUserManagement";
+import type { UserRow } from "../useUserManagement";
 
 export function useUserManagementFilters(users: UserRow[] | undefined) {
   const [search, setSearch] = useState("");

@@ -3,7 +3,7 @@ import { render } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import InvoicesPage from "../InvoicesPage";
-import * as hooks from "@/features/invoices/hooks/invoices/useInvoices";
+import * as hooks from "../../hooks/invoices/useInvoices";
 
 const mockInvoices = [
   {
@@ -26,11 +26,11 @@ const mockInvoices = [
   },
 ];
 
-vi.mock("@/features/invoices/hooks/invoices/useInvoices", () => ({
+vi.mock("../../hooks/invoices/useInvoices", () => ({
   useInvoices: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
 }));
 
-vi.mock("@/features/invoices/hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({
+vi.mock("../../hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({
   useGenerateRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 

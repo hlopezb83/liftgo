@@ -3,9 +3,9 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { CustomerSelector } from "@/features/customers";
-import { EquipmentAssignmentDialog } from "@/features/quotes/components/quotes/EquipmentAssignmentDialog";
+import { EquipmentAssignmentDialog } from "./EquipmentAssignmentDialog";
 import { PostBookingDeliveryDialog } from "@/features/bookings";
-import type { useQuoteDetailLogic } from "@/features/quotes/hooks/useQuoteDetailLogic";
+import type { useQuoteDetailLogic } from "../../hooks/useQuoteDetailLogic";
 
 type Logic = ReturnType<typeof useQuoteDetailLogic>;
 

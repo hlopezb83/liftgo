@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useUpdateStatus } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
 import { CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 

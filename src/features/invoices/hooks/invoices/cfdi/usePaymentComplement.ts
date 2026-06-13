@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 
-import { invoiceKeys, paymentKeys } from "@/features/invoices/lib/queryKeys";
+import { invoiceKeys, paymentKeys } from "../../../lib/queryKeys";
 export function useStampPaymentComplement() {
   const queryClient = useQueryClient();
   return useMutation({

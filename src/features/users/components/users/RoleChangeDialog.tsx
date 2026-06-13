@@ -1,7 +1,7 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useUpdateRole, type UserRow } from "@/features/users/hooks/useUserManagement";
+import { useUpdateRole, type UserRow } from "../../hooks/useUserManagement";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import type { AppRole } from "../../hooks/useUserRole";
 
 interface RoleChangeDialogProps {
   target: { user: UserRow; newRole: AppRole } | null;

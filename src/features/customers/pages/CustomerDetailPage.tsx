@@ -6,15 +6,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { UserPlus, Pencil, Trash2, FileDown } from "lucide-react";
 import { toast } from "sonner";
-import { CustomerContactCard } from "@/features/customers/components/customer-detail/CustomerContactCard";
-import { CustomerFinancialSummary } from "@/features/customers/components/customer-detail/CustomerFinancialSummary";
-import { CustomerProfitabilityCard } from "@/features/customers/components/customer-detail/CustomerProfitabilityCard";
-import { CustomerBookingsHistory } from "@/features/customers/components/customer-detail/CustomerBookingsHistory";
-import { CustomerInvoicesList } from "@/features/customers/components/customer-detail/CustomerInvoicesList";
-import { CustomerDeleteDialog } from "@/features/customers/components/customer-detail/CustomerDeleteDialog";
-import { CustomerInviteDialog } from "@/features/customers/components/customer-detail/CustomerInviteDialog";
-import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
-import { useCustomerDetailPage } from "@/features/customers/hooks/customers/useCustomerDetailPage";
+import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
+import { CustomerFinancialSummary } from "../components/customer-detail/CustomerFinancialSummary";
+import { CustomerProfitabilityCard } from "../components/customer-detail/CustomerProfitabilityCard";
+import { CustomerBookingsHistory } from "../components/customer-detail/CustomerBookingsHistory";
+import { CustomerInvoicesList } from "../components/customer-detail/CustomerInvoicesList";
+import { CustomerDeleteDialog } from "../components/customer-detail/CustomerDeleteDialog";
+import { CustomerInviteDialog } from "../components/customer-detail/CustomerInviteDialog";
+import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
+import { useCustomerDetailPage } from "../hooks/customers/useCustomerDetailPage";
 
 export default function CustomerDetailPage() {
   const { id } = useParams();

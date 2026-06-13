@@ -10,7 +10,7 @@ import {
   type PartInventory,
 } from "@/features/inventory";
 import { toast } from "sonner";
-import { AddMaintenancePartForm } from "@/features/maintenance/components/maintenance/AddMaintenancePartForm";
+import { AddMaintenancePartForm } from "./AddMaintenancePartForm";
 
 interface Props {
   maintenanceLogId: string;

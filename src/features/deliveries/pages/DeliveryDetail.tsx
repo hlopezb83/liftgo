@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "@/features/deliveries/hooks/useDeliveries";
+import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { NotesCard } from "@/components/domain/NotesCard";
-import { DeliveryDetailDialogs } from "@/features/deliveries/components/deliveries/DeliveryDetailDialogs";
-import { DeliverySignatureCard } from "@/features/deliveries/components/deliveries/DeliverySignatureCard";
+import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
+import { DeliverySignatureCard } from "../components/deliveries/DeliverySignatureCard";
 import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
-} from "@/features/deliveries/components/deliveries/DeliveryInfoCards";
-import { DeliveryActions } from "@/features/deliveries/components/deliveries/DeliveryActions";
+} from "../components/deliveries/DeliveryInfoCards";
+import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { nowMty } from "@/lib/utils";
-import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "@/features/deliveries/lib/deliveryDetailHelpers";
+import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHelpers";
 
 type PickupPrompt = {
   delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };

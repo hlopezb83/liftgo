@@ -14,7 +14,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: vi.fn() }));
 
-import { useSupplierContacts } from "@/features/suppliers/hooks/useSupplierContacts";
+import { useSupplierContacts } from "../useSupplierContacts";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

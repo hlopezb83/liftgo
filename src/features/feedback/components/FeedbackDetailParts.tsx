@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
-import { FEEDBACK_STATUS_LABELS, type FeedbackStatus } from "@/features/feedback/lib/constants";
+import { FEEDBACK_STATUS_LABELS, type FeedbackStatus } from "../lib/constants";
 import type { Tables } from "@/integrations/supabase/types";
 type FeedbackHistoryEntry = Tables<"feedback_status_history">;
 

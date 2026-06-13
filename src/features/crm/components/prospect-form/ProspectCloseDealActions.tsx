@@ -1,7 +1,7 @@
 import { CheckCircle2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import type { Prospect } from "../../hooks/useProspects";
 
 interface Props {
   prospect: Prospect;

@@ -4,7 +4,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ShieldCheck } from "lucide-react";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { ColumnDef } from "@/components/dataTable/v2";
-import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
+import type { Forklift } from "../forklifts/useForklifts";
 
 export function useFleetColumns(
   activePolicyForkliftIds: Set<string>,

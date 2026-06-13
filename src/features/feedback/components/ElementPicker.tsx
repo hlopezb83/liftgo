@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { describeElement, type SelectedElementInfo } from "@/features/feedback/lib/cssPath";
+import { describeElement, type SelectedElementInfo } from "../lib/cssPath";
 
 interface Props {
   onPick: (info: SelectedElementInfo, rawEl: Element) => void;

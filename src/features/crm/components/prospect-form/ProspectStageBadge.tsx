@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { STAGE_LABELS } from "@/features/crm/hooks/useProspectForm";
+import { STAGE_LABELS } from "../../hooks/useProspectForm";
 
 interface Props {
   fromStage: string;

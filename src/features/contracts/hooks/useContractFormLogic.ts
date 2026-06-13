@@ -1,12 +1,12 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
-import { useContract, useCreateContract, useUpdateContract } from "@/features/contracts/hooks/useContracts";
+import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
 import { useContractFormState } from "./contractForm/useContractFormState";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
-import { buildContractPayload } from "@/features/contracts/lib/contractPayload";
+import { buildContractPayload } from "../lib/contractPayload";
 
 export function useContractFormLogic() {
   const { id } = useParams();

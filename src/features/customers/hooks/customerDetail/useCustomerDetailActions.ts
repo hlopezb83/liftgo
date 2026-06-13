@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useUpdateCustomer, useDeleteCustomer } from "@/features/customers/hooks/customers/useCustomers";
-import { useInviteCustomer } from "@/features/customers/hooks/customers/useInviteCustomer";
-import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
+import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
+import { useInviteCustomer } from "../customers/useInviteCustomer";
+import type { CustomerFormData } from "../../lib/customerFormSchema";
 
 const OPTIONAL_NULL_FIELDS = [
   "email", "phone", "address", "notes", "website", "contact_person",

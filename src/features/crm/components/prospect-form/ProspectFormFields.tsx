@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ProspectQuoteSelector } from "./ProspectQuoteSelector";
-import type { useProspectForm } from "@/features/crm/hooks/useProspectForm";
+import type { useProspectForm } from "../../hooks/useProspectForm";
 
 type FormState = ReturnType<typeof useProspectForm>;
 
