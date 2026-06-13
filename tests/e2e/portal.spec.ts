@@ -22,8 +22,8 @@ test.describe("Customer portal", () => {
     await page.locator('input[type="password"]').fill(portalCreds.password);
     await page.getByRole("button", { name: /iniciar sesión/i }).click();
 
-    // Tras login el AuthGuard redirige según rol; navegamos explícitamente a facturas.
-    await page.waitForURL((url) => url.pathname.startsWith("/portal"), { timeout: 15_000 });
+    // Esperar el shell real del portal; /portal/login también empieza con /portal y causaba carrera.
+    await expect(page.getByText(/Lift Go - Portal/i)).toBeVisible({ timeout: 15_000 });
     await page.goto("/portal/invoices");
 
     await expect(page.getByText(portalSeed.invoice_number)).toBeVisible({ timeout: 15_000 });

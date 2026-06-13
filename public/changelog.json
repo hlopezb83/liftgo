@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.6",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "E2E portal: espera estable y seed idempotente",
+    "description": "Corregida la carrera del test del portal: ya no espera una URL que también matchea /portal/login, sino el shell real del portal antes de navegar a facturas. La RPC de seed limpia clientes E2E previos del mismo usuario para retries paralelos.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.5",
     "date": "2026-06-13",
     "type": "patch",
