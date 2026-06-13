@@ -84,7 +84,7 @@ export default function InvoiceDetail() {
   if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
   if (!invoice || !id) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
 
-  const d = useInvoiceDerivations(invoice, payments, creditNotes, company);
+  const d = deriveInvoiceData(invoice, payments, creditNotes, company);
   const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance, showCfdiError, showCollectionNotes, isLive, showPacBadge, ppdStamped } = d;
   const notes = invoice.notes;
 
