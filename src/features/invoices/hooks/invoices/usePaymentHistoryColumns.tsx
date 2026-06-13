@@ -17,7 +17,7 @@ type Payment = Tables<"payments">;
 async function downloadRep(paymentId: string, format: CfdiFormat) {
   try {
     await downloadCfdiBlob({ payment_id: paymentId }, format, `REP-${paymentId}.${format}`);
-  } catch (err) {
+  } catch (err: unknown) {
     notifyError({ error: err, message: "Error al descargar REP" });
   }
 }

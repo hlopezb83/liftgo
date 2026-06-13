@@ -51,7 +51,7 @@ export function useSetPasswordForm(user: UserRow | null, onClose: () => void) {
     try {
       await resetPassword.mutateAsync({ userId: user.user_id, newPassword: password });
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Error al actualizar contraseña");
     }
   };

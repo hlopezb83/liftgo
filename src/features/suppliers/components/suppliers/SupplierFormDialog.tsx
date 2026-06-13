@@ -109,7 +109,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
     if (!csfFile) return;
     try {
       await uploadDoc.mutateAsync({ file: csfFile, entityType: "supplier", entityId: supplierId });
-    } catch (e) {
+    } catch (e: unknown) {
       notifyError({ error: e, message: "Proveedor guardado, pero falló la subida de la CSF" });
     }
   };

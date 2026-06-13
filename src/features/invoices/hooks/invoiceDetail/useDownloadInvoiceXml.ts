@@ -9,7 +9,7 @@ export function useDownloadInvoiceXml() {
     try {
       const blob = await fetchCfdiBlob({ invoice_id: invoice.id }, "xml");
       triggerBlobDownload(blob, filename);
-    } catch (err) {
+    } catch (err: unknown) {
       if (invoice.cfdi_xml) {
         triggerBlobDownload(new Blob([invoice.cfdi_xml], { type: "application/xml" }), filename);
         return;
