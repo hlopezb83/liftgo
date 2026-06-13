@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.51.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor arquitectónico — paso 6: separación de hooks *Logic",
+    "description": "useBookingActionsLogic se descompuso en tres hooks atómicos (useBookingDialogsState para estado de UI, useBookingActions para mutaciones + side-effects, useExtendBookingPreview para cálculo derivado); el orquestador delgado mantiene compatibilidad con BookingActions/BookingActionDialogs y baja de 102 a 49 líneas. useInvoiceFormLogic ya estaba descompuesto en 4 sub-hooks; useForkliftFormLogic y useContractFormPrefill están dentro del límite ≤80 LOC. Sin cambios de UI ni de lógica.",
+    "category": "refactor"
+  },
+  {
     "version": "6.50.0",
     "date": "2026-06-13",
     "type": "minor",

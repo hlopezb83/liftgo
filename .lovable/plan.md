@@ -74,8 +74,7 @@ Paso 2  ✅ v6.48.0 — 5 schemas Zod movidos a features/*/lib/*Schema.ts
 Paso 3  ✅ v6.48.0 — barrels src/features/*/index.ts creados
 Paso 4  ✅ v6.49.0 — features/invoices/hooks/invoices/ reagrupado en cfdi/ recurring/ pdf/ collections/
 Paso 5  ✅ v6.50.0 — useResourceList<T> creado; BookingsPage e InvoicesPage migradas como piloto
-Paso 6  Revisar hooks *Logic (invoiceForm, bookingActions, forkliftForm, contractFormPrefill)
-        y separar form-state vs mutation vs side-effects
+Paso 6  ✅ v6.51.0 — useBookingActionsLogic descompuesto en 3 hooks atómicos (dialogs/actions/preview)
 Paso 7  Reorganizar src/components/ en layout/ forms/ feedback/ domain/
 Paso 8  Reorganizar src/lib/ raíz: money/, format/; mover routes-config y routes a src/app/routes/
 Paso 9  Dividir lib/pdf/theme/styles.ts por tipo de documento
