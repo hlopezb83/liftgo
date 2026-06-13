@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.12",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Auditoría de tests — Lote 6 (Playwright smoke endurecido + mobile viewport)",
+    "description": "smoke-nav.spec.ts ahora exige landmark visible (main/h1/h2) por ruta — cierra bug latente donde un body vacío pasaba como verde. Nuevo describe 'mobile viewport' con 5 tests a 375x812 sobre /, /customers, /bookings, /invoices, /fleet, validando ausencia de overflow horizontal (síntoma de tabla sin MobileCardList). Total: 31 rutas con landmark + 5 rutas mobile.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.11",
     "date": "2026-06-13",
     "type": "minor",
