@@ -6,7 +6,7 @@ import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import { useBookingExtensions } from "@/features/bookings/hooks/useBookingExtensions";
 import { useBookingHourometer } from "@/features/bookings/hooks/bookingDetail/useBookingHourometer";
 
-import { DetailPageHeader } from "@/components/DetailPageHeader";
+import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { BookingActions } from "@/features/bookings/components/bookings/BookingActions";
 import { BookingStatusHistory } from "@/features/bookings/components/bookings/BookingStatusHistory";
 import { ExtendBookingDialog } from "@/features/bookings/components/bookings/ExtendBookingDialog";
@@ -16,7 +16,7 @@ import { BookingPeriodCard } from "@/features/bookings/components/booking-detail
 import { BookingBillingCard } from "@/features/bookings/components/booking-detail/BookingBillingCard";
 import { BookingHourometerCard } from "@/features/bookings/components/booking-detail/BookingHourometerCard";
 import { BookingExtensionsCard } from "@/features/bookings/components/booking-detail/BookingExtensionsCard";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarPlus } from "lucide-react";

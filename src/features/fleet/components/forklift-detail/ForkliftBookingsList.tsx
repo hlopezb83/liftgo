@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";

@@ -5,7 +5,7 @@ import type { Supplier } from "@/features/suppliers/hooks/useSuppliers";
 import { useUploadDocument } from "@/hooks/useDocuments";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FormActions } from "@/components/FormActions";
+import { FormActions } from "@/components/forms/FormActions";
 
 import { SupplierFormFields } from "./SupplierFormFields";
 import { SupplierCsfDropzone } from "./SupplierCsfDropzone";

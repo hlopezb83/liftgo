@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";

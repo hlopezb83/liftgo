@@ -1,8 +1,8 @@
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClipboardCheck } from "lucide-react";
-import { StatusBadge } from "@/components/StatusBadge";
-import { InfoRow } from "@/components/InfoRow";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { InfoRow } from "@/components/forms/InfoRow";
 import { parseDateLocal } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 

@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { STATUS_LABELS } from "@/lib/constants";
 import { quoteStatusLabel } from "@/features/quotes/constants";
 

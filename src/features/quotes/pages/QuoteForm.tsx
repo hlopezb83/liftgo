@@ -6,14 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { APP_CONFIG } from "@/lib/config";
 import { CustomerSelector } from "@/features/customers/components/customers/CustomerSelector";
-import { DatePickerField } from "@/components/DatePickerField";
-import { DateRangePickerField } from "@/components/DateRangePickerField";
-import { FormActions } from "@/components/FormActions";
-import { FormPageHeader } from "@/components/FormPageHeader";
+import { DatePickerField } from "@/components/forms/DatePickerField";
+import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { SaleLineItems } from "@/features/quotes/components/quotes/SaleLineItems";
 import { RentalLineItems } from "@/features/quotes/components/quotes/RentalLineItems";
 import { CostSummaryCard } from "@/features/quotes/components/quotes/CostSummaryCard";
-import { NotesCard } from "@/components/NotesCard";
+import { NotesCard } from "@/components/domain/NotesCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 

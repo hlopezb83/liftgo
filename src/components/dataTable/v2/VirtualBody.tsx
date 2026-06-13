@@ -3,7 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { flexRender, type Row } from "@tanstack/react-table";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { EmptyRow } from "@/components/EmptyRow";
+import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
 

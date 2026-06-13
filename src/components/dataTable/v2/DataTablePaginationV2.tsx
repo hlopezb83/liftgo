@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { Table } from "@tanstack/react-table";
-import { TablePagination } from "@/components/TablePagination";
+import { TablePagination } from "@/components/feedback/TablePagination";
 
 interface Props<T> {
   table: Table<T>;

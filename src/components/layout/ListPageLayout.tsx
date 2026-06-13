@@ -1,11 +1,11 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { type LucideIcon, Loader2, RefreshCw, SlidersHorizontal } from "lucide-react";
 import type { Table as TanstackTable } from "@tanstack/react-table";
-import { PageTransition } from "@/components/PageTransition";
-import { PageHeader } from "@/components/PageHeader";
-import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyState } from "@/components/EmptyState";
-import { MobileCardList } from "@/components/MobileCardList";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { TableSkeleton } from "@/components/feedback/TableSkeleton";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { Card, CardContent } from "@/components/ui/card";

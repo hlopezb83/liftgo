@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { DetailPageHeader } from "@/components/DetailPageHeader";
+import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NotesCard } from "@/components/NotesCard";
+import { NotesCard } from "@/components/domain/NotesCard";
 import { UserPlus, Pencil, Trash2, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { CustomerContactCard } from "@/features/customers/components/customer-detail/CustomerContactCard";

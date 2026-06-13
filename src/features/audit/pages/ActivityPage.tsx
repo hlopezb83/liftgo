@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { PageTransition } from "@/components/PageTransition";
-import { PageHeader } from "@/components/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ActivityKPIs } from "@/features/audit/components/activity/ActivityKPIs";
 import { ActivityByMember } from "@/features/audit/components/activity/ActivityByMember";

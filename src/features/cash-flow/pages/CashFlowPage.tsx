@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, TrendingUp } from "lucide-react";
-import { PageTransition } from "@/components/PageTransition";
-import { PageHeader } from "@/components/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { CashFlowSettingsBar } from "../components/CashFlowSettingsBar";
 import { CashFlowSummaryCards } from "../components/CashFlowSummaryCards";

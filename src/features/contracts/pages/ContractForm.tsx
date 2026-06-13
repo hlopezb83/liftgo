@@ -1,12 +1,12 @@
 import { useContractFormLogic } from "@/features/contracts/hooks/useContractFormLogic";
-import { FormPageHeader } from "@/components/FormPageHeader";
-import { FormActions } from "@/components/FormActions";
+import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { FormActions } from "@/components/forms/FormActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerField } from "@/components/DatePickerField";
+import { DatePickerField } from "@/components/forms/DatePickerField";
 import { parseISO, format } from "date-fns";
 
 export default function ContractForm() {

@@ -9,7 +9,7 @@ import { FeedbackFab } from "@/features/feedback/components/FeedbackFab";
 import { PageActionsProvider, usePageActionsContext } from "@/contexts/PageActionsContext";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
-import { KeyboardShortcutsDialog } from "@/components/KeyboardShortcutsDialog";
+import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
 
 function focusSearchInput() {
   const candidates = document.querySelectorAll<HTMLInputElement>(

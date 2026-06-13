@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
 
 import { useReturnInspection } from "@/features/returns/hooks/useReturnInspections";
-import { DetailPageHeader } from "@/components/DetailPageHeader";
-import { StatusBadge } from "@/components/StatusBadge";
+import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EquipmentCard } from "@/features/returns/components/return-inspection/EquipmentCard";
 import { BookingCard } from "@/features/returns/components/return-inspection/BookingCard";

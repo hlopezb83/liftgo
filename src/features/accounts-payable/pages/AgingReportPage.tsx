@@ -5,8 +5,8 @@ import { ArrowLeft, Download, FileClock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
-import { TableSkeleton } from "@/components/TableSkeleton";
-import { EmptyState } from "@/components/EmptyState";
+import { TableSkeleton } from "@/components/feedback/TableSkeleton";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { useAgingReport } from "../hooks/useAgingReport";
 
 const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: string }[] = [

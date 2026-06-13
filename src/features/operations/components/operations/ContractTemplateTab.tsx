@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Save, Info } from "lucide-react";
 import { toast } from "sonner";
-import { TableSkeleton } from "@/components/TableSkeleton";
+import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CONTRACT_PLACEHOLDERS as PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
 import { EditableList } from "./contractTemplate/EditableList";

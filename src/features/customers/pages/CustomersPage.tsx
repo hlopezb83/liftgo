@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/features/customers/hooks/customers/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
-import { ListPageLayout } from "@/components/ListPageLayout";
-import { MobileCardList } from "@/components/MobileCardList";
-import { SwipeableCard } from "@/components/SwipeableCard";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { MobileCardList } from "@/components/layout/MobileCardList";
+import { SwipeableCard } from "@/components/feedback/SwipeableCard";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { ChevronRight, Plus, Phone } from "lucide-react";

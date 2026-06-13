@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ShieldCheck } from "lucide-react";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { ColumnDef } from "@/components/dataTable/v2";

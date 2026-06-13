@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { CustomerSelector } from "@/features/customers/components/customers/CustomerSelector";
-import { DateRangePickerField } from "@/components/DateRangePickerField";
-import { FormActions } from "@/components/FormActions";
-import { FormPageHeader } from "@/components/FormPageHeader";
+import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { ForkliftSelector } from "@/features/fleet/components/fleet/ForkliftSelector";
 import { BookingPostDialogs } from "@/features/bookings/components/bookings/BookingPostDialogs";
 import { differenceInDays } from "date-fns";
