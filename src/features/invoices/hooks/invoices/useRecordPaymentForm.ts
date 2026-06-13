@@ -6,7 +6,7 @@ import { roundMoney } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import { useCreatePayment } from "../usePayments";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
-import { satCodeForMethod } from "@/features/invoices/lib/paymentMethods";
+import { satCodeForMethod } from "../../lib/paymentMethods";
 
 interface Args {
   open: boolean;

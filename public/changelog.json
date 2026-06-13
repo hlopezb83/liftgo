@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.4",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "CI: fix lint errors en fixture del portal E2E",
+    "description": "Refactor de portalSeed.ts sin non-null assertions ni empty patterns + import relativo en useRecordPaymentForm. Desbloquea Vitest en CI (el 'No test results' era cascada del lint fallido).",
+    "category": "fix"
+  },
+  {
     "version": "6.66.3",
     "date": "2026-06-13",
     "type": "patch",

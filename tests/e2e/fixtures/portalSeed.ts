@@ -10,21 +10,35 @@ export type PortalSeed = {
   scope: string;
 };
 
-// Env vars obligatorias — sin fallbacks. Embeber credenciales enmascara errores.
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY =
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
-const ADMIN_EMAIL = process.env.E2E_TEST_EMAIL;
-const ADMIN_PASSWORD = process.env.E2E_TEST_PASSWORD;
-const PORTAL_EMAIL = process.env.E2E_PORTAL_EMAIL;
-const PORTAL_PASSWORD = process.env.E2E_PORTAL_PASSWORD;
+type PortalConfig = {
+  supabaseUrl: string;
+  supabaseKey: string;
+  adminEmail: string;
+  adminPassword: string;
+  portalEmail: string;
+  portalPassword: string;
+};
 
-if (!SUPABASE_URL || !SUPABASE_KEY || !ADMIN_EMAIL || !ADMIN_PASSWORD || !PORTAL_EMAIL || !PORTAL_PASSWORD) {
-  throw new Error(
-    "[e2e:portal] Faltan env vars: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, " +
-      "E2E_TEST_EMAIL, E2E_TEST_PASSWORD, E2E_PORTAL_EMAIL, E2E_PORTAL_PASSWORD.",
-  );
+// Env vars obligatorias — sin fallbacks. Embeber credenciales enmascara errores.
+function loadConfig(): PortalConfig {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey =
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
+  const adminEmail = process.env.E2E_TEST_EMAIL;
+  const adminPassword = process.env.E2E_TEST_PASSWORD;
+  const portalEmail = process.env.E2E_PORTAL_EMAIL;
+  const portalPassword = process.env.E2E_PORTAL_PASSWORD;
+
+  if (!supabaseUrl || !supabaseKey || !adminEmail || !adminPassword || !portalEmail || !portalPassword) {
+    throw new Error(
+      "[e2e:portal] Faltan env vars: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, " +
+        "E2E_TEST_EMAIL, E2E_TEST_PASSWORD, E2E_PORTAL_EMAIL, E2E_PORTAL_PASSWORD.",
+    );
+  }
+  return { supabaseUrl, supabaseKey, adminEmail, adminPassword, portalEmail, portalPassword };
 }
+
+const CONFIG = loadConfig();
 
 function buildScope(testInfo: TestInfo): string {
   const worker = testInfo.workerIndex ?? 0;
@@ -34,12 +48,12 @@ function buildScope(testInfo: TestInfo): string {
 }
 
 async function adminClient(): Promise<SupabaseClient> {
-  const client = createClient(SUPABASE_URL!, SUPABASE_KEY!, {
+  const client = createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { error } = await client.auth.signInWithPassword({
-    email: ADMIN_EMAIL!,
-    password: ADMIN_PASSWORD!,
+    email: CONFIG.adminEmail,
+    password: CONFIG.adminPassword,
   });
   if (error) throw new Error(`[e2e:portal] admin login falló: ${error.message}`);
   return client;
@@ -50,20 +64,25 @@ async function adminClient(): Promise<SupabaseClient> {
  *  1. Inicia sesión como admin vía REST y siembra cliente+factura ligados al user del portal.
  *  2. Entrega los IDs al test.
  *  3. Llama `e2e_teardown(scope)` al final, sin importar si el test pasó o falló.
- *
- * Las credenciales del portal viven en env vars; el test hace login UI por separado.
  */
-export const test = base.extend<{ portalSeed: PortalSeed; portalCreds: { email: string; password: string } }>({
-  portalCreds: async ({}, use) => {
-    await use({ email: PORTAL_EMAIL!, password: PORTAL_PASSWORD! });
+type PortalFixtures = {
+  portalSeed: PortalSeed;
+  portalCreds: { email: string; password: string };
+};
+
+export const test = base.extend<PortalFixtures>({
+  portalCreds: async ({ page: _page }, use) => {
+    void _page;
+    await use({ email: CONFIG.portalEmail, password: CONFIG.portalPassword });
   },
-  portalSeed: async ({}, use, testInfo) => {
+  portalSeed: async ({ page: _page }, use, testInfo) => {
+    void _page;
     const scope = buildScope(testInfo);
     const admin = await adminClient();
 
     const { data, error } = await admin.rpc("e2e_seed_portal_scenario", {
       p_scope: scope,
-      p_portal_email: PORTAL_EMAIL!,
+      p_portal_email: CONFIG.portalEmail,
     });
     if (error) throw new Error(`e2e_seed_portal_scenario falló: ${error.message}`);
     const seed = data as PortalSeed;
