@@ -118,12 +118,12 @@ export default function CalendarPage() {
                     variant="ghost"
                     size="icon"
                     onClick={navigateBack}
-                    aria-label={ganttRange === "month" ? "Mes anterior" : "Semana anterior"}
+                    aria-label={fns.prevLabel}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{ganttRange === "month" ? "Mes anterior" : "Semana anterior"}</TooltipContent>
+                <TooltipContent>{fns.prevLabel}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -139,12 +139,12 @@ export default function CalendarPage() {
                     variant="ghost"
                     size="icon"
                     onClick={navigateForward}
-                    aria-label={ganttRange === "month" ? "Mes siguiente" : "Semana siguiente"}
+                    aria-label={fns.nextLabel}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{ganttRange === "month" ? "Mes siguiente" : "Semana siguiente"}</TooltipContent>
+                <TooltipContent>{fns.nextLabel}</TooltipContent>
               </Tooltip>
             </div>
           </CardHeader>
