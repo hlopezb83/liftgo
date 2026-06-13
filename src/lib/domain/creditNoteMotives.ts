@@ -27,8 +27,6 @@ export const CREDIT_NOTE_MOTIVES = [
   },
 ] as const;
 
-export type CreditNoteMotive = (typeof CREDIT_NOTE_MOTIVES)[number]["value"];
-
 export const CREDIT_NOTE_MOTIVE_LABELS: Record<string, string> = Object.fromEntries(
   CREDIT_NOTE_MOTIVES.map((m) => [m.value, m.shortLabel]),
 );

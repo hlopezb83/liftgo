@@ -84,7 +84,7 @@ export function DeliveryLogisticsCard({ address, driverName, driverPhone, transp
         <InfoRow label="Operador" value={driverName || "—"} />
         <InfoRow label="Teléfono" value={driverPhone || "—"} />
         {(transportCost ?? 0) > 0 && (
-          <InfoRow label="Costo de flete" value={`$${Number(transportCost).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`} />
+          <InfoRow label="Costo de flete" value={formatCurrency(Number(transportCost))} />
         )}
         {chargedToCustomer && (
           <div className="flex items-center justify-between">

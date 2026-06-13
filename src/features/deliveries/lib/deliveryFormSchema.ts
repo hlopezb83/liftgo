@@ -11,5 +11,3 @@ export const deliverySchema = z.object({
   driverPhone: z.string(),
   notes: z.string(),
 });
-
-export type DeliveryFormSchemaValues = z.infer<typeof deliverySchema>;
