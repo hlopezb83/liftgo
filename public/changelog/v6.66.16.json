@@ -1,0 +1,37 @@
+{
+  "version": "6.66.16",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 10 (entregas e inventario de refacciones)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Vitest — useDeliveries (5 tests)",
+      "items": [
+        "useCreateDelivery: inserta entrega y devuelve fila con delivery_number generado por DB.",
+        "useCreateDelivery: propaga error con título 'Error al crear entrega'.",
+        "useUpdateDelivery: el patch excluye id del update y filtra por eq('id', ...).",
+        "useUpdateDelivery: propaga error con título 'Error al actualizar entrega'.",
+        "useDeleteDelivery: elimina filtrando por id."
+      ]
+    },
+    {
+      "heading": "Vitest — usePartInventoryMutations (5 tests)",
+      "items": [
+        "useCreatePart: inserta refacción y devuelve fila con id generado.",
+        "useCreatePart: propaga error de SKU duplicado con título 'Error al crear refacción'.",
+        "useUpdatePart: el patch excluye id y filtra por eq('id', ...).",
+        "useDeletePart: elimina filtrando por id.",
+        "useDeletePart: propaga error de FK (maintenance_parts) con título 'Error al eliminar refacción'."
+      ]
+    },
+    {
+      "heading": "Resultados",
+      "items": [
+        "10/10 tests verde.",
+        "Riesgo cerrado: entregas con campos perdidos en patch update rompen trazabilidad logística.",
+        "Riesgo cerrado: stock incorrecto de refacciones afecta planeación de mantenimiento y ROI."
+      ]
+    }
+  ]
+}
