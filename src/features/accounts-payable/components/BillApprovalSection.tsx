@@ -76,13 +76,12 @@ function ApprovalTimeline({ history, isLoading }: { history: HistoryEntry[] | un
 }
 
 function ApprovalActions({
-  status, isAdmin, isAdministrativo, billId, onApprove, onReject,
+  status, isAdmin, isAdministrativo, onApprove, onReject,
   reapprovalPending, onReapproval,
 }: {
   status: SupplierBillApprovalStatus;
   isAdmin: boolean;
   isAdministrativo: boolean;
-  billId: string;
   onApprove: () => void;
   onReject: () => void;
   reapprovalPending: boolean;
