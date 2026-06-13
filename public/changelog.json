@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.59.1",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Cero warnings — refactor final de complejidad",
+    "description": "Eliminados los 3 warnings residuales de complexity. SupplierPaymentRow: extraídos SupplierPaymentRepSection, SupplierPaymentRepReceived y SupplierPaymentRejectDialog. BankLineDetailSheet: extraído BankLineActions con sub-bloques por estado. InvoiceDetail: extraído InvoiceDetailBadges. Lint baja a 0 warnings totales. tsc limpio, 526 tests pasan.",
+    "category": "infra"
+  },
+  {
     "version": "6.59.0",
     "date": "2026-06-13",
     "type": "minor",
