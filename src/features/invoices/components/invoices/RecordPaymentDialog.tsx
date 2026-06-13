@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { roundMoney } from "@/lib/money";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,20 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useCreatePayment } from "../../hooks/usePayments";
-import { useStampPaymentComplement } from "../../hooks/invoices/cfdi/usePaymentComplement";
-import { toast } from "sonner";
 import { DatePickerField } from "@/components/forms/DatePickerField";
-import { format } from "date-fns";
-import { nowMty } from "@/lib/utils";
 import { FORMA_PAGO, MONEDA } from "@/lib/domain/satCatalogs";
-
-const METHODS = [
-  { value: "transfer", label: "Transferencia", sat: "03" },
-  { value: "cash", label: "Efectivo", sat: "01" },
-  { value: "check", label: "Cheque", sat: "02" },
-  { value: "card", label: "Tarjeta", sat: "04" },
-];
+import { PAYMENT_METHODS } from "@/features/invoices/lib/paymentMethods";
+import { useRecordPaymentForm } from "../../hooks/invoices/useRecordPaymentForm";
 
 interface Props {
   open: boolean;
@@ -31,77 +18,6 @@ interface Props {
   balance: number;
   /** If true, invoice is PPD + stamped => offer REP stamping */
   ppdStamped?: boolean;
-}
-
-function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange }: {
-  open: boolean; balance: number; ppdStamped: boolean; invoiceId: string;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const [amount, setAmount] = useState(balance.toFixed(2));
-  const [date, setDate] = useState<Date>(nowMty());
-  const [method, setMethod] = useState("transfer");
-  const [paymentFormSat, setPaymentFormSat] = useState("03");
-  const [currency, setCurrency] = useState("MXN");
-  const [exchangeRate, setExchangeRate] = useState("1");
-  const [reference, setReference] = useState("");
-  const [notes, setNotes] = useState("");
-  const [stampRep, setStampRep] = useState(true);
-  const createPayment = useCreatePayment();
-  const stampComplement = useStampPaymentComplement();
-
-  useEffect(() => {
-    if (open) {
-      setAmount(balance.toFixed(2));
-      setStampRep(ppdStamped);
-    }
-  }, [open, balance, ppdStamped]);
-
-  useEffect(() => {
-    const m = METHODS.find((x) => x.value === method);
-    if (m) setPaymentFormSat(m.sat);
-  }, [method]);
-
-  const handleSubmit = async () => {
-    const amt = roundMoney(Number(amount));
-    if (!amt || amt <= 0) { notifyError({ message: "Monto inválido" }); return; }
-    const exch = Number(exchangeRate) || 1;
-    if (currency !== "MXN" && exch <= 0) { notifyError({ message: "Tipo de cambio inválido" }); return; }
-
-    createPayment.mutate(
-      {
-        invoice_id: invoiceId,
-        amount: amt,
-        payment_date: format(date, "yyyy-MM-dd"),
-        payment_method: method,
-        payment_form_sat: paymentFormSat,
-        currency,
-        exchange_rate: exch,
-        reference_number: reference || null,
-        notes: notes || null,
-      },
-      {
-        onSuccess: async (created) => {
-          toast.success("Pago registrado");
-          if (ppdStamped && stampRep && created?.id) {
-            stampComplement.mutate(created.id);
-          }
-          onOpenChange(false);
-          setAmount(balance.toFixed(2));
-          setReference("");
-          setNotes("");
-        },
-        onError: (err) => notifyError({ error: err }),
-      },
-    );
-  };
-
-  return {
-    amount, setAmount, date, setDate, method, setMethod,
-    paymentFormSat, setPaymentFormSat, currency, setCurrency,
-    exchangeRate, setExchangeRate, reference, setReference,
-    notes, setNotes, stampRep, setStampRep,
-    createPayment, stampComplement, handleSubmit,
-  };
 }
 
 export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, ppdStamped = false }: Props) {
@@ -141,7 +57,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
               <Select value={method} onValueChange={setMethod}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                  {PAYMENT_METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

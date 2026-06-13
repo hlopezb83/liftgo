@@ -1,0 +1,35 @@
+{
+  "version": "6.64.0",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Auditoría — Lote 5: refactor RecordPaymentDialog y scan de seguridad",
+  "category": "infra",
+  "changes": [
+    {
+      "area": "RecordPaymentDialog (213→129 LOC)",
+      "detail": "El hook in-file useRecordPaymentForm (70 LOC, al borde del límite Power of 10) extraído a src/features/invoices/hooks/invoices/useRecordPaymentForm.ts (84 LOC). El componente queda como contenedor puro de UI + uso del hook."
+    },
+    {
+      "area": "Constante PAYMENT_METHODS centralizada",
+      "detail": "METHODS local del dialog → src/features/invoices/lib/paymentMethods.ts con tipo `as const`, type PaymentMethodValue, y helper satCodeForMethod(method) con fallback seguro a '03' (transferencia). Reutilizable y testeable."
+    },
+    {
+      "area": "Tests nuevos (6)",
+      "detail": "useRecordPaymentForm.test.ts: amount inicial = balance.toFixed(2); rerender con nuevo balance refresca amount; setMethod sincroniza paymentFormSat para transfer/cash/check; submit con monto 0 dispara notifyError; submit con USD propaga exchange_rate al payload; submit válido pasa payload correcto a createPayment.mutate."
+    },
+    {
+      "area": "Bug latente detectado (no corregido en este lote)",
+      "detail": "useRecordPaymentForm.handleSubmit: `Number(exchangeRate) || 1` interpreta '0' como falsy y lo reemplaza por 1, anulando la validación `currency !== 'MXN' && exch <= 0`. Reportado como hallazgo; fix en Lote 6 (cambiar a `Number.isFinite(parsed) && parsed > 0 ? parsed : null` + chequeo explícito)."
+    },
+    {
+      "area": "Scan de seguridad Supabase",
+      "detail": "83 findings, todos WARN: 53 SECURITY DEFINER ejecutables por usuarios autenticados (has_role, RPCs transaccionales, etc.), 29 ejecutables anónimamente (auth helpers + funciones de portal cliente), 1 extensión en schema public. Cero ERROR / cero CRITICAL. Los warnings son esperados por la arquitectura RLS documentada en mem://auth/security-policies — los RPCs SECURITY DEFINER son intencionales para bypass controlado de RLS con validación de rol interna."
+    }
+  ],
+  "verification": {
+    "tests": "580/580 passed (92 archivos)",
+    "tsc": "clean (tsconfig.app.json)",
+    "loc_before": 213,
+    "loc_after": "129 (dialog) + 84 (hook) + 17 (lib)"
+  }
+}

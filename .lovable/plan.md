@@ -1,61 +1,51 @@
-## Lote 4 — Higiene profunda + endurecimiento de coverage
+## Lote 5 — Refactor focalizado + escaneo de seguridad
 
-Tres frentes pequeños e independientes. Sin tocar lógica de negocio. Sin cambios de UI visibles.
+Sin god components reales en el código (los archivos 200-250 LOC son cohesivos: páginas con `useQuery` + tabla, o diálogos con un solo formulario). Hago un refactor quirúrgico de alto valor y aprovecho para correr el escáner de seguridad del backend.
 
-### 1. Refactor `useBreadcrumbEntityLabel` (tipado)
+### 1. Refactorizar `RecordPaymentDialog.tsx` (213 LOC → 3 archivos)
 
-`src/layouts/hooks/useBreadcrumbEntityLabel.ts` usa `supabase.from(resolver.table as never)` y `r.<campo> as string` — viola la regla global "sin `as`". Cambios:
+`src/features/invoices/components/invoices/RecordPaymentDialog.tsx` ya separa parcialmente `useRecordPaymentForm` (hook in-file de 70 LOC) del render (107 LOC). El hook viola la regla "hooks ≤80 LOC" si crece un campo más, y la lógica de validación (`amt <= 0`, `currency !== "MXN" && exch <= 0`) no tiene tests.
 
-- Reemplazar el mapa `RESOLVERS` por una unión discriminada tipada por nombre de tabla (literal type de `keyof Database["public"]["Tables"]`).
-- Eliminar los 9 `as string` aplicando `coerce.ts` (helper `asString`) o checks `typeof`.
-- Eliminar el `as never` en `supabase.from` usando un narrow por `resolver.table`.
-- Añadir test unitario nuevo `useBreadcrumbEntityLabel.test.ts`: 3 casos (ID válido, segmento sin resolver, ID no-UUID → no query).
+Cambios:
 
-### 2. Magic numbers → constantes nombradas
+- Extraer `useRecordPaymentForm` a `src/features/invoices/hooks/invoices/useRecordPaymentForm.ts` (~70 LOC).
+- Mantener `RecordPaymentDialog.tsx` como contenedor pequeño (~120 LOC, sólo render + uso del hook).
+- Crear `src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts` con 5 casos:
+  - Estado inicial = `balance.toFixed(2)`.
+  - Reset al abrir con nuevo balance.
+  - `method` sincroniza `paymentFormSat` (mapa METHODS).
+  - Submit con monto 0 → no llama `createPayment`, llama `notifyError`.
+  - Submit con currency USD y exchangeRate 0 → no llama `createPayment`, llama `notifyError`.
 
-Auditar y extraer 4–6 magic numbers de alto impacto. Candidatos confirmados por `rg`:
+Mock de `useCreatePayment` y `useStampPaymentComplement` con `vi.fn()`. Mock de `notifyError` de `appFeedback`.
 
-- `30` (días de alerta de seguros) en `fleet` → `INSURANCE_ALERT_DAYS_BEFORE` en `src/features/fleet/lib/constants.ts`.
-- `200` (horas/mes incluidas en renta) en `quotes`/`bookings` → `INCLUDED_HOURS_PER_MONTH` en `src/lib/config.ts`.
-- `7` (días/semana) y `30` (días fallback mensual) en `rentalCalculation.ts` → constantes locales `DAYS_PER_WEEK`, `DAYS_PER_MONTH_FALLBACK`.
-- `3` (buffer de mantenimiento) en booking constraints UI → `MAINTENANCE_BUFFER_DAYS` colocada junto a la constraint UI (la regla server-side ya está en SQL, sólo unificamos la copia client-side).
+### 2. Mover constante `METHODS` a domain
 
-Antes de tocar nada, listo cada ocurrencia con su archivo y línea para confirmar contigo.
+`METHODS` actualmente vive como const local en el dialog. La movería a `src/features/invoices/lib/paymentMethods.ts` con tipado `as const` para que sea reutilizable y testeable. El test #3 arriba la valida.
 
-### 3. Subir thresholds de coverage tras el nuevo baseline
+### 3. Correr `security--run_security_scan`
 
-Tras Lote 2 el baseline subió a `13.98 / 12.92 / 10.08 / 14.36`. Hoy los thresholds están en `13 / 12 / 9 / 13` — margen real <1pp, riesgo de regresión silenciosa.
+Aprovechando que ya estamos en auditoría, dispar el escáner de Supabase. Reporto findings al usuario; no aplico cambios automáticos. Si hay nuevas reglas faltantes o policies muy permisivas, las anoto como Lote 6 futuro.
 
-Plan:
-- Correr `bunx vitest run --coverage` localmente y leer el reporte (`coverage/coverage-summary.json`) para tener el número exacto post-Lote-3.
-- Subir cada threshold a `medido − 1pp` (no 5pp como dijimos antes — con la suite actual eso bloquearía al primer hook nuevo no testeado).
-- Documentar en el changelog el baseline y el margen.
+### Fuera de alcance
 
-### Detalles técnicos
-
-- `useBreadcrumbEntityLabel`: `Database["public"]["Tables"][T]["Row"]` permite tipar `format(row)` por tabla, eliminando los casts. Trade-off: el código crece ~15 líneas, pero queda 0 `as`.
-- Magic numbers: no toco semántica, sólo extraigo. Cada constante lleva JSDoc con la regla de negocio (ej: "Días antes del vencimiento para disparar alerta de seguro — coincide con `notify_insurance_expiration` en SQL").
-- Coverage: si el threshold queda en valores frágiles (ej. `branches: 12.5`), redondeo hacia abajo al entero.
-
-### Entregables
-
-- `src/layouts/hooks/useBreadcrumbEntityLabel.ts` refactorizado, sin `as`.
-- `src/layouts/hooks/__tests__/useBreadcrumbEntityLabel.test.ts` (nuevo, 3 tests).
-- 4–6 constantes nuevas en sus respectivos `lib/constants.ts` o `lib/config.ts`.
-- `vitest.config.ts` con thresholds ajustados al baseline real − 1pp.
-- `public/changelog.json` + `public/changelog/v6.63.0.json` (patch).
+- Refactor de `CRMClosedPage` (210 LOC) y `SupplierBillDetailSheet` (204 LOC): cohesivos, sin dividing line clara — refactor crearía abstracciones especulativas (anti-patrón).
+- `ListPageLayout` (251 LOC): ya está dividido en 3 componentes locales (PullToRefreshIndicator, FiltersSlot, TableContent). Cumple Power of 10.
 
 ### Verificación
 
 - `bunx tsc --noEmit -p tsconfig.app.json` limpio.
-- `bunx vitest run` 100% verde (570 + 3 nuevos).
+- `bunx vitest run` 574 + 5 = 579 tests verdes.
 - `bunx knip` sin nuevos hallazgos.
-- `rg "\\bas\\s+(string|never|number)\\b" src/layouts/hooks/useBreadcrumbEntityLabel.ts` → 0 matches.
+- Scan de seguridad: reporte al usuario.
 
-### Fuera de alcance (para Lote 5+)
+### Entregables
 
-- Refactor de archivos >300 LOC (no se identificaron urgentes en Lotes 1–3).
-- Audit de god components (separación UI / data / lógica).
-- Subir branches >20% (requiere refactor de hooks complejos, no sólo tests).
+- `src/features/invoices/hooks/invoices/useRecordPaymentForm.ts` (nuevo).
+- `src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts` (nuevo, 5 tests).
+- `src/features/invoices/lib/paymentMethods.ts` (nuevo).
+- `src/features/invoices/components/invoices/RecordPaymentDialog.tsx` refactorizado (~120 LOC).
+- Reporte de seguridad en el chat.
+- `public/changelog.json` + `public/changelog/v6.64.0.json` (patch).
 
-¿Procedo con los 3 frentes en este Lote, o prefieres acotar a sólo 1–2?
+¿Procedo?
