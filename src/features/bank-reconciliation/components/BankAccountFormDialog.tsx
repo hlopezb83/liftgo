@@ -13,14 +13,27 @@ interface Props {
   initial?: BankAccount | null;
 }
 
+function defaultsFor(initial?: BankAccount | null) {
+  return {
+    name: initial?.name ?? "",
+    bank: initial?.bank ?? "",
+    last4: initial?.last4 ?? "",
+    currency: initial?.currency ?? "MXN",
+    initialBalance: String(initial?.initial_balance ?? "0"),
+    isActive: initial?.is_active ?? true,
+    notes: initial?.notes ?? "",
+  };
+}
+
 function useBankAccountFormState(initial?: BankAccount | null) {
-  const [name, setName] = useState(initial?.name ?? "");
-  const [bank, setBank] = useState(initial?.bank ?? "");
-  const [last4, setLast4] = useState(initial?.last4 ?? "");
-  const [currency, setCurrency] = useState(initial?.currency ?? "MXN");
-  const [initialBalance, setInitialBalance] = useState(String(initial?.initial_balance ?? "0"));
-  const [isActive, setIsActive] = useState(initial?.is_active ?? true);
-  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const d = defaultsFor(initial);
+  const [name, setName] = useState(d.name);
+  const [bank, setBank] = useState(d.bank);
+  const [last4, setLast4] = useState(d.last4);
+  const [currency, setCurrency] = useState(d.currency);
+  const [initialBalance, setInitialBalance] = useState(d.initialBalance);
+  const [isActive, setIsActive] = useState(d.isActive);
+  const [notes, setNotes] = useState(d.notes);
   return {
     name, setName, bank, setBank, last4, setLast4, currency, setCurrency,
     initialBalance, setInitialBalance, isActive, setIsActive, notes, setNotes,
