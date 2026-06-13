@@ -1,0 +1,29 @@
+{
+  "version": "6.59.1",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Cero warnings — refactor final de complejidad",
+  "summary": "Lint llega a 0 warnings tras descomponer los 3 componentes con mayor complejidad ciclomática.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "SupplierPaymentRow (complejidad 23 → ≤12)",
+      "description": "Extraídos SupplierPaymentRepSection (bloque de estado REP), SupplierPaymentRepReceived (detalles y acciones cuando el REP está recibido) y SupplierPaymentRejectDialog (modal de rechazo con motivo)."
+    },
+    {
+      "type": "refactor",
+      "title": "BankLineDetailSheet (complejidad 15 → ≤12)",
+      "description": "Extraído BankLineActions con los bloques condicionales por estado (suggested, matched/ignored, unmatched). El sheet ahora solo orquesta mutaciones y delega la UI de acciones."
+    },
+    {
+      "type": "refactor",
+      "title": "InvoiceDetail (complejidad 15 → ≤12)",
+      "description": "Extraído InvoiceDetailBadges (StatusBadge + badge CFDI + badge PAC). El componente página queda enfocado en composición de secciones."
+    }
+  ],
+  "validation": [
+    "bunx eslint src --max-warnings 0 → 0 warnings",
+    "bunx tsc --noEmit → sin errores",
+    "bun run test → 526 tests / 86 archivos pasan"
+  ]
+}
