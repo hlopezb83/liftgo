@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.57.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de CI — MEDIUM y LOW resueltos",
+    "description": "Coverage de Vitest activada en CI con upload artifact (umbrales del config ahora son gate real). Eliminado src/test/example.test.ts. actions/checkout@v5 → @v6. noUnusedLocals y noUnusedParameters activados en tsconfig.app.json; corregidos 24 errores de imports/params muertos en 20 archivos. knip.json ahora incluye src/main.tsx como entry productivo.",
+    "category": "infra"
+  },
+  {
     "version": "6.56.0",
     "date": "2026-06-13",
     "type": "minor",
