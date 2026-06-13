@@ -125,7 +125,8 @@ export const template: TemplateData = {
   intro_text: "Intro del contrato.",
   declarations_landlord: ["Declara el arrendador..."],
   declarations_tenant: ["Declara el arrendatario..."],
-  clauses: [{ title: "PRIMERA", text: "Objeto..." }],
-  checklist_sections: [{ title: "Estructura", items: [{ label: "Chasis", required: true }] }],
+  clauses: [{ title: "PRIMERA", body: "Objeto del contrato." }],
+  checklist_sections: [{ title: "Estructura", items: ["Chasis", "Mástil"] }],
+
   pagare_text: "Pagaré demo.",
 };
