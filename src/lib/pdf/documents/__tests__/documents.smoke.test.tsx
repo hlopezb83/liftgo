@@ -27,7 +27,7 @@ function snap(el: React.ReactElement) {
 
 describe("PDF Documents — smoke", () => {
   it("QuoteDocument renderiza sin lanzar", () => {
-    const json = renderJson(
+    snap(
       <QuoteDocument
         company={company}
         logoBase64={null}
@@ -48,11 +48,11 @@ describe("PDF Documents — smoke", () => {
         notes={null}
       />,
     );
-    expect(json).toMatchSnapshot();
+    
   });
 
   it("InvoiceDocument: estado pagado sin CFDI", () => {
-    const json = renderJson(
+    snap(
       <InvoiceDocument
         company={company}
         logoBase64={null}
@@ -76,11 +76,11 @@ describe("PDF Documents — smoke", () => {
         notes={null}
       />,
     );
-    expect(json).toMatchSnapshot();
+    
   });
 
   it("InvoiceDocument: timbrada con UUID muestra SatBadge y CfdiBox", () => {
-    const json = renderJson(
+    snap(
       <InvoiceDocument
         company={company}
         logoBase64={null}
@@ -104,11 +104,11 @@ describe("PDF Documents — smoke", () => {
         notes="Gracias por su compra."
       />,
     );
-    expect(json).toMatchSnapshot();
+    
   });
 
   it("CustomerStatementDocument con saldo pendiente", () => {
-    const json = renderJson(
+    snap(
       <CustomerStatementDocument
         company={company}
         logoBase64={null}
@@ -119,11 +119,11 @@ describe("PDF Documents — smoke", () => {
         summary={customerSummary}
       />,
     );
-    expect(json).toMatchSnapshot();
+    
   });
 
   it("IncomeStatementDocument: vista anual normal", () => {
-    const json = renderJson(
+    snap(
       <IncomeStatementDocument
         company={company}
         logoBase64={null}
@@ -138,11 +138,11 @@ describe("PDF Documents — smoke", () => {
         endDate={new Date("2026-12-31")}
       />,
     );
-    expect(json).toMatchSnapshot();
+    
   });
 
   it("IncomeStatementDocument: vista comparativa entre años", () => {
-    const json = renderJson(
+    snap(
       <IncomeStatementDocument
         company={company}
         logoBase64={null}
@@ -157,11 +157,11 @@ describe("PDF Documents — smoke", () => {
         endDate={new Date("2026-12-31")}
       />,
     );
-    expect(json).toMatchSnapshot();
+    
   });
 
   it("ContractDocument modo full (3 páginas)", () => {
-    const json = renderJson(
+    snap(
       <ContractDocument
         mode="full"
         contract={contract}
@@ -173,6 +173,6 @@ describe("PDF Documents — smoke", () => {
         forklift={{ manufacturer: "Toyota", model: "8FGCU25", serial_number: "SN-001", fuel_type: "lpg" }}
       />,
     );
-    expect(json).toMatchSnapshot();
+    
   });
 });
