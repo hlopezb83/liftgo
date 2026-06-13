@@ -1,0 +1,16 @@
+{
+  "version": "6.52.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Refactor arquitectónico — paso 7: src/components/ reorganizado en 4 subcarpetas",
+  "description": "Séptimo paso del plan de auditoría. Los 22 archivos sueltos en src/components/ se agruparon por responsabilidad para hacer evidente la intención de cada primitivo. Sin cambios de UI ni de API; sólo reubicación.",
+  "changes": [
+    "Nueva src/components/layout/: ListPageLayout, PageHeader, DetailPageHeader, FormPageHeader, PageTransition, MobileCardList.",
+    "Nueva src/components/forms/: SearchBar, DatePickerField, DateRangePickerField, DragDropImageUploader, FormActions, InfoRow.",
+    "Nueva src/components/feedback/: EmptyState, EmptyRow, TableSkeleton, StatusBadge, TablePagination, KeyboardShortcutsDialog, SwipeableCard.",
+    "Nueva src/components/domain/: ReadOnlyLineItemsTable, TotalsSummary, NotesCard.",
+    "101 archivos consumidores actualizados con sed automatizado (@/components/X → @/components/<grupo>/X) y referencias internas de ListPageLayout reescritas en el mismo paso.",
+    "Las subcarpetas existentes (ui/, dataTable/) no se tocaron."
+  ]
+}
