@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.3",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "E2E: prueba del portal de clientes con seed dedicado",
+    "description": "Nueva RPC `e2e_seed_portal_scenario` (admin-only) + fixture Playwright que siembra cliente vinculado al user `portal-e2e@liftgo.test` y factura emitida, con teardown por scope. Reemplaza el `test.skip` por flujo real que valida login en `/portal/login` y visibilidad de la factura en `/portal/invoices`. CI inyecta nuevos secrets `E2E_PORTAL_EMAIL` y `E2E_PORTAL_PASSWORD`.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.2",
     "date": "2026-06-13",
     "type": "patch",
