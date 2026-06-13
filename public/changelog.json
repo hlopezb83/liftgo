@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.8",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de tests — Lote 2 (dinero/CFDI crítico)",
+    "description": "24 tests Vitest nuevos en hooks que mueven dinero o son irreversibles: useGenerateRecurringInvoices (motor MRR), useCreateCreditNote (nota de crédito + timbrado, incluye rollback cuando RPC/insert/stamp falla), useCreditNoteForm (regla exceedsMax con bordes de tolerancia 0.01), useRevertAuditLog (admin-only) y useBillApprovalMutations (approve/reject/reapprove). Mock de supabase extendido con functions.invoke. Suite total: 587 tests verde.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.7",
     "date": "2026-06-13",
     "type": "patch",
