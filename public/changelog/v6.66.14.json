@@ -1,0 +1,36 @@
+{
+  "version": "6.66.14",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 8 (mantenimiento y contratos)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Vitest — useMaintenanceLogs (5 tests)",
+      "items": [
+        "useCreateMaintenanceLog: inserta el log y devuelve la fila creada.",
+        "useCreateMaintenanceLog: propaga error con título 'Error al crear registro de mantenimiento'.",
+        "useUpdateMaintenanceLog: el patch excluye el id (solo va al .eq).",
+        "useDeleteMaintenanceLog: elimina por id.",
+        "useDeleteMaintenanceLog: propaga error con título 'Error al eliminar registro de mantenimiento'."
+      ]
+    },
+    {
+      "heading": "Vitest — useContracts (4 tests)",
+      "items": [
+        "useCreateContract: genera contract_number vía RPC next_contract_number y lo inyecta al insert.",
+        "useCreateContract: si el RPC de numeración falla NO ejecuta el insert (evita contrato sin folio).",
+        "useCreateContract: propaga error de duplicate contract_number.",
+        "useUpdateContract: el patch excluye el id."
+      ]
+    },
+    {
+      "heading": "Resultados",
+      "items": [
+        "9/9 tests verde.",
+        "Riesgo cerrado: bitácora de mantenimiento incompleta que falsea el costo total de propiedad del forklift.",
+        "Riesgo cerrado: contratos creados sin folio CTR- (rechazo legal ante el cliente)."
+      ]
+    }
+  ]
+}
