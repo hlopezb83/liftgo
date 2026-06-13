@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.18",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Fix smoke test Deno — generate-invoice-pdf usa query param",
+    "description": "El test 'rejects without Authorization (401)' devolvía 400 porque enviaba invoice_id en el body POST, pero la Edge Function lee invoiceId desde query param. Ahora el test envía ?invoiceId=... en la URL, alineándose con la interfaz real. Sin cambios en producción.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.17",
     "date": "2026-06-13",
     "type": "patch",
