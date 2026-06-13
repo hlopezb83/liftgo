@@ -11,7 +11,13 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     // En CI emitimos JUnit + JSON para que el job pueda subir artifacts y
     // GitHub muestre el resumen de tests fallidos sin perder la salida humana.
-    reporters: process.env.CI
+    // Cuando VITEST_RLS_JUNIT=1 (script test:rls), el JUnit apunta al archivo
+    // que consume el check "RLS results" de mikepenz/action-junit-report.
+    // Mantener la salida en config (no CLI) evita problemas de parseo de flags
+    // múltiples por parte de bun/vitest v4 entre entornos.
+    reporters: process.env.VITEST_RLS_JUNIT
+      ? ["default", ["junit", { outputFile: "reports/rls-junit.xml" }]]
+      : process.env.CI
       ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }], ["json", { outputFile: "reports/vitest.json" }]]
       : ["default"],
     coverage: {
