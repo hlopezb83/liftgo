@@ -32,11 +32,6 @@ export default function BookingsPage() {
   const navigate = useNavigate();
   usePageActions({ onNew: () => navigate("/bookings/new"), onRefresh: refetch, newLabel: "Nueva reserva" });
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(bookings, {
-    searchFields: ["customer_name", "booking_number"],
-    statusField: "status",
-  });
-
   const columns = useMemo<ColumnDef<Booking>[]>(
     () => [
       {
@@ -90,11 +85,16 @@ export default function BookingsPage() {
     [],
   );
 
-  const table = useLiftgoTable<Booking>({
-    data: filtered,
-    columns,
-    getRowId: (b) => b.id,
-  });
+  const { search, setSearch, statusFilter, setStatusFilter, filtered, table } =
+    useResourceList<Booking>({
+      items: bookings,
+      columns,
+      getRowId: (b) => b.id,
+      filters: {
+        searchFields: ["customer_name", "booking_number"],
+        statusField: "status",
+      },
+    });
 
   return (
     <ListPageLayout
