@@ -23,18 +23,100 @@ interface Props {
   onDelete: () => void;
 }
 
+function ConvertButton({ quote, isSale, alreadyConverted, isConverting, onConvertClick }: {
+  quote: Tables<"quotes">; isSale: boolean; alreadyConverted: boolean; isConverting: boolean; onConvertClick: () => void;
+}) {
+  const canConvert = !isSale && !alreadyConverted &&
+    (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted");
+  if (alreadyConverted) {
+    return (
+      <Button size="sm" variant="outline" disabled className="opacity-70">
+        <BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva
+      </Button>
+    );
+  }
+  if (!canConvert) return null;
+  return (
+    <Button size="sm" variant="default" onClick={onConvertClick} disabled={isConverting}>
+      <BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas..." : "Convertir a Reserva"}
+    </Button>
+  );
+}
+
+function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBlockedReason }: {
+  quote: Tables<"quotes">; isSale: boolean; alreadyInvoiced: boolean; canInvoice: boolean; invoiceBlockedReason?: string;
+}) {
+  const navigate = useNavigate();
+  if (!isSale) return null;
+  if (alreadyInvoiced) {
+    return (
+      <Button size="sm" variant="outline" disabled className="opacity-70">
+        <Receipt className="h-4 w-4 mr-1" />Ya facturada
+      </Button>
+    );
+  }
+  if (quote.status !== "accepted") return null;
+  if (canInvoice) {
+    return (
+      <Button size="sm" variant="default" onClick={() => navigate(`/invoices/new?from_quote=${quote.id}`)}>
+        <Receipt className="h-4 w-4 mr-1" />Facturar
+      </Button>
+    );
+  }
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span tabIndex={0}>
+            <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
+              <Receipt className="h-4 w-4 mr-1" />Facturar
+            </Button>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{invoiceBlockedReason ?? "Asigna los equipos antes de facturar"}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function DeleteDialog({ quoteNumber, onDelete }: { quoteNumber: string; onDelete: () => void }) {
+  return (
+    <RoleGuard module="Cotizaciones" minAccess="full">
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar cotización?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente la cotización {quoteNumber}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={onDelete}
+            >Eliminar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </RoleGuard>
+  );
+}
+
 export function QuoteDetailActions({
   quote, isSale, alreadyConverted, alreadyInvoiced, isConverting,
   canInvoice, invoiceBlockedReason,
   onSetStatus, onConvertClick, onDelete,
 }: Props) {
   const navigate = useNavigate();
-
+  const isEditable = quote.status === "draft" || quote.status === "sent";
   return (
     <>
       <QuotePDFButton quoteId={quote.id} />
-
-      {(quote.status === "draft" || quote.status === "sent") && (
+      {isEditable && (
         <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${quote.id}/edit`)}>
           <Edit className="h-4 w-4 mr-1" />Editar
         </Button>
@@ -44,41 +126,14 @@ export function QuoteDetailActions({
           <Send className="h-4 w-4 mr-1" />Marcar Enviada
         </Button>
       )}
-      {!isSale && !alreadyConverted && (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted") && (
-        <Button size="sm" variant="default" onClick={onConvertClick} disabled={isConverting}>
-          <BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas..." : "Convertir a Reserva"}
-        </Button>
-      )}
-      {alreadyConverted && (
-        <Button size="sm" variant="outline" disabled className="opacity-70">
-          <BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva
-        </Button>
-      )}
-      {isSale && quote.status === "accepted" && !alreadyInvoiced && (
-        canInvoice ? (
-          <Button size="sm" variant="default" onClick={() => navigate(`/invoices/new?from_quote=${quote.id}`)}>
-            <Receipt className="h-4 w-4 mr-1" />Facturar
-          </Button>
-        ) : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span tabIndex={0}>
-                  <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
-                    <Receipt className="h-4 w-4 mr-1" />Facturar
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>{invoiceBlockedReason ?? "Asigna los equipos antes de facturar"}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )
-      )}
-      {isSale && alreadyInvoiced && (
-        <Button size="sm" variant="outline" disabled className="opacity-70">
-          <Receipt className="h-4 w-4 mr-1" />Ya facturada
-        </Button>
-      )}
+      <ConvertButton
+        quote={quote} isSale={isSale} alreadyConverted={alreadyConverted}
+        isConverting={isConverting} onConvertClick={onConvertClick}
+      />
+      <InvoiceButton
+        quote={quote} isSale={isSale} alreadyInvoiced={alreadyInvoiced}
+        canInvoice={canInvoice} invoiceBlockedReason={invoiceBlockedReason}
+      />
       {quote.status === "sent" && (
         <>
           <Button size="sm" variant="default" onClick={() => onSetStatus("accepted")}>
@@ -89,29 +144,7 @@ export function QuoteDetailActions({
           </Button>
         </>
       )}
-      <RoleGuard module="Cotizaciones" minAccess="full">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Eliminar cotización?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción no se puede deshacer. Se eliminará permanentemente la cotización {quote.quote_number}.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={onDelete}
-              >Eliminar</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </RoleGuard>
-      
+      <DeleteDialog quoteNumber={quote.quote_number} onDelete={onDelete} />
     </>
   );
 }
