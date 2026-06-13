@@ -18,7 +18,7 @@ import { SupplierBankAccountsSection } from "@/features/suppliers/components/sup
 import { DocumentAttachments } from "@/features/fleet/components/forklift-detail/DocumentAttachments";
 
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { FileText, Wrench, DollarSign, Pencil } from "lucide-react";
 

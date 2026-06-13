@@ -1,0 +1,16 @@
+{
+  "version": "6.53.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Refactor arquitectónico — paso 8: src/lib/ raíz reorganizado",
+  "description": "Octavo paso del plan de auditoría. La raíz de src/lib/ tenía 14 archivos sueltos mezclando formateo, dinero, rutas y utilidades. Se separaron en subcarpetas dedicadas y las rutas se promovieron a su propio top-level src/routes/. Sin cambios de UI, lógica ni API.",
+  "changes": [
+    "src/lib/formatCurrency.ts → src/lib/format/formatCurrency.ts (98 consumidores actualizados).",
+    "src/lib/money.ts → src/lib/money/index.ts (12 consumidores; @/lib/money sigue resolviendo sin cambio).",
+    "src/lib/routes.ts → src/routes/routes.ts (4 consumidores).",
+    "src/lib/routes-config.tsx → src/routes/routes-config.tsx (2 consumidores).",
+    "Tests asociados movidos a sus nuevas subcarpetas (formatCurrency.test.ts, money.test.ts).",
+    "Total: 102 archivos consumidores reescritos con rewrite automatizado."
+  ]
+}

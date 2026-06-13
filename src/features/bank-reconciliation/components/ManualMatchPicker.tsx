@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { useManualMatchCandidates, type ManualMatchKind } from "../hooks/useManualMatchCandidates";
 

@@ -6,7 +6,7 @@ import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { DamageDetailSheet } from "@/features/damage/components/damage/DamageDetailSheet";
 import { ReportDamageDialog } from "@/features/damage/components/damage/ReportDamageDialog";
 import { Badge } from "@/components/ui/badge";

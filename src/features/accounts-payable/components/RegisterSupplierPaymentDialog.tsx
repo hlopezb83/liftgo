@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
 import { PAYMENT_METHODS } from "../lib/supplierBillConstants";

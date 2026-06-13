@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { FileText, StickyNote } from "lucide-react";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
 import type { Prospect } from "@/features/crm/hooks/useProspects";
 

@@ -1,6 +1,6 @@
 import { useContractFinancialSummary } from "@/features/contracts/hooks/contractDetail/useContractFinancialSummary";
 import { calculateRentalCost } from "@/lib/domain/invoiceHelpers";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { differenceInDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

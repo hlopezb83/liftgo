@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
-import { formatCurrencyWithCode } from "@/lib/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
 import { PAYMENT_METHOD_LABELS } from "../lib/supplierBillConstants";

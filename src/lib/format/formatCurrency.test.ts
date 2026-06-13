@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatCurrency, formatCurrencyWithCode } from "@/lib/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
 describe("formatCurrency", () => {
   it("formatea como MXN es-MX con 2 decimales", () => {

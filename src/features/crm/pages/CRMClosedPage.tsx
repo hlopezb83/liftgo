@@ -13,7 +13,7 @@ import {
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
 import { useUpdateProspect, type Prospect } from "@/features/crm/hooks/useProspects";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
 
 type ClosedKind = "won" | "lost";

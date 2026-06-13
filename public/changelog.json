@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.53.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor arquitectónico — paso 8: src/lib/ raíz reorganizado",
+    "description": "Se separaron utilidades sueltas por dominio: formatCurrency → src/lib/format/, money → src/lib/money/ (index.ts, @/lib/money sigue resolviendo), routes y routes-config → nueva top-level src/routes/. 102 archivos consumidores actualizados con rewrite automatizado, tests reubicados a sus nuevas carpetas. Sin cambios de UI ni de API.",
+    "category": "refactor"
+  },
+  {
     "version": "6.52.0",
     "date": "2026-06-13",
     "type": "minor",

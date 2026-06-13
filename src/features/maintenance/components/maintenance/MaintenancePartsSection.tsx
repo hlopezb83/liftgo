@@ -2,7 +2,7 @@ import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import {
   usePartsInventory,
   useMaintenanceParts,

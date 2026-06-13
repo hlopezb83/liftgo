@@ -1,4 +1,4 @@
-import { formatCurrency, formatCurrencyWithCode } from "@/lib/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
 
 interface CurrencyCellProps {

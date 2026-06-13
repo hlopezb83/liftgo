@@ -1,6 +1,6 @@
 import { Text, View } from "@react-pdf/renderer";
 import { sharedStyles } from "@/lib/pdf/theme/styles";
-import { formatCurrency, formatCurrencyWithCode } from "@/lib/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { applyDiscount } from "@/lib/domain/invoiceHelpers";
 import type { PdfLineItem } from "@/lib/pdf/shared";
 

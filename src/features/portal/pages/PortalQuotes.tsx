@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { usePortalQuotes } from "@/features/portal/hooks/usePortalExtras";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
 type Quote = NonNullable<ReturnType<typeof usePortalQuotes>["data"]>[number];

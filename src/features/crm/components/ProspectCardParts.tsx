@@ -1,7 +1,7 @@
 import { Building2, User, FileText, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { ROUTES } from "@/lib/routes";
+import { ROUTES } from "@/routes/routes";
 import type { Prospect } from "@/features/crm/hooks/useProspects";
 
 export function ProspectCardCompact({ prospect }: { prospect: Prospect }) {

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
 import { differenceInDays, format, parseISO } from "date-fns";
 import { exportToCsv } from "@/lib/exportCsv";

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Stamp, FileText, Download, XCircle, Trash2 } from "lucide-react";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { downloadCfdiBlob, type CfdiFormat } from "@/features/invoices/lib/downloadCfdiBlob";

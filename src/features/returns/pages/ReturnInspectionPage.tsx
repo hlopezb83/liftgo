@@ -9,7 +9,7 @@ import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ReturnInspectionDialog } from "@/features/returns/components/return-inspection/ReturnInspectionDialog";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
 import { format } from "date-fns";

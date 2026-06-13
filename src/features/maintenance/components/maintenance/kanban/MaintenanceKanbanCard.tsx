@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
 import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 

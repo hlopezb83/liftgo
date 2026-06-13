@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import {
   Clock, AlertTriangle, CalendarClock, CheckCircle2, ShieldAlert, FileWarning,
 } from "lucide-react";

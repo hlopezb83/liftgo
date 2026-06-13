@@ -2,7 +2,7 @@ import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { TrendingUp, TrendingDown, DollarSign, Percent, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useIncomeStatementData } from "@/features/reports/hooks/useIncomeStatementData";

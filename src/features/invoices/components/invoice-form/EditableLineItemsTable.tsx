@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Plus, Trash2 } from "lucide-react";
 import { useInvoiceLineItemHandlers } from "@/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
 import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
 

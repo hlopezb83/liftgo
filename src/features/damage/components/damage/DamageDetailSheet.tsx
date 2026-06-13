@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DamageActions } from "@/features/damage/components/damage/DamageActions";
 import { DamagePhotosSection } from "@/features/damage/components/damage/DamagePhotosSection";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Stamp, FileText, Download, XCircle } from "lucide-react";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { useStampPaymentComplement, useCancelPaymentComplement } from "@/features/invoices/hooks/invoices/cfdi/usePaymentComplement";
