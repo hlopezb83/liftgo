@@ -1,0 +1,14 @@
+{
+  "version": "6.50.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Refactor arquitectónico — paso 5: hook useResourceList",
+  "description": "Quinto paso del plan de auditoría. Nuevo hook src/hooks/useResourceList.ts que combina useListFilters + useLiftgoTable para reducir el boilerplate repetido en cada página de listado. Sin cambios de UI ni de lógica.",
+  "changes": [
+    "Nuevo useResourceList<T>({ items, columns, getRowId, initialSorting, filters?, externalFiltered? }) que devuelve { search, setSearch, statusFilter, setStatusFilter, filtered, table }.",
+    "BookingsPage migrada como piloto: 1 hook en lugar de useListFilters + useLiftgoTable (-3 líneas, una sola dependencia importada).",
+    "InvoicesPage migrada usando el modo externalFiltered (delega el filtrado a useInvoicesFilters que tiene lógica adicional de rango de fechas), manteniendo el bundle de la tabla.",
+    "Patrón listo para extenderse al resto de páginas de listado en pasos sucesivos sin tocar UI."
+  ]
+}
