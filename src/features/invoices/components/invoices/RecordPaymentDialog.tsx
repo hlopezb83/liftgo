@@ -33,7 +33,10 @@ interface Props {
   ppdStamped?: boolean;
 }
 
-export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, ppdStamped = false }: Props) {
+function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange }: {
+  open: boolean; balance: number; ppdStamped: boolean; invoiceId: string;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [amount, setAmount] = useState(balance.toFixed(2));
   const [date, setDate] = useState<Date>(nowMty());
   const [method, setMethod] = useState("transfer");
@@ -53,7 +56,6 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
     }
   }, [open, balance, ppdStamped]);
 
-  // Map UI method to SAT code automatically
   useEffect(() => {
     const m = METHODS.find((x) => x.value === method);
     if (m) setPaymentFormSat(m.sat);
@@ -92,6 +94,18 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
       },
     );
   };
+
+  return {
+    amount, setAmount, date, setDate, method, setMethod,
+    paymentFormSat, setPaymentFormSat, currency, setCurrency,
+    exchangeRate, setExchangeRate, reference, setReference,
+    notes, setNotes, stampRep, setStampRep,
+    createPayment, stampComplement, handleSubmit,
+  };
+}
+
+export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, ppdStamped = false }: Props) {
+  const s = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
