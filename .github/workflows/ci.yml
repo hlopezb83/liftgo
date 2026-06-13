@@ -10,6 +10,12 @@ on:
 permissions:
   contents: read
 
+# Forzar Node 24 en actions JS para evitar warnings de deprecación de Node 20
+# (efectivos hasta jun-2026; tras esa fecha se vuelve default).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+
 # Concurrencia por workflow+ref: un push nuevo cancela el run anterior del mismo branch.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
