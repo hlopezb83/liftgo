@@ -1,0 +1,38 @@
+{
+  "version": "6.66.15",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 9 (flota e inventario de refacciones)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Vitest — useForkliftMutations (6 tests)",
+      "items": [
+        "useCreateForklift: inserta forklift + status_log con note 'Registro inicial'.",
+        "useCreateForklift: si forklift.status viene undefined usa 'available' como default.",
+        "useCreateForklift: propaga error de insert con título 'Error al crear montacargas' y NO crea status_log huérfano.",
+        "useDeleteForklift: llama RPC delete_forklift (no DELETE directo) para respetar cascadas de bookings/mantenimientos.",
+        "useUpdateStatus: update + status_log con from_status, to_status y note.",
+        "useUpdateStatus: falla si el update afecta cero filas (assertRowsAffected) y NO inserta status_log."
+      ]
+    },
+    {
+      "heading": "Vitest — useAddMaintenancePart (4 tests)",
+      "items": [
+        "Inserta la pieza y actualiza el costo del log: currentLogCost + (quantity_used * cost_at_time).",
+        "Defaults a 0 cuando currentLogCost o cost_at_time son undefined.",
+        "currentLogCost NO se persiste en maintenance_parts (solo se usa para calcular el patch).",
+        "Si el insert falla, no toca maintenance_logs; mensaje 'Error al agregar refacción'.",
+        "assertRowsAffected dispara error si maintenance_log_id apunta a fila inexistente."
+      ]
+    },
+    {
+      "heading": "Resultados",
+      "items": [
+        "10/10 tests verde.",
+        "Riesgo cerrado: status_log faltante rompe trazabilidad del ciclo de vida del equipo.",
+        "Riesgo cerrado: ROI por equipo subestimado por costo de refacciones no propagado al log."
+      ]
+    }
+  ]
+}
