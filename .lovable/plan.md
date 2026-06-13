@@ -1,130 +1,68 @@
-# Auditoría de Tests — LiftGo
+## Diagnóstico
 
-Tres auditorías paralelas (Vitest, Playwright E2E, Deno Edge Functions). Resumen ejecutivo y plan accionable.
+Los logs de CI muestran **todos los jobs en verde** (E2E shard 1: 24/24, shard 2: 24/24, RLS: 33/33, Lint/Knip/Tests/Build OK, Edge Functions OK).
 
----
+Hay **un único warning real**, no fatal, en `0_E2E (Playwright shard 1_2).txt` línea 515:
 
-## Estado actual
+```
+[e2e] teardown falló para scope=w1-921d6224-h8al:
+  Error: [e2e_teardown:w1-921d6224-h8al] update or delete on table "invoices"
+  violates foreign key constraint "payments_invoice_id_fkey" on table "payments"
+```
 
-| Suite | Archivos | Cobertura real | Riesgo principal |
-|---|---|---|---|
-| **Vitest** | 87 (~1180 casos) | lines 13 / branches 12 / funcs 9 — umbrales irrealmente bajos | Cero tests en hooks que mueven dinero (credit notes, recurring billing, accounts-payable, audit revert) |
-| **Playwright** | 8 specs | ~12% del surface | Specs son mayormente *lectura* sobre datos sembrados, no transiciones reales desde la UI. Cero tests de permisos por rol |
-| **Deno Edge** | 17 funciones | 4 con test real, 6 smoke-only, 7 sin test | `stamp-payment-complement`, `cancel-credit-note`, `refresh-cancellation-status`, `generate-recurring-*` sin lógica probada |
+### Causa raíz
 
----
+`invoice-payment.spec.ts` crea un pago **a través del flujo real de la app** (`useCreatePayment` → `INSERT INTO payments`). Ese insert **no marca** `is_e2e = true` ni copia `e2e_scope`, porque el código de producción no conoce esas banderas.
 
-## Hallazgos críticos (bugs latentes en la suite)
+La RPC `e2e_teardown` (migración `20260612224924`) borra los pagos así:
 
-1. **`portalSeed.ts:41`** — `loadConfig()` ejecutado al importar; si falta `E2E_PORTAL_EMAIL` aborta toda la suite Playwright (incluso specs que no usan el fixture).
-2. **`playwright.config.ts:33`** — Lógica `SHARD_INDEX === SHARD_TOTAL` sin guard: si `SHARD_TOTAL` no está definida en CI, cada shard ejecuta `purge_e2e_data` y borra datos de shards hermanos activos.
-3. **`smoke-nav.spec.ts`** — Solo verifica `domcontentloaded` + ausencia de "404"; una página completamente en blanco pasa los 31 tests.
-4. **`global.setup.ts:26`** — `networkidle.catch(() => {})` silencia timeouts reales de login.
-5. **`src/test/invoiceHelpers.test.ts`** — Duplicado obsoleto en inglés; testea wrapper legacy que ya está cubierto por `rentalCalculation.test.ts`.
+```sql
+DELETE FROM public.payments WHERE is_e2e = true AND (
+  e2e_scope = p_scope
+  OR invoice_id IN (SELECT id FROM public.invoices WHERE is_e2e = true AND e2e_scope = p_scope)
+);
+```
 
----
+El filtro `is_e2e = true` excluye al pago creado por la app, por lo que queda huérfano y el `DELETE FROM invoices` siguiente revienta con la FK `payments_invoice_id_fkey`.
 
-## Roadmap por Lotes
+Hoy el error solo se loguea (`teardownScenario(...).catch(...)` en `seed.ts:112`), así que **no tumba CI**, pero deja basura en la BD demo (factura pagada + pago sin `is_e2e`), exactamente el bug que motivó originalmente la limpieza estricta del Estado de Resultados (v6.47.1).
 
-### Lote 1 — Estabilización (1-2 días, sin tests nuevos)
+## Cambio propuesto
 
-**Vitest**
-- Eliminar `src/test/invoiceHelpers.test.ts` (duplicado).
-- Endurecer mocks frágiles: `useRecordPaymentForm.test.ts` (interfaz incompleta del hook), `useBookings.rls.test.ts` (migrar a `tableResolvers`), `syncInvoiceStatus.test.ts` (mover state a closures locales).
-- Wrapper `useFakeTimeMty(iso)` en `src/test/helpers/time.ts` para tests de fechas (`cashFlowUtils`, `rentalCalculation`).
+Una migración mínima que reemplace `public.e2e_teardown` y, en el `DELETE` de `payments`, **elimine la guardia `is_e2e = true` cuando el pago referencia una factura E2E** (la propia factura ya está marcada `is_e2e = true AND e2e_scope = p_scope`, eso es prueba suficiente).
 
-**Playwright**
-- Mover `loadConfig()` dentro del fixture `portalSeed` con `test.skip` si faltan vars.
-- Guard de `SHARD_TOTAL` en `playwright.config.ts`.
-- `smoke-nav.spec.ts`: añadir aserción de landmark visible (`nav`, `heading`, `main`) por ruta.
-- Reemplazar `.last()`/`.first()` por selectores con `data-testid` o nombres exactos en `customer-create.spec.ts`, `invoice-payment.spec.ts`.
-- `global.setup.ts`: cambiar `networkidle.catch` por `waitForURL` con timeout explícito.
+Resto de la función queda igual.
 
-**Deno**
-- Extender `supabaseClientMock.ts`: añadir `rpc()`, `insert()` con captura de payload, soporte `.in()` / `.match()` / `.delete()`, multi-llamada por tabla.
+### SQL (técnico)
 
-### Lote 2 — Tests críticos de dinero/CFDI (3-5 días)
+```sql
+CREATE OR REPLACE FUNCTION public.e2e_teardown(p_scope text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $function$
+...
+  DELETE FROM public.payments
+   WHERE (is_e2e = true AND e2e_scope = p_scope)
+      OR invoice_id IN (
+           SELECT id FROM public.invoices
+            WHERE is_e2e = true AND e2e_scope = p_scope
+         );
+...
+$function$;
+```
 
-**Vitest (top 5)**
-1. `useCreditNoteMutations` — happy path + rollback si falla timbrado.
-2. `useGenerateRecurringInvoices` — respuesta vacía, error de red, conteo correcto.
-3. `useAuditLogs.revertAuditLog` — RPC OK/fail.
-4. `useBillApprovalMutations` — transiciones approve/reject.
-5. `useCreditNoteForm` — borde `maxCreditable ± 0.01`.
+(El resto del cuerpo se conserva tal cual.)
 
-**Playwright (top 2)**
-6. `rbac-permissions.spec.ts` — fixture `roleSeed` + 4 tests (Ventas no Closed Won, Auditor read-only, Portal aislado, Admin todo).
-7. `invoice-partial-payment.spec.ts` — pago parcial → saldo → segundo pago → `paid` con verificación numérica.
+## Verificación
 
-**Deno (top 3)**
-8. `generate-recurring-invoices` — lógica de no-duplicación + cálculo de fechas.
-9. `cancel-cfdi` — migrar de smoke a unit con `handler` (motivo `02`, update DB).
-10. `refresh-cancellation-status` — mock Facturapi para `accepted`/`rejected`/`pending`.
+- Re-correr `bunx playwright test invoice-payment.spec.ts` localmente; el log `[e2e] teardown falló` debe desaparecer.
+- Confirmar que `e2e_teardown` siga restringido a `admin` (la guardia `has_role` se mantiene).
 
-### Lote 3 — Ciclo de vida de negocio (1 semana)
+## Changelog
 
-**Playwright**
-- `crm-deal-won.spec.ts` (kanban → cotización)
-- `contract-lifecycle.spec.ts` (anexos + estados)
-- `delivery-return-flow.spec.ts` (ENT- → DEV-, estado forklift)
-- `maintenance-kanban.spec.ts` (drag + transiciones)
+Entrada `v6.66.17` patch, categoría `testing` / `infra`:
+- Detalle: "Teardown E2E ahora elimina pagos creados por flujos reales de la app que referencian facturas sembradas (antes el filtro `is_e2e=true` los dejaba huérfanos y disparaba FK en `invoices`)."
 
-**Vitest**
-- `useMrrDetail` (source of truth del dashboard)
-- `useAccountsPayableKpis` + `useAgingReport` (buckets)
-- `rentalCalculation` casos bisiestos (feb 2024)
-- `computeTotals` con descuento fijo + IVA (redondeo)
+## Fuera de alcance
 
-**Deno**
-- `stamp-payment-complement` (REP)
-- `cancel-credit-note`
-- `generate-recurring-maintenance`
-
-### Lote 4 — Cobertura avanzada (continuo)
-
-**Playwright**
-- `damage-tracking.spec.ts`, `recurring-billing.spec.ts`, `bank-reconciliation.spec.ts`, `audit-revert.spec.ts`, `quote-multi-equipment.spec.ts`, `portal-full-flow.spec.ts`
-- Mobile viewport (`devices["iPhone 14"]`) para specs Lote 2-3 (foco `MobileCardList`)
-- Casos negativos (RFC inválido, fechas pasadas, montos negativos)
-
-**Vitest**
-- Schemas Zod CFDI 4.0 (RFC física/moral, CP con cero inicial)
-- `useSupplierBillMutations`, `csvParsers` malformados, `deliveryDetailHelpers` parcial
-
-**Deno**
-- `generate-invoice-pdf`, `invite-user` (verificar `user_roles`), `classify-feedback-report`
-
----
-
-## Mejoras estructurales
-
-### Fixtures de test (Vitest)
-Crear `src/test/fixtures/{invoice,customer,booking,payment}Fixture.ts` con `makeX(over?)` — elimina ~40% del boilerplate.
-
-### Helper `renderWithProviders()` 
-Centralizar `QueryClient + BrowserRouter` que hoy se duplica en tests de página.
-
-### `e2e_seed_scenario` (Playwright)
-- Descomponer en RPCs composables (`e2e_seed_customer`, `_quote`, `_contract`, `_maintenance`).
-- Aceptar `p_options jsonb` para override de estados (factura vencida, pago parcial pre-sembrado).
-- Devolver `jsonb` libre + cast tipado por spec.
-- Auditoría dinámica del teardown vs `information_schema.columns WHERE column_name='is_e2e'`.
-- Usar `SERVICE_ROLE_KEY` en CI para evitar logins admin concurrentes en `portalSeed`.
-
-### Umbrales de cobertura escalonados
-
-| Lote | lines | branches | funcs | statements |
-|---|---|---|---|---|
-| Actual | 13 | 12 | 9 | 13 |
-| Tras Lote 2 | 18 | 15 | 13 | 18 |
-| Tras Lote 3 | 24 | 20 | 18 | 24 |
-| Tras Lote 4 | 30 | 26 | 23 | 30 |
-| Objetivo 6m | 50 | 45 | 40 | 50 |
-
-**Regla especial**: features que tocan dinero (`invoices`, `accounts-payable`, `payments`) deben llegar a **≥80% branches** independientemente del promedio.
-
----
-
-## Recomendación
-
-Aprobar **Lote 1 (estabilización)** primero — corrige 5 bugs latentes en la propia suite que pueden enmascarar regresiones reales en producción. Luego Lote 2 para cerrar la brecha de tests en código que mueve dinero. Lotes 3-4 según ciclos de release.
+- No tocar `seed.ts` ni los specs Playwright (el bug está en el SQL).
+- No cambiar el comportamiento de `useCreatePayment` (sería contaminar código de producción con banderas E2E).
+- No tocar otras tablas hijas; el log solo muestra `payments` como reincidente.
