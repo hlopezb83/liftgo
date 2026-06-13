@@ -26,12 +26,58 @@ interface Props {
   balance: number;
 }
 
+const buildDefaults = (balance: number): SupplierPaymentFormData => ({
+  amount: balance,
+  payment_date: nowMty(),
+  payment_method: "transferencia",
+  bank_account: "",
+  reference: "",
+  receipt_url: "",
+  notes: "",
+});
+
+interface ReceiptFieldProps {
+  file: File | null;
+  onChange: (f: File | null) => void;
+  disabled: boolean;
+}
+
+function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
+  const ref = useRef<HTMLInputElement>(null);
+  if (file) {
+    return (
+      <div className="flex items-center justify-between rounded-md border p-2 text-sm">
+        <span className="truncate">{file.name}</span>
+        <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)} disabled={disabled}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <input
+        ref={ref}
+        type="file"
+        accept="application/pdf,image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onChange(f);
+        }}
+      />
+      <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()} disabled={disabled}>
+        <Upload className="h-4 w-4 mr-1" />Adjuntar archivo
+      </Button>
+    </div>
+  );
+}
+
 export function RegisterSupplierPaymentDialog({
   open, onOpenChange, billId, billNumber, balance,
 }: Props) {
   const register = useRegisterSupplierPayment();
   const uploader = useUploadSupplierReceipt();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   const form = useForm<SupplierPaymentFormData>({
@@ -41,29 +87,13 @@ export function RegisterSupplierPaymentDialog({
         path: ["amount"],
       }),
     ),
-    defaultValues: {
-      amount: balance,
-      payment_date: nowMty(),
-      payment_method: "transferencia",
-      bank_account: "",
-      reference: "",
-      receipt_url: "",
-      notes: "",
-    },
+    defaultValues: buildDefaults(balance),
   });
 
   useEffect(() => {
     if (open) {
       setReceiptFile(null);
-      form.reset({
-        amount: balance,
-        payment_date: nowMty(),
-        payment_method: "transferencia",
-        bank_account: "",
-        reference: "",
-        receipt_url: "",
-        notes: "",
-      });
+      form.reset(buildDefaults(balance));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, balance]);
