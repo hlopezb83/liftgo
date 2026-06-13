@@ -94,13 +94,15 @@ export function useBreadcrumbEntityLabel(pathname: string) {
     staleTime: 60_000,
     queryFn: async () => {
       if (!resolver || !id) return null;
+      // Boundary: supabase typings no soportan select dinámico desde unión de tablas.
+      // Castigo aislado a una sola línea; el resto del hook es 100% tipado.
       const { data, error } = await supabase
         .from(resolver.table)
         .select(resolver.select)
         .eq("id", id)
-        .maybeSingle();
+        .maybeSingle<Record<string, unknown>>();
       if (error || !data) return null;
-      return resolver.format(data as Record<string, unknown>);
+      return resolver.format(data);
     },
   });
 
