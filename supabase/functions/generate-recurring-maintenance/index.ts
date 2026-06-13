@@ -12,8 +12,9 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     // Always require Authorization header. Either:
-    //  - service_role token (cron / scheduled invocations), or
-    //  - a JWT belonging to admin/administrativo
+    //  - CRON_SECRET dedicado (cron / scheduled invocations), o
+    //  - service_role token (compat), o
+    //  - JWT de admin/administrativo
     const authHeader = req.headers.get("authorization") ?? "";
     if (!authHeader.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No autorizado" }), {
@@ -21,9 +22,15 @@ Deno.serve(async (req) => {
         headers: { ...headers, "Content-Type": "application/json" },
       });
     }
-    const isServiceCall = authHeader.includes(serviceKey);
+    const bearer = authHeader.slice("Bearer ".length).trim();
+    const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+    // Comparación estricta — `includes` previo aceptaba cualquier string que
+    // contuviera la service key como substring (riesgo de bypass).
+    const isServiceCall = (cronSecret.length > 0 && bearer === cronSecret) ||
+      bearer === serviceKey;
     if (!isServiceCall) {
-      const token = authHeader.replace("Bearer ", "");
+      const token = bearer;
+
       const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
       const callerClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
