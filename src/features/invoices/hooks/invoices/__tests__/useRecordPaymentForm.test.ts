@@ -85,6 +85,29 @@ describe("useRecordPaymentForm", () => {
     expect(payload.exchange_rate).toBe(17.5);
   });
 
+  it("submit con USD y exchangeRate '0' → notifyError, no llama createPayment", async () => {
+    const { result } = renderForm();
+    act(() => {
+      result.current.setCurrency("USD");
+      result.current.setExchangeRate("0");
+    });
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(notifyErrorMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
+    expect(createPaymentMutate).not.toHaveBeenCalled();
+  });
+
+  it("submit con USD y exchangeRate vacío → notifyError", async () => {
+    const { result } = renderForm();
+    act(() => {
+      result.current.setCurrency("USD");
+      result.current.setExchangeRate("");
+    });
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(notifyErrorMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
+    expect(createPaymentMutate).not.toHaveBeenCalled();
+  });
+
+
   it("submit válido llama createPayment con payload correcto", async () => {
     const { result } = renderForm({ balance: 500 });
     await act(async () => { await result.current.handleSubmit(); });

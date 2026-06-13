@@ -43,8 +43,15 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onO
   const handleSubmit = async () => {
     const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyError({ message: "Monto inválido" }); return; }
-    const exch = Number(exchangeRate) || 1;
-    if (currency !== "MXN" && exch <= 0) { notifyError({ message: "Tipo de cambio inválido" }); return; }
+    let exch = 1;
+    if (currency !== "MXN") {
+      const parsed = Number(exchangeRate);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        notifyError({ message: "Tipo de cambio inválido" });
+        return;
+      }
+      exch = parsed;
+    }
 
     createPayment.mutate(
       {
