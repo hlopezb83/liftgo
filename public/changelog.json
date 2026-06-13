@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.16",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de tests — Lote 10 (entregas e inventario de refacciones)",
+    "description": "10 tests Vitest nuevos: useDeliveries (5 — create devuelve delivery_number generado por DB, update excluye id del patch, delete por id, errores con títulos localizados) y usePartInventoryMutations (5 — createPart, updatePart excluye id del patch, deletePart, errores de SKU duplicado y FK de maintenance_parts con títulos localizados).",
+    "category": "testing"
+  },
+  {
     "version": "6.66.15",
     "date": "2026-06-13",
     "type": "minor",
