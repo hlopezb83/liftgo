@@ -159,7 +159,6 @@ export function BillApprovalSection({
           status={approvalStatus}
           isAdmin={isAdmin}
           isAdministrativo={isAdministrativo}
-          billId={billId}
           onApprove={() => setApproveOpen(true)}
           onReject={() => setRejectOpen(true)}
           reapprovalPending={reapproval.isPending}
