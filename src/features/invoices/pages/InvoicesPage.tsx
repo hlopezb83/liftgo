@@ -16,7 +16,8 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { DateRangePickerField } from "@/components/DateRangePickerField";
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { type ColumnDef } from "@/components/dataTable/v2";
+import { useResourceList } from "@/hooks/useResourceList";
 import { usePageActions } from "@/contexts/PageActionsContext";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
