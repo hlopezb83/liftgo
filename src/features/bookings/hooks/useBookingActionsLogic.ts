@@ -1,23 +1,13 @@
-import { useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import {
-  useUpdateBooking,
-  useDeleteBooking,
-  useCancelBooking,
-  type BookingWithForklift,
-} from "@/features/bookings/hooks/useBookings";
-import { generateLineItems, computeTotals } from "@/lib/domain/invoiceHelpers";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
+import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
+import { useBookingDialogsState } from "./bookingActions/useBookingDialogsState";
+import {
+  useBookingActions,
+  BOOKING_STATUS_LABELS,
+} from "./bookingActions/useBookingActions";
+import { useExtendBookingPreview } from "./bookingActions/useExtendBookingPreview";
 
-export const STATUS_LABELS: Record<string, string> = {
-  confirmed: "Confirmada",
-  completed: "Completada",
-  cancelled: "Cancelada",
-};
+export const STATUS_LABELS = BOOKING_STATUS_LABELS;
 
 export function getValidTransitions(current: string): string[] {
   switch (current) {
@@ -28,75 +18,32 @@ export function getValidTransitions(current: string): string[] {
   }
 }
 
+/**
+ * Orquestador delgado que combina los tres hooks atómicos:
+ * - useBookingDialogsState  → estado de UI
+ * - useBookingActions       → mutaciones + side-effects
+ * - useExtendBookingPreview → cálculo derivado
+ *
+ * Mantenido por compatibilidad con BookingActions / BookingActionDialogs.
+ * Para uso nuevo se recomienda consumir los hooks atómicos directamente.
+ */
 export function useBookingActionsLogic(booking: BookingWithForklift) {
-  const [extendOpen, setExtendOpen] = useState(false);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<string>("");
-  const [newEndDate, setNewEndDate] = useState<Date>();
-
-  const { data: forklifts } = useForklifts();
-  const updateBooking = useUpdateBooking();
-  const deleteBooking = useDeleteBooking();
-  const cancelBooking = useCancelBooking();
-  const navigate = useNavigate();
+  const dialogs = useBookingDialogsState();
+  const actions = useBookingActions(booking);
+  const extendPreview = useExtendBookingPreview(booking, dialogs.newEndDate);
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
 
-  const handleDelete = () => {
-    deleteBooking.mutate(booking.id, {
-      onSuccess: () => { toast.success("Reserva eliminada"); navigate("/bookings"); },
-    });
-  };
-
-  const handleCancel = () => {
-    cancelBooking.mutate(booking.id, {
-      onSuccess: () => toast.success("Reserva cancelada"),
-    });
-  };
-
-  const handleStatusChange = async () => {
-    if (!newStatus || newStatus === booking.status) return;
-    try {
-      if (newStatus === "cancelled") {
-        cancelBooking.mutate(booking.id);
-      } else {
-        await new Promise<void>((resolve, reject) => {
-          updateBooking.mutate(
-            { id: booking.id, status: newStatus },
-            { onSuccess: () => resolve(), onError: (err) => reject(err) }
-          );
-        });
-      }
-      toast.success(`Estatus cambiado a ${STATUS_LABELS[newStatus] || newStatus}`);
-      setStatusDialogOpen(false);
-    } catch (err: unknown) {
-      notifyError({ title: "Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido") });
-    }
-  };
-
-  const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
-  const extendPreview = (() => {
-    if (!forklift || !newEndDate) return null;
-    const items = generateLineItems(forklift, booking.start_date, format(newEndDate, "yyyy-MM-dd"));
-    return computeTotals(items, 21);
-  })();
-
-  const handleExtend = (onDone: () => void) => {
-    if (!newEndDate) return;
-    updateBooking.mutate(
-      { id: booking.id, end_date: format(newEndDate, "yyyy-MM-dd") },
-      { onSuccess: () => { toast.success("Reserva extendida"); onDone(); } }
-    );
-  };
-
   return {
-    isAdmin, navigate,
-    extendOpen, setExtendOpen,
-    statusDialogOpen, setStatusDialogOpen,
-    newStatus, setNewStatus,
-    newEndDate, setNewEndDate,
+    isAdmin,
+    navigate: actions.navigate,
+    ...dialogs,
     extendPreview,
-    handleDelete, handleCancel, handleStatusChange, handleExtend,
-    updateBookingPending: updateBooking.isPending,
+    handleDelete: actions.handleDelete,
+    handleCancel: actions.handleCancel,
+    handleStatusChange: () =>
+      actions.handleStatusChange(dialogs.newStatus, () => dialogs.setStatusDialogOpen(false)),
+    handleExtend: (onDone: () => void) => actions.handleExtend(dialogs.newEndDate, onDone),
+    updateBookingPending: actions.updateBookingPending,
   };
 }
