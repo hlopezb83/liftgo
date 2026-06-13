@@ -1,0 +1,10 @@
+[
+  {
+    "version": "6.55.1",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Limpieza de archivos huérfanos detectados por Knip",
+    "description": "Se eliminaron 7 archivos sin consumidores detectados por el análisis estático de Knip: src/features/{bookings,crm,customers,fleet,invoices}/index.ts (barrels no adoptados), src/features/crm/lib/queryKeys.ts (query keys sin referencias), src/lib/domain/sharedTypes.ts (tipos compartidos sin consumidores). Directorio src/features/crm/lib/ vacío también eliminado. Esto desbloquea el job de CI de Knip sin agregar excepciones al linter.",
+    "category": "cleanup"
+  }
+]
