@@ -1,0 +1,43 @@
+{
+  "version": "6.61.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría — Lote 2: cobertura real de dominio puro",
+  "category": "infra",
+  "summary": "Segundo lote de la auditoría consolidada. Cobertura real sobre las funciones de máxima criticidad fiscal/operativa, antes de seguir endureciendo thresholds.",
+  "changes": [
+    {
+      "area": "src/lib/domain/__tests__/rentalCalculation.test.ts (nuevo)",
+      "detail": "11 escenarios: solo mensual (1/2/3 meses), mensual+semanal, mensual+semanal+diario, solo semanal, fallback de diario desde semanal (w/7) y desde mensual (m/30), tarifas en cero, start===end, generateLineItems con nombre del montacargas, generateLineItemsFromModel con multiplicador (xN)."
+    },
+    {
+      "area": "src/lib/domain/__tests__/invoiceTotals.test.ts (nuevo)",
+      "detail": "19 escenarios cubriendo lineItemTotal (NaN/null/undefined/Infinity), applyDiscountToBase (% y $, descuento > base nunca negativo, base no finita), applyDiscount, saleLineTotal y computeTotals (IVA 16/8/0%, descuentos por línea antes del IVA, array vacío)."
+    },
+    {
+      "area": "src/features/invoices/lib/__tests__/syncInvoiceStatus.test.ts (nuevo)",
+      "detail": "7 escenarios con mock fluido del cliente Supabase: pagos == total → paid con max(payment_date), pagos < total → partial, sin pagos → reset a sent, fallback paid_at cuando payment_date ausente, invoice inexistente no lanza, idempotencia (no UPDATE si ya está en el status correcto)."
+    },
+    {
+      "area": "src/lib/pdf/documents/__tests__/documents.smoke.test.tsx + __fixtures__/pdfFixtures.ts (nuevos)",
+      "detail": "Smoke + render de los 5 Documents PDF mockeando @react-pdf/renderer a tags React planos. Cubre QuoteDocument, InvoiceDocument (estado pagado sin CFDI y timbrada con UUID), CustomerStatementDocument (con saldo pendiente), IncomeStatementDocument (vista anual y comparativa), ContractDocument (modo full con 3 páginas)."
+    },
+    {
+      "area": "vitest.config.ts",
+      "detail": "Thresholds suben con baseline medido 13.98/12.92/10.08/14.36 → nuevos lines:13 / branches:12 / functions:9 / statements:13 (+2pp en cada métrica, margen ~1pp)."
+    }
+  ],
+  "metrics": {
+    "tests_before": 526,
+    "tests_after": 570,
+    "coverage_before": "11.63 / 10.38 / 8.18 / 11.82",
+    "coverage_after": "13.98 / 12.92 / 10.08 / 14.36",
+    "thresholds_before": "11 / 10 / 8 / 11",
+    "thresholds_after": "13 / 12 / 9 / 13"
+  },
+  "audit_context": {
+    "plan": ".lovable/plan.md",
+    "lote": "2 de 5",
+    "siguiente": "Lote 3 — Higiene mecánica (8 catch (e) → unknown, refactor useBreadcrumbEntityLabel, unificar formatCurrency→nCurrency, magic numbers a constants.ts, eliminar dead code de knip)."
+  }
+}
