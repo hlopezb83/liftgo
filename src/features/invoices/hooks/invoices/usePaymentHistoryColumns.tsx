@@ -9,6 +9,7 @@ import { useStampPaymentComplement, useCancelPaymentComplement } from "./cfdi/us
 import { notifyError } from "@/lib/ui/appFeedback";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
+import { RepBadge } from "../../components/invoice-detail/RepBadge";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Payment = Tables<"payments">;
@@ -19,15 +20,6 @@ async function downloadRep(paymentId: string, format: CfdiFormat) {
   } catch (err) {
     notifyError({ error: err, message: "Error al descargar REP" });
   }
-}
-
-function RepBadge({ status }: { status: string | null }) {
-  const s = status ?? "none";
-  if (s === "stamped") return <Badge variant="default" className="bg-green-600 hover:bg-green-700">Timbrado</Badge>;
-  if (s === "cancelled") return <Badge variant="destructive">Cancelado</Badge>;
-  if (s === "error") return <Badge variant="destructive">Error</Badge>;
-  if (s === "pending") return <Badge variant="secondary">Pendiente</Badge>;
-  return <Badge variant="outline">Sin REP</Badge>;
 }
 
 /**
