@@ -1,9 +1,34 @@
 /**
- * Smoke + snapshot estructural de los 5 Documents PDF.
- * Mocks @react-pdf/renderer a tags React planos vía vi.mock al inicio.
+ * Smoke + render structural de los 5 Documents PDF.
+ *
+ * @react-pdf/renderer está mockeado a tags React planos para evitar el motor
+ * Yoga/binario PDF. Esto da cobertura de los Document components y detecta
+ * regresiones de imports, tipos y props sin requerir un PDF real.
  */
-import "./__mocks__/reactPdf";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import React from "react";
+
+vi.mock("@react-pdf/renderer", () => {
+  const tag = (name: string) =>
+    function PdfTag(props: { children?: React.ReactNode; [k: string]: unknown }) {
+      const safe: Record<string, unknown> = {};
+      Object.keys(props).forEach((k) => {
+        if (k === "children" || k === "style" || k === "src" || k === "id") safe[k] = props[k];
+      });
+      return React.createElement("pdf-" + name, safe, props.children as React.ReactNode);
+    };
+  return {
+    Document: tag("document"),
+    Page: tag("page"),
+    View: tag("view"),
+    Text: tag("text"),
+    Image: tag("image"),
+    Link: tag("link"),
+    StyleSheet: { create: <T,>(s: T) => s },
+    Font: { register: () => {}, registerHyphenationCallback: () => {} },
+  };
+});
+
 import { render } from "@testing-library/react";
 import {
   company, lineItems, totals, customerSummary,
@@ -23,6 +48,7 @@ function snap(el: React.ReactElement) {
   expect(html.length).toBeGreaterThan(0);
   return html;
 }
+
 
 
 describe("PDF Documents — smoke", () => {
