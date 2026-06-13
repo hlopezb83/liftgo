@@ -37,6 +37,80 @@ function StatusBadgeApproval({ status }: { status: SupplierBillApprovalStatus })
   );
 }
 
+interface HistoryEntry {
+  id: string;
+  action: string;
+  created_at: string;
+  actor_name: string | null;
+  notes: string | null;
+}
+
+function ApprovalTimeline({ history, isLoading }: { history: HistoryEntry[] | undefined; isLoading: boolean }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold text-muted-foreground mb-2">
+        Bitácora ({history?.length ?? 0})
+      </p>
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      ) : !history || history.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic">Sin movimientos</p>
+      ) : (
+        <ul className="space-y-2">
+          {history.map((h) => (
+            <li key={h.id} className="rounded-md border p-2 text-xs space-y-0.5">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{APPROVAL_ACTION_LABELS[h.action] ?? h.action}</span>
+                <span className="text-muted-foreground">{formatDateDisplay(h.created_at)}</span>
+              </div>
+              <p className="text-muted-foreground">
+                {h.actor_name ?? "Sistema"}
+                {h.notes && <> · {h.notes}</>}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ApprovalActions({
+  status, isAdmin, isAdministrativo, billId, onApprove, onReject,
+  reapprovalPending, onReapproval,
+}: {
+  status: SupplierBillApprovalStatus;
+  isAdmin: boolean;
+  isAdministrativo: boolean;
+  billId: string;
+  onApprove: () => void;
+  onReject: () => void;
+  reapprovalPending: boolean;
+  onReapproval: () => void;
+}) {
+  if (status === "pending" && isAdmin) {
+    return (
+      <div className="flex gap-2">
+        <Button size="sm" className="flex-1" onClick={onApprove}>
+          <Check className="h-4 w-4 mr-1" /> Aprobar
+        </Button>
+        <Button size="sm" variant="destructive" className="flex-1" onClick={onReject}>
+          <X className="h-4 w-4 mr-1" /> Rechazar
+        </Button>
+      </div>
+    );
+  }
+  if (status === "rejected" && (isAdmin || isAdministrativo)) {
+    return (
+      <Button size="sm" variant="outline" disabled={reapprovalPending} onClick={onReapproval}>
+        <RotateCcw className="h-4 w-4 mr-1" />
+        {reapprovalPending ? "Enviando…" : "Solicitar reaprobación"}
+      </Button>
+    );
+  }
+  return null;
+}
+
 export function BillApprovalSection({
   billId, billNumber, approvalStatus, approvalNotes, approvedAt,
 }: Props) {
@@ -82,64 +156,18 @@ export function BillApprovalSection({
           </p>
         )}
 
-        {/* Action buttons */}
-        {approvalStatus === "pending" && isAdmin && (
-          <div className="flex gap-2">
-            <Button size="sm" className="flex-1" onClick={() => setApproveOpen(true)}>
-              <Check className="h-4 w-4 mr-1" /> Aprobar
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              className="flex-1"
-              onClick={() => setRejectOpen(true)}
-            >
-              <X className="h-4 w-4 mr-1" /> Rechazar
-            </Button>
-          </div>
-        )}
-        {approvalStatus === "rejected" && (isAdmin || isAdministrativo) && (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={reapproval.isPending}
-            onClick={() => reapproval.mutate({ billId })}
-          >
-            <RotateCcw className="h-4 w-4 mr-1" />
-            {reapproval.isPending ? "Enviando…" : "Solicitar reaprobación"}
-          </Button>
-        )}
+        <ApprovalActions
+          status={approvalStatus}
+          isAdmin={isAdmin}
+          isAdministrativo={isAdministrativo}
+          billId={billId}
+          onApprove={() => setApproveOpen(true)}
+          onReject={() => setRejectOpen(true)}
+          reapprovalPending={reapproval.isPending}
+          onReapproval={() => reapproval.mutate({ billId })}
+        />
 
-        {/* Timeline */}
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground mb-2">
-            Bitácora ({history?.length ?? 0})
-          </p>
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          ) : !history || history.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic">Sin movimientos</p>
-          ) : (
-            <ul className="space-y-2">
-              {history.map((h) => (
-                <li key={h.id} className="rounded-md border p-2 text-xs space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">
-                      {APPROVAL_ACTION_LABELS[h.action] ?? h.action}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {formatDateDisplay(h.created_at)}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground">
-                    {h.actor_name ?? "Sistema"}
-                    {h.notes && <> · {h.notes}</>}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <ApprovalTimeline history={history} isLoading={isLoading} />
       </div>
 
       <ApproveBillDialog
