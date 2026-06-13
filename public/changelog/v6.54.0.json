@@ -1,0 +1,36 @@
+{
+  "version": "6.54.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Refactor arquitectónico — paso 9: estilos PDF divididos por familia de documento",
+  "category": "refactor",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "src/lib/pdf/theme/styles.ts era el archivo de aplicación más grande (360 LOC, sin contar autogenerados).",
+        "Mezclaba dos universos visuales distintos: sharedStyles (invoice/quote/statement/income) y contractStyles (contrato + checklist + pagaré).",
+        "Paso 9 del plan de auditoría arquitectónica.",
+        "14 consumidores importan desde @/lib/pdf/theme/styles."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "Nuevo src/lib/pdf/theme/styles/shared.ts: sólo sharedStyles (page, header, tabla, totales, terms, footer, badges, helpers).",
+        "Nuevo src/lib/pdf/theme/styles/contract.ts: sólo contractStyles (clausulas, declaraciones, firmas, checklist, pagaré).",
+        "Nuevo src/lib/pdf/theme/styles/index.ts como barrel reexportando ambos.",
+        "Eliminado src/lib/pdf/theme/styles.ts; la resolución de módulos cae automáticamente sobre styles/index.ts."
+      ]
+    },
+    {
+      "heading": "Impacto",
+      "items": [
+        "Cero cambios en los 14 archivos consumidores — la API pública (@/lib/pdf/theme/styles) es idéntica.",
+        "Cero cambios de UI/visuales; tokens y propiedades inalterados.",
+        "Cada familia de documentos ahora puede evolucionar de forma aislada.",
+        "Plan de auditoría: Paso 9 completo. Restan: Paso 10 (tests críticos)."
+      ]
+    }
+  ]
+}
