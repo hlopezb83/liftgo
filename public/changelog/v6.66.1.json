@@ -1,0 +1,23 @@
+{
+  "version": "6.66.1",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "CI: fix 'No test results found for RLS results'",
+  "category": "infra",
+  "summary": "El job 'rls' del CI fallaba en mikepenz/action-junit-report@v5 con 'No test results found for RLS results' aunque los 33 tests pasaran. Causa: --reporter=verbose en el CLI de test:rls sobrescribía la lista 'reporters' del vitest.config.ts (en vitest v4 los reporters de CLI reemplazan, no extienden), eliminando el reporter junit y por tanto sin escribir reports/rls-junit.xml.",
+  "changes": [
+    {
+      "area": "package.json",
+      "detail": "test:rls ahora exporta VITEST_RLS_JUNIT=1 y deja que vitest.config.ts inyecte los reporters. Eliminados --reporter=verbose, --reporter=junit y --outputFile.junit del CLI para evitar el override."
+    },
+    {
+      "area": "vitest.config.ts",
+      "detail": "Reporters condicionales: si VITEST_RLS_JUNIT=1 → ['default', junit→reports/rls-junit.xml]; si CI → ['default', junit→reports/vitest-junit.xml, json→reports/vitest.json]; sino → ['default']. Centraliza el contrato JUnit en config y evita parseo frágil de flags entre bun/node/vitest v4."
+    },
+    {
+      "area": ".github/workflows/ci.yml",
+      "detail": "Nuevo step 'Verify RLS JUnit XML exists' entre 'RLS subset' y 'Upload RLS reports' que hace ls reports/ y falla con '::error::' si reports/rls-junit.xml no existe o está vacío. Surface inmediato si vuelve a regresarse en lugar del confuso mensaje de mikepenz."
+    }
+  ],
+  "verification": "rm -f reports/rls-junit.xml && bun run test:rls → 33 tests verdes, archivo de 9878 bytes con tests=\"33\" y tests=\"23\"."
+}
