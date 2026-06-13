@@ -323,7 +323,7 @@ jobs:
 
       - name: Publish Playwright results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
           check_name: Playwright results (shard ${{ matrix.shard }})
