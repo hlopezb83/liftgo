@@ -1,7 +1,7 @@
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
-} from "@/features/reports";
+} from "@/features/reports/hooks/useIncomeStatementData";
 
 interface ExportPdfParams {
   filteredData: MonthData[];
