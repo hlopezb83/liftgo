@@ -37,25 +37,29 @@ function matchesRep(bill: SupplierBillListItem, rep: FilterState["rep"]): boolea
   return true;
 }
 
+function matchesSearch(bill: SupplierBillListItem, search: string): boolean {
+  if (!search) return true;
+  const q = search.toLowerCase();
+  const hay = [
+    bill.bill_number,
+    bill.cfdi_uuid ?? "",
+    bill.folio ?? "",
+    bill.description ?? "",
+    bill.suppliers?.name ?? "",
+  ].join(" ").toLowerCase();
+  return hay.includes(q);
+}
+
 function matches(bill: SupplierBillListItem, f: FilterState): boolean {
-  if (f.status !== "all" && bill.status !== f.status) return false;
-  if (f.supplierId !== "all" && bill.supplier_id !== f.supplierId) return false;
-  if (f.category !== "all" && bill.category !== f.category) return false;
-  if (f.month !== "all" && !bill.issue_date.startsWith(f.month)) return false;
-  if (f.approval !== "all" && bill.approval_status !== f.approval) return false;
-  if (!matchesRep(bill, f.rep)) return false;
-  if (f.search) {
-    const q = f.search.toLowerCase();
-    const hay = [
-      bill.bill_number,
-      bill.cfdi_uuid ?? "",
-      bill.folio ?? "",
-      bill.description ?? "",
-      bill.suppliers?.name ?? "",
-    ].join(" ").toLowerCase();
-    if (!hay.includes(q)) return false;
-  }
-  return true;
+  return (
+    (f.status === "all" || bill.status === f.status) &&
+    (f.supplierId === "all" || bill.supplier_id === f.supplierId) &&
+    (f.category === "all" || bill.category === f.category) &&
+    (f.month === "all" || bill.issue_date.startsWith(f.month)) &&
+    (f.approval === "all" || bill.approval_status === f.approval) &&
+    matchesRep(bill, f.rep) &&
+    matchesSearch(bill, f.search)
+  );
 }
 
 export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
