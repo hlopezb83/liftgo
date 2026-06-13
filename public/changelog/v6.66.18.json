@@ -1,0 +1,30 @@
+{
+  "version": "6.66.18",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Fix smoke test Deno — generate-invoice-pdf usa query param",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Bug",
+      "items": [
+        "El smoke test 'generate-invoice-pdf: rejects without Authorization (401)' fallaba en CI con AssertionError (Actual 400 vs Expected 401).",
+        "Causa raíz: el test enviaba { invoice_id: <uuid> } en el body POST, pero la Edge Function lee invoiceId desde url.searchParams. Sin query param, isUUID(null) retornaba false y la función respondía 400 antes de llegar a la validación de Authorization."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "supabase/functions/generate-invoice-pdf/index_test.ts: el test ahora envía ?invoiceId=00000000-0000-0000-0000-000000000000 en la URL, omite el body, y verifica que la función responda 401 al no haber Authorization header.",
+        "Verificado vía supabase test_edge_functions: 2/2 tests pasados (CORS preflight + rejects without Authorization)."
+      ]
+    },
+    {
+      "heading": "Impacto",
+      "items": [
+        "Sin cambios en código de producción ni en la Edge Function.",
+        "CI verde para el pipeline de tests Deno (deno test --allow-net --allow-env)."
+      ]
+    }
+  ]
+}
