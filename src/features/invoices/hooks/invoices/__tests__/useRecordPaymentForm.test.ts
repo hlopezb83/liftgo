@@ -105,6 +105,8 @@ describe("useRecordPaymentForm", () => {
     await act(async () => { await result.current.handleSubmit(); });
     expect(notifyErrorMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
     expect(createPaymentMutate).not.toHaveBeenCalled();
+  });
+
 
   it("submit válido llama createPayment con payload correcto", async () => {
     const { result } = renderForm({ balance: 500 });
