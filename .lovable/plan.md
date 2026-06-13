@@ -77,7 +77,7 @@ Paso 5  ✅ v6.50.0 — useResourceList<T> creado; BookingsPage e InvoicesPage m
 Paso 6  ✅ v6.51.0 — useBookingActionsLogic descompuesto en 3 hooks atómicos (dialogs/actions/preview)
 Paso 7  ✅ v6.52.0 — src/components/ reorganizado en layout/ forms/ feedback/ domain/ (103 archivos actualizados)
 Paso 8  ✅ v6.53.0 — formatCurrency→lib/format/, money→lib/money/, routes→src/routes/ (102 archivos)
-Paso 9  Dividir lib/pdf/theme/styles.ts por tipo de documento
+Paso 9  ✅ v6.54.0 — lib/pdf/theme/styles.ts dividido en styles/{shared,contract}.ts + barrel (cero cambios en consumidores)
 Paso 10 Añadir tests unitarios a features críticos sin cobertura (fleet, quotes, maintenance)
 ```
 
