@@ -1,0 +1,17 @@
+{
+  "version": "6.59.2",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Fix CI — imports del PDF de estado de resultados",
+  "summary": "Se corrige la resolución de tipos usada por el PDF de Estado de Resultados para desbloquear el typecheck estricto en CI.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Imports de tipos sin barrel público",
+      "description": "IncomeStatementDocument e incomeStatement ahora importan StatementRow, ComparisonRow, YearTotals y MonthData desde el hook tipado real en lugar del barrel de feature que el job de CI no resolvía. Esto también restaura el tipado de los callbacks map y evita los implicit any derivados."
+    }
+  ],
+  "validation": [
+    "Revisado que no queden imports a @/features/reports en los documentos PDF de Estado de Resultados"
+  ]
+}
