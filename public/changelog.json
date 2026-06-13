@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.62.0",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Auditoría — Lote 3: higiene mecánica",
+    "description": "Tipado estricto: 8 catch (e|err) ahora son catch (_: unknown) cumpliendo regla global. Dead code: removidos export type CreditNoteMotive, DeliveryFormSchemaValues, const insuranceAlertKeys y el barrel src/features/reports/index.ts (no consumido). Formato de moneda: DeliveryInfoCards ahora usa formatCurrency() en lugar de toLocaleString hardcoded (unifica con APP_CONFIG.LOCALE/CURRENCY). Fix crítico .gitignore: regla 'reports/' rompía ripgrep/knip al excluir src/features/reports/ — anclada a '/reports/'. 570 tests verdes, tsc limpio.",
+    "category": "infra"
+  },
+  {
     "version": "6.61.0",
     "date": "2026-06-13",
     "type": "minor",

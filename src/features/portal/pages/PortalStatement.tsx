@@ -44,7 +44,7 @@ export default function PortalStatement() {
     if (!customer || !summary) return;
     try {
       await exportCustomerStatementPdf({ customer, summary });
-    } catch (e) {
+    } catch (e: unknown) {
       toast.error("No se pudo generar el PDF");
     }
   };

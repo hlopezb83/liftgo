@@ -24,6 +24,6 @@ dist-ssr
 *.sw?
 
 # Test reports & Playwright artifacts (CI uploads them)
-reports/
+/reports/
 playwright-report/
 test-results/

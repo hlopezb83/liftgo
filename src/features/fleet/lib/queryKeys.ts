@@ -26,7 +26,3 @@ export const driverKeys = {
   all: ["drivers"] as const,
   list: () => [...driverKeys.all, "list"] as const,
 } as const;
-
-export const insuranceAlertKeys = {
-  all: ["insurance_alerts"] as const,
-} as const;

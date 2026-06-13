@@ -39,7 +39,7 @@ export async function captureScreenshotFile(options: CaptureOptions = {}): Promi
     const blob: Blob | null = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png", 0.85));
     if (!blob) return null;
     return new File([blob], `feedback-${Date.now()}.png`, { type: "image/png" });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("[captureScreenshot] failed", err);
     return null;
   }

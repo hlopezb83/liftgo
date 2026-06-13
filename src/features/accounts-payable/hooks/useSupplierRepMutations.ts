@@ -31,7 +31,7 @@ function parseFunctionsError(error: unknown): never {
     try {
       const parsed = JSON.parse(ctxBody) as { error?: string };
       if (parsed?.error) throw new Error(parsed.error);
-    } catch (e) {
+    } catch (e: unknown) {
       if (e instanceof Error && e.message) throw e;
     }
   }

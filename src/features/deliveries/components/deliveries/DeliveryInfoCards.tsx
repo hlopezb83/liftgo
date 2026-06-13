@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Truck, MapPin, User } from "lucide-react";
 import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 
 interface InfoRowProps { label: string; value: string }
 
@@ -84,7 +85,7 @@ export function DeliveryLogisticsCard({ address, driverName, driverPhone, transp
         <InfoRow label="Operador" value={driverName || "—"} />
         <InfoRow label="Teléfono" value={driverPhone || "—"} />
         {(transportCost ?? 0) > 0 && (
-          <InfoRow label="Costo de flete" value={`$${Number(transportCost).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`} />
+          <InfoRow label="Costo de flete" value={formatCurrency(Number(transportCost))} />
         )}
         {chargedToCustomer && (
           <div className="flex items-center justify-between">

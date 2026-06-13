@@ -23,7 +23,7 @@ import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/lib/domain/creditN
 async function downloadCreditNote(creditNoteId: string, format: CfdiFormat, number: string) {
   try {
     await downloadCfdiBlob({ credit_note_id: creditNoteId }, format, `${number}.${format}`);
-  } catch (err) {
+  } catch (err: unknown) {
     notifyError({ error: err, message: "Error al descargar" });
   }
 }
