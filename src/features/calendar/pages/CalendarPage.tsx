@@ -17,29 +17,28 @@ import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { GanttChart } from "../components/calendar/GanttChart";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
 
+function rangeFns(mode: "month" | "week") {
+  return mode === "month"
+    ? { start: startOfMonth, end: endOfMonth, prev: subMonths, next: addMonths, prevLabel: "Mes anterior", nextLabel: "Mes siguiente" }
+    : { start: (d: Date) => startOfWeek(d, { weekStartsOn: 1 }), end: (d: Date) => endOfWeek(d, { weekStartsOn: 1 }), prev: subWeeks, next: addWeeks, prevLabel: "Semana anterior", nextLabel: "Semana siguiente" };
+}
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(nowMty());
-  // Rango ampliado +/- 7 días para cubrir el "ending soon" sin re-fetch al navegar.
   const fetchFrom = useMemo(() => subMonths(currentDate, 1), [currentDate]);
   const fetchTo = useMemo(() => addMonths(currentDate, 1), [currentDate]);
   const { data: bookings, isLoading: bLoading } = useBookingsRange(fetchFrom, fetchTo);
   const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
-  
+
   const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
 
-  
+  const fns = rangeFns(ganttRange);
+  const rangeStart = fns.start(currentDate);
+  const rangeEnd = fns.end(currentDate);
 
-  // Compute range based on ganttRange
-  const rangeStart = ganttRange === "month" ? startOfMonth(currentDate) : startOfWeek(currentDate, { weekStartsOn: 1 });
-  const rangeEnd = ganttRange === "month" ? endOfMonth(currentDate) : endOfWeek(currentDate, { weekStartsOn: 1 });
-
-  const navigateBack = () => {
-    setCurrentDate(ganttRange === "month" ? subMonths(currentDate, 1) : subWeeks(currentDate, 1));
-  };
-  const navigateForward = () => {
-    setCurrentDate(ganttRange === "month" ? addMonths(currentDate, 1) : addWeeks(currentDate, 1));
-  };
+  const navigateBack = () => setCurrentDate(fns.prev(currentDate, 1));
+  const navigateForward = () => setCurrentDate(fns.next(currentDate, 1));
   const navigateToday = () => setCurrentDate(nowMty());
 
   const rangeLabel = ganttRange === "month"
