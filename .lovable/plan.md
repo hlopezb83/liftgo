@@ -73,8 +73,7 @@ Paso 1  ✅ v6.48.0 — queryKeys factories adoptadas en invoices/bookings/fleet
 Paso 2  ✅ v6.48.0 — 5 schemas Zod movidos a features/*/lib/*Schema.ts
 Paso 3  ✅ v6.48.0 — barrels src/features/*/index.ts creados
 Paso 4  ✅ v6.49.0 — features/invoices/hooks/invoices/ reagrupado en cfdi/ recurring/ pdf/ collections/
-Paso 5  Extraer useResourceList<T> que combine useListPage+filters+sort+pagination
-        y migrar 2-3 páginas piloto (InvoicesPage, BookingsPage)
+Paso 5  ✅ v6.50.0 — useResourceList<T> creado; BookingsPage e InvoicesPage migradas como piloto
 Paso 6  Revisar hooks *Logic (invoiceForm, bookingActions, forkliftForm, contractFormPrefill)
         y separar form-state vs mutation vs side-effects
 Paso 7  Reorganizar src/components/ en layout/ forms/ feedback/ domain/
