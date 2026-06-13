@@ -1,0 +1,24 @@
+{
+  "version": "6.66.17",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Teardown E2E — limpia pagos creados por flujos reales",
+  "category": "infra",
+  "sections": [
+    {
+      "heading": "Bug",
+      "items": [
+        "El spec invoice-payment.spec.ts crea pagos a través de useCreatePayment (flujo real), sin las banderas is_e2e / e2e_scope.",
+        "El DELETE de payments en e2e_teardown filtraba por is_e2e = true, así que esos pagos quedaban huérfanos y el DELETE siguiente sobre invoices reventaba con `payments_invoice_id_fkey`.",
+        "El error solo se logueaba (no tumbaba CI) pero contaminaba la BD demo con facturas pagadas + pagos sin marcar."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "Migración a public.e2e_teardown: el DELETE de payments ahora elimina (is_e2e AND scope) O cualquier pago cuyo invoice_id pertenezca a facturas sembradas del scope.",
+        "El resto del flujo (orden de borrados, conteos en jsonb, guardia has_role admin) se conserva intacto."
+      ]
+    }
+  ]
+}
