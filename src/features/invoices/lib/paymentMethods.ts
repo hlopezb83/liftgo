@@ -9,7 +9,6 @@ export const PAYMENT_METHODS = [
   { value: "card", label: "Tarjeta", sat: "04" },
 ] as const;
 
-export type PaymentMethodValue = (typeof PAYMENT_METHODS)[number]["value"];
 
 /** Devuelve el código SAT para un método interno, o "03" (transferencia) por defecto. */
 export function satCodeForMethod(method: string): string {
