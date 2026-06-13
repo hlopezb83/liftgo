@@ -174,30 +174,7 @@ export function RegisterSupplierPaymentDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Comprobante (PDF/JPG/PNG, máx 5 MB)</Label>
-            {receiptFile ? (
-              <div className="flex items-center justify-between rounded-md border p-2 text-sm">
-                <span className="truncate">{receiptFile.name}</span>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setReceiptFile(null)} disabled={isPending}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf,image/png,image/jpeg,image/webp"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) setReceiptFile(f);
-                  }}
-                />
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isPending}>
-                  <Upload className="h-4 w-4 mr-1" />Adjuntar archivo
-                </Button>
-              </div>
-            )}
+            <ReceiptField file={receiptFile} onChange={setReceiptFile} disabled={isPending} />
           </div>
           <div className="space-y-1.5">
             <Label>Notas</Label>
