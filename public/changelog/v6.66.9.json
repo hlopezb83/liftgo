@@ -1,0 +1,33 @@
+{
+  "version": "6.66.9",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 3 (ciclo de vida + KPIs)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Vitest — KPIs y ciclo de vida (17 tests nuevos)",
+      "items": [
+        "useMrrDetail: invoca get_mrr_detail, redondea total_mrr a 2 decimales, normaliza respuesta null a {items:[], total_mrr:0}, propaga errores del RPC.",
+        "useAccountsPayableKpis: clasifica vencido/por vencer (7 días), convierte USD→MXN con exchange_rate al agregar 'por aprobar', ignora cancelled en todos los buckets, suma pagadoMesActual solo del mes en curso.",
+        "useAgingReport: 5 buckets (current, 1-30, 31-60, 61-90, 90+), agrega múltiples facturas del mismo proveedor, excluye cancelled o balance≤0, ordena descendente por total, mapea null→'sin-proveedor'.",
+        "rentalCalculation casos de borde de calendario: febrero bisiesto 2024 (29 días = 1 mes), febrero no bisiesto 2025 (28 días = 1 mes), cruce de año bisiesto."
+      ]
+    },
+    {
+      "heading": "Deno Edge Functions — Smoke tests (3 funciones)",
+      "items": [
+        "stamp-payment-complement (REP CFDI 4.0): CORS preflight + rechazo sin Authorization.",
+        "cancel-credit-note: CORS preflight + rechazo sin Authorization.",
+        "generate-recurring-maintenance: CORS preflight + rechazo sin Authorization."
+      ]
+    },
+    {
+      "heading": "Resultados",
+      "items": [
+        "Suite Vitest: 604/604 tests verde (99 archivos).",
+        "Cobertura Edge Functions: 7 con test real, 9 smoke-only, 1 sin test (mejora desde 4/6/7)."
+      ]
+    }
+  ]
+}
