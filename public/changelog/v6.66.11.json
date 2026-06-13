@@ -1,0 +1,52 @@
+{
+  "version": "6.66.11",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 5 (schemas Zod + conciliación bancaria)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Vitest — customerFormSchema (6 tests)",
+      "items": [
+        "Acepta payload mínimo con solo name; el resto cae a defaults vacíos.",
+        "Rechaza name vacío con mensaje en español 'El nombre es requerido'.",
+        "Acepta email vacío (campo opcional).",
+        "Rechaza email malformado con mensaje 'Correo electrónico inválido'.",
+        "Acepta email válido (ventas@acme.com.mx).",
+        "Preserva campos fiscales CFDI 4.0: rfc, razon_social, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp."
+      ]
+    },
+    {
+      "heading": "Vitest — invoiceFormSchema + cfdiSchema (10 tests)",
+      "items": [
+        "lineItemSchema: acepta partida válida con defaults SAT (78181500/DAY/02).",
+        "lineItemSchema: rechaza description vacía después de trim.",
+        "lineItemSchema: rechaza quantity < 1 y unit_price negativo.",
+        "lineItemSchema: acepta unit_price = 0 (servicios cortesía).",
+        "cfdiSchema: acepta CFDI mínimo en MXN; rechaza tipoCambio negativo.",
+        "invoiceFormSchema: buildEmptyInvoiceValues falla con 'Agrega al menos una partida'.",
+        "invoiceFormSchema: acepta payload con ≥1 partida válida.",
+        "invoiceFormSchema: rechaza taxRate negativo."
+      ]
+    },
+    {
+      "heading": "Vitest — useBankLineActions (6 tests)",
+      "items": [
+        "useConfirmBankMatch: llama RPC confirm_bank_match con p_payment_id cuando es ingreso.",
+        "useConfirmBankMatch: llama con p_supplier_payment_id cuando es egreso a proveedor.",
+        "useConfirmBankMatch: propaga error de RPC sin mostrar toast de éxito.",
+        "useUnmatchBankLine: llama RPC unmatch_bank_line con p_line_id.",
+        "useIgnoreBankLine: update status=ignored + ignored_reason.",
+        "useIgnoreBankLine: propaga errores de RLS sin toast de éxito."
+      ]
+    },
+    {
+      "heading": "Resultados",
+      "items": [
+        "Suite Vitest: 634/634 tests verde (103 archivos).",
+        "Schemas Zod críticos del flujo CFDI 4.0 ahora con cobertura de bordes.",
+        "Conciliación bancaria: 3 hooks de acciones manuales con cobertura de happy path + errores."
+      ]
+    }
+  ]
+}
