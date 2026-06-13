@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.15",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de tests — Lote 9 (flota e inventario de refacciones)",
+    "description": "10 tests Vitest nuevos: useForkliftMutations (6 — create dispara status_log 'Registro inicial', default 'available', NO crea log si insert falla, deleteForklift usa RPC delete_forklift, updateStatus inserta from/to/note, assertRowsAffected) y useAddMaintenancePart (4 — costo = currentLogCost + qty*cost, defaults a 0, currentLogCost NO se persiste en maintenance_parts, error de insert no toca maintenance_logs, assertRowsAffected en log fantasma).",
+    "category": "testing"
+  },
+  {
     "version": "6.66.14",
     "date": "2026-06-13",
     "type": "minor",
