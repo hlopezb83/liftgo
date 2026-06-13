@@ -5,7 +5,7 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 const maybeSingle = vi.fn();
 const eq = vi.fn(() => ({ maybeSingle }));
 const select = vi.fn(() => ({ eq }));
-const from = vi.fn(() => ({ select }));
+const from = vi.fn((_table: string) => ({ select }));
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: { from: (table: string) => from(table) },
