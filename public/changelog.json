@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.9",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de tests — Lote 3 (ciclo de vida + KPIs)",
+    "description": "17 tests Vitest nuevos: useMrrDetail (source of truth del KPI MRR, normaliza respuesta nula y redondea), useAccountsPayableKpis (buckets vencido/por vencer/USD→MXN/cancelled), useAgingReport (5 buckets 0-30-60-90-90+, agregación por proveedor, orden), rentalCalculation (febrero bisiesto 2024 vs 2025, cruce de año). Smoke tests Deno para 3 Edge Functions previamente sin cobertura: stamp-payment-complement (REP), cancel-credit-note y generate-recurring-maintenance. Suite total: 604 tests verde.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.8",
     "date": "2026-06-13",
     "type": "minor",
