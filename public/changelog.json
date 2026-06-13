@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.55.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor arquitectónico — paso 10: cobertura de tests para quotes",
+    "description": "Cierra el plan de auditoría. Se añadieron 23 tests unitarios al feature quotes (el más complejo de los críticos): quoteFormBuilders (buildSaleItems/buildRentalItems, 6 tests), quoteFormValidation (validateQuoteForm con notifyError mockeado, 6 tests), quoteFormPrefillHelpers (applyBaseFields, applyLogistics, applySaleLines, applyRentalLines, defaultValidUntil — 11 tests). Fleet y maintenance ya contaban con cobertura existente. Sin cambios de UI ni de runtime.",
+    "category": "refactor"
+  },
+  {
     "version": "6.54.0",
     "date": "2026-06-13",
     "type": "minor",
