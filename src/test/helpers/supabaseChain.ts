@@ -63,6 +63,11 @@ export function createTableChainable(resolver: ChainResolver) {
   return proxy;
 }
 
+export type FunctionsInvokeResponse = {
+  data: unknown;
+  error: { message: string } | null;
+};
+
 export function createSupabaseChainMock(opts: {
   fromResolver?: Resolver;
   rpcResolver?: Resolver;
@@ -71,12 +76,21 @@ export function createSupabaseChainMock(opts: {
     string,
     (args: unknown) => SupabaseMockResponse | Promise<SupabaseMockResponse>
   >;
+  /**
+   * Resolvers para `supabase.functions.invoke(name, options)`. Cubre el flujo de
+   * Edge Functions (timbrado CFDI, recurring invoices, etc.).
+   */
+  functionsResolvers?: Record<
+    string,
+    (body: unknown) => FunctionsInvokeResponse | Promise<FunctionsInvokeResponse>
+  >;
   storageSignedUrl?: () => Promise<{ data: { signedUrl: string } | null }>;
 }) {
   const fromR = opts.fromResolver ?? (() => ({ data: [], error: null }));
   const rpcR = opts.rpcResolver ?? (() => ({ data: null, error: null }));
   const tableResolvers = opts.tableResolvers ?? {};
   const rpcResolvers = opts.rpcResolvers ?? {};
+  const functionsResolvers = opts.functionsResolvers ?? {};
   return {
     from: vi.fn((table?: string) => {
       const t = table ?? "";
@@ -88,6 +102,18 @@ export function createSupabaseChainMock(opts: {
       if (rpcResolvers[n]) return Promise.resolve(rpcResolvers[n](args));
       return Promise.resolve(rpcR());
     }),
+    functions: {
+      invoke: vi.fn((name: string, opts?: { body?: unknown }) => {
+        const resolver = functionsResolvers[name];
+        if (!resolver) {
+          return Promise.resolve({
+            data: null,
+            error: { message: `[mock] functions.invoke('${name}') sin resolver` },
+          });
+        }
+        return Promise.resolve(resolver(opts?.body));
+      }),
+    },
     storage: {
       from: vi.fn(() => ({
         createSignedUrl:

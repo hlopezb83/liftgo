@@ -1,0 +1,45 @@
+{
+  "version": "6.66.8",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de tests — Lote 2 (dinero/CFDI crítico)",
+  "category": "testing",
+  "description": "24 tests Vitest nuevos cubriendo hooks de mutación que mueven dinero o ejecutan operaciones irreversibles. Cubre el corazón del MRR (recurring billing), notas de crédito con timbrado CFDI, revert de auditoría y aprobación de facturas de proveedor.",
+  "changes": [
+    {
+      "type": "Helper",
+      "title": "src/test/helpers/supabaseChain.ts",
+      "details": "Añadido functionsResolvers para mockear supabase.functions.invoke(name, { body }). Necesario para cualquier hook que llame Edge Functions (timbrado, recurring invoices, cancelación)."
+    },
+    {
+      "type": "Nuevo test",
+      "title": "useGenerateRecurringInvoices (4 casos)",
+      "details": "Motor de cobro recurrente. Cubre: count > 0 con número exacto, count = 0 (sin pendientes), respuesta null (no rompe), error de Edge Function → notifyError. Es el corazón del MRR."
+    },
+    {
+      "type": "Nuevo test",
+      "title": "useRevertAuditLog (3 casos)",
+      "details": "Operación destructiva. Cubre: revert OK con args correctos al RPC, error con mensaje del backend propagado a notifyError, error sin mensaje → fallback. Restringido a admin por RLS."
+    },
+    {
+      "type": "Nuevo test",
+      "title": "useBillApprovalMutations (5 casos)",
+      "details": "Aprobar/rechazar/reaprobar facturas de proveedor. Cubre: approve con/sin notas (RPC envía null no undefined), reject OK, approve falla → notifyError sin toast success, reapprove OK. Riesgo: pagar factura rechazada o viceversa."
+    },
+    {
+      "type": "Nuevo test",
+      "title": "useCreateCreditNote (6 casos)",
+      "details": "Flujo crítico nota de crédito + timbrado CFDI. Cubre: crear sin timbrar (RPC + insert), con timbrar (invoca stamp-credit-note con id), RPC folio falla → NO insert ni stamp, insert falla → NO stamp, stamp falla → NO toast success, stamp responde con data.error inline → trata como error."
+    },
+    {
+      "type": "Nuevo test",
+      "title": "useCreditNoteForm (6 casos)",
+      "details": "Regla fiscal exceedsMax = total > maxCreditable + 0.01. Cubre los 3 bordes (=, +0.005, +0.02), razón vacía, total = 0 sin líneas, submit con payload correcto. Sin esto, podía emitirse nota de crédito mayor a la factura origen (riesgo SAT)."
+    },
+    {
+      "type": "Verificación",
+      "title": "Suite completa",
+      "details": "Vitest 96 archivos / 587 tests verde (antes 503). 24 tests nuevos sin regresiones."
+    }
+  ]
+}
