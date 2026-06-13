@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.17",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Teardown E2E — limpia pagos creados por flujos reales",
+    "description": "Fix en RPC e2e_teardown: ahora elimina pagos creados vía useCreatePayment (sin bandera is_e2e) cuando referencian facturas sembradas. Antes esos pagos huérfanos disparaban FK payments_invoice_id_fkey al borrar invoices, ensuciando la BD demo (el error solo se logueaba, no tumbaba CI).",
+    "category": "infra"
+  },
+  {
     "version": "6.66.16",
     "date": "2026-06-13",
     "type": "minor",
