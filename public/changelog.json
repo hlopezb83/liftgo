@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.65.0",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Auditoría — Lote 6: bugfix validación de tipo de cambio en pagos",
+    "description": "useRecordPaymentForm: corregido bug donde un exchangeRate de '0' o vacío con moneda USD pasaba la validación porque `Number(exchangeRate) || 1` lo coercionaba a 1 antes del check. Ahora la validación lee el valor crudo: si currency≠MXN y el parseo no es finito o ≤0, dispara notifyError('Tipo de cambio inválido') y aborta el submit. 2 tests nuevos cubren los casos exchangeRate='0' y exchangeRate='' con USD (8 tests totales en el hook, todos verdes). Sin cambios a esquema de DB ni a las 53 funciones SECURITY DEFINER del scan previo — confirmado por arquitectura RLS+has_role() documentada en security memory.",
+    "category": "bugfix"
+  },
+  {
     "version": "6.64.0",
     "date": "2026-06-13",
     "type": "patch",
