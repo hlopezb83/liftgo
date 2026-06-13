@@ -1,0 +1,30 @@
+{
+  "version": "6.62.0",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Auditoría — Lote 3: higiene mecánica",
+  "category": "infra",
+  "changes": [
+    {
+      "area": "Tipado estricto",
+      "detail": "8 bloques catch sin tipo ahora son catch (e|err: unknown), cumpliendo la regla global de Power of 10. Archivos: useSetPasswordForm, useSupplierRepMutations, SupplierFormDialog, PortalStatement, usePaymentHistoryColumns, useDownloadInvoiceXml, InvoiceCreditNotesCard, captureScreenshot."
+    },
+    {
+      "area": "Dead code",
+      "detail": "Removidos export type CreditNoteMotive, DeliveryFormSchemaValues, const insuranceAlertKeys y src/features/reports/index.ts (barrel no consumido). 0 referencias confirmadas con ripgrep + knip."
+    },
+    {
+      "area": "Formato de moneda unificado",
+      "detail": "DeliveryInfoCards.tsx ahora usa formatCurrency() en lugar de `$${Number(x).toLocaleString('es-MX', { minimumFractionDigits: 2 })}` — alinea con APP_CONFIG.LOCALE/CURRENCY y elimina divergencia de símbolo."
+    },
+    {
+      "area": "Fix crítico .gitignore",
+      "detail": "La regla 'reports/' (sin slash inicial) excluía nodos en cualquier profundidad, incluyendo src/features/reports/ (~30 archivos). Esto rompía silenciosamente ripgrep, knip y herramientas que respetan .gitignore — knip reportaba como dead code exports que sí se usaban. Anclada a '/reports/'."
+    }
+  ],
+  "verification": {
+    "tests": "570/570 passed (Vitest)",
+    "tsc": "clean (tsconfig.app.json)",
+    "knip": "0 unused files, 0 unused exports (sólo 3 hints de config benignos)"
+  }
+}
