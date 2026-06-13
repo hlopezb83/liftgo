@@ -65,14 +65,32 @@ export function useExportablePayables() {
   });
 }
 
+interface BankInfo {
+  bank_name: string | null;
+  clabe: string | null;
+  account_number: string | null;
+  account_holder: string | null;
+  has_valid_clabe: boolean;
+}
+
+function resolveBankInfo(bank: BankAccountRow | undefined): BankInfo {
+  const clabe = bank?.clabe ?? null;
+  const trimmed = clabe?.trim() ?? "";
+  return {
+    bank_name: bank?.bank_name ?? null,
+    clabe,
+    account_number: bank?.account_number ?? null,
+    account_holder: bank?.account_holder ?? null,
+    has_valid_clabe: trimmed.length === 18 && /^\d{18}$/.test(trimmed),
+  };
+}
+
 function toExportable(
   row: { id: string; bill_number: string; supplier_id: string | null; due_date: string | null; balance: number; currency: string; description: string | null; payment_in_progress_at: string | null; suppliers: { name: string; rfc: string | null } | null },
   bySupplier: Map<string, BankAccountRow>,
 ): ExportablePayable {
   const sup = row.suppliers;
   const bank = row.supplier_id ? bySupplier.get(row.supplier_id) : undefined;
-  const clabe = bank?.clabe ?? null;
-  const hasValid = !!clabe && clabe.trim().length === 18 && /^\d{18}$/.test(clabe.trim());
   return {
     id: row.id,
     bill_number: row.bill_number,
@@ -84,10 +102,6 @@ function toExportable(
     currency: row.currency,
     description: row.description,
     payment_in_progress_at: row.payment_in_progress_at,
-    bank_name: bank?.bank_name ?? null,
-    clabe,
-    account_number: bank?.account_number ?? null,
-    account_holder: bank?.account_holder ?? null,
-    has_valid_clabe: hasValid,
+    ...resolveBankInfo(bank),
   };
 }
