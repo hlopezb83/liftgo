@@ -110,3 +110,30 @@ describe("generateLineItemsFromModel", () => {
     expect(items[0].quantity).toBe(1); // cantidad de meses, no de unidades
   });
 });
+
+describe("calculateRentalCost — casos de borde de calendario", () => {
+  it("febrero 2024 (bisiesto): 1 feb → 29 feb se factura como 1 mes exacto", () => {
+    const items = calculateRentalCost(0, 0, 10_000, d("2024-02-01"), d("2024-02-29"));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1, total: 10_000 });
+  });
+
+  it("febrero 2025 (no bisiesto): 1 feb → 28 feb es 1 mes exacto", () => {
+    const items = calculateRentalCost(0, 0, 10_000, d("2025-02-01"), d("2025-02-28"));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1, total: 10_000 });
+  });
+
+  it("febrero 2024: 1 feb → 28 feb (29 días con effectiveEnd) → 0 meses + 4 semanas", () => {
+    // 28 feb -> effectiveEnd 29 feb -> 28 días desde 1 feb; differenceInCalendarMonths(29 feb, 1 feb)=0
+    const items = calculateRentalCost(0, 2_000, 10_000, d("2024-02-01"), d("2024-02-28"));
+    const weekly = items.find((i) => i.description === "Renta semanal");
+    expect(weekly).toMatchObject({ quantity: 4, total: 8_000 });
+  });
+
+  it("cruce de año bisiesto: 15 feb 2024 → 15 mar 2024 = 1 mes exacto", () => {
+    const items = calculateRentalCost(0, 0, 10_000, d("2024-02-15"), d("2024-03-14"));
+    expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
+  });
+});
+
