@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 
 interface ForkliftSpecsCardProps {
   forklift: Tables<"forklifts">;

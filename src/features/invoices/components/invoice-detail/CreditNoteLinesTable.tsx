@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { EditableCreditNoteLine } from "@/features/invoices/hooks/creditNotes/useCreditNoteForm";
 
 interface Props {

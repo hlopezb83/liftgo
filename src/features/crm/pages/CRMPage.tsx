@@ -12,7 +12,7 @@ import { useCRMFilters } from "@/features/crm/hooks/useCRMFilters";
 import { useCRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
 import { useCRMPageDialogs } from "@/features/crm/hooks/useCRMPageDialogs";
 import { ACTIVE_STAGES } from "@/features/crm/lib/constants";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { usePageActions } from "@/contexts/PageActionsContext";
 
 export default function CRMPage() {

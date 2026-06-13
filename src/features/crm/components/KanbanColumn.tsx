@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import { Droppable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ProspectCard } from "./ProspectCard";
 import type { Prospect } from "@/features/crm/hooks/useProspects";
 

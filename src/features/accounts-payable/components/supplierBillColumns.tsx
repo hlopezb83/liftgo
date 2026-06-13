@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { type ColumnDef } from "@/components/dataTable/v2";
-import { formatCurrencyWithCode } from "@/lib/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { EXPENSE_CATEGORY_LABELS, SUPPLIER_BILL_STATUS_LABELS, APPROVAL_STATUS_LABELS } from "../lib/supplierBillConstants";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";

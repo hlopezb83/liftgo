@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { STATUS_LABELS, FUEL_TYPE_LABELS, FUEL_LEVEL_LABELS, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { STAGE_LABELS, LOST_REASON_LABELS } from "@/features/crm/lib/constants";
 import type { AuditLog } from "@/features/audit/hooks/useAuditLogs";

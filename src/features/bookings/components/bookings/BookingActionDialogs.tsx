@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { STATUS_LABELS, getValidTransitions } from "@/features/bookings/hooks/useBookingActionsLogic";
 

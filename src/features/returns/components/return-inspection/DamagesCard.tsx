@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 import { InfoRow } from "@/components/forms/InfoRow";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 export function DamagesCard({ ins }: { ins: ReturnInspectionWithJoins }) {

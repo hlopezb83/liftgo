@@ -14,7 +14,7 @@ import {
   useAdminPaymentIntents,
   useReviewPaymentIntent,
 } from "@/features/portal/hooks/usePortalExtras";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
 import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/lib/domain/paymentIntentStatus";

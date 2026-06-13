@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
 import type { ColumnDef } from "@/components/dataTable/v2";
 import type { ModelRow } from "./profitabilityHelpers";

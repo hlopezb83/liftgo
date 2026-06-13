@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { StatementRow, ComparisonRow } from "@/features/reports/hooks/useIncomeStatementData";
 
 export interface BreakdownRow { label: string; values: number[]; total: number }

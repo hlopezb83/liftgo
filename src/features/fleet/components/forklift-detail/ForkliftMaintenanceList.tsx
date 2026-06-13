@@ -3,7 +3,7 @@ import { Wrench } from "lucide-react";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ForkliftMaintenanceListProps {

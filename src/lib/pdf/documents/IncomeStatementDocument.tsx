@@ -4,7 +4,7 @@ import { sharedStyles } from "@/lib/pdf/theme/styles";
 import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
 import { Footer } from "@/lib/pdf/components/Footer";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
 import type { CompanyData } from "@/lib/pdf/shared";
 import type {

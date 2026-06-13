@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CREDIT_NOTE_MOTIVES as MOTIVES } from "@/lib/domain/creditNoteMotives";
 import { useCreditNoteForm } from "@/features/invoices/hooks/creditNotes/useCreditNoteForm";
 import { CreditNoteLinesTable } from "./CreditNoteLinesTable";

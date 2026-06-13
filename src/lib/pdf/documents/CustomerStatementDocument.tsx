@@ -7,7 +7,7 @@ import { Header } from "@/lib/pdf/components/Header";
 import { InfoCards } from "@/lib/pdf/components/InfoCards";
 import { Footer } from "@/lib/pdf/components/Footer";
 import { fmtDate, type CompanyData } from "@/lib/pdf/shared";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { roundMoney } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import type { CustomerSummary } from "@/lib/domain/customerTypes";

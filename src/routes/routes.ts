@@ -2,7 +2,7 @@
  * Constantes centralizadas de rutas.
  *
  * Uso:
- *   import { ROUTES } from "@/lib/routes";
+ *   import { ROUTES } from "@/routes/routes";
  *   navigate(ROUTES.invoices.detail(id));
  *   navigate(ROUTES.bookings.list);
  */

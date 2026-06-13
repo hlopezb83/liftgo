@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
 import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";

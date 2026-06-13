@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
 import type { CashFlowBucket, LightColor } from "../lib/cashFlowUtils";
 

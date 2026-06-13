@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, TrendingUp, CalendarClock, AlertTriangle, ArrowRight } from "lucide-react";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 
 interface FinancialKpiCardsProps {
   mrr: number;

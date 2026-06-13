@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";

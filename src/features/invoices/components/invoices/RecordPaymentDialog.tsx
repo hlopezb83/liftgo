@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { roundMoney } from "@/lib/money";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

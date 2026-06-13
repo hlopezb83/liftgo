@@ -14,7 +14,7 @@ import { MaintenanceMobileCard } from "@/features/maintenance/components/mainten
 import { MaintenancePageActions } from "@/features/maintenance/components/maintenance/MaintenancePageActions";
 import { useActiveMechanics } from "@/features/maintenance/hooks/maintenance/useMechanics";
 import { useMaintenanceForm } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateDisplay } from "@/lib/utils";
 import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "@/features/maintenance/lib/maintenancePageHelpers";

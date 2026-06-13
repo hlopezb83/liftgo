@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Trash2 } from "lucide-react";
 import type { EquipmentModel } from "@/features/fleet/hooks/useEquipmentModels";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { SaleLine } from "./SaleLineItems";
 import { computeSaleLineTotal } from "./saleLineHelpers";
 

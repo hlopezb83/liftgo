@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AppProviders } from "@/layouts/AppProviders";
 import { AuthGuard } from "@/layouts/AuthGuard";
-import { appRoutes, PageFallback } from "@/lib/routes-config";
+import { appRoutes, PageFallback } from "@/routes/routes-config";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import MainLayout from "@/layouts/MainLayout";
 import { RouteErrorBoundary } from "@/layouts/RouteErrorBoundary";

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Download, FileClock } from "lucide-react";
 import { Link } from "react-router-dom";
-import { formatCurrency } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { EmptyState } from "@/components/feedback/EmptyState";
