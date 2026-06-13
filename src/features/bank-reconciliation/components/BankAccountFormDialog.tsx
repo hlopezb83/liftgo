@@ -14,14 +14,15 @@ interface Props {
 }
 
 function defaultsFor(initial?: BankAccount | null) {
+  const i = initial ?? {} as Partial<BankAccount>;
   return {
-    name: initial?.name ?? "",
-    bank: initial?.bank ?? "",
-    last4: initial?.last4 ?? "",
-    currency: initial?.currency ?? "MXN",
-    initialBalance: String(initial?.initial_balance ?? "0"),
-    isActive: initial?.is_active ?? true,
-    notes: initial?.notes ?? "",
+    name: i.name ?? "",
+    bank: i.bank ?? "",
+    last4: i.last4 ?? "",
+    currency: i.currency ?? "MXN",
+    initialBalance: String(i.initial_balance ?? "0"),
+    isActive: i.is_active ?? true,
+    notes: i.notes ?? "",
   };
 }
 
