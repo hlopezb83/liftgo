@@ -1,0 +1,40 @@
+{
+  "version": "6.65.0",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Auditoría — Lote 6: bugfix validación de tipo de cambio en pagos",
+  "category": "bugfix",
+  "summary": "Corregido bug de validación en RecordPaymentDialog donde un exchangeRate de '0' con moneda USD se aceptaba como 1.",
+  "changes": [
+    {
+      "area": "Pagos",
+      "items": [
+        "useRecordPaymentForm: la validación de exchangeRate ahora opera sobre el valor crudo antes de aplicar fallback. Si la moneda es ≠ MXN y `Number(exchangeRate)` no es finito o ≤ 0, se dispara `notifyError('Tipo de cambio inválido')` y se aborta el `mutate`.",
+        "Antes: `Number('0') || 1` resolvía a 1, saltándose el check `exch <= 0` y registrando el pago con tipo de cambio implícito 1."
+      ]
+    },
+    {
+      "area": "Tests",
+      "items": [
+        "Agregados 2 tests en useRecordPaymentForm.test.ts: exchangeRate='0' con USD → notifyError, exchangeRate='' con USD → notifyError. En ambos se verifica que `createPayment.mutate` no se invoca.",
+        "Suite del hook: 8/8 tests verdes."
+      ]
+    },
+    {
+      "area": "Seguridad",
+      "items": [
+        "Revisión de las 53 funciones SECURITY DEFINER ejecutables por usuarios autenticados del scan previo (v6.64.0): todas operan bajo el patrón documentado has_role()+SET search_path=public; no requieren cambios."
+      ]
+    }
+  ],
+  "files": {
+    "edited": [
+      "src/features/invoices/hooks/invoices/useRecordPaymentForm.ts",
+      "src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "public/changelog.json"
+    ],
+    "created": [
+      "public/changelog/v6.65.0.json"
+    ]
+  }
+}
