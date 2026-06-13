@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.1",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "CI: fix \"No test results found for RLS results\"",
+    "description": "El check 'RLS results' fallaba porque test:rls pasaba --reporter=verbose en CLI, que sobrescribe la lista 'reporters' del vitest.config.ts y descarta el reporter junit. Resultado: 33 tests verdes pero sin XML escrito en reports/rls-junit.xml. Fix: mover la config JUnit del CLI al vitest.config.ts (flag VITEST_RLS_JUNIT=1 desde el script) y quitar --reporter=verbose del CLI. Step adicional 'Verify RLS JUnit XML exists' en ci.yml para fallar temprano con mensaje claro si vuelve a regresarse.",
+    "category": "infra"
+  },
+  {
     "version": "6.66.0",
     "date": "2026-06-13",
     "type": "patch",
