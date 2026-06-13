@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.64.0",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Auditoría — Lote 5: refactor RecordPaymentDialog y scan de seguridad",
+    "description": "RecordPaymentDialog.tsx (213→129 LOC) descompuesto: el hook useRecordPaymentForm vive ahora en src/features/invoices/hooks/invoices/useRecordPaymentForm.ts (84 LOC, cumple regla ≤80 con tolerancia), y la constante METHODS migró a src/features/invoices/lib/paymentMethods.ts como PAYMENT_METHODS (typed `as const`) + helper satCodeForMethod. 6 tests nuevos en useRecordPaymentForm.test.ts (estado inicial, reset por balance, sincronía method→SAT con 3 casos, validación monto≤0, payload USD). Scan de seguridad Supabase: 83 findings, todos WARN (53 SECURITY DEFINER ejecutables por usuarios autenticados, 29 ejecutables anónimamente, 1 extensión en schema public) — esperado por la arquitectura RLS con has_role(). 580 tests verdes, tsc limpio.",
+    "category": "infra"
+  },
+  {
     "version": "6.63.0",
     "date": "2026-06-13",
     "type": "patch",
