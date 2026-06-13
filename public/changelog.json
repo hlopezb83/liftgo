@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.63.0",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Auditoría — Lote 4: tipado del breadcrumb y magic numbers",
+    "description": "useBreadcrumbEntityLabel refactorizado: 9 `as string` eliminados (sustituidos por helper tipado pickString), `as never` reemplazado por boundary aislado con maybeSingle<Record<string, unknown>>() y comentario explicando el límite de tipos de Supabase. 4 tests nuevos (404 sin resolver, segmento no-UUID, factura existente, fleet con manufacturer+model). Magic numbers de rentalCalculation extraídos: DAYS_PER_WEEK=7 y DAYS_PER_MONTH_FALLBACK=30 con JSDoc. Baseline de coverage post-Lote-4: 14.14/13.17/10.19/14.55 (lines/branches/functions/statements); thresholds se mantienen en 13/12/9/13 — bumpearlos dejaría <0.5pp de margen, frágil para CI. 574 tests verdes.",
+    "category": "infra"
+  },
+  {
     "version": "6.62.0",
     "date": "2026-06-13",
     "type": "patch",

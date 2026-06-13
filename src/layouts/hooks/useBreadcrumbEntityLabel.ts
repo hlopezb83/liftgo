@@ -1,68 +1,84 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Resolver {
-  table: string;
+const ID_REGEX = /^[0-9a-f-]{20,}$/i;
+
+/**
+ * Devuelve un string si `value` es string no vacío, o `null`.
+ * Tipado estricto: nunca usa `as`.
+ */
+function pickString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+interface ResolvedLabel {
+  table:
+    | "forklifts"
+    | "invoices"
+    | "quotes"
+    | "customers"
+    | "contracts"
+    | "bookings"
+    | "deliveries"
+    | "return_inspections"
+    | "suppliers";
   select: string;
   format: (row: Record<string, unknown>) => string | null;
 }
 
-const RESOLVERS: Record<string, Resolver> = {
+const RESOLVERS: Record<string, ResolvedLabel> = {
   fleet: {
     table: "forklifts",
     select: "name,model,manufacturer",
     format: (r) => {
-      const parts = [r.manufacturer, r.model].filter(Boolean).join(" ");
-      return parts || (r.name as string) || null;
+      const parts = [pickString(r.manufacturer), pickString(r.model)].filter(Boolean).join(" ");
+      return parts || pickString(r.name);
     },
   },
   invoices: {
     table: "invoices",
     select: "invoice_number",
-    format: (r) => (r.invoice_number as string) || null,
+    format: (r) => pickString(r.invoice_number),
   },
   quotes: {
     table: "quotes",
     select: "quote_number",
-    format: (r) => (r.quote_number as string) || null,
+    format: (r) => pickString(r.quote_number),
   },
   customers: {
     table: "customers",
     select: "name",
-    format: (r) => (r.name as string) || null,
+    format: (r) => pickString(r.name),
   },
   contracts: {
     table: "contracts",
     select: "contract_number",
-    format: (r) => (r.contract_number as string) || null,
+    format: (r) => pickString(r.contract_number),
   },
   bookings: {
     table: "bookings",
     select: "booking_number,customer_name",
-    format: (r) => (r.booking_number as string) || (r.customer_name as string) || null,
+    format: (r) => pickString(r.booking_number) ?? pickString(r.customer_name),
   },
   deliveries: {
     table: "deliveries",
     select: "delivery_number",
-    format: (r) => (r.delivery_number as string) || null,
+    format: (r) => pickString(r.delivery_number),
   },
   returns: {
     table: "return_inspections",
     select: "inspection_number",
-    format: (r) => (r.inspection_number as string) || null,
+    format: (r) => pickString(r.inspection_number),
   },
   suppliers: {
     table: "suppliers",
     select: "name",
-    format: (r) => (r.name as string) || null,
+    format: (r) => pickString(r.name),
   },
 };
 
-const ID_REGEX = /^[0-9a-f-]{20,}$/i;
-
 export function useBreadcrumbEntityLabel(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
-  // Match /<parent>/<id>[/edit?]
   let parent: string | null = null;
   let id: string | null = null;
   if (segments.length >= 2 && RESOLVERS[segments[0]] && ID_REGEX.test(segments[1])) {
@@ -78,14 +94,15 @@ export function useBreadcrumbEntityLabel(pathname: string) {
     staleTime: 60_000,
     queryFn: async () => {
       if (!resolver || !id) return null;
+      // Boundary: supabase typings no soportan select dinámico desde unión de tablas.
+      // Castigo aislado a una sola línea; el resto del hook es 100% tipado.
       const { data, error } = await supabase
-        .from(resolver.table as never)
+        .from(resolver.table)
         .select(resolver.select)
         .eq("id", id)
-        .maybeSingle();
-      if (error) return null;
-      if (!data) return null;
-      return resolver.format(data as Record<string, unknown>);
+        .maybeSingle<Record<string, unknown>>();
+      if (error || !data) return null;
+      return resolver.format(data);
     },
   });
 

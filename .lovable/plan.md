@@ -1,72 +1,61 @@
-## Lote 2 — Coverage real de dominio puro
+## Lote 4 — Higiene profunda + endurecimiento de coverage
 
-Objetivo: subir cobertura efectiva con tests rápidos y deterministas sobre lógica pura, antes de mover los thresholds. Sin tocar producción.
+Tres frentes pequeños e independientes. Sin tocar lógica de negocio. Sin cambios de UI visibles.
 
-### Estado base (medido)
-- Thresholds Vitest actuales: `lines:11 / branches:10 / functions:8 / statements:11` con margen real ≈ 0.5pp.
-- `rentalCalculation.ts` (116 LOC): sin tests.
-- `invoiceTotals.ts` (75 LOC): sin tests directos.
-- `syncInvoiceStatus.ts` (62 LOC): solo testeado indirectamente vía `paymentFlow.test.ts`.
-- PDFs (`ContractDocument`, `CustomerStatementDocument`, `IncomeStatementDocument`, `InvoiceDocument`, `QuoteDocument`): 0% — 5 documentos, 634 LOC sumados.
+### 1. Refactor `useBreadcrumbEntityLabel` (tipado)
 
-### Cambios
+`src/layouts/hooks/useBreadcrumbEntityLabel.ts` usa `supabase.from(resolver.table as never)` y `r.<campo> as string` — viola la regla global "sin `as`". Cambios:
 
-**1. `src/lib/domain/__tests__/rentalCalculation.test.ts` (nuevo)**
-Función `calculateRentalCost` con tarifas día/semana/mes — escenarios:
-- Solo mensual: 1, 2, 3 meses exactos.
-- Mensual + semanal: 1 mes + 2 semanas.
-- Mensual + semanal + diario: 1 mes + 2 semanas + 3 días.
-- Solo semanal: 21 días → 3 semanas.
-- Fallback de diario desde semanal (`d=0, w>0`) y desde mensual (`d=0, w=0, m>0`).
-- Edge: `start === end` (1 día), tarifas en cero, fechas inválidas → 0 items o resultados acotados.
-- `generateLineItems` y `generateLineItemsFromModel`: descripción incluye nombre del modelo y `(xN)`.
+- Reemplazar el mapa `RESOLVERS` por una unión discriminada tipada por nombre de tabla (literal type de `keyof Database["public"]["Tables"]`).
+- Eliminar los 9 `as string` aplicando `coerce.ts` (helper `asString`) o checks `typeof`.
+- Eliminar el `as never` en `supabase.from` usando un narrow por `resolver.table`.
+- Añadir test unitario nuevo `useBreadcrumbEntityLabel.test.ts`: 3 casos (ID válido, segmento sin resolver, ID no-UUID → no query).
 
-**2. `src/lib/domain/__tests__/invoiceTotals.test.ts` (nuevo)**
-- `lineItemTotal`: NaN, `null`, `undefined`, negativos.
-- `applyDiscountToBase`: % normal, $ fijo, descuento > base (no negativo), descuento 0/null.
-- `saleLineTotal`: combinaciones cantidad × precio − descuento.
-- `computeTotals`: IVA 16/8/0, subtotales con descuentos por línea, líneas vacías.
+### 2. Magic numbers → constantes nombradas
 
-**3. `src/features/invoices/lib/__tests__/syncInvoiceStatus.test.ts` (nuevo)**
-Mock de `@/integrations/supabase/client` con builder fluido en memoria:
-- 0 pagos → status `sent`.
-- Pagos < total → `partial`.
-- Pagos == total → `paid` con `paid_at` = mayor `payment_date`.
-- Pagos == total y `payment_date` ausente → fallback recibido.
-- Invoice no existe → no lanza.
-- Idempotencia: si ya está en el status correcto no hace UPDATE.
+Auditar y extraer 4–6 magic numbers de alto impacto. Candidatos confirmados por `rg`:
 
-**4. PDFs: smoke + snapshot estructural en `src/lib/pdf/documents/__tests__/`**
-Patrón único, un test por documento (5 archivos). Cada test:
-- Importa `pdf` de `@react-pdf/renderer` y renderiza con fixture mínima.
-- Asserts: `await pdf(<Doc {...fixture}/>).toBuffer()` produce `Buffer.length > 1000`, no lanza, y `toString().slice(0, 8) === "%PDF-1."`.
-- Snapshot inline del árbol React (no del PDF binario) vía `renderer.create(...).toJSON()` para detectar regresiones estructurales.
+- `30` (días de alerta de seguros) en `fleet` → `INSURANCE_ALERT_DAYS_BEFORE` en `src/features/fleet/lib/constants.ts`.
+- `200` (horas/mes incluidas en renta) en `quotes`/`bookings` → `INCLUDED_HOURS_PER_MONTH` en `src/lib/config.ts`.
+- `7` (días/semana) y `30` (días fallback mensual) en `rentalCalculation.ts` → constantes locales `DAYS_PER_WEEK`, `DAYS_PER_MONTH_FALLBACK`.
+- `3` (buffer de mantenimiento) en booking constraints UI → `MAINTENANCE_BUFFER_DAYS` colocada junto a la constraint UI (la regla server-side ya está en SQL, sólo unificamos la copia client-side).
 
-Fixtures comparten un módulo `src/lib/pdf/documents/__tests__/__fixtures__/pdfFixtures.ts` con `company`, `lineItems`, `customer`, `totals`.
+Antes de tocar nada, listo cada ocurrencia con su archivo y línea para confirmar contigo.
 
-**5. Subir thresholds en `vitest.config.ts`**
-Tras correr local con `--coverage` y medir el nuevo baseline, ajustar dejando ≥5pp de margen real. Estimado conservador:
-- `lines: 16`, `branches: 14`, `functions: 12`, `statements: 16`.
-- Valores finales = `medido_local − 5pp` redondeado a entero.
+### 3. Subir thresholds de coverage tras el nuevo baseline
+
+Tras Lote 2 el baseline subió a `13.98 / 12.92 / 10.08 / 14.36`. Hoy los thresholds están en `13 / 12 / 9 / 13` — margen real <1pp, riesgo de regresión silenciosa.
+
+Plan:
+- Correr `bunx vitest run --coverage` localmente y leer el reporte (`coverage/coverage-summary.json`) para tener el número exacto post-Lote-3.
+- Subir cada threshold a `medido − 1pp` (no 5pp como dijimos antes — con la suite actual eso bloquearía al primer hook nuevo no testeado).
+- Documentar en el changelog el baseline y el margen.
 
 ### Detalles técnicos
 
-- `@react-pdf/renderer` requiere `process.stdout` en node; el setup actual (`jsdom`) lo soporta. Verificar con un primer test antes de extender a los 5.
-- Para el mock de Supabase en `syncInvoiceStatus`, reusar el patrón de `paymentFlow.test.ts` (chain `from().select().eq().single()`) — crear helper `createSupabaseMock({ payments, invoice })` local al test.
-- Sin cambios en código de producción. Si un test descubre un bug, se reporta como hallazgo separado (no se arregla en este lote).
-- Si `@react-pdf/renderer` no rinde bien en jsdom, fallback: `vi.mock('@react-pdf/renderer')` y solo testear que el componente se construye sin lanzar y exporta las props esperadas — pierde detección de regresiones reales pero conserva señal mínima.
+- `useBreadcrumbEntityLabel`: `Database["public"]["Tables"][T]["Row"]` permite tipar `format(row)` por tabla, eliminando los casts. Trade-off: el código crece ~15 líneas, pero queda 0 `as`.
+- Magic numbers: no toco semántica, sólo extraigo. Cada constante lleva JSDoc con la regla de negocio (ej: "Días antes del vencimiento para disparar alerta de seguro — coincide con `notify_insurance_expiration` en SQL").
+- Coverage: si el threshold queda en valores frágiles (ej. `branches: 12.5`), redondeo hacia abajo al entero.
 
 ### Entregables
 
-- 8 archivos de test nuevos (3 unitarios + 5 PDF) + 1 fixture compartido.
-- `vitest.config.ts` con thresholds actualizados.
-- Entrada `v6.61.0` en `public/changelog.json` + `public/changelog/v6.61.0.json`.
+- `src/layouts/hooks/useBreadcrumbEntityLabel.ts` refactorizado, sin `as`.
+- `src/layouts/hooks/__tests__/useBreadcrumbEntityLabel.test.ts` (nuevo, 3 tests).
+- 4–6 constantes nuevas en sus respectivos `lib/constants.ts` o `lib/config.ts`.
+- `vitest.config.ts` con thresholds ajustados al baseline real − 1pp.
+- `public/changelog.json` + `public/changelog/v6.63.0.json` (patch).
 
 ### Verificación
 
-- `bun run test --coverage` local: 526 + ~80 tests nuevos, thresholds nuevos pasan con margen ≥5pp.
 - `bunx tsc --noEmit -p tsconfig.app.json` limpio.
-- `bunx knip` sin nuevos warnings.
-- Pipeline CI verde al re-lanzar el workflow.
+- `bunx vitest run` 100% verde (570 + 3 nuevos).
+- `bunx knip` sin nuevos hallazgos.
+- `rg "\\bas\\s+(string|never|number)\\b" src/layouts/hooks/useBreadcrumbEntityLabel.ts` → 0 matches.
 
-¿Confirmas que avance con esta ejecución?
+### Fuera de alcance (para Lote 5+)
+
+- Refactor de archivos >300 LOC (no se identificaron urgentes en Lotes 1–3).
+- Audit de god components (separación UI / data / lógica).
+- Subir branches >20% (requiere refactor de hooks complejos, no sólo tests).
+
+¿Procedo con los 3 frentes en este Lote, o prefieres acotar a sólo 1–2?

@@ -3,6 +3,16 @@ import type { Forklift } from "@/types/rental";
 import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
 import { money, type LineItem } from "./invoiceTotals";
 
+/** Días que componen una semana de renta (constante de dominio). */
+const DAYS_PER_WEEK = 7;
+/**
+ * Días que se asumen por mes cuando hay que prorratear desde tarifa mensual
+ * hacia tarifa diaria como fallback (no se usa para calcular meses reales —
+ * ese cálculo usa `differenceInCalendarMonths`).
+ */
+const DAYS_PER_MONTH_FALLBACK = 30;
+
+
 function calcMonths(monthlyRate: number, startDate: Date, effectiveEnd: Date): number {
   if (monthlyRate <= 0) return 0;
   let months = differenceInCalendarMonths(effectiveEnd, startDate);
@@ -26,8 +36,8 @@ function buildDailyRemainder(
     };
   }
   let fallback: currency | null = null;
-  if (weeklyRate > 0) fallback = money(weeklyRate).divide(7);
-  else if (monthlyRate > 0) fallback = money(monthlyRate).divide(30);
+  if (weeklyRate > 0) fallback = money(weeklyRate).divide(DAYS_PER_WEEK);
+  else if (monthlyRate > 0) fallback = money(monthlyRate).divide(DAYS_PER_MONTH_FALLBACK);
   if (!fallback || fallback.value <= 0) return null;
   return {
     description: "Renta diaria",
@@ -63,15 +73,15 @@ export function calculateRentalCost(
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
 
-  if (w > 0 && remaining >= 7) {
-    const weeks = Math.floor(remaining / 7);
+  if (w > 0 && remaining >= DAYS_PER_WEEK) {
+    const weeks = Math.floor(remaining / DAYS_PER_WEEK);
     items.push({
       description: "Renta semanal",
       quantity: weeks,
       unit_price: w,
       total: money(w).multiply(weeks).value,
     });
-    remaining -= weeks * 7;
+    remaining -= weeks * DAYS_PER_WEEK;
   }
 
   const dailyItem = buildDailyRemainder(remaining, d, w, m);

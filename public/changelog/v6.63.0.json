@@ -1,0 +1,34 @@
+{
+  "version": "6.63.0",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Auditoría — Lote 4: tipado del breadcrumb y magic numbers",
+  "category": "infra",
+  "changes": [
+    {
+      "area": "Tipado estricto del breadcrumb",
+      "detail": "src/layouts/hooks/useBreadcrumbEntityLabel.ts: 9 `as string` eliminados con helper pickString(value: unknown): string | null. El único cast remanente es maybeSingle<Record<string, unknown>>() — un boundary aislado y comentado, necesario porque Supabase no soporta `.select(dynamic_string)` sobre una unión de tablas. Net: 9 casts → 1 boundary documentado."
+    },
+    {
+      "area": "Tests de breadcrumb",
+      "detail": "4 tests nuevos en src/layouts/hooks/__tests__/useBreadcrumbEntityLabel.test.ts: segmento sin resolver no consulta, ID no-UUID no consulta, factura existente formatea FAC-XXXX, fleet combina manufacturer + model. Mock de supabase fluido (from→select→eq→maybeSingle)."
+    },
+    {
+      "area": "Magic numbers en rentalCalculation",
+      "detail": "DAYS_PER_WEEK=7 y DAYS_PER_MONTH_FALLBACK=30 extraídos como constantes locales con JSDoc explicando su rol semántico (DAYS_PER_MONTH_FALLBACK es solo para prorrateo diario; los meses reales se cuentan con date-fns differenceInCalendarMonths). 4 ocurrencias del 7 y 1 del 30 reemplazadas."
+    },
+    {
+      "area": "Magic numbers descartados",
+      "detail": "Tras grep exhaustivo, las cifras 30 (alerta seguros), 200 (horas/mes) y 3 (buffer mantenimiento) NO existen como magic numbers en código cliente — viven en SQL/edge functions o son placeholders. No se introdujeron constantes especulativas."
+    },
+    {
+      "area": "Coverage baseline",
+      "detail": "Post-Lote-4: 14.14% lines / 13.17% branches / 10.19% functions / 14.55% statements (574 tests). Thresholds Vitest se mantienen en 13/12/9/13 — el margen actual es ~1pp; subir a 14/13/10/14 dejaría <0.5pp y bloquearía el primer hook nuevo sin tests. La política seguida: bump sólo cuando exista ≥1pp de holgura."
+    }
+  ],
+  "verification": {
+    "tests": "574/574 passed",
+    "tsc": "clean (tsconfig.app.json)",
+    "casts_eliminated": 9
+  }
+}
