@@ -35,10 +35,9 @@ function bill(over: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-beforeEach(() => useFakeTimeMty("2026-06-13T12:00:00"));
-afterEach(() => vi.useRealTimers());
-
 describe("useAccountsPayableKpis", () => {
+  useFakeTimeMty("2026-06-13T12:00:00");
+
   it("clasifica factura vencida (due_date < hoy)", () => {
     useSupplierBillsMock.mockReturnValue({
       data: [bill({ due_date: "2026-05-01", balance: 2_500 })],
