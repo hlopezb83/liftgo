@@ -13,7 +13,7 @@ const ACTIVE_INVOICE_STATUSES = ["sent", "partial", "overdue"] as const;
 const ACTIVE_BILL_STATUSES = ["pending", "partial", "overdue"] as const;
 
 /** Convierte a MXN usando el tipo de cambio del documento (USD u otra moneda). */
-function toMxn(amount: number, currency: string | null, fx: number | null | undefined): number {
+function toMxn(amount: number, currency: string | null, fx: number | string | null | undefined): number {
   const code = (currency ?? "MXN").toUpperCase();
   if (code === "MXN") return amount;
   const rate = Number(fx ?? 0);
