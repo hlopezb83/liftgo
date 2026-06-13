@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCreatePayment } from "@/features/invoices/hooks/usePayments";
-import { useStampPaymentComplement } from "@/features/invoices/hooks/invoices/usePaymentComplement";
+import { useStampPaymentComplement } from "@/features/invoices/hooks/invoices/cfdi/usePaymentComplement";
 import { toast } from "sonner";
 import { DatePickerField } from "@/components/DatePickerField";
 import { format } from "date-fns";

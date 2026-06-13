@@ -5,7 +5,7 @@ import { Pencil, Stamp, FileText, Download, XCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
-import { useStampPaymentComplement, useCancelPaymentComplement } from "@/features/invoices/hooks/invoices/usePaymentComplement";
+import { useStampPaymentComplement, useCancelPaymentComplement } from "@/features/invoices/hooks/invoices/cfdi/usePaymentComplement";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { downloadCfdiBlob, type CfdiFormat } from "@/features/invoices/lib/downloadCfdiBlob";
 import { ReconciliationBadge } from "@/features/bank-reconciliation/components/ReconciliationBadge";

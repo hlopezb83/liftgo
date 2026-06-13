@@ -5,7 +5,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "@/features/invoices/components/invoices/InvoicePDFButton";
 import { Send, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { useRefreshCancellationStatus } from "@/features/invoices/hooks/invoices/useRefreshCancellationStatus";
+import { useRefreshCancellationStatus } from "@/features/invoices/hooks/invoices/cfdi/useRefreshCancellationStatus";
 
 interface Props {
   invoice: Tables<"invoices">;
