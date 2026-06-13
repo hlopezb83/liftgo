@@ -6,7 +6,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useSuppliers } from "@/features/suppliers";
 import { useToggleDialog } from "@/hooks/useDialogState";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 import { useAccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
 import { useAccountsPayableFilters } from "../hooks/useAccountsPayableFilters";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";

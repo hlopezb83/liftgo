@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, ChevronRight, CalendarDays } from "lucide-react";
 import { type ColumnDef } from "@/components/dataTable/v2";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 

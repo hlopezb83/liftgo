@@ -6,7 +6,7 @@ import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { GlobalSearch } from "@/layouts/GlobalSearch";
 import { FeedbackFab } from "@/features/feedback";
-import { PageActionsProvider, usePageActionsContext } from "@/contexts/PageActionsContext";
+import { PageActionsProvider, usePageActionsContext } from "@/contexts/pageActions";
 import { useHotkeys } from "@/hooks/useHotkeys";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";

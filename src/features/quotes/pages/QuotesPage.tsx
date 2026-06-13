@@ -15,7 +15,7 @@ import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constant
 import { PlusCircle, ChevronRight } from "lucide-react";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 

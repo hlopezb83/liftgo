@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
 import type { CustomerFormData } from "../lib/customerFormSchema";
 import { buildCustomerPayload, getE2ECustomerMetadata } from "../lib/customerPayload";

@@ -18,7 +18,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateDisplay } from "@/lib/utils";
 import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();

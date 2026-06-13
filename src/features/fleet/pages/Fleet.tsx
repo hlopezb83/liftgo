@@ -16,7 +16,7 @@ import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 
 export default function Fleet() {
   const { data: forklifts, isLoading } = useForklifts();
