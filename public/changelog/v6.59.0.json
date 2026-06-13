@@ -1,0 +1,44 @@
+{
+  "version": "6.59.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de warnings — react-refresh, max-lines y complexity",
+  "category": "infra",
+  "sections": [
+    {
+      "heading": "Ola 1 — react-refresh (3 → 0)",
+      "items": [
+        "PageActionsContext: hooks y contexto movidos a `pageActions.ts`; el Provider queda solo en el `.tsx`.",
+        "usePaymentHistoryColumns: sub-componente RepBadge extraído a `RepBadge.tsx`."
+      ]
+    },
+    {
+      "heading": "Ola 2 — max-lines-per-function (2 → 0)",
+      "items": [
+        "RegisterSupplierPaymentDialog: extraído `ReceiptField` y `buildDefaults`.",
+        "RecordPaymentDialog: extraído `useRecordPaymentForm` con todo el estado y submit."
+      ]
+    },
+    {
+      "heading": "Ola 3 — complexity (26 → 3)",
+      "items": [
+        "Parsers/formatters: parseBankCsv, deriveErrorCode, formatReportText, syncInvoiceStatus, backfillStampSnapshot refactorizados con helpers puros.",
+        "Hooks de Cuentas por Pagar: useSupplierBills, useAccountsPayableKpis, useAgingReport, useExportablePayables, useCashFlowProjection, useSupplierRepMutations extraen acumuladores/mappers.",
+        "Componentes detail/actions: InvoiceDetailActions, QuoteDetailActions, InvoiceDetail, ContractDetail, CalendarPage, BillApprovalSection, SupplierBillDetailSheet, BankAccountFormDialog y SupplierFormDialog particionados en sub-componentes/helpers.",
+        "useHotkeys: handler dividido en tryCombo / trySequenceContinuation / trySequenceStart / trySingleKey."
+      ]
+    },
+    {
+      "heading": "Pendientes (deuda técnica)",
+      "items": [
+        "SupplierPaymentRow (complexity 23), BankLineDetailSheet (15) e InvoiceDetail (15) requieren rediseño UI más profundo. Documentados como warnings residuales para una próxima iteración."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "tsc --noEmit limpio. 526 tests pasan. Lint baja de 31 a 3 warnings."
+      ]
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.59.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de warnings — react-refresh, max-lines y complexity",
+    "description": "Lint baja de 31 a 3 warnings. Ola 1 (react-refresh): separados PageActionsContext y RepBadge en archivos propios. Ola 2 (max-lines): extraídos sub-componentes en RegisterSupplierPaymentDialog y RecordPaymentDialog. Ola 3 (complexity): refactor de 22 funciones con helpers puros (parseBankCsv, deriveErrorCode, useSupplierBills, useAccountsPayableKpis, useAgingReport, useExportablePayables, useCashFlowProjection, syncInvoiceStatus, backfillStampSnapshot, InvoiceDetailActions, QuoteDetailActions, InvoiceDetail, ContractDetail, CalendarPage, BillApprovalSection, SupplierBillDetailSheet, BankAccountFormDialog, BankLineDetailSheet, SupplierFormDialog, useHotkeys). tsc limpio, 526 tests pasan. Quedan 3 warnings de complexity en SupplierPaymentRow, BankLineDetailSheet e InvoiceDetail, marcados como deuda técnica.",
+    "category": "infra"
+  },
+  {
     "version": "6.58.0",
     "date": "2026-06-13",
     "type": "minor",

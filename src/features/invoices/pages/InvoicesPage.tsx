@@ -18,7 +18,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { useResourceList } from "@/hooks/useResourceList";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 

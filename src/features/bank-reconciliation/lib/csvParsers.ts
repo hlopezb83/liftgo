@@ -78,6 +78,27 @@ function hashLine(parts: string[]): string {
   return Math.abs(h).toString(36);
 }
 
+function computeSigned(map: ColumnMap, r: string[]): number | null {
+  if (map.amount !== undefined) return parseAmount(r[map.amount] ?? "");
+  if (map.charge !== undefined && map.credit !== undefined) {
+    const charge = parseAmount(r[map.charge] ?? "") ?? 0;
+    const credit = parseAmount(r[map.credit] ?? "") ?? 0;
+    return credit - Math.abs(charge);
+  }
+  return null;
+}
+
+function parseRow(r: string[], map: ColumnMap, idx: number): ParsedBankLine | string {
+  const dateStr = parseDateFlexible(r[map.date] ?? "");
+  if (!dateStr) return `Línea ${idx + 1}: fecha inválida ("${r[map.date] ?? ""}")`;
+  const description = (r[map.description] ?? "").trim();
+  const signed = computeSigned(map, r);
+  if (signed === null || signed === 0) return `Línea ${idx + 1}: monto inválido o cero`;
+  const reference = map.reference !== undefined ? (r[map.reference] ?? "").trim() || null : null;
+  const hash = hashLine([dateStr, signed.toFixed(2), reference ?? "", description.slice(0, 80)]);
+  return { posted_date: dateStr, description, signed_amount: signed, reference, hash };
+}
+
 export function parseBankCsv(content: string, profile: CsvProfile): ParseResult {
   const rows = splitCsv(content);
   const errors: string[] = [];
@@ -86,41 +107,19 @@ export function parseBankCsv(content: string, profile: CsvProfile): ParseResult 
   if (rows.length === 0) {
     return { lines, errors: ["El archivo está vacío"], periodStart: null, periodEnd: null };
   }
-
   const map = PROFILE_HEADERS[profile] ?? PROFILE_HEADERS.generico;
   if (!map) return { lines, errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
 
-  // Skip header row if first cell isn't a date
   const startIdx = parseDateFlexible(rows[0][0] ?? "") ? 0 : 1;
-
   let periodStart: string | null = null;
   let periodEnd: string | null = null;
 
   for (let i = startIdx; i < rows.length; i++) {
-    const r = rows[i];
-    const dateStr = parseDateFlexible(r[map.date] ?? "");
-    if (!dateStr) {
-      errors.push(`Línea ${i + 1}: fecha inválida ("${r[map.date] ?? ""}")`);
-      continue;
-    }
-    const description = (r[map.description] ?? "").trim();
-    let signed: number | null = null;
-    if (map.amount !== undefined) {
-      signed = parseAmount(r[map.amount] ?? "");
-    } else if (map.charge !== undefined && map.credit !== undefined) {
-      const charge = parseAmount(r[map.charge] ?? "") ?? 0;
-      const credit = parseAmount(r[map.credit] ?? "") ?? 0;
-      signed = credit - Math.abs(charge);
-    }
-    if (signed === null || signed === 0) {
-      errors.push(`Línea ${i + 1}: monto inválido o cero`);
-      continue;
-    }
-    const reference = map.reference !== undefined ? (r[map.reference] ?? "").trim() || null : null;
-    const hash = hashLine([dateStr, signed.toFixed(2), reference ?? "", description.slice(0, 80)]);
-    lines.push({ posted_date: dateStr, description, signed_amount: signed, reference, hash });
-    if (!periodStart || dateStr < periodStart) periodStart = dateStr;
-    if (!periodEnd || dateStr > periodEnd) periodEnd = dateStr;
+    const result = parseRow(rows[i], map, i);
+    if (typeof result === "string") { errors.push(result); continue; }
+    lines.push(result);
+    if (!periodStart || result.posted_date < periodStart) periodStart = result.posted_date;
+    if (!periodEnd || result.posted_date > periodEnd) periodEnd = result.posted_date;
   }
 
   return { lines, errors, periodStart, periodEnd };

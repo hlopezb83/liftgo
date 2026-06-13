@@ -8,6 +8,10 @@ import { ContractConditionsCard } from "../components/contracts/ContractConditio
 import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
 import { useContractDetailLogic } from "../hooks/contractDetail/useContractDetailLogic";
 
+function contractDates(contract: { start_date: string | null; end_date: string | null }) {
+  return { start: contract.start_date ?? "", end: contract.end_date ?? "" };
+}
+
 export default function ContractDetail() {
   const { id, contract, isLoading, setStatus } = useContractDetailLogic();
 
@@ -21,7 +25,8 @@ export default function ContractDetail() {
   }
   if (!contract || !id) return <div className="p-6 text-muted-foreground">Contrato no encontrado</div>;
 
-  const showFinancials = Boolean(contract.booking_id && contract.start_date && contract.end_date);
+  const { start, end } = contractDates(contract);
+  const showFinancials = Boolean(contract.booking_id && start && end);
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -55,8 +60,8 @@ export default function ContractDetail() {
       </div>
 
       <ContractDetailsCard
-        startDate={contract.start_date ?? ""}
-        endDate={contract.end_date ?? ""}
+        startDate={start}
+        endDate={end}
         depositAmount={contract.deposit_amount}
         dailyRate={contract.daily_rate}
         weeklyRate={contract.weekly_rate}
@@ -70,8 +75,8 @@ export default function ContractDetail() {
       {showFinancials && (
         <RentalFinancialSummary
           bookingId={contract.booking_id ?? ""}
-          startDate={contract.start_date ?? ""}
-          endDate={contract.end_date ?? ""}
+          startDate={start}
+          endDate={end}
           dailyRate={contract.daily_rate}
           weeklyRate={contract.weekly_rate}
           monthlyRate={contract.monthly_rate}

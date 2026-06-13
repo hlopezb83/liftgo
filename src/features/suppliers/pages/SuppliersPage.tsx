@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 
 export default function SuppliersPage() {
   const { data: suppliers, isLoading } = useSuppliers();

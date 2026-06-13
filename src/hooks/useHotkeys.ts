@@ -50,68 +50,52 @@ export function useHotkeys(handlers: HotkeyHandlers): void {
       }
     };
 
+    const tryCombo = (e: KeyboardEvent, combos: Record<string, (e: KeyboardEvent) => void>) => {
+      if (!(e.ctrlKey || e.metaKey || e.altKey)) return false;
+      const fn = combos[comboKey(e)];
+      if (!fn) return false;
+      e.preventDefault();
+      clearPending();
+      fn(e);
+      return true;
+    };
+
+    const trySequenceContinuation = (e: KeyboardEvent, sequences: HotkeyHandlers["sequences"], lower: string) => {
+      if (!pendingPrefix || !sequences?.[pendingPrefix]?.[lower]) return false;
+      e.preventDefault();
+      const fn = sequences[pendingPrefix][lower];
+      clearPending();
+      fn(e);
+      return true;
+    };
+
+    const trySequenceStart = (e: KeyboardEvent, sequences: HotkeyHandlers["sequences"], lower: string) => {
+      if (!sequences?.[lower]) return false;
+      e.preventDefault();
+      pendingPrefix = lower;
+      if (timer !== null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => { pendingPrefix = null; timer = null; }, SEQUENCE_TIMEOUT_MS);
+      return true;
+    };
+
+    const trySingleKey = (e: KeyboardEvent, table: Record<string, (e: KeyboardEvent) => void>, lower: string) => {
+      const fn = table[lower];
+      if (!fn) return false;
+      e.preventDefault();
+      clearPending();
+      fn(e);
+      return true;
+    };
+
     const handler = (e: KeyboardEvent) => {
       const { combos = {}, sequences = {}, singles = {} } = handlersRef.current;
-      const editable = isEditableTarget(e.target);
-      const key = e.key;
-      const lower = key.toLowerCase();
-
-      // 1) Combos con modificadores (siempre activos)
-      if (e.ctrlKey || e.metaKey || e.altKey) {
-        const ck = comboKey(e);
-        const fn = combos[ck];
-        if (fn) {
-          e.preventDefault();
-          clearPending();
-          fn(e);
-          return;
-        }
-      }
-
-      // Atajos de tecla sola: no disparar dentro de inputs
-      if (editable) {
-        clearPending();
-        return;
-      }
-
-      // 2) Secuencias (segunda tecla pendiente)
-      if (pendingPrefix && sequences[pendingPrefix]?.[lower]) {
-        e.preventDefault();
-        const fn = sequences[pendingPrefix][lower];
-        clearPending();
-        fn(e);
-        return;
-      }
-
-      // 3) Iniciar nueva secuencia si la tecla es prefijo conocido
-      if (sequences[lower]) {
-        e.preventDefault();
-        pendingPrefix = lower;
-        if (timer !== null) window.clearTimeout(timer);
-        timer = window.setTimeout(() => {
-          pendingPrefix = null;
-          timer = null;
-        }, SEQUENCE_TIMEOUT_MS);
-        return;
-      }
-
-      // 4) Combos sin modificador especiales (ej. "?")
-      if (combos[lower]) {
-        e.preventDefault();
-        clearPending();
-        combos[lower](e);
-        return;
-      }
-
-      // 5) Singles
-      if (singles[lower]) {
-        e.preventDefault();
-        clearPending();
-        singles[lower](e);
-        return;
-      }
-
-      // Tecla no reconocida: limpiar prefijo
+      const lower = e.key.toLowerCase();
+      if (tryCombo(e, combos)) return;
+      if (isEditableTarget(e.target)) { clearPending(); return; }
+      if (trySequenceContinuation(e, sequences, lower)) return;
+      if (trySequenceStart(e, sequences, lower)) return;
+      if (trySingleKey(e, combos, lower)) return;
+      if (trySingleKey(e, singles, lower)) return;
       clearPending();
     };
 

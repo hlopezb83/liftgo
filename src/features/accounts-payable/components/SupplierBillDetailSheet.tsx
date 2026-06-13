@@ -33,6 +33,71 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+interface BillData {
+  subtotal: number | string;
+  tax_amount: number | string;
+  retention_iva: number | string;
+  retention_isr: number | string;
+  total: number | string;
+  exchange_rate: number | string | null;
+  payment_method_sat: string | null;
+  cfdi_uuid: string | null;
+  currency: string;
+}
+
+function FinancialsSection({ bill }: { bill: BillData }) {
+  return (
+    <div className="space-y-0">
+      <Row label="Subtotal" value={formatCurrencyWithCode(Number(bill.subtotal), bill.currency)} />
+      <Row label="IVA" value={formatCurrencyWithCode(Number(bill.tax_amount), bill.currency)} />
+      {Number(bill.retention_iva) > 0 && (
+        <Row label="Ret. IVA" value={`-${formatCurrencyWithCode(Number(bill.retention_iva), bill.currency)}`} />
+      )}
+      {Number(bill.retention_isr) > 0 && (
+        <Row label="Ret. ISR" value={`-${formatCurrencyWithCode(Number(bill.retention_isr), bill.currency)}`} />
+      )}
+      <Row label="Total" value={<strong>{formatCurrencyWithCode(Number(bill.total), bill.currency)}</strong>} />
+      {bill.currency !== "MXN" && <Row label="Tipo de cambio" value={bill.exchange_rate} />}
+      <Row label="Método SAT" value={bill.payment_method_sat} />
+      <Row label="UUID" value={bill.cfdi_uuid ? <span className="font-mono text-xs">{bill.cfdi_uuid}</span> : "—"} />
+    </div>
+  );
+}
+
+function PaymentActions({
+  bill, onPayClick, onCancelClick,
+}: { bill: { status: string; approval_status: string; payments: unknown[] }; onPayClick: () => void; onCancelClick: () => void }) {
+  const payBlocked =
+    bill.status === "paid" ||
+    bill.status === "cancelled" ||
+    bill.approval_status === "pending" ||
+    bill.approval_status === "rejected";
+  const tooltipReason =
+    bill.approval_status === "pending" ? "Requiere aprobación" :
+    bill.approval_status === "rejected" ? "La factura fue rechazada" : null;
+  return (
+    <div className="flex gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="flex-1">
+              <Button className="w-full" disabled={payBlocked} onClick={onPayClick}>
+                <CreditCard className="h-4 w-4 mr-1" /> Registrar pago
+              </Button>
+            </span>
+          </TooltipTrigger>
+          {tooltipReason && <TooltipContent>{tooltipReason}</TooltipContent>}
+        </Tooltip>
+      </TooltipProvider>
+      <Button variant="outline"
+        disabled={bill.status === "cancelled" || bill.payments.length > 0}
+        onClick={onCancelClick}>
+        <XCircle className="h-4 w-4 mr-1" /> Cancelar
+      </Button>
+    </div>
+  );
+}
+
 export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
   const { data: bill, isLoading } = useSupplierBill(open ? billId : null);
   const [payDialog, setPayDialog] = useState(false);
@@ -72,22 +137,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
             </div>
 
             <Separator />
-            <div className="space-y-0">
-              <Row label="Subtotal" value={formatCurrencyWithCode(Number(bill.subtotal), bill.currency)} />
-              <Row label="IVA" value={formatCurrencyWithCode(Number(bill.tax_amount), bill.currency)} />
-              {Number(bill.retention_iva) > 0 && (
-                <Row label="Ret. IVA" value={`-${formatCurrencyWithCode(Number(bill.retention_iva), bill.currency)}`} />
-              )}
-              {Number(bill.retention_isr) > 0 && (
-                <Row label="Ret. ISR" value={`-${formatCurrencyWithCode(Number(bill.retention_isr), bill.currency)}`} />
-              )}
-              <Row label="Total" value={<strong>{formatCurrencyWithCode(Number(bill.total), bill.currency)}</strong>} />
-              {bill.currency !== "MXN" && (
-                <Row label="Tipo de cambio" value={bill.exchange_rate} />
-              )}
-              <Row label="Método SAT" value={bill.payment_method_sat} />
-              <Row label="UUID" value={bill.cfdi_uuid ? <span className="font-mono text-xs">{bill.cfdi_uuid}</span> : "—"} />
-            </div>
+            <FinancialsSection bill={bill} />
 
             {bill.description && (
               <>
@@ -125,44 +175,11 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
 
             <Separator />
             <RoleGuard module="Cuentas por Pagar" minAccess="full">
-              <div className="flex gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="flex-1">
-                        <Button
-                          className="w-full"
-                          disabled={
-                            bill.status === "paid" ||
-                            bill.status === "cancelled" ||
-                            bill.approval_status === "pending" ||
-                            bill.approval_status === "rejected"
-                          }
-                          onClick={() => setPayDialog(true)}
-                        >
-                          <CreditCard className="h-4 w-4 mr-1" />
-                          Registrar pago
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    {(bill.approval_status === "pending" || bill.approval_status === "rejected") && (
-                      <TooltipContent>
-                        {bill.approval_status === "pending"
-                          ? "Requiere aprobación"
-                          : "La factura fue rechazada"}
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-                <Button
-                  variant="outline"
-                  disabled={bill.status === "cancelled" || bill.payments.length > 0}
-                  onClick={() => setCancelDialog(true)}
-                >
-                  <XCircle className="h-4 w-4 mr-1" />
-                  Cancelar
-                </Button>
-              </div>
+              <PaymentActions
+                bill={bill}
+                onPayClick={() => setPayDialog(true)}
+                onCancelClick={() => setCancelDialog(true)}
+              />
             </RoleGuard>
 
             <RegisterSupplierPaymentDialog

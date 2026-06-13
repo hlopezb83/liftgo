@@ -22,6 +22,13 @@ interface Props {
   onOpenChange: (o: boolean) => void;
 }
 
+function matchTarget(isCharge: boolean, id: string | undefined) {
+  return {
+    paymentId: isCharge ? undefined : id,
+    supplierPaymentId: isCharge ? id : undefined,
+  };
+}
+
 export function BankLineDetailSheet({ line, open, onOpenChange }: Props) {
   const [ignoreReason, setIgnoreReason] = useState("");
   const confirmMut = useConfirmBankMatch();
@@ -34,21 +41,17 @@ export function BankLineDetailSheet({ line, open, onOpenChange }: Props) {
 
   const handleConfirmSuggested = () => {
     if (!suggestedId) return;
-    confirmMut.mutate({
-      lineId: line.id,
-      bankAccountId: line.bank_account_id,
-      paymentId: isCharge ? undefined : suggestedId,
-      supplierPaymentId: isCharge ? suggestedId : undefined,
-    }, { onSuccess: () => onOpenChange(false) });
+    confirmMut.mutate(
+      { lineId: line.id, bankAccountId: line.bank_account_id, ...matchTarget(isCharge, suggestedId) },
+      { onSuccess: () => onOpenChange(false) },
+    );
   };
 
   const handleManualMatch = (pid: string) => {
-    confirmMut.mutate({
-      lineId: line.id,
-      bankAccountId: line.bank_account_id,
-      paymentId: isCharge ? undefined : pid,
-      supplierPaymentId: isCharge ? pid : undefined,
-    }, { onSuccess: () => onOpenChange(false) });
+    confirmMut.mutate(
+      { lineId: line.id, bankAccountId: line.bank_account_id, ...matchTarget(isCharge, pid) },
+      { onSuccess: () => onOpenChange(false) },
+    );
   };
 
   const handleIgnore = () => {

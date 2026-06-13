@@ -24,6 +24,20 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+function parseFunctionsError(error: unknown): never {
+  type FnErr = Error & { context?: { body?: unknown } };
+  const ctxBody = (error as FnErr).context?.body;
+  if (typeof ctxBody === "string" && ctxBody.length > 0) {
+    try {
+      const parsed = JSON.parse(ctxBody) as { error?: string };
+      if (parsed?.error) throw new Error(parsed.error);
+    } catch (e) {
+      if (e instanceof Error && e.message) throw e;
+    }
+  }
+  throw error;
+}
+
 export function useUploadSupplierRep() {
   const qc = useQueryClient();
   return useMutation({
@@ -35,19 +49,7 @@ export function useUploadSupplierRep() {
       const { data, error } = await supabase.functions.invoke("validate-supplier-rep", {
         body: { payment_id: paymentId, xml_base64, pdf_base64 },
       });
-      if (error) {
-        type FnErr = Error & { context?: { body?: unknown } };
-        const ctxBody = (error as FnErr).context?.body;
-        if (typeof ctxBody === "string" && ctxBody.length > 0) {
-          try {
-            const parsed = JSON.parse(ctxBody) as { error?: string };
-            if (parsed?.error) throw new Error(parsed.error);
-          } catch (e) {
-            if (e instanceof Error && e.message) throw e;
-          }
-        }
-        throw error;
-      }
+      if (error) parseFunctionsError(error);
       if (data?.error) throw new Error(data.error);
       return data;
     },

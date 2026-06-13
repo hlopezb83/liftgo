@@ -14,9 +14,29 @@ async function fetchPaymentsSum(invoiceId: string): Promise<{ rows: PaymentLite[
   return { rows, total };
 }
 
+async function applyStatus(
+  invoiceId: string,
+  patch: { status: string; paid_at: string | null },
+  label: string,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("invoices")
+    .update(patch)
+    .eq("id", invoiceId)
+    .select("id");
+  if (error) throw error;
+  assertRowsAffected(data, label);
+}
+
+function latestPaymentDate(rows: PaymentLite[], fallback: string | null): string {
+  return rows.reduce<string>(
+    (latest, p) => (p.payment_date && p.payment_date > latest ? p.payment_date : latest),
+    fallback ?? rows[0]?.payment_date ?? "",
+  );
+}
+
 /**
  * Reconciles invoice status (paid/partial/sent) after a payment is created, edited or removed.
- * Pure orchestration: read payments + invoice, decide target status, persist.
  */
 export async function syncInvoiceStatus(invoiceId: string, paidAtFallback: string | null) {
   const { rows, total: totalPaid } = await fetchPaymentsSum(invoiceId);
@@ -29,36 +49,14 @@ export async function syncInvoiceStatus(invoiceId: string, paidAtFallback: strin
 
   const balance = roundMoney(Number(invoice.total) - totalPaid);
   if (balance <= 0 && invoice.status !== "paid") {
-    const latestDate = rows.reduce<string>(
-      (latest, p) => (p.payment_date && p.payment_date > latest ? p.payment_date : latest),
-      paidAtFallback ?? rows[0]?.payment_date ?? "",
-    );
-    const { data: paid, error: paidErr } = await supabase
-      .from("invoices")
-      .update({ status: "paid", paid_at: latestDate })
-      .eq("id", invoiceId)
-      .select("id");
-    if (paidErr) throw paidErr;
-    assertRowsAffected(paid, "Marcar factura como pagada");
+    await applyStatus(invoiceId, { status: "paid", paid_at: latestPaymentDate(rows, paidAtFallback) }, "Marcar factura como pagada");
     return;
   }
   if (balance > 0 && totalPaid > 0 && invoice.status !== "partial") {
-    const { data: partial, error: partialErr } = await supabase
-      .from("invoices")
-      .update({ status: "partial", paid_at: null })
-      .eq("id", invoiceId)
-      .select("id");
-    if (partialErr) throw partialErr;
-    assertRowsAffected(partial, "Marcar factura como parcial");
+    await applyStatus(invoiceId, { status: "partial", paid_at: null }, "Marcar factura como parcial");
     return;
   }
   if (totalPaid === 0 && invoice.status !== "sent") {
-    const { data: sent, error: sentErr } = await supabase
-      .from("invoices")
-      .update({ status: "sent", paid_at: null })
-      .eq("id", invoiceId)
-      .select("id");
-    if (sentErr) throw sentErr;
-    assertRowsAffected(sent, "Restablecer estado de factura");
+    await applyStatus(invoiceId, { status: "sent", paid_at: null }, "Restablecer estado de factura");
   }
 }

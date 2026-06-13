@@ -39,6 +39,36 @@ const CFDI_BADGE_LABELS: Record<string, string> = {
 };
 const cfdiBadgeLabel = (status: string) => CFDI_BADGE_LABELS[status] ?? status;
 
+function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; status: string; cancellation_status: string | null; total: number }>): number {
+  return creditNotes
+    .filter((cn) => cn.cfdi_status === "stamped" && cn.status !== "cancelled" && cn.cancellation_status !== "accepted")
+    .reduce((s, cn) => s + Number(cn.total), 0);
+}
+
+function deriveInvoiceData(
+  invoice: NonNullable<ReturnType<typeof useInvoice>["data"]>,
+  payments: ReturnType<typeof usePayments>["data"],
+  creditNotes: ReturnType<typeof useCreditNotesForInvoice>["data"],
+  company: ReturnType<typeof useCompanySettings>["data"],
+) {
+  const paymentList = payments ?? [];
+  const lineItems = parseLineItems<LineItem>(invoice.line_items);
+  const cfdiStatus = invoice.cfdi_status ?? "pending";
+  const totalPaid = paymentList.reduce((sum, p) => sum + Number(p.amount), 0);
+  const creditedAmount = computeCreditedAmount(creditNotes ?? []);
+  const total = Number(invoice.total);
+  const pacMode = (company as { facturapi_mode?: string } | null | undefined)?.facturapi_mode ?? "test";
+  return {
+    paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total,
+    balance: total - totalPaid - creditedAmount,
+    showCfdiError: Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped",
+    showCollectionNotes: !["paid", "draft"].includes(invoice.status),
+    isLive: pacMode === "live",
+    showPacBadge: cfdiStatus !== "stamped",
+    ppdStamped: invoice.metodo_pago === "PPD" && cfdiStatus === "stamped",
+  };
+}
+
 export default function InvoiceDetail() {
   const { id } = useParams();
   const { data: invoice, isLoading, refetch } = useInvoice(id);
@@ -54,21 +84,9 @@ export default function InvoiceDetail() {
   if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
   if (!invoice || !id) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
 
-  const paymentList = payments ?? [];
-  const lineItems = parseLineItems<LineItem>(invoice.line_items);
-  const cfdiStatus = invoice.cfdi_status ?? "pending";
-  const totalPaid = paymentList.reduce((sum, p) => sum + Number(p.amount), 0);
-  const creditedAmount = creditNotes
-    .filter((cn) => cn.cfdi_status === "stamped" && cn.status !== "cancelled" && cn.cancellation_status !== "accepted")
-    .reduce((s, cn) => s + Number(cn.total), 0);
-  const total = Number(invoice.total);
-  const balance = total - totalPaid - creditedAmount;
-  const showCfdiError = Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped";
-  const showCollectionNotes = !["paid", "draft"].includes(invoice.status);
+  const d = deriveInvoiceData(invoice, payments, creditNotes, company);
+  const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance, showCfdiError, showCollectionNotes, isLive, showPacBadge, ppdStamped } = d;
   const notes = invoice.notes;
-  const pacMode = (company as { facturapi_mode?: string } | null | undefined)?.facturapi_mode ?? "test";
-  const isLive = pacMode === "live";
-  const showPacBadge = cfdiStatus !== "stamped";
 
   return (
     <div className="p-6 max-w-4xl space-y-6">
@@ -128,7 +146,7 @@ export default function InvoiceDetail() {
         totalPaid={totalPaid}
         balance={balance}
         payments={paymentList}
-        ppdStamped={invoice.metodo_pago === "PPD" && cfdiStatus === "stamped"}
+        ppdStamped={ppdStamped}
         creditedAmount={creditedAmount}
       />
       {id && <PaymentIntentsSection invoiceId={id} />}
@@ -150,7 +168,7 @@ export default function InvoiceDetail() {
         setDeleteOpen={actions.setDeleteDialogOpen}
         onCancelSuccess={refetch}
         onDelete={actions.handleDelete}
-        ppdStamped={invoice.metodo_pago === "PPD" && cfdiStatus === "stamped"}
+        ppdStamped={ppdStamped}
       />
 
     </div>

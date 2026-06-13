@@ -27,6 +27,16 @@ function diffDays(a: string, b: string): number {
   return Math.floor((new Date(a + "T00:00:00Z").getTime() - new Date(b + "T00:00:00Z").getTime()) / 86_400_000);
 }
 
+function bucketKey(overdueDays: number): keyof Omit<AgingRow, "supplierId" | "supplierName" | "total"> {
+  if (overdueDays <= 0) return "current";
+  if (overdueDays <= 30) return "d1_30";
+  if (overdueDays <= 60) return "d31_60";
+  if (overdueDays <= 90) return "d61_90";
+  return "d90_plus";
+}
+
+const EMPTY_TOTALS: AgingTotals = { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, total: 0 };
+
 export function useAgingReport() {
   const { data, isLoading } = useSupplierBills();
 
@@ -45,14 +55,8 @@ export function useAgingReport() {
       };
 
       const due = b.due_date ?? b.issue_date;
-      const overdueDays = diffDays(todayYmd, due);
-
-      if (overdueDays <= 0) row.current += balance;
-      else if (overdueDays <= 30) row.d1_30 += balance;
-      else if (overdueDays <= 60) row.d31_60 += balance;
-      else if (overdueDays <= 90) row.d61_90 += balance;
-      else row.d90_plus += balance;
-
+      const key = bucketKey(diffDays(todayYmd, due));
+      row[key] += balance;
       row.total += balance;
       byId.set(supplierId, row);
     }
@@ -67,7 +71,7 @@ export function useAgingReport() {
         d90_plus: acc.d90_plus + r.d90_plus,
         total: acc.total + r.total,
       }),
-      { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, total: 0 },
+      EMPTY_TOTALS,
     );
 
     return { rows, totals };

@@ -13,7 +13,7 @@ import { useCRMMetrics } from "../hooks/useCRMMetrics";
 import { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
 import { ACTIVE_STAGES } from "../lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { usePageActions } from "@/contexts/PageActionsContext";
+import { usePageActions } from "@/contexts/pageActions";
 
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();
