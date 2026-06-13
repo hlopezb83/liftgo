@@ -284,6 +284,8 @@ jobs:
         env:
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+          E2E_PORTAL_EMAIL: ${{ secrets.E2E_PORTAL_EMAIL }}
+          E2E_PORTAL_PASSWORD: ${{ secrets.E2E_PORTAL_PASSWORD }}
           SHARD_INDEX: ${{ matrix.shard }}
           SHARD_TOTAL: ${{ matrix.total }}
           # Vite necesita estas variables en build time para embeber el cliente
