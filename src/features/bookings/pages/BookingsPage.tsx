@@ -5,7 +5,7 @@ import { formatMtyDate } from "@/lib/utils";
 
 import { STATUS_LABELS } from "@/lib/constants";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
-import { useListFilters } from "@/hooks/useListFilters";
+import { useResourceList } from "@/hooks/useResourceList";
 import { ListPageLayout } from "@/components/ListPageLayout";
 import { SearchBar } from "@/components/SearchBar";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, ChevronRight, CalendarDays } from "lucide-react";
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/PageActionsContext";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
