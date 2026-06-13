@@ -1,0 +1,16 @@
+{
+  "version": "6.51.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Refactor arquitectónico — paso 6: separación form-state / mutation / side-effects en hooks *Logic",
+  "description": "Sexto paso del plan de auditoría. useBookingActionsLogic se descompuso en tres hooks atómicos siguiendo la separación de responsabilidades. Los otros candidatos (useInvoiceFormLogic, useForkliftFormLogic, useContractFormPrefill) ya estaban dentro del presupuesto y/o ya delegaban a sub-hooks.",
+  "changes": [
+    "Nuevo useBookingDialogsState — sólo estado local de UI (extendOpen, statusDialogOpen, newStatus, newEndDate).",
+    "Nuevo useBookingActions — mutaciones + side-effects (delete/cancel/extend/statusChange con toast y navegación).",
+    "Nuevo useExtendBookingPreview — cálculo memoizado del preview de extensión (forklifts + line items + totales).",
+    "useBookingActionsLogic queda como orquestador delgado (49 líneas vs 102) que compone los tres hooks; API pública preservada para BookingActions y BookingActionDialogs.",
+    "useInvoiceFormLogic ya estaba descompuesto en useInvoicePrefill + useInvoiceFormHandlers + useInvoiceFormTotals + useInvoiceFormSubmit; sin cambios.",
+    "useForkliftFormLogic (56 líneas) y useContractFormPrefill (78 líneas) están dentro del límite ≤80 LOC del Power of 10; sin cambios."
+  ]
+}
