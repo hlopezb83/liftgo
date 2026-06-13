@@ -83,11 +83,12 @@ export default function InvoicesPage() {
     [],
   );
 
-  const table = useLiftgoTable<Invoice>({
-    data: filtered,
+  const { table } = useResourceList<Invoice>({
+    items: invoices,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "invoice_number", desc: true }],
+    externalFiltered: filtered,
   });
 
   return (
