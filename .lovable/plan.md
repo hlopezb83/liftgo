@@ -76,7 +76,7 @@ Paso 4  ✅ v6.49.0 — features/invoices/hooks/invoices/ reagrupado en cfdi/ re
 Paso 5  ✅ v6.50.0 — useResourceList<T> creado; BookingsPage e InvoicesPage migradas como piloto
 Paso 6  ✅ v6.51.0 — useBookingActionsLogic descompuesto en 3 hooks atómicos (dialogs/actions/preview)
 Paso 7  ✅ v6.52.0 — src/components/ reorganizado en layout/ forms/ feedback/ domain/ (103 archivos actualizados)
-Paso 8  Reorganizar src/lib/ raíz: money/, format/; mover routes-config y routes a src/app/routes/
+Paso 8  ✅ v6.53.0 — formatCurrency→lib/format/, money→lib/money/, routes→src/routes/ (102 archivos)
 Paso 9  Dividir lib/pdf/theme/styles.ts por tipo de documento
 Paso 10 Añadir tests unitarios a features críticos sin cobertura (fleet, quotes, maintenance)
 ```
