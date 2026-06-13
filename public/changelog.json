@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.10",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de tests — Lote 4 (cobertura avanzada)",
+    "description": "14 tests Vitest nuevos: useCreateSupplierBill / useCancelSupplierBill (folio vía RPC, propagación de errores, reason→notes) y parseBankCsv casos negativos (archivo vacío, monto cero, paréntesis negativo, separador ';', $ y comas de miles, DD/MM/YY, mezcla válidas/inválidas conservando válidas). Smoke tests Deno para 2 Edge Functions previamente sin cobertura: generate-invoice-pdf y classify-feedback-report. Suite total: 618 tests verde.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.9",
     "date": "2026-06-13",
     "type": "minor",
