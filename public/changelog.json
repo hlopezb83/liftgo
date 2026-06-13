@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.14",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de tests — Lote 8 (mantenimiento y contratos)",
+    "description": "9 tests Vitest nuevos: useMaintenanceLogs (5 — create/update/delete, patch excluye id, mensajes de error localizados) y useContracts (4 — contract_number generado vía RPC next_contract_number, NO inserta si la numeración falla, propagación de duplicate, patch excluye id). Cubre riesgos críticos de bitácora de mantenimiento incompleta y contratos sin folio legal.",
+    "category": "testing"
+  },
+  {
     "version": "6.66.13",
     "date": "2026-06-13",
     "type": "minor",
