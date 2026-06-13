@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.61.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría — Lote 2: cobertura real de dominio puro",
+    "description": "44 tests nuevos sobre lógica de máxima criticidad: rentalCalculation (cálculos día/semana/mes con currency.js, 11 escenarios), invoiceTotals (descuentos %/$, NaN, IVA 16/8/0%, 19 escenarios), syncInvoiceStatus (paid/partial/sent/idempotencia, 7 escenarios) y smoke de los 5 Documents PDF (Quote, Invoice ±CFDI, CustomerStatement, IncomeStatement ±comparativo, Contract full) vía mock de @react-pdf/renderer. Suite total 526 → 570 tests. Coverage 11.6/10.4/8.2/11.8 → 13.98/12.92/10.08/14.36. Thresholds Vitest suben +2pp en cada métrica (lines/statements 11→13, branches 10→12, functions 8→9).",
+    "category": "infra"
+  },
+  {
+
     "version": "6.60.0",
     "date": "2026-06-13",
     "type": "minor",
