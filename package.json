@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:rls": "vitest run --reporter=verbose --reporter=junit --outputFile.junit=reports/rls-junit.xml src/test/roleMatrix.test.ts src/test/rolePermissions.test.ts \"src/**/*.rls.test.ts\"",
+    "test:rls": "VITEST_RLS_JUNIT=1 vitest run --reporter=verbose src/test/roleMatrix.test.ts src/test/rolePermissions.test.ts \"src/**/*.rls.test.ts\"",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
