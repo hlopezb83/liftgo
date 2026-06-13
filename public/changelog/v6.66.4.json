@@ -1,0 +1,24 @@
+{
+  "version": "6.66.4",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "CI: fix lint errors en fixture del portal E2E",
+  "category": "fix",
+  "description": "Refactor de `tests/e2e/fixtures/portalSeed.ts` para cumplir con las reglas de ESLint del proyecto: sin non-null assertions y sin empty object patterns. Configuración movida a objeto validado al cargar el módulo. También se corrige el import absoluto restringido en `useRecordPaymentForm.ts` (cambiado a relativo dentro de la misma feature).",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "portalSeed.ts sin non-null assertions",
+      "description": "Las env vars se cargan en un objeto `CONFIG` validado una sola vez; las fixtures consumen las propiedades tipadas. Eliminados los 9 errores de `@typescript-eslint/no-non-null-assertion` y `no-empty-pattern`."
+    },
+    {
+      "type": "fix",
+      "title": "Import relativo en useRecordPaymentForm",
+      "description": "Cambiado `@/features/invoices/lib/paymentMethods` por `../../lib/paymentMethods` para cumplir con la regla `no-restricted-imports` que prohíbe rutas internas absolutas."
+    }
+  ],
+  "highlights": [
+    "`bun run lint` vuelve a pasar — desbloquea el step de Vitest en CI",
+    "El error 'No test results found for Vitest results' era cascada del lint fallido"
+  ]
+}
