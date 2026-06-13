@@ -13,7 +13,7 @@ interface Props {
   initial?: BankAccount | null;
 }
 
-export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
+function useBankAccountFormState(initial?: BankAccount | null) {
   const [name, setName] = useState(initial?.name ?? "");
   const [bank, setBank] = useState(initial?.bank ?? "");
   const [last4, setLast4] = useState(initial?.last4 ?? "");
@@ -21,19 +21,27 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
   const [initialBalance, setInitialBalance] = useState(String(initial?.initial_balance ?? "0"));
   const [isActive, setIsActive] = useState(initial?.is_active ?? true);
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  return {
+    name, setName, bank, setBank, last4, setLast4, currency, setCurrency,
+    initialBalance, setInitialBalance, isActive, setIsActive, notes, setNotes,
+  };
+}
+
+export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
+  const s = useBankAccountFormState(initial);
   const upsert = useUpsertBankAccount();
 
   const handleSave = () => {
     upsert.mutate(
       {
         id: initial?.id,
-        name: name.trim(),
-        bank: bank.trim(),
-        last4: last4.trim() || null,
-        currency,
-        initial_balance: Number(initialBalance) || 0,
-        is_active: isActive,
-        notes: notes.trim() || null,
+        name: s.name.trim(),
+        bank: s.bank.trim(),
+        last4: s.last4.trim() || null,
+        currency: s.currency,
+        initial_balance: Number(s.initialBalance) || 0,
+        is_active: s.isActive,
+        notes: s.notes.trim() || null,
       },
       { onSuccess: () => onOpenChange(false) },
     );
