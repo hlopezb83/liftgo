@@ -1,6 +1,6 @@
 import { useMemo, memo } from "react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRight } from "lucide-react";
 import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
 import { nowMty, formatMtyDate } from "@/lib/utils";

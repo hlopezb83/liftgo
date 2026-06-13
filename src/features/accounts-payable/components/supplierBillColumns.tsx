@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrencyWithCode } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";

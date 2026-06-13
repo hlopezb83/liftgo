@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerField } from "@/components/DatePickerField";
-import { StatusBadge } from "@/components/StatusBadge";
+import { DatePickerField } from "@/components/forms/DatePickerField";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { STATUS_LABELS, getValidTransitions } from "@/features/bookings/hooks/useBookingActionsLogic";

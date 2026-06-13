@@ -5,12 +5,12 @@ import { useContracts } from "@/features/contracts/hooks/useContracts";
 import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
 import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
 
-import { ListPageLayout } from "@/components/ListPageLayout";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PlusCircle, Download, Forklift as ForkliftIcon } from "lucide-react";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { FleetMobileCard } from "@/features/fleet/components/fleet/FleetRowAndCard";

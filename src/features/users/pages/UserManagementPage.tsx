@@ -2,10 +2,10 @@ import { useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, Users } from "lucide-react";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBar } from "@/components/forms/SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { ListPageLayout } from "@/components/ListPageLayout";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { STAFF_ROLES } from "@/lib/constants";
 import type { AppRole } from "@/features/users/hooks/useUserRole";
 

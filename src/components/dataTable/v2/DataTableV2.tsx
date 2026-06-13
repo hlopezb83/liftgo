@@ -1,8 +1,8 @@
 import { memo, type ReactNode } from "react";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import { Table } from "@/components/ui/table";
-import { TableSkeleton } from "@/components/TableSkeleton";
-import { MobileCardList } from "@/components/MobileCardList";
+import { TableSkeleton } from "@/components/feedback/TableSkeleton";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DataTableHeaderV2 } from "./DataTableHeaderV2";
 import { DataTableBodyV2 } from "./DataTableBodyV2";

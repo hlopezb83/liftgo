@@ -3,9 +3,9 @@ import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/us
 import type { Supplier } from "@/features/suppliers/hooks/useSuppliers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ListPageLayout } from "@/components/ListPageLayout";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { PlusCircle, Download, ChevronRight } from "lucide-react";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";

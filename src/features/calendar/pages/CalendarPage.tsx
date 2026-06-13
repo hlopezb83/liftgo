@@ -1,9 +1,9 @@
 import { useBookingsRange } from "@/features/bookings/hooks/useBookings";
 import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
-import { PageTransition } from "@/components/PageTransition";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";

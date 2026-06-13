@@ -1,6 +1,6 @@
-import { PageTransition } from "@/components/PageTransition";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Eye, Minus, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";

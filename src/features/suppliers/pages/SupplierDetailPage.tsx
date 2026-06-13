@@ -4,8 +4,8 @@ import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/us
 import { useSupplierBills } from "@/features/accounts-payable/hooks/useSupplierBills";
 import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
 import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
-import { DetailPageHeader } from "@/components/DetailPageHeader";
-import { NotesCard } from "@/components/NotesCard";
+import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { NotesCard } from "@/components/domain/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

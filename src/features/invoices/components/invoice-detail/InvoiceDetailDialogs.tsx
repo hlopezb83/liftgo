@@ -11,7 +11,7 @@ import {
 import { RecordPaymentDialog } from "@/features/invoices/components/invoices/RecordPaymentDialog";
 import { CancelCfdiDialog } from "@/features/invoices/components/invoice-detail/CancelCfdiDialog";
 import { CollectionNotesCard } from "@/features/invoices/components/invoice-detail/CollectionNotesCard";
-import { NotesCard } from "@/components/NotesCard";
+import { NotesCard } from "@/components/domain/NotesCard";
 
 type Props = {
   invoiceId: string;

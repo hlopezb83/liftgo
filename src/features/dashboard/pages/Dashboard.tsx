@@ -1,5 +1,5 @@
-import { PageTransition } from "@/components/PageTransition";
-import { PageHeader } from "@/components/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCards } from "@/features/dashboard/components/dashboard/StatCards";
 import { FinancialKpiCards } from "@/features/dashboard/components/dashboard/FinancialKpiCards";

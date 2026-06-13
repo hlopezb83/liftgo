@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBar } from "@/components/forms/SearchBar";
 import { capitalize, parseDateLocal } from "@/lib/utils";
 import { AccountsPayableKpiCards } from "./AccountsPayableKpiCards";
 import {

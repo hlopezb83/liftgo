@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useCreatePayment } from "@/features/invoices/hooks/usePayments";
 import { useStampPaymentComplement } from "@/features/invoices/hooks/invoices/cfdi/usePaymentComplement";
 import { toast } from "sonner";
-import { DatePickerField } from "@/components/DatePickerField";
+import { DatePickerField } from "@/components/forms/DatePickerField";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { FORMA_PAGO, MONEDA } from "@/lib/domain/satCatalogs";

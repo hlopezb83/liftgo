@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { PlusCircle, TruckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FormActions } from "@/components/FormActions";
+import { FormActions } from "@/components/forms/FormActions";
 import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { useBookings } from "@/features/bookings/hooks/useBookings";
 import { useActiveDrivers } from "@/features/fleet/hooks/useDrivers";

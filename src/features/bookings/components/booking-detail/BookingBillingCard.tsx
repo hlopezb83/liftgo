@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
-import { InfoRow } from "@/components/InfoRow";
-import { StatusBadge } from "@/components/StatusBadge";
+import { InfoRow } from "@/components/forms/InfoRow";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { RecurringBillingBadge } from "@/features/bookings/components/bookings/RecurringBillingBadge";
 import { formatMtyDate } from "@/lib/utils";
 import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";

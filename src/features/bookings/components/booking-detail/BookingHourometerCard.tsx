@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gauge } from "lucide-react";
-import { InfoRow } from "@/components/InfoRow";
+import { InfoRow } from "@/components/forms/InfoRow";
 
 interface Props {
   deliveryHours: number | null;

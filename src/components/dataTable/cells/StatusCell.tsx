@@ -1,4 +1,4 @@
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 
 interface StatusCellProps {
   status: string | null | undefined;

@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DamageActions } from "@/features/damage/components/damage/DamageActions";
 import { DamagePhotosSection } from "@/features/damage/components/damage/DamagePhotosSection";
 import { formatCurrency } from "@/lib/formatCurrency";

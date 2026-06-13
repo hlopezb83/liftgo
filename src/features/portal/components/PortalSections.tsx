@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
 

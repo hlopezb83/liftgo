@@ -3,8 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerField } from "@/components/DatePickerField";
-import { FormActions } from "@/components/FormActions";
+import { DatePickerField } from "@/components/forms/DatePickerField";
+import { FormActions } from "@/components/forms/FormActions";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
 import { Wrench } from "lucide-react";

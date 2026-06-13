@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { AlertCircle } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBar } from "@/components/forms/SearchBar";
 import { useChangelog } from "@/features/changelog/hooks/useChangelog";
 import { getCurrentVersion } from "@/features/changelog/lib/changelog";
 import { useListPage } from "@/hooks/useListPage";
-import { TablePagination } from "@/components/TablePagination";
+import { TablePagination } from "@/components/feedback/TablePagination";
 import { ChangelogEntryCard } from "@/features/changelog/components/changelog/ChangelogEntryCard";
 import { useChangelogDeepLink } from "@/features/changelog/hooks/useChangelogDeepLink";
 import {

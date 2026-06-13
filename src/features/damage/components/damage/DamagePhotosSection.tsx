@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDocuments } from "@/hooks/useDocuments";
-import { DragDropImageUploader } from "@/components/DragDropImageUploader";
+import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import { ImageGalleryLightbox } from "@/features/damage/components/damage/ImageGalleryLightbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera } from "lucide-react";

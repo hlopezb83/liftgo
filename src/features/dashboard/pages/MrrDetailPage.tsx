@@ -7,7 +7,7 @@ import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { useMrrDetail } from "@/features/dashboard/hooks/useMrrDetail";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { es } from "date-fns/locale";
 import { formatMtyDate } from "@/lib/utils";
 

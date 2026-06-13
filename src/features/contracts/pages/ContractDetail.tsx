@@ -1,6 +1,6 @@
-import { DetailPageHeader } from "@/components/DetailPageHeader";
+import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContractDetailActions } from "@/features/contracts/components/contracts/ContractDetailActions";
 import { RentalFinancialSummary } from "@/features/contracts/components/contracts/RentalFinancialSummary";

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck } from "lucide-react";
-import { InfoRow } from "@/components/InfoRow";
+import { InfoRow } from "@/components/forms/InfoRow";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 export function EquipmentCard({ ins }: { ins: ReturnInspectionWithJoins }) {

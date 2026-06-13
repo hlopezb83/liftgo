@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/StatusBadge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { usePortalContracts } from "@/features/customers/hooks/customers/useCustomerPortal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
