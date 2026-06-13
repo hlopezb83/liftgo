@@ -1,0 +1,32 @@
+{
+  "version": "6.58.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Refactor cross-feature — barrels públicos por feature",
+  "category": "infra",
+  "sections": [
+    {
+      "heading": "Barrels por feature",
+      "items": [
+        "Creados `src/features/<feature>/index.ts` en 23 features (auth, bookings, crm, customers, fleet, invoices, contracts, quotes, etc.) re-exportando la API pública.",
+        "Cada barrel agrupa hooks, lib y componentes consumidos externamente; ampliable manualmente cuando una feature exponga más.",
+        "Restaurados imports default (AuthPage, PortalDashboard, etc.) a sus rutas profundas porque `export *` no propaga defaults."
+      ]
+    },
+    {
+      "heading": "Migración masiva de imports",
+      "items": [
+        "128 archivos consumidores migrados a importar desde `@/features/<feature>` en lugar de rutas internas.",
+        "287 imports intra-feature convertidos de alias absoluto `@/features/X/...` a rutas relativas, eliminando el falso positivo del lint y dejando explícita la cohesión interna.",
+        "Imports duplicados al mismo barrel fusionados en una sola línea por archivo."
+      ]
+    },
+    {
+      "heading": "Resultado",
+      "items": [
+        "164 warnings de `no-restricted-imports` resueltos (0 restantes).",
+        "tsc --noEmit limpio. 526 tests pasan. Lint baja de ~196 a 31 warnings (residuales: `max-lines` y `complexity`)."
+      ]
+    }
+  ]
+}
