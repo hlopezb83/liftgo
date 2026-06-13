@@ -1,0 +1,30 @@
+{
+  "version": "6.66.3",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "E2E: prueba del portal de clientes con seed dedicado",
+  "category": "testing",
+  "description": "Se activa la prueba E2E que valida que un cliente del portal ve su factura asignada. Reemplaza el placeholder `test.skip` por un flujo real con seed transaccional y limpieza por scope.",
+  "changes": [
+    {
+      "type": "feature",
+      "title": "RPC `e2e_seed_portal_scenario`",
+      "description": "Nueva función `SECURITY DEFINER` restringida a admin que crea un cliente vinculado al usuario `portal-e2e@liftgo.test` y una factura emitida etiquetada con `is_e2e=true` y `e2e_scope`. Reutiliza `e2e_teardown` para la limpieza."
+    },
+    {
+      "type": "feature",
+      "title": "Fixture `portalSeed.ts` y test del portal activo",
+      "description": "Nuevo fixture de Playwright que inicia sesión como admin, siembra el escenario, expone los IDs al test y garantiza teardown en `finally`. El test hace login UI en `/portal/login` con credenciales del portal y verifica que la factura sembrada aparezca en `/portal/invoices`."
+    },
+    {
+      "type": "chore",
+      "title": "CI: nuevos secrets para credenciales del portal",
+      "description": "El job e2e ahora inyecta `E2E_PORTAL_EMAIL` y `E2E_PORTAL_PASSWORD` desde GitHub Secrets. Sin ellos el test del portal falla."
+    }
+  ],
+  "highlights": [
+    "Cobertura E2E real del portal de clientes (login + listado de facturas)",
+    "Cero contaminación de datos: seed y teardown por scope único",
+    "Pendiente manual: agregar los dos secrets nuevos en GitHub Actions"
+  ]
+}

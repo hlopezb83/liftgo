@@ -3228,6 +3228,10 @@ export type Database = {
         Returns: undefined
       }
       e2e_purge_all: { Args: never; Returns: Json }
+      e2e_seed_portal_scenario: {
+        Args: { p_portal_email: string; p_scope: string }
+        Returns: Json
+      }
       e2e_seed_scenario: { Args: { p_scope: string }; Returns: Json }
       e2e_teardown: { Args: { p_scope: string }; Returns: Json }
       generate_feedback_number: { Args: never; Returns: string }
