@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { PlusCircle, TruckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FormActions } from "@/components/forms/FormActions";
 import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
 import { useBookings } from "@/features/bookings/hooks/useBookings";

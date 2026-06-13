@@ -3,7 +3,6 @@ import {
   FORKLIFT_STATUSES,
   DAMAGE_STATUSES,
   INSPECTION_CONDITIONS,
-  FUEL_LEVELS,
   STATUS_LABELS,
 } from "@/lib/constants";
 

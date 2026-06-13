@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { useLiftgoTable } from "@/components/dataTable/v2/useLiftgoTable";

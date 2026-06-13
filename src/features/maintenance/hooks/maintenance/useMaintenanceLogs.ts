@@ -29,9 +29,7 @@ export function useCreateMaintenanceLog() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
     onError: (err: Error) => {
-      import("sonner").then(({ toast }) =>
-        notifyError({ title: "Error al crear registro de mantenimiento", error: err })
-      );
+      notifyError({ title: "Error al crear registro de mantenimiento", error: err });
     },
   });
 }
@@ -57,9 +55,7 @@ export function useDeleteMaintenanceLog() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
     onError: (err: Error) => {
-      import("sonner").then(({ toast }) =>
-        notifyError({ title: "Error al eliminar registro de mantenimiento", error: err })
-      );
+      notifyError({ title: "Error al eliminar registro de mantenimiento", error: err });
     },
   });
 }

@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface ForkliftSelectorProps {

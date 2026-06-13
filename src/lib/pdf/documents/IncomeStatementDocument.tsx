@@ -40,7 +40,7 @@ function fmtDelta(d: number, isPct?: boolean): string {
   return isPct ? `${sign}${d.toFixed(1)} pp` : `${sign}${formatCurrency(d)}`;
 }
 
-function isCost(label: string, isCost: boolean | undefined, value: number): boolean {
+function isCost(_label: string, isCost: boolean | undefined, value: number): boolean {
   return Boolean(isCost) || value < 0;
 }
 

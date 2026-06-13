@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 import type { Tables } from "@/integrations/supabase/types";
 
-type ActivityEntry = Tables<"activity_feed">;
-
 export interface ActivityFilters {
   from?: Date;
   to?: Date;

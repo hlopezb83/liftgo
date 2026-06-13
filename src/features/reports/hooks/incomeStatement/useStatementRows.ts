@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import {
-  type MonthData, type StatementRow, type ComparisonRow, type YearTotals,
+  type MonthData, type ComparisonRow, type YearTotals,
   DIRECT_COST_CATEGORIES, EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS,
 } from "./types";
 import {
