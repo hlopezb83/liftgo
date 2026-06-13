@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -43,7 +43,7 @@ jobs:
 
       # Cache del store global de bun: acelera installs en runs posteriores.
       - name: Cache bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
@@ -84,7 +84,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: reports/coverage/
@@ -93,7 +93,7 @@ jobs:
 
       - name: Upload Vitest reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vitest-reports
           path: reports/
@@ -102,7 +102,7 @@ jobs:
 
       - name: Publish Vitest results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: reports/vitest-junit.xml
           check_name: Vitest results
@@ -125,7 +125,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -133,7 +133,7 @@ jobs:
           bun-version: "1.2.x"
 
       - name: Cache bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
@@ -161,7 +161,7 @@ jobs:
 
       - name: Upload RLS reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rls-reports
           path: reports/
@@ -170,7 +170,7 @@ jobs:
 
       - name: Publish RLS results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: reports/rls-junit.xml
           check_name: RLS results
@@ -183,7 +183,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -219,7 +219,7 @@ jobs:
 
       - name: Upload Deno reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deno-reports
           path: reports/
@@ -248,7 +248,7 @@ jobs:
         total: [2]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -256,7 +256,7 @@ jobs:
           bun-version: "1.2.x"
 
       - name: Cache bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
@@ -270,7 +270,7 @@ jobs:
       # de @playwright/test del lockfile para invalidar al actualizar.
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
@@ -296,7 +296,7 @@ jobs:
 
       - name: Upload Playwright HTML report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-shard${{ matrix.shard }}
           path: playwright-report-shard${{ matrix.shard }}/
@@ -305,7 +305,7 @@ jobs:
 
       - name: Upload Playwright traces, videos & screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-test-results-shard${{ matrix.shard }}
           path: test-results/
@@ -314,7 +314,7 @@ jobs:
 
       - name: Upload Playwright JUnit/JSON
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-reports-shard${{ matrix.shard }}
           path: reports/
@@ -323,7 +323,7 @@ jobs:
 
       - name: Publish Playwright results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
           check_name: Playwright results (shard ${{ matrix.shard }})

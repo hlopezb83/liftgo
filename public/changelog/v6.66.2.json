@@ -1,0 +1,8 @@
+{
+  "version": "6.66.2",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "CI: actualización de versiones de GitHub Actions",
+  "description": "Actualizadas todas las actions del workflow CI a sus versiones más recientes: actions/checkout@v4→@v6, actions/cache@v4→@v5, actions/upload-artifact@v4→@v7, mikepenz/action-junit-report@v5→@v6. oven-sh/setup-bun@v2 y denoland/setup-deno@v2 ya estaban en su última versión mayor.",
+  "category": "infra"
+}
