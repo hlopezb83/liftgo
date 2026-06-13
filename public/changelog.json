@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.52.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor arquitectónico — paso 7: src/components/ reorganizado en 4 subcarpetas",
+    "description": "Los 22 archivos sueltos en src/components/ se agruparon por responsabilidad: layout/ (ListPageLayout, PageHeader, DetailPageHeader, FormPageHeader, PageTransition, MobileCardList), forms/ (SearchBar, DatePickerField, DateRangePickerField, DragDropImageUploader, FormActions, InfoRow), feedback/ (EmptyState, EmptyRow, TableSkeleton, StatusBadge, TablePagination, KeyboardShortcutsDialog, SwipeableCard), domain/ (ReadOnlyLineItemsTable, TotalsSummary, NotesCard). 103 archivos consumidores actualizados automáticamente. Sin cambios de UI ni de API.",
+    "category": "refactor"
+  },
+  {
     "version": "6.51.0",
     "date": "2026-06-13",
     "type": "minor",
