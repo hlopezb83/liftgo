@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { useInvoicePdfDownload } from "@/features/invoices/hooks/invoices/useInvoicePdfDownload";
+import { useInvoicePdfDownload } from "@/features/invoices/hooks/invoices/pdf/useInvoicePdfDownload";
 import { downloadCfdiBlob } from "@/features/invoices/lib/downloadCfdiBlob";
 
 interface InvoicePDFButtonProps {

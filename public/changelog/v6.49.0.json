@@ -1,0 +1,16 @@
+{
+  "version": "6.49.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "category": "refactor",
+  "title": "Refactor arquitectónico — paso 4: reagrupación de hooks de invoices",
+  "description": "Cuarto paso del plan de auditoría: la carpeta plana features/invoices/hooks/invoices/ (13 archivos mezclando CFDI, cobranza, recurrencia y PDF) se reorganizó por dominio funcional. Sin cambios de UI ni de lógica.",
+  "changes": [
+    "Nueva subcarpeta cfdi/: useCancelCfdi, useStampCfdi, useRefreshCancellationStatus, usePaymentComplement.",
+    "Nueva subcarpeta recurring/: useGenerateRecurringInvoices.",
+    "Nueva subcarpeta pdf/: useInvoicePdfDownload.",
+    "Nueva subcarpeta collections/: useCollectionNotes.",
+    "Actualizados 9 consumidores (InvoicesPage, InvoiceDetail, RecordPaymentDialog, InvoicePDFButton, InvoiceDetailActions, CancelCfdiDialog, CollectionNotesCard, useStampInvoiceFlow, usePaymentHistoryColumns y tests asociados) para apuntar a las nuevas rutas.",
+    "Se mantienen al nivel raíz los hooks transversales (useInvoices, useInvoicesWithBalance, useInvoicesFilters, useNextInvoiceNumber, useUpcomingInvoices, usePaymentHistoryColumns) por ser API base del feature."
+  ]
+}

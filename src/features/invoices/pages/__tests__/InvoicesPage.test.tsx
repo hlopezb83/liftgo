@@ -30,7 +30,7 @@ vi.mock("@/features/invoices/hooks/invoices/useInvoices", () => ({
   useInvoices: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
 }));
 
-vi.mock("@/features/invoices/hooks/invoices/useGenerateRecurringInvoices", () => ({
+vi.mock("@/features/invoices/hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({
   useGenerateRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 

@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.49.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor arquitectónico — paso 4: reagrupación de hooks de invoices",
+    "description": "features/invoices/hooks/invoices/ se dividió por dominio funcional: cfdi/ (useCancelCfdi, useStampCfdi, useRefreshCancellationStatus, usePaymentComplement), recurring/ (useGenerateRecurringInvoices), pdf/ (useInvoicePdfDownload) y collections/ (useCollectionNotes). 9 archivos consumidores actualizados a las nuevas rutas. Sin cambios de UI ni de lógica; sólo reorganización para reducir el ruido cognitivo de una carpeta plana con 13 hooks mezclando 4 dominios distintos.",
+    "category": "refactor"
+  },
+  {
     "version": "6.48.0",
     "date": "2026-06-12",
     "type": "minor",
