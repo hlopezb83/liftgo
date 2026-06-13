@@ -1,75 +1,108 @@
-## Objetivo
+## Auditoría completada — 4 ejes
 
-Llevar el lint a **0 warnings** (hoy 31). Quedan tres categorías:
+Lancé 4 sub-agentes que evaluaron CI/CD, calidad de código, gaps de testing y seguridad del backend. Los hallazgos completos están en mi turno anterior; este plan los consolida y prioriza por **ROI (impacto ÷ esfuerzo)**.
 
-- **26 complexity** (ciclomática > 12) — la mayoría en hooks de cómputo y acciones de detalle.
-- **3 react-refresh/only-export-components** — archivos que mezclan componente + constantes/hooks.
-- **2 max-lines-per-function** — diálogos de 152 líneas (umbral 150).
+### Veredicto general
 
-## Estrategia
+- **Base sólida**: cero `!` non-null, cero `: any`, 100% de `useEffect` con cleanup, CORS por allowlist, `has_role` + `search_path` consistente, sin archivos >500 LOC.
+- **3 fugas críticas** (CI roto silenciosamente, RPCs E2E expuestas a `authenticated`, `company_settings` legible por `anon`).
+- **Cobertura ornamental**: thresholds Vitest (functions=8%) con margen real de 0.55pp — el gate no protege.
+- **Deuda extendida pero predecible**: 20+ componentes >150 LOC, 8 `catch (e)` sin `unknown`, 10+ casts `as`, formateo de moneda duplicado.
 
-Refactor mecánico, sin cambios funcionales. Cada extracción se valida con `tsc --noEmit` + suite de Vitest (526 tests) antes de pasar a la siguiente oleada.
+---
 
-### Ola 1 — react-refresh (3 warnings, ~10 min, riesgo bajo)
+## Lote 1 — Fixes urgentes de CI y seguridad (1-2h, bloqueantes)
 
-Separar exports no-componente a un archivo hermano. Imports se actualizan en los consumidores.
+Sin esto el CI está mintiendo y hay superficie de ataque viva.
 
-| Archivo | Acción |
-|---|---|
-| `src/contexts/PageActionsContext.tsx` | Mover `usePageActions` y `PageActionsContext` a `usePageActions.ts`. Dejar solo `PageActionsProvider` en el archivo original. |
-| `src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx` | Extraer el sub-componente interno (probablemente una celda) a `PaymentHistoryCells.tsx`; el hook queda solo. |
+1. **Versiones de actions inexistentes** en `.github/workflows/ci.yml`:
+   - `actions/checkout@v6` → `@v4`
+   - `actions/upload-artifact@v7` → `@v4`
+   - `mikepenz/action-junit-report@v6` → `@v5`
+2. **Revocar EXECUTE** de RPCs E2E a `authenticated` (`e2e_seed_scenario`, `e2e_teardown`, `purge_e2e_data`) → migración SQL; conservar `service_role`.
+3. **Restringir `company_settings`** a `authenticated` y exponer solo `{name, logo_url}` vía RPC `get_company_branding` para pantallas pre-auth (RFC y régimen fiscal hoy son públicos).
+4. **`generate-recurring-maintenance`**: reemplazar `authHeader.includes(serviceKey)` por un `CRON_SECRET` dedicado comparado estrictamente.
+5. **Revocar GRANTs** implícitos en `billing_secrets` (`REVOKE ALL ... FROM PUBLIC, anon, authenticated`).
+6. **`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "1"`** en `env:` del workflow.
 
-### Ola 2 — max-lines-per-function (2 warnings, ~15 min, riesgo bajo)
+---
 
-Ambos diálogos están 2 líneas por encima del umbral. Extraer el bloque de footer/acciones a un sub-componente local.
+## Lote 2 — Coverage real: dominio puro (4-6h, +5pp coverage)
 
-- `RegisterSupplierPaymentDialog.tsx` (152 líneas) → extraer `<DialogFooter>` a `RegisterSupplierPaymentDialogFooter`.
-- `RecordPaymentDialog.tsx` (152 líneas) → mismo patrón.
+Antes de subir thresholds, hay que tener margen real. Funciones puras = máximo ROI.
 
-### Ola 3 — complexity (26 warnings, ~2 h, riesgo medio)
+1. Tests unitarios de `src/lib/domain/rentalCalculation.ts` (mezclas día/semana/mes, edge cases).
+2. Tests de `src/lib/domain/invoiceTotals.ts` (descuentos, NaN, overflow).
+3. Tests de `src/features/invoices/lib/syncInvoiceStatus.ts` (estados paid/partial/sent/reversal con mock supabase).
+4. Smoke snapshots de `src/lib/pdf/documents/{QuoteDocument,InvoiceDocument,IncomeStatementDocument}.tsx` (hoy 0% en 17 archivos PDF).
+5. Subir thresholds de Vitest a `lines:20 / branches:18 / functions:15 / statements:20` con margen ≥5pp medido.
 
-Patrones recurrentes y sus tácticas:
+---
 
-1. **Hooks con filtros encadenados** (`useAccountsPayableFilters`, `useAccountsPayableKpis`, `useAgingReport`, `useExportablePayables`, `useSupplierBills`, `useCashFlowProjection`, `useSupplierRepMutations`).
-   - Extraer cada predicado/branch a una función pura en el mismo `lib/` (p. ej. `payableMatches(filter, row)`, `bucketByAging(row)`).
-   - El hook queda como `data.filter(matches).map(toRow)`.
+## Lote 3 — Higiene de código (3-4h, deuda mecánica)
 
-2. **Components Detail/Actions con muchos guards de estado** (`InvoiceDetail`, `InvoiceDetailActions`, `QuoteDetailActions`, `ContractDetail`, `BillApprovalSection`, `SupplierBillDetailSheet`, `SupplierPaymentRow`, `BankAccountFormDialog`, `BankLineDetailSheet`, `CalendarPage`).
-   - Reemplazar cadenas `if/else if` por un objeto `actionsByStatus` o `useMemo` que devuelva la config a renderizar.
-   - Mover `canEdit`/`canCancel`/`canStamp` a un selector en `lib/<entity>Permissions.ts` (reutilizable).
+Fixes mecánicos de bajo riesgo, alto ROI de mantenibilidad.
 
-3. **Parsers y formatters** (`csvParsers.parseBankCsv`, `errorDetailsExtract.extractErrorDetails`/`deriveErrorCode`, `errorReportFormat.formatReportText`, `backfillStampSnapshot`, `syncInvoiceStatus`).
-   - Pasar a una tabla de despacho (`Map<key, handler>`) o early-returns por caso.
-   - `parseBankCsv` ya tiene casos por banco → extraer cada banco a su propio `parse<Bank>Row` y dejar `parseBankCsv` como dispatch.
+1. **Tipar 8 `catch (e)` como `unknown`** en: `useSupplierRepMutations`, `PortalStatement`, `SupplierFormDialog`, `usePaymentHistoryColumns`, `useDownloadInvoiceXml`, `InvoiceCreditNotesCard`, `useSetPasswordForm`, `captureScreenshot`.
+2. **Refactor `useBreadcrumbEntityLabel.ts`**: eliminar 10+ casts `as`/`as never` con union discriminada.
+3. **Unificar `formatCurrency` → `nCurrency`**: deprecar el primero con re-export, evitar locales divergentes.
+4. **Mover magic numbers** a `src/lib/constants.ts`: `MAX_RECORDS_FETCH = 500`, `STALL_TIMEOUT_MS`, `BREADCRUMB_STALE_MS`.
+5. **Eliminar dead code** confirmado por knip: `insuranceAlertKeys`, `exportIncomeStatementPdf`, tipos huérfanos.
+6. **Reactivar `@typescript-eslint/no-unused-vars`** como `warn` en `eslint.config.js`.
 
-4. **Form helpers** (`SupplierFormDialog` x2, `useHotkeys`).
-   - Extraer la validación cruzada de `SupplierFormDialog` a `supplierFormSchema.refine`.
-   - `useHotkeys`: separar el matcher de combos a `lib/hotkeyMatcher.ts`.
+---
 
-## Validación
+## Lote 4 — Refactor de god components (1-2 días, calidad estructural)
 
-Después de cada ola:
+Top archivos que violan Power of 10 (componentes ≤150, hooks ≤80) con mayor blast radius.
 
-```
-bunx tsc --noEmit
-bun run test
-bunx eslint src
-```
+1. `ListPageLayout.tsx` (251 LOC) → extraer `ListPageFiltersBar`, `ListPageEmptyState`.
+2. `RecordPaymentDialog.tsx` (213) + `RegisterSupplierPaymentDialog.tsx` (195) → compartir `usePaymentFormBase`.
+3. `SupplierBillDetailSheet.tsx` (204) → `BillAmountsCard` + `BillActionsBar`.
+4. `CRMClosedPage.tsx` (210) → extraer `closedColumns.tsx` + `useReopenProspect`.
+5. Hooks oversize: `useHotkeys` (108), `usePullToRefresh` (96), `useListPage` (96), `useListFilters` (90), `useProspectForm` (104).
+6. **Centralizar query keys**: tabla `forklifts` se consulta desde 6 hooks distintos sin queryKey canónico → crear `src/lib/queryKeys.ts`.
 
-Meta acumulada: 0 warnings al terminar la Ola 3.
+---
 
-## Changelog
+## Lote 5 — Coverage estratégico: CFDI + RLS + E2E (3-5 días, blindaje fiscal)
 
-Una sola entrada `v6.59.0` (minor, infra) al final con resumen por ola. No se afecta runtime ni UI.
+Áreas de mayor riesgo legal/financiero hoy sin tests.
+
+1. **Hooks CFDI** (0% hoy): `useCancelCfdi`, `useStampCfdi`, `usePaymentComplement`, `useCreditNoteMutations`.
+2. **Hooks pagos a proveedores**: `useRegisterSupplierPayment`, `useBillApprovalMutations`.
+3. **RLS tests faltantes**: `payments`, `credit_notes`, `supplier_bills`, `supplier_payments`, `bank_statement_lines`, `role_permissions` (este último crítico contra escalada).
+4. **Deno tests** faltantes para edge functions: `stamp-payment-complement`, `cancel-credit-note`, `refresh-cancellation-status`, `generate-recurring-maintenance`.
+5. **E2E críticos faltantes**:
+   - `cfdi-cancel.spec.ts` (motivos 02/03)
+   - `payment-complement.spec.ts` (PPD end-to-end)
+   - `full-chain.spec.ts` (quote → booking → invoice → pago)
+   - `credit-note.spec.ts`
+
+---
 
 ## Detalles técnicos
 
-- Los hooks extraídos respetan la Power-of-10 (≤ 80 LOC).
-- Los selectores de permisos (`canEdit`, etc.) se ubican en `src/features/<feat>/lib/<entity>Permissions.ts` y se cubren con tests unitarios si introducen lógica no trivial.
-- No se modifican APIs públicas de barrels; los nuevos archivos se re-exportan donde aplique.
-- Excluido del scope: `src/components/ui/**` (ya ignorado por ESLint).
+**Pipeline E2E duplica el build**: `playwright.config.ts` corre `bun run build && bun run preview` en cada shard. Plan futuro (no en este lote): subir `dist/` como artifact desde `quality` y descargarlo en `e2e` para ahorrar 6-8 min de pipeline.
 
-## Riesgos
+**Pre-commit hooks**: no incluidos aquí pero candidatos a Lote 6 con Lefthook (`tsc --noEmit` + `eslint` sobre staged).
 
-- **Permission selectors**: cambios de orden en las ramas podrían alterar acciones visibles. Mitigación: snapshot de los tests existentes + revisión manual de cada Detail page tras la extracción.
-- **`parseBankCsv`**: regresión en parsing por banco. Mitigación: ya hay tests en `src/features/bank-reconciliation/lib/__tests__/`; ampliar si no cubren todos los bancos.
+**Dependabot + dependency-review**: el proyecto maneja CFDI/SAT; recomendable añadir `.github/dependabot.yml` y `actions/dependency-review-action@v4` en un lote independiente.
+
+**Cosas que NO hay que tocar** (auditadas y correctas): CORS allowlist, `has_role` pattern, `requireAdmin`/`requireRole` shared, generación de contraseñas con rejection sampling, rate limits hardened, storage policies, validación de roles con enum.
+
+---
+
+## Orden sugerido de ejecución
+
+```text
+Lote 1 (1-2h)  ──▶ desbloquea CI confiable + cierra fugas
+Lote 2 (4-6h)  ──▶ da margen real al coverage gate
+Lote 3 (3-4h)  ──▶ higiene mecánica de bajo riesgo
+Lote 4 (1-2d)  ──▶ refactor estructural
+Lote 5 (3-5d)  ──▶ blindaje CFDI + RLS + E2E
+```
+
+Cada lote termina con su entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json` siguiendo la convención del proyecto.
+
+¿Avanzo con el **Lote 1 completo** (urgente, todo en una pasada) o prefieres revisar/ajustar la priorización antes?
