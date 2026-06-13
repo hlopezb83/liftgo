@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.50.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor arquitectónico — paso 5: hook useResourceList",
+    "description": "Nuevo useResourceList<T> que combina useListFilters + useLiftgoTable y elimina el boilerplate repetido en cada página de listado. Migradas como piloto BookingsPage (modo interno) e InvoicesPage (modo externalFiltered para preservar useInvoicesFilters con rango de fechas). Sin cambios de UI ni de lógica; patrón listo para extenderse al resto de páginas.",
+    "category": "refactor"
+  },
+  {
     "version": "6.49.0",
     "date": "2026-06-13",
     "type": "minor",
