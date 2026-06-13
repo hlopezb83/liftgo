@@ -1,16 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 import CustomerPortalLayout from "@/layouts/CustomerPortalLayout";
-import PortalDashboard from "@/features/portal";
-import PortalRentals from "@/features/portal";
-import PortalInvoices from "@/features/portal";
-import PortalInvoiceDetail from "@/features/portal";
-import PortalInvoicePayment from "@/features/portal";
-import PortalContracts from "@/features/portal";
-import PortalQuotes from "@/features/portal";
-import PortalQuoteDetail from "@/features/portal";
-import PortalStatement from "@/features/portal";
-import MyReportsPage from "@/features/feedback";
-import LeaderboardPage from "@/features/feedback";
+import PortalDashboard from "@/features/portal/pages/PortalDashboard";
+import PortalRentals from "@/features/portal/pages/PortalRentals";
+import PortalInvoices from "@/features/portal/pages/PortalInvoices";
+import PortalInvoiceDetail from "@/features/portal/pages/PortalInvoiceDetail";
+import PortalInvoicePayment from "@/features/portal/pages/PortalInvoicePayment";
+import PortalContracts from "@/features/portal/pages/PortalContracts";
+import PortalQuotes from "@/features/portal/pages/PortalQuotes";
+import PortalQuoteDetail from "@/features/portal/pages/PortalQuoteDetail";
+import PortalStatement from "@/features/portal/pages/PortalStatement";
+import MyReportsPage from "@/features/feedback/pages/MyReportsPage";
+import LeaderboardPage from "@/features/feedback/pages/LeaderboardPage";
 
 export function CustomerPortalRoutes() {
   return (
