@@ -5,13 +5,12 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
 
-
+# Concurrencia por workflow+ref: un push nuevo cancela el run anterior del mismo branch.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -21,6 +20,10 @@ jobs:
     name: Lint, Knip, Tests, Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -29,7 +32,17 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          # Pin a major.minor para evitar roturas silenciosas por releases nuevos.
+          bun-version: "1.2.x"
+
+      # Cache del store global de bun: acelera installs en runs posteriores.
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -46,9 +59,16 @@ jobs:
       - name: Knip (archivos y dependencias sin uso)
         run: bunx knip --include files,dependencies,binaries --reporter compact
 
-      # Solo informativo: exports y tipos sin uso (no rompen el PR).
+      # Solo informativo: exports y tipos sin uso (no rompen el PR pero quedan visibles en amarillo).
       - name: Knip (exports/tipos sin uso, informativo)
-        run: bunx knip --include exports,types --reporter compact || true
+        run: bunx knip --include exports,types --reporter compact
+        continue-on-error: true
+
+      # Pre-crear reports/ defensivamente: si vitest falla antes de inicializar
+      # los reporters, el step siguiente de junit-action mostrará el error real
+      # en vez del confuso "No test results found".
+      - name: Prepare reports directory
+        run: mkdir -p reports
 
       - name: Tests (Vitest)
         run: bun run test
@@ -80,6 +100,11 @@ jobs:
     name: RLS contract tests (Vitest subset)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: [quality]
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -87,10 +112,21 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.2.x"
+
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Prepare reports directory
+        run: mkdir -p reports
 
       - name: RLS subset (roleMatrix + *.rls.test.ts)
         run: bun run test:rls
@@ -104,6 +140,15 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Publish RLS results to PR summary
+        if: always()
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: reports/rls-junit.xml
+          check_name: RLS results
+          fail_on_failure: true
+          require_tests: true
+
   edge-functions:
     name: Edge Functions (Deno smoke tests)
     runs-on: ubuntu-latest
@@ -115,7 +160,8 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v1.x
+          # Deno 2.x es estable desde oct-2024. Verificar antes de subir mayor.
+          deno-version: v2.x
 
       - name: Deno fmt --check
         run: cd supabase/functions && deno fmt --check
@@ -156,9 +202,17 @@ jobs:
     name: E2E (Playwright shard ${{ matrix.shard }}/${{ matrix.total }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: [quality]
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     # Requiere los secrets E2E_TEST_EMAIL y E2E_TEST_PASSWORD (usuario admin de prueba).
     # Sharding: 2 shards × 2 workers por shard = 4 tests en paralelo, aislados por e2e_scope.
     # Cada test recibe un scope único (w{worker}-{testId}-{rand}) y el teardown borra solo ese scope.
+    # CRÍTICO: el `globalTeardown` de Playwright purga TODAS las filas is_e2e=true; con varios shards
+    # corriendo en paralelo provocaba race conditions. Ahora solo se ejecuta en el último shard
+    # (lógica en playwright.config.ts vía env SHARD_INDEX === SHARD_TOTAL).
     strategy:
       fail-fast: false
       matrix:
@@ -171,10 +225,29 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.2.x"
+
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      # Cache de los browsers de Playwright (~130MB). La key incluye la versión
+      # de @playwright/test del lockfile para invalidar al actualizar.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
       - name: Install Playwright browsers
         run: bunx playwright install --with-deps chromium
@@ -184,6 +257,7 @@ jobs:
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
           SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_TOTAL: ${{ matrix.total }}
           # Vite necesita estas variables en build time para embeber el cliente
           # de Supabase en el bundle. Sin ellas el preview compila sin URL/key
           # y todas las E2E fallan de forma opaca.
@@ -198,7 +272,7 @@ jobs:
         with:
           name: playwright-report-shard${{ matrix.shard }}
           path: playwright-report-shard${{ matrix.shard }}/
-          retention-days: 14
+          retention-days: 7
           if-no-files-found: ignore
 
       - name: Upload Playwright traces, videos & screenshots
@@ -207,7 +281,7 @@ jobs:
         with:
           name: playwright-test-results-shard${{ matrix.shard }}
           path: test-results/
-          retention-days: 14
+          retention-days: 7
           if-no-files-found: ignore
 
       - name: Upload Playwright JUnit/JSON

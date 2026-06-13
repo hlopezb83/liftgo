@@ -1,0 +1,8 @@
+{
+  "version": "6.56.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de CI — críticos y altos resueltos",
+  "description": "Auditoría con subagentes sobre .github/workflows/ci.yml, vitest/playwright config y calidad estática. Cambios aplicados: (1) CRITICAL — pre-crear reports/ antes de vitest (job quality y rls) para evitar 'No test results found' espurio. (2) CRITICAL — globalTeardown de Playwright condicionado al último shard (SHARD_INDEX === SHARD_TOTAL) para eliminar la race condition que purgaba datos is_e2e=true mientras otro shard seguía corriendo. (3) HIGH — test:rls ahora emite JUnit (reports/rls-junit.xml) y se publica con mikepenz/action-junit-report como check 'RLS results' (gates fail_on_failure + require_tests). (4) HIGH — cache de bun (~/.bun/install/cache) y de browsers de Playwright (~/.cache/ms-playwright) con actions/cache@v4. (5) HIGH — jobs rls y e2e dependen de quality (needs:[quality]); ya no consumen runners cuando typecheck/build falla. (6) HIGH — bun-version pineado a '1.2.x' en los 3 jobs (sin más 'latest'). (7) HIGH — Deno actualizado a v2.x en edge-functions. Extras: permisos movidos a nivel de job (mínimo privilegio), workflow_dispatch añadido, knip informativo con continue-on-error (sin enmascarar). Verificado: typecheck OK, test:rls 33/33 con XML generado correctamente.",
+  "category": "infra"
+}

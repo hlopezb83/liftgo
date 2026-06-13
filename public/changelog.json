@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.56.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría de CI — críticos y altos resueltos",
+    "description": "Pre-crea reports/ antes de vitest (quality y rls), condiciona globalTeardown de Playwright al último shard (elimina race de purge_e2e_data), test:rls ahora emite JUnit y se publica como check 'RLS results', cache de bun y browsers de Playwright, needs:[quality] en rls y e2e, bun pineado 1.2.x, Deno v2.x, permisos por job, workflow_dispatch, knip informativo con continue-on-error.",
+    "category": "infra"
+  },
+  {
     "version": "6.55.1",
     "date": "2026-06-13",
     "type": "patch",
