@@ -72,15 +72,17 @@ describe("useRecordPaymentForm", () => {
     expect(createPaymentMutate).not.toHaveBeenCalled();
   });
 
-  it("submit con USD y exchangeRate 0 → notifyError, no llama createPayment", async () => {
+  it("submit con USD usa el exchangeRate provisto en el payload", async () => {
     const { result } = renderForm();
     act(() => {
       result.current.setCurrency("USD");
-      result.current.setExchangeRate("0");
+      result.current.setExchangeRate("17.5");
     });
     await act(async () => { await result.current.handleSubmit(); });
-    expect(notifyErrorMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
-    expect(createPaymentMutate).not.toHaveBeenCalled();
+    expect(createPaymentMutate).toHaveBeenCalledTimes(1);
+    const [payload] = createPaymentMutate.mock.calls[0];
+    expect(payload.currency).toBe("USD");
+    expect(payload.exchange_rate).toBe(17.5);
   });
 
   it("submit válido llama createPayment con payload correcto", async () => {
