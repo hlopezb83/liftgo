@@ -1,0 +1,60 @@
+{
+  "version": "6.66.7",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Auditoría de tests — Lote 1 (estabilización)",
+  "category": "testing",
+  "description": "Correcciones de bugs latentes en la propia suite identificados por auditoría paralela (Vitest + Playwright + Edge Functions).",
+  "changes": [
+    {
+      "type": "Fix crítico",
+      "title": "tests/e2e/fixtures/portalSeed.ts",
+      "details": "loadConfig() ya no se ejecuta al importar el módulo. Antes, si faltaba E2E_PORTAL_EMAIL la suite entera abortaba (incluso specs que no usaban portal). Ahora valida perezosamente dentro del fixture y usa test.skip con motivo claro."
+    },
+    {
+      "type": "Fix crítico",
+      "title": "playwright.config.ts",
+      "details": "Guard explícito para SHARD_TOTAL. Antes, con SHARD_INDEX presente pero SHARD_TOTAL ausente, cada shard ejecutaba purge_e2e_data y borraba datos de shards hermanos activos. Ahora sólo corre en local o cuando SHARD_INDEX === SHARD_TOTAL."
+    },
+    {
+      "type": "Mejora",
+      "title": "tests/e2e/smoke-nav.spec.ts",
+      "details": "Aserción positiva de landmark visible (nav/main) por ruta. Antes, una página completamente en blanco por fetch 401/500 pasaba los 31 tests porque sólo se verificaba ausencia de '404'."
+    },
+    {
+      "type": "Fix",
+      "title": "tests/e2e/global.setup.ts",
+      "details": "Reemplazado waitForLoadState('networkidle').catch(() => {}) por waitForURL con timeout explícito. El silenciador previo dejaba que un login fallido continuara con storageState vacío."
+    },
+    {
+      "type": "Limpieza",
+      "title": "src/test/invoiceHelpers.test.ts",
+      "details": "Eliminado. Duplicado obsoleto en inglés que testeaba un wrapper legacy ya cubierto por src/lib/domain/__tests__/rentalCalculation.test.ts."
+    },
+    {
+      "type": "Mejora",
+      "title": "src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "details": "Mocks de useCreatePayment y useStampPaymentComplement ahora exponen la interfaz completa (mutateAsync, isError, isSuccess, error, reset). Si el componente usa esos campos para deshabilitar el botón o resetear el form, los tests detectan la regresión."
+    },
+    {
+      "type": "Mejora",
+      "title": "src/features/bookings/hooks/__tests__/useBookings.rls.test.ts",
+      "details": "Migrado de fromResolver genérico a tableResolvers explícito por tabla. Un join a forklifts ya no cae al mismo mock que bookings."
+    },
+    {
+      "type": "Helper",
+      "title": "src/test/helpers/time.ts",
+      "details": "Nuevo wrapper useFakeTimeMty(iso) que fija vi.setSystemTime al horario de Monterrey (-06:00) con cleanup automático. Listo para tests con lógica de fechas (cashFlowUtils, rentalCalculation)."
+    },
+    {
+      "type": "Documentación",
+      "title": ".lovable/plan.md",
+      "details": "Plan completo de Lotes 1-4 con roadmap por suite (Vitest, Playwright, Deno), umbrales de cobertura escalonados y regla especial ≥80% branches en módulos que tocan dinero."
+    },
+    {
+      "type": "Verificación",
+      "title": "Suite afectada",
+      "details": "Vitest 17/17 verde en los 3 archivos modificados (syncInvoiceStatus, useRecordPaymentForm, useBookings.rls)."
+    }
+  ]
+}
