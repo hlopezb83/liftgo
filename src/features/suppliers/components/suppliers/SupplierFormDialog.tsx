@@ -30,28 +30,8 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
     if (!open) return;
     setTab("manual");
     setCsfFile(null);
-    if (supplier) {
-      setForm({
-        name: supplier.name,
-        contact_person: supplier.contact_person || "",
-        email: supplier.email || "",
-        phone: supplier.phone || "",
-        website: supplier.website || "",
-        address: supplier.address || "",
-        rfc: supplier.rfc || "",
-        regimen_fiscal: supplier.regimen_fiscal || "",
-        category: supplier.category || "",
-        notes: supplier.notes || "",
-        default_payment_terms_days:
-          supplier.default_payment_terms_days != null
-            ? String(supplier.default_payment_terms_days)
-            : "",
-      });
-    } else {
-      setForm(emptySupplierForm);
-    }
+    setForm(supplier ? supplierToForm(supplier) : emptySupplierForm);
   }, [open, supplier]);
-
 
   const setField = <K extends keyof SupplierForm>(key: K, value: SupplierForm[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -80,33 +60,14 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
   };
 
   const handleSave = () => {
-    if (!form.name.trim()) { notifyError({ message: "El nombre es requerido" }); return; }
-    const termsRaw = form.default_payment_terms_days.trim();
-    const termsNum = termsRaw === "" ? null : Number(termsRaw);
-    if (termsNum !== null && (!Number.isFinite(termsNum) || termsNum < 0 || termsNum > 365)) {
-      notifyError({ message: "Días de crédito debe estar entre 0 y 365" });
-      return;
-    }
-    const normalizedRfc = form.rfc.trim() ? form.rfc.trim().toUpperCase() : null;
-    const payload = {
-      name: form.name.trim(),
-      contact_person: form.contact_person || null,
-      email: form.email || null,
-      phone: form.phone || null,
-      website: form.website || null,
-      address: form.address || null,
-      rfc: normalizedRfc,
-      regimen_fiscal: form.regimen_fiscal || null,
-      category: form.category || null,
-      notes: form.notes || null,
-      default_payment_terms_days: termsNum,
-    };
+    const validated = validateSupplierForm(form);
+    if (!validated) return;
     if (supplier) {
-      updateSupplier.mutate({ id: supplier.id, ...payload }, {
+      updateSupplier.mutate({ id: supplier.id, ...validated }, {
         onSuccess: async () => { await uploadCsfIfAny(supplier.id); onOpenChange(false); },
       });
     } else {
-      createSupplier.mutate(payload, {
+      createSupplier.mutate(validated, {
         onSuccess: async (created) => { if (created?.id) await uploadCsfIfAny(created.id); onOpenChange(false); },
       });
     }
