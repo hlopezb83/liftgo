@@ -1,0 +1,33 @@
+{
+  "version": "6.55.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Refactor arquitectónico — paso 10: cobertura de tests para quotes",
+  "category": "refactor",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Último paso del plan de auditoría arquitectónica (Pasos 1-10).",
+        "fleet y maintenance ya tenían tests: forkliftPayload, forkliftFormSchema, maintenanceFormHelpers, maintenancePageHelpers.",
+        "quotes era el crítico con mayor lógica pura sin cobertura: builders, validación y prefill desde cotización existente."
+      ]
+    },
+    {
+      "heading": "Tests añadidos",
+      "items": [
+        "quoteFormBuilders.test.ts (6 tests): buildSaleItems filtra líneas inválidas, propaga descuentos, fallback de descripción; buildRentalItems propaga descuento por item generado y rechaza líneas sin tarifa.",
+        "quoteFormValidation.test.ts (6 tests): validateQuoteForm bloquea sin cliente, sin fechas (rental), sin tarifas (rental), sin cantidad/precio (sale); acepta rental y sale válidos. notifyError mockeado.",
+        "quoteFormPrefillHelpers.test.ts (11 tests): applyBaseFields (sale/rental, MXN default), applyLogistics (detecta y omite), applySaleLines (match por descripción, sin match, items vacíos), applyRentalLines (rental_meta directo, reconstrucción con dedupe por modelo), defaultValidUntil (+30d)."
+      ]
+    },
+    {
+      "heading": "Impacto",
+      "items": [
+        "23 tests nuevos, todos en verde (≈36ms de ejecución).",
+        "Plan de auditoría arquitectónica COMPLETO (Pasos 1-10).",
+        "Métrica: features críticos ahora con tests unitarios. Cero deuda arquitectónica pendiente del plan original."
+      ]
+    }
+  ]
+}
