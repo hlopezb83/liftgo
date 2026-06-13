@@ -1,93 +1,75 @@
-# Auditoría de arquitectura — LiftGo
+## Objetivo
 
-## Resumen ejecutivo
+Llevar el lint a **0 warnings** (hoy 31). Quedan tres categorías:
 
-La base está **sana**. Métricas globales:
-- Ningún archivo de aplicación supera **360 LOC** (excluyendo `supabase/types.ts` autogenerado y `components/ui/*` de shadcn). Sólo 2 archivos pasan de 250.
-- **0** llamadas directas a `supabase` en `pages/` o `components/` de features (todo pasa por hooks).
-- **3** TODO/FIXME, **1** `as any`, **4** `console.*` en código de producción. Excelente higiene.
-- 28 features con estructura uniforme `pages/ components/ hooks/ lib/`.
+- **26 complexity** (ciclomática > 12) — la mayoría en hooks de cómputo y acciones de detalle.
+- **3 react-refresh/only-export-components** — archivos que mezclan componente + constantes/hooks.
+- **2 max-lines-per-function** — diálogos de 152 líneas (umbral 150).
 
-Los problemas restantes son de **organización fina y consistencia**, no de deuda crítica.
+## Estrategia
 
----
+Refactor mecánico, sin cambios funcionales. Cada extracción se valida con `tsc --noEmit` + suite de Vitest (526 tests) antes de pasar a la siguiente oleada.
 
-## Hallazgos por severidad
+### Ola 1 — react-refresh (3 warnings, ~10 min, riesgo bajo)
 
-### ALTO
+Separar exports no-componente a un archivo hermano. Imports se actualizan en los consumidores.
 
-**1. Query keys inconsistentes y sin invalidaciones jerárquicas** — `src/features/**/hooks/**`
-- 18 ocurrencias de `["invoices"]`, 13 de `["forklifts"]`, 8 de `["bookings"]`, etc., como strings literales repetidos.
-- Ya se crearon factories en `src/features/{invoices,bookings,fleet,customers,crm}/lib/queryKeys.ts` (v6.47.0) pero **ningún hook los está usando todavía**.
-- Riesgo: invalidaciones que olvidan keys hermanas → datos rancios en UI tras mutaciones.
+| Archivo | Acción |
+|---|---|
+| `src/contexts/PageActionsContext.tsx` | Mover `usePageActions` y `PageActionsContext` a `usePageActions.ts`. Dejar solo `PageActionsProvider` en el archivo original. |
+| `src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx` | Extraer el sub-componente interno (probablemente una celda) a `PaymentHistoryCells.tsx`; el hook queda solo. |
 
-**2. Schemas Zod dentro de componentes UI** — acoplamiento de validación con render
-- `features/deliveries/components/deliveries/DeliveryFormDialog.tsx`
-- `features/operations/components/operations/FiscalDataTab.tsx`
-- `features/operations/components/operations/CompanyLogoTab.tsx`
-- `features/accounts-payable/components/RegisterSupplierPaymentDialog.tsx`
-- `features/returns/hooks/returnInspection/useReturnInspectionDialog.ts`
-- El resto del proyecto ya sigue el patrón `features/*/lib/*FormSchema.ts`. Estos 5 rompen separación de capas y no son reutilizables/testeables.
+### Ola 2 — max-lines-per-function (2 warnings, ~15 min, riesgo bajo)
 
-**3. Acoplamiento cross-feature por imports profundos** — sin barrels públicos
-- 78 imports cruzados a `@/features/fleet/(hooks|lib|components)/...`, 68 a `invoices`, 58 a `crm`, 55 a `users` y `customers`.
-- No existe ningún `src/features/*/index.ts`. El lint guardrail añadido en v6.47.0 está en **warning**, no en error, y no tiene barrels a los que apuntar.
-- Riesgo: cualquier rename interno rompe consumidores remotos; imposible saber qué es API pública de un feature.
+Ambos diálogos están 2 líneas por encima del umbral. Extraer el bloque de footer/acciones a un sub-componente local.
 
-### MEDIO
+- `RegisterSupplierPaymentDialog.tsx` (152 líneas) → extraer `<DialogFooter>` a `RegisterSupplierPaymentDialogFooter`.
+- `RecordPaymentDialog.tsx` (152 líneas) → mismo patrón.
 
-**4. Nesting redundante en hooks** — `features/X/hooks/X/...`
-- `features/invoices/hooks/invoices/` (13 hooks), `features/fleet/hooks/fleet/`, `features/bookings/hooks/bookingDetail/`, `bookingForm/`, etc.
-- Mezcla: algunos hooks viven al nivel `hooks/` (p.ej. `useBookings.ts`, `usePayments.ts`) y otros en subcarpetas temáticas. No hay regla.
-- Sugerencia: subcarpetas **por tema funcional** (`cfdi/`, `payments/`, `recurring/`, `pdf/` para invoices) y eliminar la subcarpeta espejo del nombre del feature.
+### Ola 3 — complexity (26 warnings, ~2 h, riesgo medio)
 
-**5. Carpeta `hooks/invoices/` mezcla 4 dominios distintos**
-`useCancelCfdi`, `useStampCfdi`, `useRefreshCancellationStatus`, `usePaymentComplement` (CFDI) conviven con `useCollectionNotes`, `useGenerateRecurringInvoices`, `useInvoicePdfDownload`, `useUpcomingInvoices`. Reagrupar.
+Patrones recurrentes y sus tácticas:
 
-**6. Hooks "Logic" como God-hooks delgados**
-`useInvoiceFormLogic.ts`, `useBookingActionsLogic.ts`, `useForkliftFormLogic.ts`, `useContractFormPrefill.ts`. El sufijo "Logic" suele esconder orquestación que mezcla submit + fetch + navegación + toast. Revisar uno por uno y separar en (a) form state, (b) submit mutation, (c) side-effects.
+1. **Hooks con filtros encadenados** (`useAccountsPayableFilters`, `useAccountsPayableKpis`, `useAgingReport`, `useExportablePayables`, `useSupplierBills`, `useCashFlowProjection`, `useSupplierRepMutations`).
+   - Extraer cada predicado/branch a una función pura en el mismo `lib/` (p. ej. `payableMatches(filter, row)`, `bucketByAging(row)`).
+   - El hook queda como `data.filter(matches).map(toRow)`.
 
-**7. Patrones repetidos de "lista paginada"** sin hook genérico
-Cada `*Page.tsx` (invoices, bookings, customers, suppliers, fleet, quotes, contracts…) instancia manualmente `useListPage` + `useListFilters` + `useSort` + `usePagination` + `MobileCardList`. Existe ya scaffolding (`ListPageLayout.tsx`, 251 LOC, el archivo más grande de la app) pero falta un `useResourceList<T>` que envuelva el quinteto.
+2. **Components Detail/Actions con muchos guards de estado** (`InvoiceDetail`, `InvoiceDetailActions`, `QuoteDetailActions`, `ContractDetail`, `BillApprovalSection`, `SupplierBillDetailSheet`, `SupplierPaymentRow`, `BankAccountFormDialog`, `BankLineDetailSheet`, `CalendarPage`).
+   - Reemplazar cadenas `if/else if` por un objeto `actionsByStatus` o `useMemo` que devuelva la config a renderizar.
+   - Mover `canEdit`/`canCancel`/`canStamp` a un selector en `lib/<entity>Permissions.ts` (reutilizable).
 
-### BAJO / OPCIONAL
+3. **Parsers y formatters** (`csvParsers.parseBankCsv`, `errorDetailsExtract.extractErrorDetails`/`deriveErrorCode`, `errorReportFormat.formatReportText`, `backfillStampSnapshot`, `syncInvoiceStatus`).
+   - Pasar a una tabla de despacho (`Map<key, handler>`) o early-returns por caso.
+   - `parseBankCsv` ya tiene casos por banco → extraer cada banco a su propio `parse<Bank>Row` y dejar `parseBankCsv` como dispatch.
 
-**8. `src/components/` mezcla primitivos genéricos y compuestos de dominio**
-22 archivos sueltos: hay layout (`ListPageLayout`, `PageHeader`, `DetailPageHeader`, `FormPageHeader`), inputs (`DatePickerField`, `SearchBar`), feedback (`EmptyState`, `TableSkeleton`, `StatusBadge`) y dominio (`ReadOnlyLineItemsTable`, `TotalsSummary`, `NotesCard`). Mover a subcarpetas `layout/`, `forms/`, `feedback/`, `domain/`.
+4. **Form helpers** (`SupplierFormDialog` x2, `useHotkeys`).
+   - Extraer la validación cruzada de `SupplierFormDialog` a `supplierFormSchema.refine`.
+   - `useHotkeys`: separar el matcher de combos a `lib/hotkeyMatcher.ts`.
 
-**9. `src/lib/` raíz tiene 14 ficheros + 9 subcarpetas mezclados**
-`coerce.ts`, `config.ts`, `constants.ts`, `money.ts`, `formatCurrency.ts`, `rpc.ts`, `routes-config.tsx`, `routes.ts`, `telemetry.ts`, `utils.ts`, `exportCsv.ts`. `formatCurrency.ts` debería vivir bajo `lib/money/` o `lib/format/`. `routes-config.tsx` y `routes.ts` deberían moverse a `src/app/routes/`.
+## Validación
 
-**10. PDFs gigantes en `lib/pdf/theme/styles.ts`** (360 LOC)
-El archivo más grande de la app (sin contar autogenerados). Considerar dividir por documento (invoice styles, quote styles, statement styles).
+Después de cada ola:
 
-**11. Cobertura de tests desbalanceada**
-Sólo carpetas con `__tests__`: `bookings/hooks`, `invoices/hooks/invoices`, `lib/domain`, `lib/__tests__`, `customers/lib`, `hooks/__tests__`. Features críticos (fleet, quotes, maintenance, returns, deliveries) no tienen tests unitarios. No es bloqueo arquitectónico pero amplifica riesgo de refactors.
-
----
-
-## Plan ordenado (crítico → opcional)
-
-```text
-Paso 1  ✅ v6.48.0 — queryKeys factories adoptadas en invoices/bookings/fleet/customers
-Paso 2  ✅ v6.48.0 — 5 schemas Zod movidos a features/*/lib/*Schema.ts
-Paso 3  ✅ v6.48.0 — barrels src/features/*/index.ts creados
-Paso 4  ✅ v6.49.0 — features/invoices/hooks/invoices/ reagrupado en cfdi/ recurring/ pdf/ collections/
-Paso 5  ✅ v6.50.0 — useResourceList<T> creado; BookingsPage e InvoicesPage migradas como piloto
-Paso 6  ✅ v6.51.0 — useBookingActionsLogic descompuesto en 3 hooks atómicos (dialogs/actions/preview)
-Paso 7  ✅ v6.52.0 — src/components/ reorganizado en layout/ forms/ feedback/ domain/ (103 archivos actualizados)
-Paso 8  ✅ v6.53.0 — formatCurrency→lib/format/, money→lib/money/, routes→src/routes/ (102 archivos)
-Paso 9  ✅ v6.54.0 — lib/pdf/theme/styles.ts dividido en styles/{shared,contract}.ts + barrel (cero cambios en consumidores)
-Paso 10 ✅ v6.55.0 — 23 tests añadidos a quotes (builders, validation, prefillHelpers). fleet y maintenance ya cubiertos. PLAN COMPLETO.
+```
+bunx tsc --noEmit
+bun run test
+bunx eslint src
 ```
 
-> **Auditoría finalizada (Pasos 1-10).** Cero deuda arquitectónica pendiente del plan original.
+Meta acumulada: 0 warnings al terminar la Ola 3.
 
-## Detalle técnico
+## Changelog
 
-- **Pasos 1-3 son los de mayor ROI**: eliminan bugs latentes de invalidación, desacoplan validación, y bloquean a nivel lint la deuda futura. Bajo riesgo de regresión (cambios mecánicos guiados por TypeScript).
-- **Paso 4** requiere actualizar imports masivamente (`rg -l` + sed seguro o `tsc --noEmit` como red).
-- **Paso 5** es el único con riesgo real de regresión visual; hacerlo página por página detrás de los tests existentes.
-- **Pasos 6-10** son mejoras incrementales que se pueden intercalar entre features nuevos sin sprint dedicado.
+Una sola entrada `v6.59.0` (minor, infra) al final con resumen por ola. No se afecta runtime ni UI.
 
-Sin cambios de código todavía; espero tu aprobación para arrancar por el Paso 1 (o el que prefieras saltar/priorizar).
+## Detalles técnicos
+
+- Los hooks extraídos respetan la Power-of-10 (≤ 80 LOC).
+- Los selectores de permisos (`canEdit`, etc.) se ubican en `src/features/<feat>/lib/<entity>Permissions.ts` y se cubren con tests unitarios si introducen lógica no trivial.
+- No se modifican APIs públicas de barrels; los nuevos archivos se re-exportan donde aplique.
+- Excluido del scope: `src/components/ui/**` (ya ignorado por ESLint).
+
+## Riesgos
+
+- **Permission selectors**: cambios de orden en las ramas podrían alterar acciones visibles. Mitigación: snapshot de los tests existentes + revisión manual de cada Detail page tras la extracción.
+- **`parseBankCsv`**: regresión en parsing por banco. Mitigación: ya hay tests en `src/features/bank-reconciliation/lib/__tests__/`; ampliar si no cubren todos los bancos.
