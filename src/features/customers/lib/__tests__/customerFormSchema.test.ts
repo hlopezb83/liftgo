@@ -1,44 +1,61 @@
 import { describe, it, expect } from "vitest";
 import { customerFormSchema } from "../customerFormSchema";
 
+/**
+ * Validación Zod del formulario de clientes.
+ * Riesgo: aceptar email malformado o nombre vacío rompe CFDI 4.0 y reportes.
+ */
+
+const base = {
+  name: "Acme S.A. de C.V.",
+};
+
 describe("customerFormSchema", () => {
-  it("acepta payload mínimo válido", () => {
-    const r = customerFormSchema.safeParse({ name: "Cliente Demo" });
-    expect(r.success).toBe(true);
+  it("acepta payload mínimo con solo name; el resto cae a defaults vacíos", () => {
+    const parsed = customerFormSchema.parse(base);
+    expect(parsed.name).toBe("Acme S.A. de C.V.");
+    expect(parsed.email).toBe("");
+    expect(parsed.phone).toBe("");
+    expect(parsed.rfc).toBe("");
+    expect(parsed.razon_social).toBe("");
   });
 
-  it("rechaza nombre vacío", () => {
-    const r = customerFormSchema.safeParse({ name: "" });
-    expect(r.success).toBe(false);
-    if (!r.success) {
-      expect(r.error.issues.some((i) => i.message === "El nombre es requerido")).toBe(true);
+  it("rechaza name vacío con mensaje en español", () => {
+    const res = customerFormSchema.safeParse({ ...base, name: "" });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues[0].message).toBe("El nombre es requerido");
     }
   });
 
   it("acepta email vacío (campo opcional)", () => {
-    const r = customerFormSchema.safeParse({ name: "A", email: "" });
-    expect(r.success).toBe(true);
+    const res = customerFormSchema.safeParse({ ...base, email: "" });
+    expect(res.success).toBe(true);
   });
 
   it("rechaza email con formato inválido", () => {
-    const r = customerFormSchema.safeParse({ name: "A", email: "no-es-email" });
-    expect(r.success).toBe(false);
-    if (!r.success) {
-      expect(r.error.issues.some((i) => i.message.includes("inválido"))).toBe(true);
+    const res = customerFormSchema.safeParse({ ...base, email: "no-es-email" });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues[0].message).toBe("Correo electrónico inválido");
     }
   });
 
-  it("acepta email válido", () => {
-    const r = customerFormSchema.safeParse({ name: "A", email: "demo@liftgo.mx" });
-    expect(r.success).toBe(true);
+  it("acepta email válido tipo persona@dominio.mx", () => {
+    const res = customerFormSchema.safeParse({ ...base, email: "ventas@acme.com.mx" });
+    expect(res.success).toBe(true);
   });
 
-  it("aplica defaults a campos CFDI cuando no se proveen", () => {
-    const r = customerFormSchema.parse({ name: "X" });
-    expect(r.rfc).toBe("");
-    expect(r.razon_social).toBe("");
-    expect(r.regimen_fiscal).toBe("");
-    expect(r.uso_cfdi).toBe("");
-    expect(r.domicilio_fiscal_cp).toBe("");
+  it("preserva campos fiscales CFDI 4.0 cuando se proveen", () => {
+    const parsed = customerFormSchema.parse({
+      ...base,
+      rfc: "XAXX010101000",
+      razon_social: "ACME SA DE CV",
+      regimen_fiscal: "601",
+      uso_cfdi: "G03",
+      domicilio_fiscal_cp: "64000",
+    });
+    expect(parsed.rfc).toBe("XAXX010101000");
+    expect(parsed.domicilio_fiscal_cp).toBe("64000");
   });
 });
