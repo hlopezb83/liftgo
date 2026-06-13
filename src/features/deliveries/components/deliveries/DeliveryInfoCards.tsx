@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Truck, MapPin, User } from "lucide-react";
 import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 
 interface InfoRowProps { label: string; value: string }
 
