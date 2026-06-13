@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.59.2",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "Fix CI — imports del PDF de estado de resultados",
+    "description": "Corregidos los imports de tipos en el generador PDF de Estado de Resultados para apuntar al hook real de reportes y evitar el TS2307/TS7006 en CI.",
+    "category": "infra"
+  },
+  {
     "version": "6.59.1",
     "date": "2026-06-13",
     "type": "patch",
