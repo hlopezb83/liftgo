@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.5",
+    "date": "2026-06-13",
+    "type": "patch",
+    "title": "E2E portal: selectores robustos para login",
+    "description": "PortalLogin usa <Label> sin htmlFor, por lo que getByLabel timeoutaba. Reemplazado por input[type=email] / input[type=password].",
+    "category": "fix"
+  },
+  {
     "version": "6.66.4",
     "date": "2026-06-13",
     "type": "patch",

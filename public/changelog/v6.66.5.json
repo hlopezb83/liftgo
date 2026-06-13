@@ -1,0 +1,15 @@
+{
+  "version": "6.66.5",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "E2E portal: selectores robustos para login",
+  "category": "testing",
+  "description": "`PortalLogin` usa `<Label>` sin `htmlFor`, por lo que `getByLabel` no resolvía los inputs y el test timeoutaba. Reemplazado por selectores `input[type=email]` / `input[type=password]`, que sí matchean el DOM real.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "portal.spec.ts usa selectores por tipo de input",
+      "description": "Evita el fail por timeout en `getByLabel(/correo/i)` reemplazando los locators por `input[type=email]` y `input[type=password]`."
+    }
+  ]
+}
