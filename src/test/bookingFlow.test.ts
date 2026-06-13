@@ -8,7 +8,7 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 // Resolver mutable por test — el mock se construye una sola vez.
 let createBookingResp: SupabaseMockResponse = { data: "new-booking-id", error: null };
-const createBookingResolver = vi.fn((args: unknown) => createBookingResp);
+const createBookingResolver = vi.fn((_args: unknown) => createBookingResp);
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({

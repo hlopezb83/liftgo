@@ -22,7 +22,7 @@ export default async function globalTeardown(): Promise<void> {
   const password = process.env.E2E_TEST_PASSWORD;
 
   if (!SUPABASE_URL || !SUPABASE_KEY || !email || !password) {
-    // eslint-disable-next-line no-console
+     
     console.warn("[e2e] globalTeardown: faltan env vars, se omite purge_e2e_data.");
     return;
   }
@@ -33,14 +33,14 @@ export default async function globalTeardown(): Promise<void> {
 
   const { error: authError } = await client.auth.signInWithPassword({ email, password });
   if (authError) {
-    // eslint-disable-next-line no-console
+     
     console.error("[e2e] globalTeardown: login falló, se omite purge_e2e_data:", authError.message);
     return;
   }
 
   const { data, error } = await client.rpc("purge_e2e_data");
   if (error) {
-    // eslint-disable-next-line no-console
+     
     console.error("[e2e] globalTeardown: purge_e2e_data falló:", error.message);
     return;
   }

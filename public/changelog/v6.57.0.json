@@ -1,0 +1,8 @@
+{
+  "version": "6.57.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría de CI — MEDIUM y LOW resueltos",
+  "description": "Segundo pase de la auditoría con subagentes. Cambios: (1) M-1 — coverage de Vitest activada en CI (bun run test --coverage) con upload artifact 'coverage-report'; los umbrales del vitest.config.ts ahora actúan como gate real. (2) M-8 — eliminado src/test/example.test.ts (placeholder trivial). (3) L-1 — actions/checkout@v5 → @v6 en los 4 jobs. (4) L-4 — activado noUnusedLocals y noUnusedParameters en tsconfig.app.json; corregidos 24 errores en 20 archivos (imports muertos en features bank-reconciliation, company-settings, customers, dashboard, deliveries, fleet, inventory, invoices, maintenance, quotes, reports, returns; constante MESSAGES huérfana en errorCatalog; params no usados en calendar.tsx y IncomeStatementDocument; React/useState/act/waitFor/FUEL_LEVELS no usados en tests). (5) L-5 — knip.json incluye src/main.tsx como entry productivo además de los tests. (6) Refactor lateral en useMaintenanceLogs: eliminado import dinámico de 'sonner' que solo desestructuraba toast sin usarlo (notifyError ya maneja la notificación globalmente). Verificado: typecheck pasa con noUnusedLocals/Params en true.",
+  "category": "infra"
+}

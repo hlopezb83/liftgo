@@ -110,7 +110,7 @@ export const test = base.extend<{ seed: SeedIds }>({
       // error original del test, no enmascararlo. La red de seguridad final es
       // el globalTeardown de Playwright que purga por bandera is_e2e=true.
       await teardownScenario(page, scope).catch((err) => {
-        // eslint-disable-next-line no-console
+         
         console.error(`[e2e] teardown falló para scope=${scope}:`, err);
       });
     }

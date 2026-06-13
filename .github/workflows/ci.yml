@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -70,8 +70,20 @@ jobs:
       - name: Prepare reports directory
         run: mkdir -p reports
 
-      - name: Tests (Vitest)
-        run: bun run test
+      - name: Tests (Vitest) + Coverage
+        # --coverage activa @vitest/coverage-v8 con los umbrales del vitest.config.ts.
+        # Si la cobertura baja del threshold (lines/branches/functions/statements),
+        # el job rompe — mismo gate que tener tests fallando.
+        run: bun run test --coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: reports/coverage/
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Upload Vitest reports
         if: always()
@@ -107,7 +119,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -155,7 +167,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -220,7 +232,7 @@ jobs:
         total: [2]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
