@@ -1,0 +1,24 @@
+{
+  "version": "6.66.12",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Auditoría de tests — Lote 6 (Playwright smoke endurecido + mobile viewport)",
+  "category": "testing",
+  "sections": [
+    {
+      "heading": "Playwright — smoke-nav endurecido",
+      "items": [
+        "Bug latente: el smoke pasaba aunque la página renderizara un body vacío. Ahora requiere que al menos un landmark (main, [role='main'], h1 o h2) esté visible en cada ruta.",
+        "Cubre las 31 rutas críticas existentes."
+      ]
+    },
+    {
+      "heading": "Playwright — mobile viewport (5 tests nuevos)",
+      "items": [
+        "Subset crítico en 375x812 (iPhone-like): /, /customers, /bookings, /invoices, /fleet.",
+        "Valida que no haya overflow horizontal (scrollWidth ≤ clientWidth + 1px), síntoma típico de tabla sin MobileCardList.",
+        "Captura errores no manejados en mobile que el viewport desktop no expone."
+      ]
+    }
+  ]
+}
