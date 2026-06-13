@@ -8,8 +8,15 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 let resp: SupabaseMockResponse = { data: [], error: null };
 
+// tableResolvers explícito: si useBookings agrega un .from("forklifts") en una
+// segunda query, no caerá al mismo mock y el bug de select equivocado quedará
+// expuesto (antes `fromResolver` genérico respondía igual a cualquier tabla).
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: createSupabaseChainMock({ fromResolver: () => resp }),
+  supabase: createSupabaseChainMock({
+    tableResolvers: {
+      bookings: () => resp,
+    },
+  }),
 }));
 
 import { useBookings } from "../useBookings";

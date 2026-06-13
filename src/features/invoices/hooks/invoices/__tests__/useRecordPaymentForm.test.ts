@@ -10,11 +10,30 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+// Interfaz completa de los hooks mockeados: si el componente lee isError /
+// reset / isSuccess para deshabilitar el botón o resetear el form, los tests
+// deben verlo (mocks parciales enmascaran regresiones).
 vi.mock("@/features/invoices/hooks/usePayments", () => ({
-  useCreatePayment: () => ({ mutate: createPaymentMutate, isPending: false }),
+  useCreatePayment: () => ({
+    mutate: createPaymentMutate,
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+    reset: vi.fn(),
+  }),
 }));
 vi.mock("@/features/invoices/hooks/invoices/cfdi/usePaymentComplement", () => ({
-  useStampPaymentComplement: () => ({ mutate: stampMutate, isPending: false }),
+  useStampPaymentComplement: () => ({
+    mutate: stampMutate,
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+    reset: vi.fn(),
+  }),
 }));
 
 import { useRecordPaymentForm } from "../useRecordPaymentForm";

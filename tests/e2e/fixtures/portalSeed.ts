@@ -19,8 +19,10 @@ type PortalConfig = {
   portalPassword: string;
 };
 
-// Env vars obligatorias — sin fallbacks. Embeber credenciales enmascara errores.
-function loadConfig(): PortalConfig {
+// Env vars obligatorias. Validadas perezosamente al construir cada fixture,
+// NUNCA al importar el módulo: cargarlas al top-level abortaba toda la suite
+// (incluyendo specs que no usan portal) si faltaba E2E_PORTAL_EMAIL en CI.
+function loadConfig(): PortalConfig | null {
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey =
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
@@ -30,15 +32,14 @@ function loadConfig(): PortalConfig {
   const portalPassword = process.env.E2E_PORTAL_PASSWORD;
 
   if (!supabaseUrl || !supabaseKey || !adminEmail || !adminPassword || !portalEmail || !portalPassword) {
-    throw new Error(
-      "[e2e:portal] Faltan env vars: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, " +
-        "E2E_TEST_EMAIL, E2E_TEST_PASSWORD, E2E_PORTAL_EMAIL, E2E_PORTAL_PASSWORD.",
-    );
+    return null;
   }
   return { supabaseUrl, supabaseKey, adminEmail, adminPassword, portalEmail, portalPassword };
 }
 
-const CONFIG = loadConfig();
+const MISSING_ENV_MSG =
+  "[e2e:portal] Faltan env vars: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY, " +
+  "E2E_TEST_EMAIL, E2E_TEST_PASSWORD, E2E_PORTAL_EMAIL, E2E_PORTAL_PASSWORD.";
 
 function buildScope(testInfo: TestInfo): string {
   const worker = testInfo.workerIndex ?? 0;
@@ -47,13 +48,13 @@ function buildScope(testInfo: TestInfo): string {
   return `portal-w${worker}-${testId}-${rand}`;
 }
 
-async function adminClient(): Promise<SupabaseClient> {
-  const client = createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
+async function adminClient(cfg: PortalConfig): Promise<SupabaseClient> {
+  const client = createClient(cfg.supabaseUrl, cfg.supabaseKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { error } = await client.auth.signInWithPassword({
-    email: CONFIG.adminEmail,
-    password: CONFIG.adminPassword,
+    email: cfg.adminEmail,
+    password: cfg.adminPassword,
   });
   if (error) throw new Error(`[e2e:portal] admin login falló: ${error.message}`);
   return client;
@@ -73,16 +74,26 @@ type PortalFixtures = {
 export const test = base.extend<PortalFixtures>({
   portalCreds: async ({ page: _page }, use) => {
     void _page;
-    await use({ email: CONFIG.portalEmail, password: CONFIG.portalPassword });
+    const cfg = loadConfig();
+    if (!cfg) {
+      test.skip(true, MISSING_ENV_MSG);
+      return;
+    }
+    await use({ email: cfg.portalEmail, password: cfg.portalPassword });
   },
   portalSeed: async ({ page: _page }, use, testInfo) => {
     void _page;
+    const cfg = loadConfig();
+    if (!cfg) {
+      test.skip(true, MISSING_ENV_MSG);
+      return;
+    }
     const scope = buildScope(testInfo);
-    const admin = await adminClient();
+    const admin = await adminClient(cfg);
 
     const { data, error } = await admin.rpc("e2e_seed_portal_scenario", {
       p_scope: scope,
-      p_portal_email: CONFIG.portalEmail,
+      p_portal_email: cfg.portalEmail,
     });
     if (error) throw new Error(`e2e_seed_portal_scenario falló: ${error.message}`);
     const seed = data as PortalSeed;
@@ -92,7 +103,7 @@ export const test = base.extend<PortalFixtures>({
     } finally {
       const { error: teardownError } = await admin.rpc("e2e_teardown", { p_scope: scope });
       if (teardownError) {
-         
+
         console.error(`[e2e:portal] teardown falló scope=${scope}:`, teardownError.message);
       }
       await admin.auth.signOut().catch(() => {});
