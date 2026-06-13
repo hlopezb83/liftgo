@@ -22,8 +22,10 @@ setup("authenticate as admin", async ({ page }) => {
   await page.locator("#auth-password").fill(password);
   await page.getByRole("button", { name: /iniciar sesión|entrar|sign in/i }).click();
 
-  // Wait for any post-login navigation to settle.
-  await page.waitForLoadState("networkidle").catch(() => {});
+  // Esperar redirección post-login a una ruta de admin. Antes usábamos
+  // `waitForLoadState("networkidle").catch(() => {})`, que silenciaba timeouts
+  // reales (un login fallido continuaba con storageState vacío).
+  await page.waitForURL(/\/(dashboard)?$/, { timeout: 20_000 });
 
   // FAIL LOUDLY if the configured user is a Customer Portal account.
   // The admin area lives at "/" or "/dashboard"; portal users get redirected to "/portal/*".

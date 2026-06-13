@@ -23,14 +23,16 @@ export default defineConfig({
   testDir: "./tests/e2e",
   // Red final contra contaminación E2E: purga todas las filas con is_e2e=true
   // al terminar la suite, aunque algún teardown por scope se haya saltado.
-  // CRÍTICO: con sharding en CI, cada shard ejecuta su propio globalTeardown.
-  // Si shard 1 termina primero, purgaría datos de shard 2 todavía corriendo.
-  // Solución: solo el último shard ejecuta el purge global. En local (sin
-  // SHARD_INDEX) siempre corre. Cada test ya hace teardown por scope, así
-  // que omitir el global en shards intermedios solo retrasa la limpieza
-  // hasta el último shard sin perder seguridad.
-  globalTeardown:
-    !process.env.SHARD_INDEX || process.env.SHARD_INDEX === process.env.SHARD_TOTAL
+  // CRÍTICO con sharding: si shard 1 termina antes que shard 2, purgar global
+  // borraría datos de shard 2 todavía corriendo. Reglas:
+  //   - Sin SHARD_INDEX (local)           → siempre corre
+  //   - SHARD_INDEX === SHARD_TOTAL       → corre (último shard)
+  //   - SHARD_INDEX sin SHARD_TOTAL       → NO corre (sin esto, todos los
+  //     shards intermedios purgaban datos de hermanos vivos — bug previo)
+  //   - SHARD_INDEX !== SHARD_TOTAL       → NO corre
+  globalTeardown: !process.env.SHARD_INDEX
+    ? "./tests/e2e/global.teardown.ts"
+    : process.env.SHARD_TOTAL && process.env.SHARD_INDEX === process.env.SHARD_TOTAL
       ? "./tests/e2e/global.teardown.ts"
       : undefined,
   timeout: 30_000,
