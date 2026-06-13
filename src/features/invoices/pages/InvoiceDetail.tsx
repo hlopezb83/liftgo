@@ -45,11 +45,12 @@ function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; 
     .reduce((s, cn) => s + Number(cn.total), 0);
 }
 
-interface InvoiceDerived {
-  paymentList: ReturnType<typeof Array.prototype.slice extends () => infer R ? () => R : never> extends never ? never : never;
-}
-
-function useInvoiceDerivations(invoice: NonNullable<ReturnType<typeof useInvoice>["data"]>, payments: ReturnType<typeof usePayments>["data"], creditNotes: ReturnType<typeof useCreditNotesForInvoice>["data"], company: ReturnType<typeof useCompanySettings>["data"]) {
+function deriveInvoiceData(
+  invoice: NonNullable<ReturnType<typeof useInvoice>["data"]>,
+  payments: ReturnType<typeof usePayments>["data"],
+  creditNotes: ReturnType<typeof useCreditNotesForInvoice>["data"],
+  company: ReturnType<typeof useCompanySettings>["data"],
+) {
   const paymentList = payments ?? [];
   const lineItems = parseLineItems<LineItem>(invoice.line_items);
   const cfdiStatus = invoice.cfdi_status ?? "pending";
