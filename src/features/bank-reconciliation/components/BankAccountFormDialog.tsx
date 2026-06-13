@@ -56,22 +56,22 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
         <div className="grid gap-3">
           <div className="grid gap-1.5">
             <Label>Nombre interno *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="BBVA Operaciones" />
+            <Input value={s.name} onChange={(e) => s.setName(e.target.value)} placeholder="BBVA Operaciones" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Banco *</Label>
-              <Input value={bank} onChange={(e) => setBank(e.target.value)} placeholder="BBVA" />
+              <Input value={s.bank} onChange={(e) => s.setBank(e.target.value)} placeholder="BBVA" />
             </div>
             <div className="grid gap-1.5">
               <Label>Últimos 4</Label>
-              <Input maxLength={4} value={last4} onChange={(e) => setLast4(e.target.value.replace(/\D/g, ""))} />
+              <Input maxLength={4} value={s.last4} onChange={(e) => s.setLast4(e.target.value.replace(/\D/g, ""))} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Moneda</Label>
-              <Select value={currency} onValueChange={setCurrency}>
+              <Select value={s.currency} onValueChange={s.setCurrency}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="MXN">MXN</SelectItem>
@@ -81,21 +81,21 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
             </div>
             <div className="grid gap-1.5">
               <Label>Saldo inicial</Label>
-              <Input type="number" step="0.01" value={initialBalance} onChange={(e) => setInitialBalance(e.target.value)} />
+              <Input type="number" step="0.01" value={s.initialBalance} onChange={(e) => s.setInitialBalance(e.target.value)} />
             </div>
           </div>
           <div className="flex items-center justify-between">
             <Label>Activa</Label>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
+            <Switch checked={s.isActive} onCheckedChange={s.setIsActive} />
           </div>
           <div className="grid gap-1.5">
             <Label>Notas</Label>
-            <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Input value={s.notes} onChange={(e) => s.setNotes(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={!name.trim() || !bank.trim() || upsert.isPending}>
+          <Button onClick={handleSave} disabled={!s.name.trim() || !s.bank.trim() || upsert.isPending}>
             Guardar
           </Button>
         </DialogFooter>
