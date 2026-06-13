@@ -60,29 +60,34 @@ export function useExportablePayables() {
         if (b.is_primary && !existing.is_primary) bySupplier.set(b.supplier_id, b);
       }
 
-      return (billsRes.data ?? []).map((row) => {
-        const sup = (row as { suppliers: { name: string; rfc: string | null } | null }).suppliers;
-        const bank = row.supplier_id ? bySupplier.get(row.supplier_id) : undefined;
-        const clabe = bank?.clabe ?? null;
-        const hasValid = !!clabe && clabe.trim().length === 18 && /^\d{18}$/.test(clabe.trim());
-        return {
-          id: row.id,
-          bill_number: row.bill_number,
-          supplier_id: row.supplier_id,
-          supplier_name: sup?.name ?? "—",
-          supplier_rfc: sup?.rfc ?? null,
-          due_date: row.due_date,
-          balance: Number(row.balance),
-          currency: row.currency,
-          description: row.description,
-          payment_in_progress_at: row.payment_in_progress_at,
-          bank_name: bank?.bank_name ?? null,
-          clabe,
-          account_number: bank?.account_number ?? null,
-          account_holder: bank?.account_holder ?? null,
-          has_valid_clabe: hasValid,
-        };
-      });
+      return (billsRes.data ?? []).map((row) => toExportable(row, bySupplier));
     },
   });
+}
+
+function toExportable(
+  row: { id: string; bill_number: string; supplier_id: string | null; due_date: string | null; balance: number; currency: string; description: string | null; payment_in_progress_at: string | null; suppliers: { name: string; rfc: string | null } | null },
+  bySupplier: Map<string, BankAccountRow>,
+): ExportablePayable {
+  const sup = row.suppliers;
+  const bank = row.supplier_id ? bySupplier.get(row.supplier_id) : undefined;
+  const clabe = bank?.clabe ?? null;
+  const hasValid = !!clabe && clabe.trim().length === 18 && /^\d{18}$/.test(clabe.trim());
+  return {
+    id: row.id,
+    bill_number: row.bill_number,
+    supplier_id: row.supplier_id,
+    supplier_name: sup?.name ?? "—",
+    supplier_rfc: sup?.rfc ?? null,
+    due_date: row.due_date,
+    balance: Number(row.balance),
+    currency: row.currency,
+    description: row.description,
+    payment_in_progress_at: row.payment_in_progress_at,
+    bank_name: bank?.bank_name ?? null,
+    clabe,
+    account_number: bank?.account_number ?? null,
+    account_holder: bank?.account_holder ?? null,
+    has_valid_clabe: hasValid,
+  };
 }
