@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { PageTransition } from "@/components/PageTransition";
-import { PageHeader } from "@/components/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";

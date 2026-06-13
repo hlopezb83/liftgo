@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PageTransition } from "@/components/PageTransition";
-import { PageHeader } from "@/components/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DateRangePickerField } from "@/components/DateRangePickerField";
+import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { UtilizationReport } from "@/features/reports/components/reports/UtilizationReport";
 import type { DateRange } from "react-day-picker";
 import { RevenueReport } from "@/features/reports/components/reports/RevenueReport";
