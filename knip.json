@@ -1,13 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/main.tsx",
     "src/**/*.{test,spec}.{ts,tsx}",
-    "tests/e2e/**/*.{ts,tsx}",
-    "playwright.config.ts"
+    "tests/e2e/**/*.{ts,tsx}"
   ],
   "project": ["src/**/*.{ts,tsx}"],
   "ignore": ["src/integrations/supabase/**", "src/components/ui/**"],
-  "ignoreDependencies": ["@playwright/test"],
   "ignoreExportsUsedInFile": true
 }

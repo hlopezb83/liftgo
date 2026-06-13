@@ -1,0 +1,8 @@
+{
+  "version": "6.66.0",
+  "date": "2026-06-13",
+  "type": "patch",
+  "title": "Auditoría — Lote 7: cierre, limpieza de exports muertos y knip",
+  "description": "Cierre de la auditoría de calidad (7 lotes). Removido el export no usado PaymentMethodValue en src/features/invoices/lib/paymentMethods.ts. Ajustado knip.json: removido @playwright/test de ignoreDependencies y los entry patterns redundantes src/main.tsx y playwright.config.ts. Resultado: bunx knip = 0 hallazgos, 581 tests verdes, tsc limpio. Resumen final: 0 archivos de aplicación >300 LOC (solo types.ts autogenerado y shadcn/ui), 0 god components, ~12 hooks/componentes extraídos, +20 tests añadidos, 1 bugfix crítico (exchangeRate USD), scan de seguridad revisado (findings WARN intencionales por arquitectura SECURITY DEFINER+has_role()).",
+  "category": "infra"
+}
