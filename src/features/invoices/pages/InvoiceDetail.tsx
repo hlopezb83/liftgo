@@ -168,7 +168,7 @@ export default function InvoiceDetail() {
         setDeleteOpen={actions.setDeleteDialogOpen}
         onCancelSuccess={refetch}
         onDelete={actions.handleDelete}
-        ppdStamped={invoice.metodo_pago === "PPD" && cfdiStatus === "stamped"}
+        ppdStamped={ppdStamped}
       />
 
     </div>
