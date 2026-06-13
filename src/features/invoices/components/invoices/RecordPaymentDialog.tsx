@@ -105,7 +105,13 @@ function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChan
 }
 
 export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, ppdStamped = false }: Props) {
-  const s = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange });
+  const {
+    amount, setAmount, date, setDate, method, setMethod,
+    paymentFormSat, setPaymentFormSat, currency, setCurrency,
+    exchangeRate, setExchangeRate, reference, setReference,
+    notes, setNotes, stampRep, setStampRep,
+    createPayment, stampComplement, handleSubmit,
+  } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
