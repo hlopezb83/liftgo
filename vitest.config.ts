@@ -21,13 +21,16 @@ export default defineConfig({
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/integrations/supabase/types.ts"],
       // Umbrales conservadores: la suite todavía cubre poco. Suben gradualmente
       // por lote para evitar regresiones en la cobertura efectiva ya alcanzada.
-      // Actuales (Lote A.1): 11.63/10.38/8.18/11.82 medidos; margen de ~0.5pp.
+      // Lote 2 (jun-2026): +44 tests nuevos (rentalCalculation, invoiceTotals,
+      // syncInvoiceStatus, 5 PDF Documents). Medido 13.98/12.92/10.08/14.36.
+      // Thresholds suben +2pp vs Lote A.1 manteniendo ~1pp de margen.
       thresholds: {
-        lines: 11,
-        functions: 8,
-        statements: 11,
-        branches: 10,
+        lines: 13,
+        functions: 9,
+        statements: 13,
+        branches: 12,
       },
+
     },
   },
   resolve: {

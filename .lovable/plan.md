@@ -1,108 +1,72 @@
-## Auditoría completada — 4 ejes
+## Lote 2 — Coverage real de dominio puro
 
-Lancé 4 sub-agentes que evaluaron CI/CD, calidad de código, gaps de testing y seguridad del backend. Los hallazgos completos están en mi turno anterior; este plan los consolida y prioriza por **ROI (impacto ÷ esfuerzo)**.
+Objetivo: subir cobertura efectiva con tests rápidos y deterministas sobre lógica pura, antes de mover los thresholds. Sin tocar producción.
 
-### Veredicto general
+### Estado base (medido)
+- Thresholds Vitest actuales: `lines:11 / branches:10 / functions:8 / statements:11` con margen real ≈ 0.5pp.
+- `rentalCalculation.ts` (116 LOC): sin tests.
+- `invoiceTotals.ts` (75 LOC): sin tests directos.
+- `syncInvoiceStatus.ts` (62 LOC): solo testeado indirectamente vía `paymentFlow.test.ts`.
+- PDFs (`ContractDocument`, `CustomerStatementDocument`, `IncomeStatementDocument`, `InvoiceDocument`, `QuoteDocument`): 0% — 5 documentos, 634 LOC sumados.
 
-- **Base sólida**: cero `!` non-null, cero `: any`, 100% de `useEffect` con cleanup, CORS por allowlist, `has_role` + `search_path` consistente, sin archivos >500 LOC.
-- **3 fugas críticas** (CI roto silenciosamente, RPCs E2E expuestas a `authenticated`, `company_settings` legible por `anon`).
-- **Cobertura ornamental**: thresholds Vitest (functions=8%) con margen real de 0.55pp — el gate no protege.
-- **Deuda extendida pero predecible**: 20+ componentes >150 LOC, 8 `catch (e)` sin `unknown`, 10+ casts `as`, formateo de moneda duplicado.
+### Cambios
 
----
+**1. `src/lib/domain/__tests__/rentalCalculation.test.ts` (nuevo)**
+Función `calculateRentalCost` con tarifas día/semana/mes — escenarios:
+- Solo mensual: 1, 2, 3 meses exactos.
+- Mensual + semanal: 1 mes + 2 semanas.
+- Mensual + semanal + diario: 1 mes + 2 semanas + 3 días.
+- Solo semanal: 21 días → 3 semanas.
+- Fallback de diario desde semanal (`d=0, w>0`) y desde mensual (`d=0, w=0, m>0`).
+- Edge: `start === end` (1 día), tarifas en cero, fechas inválidas → 0 items o resultados acotados.
+- `generateLineItems` y `generateLineItemsFromModel`: descripción incluye nombre del modelo y `(xN)`.
 
-## Lote 1 — Fixes urgentes de CI y seguridad (1-2h, bloqueantes)
+**2. `src/lib/domain/__tests__/invoiceTotals.test.ts` (nuevo)**
+- `lineItemTotal`: NaN, `null`, `undefined`, negativos.
+- `applyDiscountToBase`: % normal, $ fijo, descuento > base (no negativo), descuento 0/null.
+- `saleLineTotal`: combinaciones cantidad × precio − descuento.
+- `computeTotals`: IVA 16/8/0, subtotales con descuentos por línea, líneas vacías.
 
-Sin esto el CI está mintiendo y hay superficie de ataque viva.
+**3. `src/features/invoices/lib/__tests__/syncInvoiceStatus.test.ts` (nuevo)**
+Mock de `@/integrations/supabase/client` con builder fluido en memoria:
+- 0 pagos → status `sent`.
+- Pagos < total → `partial`.
+- Pagos == total → `paid` con `paid_at` = mayor `payment_date`.
+- Pagos == total y `payment_date` ausente → fallback recibido.
+- Invoice no existe → no lanza.
+- Idempotencia: si ya está en el status correcto no hace UPDATE.
 
-1. **Versiones de actions inexistentes** en `.github/workflows/ci.yml`:
-   - `actions/checkout@v6` → `@v4`
-   - `actions/upload-artifact@v7` → `@v4`
-   - `mikepenz/action-junit-report@v6` → `@v5`
-2. **Revocar EXECUTE** de RPCs E2E a `authenticated` (`e2e_seed_scenario`, `e2e_teardown`, `purge_e2e_data`) → migración SQL; conservar `service_role`.
-3. **Restringir `company_settings`** a `authenticated` y exponer solo `{name, logo_url}` vía RPC `get_company_branding` para pantallas pre-auth (RFC y régimen fiscal hoy son públicos).
-4. **`generate-recurring-maintenance`**: reemplazar `authHeader.includes(serviceKey)` por un `CRON_SECRET` dedicado comparado estrictamente.
-5. **Revocar GRANTs** implícitos en `billing_secrets` (`REVOKE ALL ... FROM PUBLIC, anon, authenticated`).
-6. **`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "1"`** en `env:` del workflow.
+**4. PDFs: smoke + snapshot estructural en `src/lib/pdf/documents/__tests__/`**
+Patrón único, un test por documento (5 archivos). Cada test:
+- Importa `pdf` de `@react-pdf/renderer` y renderiza con fixture mínima.
+- Asserts: `await pdf(<Doc {...fixture}/>).toBuffer()` produce `Buffer.length > 1000`, no lanza, y `toString().slice(0, 8) === "%PDF-1."`.
+- Snapshot inline del árbol React (no del PDF binario) vía `renderer.create(...).toJSON()` para detectar regresiones estructurales.
 
----
+Fixtures comparten un módulo `src/lib/pdf/documents/__tests__/__fixtures__/pdfFixtures.ts` con `company`, `lineItems`, `customer`, `totals`.
 
-## Lote 2 — Coverage real: dominio puro (4-6h, +5pp coverage)
+**5. Subir thresholds en `vitest.config.ts`**
+Tras correr local con `--coverage` y medir el nuevo baseline, ajustar dejando ≥5pp de margen real. Estimado conservador:
+- `lines: 16`, `branches: 14`, `functions: 12`, `statements: 16`.
+- Valores finales = `medido_local − 5pp` redondeado a entero.
 
-Antes de subir thresholds, hay que tener margen real. Funciones puras = máximo ROI.
+### Detalles técnicos
 
-1. Tests unitarios de `src/lib/domain/rentalCalculation.ts` (mezclas día/semana/mes, edge cases).
-2. Tests de `src/lib/domain/invoiceTotals.ts` (descuentos, NaN, overflow).
-3. Tests de `src/features/invoices/lib/syncInvoiceStatus.ts` (estados paid/partial/sent/reversal con mock supabase).
-4. Smoke snapshots de `src/lib/pdf/documents/{QuoteDocument,InvoiceDocument,IncomeStatementDocument}.tsx` (hoy 0% en 17 archivos PDF).
-5. Subir thresholds de Vitest a `lines:20 / branches:18 / functions:15 / statements:20` con margen ≥5pp medido.
+- `@react-pdf/renderer` requiere `process.stdout` en node; el setup actual (`jsdom`) lo soporta. Verificar con un primer test antes de extender a los 5.
+- Para el mock de Supabase en `syncInvoiceStatus`, reusar el patrón de `paymentFlow.test.ts` (chain `from().select().eq().single()`) — crear helper `createSupabaseMock({ payments, invoice })` local al test.
+- Sin cambios en código de producción. Si un test descubre un bug, se reporta como hallazgo separado (no se arregla en este lote).
+- Si `@react-pdf/renderer` no rinde bien en jsdom, fallback: `vi.mock('@react-pdf/renderer')` y solo testear que el componente se construye sin lanzar y exporta las props esperadas — pierde detección de regresiones reales pero conserva señal mínima.
 
----
+### Entregables
 
-## Lote 3 — Higiene de código (3-4h, deuda mecánica)
+- 8 archivos de test nuevos (3 unitarios + 5 PDF) + 1 fixture compartido.
+- `vitest.config.ts` con thresholds actualizados.
+- Entrada `v6.61.0` en `public/changelog.json` + `public/changelog/v6.61.0.json`.
 
-Fixes mecánicos de bajo riesgo, alto ROI de mantenibilidad.
+### Verificación
 
-1. **Tipar 8 `catch (e)` como `unknown`** en: `useSupplierRepMutations`, `PortalStatement`, `SupplierFormDialog`, `usePaymentHistoryColumns`, `useDownloadInvoiceXml`, `InvoiceCreditNotesCard`, `useSetPasswordForm`, `captureScreenshot`.
-2. **Refactor `useBreadcrumbEntityLabel.ts`**: eliminar 10+ casts `as`/`as never` con union discriminada.
-3. **Unificar `formatCurrency` → `nCurrency`**: deprecar el primero con re-export, evitar locales divergentes.
-4. **Mover magic numbers** a `src/lib/constants.ts`: `MAX_RECORDS_FETCH = 500`, `STALL_TIMEOUT_MS`, `BREADCRUMB_STALE_MS`.
-5. **Eliminar dead code** confirmado por knip: `insuranceAlertKeys`, `exportIncomeStatementPdf`, tipos huérfanos.
-6. **Reactivar `@typescript-eslint/no-unused-vars`** como `warn` en `eslint.config.js`.
+- `bun run test --coverage` local: 526 + ~80 tests nuevos, thresholds nuevos pasan con margen ≥5pp.
+- `bunx tsc --noEmit -p tsconfig.app.json` limpio.
+- `bunx knip` sin nuevos warnings.
+- Pipeline CI verde al re-lanzar el workflow.
 
----
-
-## Lote 4 — Refactor de god components (1-2 días, calidad estructural)
-
-Top archivos que violan Power of 10 (componentes ≤150, hooks ≤80) con mayor blast radius.
-
-1. `ListPageLayout.tsx` (251 LOC) → extraer `ListPageFiltersBar`, `ListPageEmptyState`.
-2. `RecordPaymentDialog.tsx` (213) + `RegisterSupplierPaymentDialog.tsx` (195) → compartir `usePaymentFormBase`.
-3. `SupplierBillDetailSheet.tsx` (204) → `BillAmountsCard` + `BillActionsBar`.
-4. `CRMClosedPage.tsx` (210) → extraer `closedColumns.tsx` + `useReopenProspect`.
-5. Hooks oversize: `useHotkeys` (108), `usePullToRefresh` (96), `useListPage` (96), `useListFilters` (90), `useProspectForm` (104).
-6. **Centralizar query keys**: tabla `forklifts` se consulta desde 6 hooks distintos sin queryKey canónico → crear `src/lib/queryKeys.ts`.
-
----
-
-## Lote 5 — Coverage estratégico: CFDI + RLS + E2E (3-5 días, blindaje fiscal)
-
-Áreas de mayor riesgo legal/financiero hoy sin tests.
-
-1. **Hooks CFDI** (0% hoy): `useCancelCfdi`, `useStampCfdi`, `usePaymentComplement`, `useCreditNoteMutations`.
-2. **Hooks pagos a proveedores**: `useRegisterSupplierPayment`, `useBillApprovalMutations`.
-3. **RLS tests faltantes**: `payments`, `credit_notes`, `supplier_bills`, `supplier_payments`, `bank_statement_lines`, `role_permissions` (este último crítico contra escalada).
-4. **Deno tests** faltantes para edge functions: `stamp-payment-complement`, `cancel-credit-note`, `refresh-cancellation-status`, `generate-recurring-maintenance`.
-5. **E2E críticos faltantes**:
-   - `cfdi-cancel.spec.ts` (motivos 02/03)
-   - `payment-complement.spec.ts` (PPD end-to-end)
-   - `full-chain.spec.ts` (quote → booking → invoice → pago)
-   - `credit-note.spec.ts`
-
----
-
-## Detalles técnicos
-
-**Pipeline E2E duplica el build**: `playwright.config.ts` corre `bun run build && bun run preview` en cada shard. Plan futuro (no en este lote): subir `dist/` como artifact desde `quality` y descargarlo en `e2e` para ahorrar 6-8 min de pipeline.
-
-**Pre-commit hooks**: no incluidos aquí pero candidatos a Lote 6 con Lefthook (`tsc --noEmit` + `eslint` sobre staged).
-
-**Dependabot + dependency-review**: el proyecto maneja CFDI/SAT; recomendable añadir `.github/dependabot.yml` y `actions/dependency-review-action@v4` en un lote independiente.
-
-**Cosas que NO hay que tocar** (auditadas y correctas): CORS allowlist, `has_role` pattern, `requireAdmin`/`requireRole` shared, generación de contraseñas con rejection sampling, rate limits hardened, storage policies, validación de roles con enum.
-
----
-
-## Orden sugerido de ejecución
-
-```text
-Lote 1 (1-2h)  ──▶ desbloquea CI confiable + cierra fugas
-Lote 2 (4-6h)  ──▶ da margen real al coverage gate
-Lote 3 (3-4h)  ──▶ higiene mecánica de bajo riesgo
-Lote 4 (1-2d)  ──▶ refactor estructural
-Lote 5 (3-5d)  ──▶ blindaje CFDI + RLS + E2E
-```
-
-Cada lote termina con su entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json` siguiendo la convención del proyecto.
-
-¿Avanzo con el **Lote 1 completo** (urgente, todo en una pasada) o prefieres revisar/ajustar la priorización antes?
+¿Confirmas que avance con esta ejecución?
