@@ -19,25 +19,10 @@ import { InvoiceSummaryCards } from "../components/invoice-detail/InvoiceSummary
 import { InvoiceDetailDialogs } from "../components/invoice-detail/InvoiceDetailDialogs";
 import { InvoiceCreditNotesCard } from "../components/invoice-detail/InvoiceCreditNotesCard";
 import { useCreditNotesForInvoice } from "../hooks/creditNotes/useCreditNotes";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { InvoiceDetailBadges } from "../components/invoice-detail/InvoiceDetailBadges";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-
-const cfdiBadgeClass = (status: string) =>
-  status === "stamped"
-    ? "bg-status-available text-white border-transparent"
-    : status === "cancelled"
-    ? "bg-destructive text-destructive-foreground border-transparent"
-    : "bg-status-maintenance text-white border-transparent";
-
-const CFDI_BADGE_LABELS: Record<string, string> = {
-  pending: "Pendiente CFDI",
-  stamped: "Timbrado",
-  cancelled: "CFDI Cancelado",
-};
-const cfdiBadgeLabel = (status: string) => CFDI_BADGE_LABELS[status] ?? status;
 
 function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; status: string; cancellation_status: string | null; total: number }>): number {
   return creditNotes
@@ -94,20 +79,12 @@ export default function InvoiceDetail() {
         title={invoice.invoice_number}
         backTo="/invoices"
         badges={
-          <>
-            <StatusBadge status={invoice.status} />
-            <Badge className={cfdiBadgeClass(cfdiStatus)}>{cfdiBadgeLabel(cfdiStatus)}</Badge>
-            {showPacBadge && (
-              <Badge
-                variant="outline"
-                className={isLive
-                  ? "border-status-available text-status-available"
-                  : "border-status-maintenance text-status-maintenance"}
-              >
-                {isLive ? "PAC: Producción" : "PAC: Sandbox"}
-              </Badge>
-            )}
-          </>
+          <InvoiceDetailBadges
+            invoiceStatus={invoice.status}
+            cfdiStatus={cfdiStatus}
+            showPacBadge={showPacBadge}
+            isLive={isLive}
+          />
         }
         actions={
           <InvoiceDetailActions

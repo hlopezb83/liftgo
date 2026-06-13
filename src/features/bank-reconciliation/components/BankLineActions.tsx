@@ -9,7 +9,7 @@ import type { BankStatementLine } from "../hooks/useBankStatementLines";
 interface Props {
   line: BankStatementLine;
   isCharge: boolean;
-  suggestedId: string | undefined;
+  suggestedId: string | null | undefined;
   confirmPending: boolean;
   ignorePending: boolean;
   unmatchPending: boolean;
