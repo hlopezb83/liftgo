@@ -18,8 +18,8 @@ test.describe("Customer portal", () => {
   test("portal customer sees assigned invoice", async ({ page, portalSeed, portalCreds }) => {
     await page.goto("/portal/login");
 
-    await page.getByLabel(/correo/i).fill(portalCreds.email);
-    await page.getByLabel(/contraseña/i).fill(portalCreds.password);
+    await page.locator('input[type="email"]').fill(portalCreds.email);
+    await page.locator('input[type="password"]').fill(portalCreds.password);
     await page.getByRole("button", { name: /iniciar sesión/i }).click();
 
     // Tras login el AuthGuard redirige según rol; navegamos explícitamente a facturas.
