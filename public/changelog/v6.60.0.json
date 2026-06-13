@@ -1,0 +1,27 @@
+{
+  "version": "6.60.0",
+  "date": "2026-06-13",
+  "type": "minor",
+  "title": "Auditoría CI — Lote 1: versiones de actions y endurecimiento de cron",
+  "category": "infra",
+  "summary": "Primer lote de la auditoría consolidada (CI + seguridad + calidad + testing). Desbloquea el pipeline y cierra una pequeña fuga de auth en el cron de mantenimiento.",
+  "changes": [
+    {
+      "area": ".github/workflows/ci.yml",
+      "detail": "actions/checkout@v6 → @v4 (×4 jobs), actions/upload-artifact@v7 → @v4 (×7 steps), mikepenz/action-junit-report@v6 → @v5 (×3 steps). Las versiones previas no existen y provocaban 'exit code 1' silencioso que se manifestaba como 'No test results found for Vitest/RLS results'."
+    },
+    {
+      "area": ".github/workflows/ci.yml",
+      "detail": "Añadido env.FORCE_JAVASCRIPT_ACTIONS_TO_NODE24='true' a nivel workflow. Silencia warnings de deprecación de Node 20 hasta jun-2026."
+    },
+    {
+      "area": "supabase/functions/generate-recurring-maintenance/index.ts",
+      "detail": "Reemplazado authHeader.includes(serviceKey) por comparación estricta bearer === CRON_SECRET (o bearer === serviceKey como compat). Elimina el riesgo de bypass donde cualquier string que contuviera la service key como substring era aceptado como llamada de servicio."
+    }
+  ],
+  "audit_context": {
+    "plan": ".lovable/plan.md",
+    "lote": "1 de 5",
+    "siguiente": "Lote 2 — Coverage real de dominio puro (rentalCalculation, invoiceTotals, syncInvoiceStatus, smoke snapshots de PDFs) antes de subir thresholds de Vitest."
+  }
+}

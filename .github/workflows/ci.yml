@@ -10,6 +10,12 @@ on:
 permissions:
   contents: read
 
+# Forzar Node 24 en actions JS para evitar warnings de deprecación de Node 20
+# (efectivos hasta jun-2026; tras esa fecha se vuelve default).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+
 # Concurrencia por workflow+ref: un push nuevo cancela el run anterior del mismo branch.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -27,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -78,7 +84,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: reports/coverage/
@@ -87,7 +93,7 @@ jobs:
 
       - name: Upload Vitest reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: vitest-reports
           path: reports/
@@ -96,7 +102,7 @@ jobs:
 
       - name: Publish Vitest results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@v5
         with:
           report_paths: reports/vitest-junit.xml
           check_name: Vitest results
@@ -119,7 +125,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -145,7 +151,7 @@ jobs:
 
       - name: Upload RLS reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: rls-reports
           path: reports/
@@ -154,7 +160,7 @@ jobs:
 
       - name: Publish RLS results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@v5
         with:
           report_paths: reports/rls-junit.xml
           check_name: RLS results
@@ -167,7 +173,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -203,7 +209,7 @@ jobs:
 
       - name: Upload Deno reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: deno-reports
           path: reports/
@@ -232,7 +238,7 @@ jobs:
         total: [2]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -280,7 +286,7 @@ jobs:
 
       - name: Upload Playwright HTML report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report-shard${{ matrix.shard }}
           path: playwright-report-shard${{ matrix.shard }}/
@@ -289,7 +295,7 @@ jobs:
 
       - name: Upload Playwright traces, videos & screenshots
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results-shard${{ matrix.shard }}
           path: test-results/
@@ -298,7 +304,7 @@ jobs:
 
       - name: Upload Playwright JUnit/JSON
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-reports-shard${{ matrix.shard }}
           path: reports/
@@ -307,7 +313,7 @@ jobs:
 
       - name: Publish Playwright results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@v5
         with:
           report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
           check_name: Playwright results (shard ${{ matrix.shard }})

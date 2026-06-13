@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.60.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Auditoría CI — Lote 1: versiones de actions y endurecimiento de cron",
+    "description": "Pin de versiones estables en .github/workflows/ci.yml: actions/checkout@v6→@v4, actions/upload-artifact@v7→@v4, mikepenz/action-junit-report@v6→@v5 (las versiones previas no existen y rompían el pipeline con exit 1 silencioso). Añadido FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true a nivel workflow para silenciar warnings de deprecación de Node 20. Endurecida la edge function generate-recurring-maintenance: reemplazado authHeader.includes(serviceKey) por comparación estricta de bearer === CRON_SECRET (o serviceKey como fallback), eliminando el riesgo de bypass por substring. Acompaña al plan de auditoría consolidado (.lovable/plan.md).",
+    "category": "infra"
+  },
+  {
+
     "version": "6.59.2",
     "date": "2026-06-13",
     "type": "patch",
