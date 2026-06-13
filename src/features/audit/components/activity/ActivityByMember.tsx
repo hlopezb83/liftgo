@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActorAvatar } from "./ActorAvatar";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import type { MemberStat } from "@/features/audit/hooks/useActivityMetrics";
+import type { MemberStat } from "../../hooks/useActivityMetrics";
 
 interface Props {
   members: MemberStat[];

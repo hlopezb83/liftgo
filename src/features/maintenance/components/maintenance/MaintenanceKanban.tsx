@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { type MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
-import { useMaintenanceKanban } from "@/features/maintenance/hooks/maintenance/useMaintenanceKanban";
+import { type MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { Wrench, Clock, Package, CheckCircle2 } from "lucide-react";
 import { MaintenanceKanbanColumn } from "./kanban/MaintenanceKanbanColumn";

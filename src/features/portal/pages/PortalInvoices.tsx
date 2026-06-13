@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { usePortalInvoices } from "@/features/customers/hooks/customers/useCustomerPortal";
+import { usePortalInvoices } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";

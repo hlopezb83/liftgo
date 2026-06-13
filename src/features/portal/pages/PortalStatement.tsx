@@ -7,8 +7,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Download, ChevronDown, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers/hooks/customers/useCustomerPortal";
-import { useCustomerSummary } from "@/features/customers/hooks/customers/useCustomerSummary";
+import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { exportCustomerStatementPdf } from "@/lib/pdf/customerStatement";
 import { toast } from "sonner";
 

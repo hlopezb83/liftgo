@@ -12,7 +12,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ fromResolver: () => resp }),
 }));
 
-import { useBookings } from "@/features/bookings/hooks/useBookings";
+import { useBookings } from "../useBookings";
 
 describe("useBookings — RLS contract", () => {
   beforeEach(() => {

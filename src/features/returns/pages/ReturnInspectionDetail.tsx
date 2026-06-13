@@ -1,14 +1,14 @@
 import { useParams } from "react-router-dom";
 
-import { useReturnInspection } from "@/features/returns/hooks/useReturnInspections";
+import { useReturnInspection } from "../hooks/useReturnInspections";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EquipmentCard } from "@/features/returns/components/return-inspection/EquipmentCard";
-import { BookingCard } from "@/features/returns/components/return-inspection/BookingCard";
-import { InspectionCard } from "@/features/returns/components/return-inspection/InspectionCard";
-import { UsageFuelCard } from "@/features/returns/components/return-inspection/UsageFuelCard";
-import { DamagesCard } from "@/features/returns/components/return-inspection/DamagesCard";
+import { EquipmentCard } from "../components/return-inspection/EquipmentCard";
+import { BookingCard } from "../components/return-inspection/BookingCard";
+import { InspectionCard } from "../components/return-inspection/InspectionCard";
+import { UsageFuelCard } from "../components/return-inspection/UsageFuelCard";
+import { DamagesCard } from "../components/return-inspection/DamagesCard";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 export default function ReturnInspectionDetail() {

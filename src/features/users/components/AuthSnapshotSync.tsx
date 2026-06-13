@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "../hooks/useUserRole";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
 import { setAppVersion } from "@/lib/ui/errorReport";
 

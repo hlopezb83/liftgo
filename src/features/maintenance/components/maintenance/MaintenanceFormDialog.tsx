@@ -6,10 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { SupplierSelector } from "@/features/suppliers/components/suppliers/SupplierSelector";
+import { SupplierSelector } from "@/features/suppliers";
 import { Wrench } from "lucide-react";
 import { SERVICE_TYPES } from "@/lib/constants";
-import type { MaintenanceFormValues } from "@/features/maintenance/hooks/maintenance/useMaintenanceForm";
+import type { MaintenanceFormValues } from "../../hooks/maintenance/useMaintenanceForm";
 
 interface ForkliftOption { id: string; name: string; model: string }
 interface MechanicOption { id: string; name: string; specialization?: string | null }

@@ -13,7 +13,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ fromResolver: () => fromResp }),
 }));
 
-import { useCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
+import { useCompanySettings } from "../useCompanySettings";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

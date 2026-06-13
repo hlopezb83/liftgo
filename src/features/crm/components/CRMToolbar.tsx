@@ -4,10 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CRMHeaderKPIs } from "@/features/crm/components/CRMHeaderKPIs";
-import { VALUE_RANGE_OPTIONS, AGE_RANGE_OPTIONS } from "@/features/crm/lib/constants";
-import type { CRMFilters, ValueRange, AgeRange } from "@/features/crm/hooks/useCRMFilters";
-import type { CRMMetrics } from "@/features/crm/hooks/useCRMMetrics";
+import { CRMHeaderKPIs } from "./CRMHeaderKPIs";
+import { VALUE_RANGE_OPTIONS, AGE_RANGE_OPTIONS } from "../lib/constants";
+import type { CRMFilters, ValueRange, AgeRange } from "../hooks/useCRMFilters";
+import type { CRMMetrics } from "../hooks/useCRMMetrics";
 
 interface CRMToolbarProps {
   filters: CRMFilters;

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useSuppliers, SUPPLIER_CATEGORIES } from "@/features/suppliers/hooks/useSuppliers";
-import type { Supplier } from "@/features/suppliers/hooks/useSuppliers";
+import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
+import type { Supplier } from "../hooks/useSuppliers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -10,7 +10,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { SupplierFormDialog } from "@/features/suppliers/components/suppliers/SupplierFormDialog";
+import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/PageActionsContext";
 

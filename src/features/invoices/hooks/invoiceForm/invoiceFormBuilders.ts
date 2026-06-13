@@ -5,7 +5,7 @@ import {
   type CfdiFormValues,
   type LineItemValues,
   EMPTY_CFDI,
-} from "@/features/invoices/lib/invoiceFormSchema";
+} from "../../lib/invoiceFormSchema";
 
 export type Customer = {
   id: string; name: string;

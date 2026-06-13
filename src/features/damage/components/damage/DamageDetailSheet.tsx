@@ -1,8 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { DamageActions } from "@/features/damage/components/damage/DamageActions";
-import { DamagePhotosSection } from "@/features/damage/components/damage/DamagePhotosSection";
+import { DamageActions } from "./DamageActions";
+import { DamagePhotosSection } from "./DamagePhotosSection";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { format } from "date-fns";

@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
+import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import {
   buildFromInvoice, buildFromQuote, cfdiFromCustomer,

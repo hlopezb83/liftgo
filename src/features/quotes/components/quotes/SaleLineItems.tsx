@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
-import type { EquipmentModel } from "@/features/fleet/hooks/useEquipmentModels";
+import type { EquipmentModel } from "@/features/fleet";
 import { SaleLineRow } from "./SaleLineRow";
 
 export interface SaleLine {

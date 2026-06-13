@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import type { Prospect } from "./useProspects";
 
 export function useCRMPageDialogs() {
   const [dialogOpen, setDialogOpen] = useState(false);

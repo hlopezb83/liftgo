@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Pencil, KeyRound, ShieldCheck as ShieldIcon } from "lucide-react";
 import { format } from "date-fns";
 import { STAFF_ROLES } from "@/lib/constants";
-import { RoleBadge } from "@/features/users/components/users/RoleBadge";
+import { RoleBadge } from "../../components/users/RoleBadge";
 import type { ColumnDef } from "@/components/dataTable/v2";
-import type { UserRow } from "@/features/users/hooks/useUserManagement";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import type { UserRow } from "../useUserManagement";
+import type { AppRole } from "../useUserRole";
 
 type UserItem = UserRow & { id?: string };
 

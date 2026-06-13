@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { customerFormSchema } from "@/features/customers/lib/customerFormSchema";
+import { customerFormSchema } from "../customerFormSchema";
 
 describe("customerFormSchema", () => {
   it("acepta payload mínimo válido", () => {

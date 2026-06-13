@@ -9,7 +9,7 @@
  *   default      → []
  */
 import { describe, it, expect } from "vitest";
-import { getValidTransitions } from "@/features/bookings/hooks/useBookingActionsLogic";
+import { getValidTransitions } from "@/features/bookings";
 
 describe("getValidTransitions", () => {
   it('confirmed → incluye "completed" y "cancelled"', () => {

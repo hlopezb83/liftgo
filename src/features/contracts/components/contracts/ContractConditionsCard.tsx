@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { ContractData } from "@/features/contracts/components/contracts/ContractPDFButton";
+import type { ContractData } from "./ContractPDFButton";
 
 /**
  * Renderiza el bloque opcional "Condiciones de Uso" del detalle de contrato.

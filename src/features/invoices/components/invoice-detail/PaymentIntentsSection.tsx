@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   useAdminPaymentIntents,
   useReviewPaymentIntent,
-} from "@/features/portal/hooks/usePortalExtras";
+} from "@/features/portal";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { openStorageFile } from "@/lib/storage/openStorageFile";

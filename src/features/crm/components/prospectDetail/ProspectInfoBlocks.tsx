@@ -3,8 +3,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { FileText, StickyNote } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { LOST_REASON_LABELS } from "@/features/crm/lib/constants";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import { LOST_REASON_LABELS } from "../../lib/constants";
+import type { Prospect } from "../../hooks/useProspects";
 
 interface Props {
   prospect: Prospect;

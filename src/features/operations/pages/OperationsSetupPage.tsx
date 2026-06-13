@@ -1,14 +1,14 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Truck, Wrench, FileText, ShieldCheck, Building2, Image as ImageIcon, ShieldAlert } from "lucide-react";
-import { EquipmentModelsTab } from "@/features/operations/components/operations/EquipmentModelsTab";
-import { DriversTab } from "@/features/operations/components/operations/DriversTab";
-import { MechanicsTab } from "@/features/operations/components/operations/MechanicsTab";
-import { ContractTemplateTab } from "@/features/operations/components/operations/ContractTemplateTab";
-import { MaintenancePoliciesTab } from "@/features/operations/components/operations/MaintenancePoliciesTab";
-import { FiscalDataTab } from "@/features/operations/components/operations/FiscalDataTab";
-import { CompanyLogoTab } from "@/features/operations/components/operations/CompanyLogoTab";
-import { CxpApprovalTab } from "@/features/operations/components/operations/CxpApprovalTab";
+import { EquipmentModelsTab } from "../components/operations/EquipmentModelsTab";
+import { DriversTab } from "../components/operations/DriversTab";
+import { MechanicsTab } from "../components/operations/MechanicsTab";
+import { ContractTemplateTab } from "../components/operations/ContractTemplateTab";
+import { MaintenancePoliciesTab } from "../components/operations/MaintenancePoliciesTab";
+import { FiscalDataTab } from "../components/operations/FiscalDataTab";
+import { CompanyLogoTab } from "../components/operations/CompanyLogoTab";
+import { CxpApprovalTab } from "../components/operations/CxpApprovalTab";
 import { RoleGuard } from "@/layouts/RoleGuard";
 
 export default function OperationsSetupPage() {

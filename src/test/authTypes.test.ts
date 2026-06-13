@@ -8,8 +8,8 @@
  *   - isAdmin / isMechanic: NO existen en authTypes.ts → omitidos.
  */
 import { describe, it, expect } from "vitest";
-import { getAuthSubmitLabel } from "@/features/auth/lib/authTypes";
-import type { AuthMode } from "@/features/auth/lib/authTypes";
+import { getAuthSubmitLabel } from "@/features/auth";
+import type { AuthMode } from "@/features/auth";
 
 describe("getAuthSubmitLabel", () => {
   it("devuelve 'Cargando...' cuando loading=true, sin importar el modo", () => {

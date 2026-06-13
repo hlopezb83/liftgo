@@ -1,4 +1,4 @@
-import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
+import type { ForkliftFormData } from "./forkliftFormSchema";
 
 const numOrNull = (v: string) => (v ? parseFloat(v) : null);
 const numOrZero = (v: string) => (v ? parseFloat(v) : 0);

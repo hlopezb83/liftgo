@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
+import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
-import type { Forklift } from "@/features/fleet/hooks/forklifts/useForklifts";
+import type { Forklift } from "@/features/fleet";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 
 type Booking = {

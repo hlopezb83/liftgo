@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { usePortalCollectionAccount } from "@/features/portal/hooks/usePortalExtras";
+import { usePortalCollectionAccount } from "../hooks/usePortalExtras";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {

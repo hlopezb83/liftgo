@@ -7,10 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Plus, Trash2 } from "lucide-react";
-import { useInvoiceLineItemHandlers } from "@/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers";
+import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
-import type { InvoiceFormValues } from "@/features/invoices/lib/invoiceFormSchema";
+import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
 export function EditableLineItemsTable() {
   const form = useFormContext<InvoiceFormValues>();

@@ -2,9 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { RecurringBillingBadge } from "@/features/bookings/components/bookings/RecurringBillingBadge";
+import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
 import { formatMtyDate } from "@/lib/utils";
-import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
+import type { BookingWithForklift } from "../../hooks/useBookings";
 
 export function BookingBillingCard({ booking }: { booking: BookingWithForklift }) {
   const fmt = (d: string) => formatMtyDate(d);

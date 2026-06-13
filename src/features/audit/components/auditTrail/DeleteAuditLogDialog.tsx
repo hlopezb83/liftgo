@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2, AlertTriangle, Undo2 } from "lucide-react";
-import type { AuditLog } from "@/features/audit/hooks/useAuditLogs";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 import { translateAction, translateTable, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
 
 interface Props {

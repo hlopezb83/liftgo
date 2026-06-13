@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderMarkdown, renderSafeMarkdown } from "@/features/help/lib/markdown";
+import { renderMarkdown, renderSafeMarkdown } from "../markdown";
 
 describe("renderMarkdown", () => {
   it("convierte headings", () => {

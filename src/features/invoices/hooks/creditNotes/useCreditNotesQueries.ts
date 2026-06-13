@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { creditNoteKeys } from "@/features/invoices/lib/queryKeys";
+import { creditNoteKeys } from "../../lib/queryKeys";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type CreditNote = Tables<"credit_notes">;

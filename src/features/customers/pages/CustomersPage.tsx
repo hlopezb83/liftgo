@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useCustomers, useCreateCustomer, useUpdateCustomer } from "@/features/customers/hooks/customers/useCustomers";
+import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { MobileCardList } from "@/components/layout/MobileCardList";
@@ -9,14 +9,14 @@ import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { ChevronRight, Plus, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useUpdateProspect } from "@/features/crm/hooks/useProspects";
-import { CustomerFormDialog } from "@/features/customers/components/customers/CustomerFormDialog";
+import { useUpdateProspect } from "@/features/crm";
+import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { usePageActions } from "@/contexts/PageActionsContext";
-import { CustomersActions, CustomersFilters } from "@/features/customers/components/customers/CustomersToolbar";
-import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
-import { buildCustomerPayload, getE2ECustomerMetadata } from "@/features/customers/lib/customerPayload";
+import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
+import type { CustomerFormData } from "../lib/customerFormSchema";
+import { buildCustomerPayload, getE2ECustomerMetadata } from "../lib/customerPayload";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { useCustomersColumns } from "@/features/customers/hooks/customers/useCustomersColumns";
+import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 

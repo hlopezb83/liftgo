@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatCell, formatRowDelta, cellColor, getBreakdownFor, type BreakdownRow } from "../incomeStatementHelpers";
-import type { StatementRow, ComparisonRow } from "@/features/reports/hooks/useIncomeStatementData";
+import type { StatementRow, ComparisonRow } from "../../../../hooks/useIncomeStatementData";
 
 const pctRow = { label: "Margen", values: [], total: 0, isPercent: true } as StatementRow;
 const moneyRow = { label: "Ingresos", values: [], total: 0 } as StatementRow;

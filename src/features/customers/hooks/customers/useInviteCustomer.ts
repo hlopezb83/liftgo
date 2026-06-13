@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { customerKeys } from "@/features/customers/lib/queryKeys";
+import { customerKeys } from "../../lib/queryKeys";
 import { toast } from "sonner";
 
 interface InviteCustomerVars {

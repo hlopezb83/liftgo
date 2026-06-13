@@ -4,7 +4,7 @@ import { Sparkles, Loader2, RefreshCw } from "lucide-react";
 import {
   FEEDBACK_TYPE_LABELS,
   FEEDBACK_SEVERITY_LABELS,
-} from "@/features/feedback/lib/constants";
+} from "../lib/constants";
 
 interface ChipsProps {
   type: string;

@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { CustomerSelector } from "@/features/customers/components/customers/CustomerSelector";
-import { EquipmentAssignmentDialog } from "@/features/quotes/components/quotes/EquipmentAssignmentDialog";
-import { PostBookingDeliveryDialog } from "@/features/bookings/components/bookings/PostBookingDeliveryDialog";
-import type { useQuoteDetailLogic } from "@/features/quotes/hooks/useQuoteDetailLogic";
+import { CustomerSelector } from "@/features/customers";
+import { EquipmentAssignmentDialog } from "./EquipmentAssignmentDialog";
+import { PostBookingDeliveryDialog } from "@/features/bookings";
+import type { useQuoteDetailLogic } from "../../hooks/useQuoteDetailLogic";
 
 type Logic = ReturnType<typeof useQuoteDetailLogic>;
 

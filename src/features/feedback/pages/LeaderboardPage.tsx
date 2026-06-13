@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Trophy, Medal } from "lucide-react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "@/features/feedback/hooks/useLeaderboard";
+import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
 
 const PODIUM_COLORS = ["text-amber-500", "text-slate-400", "text-orange-700"];
 

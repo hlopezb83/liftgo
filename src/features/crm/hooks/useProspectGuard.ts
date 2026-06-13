@@ -1,4 +1,4 @@
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { notifyError } from "@/lib/ui/appFeedback";
 /**
  * Centralizes the "Cerrado Ganado" stage permission rule for prospects.

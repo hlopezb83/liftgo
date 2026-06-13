@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils";
-import type { ForkliftFinancials } from "@/features/fleet/hooks/forklifts/useForkliftFinancials";
+import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface ForkliftHourometerHistoryProps {

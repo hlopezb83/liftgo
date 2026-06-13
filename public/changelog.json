@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.58.0",
+    "date": "2026-06-13",
+    "type": "minor",
+    "title": "Refactor cross-feature — barrels públicos por feature",
+    "description": "Creados barrels `src/features/<feature>/index.ts` en 23 features que ahora exponen su API pública. Migrados 128 archivos consumidores a importar desde el barrel en lugar de rutas profundas. Convertidos 287 imports intra-feature de alias absoluto `@/features/X/...` a rutas relativas. 164 warnings de `no-restricted-imports` resueltos (0 restantes). tsc limpio, 526 tests pasan.",
+    "category": "infra"
+  },
+  {
     "version": "6.57.0",
     "date": "2026-06-13",
     "type": "minor",

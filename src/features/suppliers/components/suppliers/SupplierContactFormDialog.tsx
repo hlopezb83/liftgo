@@ -12,7 +12,7 @@ import {
   useCreateSupplierContact,
   useUpdateSupplierContact,
   type SupplierContact,
-} from "@/features/suppliers/hooks/useSupplierContacts";
+} from "../../hooks/useSupplierContacts";
 
 interface Props {
   open: boolean;

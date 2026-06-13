@@ -1,5 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useDeleteUser, type UserRow } from "@/features/users/hooks/useUserManagement";
+import { useDeleteUser, type UserRow } from "../../hooks/useUserManagement";
 
 interface DeleteUserDialogProps {
   user: UserRow | null;

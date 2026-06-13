@@ -5,10 +5,10 @@ import { Pencil, Stamp, FileText, Download, XCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
-import { useStampPaymentComplement, useCancelPaymentComplement } from "@/features/invoices/hooks/invoices/cfdi/usePaymentComplement";
+import { useStampPaymentComplement, useCancelPaymentComplement } from "./cfdi/usePaymentComplement";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { downloadCfdiBlob, type CfdiFormat } from "@/features/invoices/lib/downloadCfdiBlob";
-import { ReconciliationBadge } from "@/features/bank-reconciliation/components/ReconciliationBadge";
+import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
+import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Payment = Tables<"payments">;

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useUpdateDamageRecord } from "@/features/damage/hooks/useDamageRecords";
+import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import type { DamageRecordWithJoins } from "@/types/rental";
-import { useCreateMaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { Wrench, Receipt } from "lucide-react";
 import { toast } from "sonner";
 

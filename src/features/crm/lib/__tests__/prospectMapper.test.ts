@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { mapProspectRow } from "@/features/crm/lib/prospectMapper";
-import type { ProspectRow } from "@/features/crm/lib/prospectTypes";
+import { mapProspectRow } from "../prospectMapper";
+import type { ProspectRow } from "../prospectTypes";
 
 const FIXED_NOW = new Date("2026-06-08T12:00:00-06:00");
 

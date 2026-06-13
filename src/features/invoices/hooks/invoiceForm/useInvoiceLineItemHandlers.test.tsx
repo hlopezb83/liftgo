@@ -7,7 +7,7 @@ import {
   buildEmptyInvoiceValues,
   EMPTY_LINE,
   type InvoiceFormValues,
-} from "@/features/invoices/lib/invoiceFormSchema";
+} from "../../lib/invoiceFormSchema";
 import { useInvoiceLineItemHandlers } from "./useInvoiceLineItemHandlers";
 
 function setupHook() {

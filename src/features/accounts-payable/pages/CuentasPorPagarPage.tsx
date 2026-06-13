@@ -4,7 +4,7 @@ import { Plus, FileClock, BarChart3, FileSpreadsheet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
+import { useSuppliers } from "@/features/suppliers";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { usePageActions } from "@/contexts/PageActionsContext";
 import { useAccountsPayableKpis } from "../hooks/useAccountsPayableKpis";

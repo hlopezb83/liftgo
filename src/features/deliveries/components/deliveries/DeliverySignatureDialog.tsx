@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle } from "lucide-react";
-import { SignaturePad } from "@/features/contracts/components/contracts/SignaturePad";
+import { SignaturePad } from "@/features/contracts";
 
 type Props = {
   open: boolean;

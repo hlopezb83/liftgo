@@ -7,8 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
-import { LOST_REASONS, type LostReason } from "@/features/crm/lib/constants";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import { LOST_REASONS, type LostReason } from "../lib/constants";
+import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
   prospect: Prospect | null;

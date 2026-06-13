@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
-import { useReportDamageForm } from "@/features/damage/hooks/useReportDamageForm";
-import { DamageEvidenceSection } from "@/features/damage/components/damage/DamageEvidenceSection";
+import { useForklifts } from "@/features/fleet";
+import { useCustomers } from "@/features/customers";
+import { useReportDamageForm } from "../../hooks/useReportDamageForm";
+import { DamageEvidenceSection } from "./DamageEvidenceSection";
 
 function getReportButtonLabel(previewsCount: number): string {
   if (previewsCount === 0) return "Reportar";

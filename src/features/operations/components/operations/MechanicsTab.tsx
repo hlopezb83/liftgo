@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance/hooks/maintenance/useMechanics";
+import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -6,9 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trash2, Pencil, KeyRound } from "lucide-react";
 import { format } from "date-fns";
 import { STAFF_ROLES } from "@/lib/constants";
-import { RoleBadge } from "@/features/users/components/users/RoleBadge";
-import type { UserRow } from "@/features/users/hooks/useUserManagement";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import { RoleBadge } from "./RoleBadge";
+import type { UserRow } from "../../hooks/useUserManagement";
+import type { AppRole } from "../../hooks/useUserRole";
 
 export interface UserRowActions {
   currentUserId?: string;

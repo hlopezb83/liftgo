@@ -2,9 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { translateFacturapiError } from "@/features/invoices/lib/facturapiErrors";
+import { translateFacturapiError } from "../../../lib/facturapiErrors";
 
-import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
+import { invoiceKeys } from "../../../lib/queryKeys";
 
 interface StampCfdiResponse {
   cfdi_uuid: string;

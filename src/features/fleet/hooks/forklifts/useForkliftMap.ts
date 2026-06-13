@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
+import { useForklifts } from "./useForklifts";
 import type { Tables } from "@/integrations/supabase/types";
 
 /**

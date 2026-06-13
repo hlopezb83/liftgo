@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@/components/dataTable/v2";
-import type { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
+import type { useCustomers } from "./useCustomers";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 

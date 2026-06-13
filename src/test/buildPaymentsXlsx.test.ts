@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import * as XLSX from "xlsx";
-import { buildPaymentsWorkbook, type PaymentExportRow } from "@/features/accounts-payable/lib/buildPaymentsXlsx";
+import { buildPaymentsWorkbook, type PaymentExportRow } from "@/features/accounts-payable";
 
 const rows: PaymentExportRow[] = [
   {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ChangelogIndexEntry } from "@/features/changelog/lib/changelog";
+import type { ChangelogIndexEntry } from "../lib/changelog";
 
 /**
  * Handles /changelog#v5.43.2 deep-linking: expands the matching entry,

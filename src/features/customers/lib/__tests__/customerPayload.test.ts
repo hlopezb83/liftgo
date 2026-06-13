@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildCustomerPayload, getE2ECustomerMetadata } from "@/features/customers/lib/customerPayload";
-import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
+import { buildCustomerPayload, getE2ECustomerMetadata } from "../customerPayload";
+import type { CustomerFormData } from "../customerFormSchema";
 
 const base: CustomerFormData = {
   name: "Acme",

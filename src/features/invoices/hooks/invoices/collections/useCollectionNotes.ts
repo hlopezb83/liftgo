@@ -3,7 +3,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-import { collectionNoteKeys } from "@/features/invoices/lib/queryKeys";
+import { collectionNoteKeys } from "../../../lib/queryKeys";
 export function useCollectionNotes(invoiceId?: string) {
   return useQuery({
     queryKey: invoiceId ? collectionNoteKeys.byInvoice(invoiceId) : collectionNoteKeys.all,

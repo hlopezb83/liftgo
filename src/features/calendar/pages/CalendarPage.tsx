@@ -1,5 +1,5 @@
-import { useBookingsRange } from "@/features/bookings/hooks/useBookings";
-import { useForkliftMap } from "@/features/fleet/hooks/forklifts/useForkliftMap";
+import { useBookingsRange } from "@/features/bookings";
+import { useForkliftMap } from "@/features/fleet";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -13,9 +13,9 @@ import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
-import { CalendarStatCards } from "@/features/calendar/components/calendar/CalendarStatCards";
-import { GanttChart } from "@/features/calendar/components/calendar/GanttChart";
-import { EquipmentListView } from "@/features/calendar/components/calendar/EquipmentListView";
+import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
+import { GanttChart } from "../components/calendar/GanttChart";
+import { EquipmentListView } from "../components/calendar/EquipmentListView";
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(nowMty());

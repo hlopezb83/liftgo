@@ -6,8 +6,8 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { parseISO, isWithinInterval } from "date-fns";
 import { Download } from "lucide-react";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import { useForklifts } from "@/features/fleet";
+import { useMaintenanceLogs } from "@/features/maintenance";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface Props {

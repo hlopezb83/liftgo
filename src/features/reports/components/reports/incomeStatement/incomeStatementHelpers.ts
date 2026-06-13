@@ -1,5 +1,5 @@
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { StatementRow, ComparisonRow } from "@/features/reports/hooks/useIncomeStatementData";
+import type { StatementRow, ComparisonRow } from "../../../hooks/useIncomeStatementData";
 
 export interface BreakdownRow { label: string; values: number[]; total: number }
 

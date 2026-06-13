@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isValidClabe, maskClabe, CLABE_REGEX } from "@/features/suppliers/hooks/useSupplierBankAccounts";
+import { isValidClabe, maskClabe, CLABE_REGEX } from "@/features/suppliers";
 
 describe("CLABE validation", () => {
   it("acepta 18 dígitos", () => {

@@ -7,7 +7,7 @@ import { Plus, Stamp, FileText, Download, XCircle, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { downloadCfdiBlob, type CfdiFormat } from "@/features/invoices/lib/downloadCfdiBlob";
+import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
 import {
@@ -15,7 +15,7 @@ import {
   useStampCreditNote,
   useDeleteCreditNote,
   type CreditNote,
-} from "@/features/invoices/hooks/creditNotes/useCreditNotes";
+} from "../../hooks/creditNotes/useCreditNotes";
 import type { Tables } from "@/integrations/supabase/types";
 
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/lib/domain/creditNoteMotives";

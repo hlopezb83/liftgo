@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save } from "lucide-react";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { useCashFlowSettings, useUpdateCashFlowSettings } from "../hooks/useCashFlowSettings";
 
 interface Props {

@@ -5,7 +5,7 @@ import type { DropResult } from "@hello-pangea/dnd";
 import {
   useUpdateMaintenanceLog,
   type MaintenanceLog,
-} from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+} from "./useMaintenanceLogs";
 
 /**
  * Encapsula el optimistic update del kanban de mantenimiento al arrastrar

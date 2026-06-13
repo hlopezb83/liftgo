@@ -1,14 +1,14 @@
 import { useDialogState } from "@/hooks/useDialogState";
 import { useMemo } from "react";
-import { useDamageRecords } from "@/features/damage/hooks/useDamageRecords";
-import { useDamagePhotoCounts } from "@/features/damage/hooks/useDamagePhotoCounts";
+import { useDamageRecords } from "../hooks/useDamageRecords";
+import { useDamagePhotoCounts } from "../hooks/useDamagePhotoCounts";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { DamageDetailSheet } from "@/features/damage/components/damage/DamageDetailSheet";
-import { ReportDamageDialog } from "@/features/damage/components/damage/ReportDamageDialog";
+import { DamageDetailSheet } from "../components/damage/DamageDetailSheet";
+import { ReportDamageDialog } from "../components/damage/ReportDamageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

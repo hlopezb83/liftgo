@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import { useUserRole, type AppRole } from "@/features/users/hooks/useUserRole";
-import { useRolePermissions, ROUTE_TO_MODULE, type AccessLevel } from "@/features/users/hooks/useRolePermissions";
+import { ROUTE_TO_MODULE, type AccessLevel, type AppRole, useRolePermissions, useUserRole } from "@/features/users";
 import { NAV_GROUPS, ALWAYS_VISIBLE_ROUTES, type NavGroup } from "@/layouts/sidebar/navConfig";
 
 function getItemAccess(

@@ -1,5 +1,5 @@
-import { DeliverySignatureDialog } from "@/features/deliveries/components/deliveries/DeliverySignatureDialog";
-import { PostDeliveryPickupDialog } from "@/features/deliveries/components/deliveries/PostDeliveryPickupDialog";
+import { DeliverySignatureDialog } from "./DeliverySignatureDialog";
+import { PostDeliveryPickupDialog } from "./PostDeliveryPickupDialog";
 
 type PickupPrompt = {
   delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };

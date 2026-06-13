@@ -2,14 +2,14 @@ import { useState, useMemo } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ActivityKPIs } from "@/features/audit/components/activity/ActivityKPIs";
-import { ActivityByMember } from "@/features/audit/components/activity/ActivityByMember";
-import { ActivityByModule } from "@/features/audit/components/activity/ActivityByModule";
-import { ActivityTimeline } from "@/features/audit/components/activity/ActivityTimeline";
-import { useActivityMetrics } from "@/features/audit/hooks/useActivityMetrics";
-import { getRange, type RangeKey } from "@/features/audit/lib/activityConstants";
-import type { ActivityFilters } from "@/features/dashboard/hooks/useActivityFeed";
-import type { ActivityMetrics } from "@/features/audit/hooks/activityMetricsTypes";
+import { ActivityKPIs } from "../components/activity/ActivityKPIs";
+import { ActivityByMember } from "../components/activity/ActivityByMember";
+import { ActivityByModule } from "../components/activity/ActivityByModule";
+import { ActivityTimeline } from "../components/activity/ActivityTimeline";
+import { useActivityMetrics } from "../hooks/useActivityMetrics";
+import { getRange, type RangeKey } from "../lib/activityConstants";
+import type { ActivityFilters } from "@/features/dashboard";
+import type { ActivityMetrics } from "../hooks/activityMetricsTypes";
 
 export default function ActivityPage() {
   const [rangeKey, setRangeKey] = useState<RangeKey>("7d");

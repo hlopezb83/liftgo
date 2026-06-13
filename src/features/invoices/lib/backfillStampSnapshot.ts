@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { getMissingStampFields } from "@/features/invoices/lib/cfdiPrechecks";
+import { getMissingStampFields } from "./cfdiPrechecks";
 import type { Tables } from "@/integrations/supabase/types";
 
 /**

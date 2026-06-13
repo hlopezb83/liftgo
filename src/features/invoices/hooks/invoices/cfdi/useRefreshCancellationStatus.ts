@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 
-import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
+import { invoiceKeys } from "../../../lib/queryKeys";
 export function useRefreshCancellationStatus() {
   const queryClient = useQueryClient();
   return useMutation({

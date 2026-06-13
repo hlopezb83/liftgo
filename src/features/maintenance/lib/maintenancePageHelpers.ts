@@ -1,4 +1,4 @@
-import type { MaintenanceLog } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
+import type { MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
 import type { Tables } from "@/integrations/supabase/types";
 
 type ForkliftMap = Map<string, Tables<"forklifts">>;

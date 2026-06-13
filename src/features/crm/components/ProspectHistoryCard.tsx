@@ -3,16 +3,7 @@ import { History, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuditLogs, type AuditLog } from "@/features/audit/hooks/useAuditLogs";
-import { AuditLogDetailDialog } from "@/features/audit/components/auditTrail/AuditLogDetailDialog";
-import {
-  translateAction,
-  translateField,
-  formatTimestamp,
-  formatAuditValue,
-  HIDDEN_DIFF_FIELDS,
-} from "@/features/audit/components/auditTrail/auditTrailConstants";
-
+import { AuditLogDetailDialog, HIDDEN_DIFF_FIELDS, formatAuditValue, formatTimestamp, translateAction, translateField, type AuditLog, useAuditLogs } from "@/features/audit";
 interface Props {
   prospectId: string;
 }

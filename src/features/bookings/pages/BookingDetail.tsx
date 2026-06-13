@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { useBooking } from "@/features/bookings/hooks/useBookings";
-import { useDeliveries } from "@/features/deliveries/hooks/useDeliveries";
-import { useBookingExtensions } from "@/features/bookings/hooks/useBookingExtensions";
-import { useBookingHourometer } from "@/features/bookings/hooks/bookingDetail/useBookingHourometer";
+import { useBooking } from "../hooks/useBookings";
+import { useDeliveries } from "@/features/deliveries";
+import { useBookingExtensions } from "../hooks/useBookingExtensions";
+import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
 
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
-import { BookingActions } from "@/features/bookings/components/bookings/BookingActions";
-import { BookingStatusHistory } from "@/features/bookings/components/bookings/BookingStatusHistory";
-import { ExtendBookingDialog } from "@/features/bookings/components/bookings/ExtendBookingDialog";
-import { BookingEquipmentCard } from "@/features/bookings/components/booking-detail/BookingEquipmentCard";
-import { BookingCustomerCard } from "@/features/bookings/components/booking-detail/BookingCustomerCard";
-import { BookingPeriodCard } from "@/features/bookings/components/booking-detail/BookingPeriodCard";
-import { BookingBillingCard } from "@/features/bookings/components/booking-detail/BookingBillingCard";
-import { BookingHourometerCard } from "@/features/bookings/components/booking-detail/BookingHourometerCard";
-import { BookingExtensionsCard } from "@/features/bookings/components/booking-detail/BookingExtensionsCard";
+import { BookingActions } from "../components/bookings/BookingActions";
+import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
+import { ExtendBookingDialog } from "../components/bookings/ExtendBookingDialog";
+import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipmentCard";
+import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
+import { BookingPeriodCard } from "../components/booking-detail/BookingPeriodCard";
+import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
+import { BookingHourometerCard } from "../components/booking-detail/BookingHourometerCard";
+import { BookingExtensionsCard } from "../components/booking-detail/BookingExtensionsCard";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
+import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 import type { Tables } from "@/integrations/supabase/types";
 import { toStr, toNumStr } from "@/lib/coerce";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";

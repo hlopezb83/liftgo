@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
-import { useForklifts } from "@/features/fleet/hooks/forklifts/useForklifts";
-import { useBookings } from "@/features/bookings/hooks/useBookings";
-import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
-import { useMaintenanceLogs } from "@/features/maintenance/hooks/maintenance/useMaintenanceLogs";
-import { useDamageRecords } from "@/features/damage/hooks/useDamageRecords";
+import { useForklifts } from "@/features/fleet";
+import { useBookings } from "@/features/bookings";
+import { useInvoices } from "@/features/invoices";
+import { useMaintenanceLogs } from "@/features/maintenance";
+import { useDamageRecords } from "@/features/damage";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import {
   aggregateRows, buildCostMap, buildModelUnitsMap, buildRevenueMap,

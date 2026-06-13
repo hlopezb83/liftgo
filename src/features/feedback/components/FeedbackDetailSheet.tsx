@@ -3,14 +3,14 @@ import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "@/features/feedback/hooks/useFeedbackReports";
-import { useFeedbackScreenshotUrl } from "@/features/feedback/hooks/useFeedbackScreenshotUrl";
-import { useClassifyFeedback } from "@/features/feedback/hooks/useClassifyFeedback";
+import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "../hooks/useFeedbackReports";
+import { useFeedbackScreenshotUrl } from "../hooks/useFeedbackScreenshotUrl";
+import { useClassifyFeedback } from "../hooks/useClassifyFeedback";
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
 import { FeedbackChipsRow, AiReasoningCard } from "./FeedbackDetailChips";
 import { FeedbackStatusChanger } from "./FeedbackStatusChanger";
-import { type FeedbackStatus } from "@/features/feedback/lib/constants";
+import { type FeedbackStatus } from "../lib/constants";
 
 interface Props {
   report: FeedbackReport | null;

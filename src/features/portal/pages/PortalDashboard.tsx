@@ -1,4 +1,4 @@
-import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers/hooks/customers/useCustomerPortal";
+import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CalendarDays, Receipt, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { parseLineItems } from "@/lib/domain/lineItems";
-import { useCreateCreditNote } from "@/features/invoices/hooks/creditNotes/useCreditNotes";
+import { useCreateCreditNote } from "./useCreditNotes";
 import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 

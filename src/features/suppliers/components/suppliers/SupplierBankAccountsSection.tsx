@@ -12,7 +12,7 @@ import {
   useDeleteSupplierBankAccount,
   maskClabe,
   type SupplierBankAccount,
-} from "@/features/suppliers/hooks/useSupplierBankAccounts";
+} from "../../hooks/useSupplierBankAccounts";
 import { SupplierBankAccountFormDialog } from "./SupplierBankAccountFormDialog";
 
 export function SupplierBankAccountsSection({ supplierId }: { supplierId: string }) {

@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 
 import { useEffect } from "react";
-import { fetchChangelogIndex, fetchChangelogDetail, getCurrentVersion } from "@/features/changelog/lib/changelog";
+import { fetchChangelogIndex, fetchChangelogDetail, getCurrentVersion } from "../lib/changelog";
 
 export function useChangelog() {
   const query = useQuery({

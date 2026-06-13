@@ -1,7 +1,7 @@
 import { toast } from "sonner";
-import { backfillStampSnapshot } from "@/features/invoices/lib/backfillStampSnapshot";
-import { getMissingStampFields } from "@/features/invoices/lib/cfdiPrechecks";
-import { useStampCfdi } from "@/features/invoices/hooks/invoices/cfdi/useStampCfdi";
+import { backfillStampSnapshot } from "../../lib/backfillStampSnapshot";
+import { getMissingStampFields } from "../../lib/cfdiPrechecks";
+import { useStampCfdi } from "../invoices/cfdi/useStampCfdi";
 import type { Tables } from "@/integrations/supabase/types";
 
 export function useStampInvoiceFlow(refetch: () => void) {

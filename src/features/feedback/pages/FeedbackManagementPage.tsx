@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAllFeedbackReports, type FeedbackReport } from "@/features/feedback/hooks/useFeedbackReports";
-import { FeedbackDetailSheet } from "@/features/feedback/components/FeedbackDetailSheet";
+import { useAllFeedbackReports, type FeedbackReport } from "../hooks/useFeedbackReports";
+import { FeedbackDetailSheet } from "../components/FeedbackDetailSheet";
 import {
   FEEDBACK_STATUS_LABELS,
   FEEDBACK_TYPE_LABELS,
   KANBAN_COLUMNS,
   type FeedbackStatus,
-} from "@/features/feedback/lib/constants";
+} from "../lib/constants";
 import { format } from "date-fns";
 
 export default function FeedbackManagementPage() {

@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, CalendarIcon } from "lucide-react";
 import { formatDateRange } from "@/lib/utils";
-import type { BookingWithForklift } from "@/features/bookings/hooks/useBookings";
+import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface Props {

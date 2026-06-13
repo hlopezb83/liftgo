@@ -7,7 +7,7 @@ import {
   useDeleteBooking,
   useCancelBooking,
   type BookingWithForklift,
-} from "@/features/bookings/hooks/useBookings";
+} from "../useBookings";
 
 export const BOOKING_STATUS_LABELS: Record<string, string> = {
   confirmed: "Confirmada",

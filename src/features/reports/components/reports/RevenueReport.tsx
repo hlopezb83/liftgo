@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { Download } from "lucide-react";
-import { useInvoices } from "@/features/invoices/hooks/invoices/useInvoices";
+import { useInvoices } from "@/features/invoices";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface Props {

@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserPlus } from "lucide-react";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
-import { useInviteUser } from "@/features/users/hooks/useUserManagement";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import { useInviteUser } from "../../hooks/useUserManagement";
+import type { AppRole } from "../../hooks/useUserRole";
 
 interface InviteUserDialogProps {
   onCreated: () => void;

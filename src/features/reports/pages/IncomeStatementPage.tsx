@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IncomeStatementReport } from "@/features/reports/components/reports/IncomeStatementReport";
+import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
 import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { nowMty } from "@/lib/utils";

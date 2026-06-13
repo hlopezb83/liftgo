@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ProspectCard } from "./ProspectCard";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import type { Prospect } from "../hooks/useProspects";
 
 interface KanbanColumnProps {
   stageKey: string;

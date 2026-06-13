@@ -4,14 +4,14 @@ import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTab
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AssignForkliftsCard } from "@/features/quotes/components/quotes/AssignForkliftsCard";
-import { QuoteDetailActions } from "@/features/quotes/components/quotes/QuoteDetailActions";
-import { QuoteConversionDialogs } from "@/features/quotes/components/quotes/QuoteConversionDialogs";
-import { QuoteCustomerCard } from "@/features/quotes/components/quotes/QuoteCustomerCard";
-import { QuoteDatesCard } from "@/features/quotes/components/quotes/QuoteDatesCard";
-import { QuoteHeaderBadges } from "@/features/quotes/components/quotes/QuoteHeaderBadges";
-import { useQuoteDetailLogic } from "@/features/quotes/hooks/useQuoteDetailLogic";
-import { useQuoteSaleAssignmentStatus } from "@/features/quotes/hooks/quoteDetail/useQuoteSaleAssignmentStatus";
+import { AssignForkliftsCard } from "../components/quotes/AssignForkliftsCard";
+import { QuoteDetailActions } from "../components/quotes/QuoteDetailActions";
+import { QuoteConversionDialogs } from "../components/quotes/QuoteConversionDialogs";
+import { QuoteCustomerCard } from "../components/quotes/QuoteCustomerCard";
+import { QuoteDatesCard } from "../components/quotes/QuoteDatesCard";
+import { QuoteHeaderBadges } from "../components/quotes/QuoteHeaderBadges";
+import { useQuoteDetailLogic } from "../hooks/useQuoteDetailLogic";
+import { useQuoteSaleAssignmentStatus } from "../hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 
 export default function QuoteDetail() {
   const { id } = useParams();

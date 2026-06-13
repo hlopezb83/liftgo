@@ -6,10 +6,10 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { AlertTriangle } from "lucide-react";
-import { useForkliftFormLogic } from "@/features/fleet/hooks/useForkliftFormLogic";
-import { EquipmentDetailsSection } from "@/features/fleet/components/forklift-form/EquipmentDetailsSection";
-import { RatesSection } from "@/features/fleet/components/forklift-form/RatesSection";
-import { InsuranceSection } from "@/features/fleet/components/forklift-form/InsuranceSection";
+import { useForkliftFormLogic } from "../hooks/useForkliftFormLogic";
+import { EquipmentDetailsSection } from "../components/forklift-form/EquipmentDetailsSection";
+import { RatesSection } from "../components/forklift-form/RatesSection";
+import { InsuranceSection } from "../components/forklift-form/InsuranceSection";
 
 export default function ForkliftForm() {
   const {

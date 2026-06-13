@@ -4,7 +4,7 @@ import {
   type InvoiceFormValues,
   type LineItemValues,
   EMPTY_LINE,
-} from "@/features/invoices/lib/invoiceFormSchema";
+} from "../../lib/invoiceFormSchema";
 import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
 
 export function useInvoiceLineItemHandlers(form: UseFormReturn<InvoiceFormValues>) {

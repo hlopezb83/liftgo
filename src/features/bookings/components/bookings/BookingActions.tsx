@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { type BookingWithForklift } from "@/features/bookings/hooks/useBookings";
+import { type BookingWithForklift } from "../../hooks/useBookings";
 import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "lucide-react";
 import { formatDateRange } from "@/lib/utils";
-import { useBookingActionsLogic } from "@/features/bookings/hooks/useBookingActionsLogic";
+import { useBookingActionsLogic } from "../../hooks/useBookingActionsLogic";
 import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionDialogs";
 
 interface BookingActionsProps { booking: BookingWithForklift; }

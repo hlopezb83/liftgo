@@ -3,8 +3,8 @@ import {
   buildForkliftPayload,
   validateForkliftUniqueness,
   mapForkliftMutationError,
-} from "@/features/fleet/lib/forkliftPayload";
-import type { ForkliftFormData } from "@/features/fleet/lib/forkliftFormSchema";
+} from "../forkliftPayload";
+import type { ForkliftFormData } from "../forkliftFormSchema";
 
 const base: ForkliftFormData = {
   name: "MC-01",

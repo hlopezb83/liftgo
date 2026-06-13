@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
+import { useQuotes } from "../hooks/quotes/useQuotes";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS } from "@/lib/constants";
-import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "@/features/quotes/constants";
+import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { PlusCircle, ChevronRight } from "lucide-react";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";

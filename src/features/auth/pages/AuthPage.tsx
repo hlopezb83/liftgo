@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Users } from "lucide-react";
-import { useCurrentVersion } from "@/features/changelog/hooks/useChangelog";
-import { usePublicBranding } from "@/features/company-settings/hooks/usePublicBranding";
-import { AuthForm, type AuthMode } from "@/features/auth/components/AuthForm";
+import { useCurrentVersion } from "@/features/changelog";
+import { usePublicBranding } from "@/features/company-settings";
+import { AuthForm, type AuthMode } from "../components/AuthForm";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },

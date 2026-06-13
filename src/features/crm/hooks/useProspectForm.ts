@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuotes } from "@/features/quotes/hooks/quotes/useQuotes";
-import type { Prospect } from "@/features/crm/hooks/useProspects";
+import { useQuotes } from "@/features/quotes";
+import type { Prospect } from "./useProspects";
 import {
   STAGES_REQUIRING_DEAL_VALUE,
   sortQuotesByCompanyMatch,
   validateDealValue,
   type ProspectFormPayload,
-} from "@/features/crm/lib/prospectFormSchema";
+} from "../lib/prospectFormSchema";
 
-export { STAGE_LABELS, STAGES_REQUIRING_DEAL_VALUE } from "@/features/crm/lib/prospectFormSchema";
-export type { ProspectFormPayload } from "@/features/crm/lib/prospectFormSchema";
+export { STAGE_LABELS, STAGES_REQUIRING_DEAL_VALUE } from "../lib/prospectFormSchema";
+export type { ProspectFormPayload } from "../lib/prospectFormSchema";
 
 interface UseProspectFormParams {
   prospect: Prospect | null | undefined;

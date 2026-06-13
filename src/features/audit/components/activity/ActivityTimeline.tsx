@@ -4,14 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActorAvatar } from "./ActorAvatar";
-import { useActivityFeed, type ActivityFilters } from "@/features/dashboard/hooks/useActivityFeed";
-import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "@/features/audit/lib/activityConstants";
+import { useActivityFeed, type ActivityFilters } from "@/features/dashboard";
+import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
 import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { X } from "lucide-react";
-import type { MemberStat } from "@/features/audit/hooks/useActivityMetrics";
-import type { AppRole } from "@/features/users/hooks/useUserRole";
+import type { MemberStat } from "../../hooks/useActivityMetrics";
+import type { AppRole } from "@/features/users";
 
 interface Props {
   filters: ActivityFilters;

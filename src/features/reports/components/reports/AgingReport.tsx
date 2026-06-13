@@ -7,7 +7,7 @@ import { differenceInDays, format, parseISO } from "date-fns";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useMemo } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { useInvoicesWithBalance } from "@/features/invoices/hooks/invoices/useInvoicesWithBalance";
+import { useInvoicesWithBalance } from "@/features/invoices";
 
 interface AgingReportProps {
   startDate: Date;

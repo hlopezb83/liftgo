@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { ForkliftFinancials } from "@/features/fleet/hooks/forklifts/useForkliftFinancials";
+import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ForkliftFinancialCardProps {

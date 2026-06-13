@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDateDisplay } from "@/lib/utils";
-import type { InsuranceAlertsData } from "@/features/fleet/hooks/useInsuranceAlerts";
+import type { InsuranceAlertsData } from "@/features/fleet";
 
 interface InsuranceAlertProps {
   data: InsuranceAlertsData | undefined;

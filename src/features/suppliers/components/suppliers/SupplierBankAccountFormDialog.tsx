@@ -12,7 +12,7 @@ import {
   useCreateSupplierBankAccount,
   useUpdateSupplierBankAccount,
   type SupplierBankAccount,
-} from "@/features/suppliers/hooks/useSupplierBankAccounts";
+} from "../../hooks/useSupplierBankAccounts";
 
 interface Props {
   open: boolean;

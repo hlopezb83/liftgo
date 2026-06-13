@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { QuotePDFButton } from "@/features/quotes/components/quotes/QuotePDFButton";
+import { QuotePDFButton } from "./QuotePDFButton";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,

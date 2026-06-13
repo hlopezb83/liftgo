@@ -3,8 +3,8 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { useParseCsf } from "@/features/customers/hooks/useParseCsf";
-import type { CustomerFormData } from "@/features/customers/lib/customerFormSchema";
+import { useParseCsf } from "../../hooks/useParseCsf";
+import type { CustomerFormData } from "../../lib/customerFormSchema";
 
 interface Props {
   onParsed: (patch: Partial<CustomerFormData>) => void;
