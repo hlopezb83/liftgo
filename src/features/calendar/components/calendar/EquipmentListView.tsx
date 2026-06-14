@@ -22,13 +22,14 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   const bookingsByForklift = useMemo(() => {
     const map = new Map<string, BookingWithForklift[]>();
     bookings?.forEach((b) => {
-      if (b.status !== "confirmed" && b.status !== "completed") return;
+      if (b.status !== BOOKING_STATUS.confirmed && b.status !== BOOKING_STATUS.completed) return;
       const list = map.get(b.forklift_id);
       if (list) list.push(b);
       else map.set(b.forklift_id, [b]);
     });
     return map;
   }, [bookings]);
+
 
   const today = nowMty();
 
