@@ -1,0 +1,78 @@
+{
+  "version": "6.67.0",
+  "date": "2026-06-14",
+  "type": "minor",
+  "title": "Auditoría de tests Fases 2-4 — cobertura CFDI, mutaciones y RLS",
+  "sections": [
+    {
+      "heading": "Refactor de Edge Functions (Fase 2)",
+      "items": [
+        "cancel-cfdi: extraído a handler.ts puro con deps inyectables (createCallerClient, createServiceClient, fetchImpl, env); index.ts solo cablea Deno.serve.",
+        "refresh-cancellation-status: mismo refactor (handler.ts + index.ts).",
+        "Ambos handlers reutilizan SupabaseLike de _shared/types.ts (sin acoplamiento al cliente real de Supabase)."
+      ]
+    },
+    {
+      "heading": "Nuevos handler_tests Deno (Fase 2)",
+      "items": [
+        "cancel-cfdi/handler_test.ts: 11 tests — auth (401), rol (403), validaciones (400 motivos 01-04, substitution_uuid, factura no timbrada, e2e), stub (sin apiKey), happy path Facturapi DELETE, SAT pending con warning, error 502 del PAC.",
+        "refresh-cancellation-status/handler_test.ts: 8 tests — auth/rol, UUID, sin facturapi_invoice_id (404), sin apiKey (400), SAT accepted marca cancelled, SAT pending NO marca, error 502 del PUT a Facturapi.",
+        "Cobertura Deno: 3 → 5 funciones con handler_test real (54 tests pasando)."
+      ]
+    },
+    {
+      "heading": "Nuevas suites Vitest — Hooks CFDI (Fase 2)",
+      "items": [
+        "useStampCfdi.test.ts: happy path, data.error propagado, error de transporte.",
+        "useCancelCfdi.test.ts: envío de motive/substitution_uuid, notifyWarning en SAT pending, propagación de errores.",
+        "useRefreshCancellationStatus.test.ts: toast.success/error/warning según el estado SAT (accepted/rejected/expired).",
+        "syncInvoiceStatus.test.ts: marca paid/partial/sent según balance vs pagos, salida temprana si la factura no existe."
+      ]
+    },
+    {
+      "heading": "Nuevas suites Vitest — Mutaciones de negocio (Fase 3)",
+      "items": [
+        "useBookingMutations.test.ts: create/update/delete/cancel; RPC create_booking y cancel_booking; propagación de errores RLS (42501).",
+        "useBookingExtensions.test.ts: extensión válida; assertRowsAffected dispara cuando RLS oculta la reserva; insert error propagado.",
+        "useAssignForklift.test.ts: insert + update + status_logs; falla en unique violation; assertRowsAffected en update.",
+        "useCreatePaymentBatch.test.ts: invoca RPC create_supplier_payment_batch con items y notas; notes default null; propaga error RPC."
+      ]
+    },
+    {
+      "heading": "Nuevas suites Vitest — Contratos RLS (Fase 3)",
+      "items": [
+        "usePayments.rls.test.ts: permission denied + happy path.",
+        "useContracts.rls.test.ts: permission denied + mapeo de joins customers/forklifts.",
+        "useCreditNotesForInvoice.rls.test.ts: permission denied + happy path + enabled:false sin invoiceId.",
+        "useAuditLogs.rls.test.ts: permission denied (rol sin acceso) + happy path para admin/auditor.",
+        "useQuoteAssignments.rls.test.ts: permission denied + happy path + enabled:false sin quoteId.",
+        "useInvoices.rls.test.ts: corregido — fromResolver genérico reemplazado por tableResolvers explícito (consistente con useBookings.rls.test.ts)."
+      ]
+    },
+    {
+      "heading": "Mejoras E2E (Fase 4 — parcial)",
+      "items": [
+        "tests/e2e/fixtures/helpers.ts: getAuthToken(page) extraído (antes duplicado en invoice-payment.spec.ts y portal.spec.ts) + expectNoToastError(page) para detectar errores silenciosos al final de un flujo happy path.",
+        "Specs E2E nuevos (maintenance-kanban, delivery-return-horometro, cfdi-cancel-credit-note, recurring-billing, rbac-role-paths, contract-pdf-sign, damage-photo-billing, crm-deal-to-quote) quedan pendientes de scaffolding de seed específico — el helper de auth desbloquea su implementación posterior."
+      ]
+    },
+    {
+      "heading": "Patrones de testing aplicados",
+      "items": [
+        "vi.hoisted() para estado mutable referenciado desde factories de vi.mock (evita TDZ errors).",
+        "tableResolvers por nombre de tabla con historial de calls — distingue insert/update/select sobre la misma tabla.",
+        "functionsResolvers por nombre de Edge Function — happy path y errores sin red.",
+        "rpcResolvers tipados — para hooks que pasan por callRpc."
+      ]
+    },
+    {
+      "heading": "Métricas finales",
+      "items": [
+        "Vitest: 100 → 123 archivos, 707/707 tests pasando.",
+        "Deno Edge Functions con handler_test real: 3 → 5 (cobertura CFDI completa de timbrado y cancelación).",
+        "Total Deno: 35+ → 54 tests pasando.",
+        "Anti-patrones resueltos: fromResolver genérico en useInvoices.rls (Fase 3), tipos compartidos en _shared/types.ts (Fase 1), helper E2E duplicado (Fase 4)."
+      ]
+    }
+  ]
+}

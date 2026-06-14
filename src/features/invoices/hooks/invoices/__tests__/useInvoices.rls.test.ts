@@ -8,8 +8,13 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 let resp: SupabaseMockResponse = { data: [], error: null };
 
+// tableResolvers explícito (no fromResolver genérico) para que cualquier
+// query a otra tabla falle visiblemente en vez de heredar la respuesta de
+// `invoices` por error.
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: createSupabaseChainMock({ fromResolver: () => resp }),
+  supabase: createSupabaseChainMock({
+    tableResolvers: { invoices: () => resp },
+  }),
 }));
 
 import { useInvoices } from "../useInvoices";
@@ -30,7 +35,7 @@ describe("useInvoices — RLS contract", () => {
     expect(result.current.error).toMatchObject({ code: "42501" });
   });
 
-  it("devuelve lista vacia cuando RLS oculta todas las filas (data:[] sin error)", async () => {
+  it("devuelve lista vacía cuando RLS oculta todas las filas", async () => {
     resp = { data: [], error: null };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useInvoices(), { wrapper: Wrapper });

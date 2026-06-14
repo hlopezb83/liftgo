@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.67.0",
+    "date": "2026-06-14",
+    "type": "minor",
+    "title": "Auditoría de tests Fases 2-4 — cobertura CFDI, mutaciones y RLS",
+    "description": "Refactor de cancel-cfdi y refresh-cancellation-status a handlers puros inyectables + 19 nuevos handler_tests Deno (de 3 a 5 funciones con tests reales). 8 suites Vitest nuevas: hooks CFDI (useStampCfdi, useCancelCfdi, useRefreshCancellationStatus, syncInvoiceStatus), mutaciones (useBookingMutations, useBookingExtensions, useAssignForklift, useCreatePaymentBatch), y RLS (usePayments, useContracts, useCreditNotesForInvoice, useAuditLogs, useQuoteAssignments). useInvoices.rls.test.ts corregido a tableResolvers. Helper E2E getAuthToken/expectNoToastError extraído. Totales: Vitest 707/707 (+23 tests nuevos), Deno 54/54 (+19 nuevos).",
+    "category": "improvement"
+  },
+  {
     "version": "6.66.19",
     "date": "2026-06-14",
     "type": "minor",
