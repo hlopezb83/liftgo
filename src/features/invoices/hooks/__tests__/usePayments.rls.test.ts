@@ -27,7 +27,7 @@ describe("usePayments — RLS contract", () => {
       error: { code: "42501", message: "permission denied for table payments" },
     };
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => usePayments(), { wrapper: Wrapper });
+    const { result } = renderHook(() => usePayments("inv-1"), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
 
@@ -37,7 +37,7 @@ describe("usePayments — RLS contract", () => {
       error: null,
     };
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => usePayments(), { wrapper: Wrapper });
+    const { result } = renderHook(() => usePayments("inv-1"), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.[0]).toMatchObject({ id: "p-1" });
   });
