@@ -12,6 +12,7 @@ export type SeedIds = {
   booking_number: string;
   invoice_id: string;
   invoice_number: string;
+  maintenance_log_id: string;
   total: number;
   scope: string;
 };
