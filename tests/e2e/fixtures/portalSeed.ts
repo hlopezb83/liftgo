@@ -98,25 +98,27 @@ export const test = base.extend<PortalFixtures>({
     if (error) throw new Error(`e2e_seed_portal_scenario falló: ${error.message}`);
     const seed = data as PortalSeed;
 
+    // Capturamos error del test para evitar `throw` en `finally`
+    // (no-unsafe-finally) y diferenciar fallo del test vs fuga de datos.
+    let testError: unknown;
     try {
       await use(seed);
-    } finally {
-      // Diferenciar: si el test FALLÓ, solo log para no enmascarar el error
-      // original. Si el test PASÓ, relanzar para detectar fugas — en CI con
-      // sharding el globalTeardown puede no correr en shards intermedios.
-      const testFailed = testInfo.errors.length > 0 ||
-        testInfo.status === "failed" || testInfo.status === "timedOut";
-      const { error: teardownError } = await admin.rpc("e2e_teardown", { p_scope: scope });
-      await admin.auth.signOut().catch(() => {});
-      if (teardownError) {
-        if (testFailed) {
-
-          console.error(`[e2e:portal] teardown falló scope=${scope}:`, teardownError.message);
-        } else {
-          throw new Error(`[e2e:portal] teardown falló scope=${scope}: ${teardownError.message}`);
-        }
+    } catch (e) {
+      testError = e;
+    }
+    const testFailed = testError !== undefined ||
+      testInfo.errors.length > 0 ||
+      testInfo.status === "failed" || testInfo.status === "timedOut";
+    const { error: teardownError } = await admin.rpc("e2e_teardown", { p_scope: scope });
+    await admin.auth.signOut().catch(() => {});
+    if (teardownError) {
+      if (testFailed) {
+        console.error(`[e2e:portal] teardown falló scope=${scope}:`, teardownError.message);
+      } else {
+        throw new Error(`[e2e:portal] teardown falló scope=${scope}: ${teardownError.message}`);
       }
     }
+    if (testError) throw testError;
   },
 });
 
