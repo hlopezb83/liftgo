@@ -1,6 +1,9 @@
 // Unit tests for cancel-cfdi pure handler.
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { handleCancelCfdi, type CancelCfdiDeps } from "./handler.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { type CancelCfdiDeps, handleCancelCfdi } from "./handler.ts";
 import {
   buildSupabaseMock,
   type MockConfig,
@@ -71,7 +74,9 @@ Deno.test("cancel-cfdi: 403 si el rol no es admin/administrativo", async () => {
 
 Deno.test("cancel-cfdi: 400 si invoice_id no es UUID", async () => {
   const { deps } = makeDeps({
-    service: { selects: { user_roles: { data: [{ role: "admin" }], error: null } } },
+    service: {
+      selects: { user_roles: { data: [{ role: "admin" }], error: null } },
+    },
   });
   const res = await handleCancelCfdi(
     makeRequest({ invoice_id: "x", motive: "02" }),
@@ -82,7 +87,9 @@ Deno.test("cancel-cfdi: 400 si invoice_id no es UUID", async () => {
 
 Deno.test("cancel-cfdi: 400 si motivo no está en 01-04", async () => {
   const { deps } = makeDeps({
-    service: { selects: { user_roles: { data: [{ role: "admin" }], error: null } } },
+    service: {
+      selects: { user_roles: { data: [{ role: "admin" }], error: null } },
+    },
   });
   const res = await handleCancelCfdi(
     makeRequest({ invoice_id: INVOICE_ID, motive: "99" }),
@@ -93,7 +100,9 @@ Deno.test("cancel-cfdi: 400 si motivo no está en 01-04", async () => {
 
 Deno.test("cancel-cfdi: 400 motivo 01 sin substitution_uuid", async () => {
   const { deps } = makeDeps({
-    service: { selects: { user_roles: { data: [{ role: "admin" }], error: null } } },
+    service: {
+      selects: { user_roles: { data: [{ role: "admin" }], error: null } },
+    },
   });
   const res = await handleCancelCfdi(
     makeRequest({ invoice_id: INVOICE_ID, motive: "01" }),
@@ -128,7 +137,10 @@ Deno.test("cancel-cfdi: 403 si la factura es e2e", async () => {
     service: {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
-        invoices: { data: { cfdi_status: "stamped", is_e2e: true }, error: null },
+        invoices: {
+          data: { cfdi_status: "stamped", is_e2e: true },
+          error: null,
+        },
       },
     },
   });

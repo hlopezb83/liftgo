@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.69.2",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "Fix CI: deno fmt en handlers CFDI y limpieza de dead code",
+    "description": "Aplicado `deno fmt` a 4 archivos del job edge-functions (cancel-cfdi/handler.ts, cancel-cfdi/handler_test.ts, refresh-cancellation-status/handler.ts, refresh-cancellation-status/handler_test.ts) que rompían `deno fmt --check` con 'Found 4 not formatted files'. Eliminado src/features/fleet/hooks/forklifts/useForkliftOptions.ts (creado en Fase A v6.68.0 pero nunca importado) que disparaba knip como 'Unused files (1)' y rompería el job quality. Validado localmente: typecheck, knip, vitest 707/707, deno fmt/lint todos en verde. Desbloquea rls y e2e que estaban saltados por `needs: [quality]`.",
+    "category": "fix"
+  },
+  {
     "version": "6.69.1",
     "date": "2026-06-14",
     "type": "patch",

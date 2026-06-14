@@ -1,50 +1,68 @@
-# Auditoría de Tests — LiftGo (Cerrada)
+## Acciones de GitHub pendientes
 
-Plan ejecutado en 4 fases. Las 4 fases están completas o explícitamente acotadas. Ver `public/changelog/v6.66.19.json` (Fase 1) y `public/changelog/v6.67.0.json` (Fases 2-4).
+En el último run de CI (`logs_73952299441.zip`) hubo **4 jobs**. Solo arreglé uno:
 
-## Estado final
-
-| Fase | Estado | Entregables |
+| Job | Estado en el run | Causa |
 |---|---|---|
-| Fase 1 — Bugs activos | ✅ Completa | 3 bugs cerrados (idempotencia stamp-cfdi, auth check generate-recurring-invoices, teardown E2E). Tipos compartidos en `_shared/types.ts`. |
-| Fase 2 — CFDI / dinero | ✅ Completa | Handlers puros: `cancel-cfdi`, `refresh-cancellation-status`. 19 handler_tests Deno nuevos. 4 suites Vitest CFDI. |
-| Fase 3 — Mutaciones y RLS | ✅ Completa | 4 suites de mutaciones (booking, extension, assign forklift, payment batch). 5 RLS nuevas + fix useInvoices.rls. |
-| Fase 4 — E2E y robustez | ⚠️ Parcial | Helper `getAuthToken`/`expectNoToastError` extraído. Specs E2E nuevos quedan pendientes (requieren scaffolding de seed específico por dominio). |
+| `quality` (Lint, Knip, Tests, Build) | falló | 2 errores `no-unsafe-finally` → **fixed v6.69.1** |
+| `edge-functions` (Deno smoke tests) | **falló** | `deno fmt --check`: 4 archivos sin formatear |
+| `rls` (RLS contract tests) | **saltado** | depende de `quality` |
+| `e2e` (Playwright sharded) | **saltado** | depende de `quality` |
 
-## Métricas
+`rls` y `e2e` correrán automáticamente cuando `quality` pase verde, pero `edge-functions` sigue rojo por su propio motivo.
 
-| Métrica | Antes | Después |
-|---|---|---|
-| Vitest archivos | 100 | 123 |
-| Vitest tests | ~684 | 707 |
-| Deno handler_test reales | 3 | 5 (stamp-cfdi, cancel-cfdi, refresh-cancellation-status, stamp-credit-note, _shared mocks) |
-| Deno tests totales | ~35 | 54 |
-| Bugs activos | 3 | 0 |
+## Plan
 
-## Fase 4 — Trabajo restante (no bloqueante)
+### 1. Fix `deno fmt --check` (job `edge-functions`)
 
-Specs E2E nuevos que requieren seed extendido y `data-testid` en componentes — recomendamos abordarlos por separado, dominio por dominio:
+Reformatear los 4 archivos detectados por el step `Deno fmt --check`:
 
-1. `maintenance-kanban.spec.ts` ✅ v6.67.2 — seed extendido con `maintenance_log_id`, columnas Kanban con `data-testid`, smoke spec creado.
-2. `delivery-return-horometro.spec.ts`
-3. `cfdi-cancel-credit-note.spec.ts`
-4. `recurring-billing.spec.ts` (cron trigger)
-5. `rbac-role-paths.spec.ts`
-6. `contract-pdf-sign.spec.ts`
-7. `damage-photo-billing.spec.ts`
-8. `crm-deal-to-quote.spec.ts`
+```text
+supabase/functions/cancel-cfdi/handler.ts
+supabase/functions/cancel-cfdi/handler_test.ts
+supabase/functions/refresh-cancellation-status/handler.ts
+supabase/functions/refresh-cancellation-status/handler_test.ts
+```
 
-El helper `getAuthToken(page)` desbloquea la llamada de Edge Functions desde estos specs.
+Ejecutar `cd supabase/functions && deno fmt` localmente para que aplique exactamente el mismo formato que el check de CI (line-length, ordenación de imports, etc.). Verificar después con `deno fmt --check` que termine en exit 0.
 
-## Anti-patrones resueltos
+Los diffs mostrados en el log son cosméticos:
+- Imports multi-línea expandidos (`{ a, b }` → bloque con un import por línea cuando excede ancho).
+- Objects literales partidos en varias líneas.
+- Operadores ternarios reformateados.
 
-- `fromResolver` genérico en `useInvoices.rls.test.ts` → `tableResolvers` (consistente con `useBookings.rls.test.ts`).
-- `SupabaseLike`/`QueryBuilderLike` desacoplados en `_shared/types.ts`.
-- Helper `getAuthToken` duplicado en 2+ specs → centralizado en `tests/e2e/fixtures/helpers.ts`.
+No hay cambios de lógica.
 
-## Anti-patrones pendientes (Fase 4 ampliada, no urgente)
+### 2. Validar los steps de `quality` que no se alcanzaron
 
-- `data-testid` en componentes E2E críticos: ✅ aplicado a `RecordPaymentDialog` y `CustomerFormDialog` en v6.67.1. Restantes: `BookingFormDialog`, `QuoteFormDialog`, dialogs de mantenimiento/contratos.
-- Aserciones de red mínimas (`waitForResponse`): ✅ aplicado a `invoice-payment.spec.ts` en v6.67.1. Restantes: `booking-to-invoice`, `quote-to-booking`, `customer-create`, `portal`.
-- `PERMS` hardcodeado en E2E vs DB `role_permissions` — requiere fixture que lea la tabla en runtime.
-- Smoke PDFs con `innerHTML.length > 0` (trivial) — falta aserción semántica (parsear PDF y verificar texto clave).
+El run anterior falló en ESLint, así que **typecheck, knip, vitest+coverage y build nunca corrieron** en CI. Antes de declarar el job verde, correr localmente en paralelo:
+
+```bash
+bunx tsc --noEmit -p tsconfig.app.json
+bunx knip --include files,dependencies,binaries --reporter compact
+bun run test --coverage
+bun run build
+```
+
+Si algún paso falla, arreglarlo en el mismo commit que el fmt para no consumir otro run de CI.
+
+### 3. Confirmar que `rls` y `e2e` arrancan
+
+Con `quality` verde, ambos jobs dejan de saltar. No tocamos su configuración — solo verificar en el siguiente push.
+
+### 4. Changelog
+
+Entrada **v6.69.2 (patch)** en `public/changelog.json` + `public/changelog/v6.69.2.json` describiendo el fix de Deno fmt y los validations locales.
+
+## Detalles técnicos
+
+- El step `Deno fmt --check` en `.github/workflows/ci.yml` corre `cd supabase/functions && deno fmt --check` y rompe el job si hay cualquier archivo no formateado — es un gate duro.
+- Los 4 archivos son recientes (relacionados con cancelación de CFDI / refresh de estatus SAT), probablemente editados sin pasar `deno fmt` antes de pushear.
+- No hay riesgo de regresión: `deno fmt` solo cambia whitespace/orden de imports, nunca semántica.
+- El job `edge-functions` no depende de nada, así que el fix lo desbloquea inmediatamente.
+
+## Fuera de alcance
+
+- No agregar nuevos workflows ni jobs.
+- No tocar la lógica de los handlers de Edge Functions.
+- No modificar la configuración de sharding de Playwright ni los seeds (ya pasaron review en turnos previos).
