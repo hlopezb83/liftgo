@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.68.1",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "Performance Fase B: code-splitting de librerías pesadas",
+    "description": "vite.config.ts: nuevos chunks dedicados para @react-pdf/renderer, xlsx, html2canvas+canvg, date-fns y lucide-react. El bundle de entrada deja de cargar ~700KB que solo se usan en acciones específicas (PDFs, exportaciones a Excel). Mejora directa de FCP/LCP en el primer load y en navegaciones cacheadas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.68.0",
     "date": "2026-06-14",
     "type": "minor",
