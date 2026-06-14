@@ -26,7 +26,11 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("node_modules")) {
             if (id.includes("recharts") || id.includes("d3-")) return "recharts";
             if (id.includes("@radix-ui")) return "radix";
-            if (id.includes("jspdf")) return "jspdf";
+            if (id.includes("@react-pdf")) return "react-pdf";
+            if (id.includes("jspdf") || id.includes("html2canvas") || id.includes("canvg")) return "jspdf";
+            if (id.includes("xlsx")) return "xlsx";
+            if (id.includes("date-fns")) return "date-fns";
+            if (id.includes("lucide-react")) return "icons";
             if (
               id.includes("react-dom") ||
               id.includes("react-router") ||
