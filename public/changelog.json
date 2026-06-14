@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.71.1",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "Docs: cierre formal del audit con deuda técnica priorizada",
+    "description": "Nueva sección §23 'Deuda técnica priorizada' en architecture.md documentando los 3 items grandes del audit que NO se ejecutaron en Fase A con justificación y trigger natural: pipeline CFDI compartido (ALTA, requiere E2E sandbox), capa data-access por entidad (MEDIA, requiere RFC), y split sidebar.tsx (BAJA, probablemente NO hacer por ser shadcn upstream). Política §23.4: solo con caso de negocio concreto, PR scoped, reevaluación a 12 meses. Renumera Referencias a §24. Cierra formalmente el plan.",
+    "category": "docs"
+  },
+  {
     "version": "6.71.0",
     "date": "2026-06-14",
     "type": "minor",
