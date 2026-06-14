@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.70.0",
+    "date": "2026-06-14",
+    "type": "minor",
+    "title": "CI: paralelización de jobs y composite action para setup",
+    "description": "Refactor de .github/workflows/ci.yml: el monolítico job `quality` (lint→typecheck→knip→tests→build serial, ~12 min) se dividió en 5 jobs paralelos (lint, typecheck, knip, tests, build). Eliminado el gate artificial `needs: [quality]` en `rls` y `e2e` — ahora arrancan en paralelo. Extraído setup repetido (checkout + bun + cache + install) a composite action .github/actions/setup-bun-project. Cache de Playwright ahora se invalida solo cuando cambia la versión del paquete (no por cualquier cambio de deps). Agregado cache de Deno. Path filters: cambios solo en changelog/markdown/.lovable no disparan CI. Nuevo job `ci-success` como gate único para branch protection. Wall time esperado: ~12 min → ~6-7 min.",
+    "category": "infra"
+  },
+  {
     "version": "6.69.2",
     "date": "2026-06-14",
     "type": "patch",
