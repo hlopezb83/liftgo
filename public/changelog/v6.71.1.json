@@ -1,0 +1,8 @@
+{
+  "version": "6.71.1",
+  "date": "2026-06-14",
+  "type": "patch",
+  "title": "Docs: cierre formal del audit con deuda técnica priorizada",
+  "description": "Nueva sección §23 'Deuda técnica priorizada' en architecture.md (renumera Referencias a §24). Documenta los 3 items grandes del audit v6.70.x que NO se ejecutaron en Fase A con justificación explícita y trigger natural para abordarlos: (1) Pipeline CFDI compartido en Edge Functions [Prioridad ALTA, requiere E2E contra Facturapi sandbox; trigger: nuevo tipo de CFDI o cambio de PAC]; (2) Capa data-access por entidad [Prioridad MEDIA, ~40 hooks, requiere RFC de patrón; trigger: migrar una por release al añadir entidad nueva]; (3) Split sidebar.tsx [Prioridad BAJA, probablemente NO hacer por ser shadcn upstream, excepción ya documentada en §22.2]. Incluye política §23.4: cada item se aborda solo con caso de negocio concreto, PR scoped, y reevaluación si permanece >12 meses sin trigger. Cierra formalmente el plan de auditoría. Solo docs; no se modificó código.",
+  "category": "docs"
+}
