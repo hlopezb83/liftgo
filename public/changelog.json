@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.68.0",
+    "date": "2026-06-14",
+    "type": "minor",
+    "title": "Performance Fase A: cache de roles, paralelización y formateadores singleton",
+    "description": "useUserRole sube staleTime de 0 a 5min (gcTime 30min) — evita ~18k calls/día redundantes a user_roles tras la auditoría con pg_stat_statements. useUsersWithRoles paraleliza profiles + user_roles con Promise.all y cachea 5min. AuthContext memoiza el value con useMemo + useCallback para cortar re-renders en cascada de toda la app cuando cualquier hijo se actualiza. formatCurrency/formatCurrencyWithCode ahora reutilizan Intl.NumberFormat vía cache por moneda (antes se instanciaba en cada celda de tabla, ~50-200µs por llamada). Nuevo hook useForkliftOptions proyecta 5 columnas en vez de 24 para selectores, con staleTime 5min — listo para migrar dropdowns sin tocar consumidores existentes de useForklifts.",
+    "category": "improvement"
+  },
+  {
     "version": "6.67.2",
     "date": "2026-06-14",
     "type": "patch",
