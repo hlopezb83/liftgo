@@ -5,6 +5,8 @@ import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";
 import { nowMty } from "@/lib/utils";
+import { BOOKING_STATUS, FORKLIFT_STATUS } from "@/lib/constants";
+
 
 type Forklift = Tables<"forklifts">;
 
