@@ -1,0 +1,10 @@
+{
+  "description": "Fase A de la auditoría de rendimiento: las optimizaciones de mayor ROI y menor riesgo, basadas en medición real con pg_stat_statements.",
+  "changes": [
+    "useUserRole: staleTime 0 → 5min, gcTime 30min. La tabla user_roles registraba ~18,724 calls/día (4,260ms acumulados). Errores transitorios siguen recuperándose con retry: 2.",
+    "useUsersWithRoles: paralelización de profiles + user_roles con Promise.all (antes secuencial) y staleTime de 5min. Reduce ~2x la latencia inicial de la página de Gestión de usuarios.",
+    "AuthContext: value memoizado con useMemo, callbacks (signUp, signIn, signOut, resetPassword, updatePassword) estabilizados con useCallback. Antes cualquier render del provider rompía referencias y forzaba re-renders en cascada de toda la app.",
+    "formatCurrency / formatCurrencyWithCode: cache de Intl.NumberFormat por moneda. Crítico para tablas grandes (facturas, reportes) donde se instanciaba un formateador nuevo por celda (~50-200µs cada uno).",
+    "Nuevo hook useForkliftOptions: proyecta solo 5 columnas (id, name, model, status, capacity_kg) en lugar de las 24 de useForklifts, con staleTime 5min. Listo para migrar dropdowns sin tocar consumidores existentes."
+  ]
+}
