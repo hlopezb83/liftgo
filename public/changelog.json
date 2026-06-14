@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.70.1",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "Fix E2E: selector del toggle Kanban en maintenance-kanban.spec.ts",
+    "description": "tests/e2e/maintenance-kanban.spec.ts:24 — el test usaba `getByRole('button', { name: /vista de tablero/i })` que no matchea porque Radix `<ToggleGroup type=\"single\">` renderiza los items con role=\"radio\" (no button), causando timeout de 30s en CI. Cambiado a `getByLabel(/vista de tablero/i)` que es agnóstico al role. Desbloquea el job E2E shard 1/2.",
+    "category": "fix"
+  },
+  {
     "version": "6.70.0",
     "date": "2026-06-14",
     "type": "minor",

@@ -1,0 +1,14 @@
+{
+  "version": "6.70.1",
+  "date": "2026-06-14",
+  "type": "patch",
+  "title": "Fix E2E: selector del toggle Kanban en maintenance-kanban.spec.ts",
+  "category": "fix",
+  "changes": [
+    {
+      "area": "tests/e2e/maintenance-kanban.spec.ts",
+      "description": "El test fallaba con `Test timeout of 30000ms exceeded` esperando `getByRole('button', { name: /vista de tablero/i })`. Causa raíz: Radix UI `<ToggleGroup type=\"single\">` renderiza sus `<ToggleGroupItem>` con `role=\"radio\"` (no `button`) dentro de un `role=\"radiogroup\"`. El componente `MaintenancePageActions.tsx:34` declara `aria-label=\"Vista de tablero\"`, así que el selector correcto es por label: `getByLabel(/vista de tablero/i)`. Agregado comentario en el test explicando el porqué para evitar regresiones."
+    }
+  ],
+  "impact": "Desbloquea el job `e2e` shard 1/2 que era el último check rojo del pipeline tras v6.70.0. No afecta a la app, solo al test."
+}
