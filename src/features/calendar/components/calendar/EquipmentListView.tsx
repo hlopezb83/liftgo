@@ -8,6 +8,8 @@ import { nowMty, formatMtyDate } from "@/lib/utils";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { RecurringBillingBadge } from "@/features/bookings";
+import { BOOKING_STATUS } from "@/lib/constants";
+
 
 type Forklift = Tables<"forklifts">;
 
