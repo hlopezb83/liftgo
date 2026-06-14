@@ -1,6 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/features/users";
-import type { ActivityRange, MemberStat, ModuleStat, HourStat } from "../hooks/activityMetricsTypes";
+import type { MemberStat, ModuleStat, HourStat } from "../hooks/activityMetricsTypes";
 
 interface Row {
   actor_id: string | null;
