@@ -19,13 +19,9 @@ import { test, expect } from "./fixtures/seed";
 test("seeded maintenance work order appears in pending column", async ({ page, seed }) => {
   await page.goto("/maintenance", { waitUntil: "domcontentloaded" });
 
-  // Tab "Kanban" debería ser la vista por defecto. Si la UI cambia y la vista
-  // por defecto pasa a "Lista", forzamos el tab para mantener el spec verde
-  // sin cambios de copy.
-  const kanbanTab = page.getByRole("tab", { name: /kanban/i });
-  if (await kanbanTab.count() > 0) {
-    await kanbanTab.click();
-  }
+  // Vista por defecto es "list". Activamos el toggle "board" (Kanban) via su
+  // aria-label estable; nunca por texto visible (que es solo un icono).
+  await page.getByRole("button", { name: /vista de tablero/i }).click();
 
   const pendingColumn = page.getByTestId("maintenance-kanban-column-pending");
   await expect(pendingColumn).toBeVisible({ timeout: 15_000 });
