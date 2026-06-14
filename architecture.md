@@ -563,7 +563,93 @@ Beneficio: las features siguen siendo dueñas de su I/O, pero los contratos púb
 
 ---
 
-## 22. Referencias
+## 22. Convenciones de naming (estándar)
+
+Naming consistente reduce fricción cognitiva, mejora la búsqueda por nombre y facilita el onboarding. Esta sección es **normativa**: el código nuevo debe cumplirla; el código existente se alinea cuando se toca por otra razón (migración incremental, igual que §20.6).
+
+### 22.1 Carpetas
+
+| Caso | Convención | Ejemplo válido | Ejemplo a evitar |
+|---|---|---|---|
+| Carpetas generales (`src/components/`, `src/lib/`, sub-carpetas) | **kebab-case** | `src/components/data-table/`, `src/lib/pdf/contract/` | `dataTable/`, `pdfContract/` |
+| Features (`src/features/<feature>/`) | **kebab-case**; mantener plural ya establecido (`bookings`, `invoices`, `quotes`) | `src/features/accounts-payable/`, `src/features/bookings/` | `src/features/AccountsPayable/`, `src/features/booking_management/` |
+| Sub-carpetas dentro de una feature | **kebab-case** salvo `pages/`, `components/`, `hooks/`, `lib/` (estándar) | `src/features/invoices/components/invoice-form/` | `src/features/invoices/components/InvoiceForm/` |
+| Carpeta de tests co-localizados | `__tests__/` (convención Vitest/Jest) | `src/lib/domain/__tests__/` | `src/lib/domain/tests/` |
+
+### 22.2 Archivos
+
+| Tipo | Convención | Ejemplo válido | Ejemplo a evitar |
+|---|---|---|---|
+| **Componente React** (`.tsx` que exporta un componente) | **PascalCase**, nombre = componente exportado | `BookingActions.tsx`, `MobileCardList.tsx` | `bookingActions.tsx`, `mobile-card-list.tsx` |
+| **Página** (orquestador de ruta en `pages/`) | **PascalCase** con sufijo `Page` obligatorio | `BookingsPage.tsx`, `InvoiceDetailPage.tsx`, `FleetPage.tsx` | `Bookings.tsx`, `Fleet.tsx`, `invoice-detail.tsx` |
+| **Hook** (`.ts`/`.tsx` que exporta `useXxx`) | **camelCase**, prefijo `use` obligatorio | `useBookings.ts`, `useDebouncedValue.ts`, `useIsMobile.ts` | `use-mobile.tsx`, `UseBookings.ts`, `bookingsHook.ts` |
+| **Helper puro** en `lib/` | **camelCase** con sufijo `Helpers.ts` | `invoiceHelpers.ts`, `deliveryDetailHelpers.ts` | `invoice-helpers.ts`, `InvoiceUtils.ts` |
+| **Builder con side effects** en `lib/` | **camelCase** con sufijo `Builder.ts` | `contractPdfBuilder.ts`, `quoteLineItemsBuilder.ts` | `buildContract.ts`, `contract_builder.ts` |
+| **Tipos/interfaces** puros | **camelCase** con sufijo `Types.ts` | `customerTypes.ts`, `contractTypes.ts` | `Types.ts`, `customer.types.ts` |
+| **Constantes** | `constants.ts` por scope, o `<dominio>Constants.ts` | `lib/constants.ts`, `domainConstants.ts` | `Constants.ts`, `CONSTANTS.ts` |
+| **Test** | mismo nombre del archivo bajo prueba + `.test.ts(x)`, co-localizado en `__tests__/` | `formatCurrency.test.ts`, `BookingActions.test.tsx` | `test-format-currency.ts`, `BookingActionsSpec.tsx` |
+| **Edge Function** | carpeta y archivo en **kebab-case**: `index.ts` + `handler.ts` + `index_test.ts` | `supabase/functions/stamp-cfdi/handler.ts` | `stampCfdi/`, `StampCFDI/` |
+| **Migración SQL** | `<timestamp>_<slug-en-snake_case>.sql` | `20260614120000_add_invoice_balance_view.sql` | `add-invoice-balance.sql` |
+| **Sufijos prohibidos** en archivos nuevos | — | — | `*Utils.ts`, `*Manager.ts`, `*Helper.ts` (singular), `*Service.ts` |
+
+> **Excepciones permitidas (legacy con costo de migración alto)**: `src/components/ui/**` (primitivos shadcn upstream, mantienen kebab-case porque vienen así del generador), `src/integrations/supabase/**` (autogenerado).
+
+### 22.3 Símbolos en código
+
+| Tipo | Convención | Ejemplo |
+|---|---|---|
+| Componentes React | **PascalCase** | `BookingActions`, `MobileCardList` |
+| Hooks | **camelCase**, prefijo `use` | `useBookings`, `useDebouncedValue` |
+| Variables y funciones | **camelCase** | `formatCurrency`, `pendingInvoices` |
+| Booleanos | prefijo `is/has/can/should` | `isLoading`, `hasError`, `canEdit` |
+| Handlers internos | prefijo `handle` | `handleSubmit`, `handleRowClick` |
+| Props de callback | prefijo `on` | `onChange`, `onRowClick`, `onSuccess` |
+| Constantes globales inmutables | **SCREAMING_SNAKE_CASE** | `MODULES`, `ROUTE_TO_MODULE`, `VAT_RATES` |
+| Types e interfaces | **PascalCase** | `Booking`, `InvoiceRow`, `ProspectInsert` |
+| Enums | **PascalCase**; valores en `snake_case` si vienen de Postgres | `enum AppRole { admin, ventas }` |
+| RPCs / funciones SQL | **snake_case** | `generate_invoice_number`, `has_role` |
+| Tablas y columnas SQL | **snake_case**, tablas en plural | `user_roles`, `monthly_rate`, `created_at` |
+
+### 22.4 Rutas y URLs
+
+| Caso | Convención | Ejemplo |
+|---|---|---|
+| Path de ruta | **kebab-case** plural para colecciones | `/bookings`, `/income-statement`, `/mis-reportes` |
+| Parámetros de ruta | **camelCase** | `/invoices/:invoiceId` |
+| Query params | preferir **snake_case** para alinear con SQL | `?customer_id=...&date_from=...` |
+| Constantes de ruta (`ROUTES`) | **camelCase** anidado | `ROUTES.invoices.detail(id)` |
+
+### 22.5 Identificadores de documento
+
+Generados por RPCs `generate_*_number`; prefijos **en español** en mayúsculas, separador `-`, secuencia con padding:
+
+`FAC-0001` (factura) · `COT-0001` (cotización) · `CTR-0001` (contrato) · `RSV-0001` (reserva) · `ENT-0001` (entrega) · `DEV-0001` (devolución) · `NC-0001` (nota de crédito) · `CP-0001` (complemento de pago).
+
+### 22.6 Anti-patrones a evitar
+
+- Mezclar `<Name>.tsx` y `<Name>Page.tsx` para páginas (debe ser siempre con sufijo `Page`).
+- `use-mobile.tsx` y similares en kebab-case para hooks (debe ser camelCase).
+- Sufijos genéricos `*Utils.ts`, `*Manager.ts`, `*Service.ts`, `*Helper.ts` (singular).
+- Carpetas en camelCase como `dataTable/`, `pdfContract/`.
+- Importar `from "@/features/x/hooks/internal/..."` cruzando features — usar la API pública del barrel (`@/features/x`).
+- Booleanos sin prefijo (`loading` → `isLoading`, `error` → `hasError`).
+- Constantes globales inmutables en `lowercase` (`vatRates` → `VAT_RATES`).
+- Renombrar al importar (`import { X as Y }`) salvo colisión real de nombres.
+
+### 22.7 Migración del naming existente
+
+El audit v6.70.x detectó estas inconsistencias. **No se renombran en bloque** (cada rename rompe imports e historial de diffs); se alinean cuando el archivo se toca por otra razón, registrando el rename en el changelog del cambio que lo motivó:
+
+- `src/features/fleet/pages/Fleet.tsx` → `FleetPage.tsx`.
+- `src/components/dataTable/` → `src/components/data-table/`.
+- `src/hooks/use-mobile.tsx` → `useIsMobile.tsx` (alinear con su export).
+- Tests de flujo en `src/test/<feature>Flow.test.ts` → mover a `src/features/<feature>/__tests__/`.
+
+Todo código nuevo o renombrado debe cumplir §22.1–§22.4 sin excepciones (más allá de las listadas en §22.2).
+
+---
+
+## 23. Referencias
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
