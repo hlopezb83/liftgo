@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.67.2",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "E2E: spec de Kanban de Mantenimiento + seed extendido",
+    "description": "RPC e2e_seed_scenario ahora crea también una orden de mantenimiento 'pending' vinculada al montacargas sembrado y la devuelve como maintenance_log_id. Cleanup automático por FK ON DELETE CASCADE. MaintenanceKanbanColumn expone data-testid='maintenance-kanban-column-{status}' y cada tarjeta 'maintenance-kanban-card-{id}'. Nuevo spec tests/e2e/maintenance-kanban.spec.ts valida que la WO sembrada aparece en la columna pending y que abrir el panel de detalle responde. Avanza 1/8 specs de Fase 4 ampliada.",
+    "category": "improvement"
+  },
+  {
     "version": "6.67.1",
     "date": "2026-06-14",
     "type": "patch",
