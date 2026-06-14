@@ -649,7 +649,41 @@ Todo código nuevo o renombrado debe cumplir §22.1–§22.4 sin excepciones (m�
 
 ---
 
-## 23. Referencias
+## 23. Deuda técnica priorizada (post-audit v6.70.x)
+
+Items identificados por la auditoría arquitectónica que **no se ejecutaron** en la Fase A (v6.71.0) por requerir diseño previo. Quedan registrados aquí como deuda explícita; cada uno debe abordarse con su propio PR scoped + RFC corto, **no en un refactor masivo**.
+
+### 23.1 Pipeline CFDI compartido (Edge Functions) — Prioridad ALTA
+
+**Alcance:** `supabase/functions/{download-cfdi, validate-supplier-rep, stamp-payment-complement, stamp-cfdi}` suman ~1,400 LOC con duplicación en auth, fetch a Facturapi, mapping de errores y manejo de PAC.
+
+**Por qué no se hizo ahora:** sin distinguir lo genuinamente común (auth/CORS/error mapping) de lo específico por tipo de comprobante (ingreso vs. pago vs. cancelación), una extracción prematura empeora la legibilidad. Además requiere suite E2E contra Facturapi sandbox antes de tocarlo (un bug acá rompe timbrado en producción).
+
+**Trigger natural:** al agregar un nuevo tipo de CFDI (ej. nómina, traslado) o cambiar de PAC. Diseño esperado: `supabase/functions/_shared/cfdi/{auth.ts, facturapi-client.ts, errors.ts, types.ts}`.
+
+### 23.2 Capa `data-access` por entidad — Prioridad MEDIA
+
+**Alcance:** ~40 hooks en `src/features/*/hooks/` mezclan queries Supabase con lógica de TanStack Query y transformación.
+
+**Por qué no se hizo ahora:** tocar 40 archivos en un solo PR es exactamente el anti-patrón que Power of 10 prohíbe. Sin patrón consensuado (¿clase repository? ¿módulo de funciones puras? ¿generador desde tipos?), la migración inicial se vuelve incoherente.
+
+**Trigger natural:** al añadir una entidad nueva, implementarla con la capa `data-access` y migrar entidades existentes una por release. Diseño esperado: `src/features/<entity>/data/{queries.ts, mutations.ts}` consumido por hooks delgados.
+
+### 23.3 Split `src/components/ui/sidebar.tsx` (637 LOC) — Prioridad BAJA (probablemente NO hacer)
+
+**Alcance:** componente shadcn con 15+ sub-exports en un archivo.
+
+**Por qué NO hacerlo:** es código **upstream de shadcn**, no nuestro. Dividirlo rompe la convención shadcn (un archivo por primitive), complica futuras actualizaciones (`npx shadcn add sidebar` sobrescribiría) y no aporta beneficio funcional ni de performance. **Excepción documentada en §22.2.** Solo reabrir si dejamos de seguir shadcn upstream.
+
+### 23.4 Política general para esta deuda
+
+- Cada item se aborda **solo con caso de negocio concreto** (no por estética).
+- PR scoped + tests + entrada en changelog.
+- Si un item permanece >12 meses sin trigger natural, reevaluar si sigue siendo deuda real o decisión de diseño aceptada.
+
+---
+
+## 24. Referencias
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
