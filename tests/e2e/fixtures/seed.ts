@@ -106,13 +106,23 @@ export const test = base.extend<{ seed: SeedIds }>({
       // datos sembrados quedaban en la BD y contaminaban reportes financieros
       // (ver Estado de Resultados v6.47.1).
       //
-      // Si el teardown falla lo logueamos pero NO relanzamos: queremos ver el
-      // error original del test, no enmascararlo. La red de seguridad final es
-      // el globalTeardown de Playwright que purga por bandera is_e2e=true.
-      await teardownScenario(page, scope).catch((err) => {
-         
-        console.error(`[e2e] teardown falló para scope=${scope}:`, err);
-      });
+      // Si el test FALLÓ, solo logueamos el error de teardown para no
+      // enmascarar el fallo original. Si el test PASÓ, relanzamos el error
+      // para detectar fugas de datos — antes esto se silenciaba siempre y en
+      // CI con sharding (SHARD_INDEX !== SHARD_TOTAL) el globalTeardown no
+      // corre, dejando filas E2E vivas indefinidamente.
+      const testFailed = testInfo.errors.length > 0 ||
+        testInfo.status === "failed" || testInfo.status === "timedOut";
+      try {
+        await teardownScenario(page, scope);
+      } catch (err) {
+        if (testFailed) {
+           
+          console.error(`[e2e] teardown falló para scope=${scope}:`, err);
+        } else {
+          throw err;
+        }
+      }
     }
   },
 });

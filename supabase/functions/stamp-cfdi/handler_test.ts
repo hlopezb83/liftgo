@@ -130,6 +130,47 @@ Deno.test("handler: refuses to stamp E2E invoices (403)", async () => {
   assertEquals(res.status, 403);
 });
 
+Deno.test("handler: returns 409 when invoice already stamped (idempotencia)", async () => {
+  // Guard de idempotencia: bloquea re-timbrado para evitar generar un segundo
+  // CFDI en el SAT con UUID distinto. Antes de v6.66.19 esto era un bug activo.
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      throw new Error("Facturapi should NOT be called when already stamped");
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              cfdi_status: "stamped",
+              cfdi_uuid: "EXISTING-UUID-1234",
+              total: 1160,
+            },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 409);
+    assertEquals(body.cfdi_uuid, "EXISTING-UUID-1234");
+    // No debe haber ningún update — la factura permanece intacta.
+    assertEquals(serviceState.updates.length, 0);
+    // Facturapi no fue invocado.
+    assertEquals(mock.calls.length, 0);
+  } finally {
+    mock.restore();
+  }
+});
+
 Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
   const mock = installFacturapiMock({
     "/invoices": (req) => {

@@ -101,12 +101,21 @@ export const test = base.extend<PortalFixtures>({
     try {
       await use(seed);
     } finally {
+      // Diferenciar: si el test FALLÓ, solo log para no enmascarar el error
+      // original. Si el test PASÓ, relanzar para detectar fugas — en CI con
+      // sharding el globalTeardown puede no correr en shards intermedios.
+      const testFailed = testInfo.errors.length > 0 ||
+        testInfo.status === "failed" || testInfo.status === "timedOut";
       const { error: teardownError } = await admin.rpc("e2e_teardown", { p_scope: scope });
-      if (teardownError) {
-
-        console.error(`[e2e:portal] teardown falló scope=${scope}:`, teardownError.message);
-      }
       await admin.auth.signOut().catch(() => {});
+      if (teardownError) {
+        if (testFailed) {
+
+          console.error(`[e2e:portal] teardown falló scope=${scope}:`, teardownError.message);
+        } else {
+          throw new Error(`[e2e:portal] teardown falló scope=${scope}: ${teardownError.message}`);
+        }
+      }
     }
   },
 });
