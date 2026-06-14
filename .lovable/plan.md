@@ -44,7 +44,7 @@ El helper `getAuthToken(page)` desbloquea la llamada de Edge Functions desde est
 
 ## Anti-patrones pendientes (Fase 4 ampliada, no urgente)
 
-- `data-testid` en componentes E2E críticos (PaymentDialog, CustomerFormDialog, etc.).
-- Aserciones de red mínimas (`waitForResponse`) en specs existentes.
-- `PERMS` hardcodeado en E2E vs DB `role_permissions`.
-- Smoke PDFs con `innerHTML.length > 0` (trivial).
+- `data-testid` en componentes E2E críticos: ✅ aplicado a `RecordPaymentDialog` y `CustomerFormDialog` en v6.67.1. Restantes: `BookingFormDialog`, `QuoteFormDialog`, dialogs de mantenimiento/contratos.
+- Aserciones de red mínimas (`waitForResponse`): ✅ aplicado a `invoice-payment.spec.ts` en v6.67.1. Restantes: `booking-to-invoice`, `quote-to-booking`, `customer-create`, `portal`.
+- `PERMS` hardcodeado en E2E vs DB `role_permissions` — requiere fixture que lea la tabla en runtime.
+- Smoke PDFs con `innerHTML.length > 0` (trivial) — falta aserción semántica (parsear PDF y verificar texto clave).
