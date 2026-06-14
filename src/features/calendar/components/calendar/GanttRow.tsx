@@ -42,7 +42,7 @@ export function GanttRow({ forklift, segments, days }: Props) {
           })}
         </div>
         {segments.map((seg) => {
-          const isConfirmed = seg.booking.status === "confirmed";
+          const isConfirmed = seg.booking.status === BOOKING_STATUS.confirmed;
           const showLabel = seg.durationDays > 3;
           return (
             <Tooltip key={seg.booking.id}>
