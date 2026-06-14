@@ -7,6 +7,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import { useGanttSegments } from "../../hooks/calendar/useGanttSegments";
 import { GanttHeader } from "./GanttHeader";
 import { GanttRow } from "./GanttRow";
+import { BOOKING_STATUS } from "@/lib/constants";
+
 
 interface GanttChartProps {
   forklifts: Tables<"forklifts">[] | undefined;
