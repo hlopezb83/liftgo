@@ -64,7 +64,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
   const forkliftsWithActivity = useMemo(() => {
     const set = new Set<string>();
     bookings?.forEach((b) => {
-      if (b.status !== "confirmed") return;
+      if (b.status !== BOOKING_STATUS.confirmed) return;
       const bStart = parseISO(b.start_date);
       const bEnd = parseISO(b.end_date);
       if (bEnd >= rangeStart && bStart <= rangeEnd) set.add(b.forklift_id);
