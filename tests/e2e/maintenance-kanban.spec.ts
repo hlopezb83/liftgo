@@ -20,8 +20,9 @@ test("seeded maintenance work order appears in pending column", async ({ page, s
   await page.goto("/maintenance", { waitUntil: "domcontentloaded" });
 
   // Vista por defecto es "list". Activamos el toggle "board" (Kanban) via su
-  // aria-label estable; nunca por texto visible (que es solo un icono).
-  await page.getByRole("button", { name: /vista de tablero/i }).click();
+  // aria-label estable. NOTA: Radix ToggleGroup type="single" renderiza los items
+  // con role="radio" (no button), así que usamos getByLabel que es agnóstico al role.
+  await page.getByLabel(/vista de tablero/i).click();
 
   const pendingColumn = page.getByTestId("maintenance-kanban-column-pending");
   await expect(pendingColumn).toBeVisible({ timeout: 15_000 });
