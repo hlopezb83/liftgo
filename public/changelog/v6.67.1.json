@@ -1,0 +1,33 @@
+{
+  "version": "6.67.1",
+  "date": "2026-06-14",
+  "type": "patch",
+  "title": "E2E: data-testid en dialogs críticos + aserción de red en pago",
+  "category": "improvement",
+  "summary": "Endurecimiento de selectores E2E y aserción de red en el flujo de pago de facturas.",
+  "changes": [
+    {
+      "area": "E2E - data-testid",
+      "items": [
+        "RecordPaymentDialog: DialogContent expone data-testid='record-payment-dialog' y el botón submit data-testid='record-payment-submit'.",
+        "CustomerFormDialog: DialogContent expone data-testid='customer-form-dialog'.",
+        "Motivación: los selectores E2E basados en regex de texto español (`getByRole('dialog', { name: /registrar pago/i })`) se rompen ante cualquier cambio de copy o cuando coexisten dos dialogs con títulos similares."
+      ]
+    },
+    {
+      "area": "E2E - aserciones de red",
+      "items": [
+        "invoice-payment.spec.ts ahora captura `page.waitForResponse('/rest/v1/payments' POST)` antes del click submit y valida status 2xx con un mensaje de error que incluye el body de la respuesta para debugging rápido en CI.",
+        "Antes el test solo verificaba que el badge transicionara a 'pagada', lo que pasaba aunque hubiera un toast de error (optimistic UI) — falso positivo silencioso."
+      ]
+    }
+  ],
+  "validation": {
+    "vitest": "707/707 (123 archivos) — sin regresiones",
+    "deno": "54/54 (sin cambios en edge functions)"
+  },
+  "fase4_pendiente": [
+    "Specs E2E nuevos (maintenance-kanban, delivery-return-horometro, cfdi-cancel-credit-note, recurring-billing, rbac-role-paths, contract-pdf-sign, damage-photo-billing, crm-deal-to-quote) requieren extender el RPC `e2e_seed_scenario` por dominio — cada uno es una migración + suite, no abordable en una sola tanda sin aprobación de scope.",
+    "RBAC multi-rol requiere crear usuarios `ventas`, `mecanico`, `auditor` en seed global y un segundo storageState."
+  ]
+}
