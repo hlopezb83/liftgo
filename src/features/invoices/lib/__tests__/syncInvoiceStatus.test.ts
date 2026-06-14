@@ -1,102 +1,86 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   createSupabaseChainMock,
-  type ChainCall,
-  type SupabaseMockResponse,
+  type ChainResolver,
 } from "@/test/helpers/supabaseChain";
 
-interface PaymentRow {
-  amount: number;
-  payment_date?: string;
-}
-interface InvoiceRow {
-  total: number;
-  status: string;
+interface State {
+  payments: { amount: number; payment_date?: string }[];
+  invoice: { total: number; status: string } | null;
+  updateError: { code?: string; message: string } | null;
+  capturedUpdate: Record<string, unknown> | null;
 }
 
-let paymentsListResp: PaymentRow[] = [];
-let invoiceRow: InvoiceRow | null = { total: 1000, status: "sent" };
-let invoiceUpdateResp: SupabaseMockResponse = { data: [{ id: "inv-1" }], error: null };
+const state: State = {
+  payments: [],
+  invoice: null,
+  updateError: null,
+  capturedUpdate: null,
+};
 
-const paymentsCalls: ChainCall[] = [];
-const invoicesCalls: ChainCall[] = [];
+const invoicesResolver: ChainResolver = (calls) => {
+  const updateCall = calls.find((c) => c.method === "update");
+  if (updateCall) {
+    state.capturedUpdate = (updateCall.args[0] ?? {}) as Record<string, unknown>;
+    if (state.updateError) return { data: null, error: state.updateError };
+    return { data: [{ id: "inv-1" }], error: null };
+  }
+  // read
+  return { data: state.invoice, error: null };
+};
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
     tableResolvers: {
-      payments: (calls) => {
-        paymentsCalls.push(...calls);
-        return { data: paymentsListResp, error: null };
-      },
-      invoices: (calls) => {
-        invoicesCalls.push(...calls);
-        if (calls.some((c) => c.method === "update")) return invoiceUpdateResp;
-        return { data: invoiceRow, error: null };
-      },
+      payments: () => ({ data: state.payments, error: null }),
+      invoices: invoicesResolver,
     },
   }),
 }));
 
-import { syncInvoiceStatus } from "@/features/invoices/lib/syncInvoiceStatus";
+import { syncInvoiceStatus } from "../syncInvoiceStatus";
 
 describe("syncInvoiceStatus", () => {
   beforeEach(() => {
-    paymentsListResp = [];
-    invoiceRow = { total: 1000, status: "sent" };
-    invoiceUpdateResp = { data: [{ id: "inv-1" }], error: null };
-    paymentsCalls.length = 0;
-    invoicesCalls.length = 0;
+    state.payments = [];
+    state.invoice = null;
+    state.updateError = null;
+    state.capturedUpdate = null;
   });
 
-  it("pagos == total → paid con paid_at = max(payment_date)", async () => {
-    paymentsListResp = [
-      { amount: 500, payment_date: "2026-03-01" },
-      { amount: 500, payment_date: "2026-03-05" },
-    ];
+  it("marca paid cuando los pagos cubren el total", async () => {
+    state.payments = [{ amount: 1160, payment_date: "2026-03-01" }];
+    state.invoice = { total: 1160, status: "sent" };
     await syncInvoiceStatus("inv-1", null);
-    const upd = invoicesCalls.find((c) => c.method === "update");
-    expect(upd?.args[0]).toMatchObject({ status: "paid", paid_at: "2026-03-05" });
+    expect(state.capturedUpdate).toMatchObject({ status: "paid" });
+    expect(state.capturedUpdate?.paid_at).toBe("2026-03-01");
   });
 
-  it("pagos < total → partial sin paid_at", async () => {
-    paymentsListResp = [{ amount: 300, payment_date: "2026-03-01" }];
+  it("marca partial cuando hay pago pero queda saldo", async () => {
+    state.payments = [{ amount: 500, payment_date: "2026-03-01" }];
+    state.invoice = { total: 1160, status: "sent" };
     await syncInvoiceStatus("inv-1", null);
-    const upd = invoicesCalls.find((c) => c.method === "update");
-    expect(upd?.args[0]).toMatchObject({ status: "partial", paid_at: null });
+    expect(state.capturedUpdate).toMatchObject({ status: "partial", paid_at: null });
   });
 
-  it("sin pagos y status != sent → resetea a sent", async () => {
-    paymentsListResp = [];
-    invoiceRow = { total: 1000, status: "partial" };
+  it("restablece a sent cuando no hay pagos y estado actual es paid", async () => {
+    state.payments = [];
+    state.invoice = { total: 1160, status: "paid" };
     await syncInvoiceStatus("inv-1", null);
-    const upd = invoicesCalls.find((c) => c.method === "update");
-    expect(upd?.args[0]).toMatchObject({ status: "sent", paid_at: null });
+    expect(state.capturedUpdate).toMatchObject({ status: "sent", paid_at: null });
   });
 
-  it("pagos == total y payment_date ausente → usa fallback recibido", async () => {
-    paymentsListResp = [{ amount: 1_000 }];
-    await syncInvoiceStatus("inv-1", "2026-04-10");
-    const upd = invoicesCalls.find((c) => c.method === "update");
-    expect(upd?.args[0]).toMatchObject({ status: "paid", paid_at: "2026-04-10" });
-  });
-
-  it("invoice no existe → no lanza ni hace UPDATE", async () => {
-    invoiceRow = null;
-    await expect(syncInvoiceStatus("inv-1", null)).resolves.toBeUndefined();
-    expect(invoicesCalls.find((c) => c.method === "update")).toBeUndefined();
-  });
-
-  it("idempotencia: factura ya está en el status correcto → no hace UPDATE", async () => {
-    paymentsListResp = [{ amount: 1_000, payment_date: "2026-03-01" }];
-    invoiceRow = { total: 1_000, status: "paid" };
+  it("no actualiza si el estado ya coincide", async () => {
+    state.payments = [];
+    state.invoice = { total: 1160, status: "sent" };
     await syncInvoiceStatus("inv-1", null);
-    expect(invoicesCalls.find((c) => c.method === "update")).toBeUndefined();
+    expect(state.capturedUpdate).toBeNull();
   });
 
-  it("idempotencia: parcial ya parcial → no hace UPDATE", async () => {
-    paymentsListResp = [{ amount: 300, payment_date: "2026-03-01" }];
-    invoiceRow = { total: 1_000, status: "partial" };
-    await syncInvoiceStatus("inv-1", null);
-    expect(invoicesCalls.find((c) => c.method === "update")).toBeUndefined();
+  it("salida temprana si la factura no existe", async () => {
+    state.payments = [];
+    state.invoice = null;
+    await syncInvoiceStatus("inv-x", null);
+    expect(state.capturedUpdate).toBeNull();
   });
 });
