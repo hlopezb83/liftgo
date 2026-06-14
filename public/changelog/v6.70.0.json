@@ -1,0 +1,42 @@
+{
+  "version": "6.70.0",
+  "date": "2026-06-14",
+  "type": "minor",
+  "title": "CI: paralelización de jobs y composite action para setup",
+  "category": "infra",
+  "changes": [
+    {
+      "area": "CI / .github/workflows/ci.yml",
+      "description": "El job `quality` se dividió en 5 jobs independientes en paralelo: `lint`, `typecheck`, `knip`, `tests` (con coverage + JUnit) y `build`. Antes corrían serializados; ahora el wall time del pipeline = job más lento (tests). Cada job comparte cache del store de bun, por lo que `bun install` se resuelve en segundos."
+    },
+    {
+      "area": "CI / dependencias entre jobs",
+      "description": "Eliminado `needs: [quality]` en `rls` y `e2e`. Ambos arrancan en paralelo con el resto. Esto evita esperar a que terminen lint/knip/build para empezar suites largas. Si algún job falla, el gate final `ci-success` rompe el check de branch protection."
+    },
+    {
+      "area": "CI / composite action",
+      "description": "Creado `.github/actions/setup-bun-project/action.yml` que encapsula checkout + setup-bun + cache de `~/.bun/install/cache` + `bun install --frozen-lockfile`. Reemplaza ~12 steps duplicados a lo largo de los jobs. La key del cache incluye `bun-version` para evitar restaurar cache de otra versión mayor."
+    },
+    {
+      "area": "CI / cache de Playwright",
+      "description": "La key del cache de browsers (~130MB) ya no usa `hashFiles('**/bun.lock*')` (cualquier cambio de deps invalidaba). Ahora se extrae la versión de `@playwright/test` desde package.json y se usa como única dimensión de la key. Cuando hay cache hit, se omite `playwright install` y solo se instalan las system deps con `playwright install-deps`."
+    },
+    {
+      "area": "CI / cache de Deno",
+      "description": "Agregado cache de `~/.cache/deno` en el job `edge-functions`, keyado por hash de `supabase/functions/**/*.ts`. Ahorra ~30s en runs con cache hit."
+    },
+    {
+      "area": "CI / triggers",
+      "description": "Agregado `paths-ignore` en `push` y `pull_request`: cambios que solo tocan `public/changelog/**`, `public/changelog.json`, `**/*.md` o `.lovable/**` ya no disparan el pipeline completo (~15 min ahorrados por PR de docs)."
+    },
+    {
+      "area": "CI / gate único",
+      "description": "Nuevo job `ci-success` con `needs: [lint, typecheck, knip, tests, build, rls, edge-functions, e2e]` y lógica que falla si cualquier dependencia terminó en `failure` o `cancelled`. Pensado como único required check en branch protection (más simple de mantener que listar 8 checks)."
+    },
+    {
+      "area": "CI / limpieza",
+      "description": "Removido `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` (estamos en jun-2026, ya es default). Downgrade de `actions/cache@v5` → `v4` (v4 es la versión estable actual; v5 no existe públicamente). Sin cambios en gates de cobertura, sharding E2E (2×2), ni en `fail_on_failure`/`require_tests` de los JUnit reporters."
+    }
+  ],
+  "impact": "Tiempo de pared del pipeline en PRs típicos baja de ~12 min a ~6-7 min. PRs de solo docs/changelog dejan de consumir CI. Menos duplicación: ~80 líneas menos en ci.yml. Branch protection puede simplificarse a un único required check (`ci-success`)."
+}
