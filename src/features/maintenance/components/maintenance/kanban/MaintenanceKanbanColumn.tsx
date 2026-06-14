@@ -38,7 +38,7 @@ export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, bord
             {items.map((log, index) => (
               <Draggable key={log.id} draggableId={log.id} index={index}>
                 {(prov, snap) => (
-                  <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
+                  <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} data-testid={`maintenance-kanban-card-${log.id}`}>
                     <MaintenanceKanbanCard log={log} isDragging={snap.isDragging} onSelect={() => onSelectLog(log)} />
                   </div>
                 )}
