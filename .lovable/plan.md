@@ -25,7 +25,7 @@ Plan ejecutado en 4 fases. Las 4 fases están completas o explícitamente acotad
 
 Specs E2E nuevos que requieren seed extendido y `data-testid` en componentes — recomendamos abordarlos por separado, dominio por dominio:
 
-1. `maintenance-kanban.spec.ts`
+1. `maintenance-kanban.spec.ts` ✅ v6.67.2 — seed extendido con `maintenance_log_id`, columnas Kanban con `data-testid`, smoke spec creado.
 2. `delivery-return-horometro.spec.ts`
 3. `cfdi-cancel-credit-note.spec.ts`
 4. `recurring-billing.spec.ts` (cron trigger)
