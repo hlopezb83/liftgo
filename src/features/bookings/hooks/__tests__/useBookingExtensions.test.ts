@@ -8,7 +8,7 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 const state = {
   bookingUpdate: { data: [{ id: "b-1" }] as { id: string }[] | null, error: null as { code?: string; message: string } | null },
-  insertResp: { data: { id: "ext-1", booking_id: "b-1" }, error: null as { code?: string; message: string } | null },
+  insertResp: { data: { id: "ext-1", booking_id: "b-1" } as { id: string; booking_id: string } | null, error: null as { code?: string; message: string } | null },
 };
 
 const bookingsResolver: ChainResolver = (calls) => {
