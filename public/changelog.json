@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.69.1",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "Fix CI: elimina throw dentro de finally en fixtures E2E",
+    "description": "tests/e2e/fixtures/seed.ts y portalSeed.ts: se refactoriza el patrón try/finally para capturar el error del test en una variable y relanzarlo al final, evitando la regla no-unsafe-finally de ESLint que bloqueaba el job 'Lint, Knip, Tests, Build' en CI. Comportamiento de teardown idéntico (siempre corre, diferencia fallo de test vs fuga de datos).",
+    "category": "fix"
+  },
+  {
     "version": "6.69.0",
     "date": "2026-06-14",
     "type": "minor",

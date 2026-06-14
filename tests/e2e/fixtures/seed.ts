@@ -99,32 +99,35 @@ export const test = base.extend<{ seed: SeedIds }>({
   seed: async ({ page }, use, testInfo) => {
     const scope = buildScope(testInfo);
     const ids = await seedScenario(page, scope);
+    // Capturamos el error del test (si lo hay) para diferenciar entre fallo
+    // de test y fuga de datos del teardown. Evitamos `throw` dentro de
+    // `finally` (no-unsafe-finally) capturando aquí y relanzando al final.
+    let testError: unknown;
     try {
       await use(ids);
-    } finally {
-      // try/finally garantiza que el teardown corra incluso si el test falla o
-      // Playwright cancela el worker a media corrida. Antes (sin finally), los
-      // datos sembrados quedaban en la BD y contaminaban reportes financieros
-      // (ver Estado de Resultados v6.47.1).
-      //
-      // Si el test FALLÓ, solo logueamos el error de teardown para no
-      // enmascarar el fallo original. Si el test PASÓ, relanzamos el error
-      // para detectar fugas de datos — antes esto se silenciaba siempre y en
-      // CI con sharding (SHARD_INDEX !== SHARD_TOTAL) el globalTeardown no
-      // corre, dejando filas E2E vivas indefinidamente.
-      const testFailed = testInfo.errors.length > 0 ||
-        testInfo.status === "failed" || testInfo.status === "timedOut";
-      try {
-        await teardownScenario(page, scope);
-      } catch (err) {
-        if (testFailed) {
-           
-          console.error(`[e2e] teardown falló para scope=${scope}:`, err);
-        } else {
-          throw err;
-        }
+    } catch (e) {
+      testError = e;
+    }
+    // El teardown SIEMPRE corre (equivalente a finally) para no contaminar
+    // reportes financieros con datos E2E. Ver v6.47.1.
+    const testFailed = testError !== undefined ||
+      testInfo.errors.length > 0 ||
+      testInfo.status === "failed" || testInfo.status === "timedOut";
+    let teardownError: unknown;
+    try {
+      await teardownScenario(page, scope);
+    } catch (err) {
+      teardownError = err;
+    }
+    if (teardownError) {
+      if (testFailed) {
+         
+        console.error(`[e2e] teardown falló para scope=${scope}:`, teardownError);
+      } else {
+        throw teardownError;
       }
     }
+    if (testError) throw testError;
   },
 });
 
