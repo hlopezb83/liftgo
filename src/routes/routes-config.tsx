@@ -3,7 +3,7 @@ import { lazy, useEffect, useState, type ComponentType } from "react";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("@/features/dashboard/pages/Dashboard"));
-const Fleet = lazy(() => import("@/features/fleet/pages/Fleet"));
+const FleetPage = lazy(() => import("@/features/fleet/pages/FleetPage"));
 const ForkliftDetail = lazy(() => import("@/features/fleet/pages/ForkliftDetail"));
 const ForkliftForm = lazy(() => import("@/features/fleet/pages/ForkliftForm"));
 const CalendarPage = lazy(() => import("@/features/calendar/pages/CalendarPage"));
