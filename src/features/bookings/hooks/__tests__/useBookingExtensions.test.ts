@@ -6,29 +6,37 @@ import {
 } from "@/test/helpers/supabaseChain";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 
-const state = {
-  bookingUpdate: { data: [{ id: "b-1" }] as { id: string }[] | null, error: null as { code?: string; message: string } | null },
-  insertResp: { data: { id: "ext-1", booking_id: "b-1" } as { id: string; booking_id: string } | null, error: null as { code?: string; message: string } | null },
-};
-
-const bookingsResolver: ChainResolver = (calls) => {
-  if (calls.some((c) => c.method === "update")) {
-    return { data: state.bookingUpdate.data, error: state.bookingUpdate.error };
-  }
-  return { data: [], error: null };
-};
-const extResolver: ChainResolver = (calls) => {
-  if (calls.some((c) => c.method === "insert")) {
-    return { data: state.insertResp.data, error: state.insertResp.error };
-  }
-  return { data: [], error: null };
-};
+const h = vi.hoisted(() => {
+  const state = {
+    bookingUpdate: {
+      data: [{ id: "b-1" }] as { id: string }[] | null,
+      error: null as { code?: string; message: string } | null,
+    },
+    insertResp: {
+      data: { id: "ext-1", booking_id: "b-1" } as { id: string; booking_id: string } | null,
+      error: null as { code?: string; message: string } | null,
+    },
+  };
+  const bookingsResolver = (calls: { method: string; args: unknown[] }[]) => {
+    if (calls.some((c) => c.method === "update")) {
+      return { data: state.bookingUpdate.data, error: state.bookingUpdate.error };
+    }
+    return { data: [], error: null };
+  };
+  const extResolver = (calls: { method: string; args: unknown[] }[]) => {
+    if (calls.some((c) => c.method === "insert")) {
+      return { data: state.insertResp.data, error: state.insertResp.error };
+    }
+    return { data: [], error: null };
+  };
+  return { state, bookingsResolver, extResolver };
+});
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
     tableResolvers: {
-      bookings: bookingsResolver,
-      booking_extensions: extResolver,
+      bookings: h.bookingsResolver as ChainResolver,
+      booking_extensions: h.extResolver as ChainResolver,
     },
   }),
 }));
@@ -41,8 +49,8 @@ import { useCreateBookingExtension } from "../useBookingExtensions";
 
 describe("useCreateBookingExtension", () => {
   beforeEach(() => {
-    state.bookingUpdate = { data: [{ id: "b-1" }], error: null };
-    state.insertResp = { data: { id: "ext-1", booking_id: "b-1" }, error: null };
+    h.state.bookingUpdate = { data: [{ id: "b-1" }], error: null };
+    h.state.insertResp = { data: { id: "ext-1", booking_id: "b-1" }, error: null };
   });
 
   it("happy path", async () => {
@@ -57,7 +65,7 @@ describe("useCreateBookingExtension", () => {
   });
 
   it("falla si el update no afecta filas (RLS oculta la reserva)", async () => {
-    state.bookingUpdate = { data: [], error: null };
+    h.state.bookingUpdate = { data: [], error: null };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateBookingExtension(), { wrapper: Wrapper });
     result.current.mutate({
@@ -70,7 +78,7 @@ describe("useCreateBookingExtension", () => {
   });
 
   it("propaga error del insert en booking_extensions", async () => {
-    state.insertResp = { data: null, error: { code: "23514", message: "check_violation" } };
+    h.state.insertResp = { data: null, error: { code: "23514", message: "check_violation" } };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateBookingExtension(), { wrapper: Wrapper });
     result.current.mutate({

@@ -6,38 +6,41 @@ import {
 } from "@/test/helpers/supabaseChain";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 
-const state = {
-  assignedInsertError: null as { code?: string; message: string } | null,
-  forkliftsSelect: [{ id: "f-1", status: "available" }] as { id: string; status: string }[],
-  forkliftsUpdateResult: [{ id: "f-1" }] as { id: string }[] | null,
-  statusLogsInsertError: null as { code?: string; message: string } | null,
-};
-
-const quoteAssignResolver: ChainResolver = (calls) => {
-  if (calls.some((c) => c.method === "insert")) {
-    return { data: null, error: state.assignedInsertError };
-  }
-  return { data: [], error: null };
-};
-const forkliftsResolver: ChainResolver = (calls) => {
-  if (calls.some((c) => c.method === "update")) {
-    return { data: state.forkliftsUpdateResult, error: null };
-  }
-  return { data: state.forkliftsSelect, error: null };
-};
-const statusLogsResolver: ChainResolver = (calls) => {
-  if (calls.some((c) => c.method === "insert")) {
-    return { data: null, error: state.statusLogsInsertError };
-  }
-  return { data: [], error: null };
-};
+const h = vi.hoisted(() => {
+  const state = {
+    assignedInsertError: null as { code?: string; message: string } | null,
+    forkliftsSelect: [{ id: "f-1", status: "available" }] as
+      { id: string; status: string }[],
+    forkliftsUpdateResult: [{ id: "f-1" }] as { id: string }[] | null,
+    statusLogsInsertError: null as { code?: string; message: string } | null,
+  };
+  const quoteAssignResolver = (calls: { method: string; args: unknown[] }[]) => {
+    if (calls.some((c) => c.method === "insert")) {
+      return { data: null, error: state.assignedInsertError };
+    }
+    return { data: [], error: null };
+  };
+  const forkliftsResolver = (calls: { method: string; args: unknown[] }[]) => {
+    if (calls.some((c) => c.method === "update")) {
+      return { data: state.forkliftsUpdateResult, error: null };
+    }
+    return { data: state.forkliftsSelect, error: null };
+  };
+  const statusLogsResolver = (calls: { method: string; args: unknown[] }[]) => {
+    if (calls.some((c) => c.method === "insert")) {
+      return { data: null, error: state.statusLogsInsertError };
+    }
+    return { data: [], error: null };
+  };
+  return { state, quoteAssignResolver, forkliftsResolver, statusLogsResolver };
+});
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
     tableResolvers: {
-      quote_assigned_forklifts: quoteAssignResolver,
-      forklifts: forkliftsResolver,
-      status_logs: statusLogsResolver,
+      quote_assigned_forklifts: h.quoteAssignResolver as ChainResolver,
+      forklifts: h.forkliftsResolver as ChainResolver,
+      status_logs: h.statusLogsResolver as ChainResolver,
     },
   }),
 }));
@@ -50,10 +53,10 @@ import { useAssignForklift } from "../useAssignForklift";
 
 describe("useAssignForklift", () => {
   beforeEach(() => {
-    state.assignedInsertError = null;
-    state.forkliftsSelect = [{ id: "f-1", status: "available" }];
-    state.forkliftsUpdateResult = [{ id: "f-1" }];
-    state.statusLogsInsertError = null;
+    h.state.assignedInsertError = null;
+    h.state.forkliftsSelect = [{ id: "f-1", status: "available" }];
+    h.state.forkliftsUpdateResult = [{ id: "f-1" }];
+    h.state.statusLogsInsertError = null;
   });
 
   it("happy path: insert + update + status_logs", async () => {
@@ -64,7 +67,7 @@ describe("useAssignForklift", () => {
   });
 
   it("falla si el insert en quote_assigned_forklifts choca (unique)", async () => {
-    state.assignedInsertError = { code: "23505", message: "duplicate" };
+    h.state.assignedInsertError = { code: "23505", message: "duplicate" };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useAssignForklift(), { wrapper: Wrapper });
     result.current.mutate([{ quoteId: "q-1", forkliftId: "f-1", lineIndex: 0 }]);
@@ -72,7 +75,7 @@ describe("useAssignForklift", () => {
   });
 
   it("falla si update no afecta filas (RLS)", async () => {
-    state.forkliftsUpdateResult = [];
+    h.state.forkliftsUpdateResult = [];
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useAssignForklift(), { wrapper: Wrapper });
     result.current.mutate([{ quoteId: "q-1", forkliftId: "f-1", lineIndex: 0 }]);
