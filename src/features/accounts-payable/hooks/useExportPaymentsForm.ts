@@ -16,8 +16,13 @@ import { downloadPaymentsXlsx, type PaymentExportRow } from "../lib/buildPayment
 export function useExportPaymentsForm(open: boolean, onClose: () => void) {
   const { data: bills, isLoading } = useExportablePayables();
   const createBatch = useCreatePaymentBatch();
-  const selection = usePaymentSelection(open, bills);
   const [notes, setNotes] = useState("");
+
+  // Limpia las notas cuando el diálogo se cierra desde el caller.
+  useEffect(() => {
+    if (!open) setNotes("");
+  }, [open]);
+
 
   const canExport = selection.selected.length > 0 && !selection.hasInvalid && !createBatch.isPending;
 
