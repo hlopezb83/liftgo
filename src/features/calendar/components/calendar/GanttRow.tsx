@@ -70,7 +70,7 @@ export function GanttRow({ forklift, segments, days }: Props) {
                 </p>
                 <p className="text-muted-foreground">
                   {seg.durationDays} día{seg.durationDays !== 1 ? "s" : ""} ·{" "}
-                  {STATUS_LABELS[seg.booking.status] || seg.booking.status}
+                  {BOOKING_STATUS_LABELS[seg.booking.status] || seg.booking.status}
                 </p>
               </TooltipContent>
             </Tooltip>
