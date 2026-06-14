@@ -1,0 +1,41 @@
+{
+  "version": "6.71.0",
+  "date": "2026-06-14",
+  "type": "minor",
+  "title": "Refactor arquitectónico: Fase A del audit",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "refactor",
+      "description": "Tests de flujo co-localizados con sus features: src/test/bookingFlow.test.ts → src/features/bookings/__tests__/, invoiceFlow.test.ts + paymentFlow.test.ts → src/features/invoices/__tests__/, lineItems.test.ts → src/lib/domain/__tests__/. Mejora discovery y mantenibilidad."
+    },
+    {
+      "type": "refactor",
+      "description": "Nuevas constantes tipadas en lib/constants.ts: BOOKING_STATUS, FORKLIFT_STATUS (objetos sello) + tipos BookingStatus, ForkliftStatus derivados. Type-safe y permiten encontrar usos por símbolo."
+    },
+    {
+      "type": "refactor",
+      "description": "Calendario sin literales de status: CalendarStatCards, EquipmentListView, GanttChart, GanttRow ahora consumen BOOKING_STATUS y FORKLIFT_STATUS en vez de strings 'confirmed'/'rented'/'available'. Renombrado STATUS_LABELS local en GanttRow a BOOKING_STATUS_LABELS para evitar colisión semántica."
+    },
+    {
+      "type": "refactor",
+      "description": "CRMClosedPage (210→74 LOC) split en 3 archivos: hook useClosedProspects (estado + filtros + reapertura), componente ClosedTable (UI pura de tabla) y factory closedColumns.tsx (definición de columnas por kind). Página queda como container declarativo."
+    },
+    {
+      "type": "refactor",
+      "description": "useExportPaymentsForm (120→78 LOC) split: usePaymentSelection extrae el estado puro de selección múltiple + cálculo de totales (sin side effects); el orquestador conserva solo la composición + handleExport con notificaciones."
+    },
+    {
+      "type": "refactor",
+      "description": "Renombrado src/features/fleet/pages/Fleet.tsx → FleetPage.tsx siguiendo la convención §22.2 (sufijo Page obligatorio para páginas). routes-config.tsx actualizado."
+    },
+    {
+      "type": "refactor",
+      "description": "FleetPage migrado a useResourceList: eliminado el filtrado manual con useSearchParams (~30 LOC) que reimplementaba useListFilters. Ahora consume el patrón estándar de listas; mantiene persistencia de filtros en URL y sessionStorage."
+    },
+    {
+      "type": "docs",
+      "description": "6 items del audit omitidos con justificación documentada: sidebar.tsx (excepción shadcn upstream §22.2), refactor CFDI Edge Functions (requiere E2E dedicado), capa data-access (RFC pendiente), routes-config distribuido (cosmético), reorg hooks/lib (rompe imports masivos), Customer/IVA 'duplicado' (falso positivo del audit)."
+    }
+  ]
+}
