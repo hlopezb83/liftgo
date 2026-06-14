@@ -5,7 +5,13 @@ import type { SupabaseLike } from "../_shared/types.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
-const VALID_SAT_STATUSES = ["accepted", "pending", "rejected", "expired", "none"];
+const VALID_SAT_STATUSES = [
+  "accepted",
+  "pending",
+  "rejected",
+  "expired",
+  "none",
+];
 
 export interface CancelCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
@@ -27,25 +33,39 @@ export async function handleCancelCfdi(
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "Unauthorized" }, 401);
+    }
     const token = authHeader.replace("Bearer ", "");
 
     const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+    const { data: claimsData, error: claimsErr } = await callerClient.auth
+      .getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return json({ error: "Unauthorized" }, 401);
+    }
     const userId = claimsData.claims.sub;
 
     const supabase = deps.createServiceClient();
-    const rolesRes = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const roles = (rolesRes as { data: unknown }).data as Array<{ role: string }> | null;
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    const rolesRes = await supabase.from("user_roles").select("role").eq(
+      "user_id",
+      userId,
+    );
+    const roles = (rolesRes as { data: unknown }).data as
+      | Array<{ role: string }>
+      | null;
+    const allowed = (roles ?? []).some((r) =>
+      r.role === "admin" || r.role === "administrativo"
+    );
     if (!allowed) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id, motive, substitution_uuid, cancellation_reason } =
       (body ?? {}) as Record<string, unknown>;
 
-    if (!isUUID(invoice_id)) return json({ error: "invoice_id must be a valid UUID" }, 400);
+    if (!isUUID(invoice_id)) {
+      return json({ error: "invoice_id must be a valid UUID" }, 400);
+    }
     if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
       return json({ error: "motive must be one of 01,02,03,04" }, 400);
     }
@@ -89,8 +109,10 @@ export async function handleCancelCfdi(
     const sec = (secrets ?? {}) as Record<string, unknown>;
     const mode = (co.facturapi_mode as string) || "test";
     const apiKey = mode === "live"
-      ? ((sec.facturapi_live_key as string | null) || deps.env("FACTURAPI_LIVE_KEY"))
-      : ((sec.facturapi_test_key as string | null) || deps.env("FACTURAPI_TEST_KEY"));
+      ? ((sec.facturapi_live_key as string | null) ||
+        deps.env("FACTURAPI_LIVE_KEY"))
+      : ((sec.facturapi_test_key as string | null) ||
+        deps.env("FACTURAPI_TEST_KEY"));
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
 
     let satStatus = "accepted";
@@ -101,7 +123,8 @@ export async function handleCancelCfdi(
       if (motive === "01" && substitution_uuid) {
         params.set("substitution", substitution_uuid as string);
       }
-      const url = `${FACTURAPI_BASE}/invoices/${facturApiId}?${params.toString()}`;
+      const url =
+        `${FACTURAPI_BASE}/invoices/${facturApiId}?${params.toString()}`;
       const cancelRes = await deps.fetchImpl(url, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${apiKey}` },
@@ -109,13 +132,19 @@ export async function handleCancelCfdi(
       if (!cancelRes.ok) {
         const errBody = await cancelRes.text();
         return json(
-          { error: `Facturapi cancel error: ${cancelRes.status}`, detail: errBody },
+          {
+            error: `Facturapi cancel error: ${cancelRes.status}`,
+            detail: errBody,
+          },
           502,
         );
       }
       const cancelJson = await cancelRes.json().catch(() => ({}));
-      const rawStatus = (cancelJson?.cancellation_status as string | undefined) ?? "accepted";
-      satStatus = VALID_SAT_STATUSES.includes(rawStatus) ? rawStatus : "pending";
+      const rawStatus =
+        (cancelJson?.cancellation_status as string | undefined) ?? "accepted";
+      satStatus = VALID_SAT_STATUSES.includes(rawStatus)
+        ? rawStatus
+        : "pending";
     }
 
     const isAccepted = satStatus === "accepted";

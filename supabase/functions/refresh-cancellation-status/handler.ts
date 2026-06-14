@@ -4,7 +4,13 @@ import { isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
-const VALID_SAT_STATUSES = ["accepted", "pending", "rejected", "expired", "none"];
+const VALID_SAT_STATUSES = [
+  "accepted",
+  "pending",
+  "rejected",
+  "expired",
+  "none",
+];
 
 export interface RefreshCancellationDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
@@ -26,22 +32,38 @@ export async function handleRefreshCancellation(
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "Unauthorized" }, 401);
+    }
     const token = authHeader.replace("Bearer ", "");
 
     const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) return json({ error: "Unauthorized" }, 401);
+    const { data: claimsData, error: claimsErr } = await callerClient.auth
+      .getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return json({ error: "Unauthorized" }, 401);
+    }
     const userId = claimsData.claims.sub;
 
     const supabase = deps.createServiceClient();
-    const rolesRes = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const roles = (rolesRes as { data: unknown }).data as Array<{ role: string }> | null;
-    const allowed = (roles ?? []).some((r) => r.role === "admin" || r.role === "administrativo");
+    const rolesRes = await supabase.from("user_roles").select("role").eq(
+      "user_id",
+      userId,
+    );
+    const roles = (rolesRes as { data: unknown }).data as
+      | Array<{ role: string }>
+      | null;
+    const allowed = (roles ?? []).some((r) =>
+      r.role === "admin" || r.role === "administrativo"
+    );
     if (!allowed) return json({ error: "Forbidden" }, 403);
 
-    const { invoice_id } = (await req.json().catch(() => ({}))) as { invoice_id?: unknown };
-    if (!isUUID(invoice_id)) return json({ error: "invoice_id must be a valid UUID" }, 400);
+    const { invoice_id } = (await req.json().catch(() => ({}))) as {
+      invoice_id?: unknown;
+    };
+    if (!isUUID(invoice_id)) {
+      return json({ error: "invoice_id must be a valid UUID" }, 400);
+    }
 
     const { data: invoice } = await supabase
       .from("invoices")
@@ -63,19 +85,27 @@ export async function handleRefreshCancellation(
     const sec = (secrets ?? {}) as Record<string, unknown>;
     const mode = (co.facturapi_mode as string) || "test";
     const apiKey = mode === "live"
-      ? ((sec.facturapi_live_key as string | null) || deps.env("FACTURAPI_LIVE_KEY"))
-      : ((sec.facturapi_test_key as string | null) || deps.env("FACTURAPI_TEST_KEY"));
+      ? ((sec.facturapi_live_key as string | null) ||
+        deps.env("FACTURAPI_LIVE_KEY"))
+      : ((sec.facturapi_test_key as string | null) ||
+        deps.env("FACTURAPI_TEST_KEY"));
     if (!apiKey) return json({ error: "Facturapi key not configured" }, 400);
 
     const fid = inv.facturapi_invoice_id as string;
-    const updateRes = await deps.fetchImpl(`${FACTURAPI_BASE}/invoices/${fid}/status`, {
-      method: "PUT",
-      headers: { "Authorization": `Bearer ${apiKey}` },
-    });
+    const updateRes = await deps.fetchImpl(
+      `${FACTURAPI_BASE}/invoices/${fid}/status`,
+      {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      },
+    );
     if (!updateRes.ok) {
       const errBody = await updateRes.text();
       return json(
-        { error: `Facturapi status error: ${updateRes.status}`, detail: errBody },
+        {
+          error: `Facturapi status error: ${updateRes.status}`,
+          detail: errBody,
+        },
         502,
       );
     }
@@ -86,7 +116,9 @@ export async function handleRefreshCancellation(
     const rawStatus =
       (facturApiInv?.cancellation_status as string | undefined) ??
         (inv.cancellation_status as string | undefined) ?? "pending";
-    const satStatus = VALID_SAT_STATUSES.includes(rawStatus) ? rawStatus : "pending";
+    const satStatus = VALID_SAT_STATUSES.includes(rawStatus)
+      ? rawStatus
+      : "pending";
 
     const update: Record<string, unknown> = { cancellation_status: satStatus };
     if (satStatus === "accepted") {
@@ -94,7 +126,10 @@ export async function handleRefreshCancellation(
       update.status = "cancelled";
       update.cancelled_at = new Date().toISOString();
     }
-    await supabase.from("invoices").update(update).eq("id", invoice_id as string);
+    await supabase.from("invoices").update(update).eq(
+      "id",
+      invoice_id as string,
+    );
 
     return json({ success: true, cancellation_status: satStatus }, 200);
   } catch (_err) {
