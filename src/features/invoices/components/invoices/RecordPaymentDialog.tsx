@@ -31,7 +31,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" data-testid="record-payment-dialog">
         <DialogHeader><DialogTitle>Registrar Pago</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div>
