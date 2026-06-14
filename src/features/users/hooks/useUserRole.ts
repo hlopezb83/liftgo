@@ -26,9 +26,10 @@ export function useUserRole() {
   return useQuery<AppRole | null>({
     queryKey: ["user_role", userId],
     enabled: !!userId,
-    // Always refetch on mount so a stale cached role from a previous error
-    // (e.g. transient network failure that returned []) gets corrected.
-    staleTime: 0,
+    // Roles cambian con muy baja frecuencia. Cachear 5min reduce ~18k calls/día
+    // a `user_roles`. Errores transitorios se recuperan vía retry: 2.
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
     retry: 2,
     queryFn: async () => {
       if (!userId) return null;
