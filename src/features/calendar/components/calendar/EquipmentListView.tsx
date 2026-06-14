@@ -8,6 +8,8 @@ import { nowMty, formatMtyDate } from "@/lib/utils";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { RecurringBillingBadge } from "@/features/bookings";
+import { BOOKING_STATUS } from "@/lib/constants";
+
 
 type Forklift = Tables<"forklifts">;
 
@@ -20,13 +22,14 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   const bookingsByForklift = useMemo(() => {
     const map = new Map<string, BookingWithForklift[]>();
     bookings?.forEach((b) => {
-      if (b.status !== "confirmed" && b.status !== "completed") return;
+      if (b.status !== BOOKING_STATUS.confirmed && b.status !== BOOKING_STATUS.completed) return;
       const list = map.get(b.forklift_id);
       if (list) list.push(b);
       else map.set(b.forklift_id, [b]);
     });
     return map;
   }, [bookings]);
+
 
   const today = nowMty();
 
@@ -36,12 +39,13 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
         const flBookings = bookingsByForklift.get(fl.id) || [];
         const activeBooking = flBookings.find((b) => {
           try {
-            return b.status === "confirmed" && isWithinInterval(today, { start: parseISO(b.start_date), end: parseISO(b.end_date) });
+            return b.status === BOOKING_STATUS.confirmed && isWithinInterval(today, { start: parseISO(b.start_date), end: parseISO(b.end_date) });
           } catch { return false; }
         });
         const upcoming = flBookings
-          .filter((b) => parseISO(b.start_date) > today && b.status === "confirmed")
+          .filter((b) => parseISO(b.start_date) > today && b.status === BOOKING_STATUS.confirmed)
           .sort((a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime());
+
 
         return (
           <Collapsible key={fl.id}>

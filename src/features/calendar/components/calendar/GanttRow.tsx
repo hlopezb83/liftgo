@@ -3,13 +3,15 @@ import { formatMtyDate } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
 import type { BarSegment } from "../../hooks/calendar/useGanttSegments";
+import { BOOKING_STATUS } from "@/lib/constants";
 
-const STATUS_LABELS: Record<string, string> = {
+const BOOKING_STATUS_LABELS: Record<string, string> = {
   confirmed: "Confirmada",
   completed: "Completada",
   cancelled: "Cancelada",
   pending: "Pendiente",
 };
+
 
 interface Props {
   forklift: Tables<"forklifts">;
@@ -40,7 +42,7 @@ export function GanttRow({ forklift, segments, days }: Props) {
           })}
         </div>
         {segments.map((seg) => {
-          const isConfirmed = seg.booking.status === "confirmed";
+          const isConfirmed = seg.booking.status === BOOKING_STATUS.confirmed;
           const showLabel = seg.durationDays > 3;
           return (
             <Tooltip key={seg.booking.id}>
@@ -68,7 +70,7 @@ export function GanttRow({ forklift, segments, days }: Props) {
                 </p>
                 <p className="text-muted-foreground">
                   {seg.durationDays} día{seg.durationDays !== 1 ? "s" : ""} ·{" "}
-                  {STATUS_LABELS[seg.booking.status] || seg.booking.status}
+                  {BOOKING_STATUS_LABELS[seg.booking.status] || seg.booking.status}
                 </p>
               </TooltipContent>
             </Tooltip>

@@ -5,6 +5,8 @@ import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";
 import { nowMty } from "@/lib/utils";
+import { BOOKING_STATUS, FORKLIFT_STATUS } from "@/lib/constants";
+
 
 type Forklift = Tables<"forklifts">;
 
@@ -20,7 +22,7 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
     const today = nowMty();
     const activeBookingForkliftIds = new Set<string>();
     bookings?.forEach((b) => {
-      if (b.status === "confirmed") {
+      if (b.status === BOOKING_STATUS.confirmed) {
         try {
           const start = parseISO(b.start_date);
           const end = parseISO(b.end_date);
@@ -32,14 +34,15 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
     });
 
     const available = forklifts.filter(
-      (f) => f.status === "available" && !activeBookingForkliftIds.has(f.id)
+      (f) => f.status === FORKLIFT_STATUS.available && !activeBookingForkliftIds.has(f.id)
     ).length;
     const rented = forklifts.filter(
-      (f) => f.status === "rented" || activeBookingForkliftIds.has(f.id)
+      (f) => f.status === FORKLIFT_STATUS.rented || activeBookingForkliftIds.has(f.id)
     ).length;
-    const maintenance = forklifts.filter((f) => f.status === "maintenance").length;
-    const totalActive = forklifts.filter((f) => f.status !== "retired" && f.status !== "sold").length;
+    const maintenance = forklifts.filter((f) => f.status === FORKLIFT_STATUS.maintenance).length;
+    const totalActive = forklifts.filter((f) => f.status !== FORKLIFT_STATUS.retired && f.status !== FORKLIFT_STATUS.sold).length;
     const utilization = totalActive > 0 ? Math.round((rented / totalActive) * 100) : 0;
+
 
     return { available, rented, maintenance, utilization: `${utilization}%` };
   }, [forklifts, bookings]);

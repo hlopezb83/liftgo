@@ -1,83 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useExportablePayables } from "./useExportablePayables";
 import { useCreatePaymentBatch } from "./useCreatePaymentBatch";
+import { usePaymentSelection } from "./usePaymentSelection";
 import { downloadPaymentsXlsx, type PaymentExportRow } from "../lib/buildPaymentsXlsx";
 
-interface RowState {
-  selected: boolean;
-  amount: number;
-}
-
-/** Estado y derivaciones del diálogo de exportación de pagos. */
+/**
+ * Orquestador del diálogo de exportación de pagos.
+ *
+ * Composición:
+ * - `usePaymentSelection` → estado puro de selección múltiple (sin side effects).
+ * - `useCreatePaymentBatch` → mutación que crea el batch.
+ * - `downloadPaymentsXlsx` → side effect de descarga.
+ */
 export function useExportPaymentsForm(open: boolean, onClose: () => void) {
   const { data: bills, isLoading } = useExportablePayables();
   const createBatch = useCreatePaymentBatch();
-  const [rowState, setRowState] = useState<Record<string, RowState>>({});
+  const selection = usePaymentSelection(open, bills);
   const [notes, setNotes] = useState("");
 
+  // Limpia las notas cuando el diálogo se cierra desde el caller.
   useEffect(() => {
-    if (!open) return;
-    const init: Record<string, RowState> = {};
-    for (const b of bills ?? []) {
-      init[b.id] = {
-        selected: b.has_valid_clabe && !b.payment_in_progress_at,
-        amount: b.balance,
-      };
-    }
-    setRowState(init);
-    setNotes("");
-  }, [open, bills]);
+    if (!open) setNotes("");
+  }, [open]);
 
-  const selected = useMemo(
-    () => (bills ?? []).filter((b) => rowState[b.id]?.selected),
-    [bills, rowState],
-  );
 
-  const total = useMemo(
-    () => selected.reduce((acc, b) => acc + (rowState[b.id]?.amount ?? 0), 0),
-    [selected, rowState],
-  );
-
-  const hasInvalid = selected.some((b) => !b.has_valid_clabe);
-  const canExport = selected.length > 0 && !hasInvalid && !createBatch.isPending;
-
-  const eligible = useMemo(
-    () => (bills ?? []).filter((b) => b.has_valid_clabe && !b.payment_in_progress_at),
-    [bills],
-  );
-
-  const allEligibleSelected =
-    eligible.length > 0 && eligible.every((b) => rowState[b.id]?.selected);
-
-  const toggleAll = (val: boolean) => {
-    setRowState((prev) => {
-      const next = { ...prev };
-      for (const b of eligible) {
-        next[b.id] = { ...next[b.id], selected: val };
-      }
-      return next;
-    });
-  };
-
-  const setSelected = (id: string, selected: boolean, fallback: number) => {
-    setRowState((p) => ({
-      ...p,
-      [id]: { ...p[id], selected, amount: p[id]?.amount ?? fallback },
-    }));
-  };
-
-  const setAmount = (id: string, amount: number) => {
-    setRowState((p) => ({
-      ...p,
-      [id]: { ...p[id], amount, selected: p[id]?.selected ?? false },
-    }));
-  };
+  const canExport = selection.selected.length > 0 && !selection.hasInvalid && !createBatch.isPending;
 
   const handleExport = async () => {
-    const items = selected.map((b) => ({
+    const items = selection.selected.map((b) => ({
       bill_id: b.id,
-      amount: Number((rowState[b.id]?.amount ?? b.balance).toFixed(2)),
+      amount: Number((selection.rowState[b.id]?.amount ?? b.balance).toFixed(2)),
     }));
     if (items.some((i) => i.amount <= 0)) {
       toast.error("Todos los montos deben ser mayores a 0");
@@ -85,8 +38,8 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
     }
     try {
       await createBatch.mutateAsync({ items, notes: notes || undefined });
-      const rows: PaymentExportRow[] = selected.map((b) => {
-        const amount = Number((rowState[b.id]?.amount ?? b.balance).toFixed(2));
+      const rows: PaymentExportRow[] = selection.selected.map((b) => {
+        const amount = Number((selection.rowState[b.id]?.amount ?? b.balance).toFixed(2));
         return {
           supplier_name: b.supplier_name,
           supplier_rfc: b.supplier_rfc,
@@ -104,6 +57,7 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
       });
       const filename = downloadPaymentsXlsx(rows);
       toast.success(`Excel descargado: ${filename}`);
+      setNotes("");
       onClose();
     } catch {
       /* notifyError already shown by hook */
@@ -111,9 +65,17 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
   };
 
   return {
-    bills, isLoading, rowState, notes, setNotes,
-    selected, total, hasInvalid, canExport,
-    allEligibleSelected, toggleAll, setSelected, setAmount,
+    bills, isLoading,
+    rowState: selection.rowState,
+    notes, setNotes,
+    selected: selection.selected,
+    total: selection.total,
+    hasInvalid: selection.hasInvalid,
+    allEligibleSelected: selection.allEligibleSelected,
+    toggleAll: selection.toggleAll,
+    setSelected: selection.setSelected,
+    setAmount: selection.setAmount,
+    canExport,
     isSubmitting: createBatch.isPending,
     handleExport,
   };

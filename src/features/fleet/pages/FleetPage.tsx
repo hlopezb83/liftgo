@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useForklifts } from "../hooks/forklifts/useForklifts";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useContracts } from "@/features/contracts";
@@ -8,30 +8,26 @@ import type { Forklift } from "../hooks/forklifts/useForklifts";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PlusCircle, Download, Forklift as ForkliftIcon } from "lucide-react";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
-import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { usePageActions } from "@/contexts/pageActions";
+import { useResourceList } from "@/hooks/useResourceList";
 
-export default function Fleet() {
+export default function FleetPage() {
   const { data: forklifts, isLoading } = useForklifts();
   const { data: policies } = useMaintenancePolicies();
   const { data: contracts } = useContracts();
   const { data: deliveries } = useDeliveries();
+
   const activePolicyForkliftIds = useMemo(
     () => new Set(policies?.filter((p) => p.is_active).map((p) => p.forklift_id) ?? []),
     [policies],
   );
-  const [searchParams, setSearchParams] = useSearchParams();
-  const search = searchParams.get("q") || "";
-  const statusFilter = searchParams.get("status") || "all";
-  const navigate = useNavigate();
-  usePageActions({ onNew: () => navigate("/fleet/new"), newLabel: "Nuevo equipo" });
 
   const locationMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -48,45 +44,22 @@ export default function Fleet() {
     return map;
   }, [contracts, deliveries]);
 
-  const setSearch = useCallback((value: string) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (value) next.set("q", value); else next.delete("q");
-      return next;
-    }, { replace: true });
-  }, [setSearchParams]);
-
-  const setStatusFilter = useCallback((value: string) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (value && value !== "all") next.set("status", value); else next.delete("status");
-      return next;
-    }, { replace: true });
-  }, [setSearchParams]);
-
-  const filtered = useMemo(
-    () =>
-      (forklifts ?? []).filter((f) => {
-        const q = search.toLowerCase();
-        const matchesSearch =
-          f.name.toLowerCase().includes(q) ||
-          f.model.toLowerCase().includes(q) ||
-          (f.manufacturer || "").toLowerCase().includes(q) ||
-          (f.serial_number || "").toLowerCase().includes(q);
-        return matchesSearch && (statusFilter === "all" || f.status === statusFilter);
-      }),
-    [forklifts, search, statusFilter],
-  );
+  const navigate = useNavigate();
+  usePageActions({ onNew: () => navigate("/fleet/new"), newLabel: "Nuevo equipo" });
 
   const columns = useFleetColumns(activePolicyForkliftIds, locationMap);
 
-  const table = useLiftgoTable<Forklift>({
-    data: filtered,
-    columns,
-    getRowId: (f) => f.id,
-    initialSorting: [{ id: "name", desc: false }],
-  });
-
+  const { search, setSearch, statusFilter, setStatusFilter, filtered, table } =
+    useResourceList<Forklift>({
+      items: forklifts,
+      columns,
+      getRowId: (f) => f.id,
+      initialSorting: [{ id: "name", desc: false }],
+      filters: {
+        searchFields: ["name", "model", "manufacturer", "serial_number"],
+        statusField: "status",
+      },
+    });
 
   const filters = (
     <div className="flex gap-3">

@@ -3,7 +3,7 @@ import { lazy, useEffect, useState, type ComponentType } from "react";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("@/features/dashboard/pages/Dashboard"));
-const Fleet = lazy(() => import("@/features/fleet/pages/Fleet"));
+const FleetPage = lazy(() => import("@/features/fleet/pages/FleetPage"));
 const ForkliftDetail = lazy(() => import("@/features/fleet/pages/ForkliftDetail"));
 const ForkliftForm = lazy(() => import("@/features/fleet/pages/ForkliftForm"));
 const CalendarPage = lazy(() => import("@/features/calendar/pages/CalendarPage"));
@@ -88,7 +88,7 @@ export interface RouteConfig {
 
 export const appRoutes: RouteConfig[] = [
   { path: "/", component: Dashboard, module: "Dashboard" },
-  { path: "/fleet", component: Fleet, module: "Flota" },
+  { path: "/fleet", component: FleetPage, module: "Flota" },
   { path: "/fleet/new", component: ForkliftForm, module: "Flota" },
   { path: "/fleet/:id", component: ForkliftDetail, module: "Flota" },
   { path: "/fleet/:id/edit", component: ForkliftForm, module: "Flota" },
