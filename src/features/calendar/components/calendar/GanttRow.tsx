@@ -3,13 +3,15 @@ import { formatMtyDate } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
 import type { BarSegment } from "../../hooks/calendar/useGanttSegments";
+import { BOOKING_STATUS } from "@/lib/constants";
 
-const STATUS_LABELS: Record<string, string> = {
+const BOOKING_STATUS_LABELS: Record<string, string> = {
   confirmed: "Confirmada",
   completed: "Completada",
   cancelled: "Cancelada",
   pending: "Pendiente",
 };
+
 
 interface Props {
   forklift: Tables<"forklifts">;
