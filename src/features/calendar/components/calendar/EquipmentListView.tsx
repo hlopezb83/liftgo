@@ -39,12 +39,13 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
         const flBookings = bookingsByForklift.get(fl.id) || [];
         const activeBooking = flBookings.find((b) => {
           try {
-            return b.status === "confirmed" && isWithinInterval(today, { start: parseISO(b.start_date), end: parseISO(b.end_date) });
+            return b.status === BOOKING_STATUS.confirmed && isWithinInterval(today, { start: parseISO(b.start_date), end: parseISO(b.end_date) });
           } catch { return false; }
         });
         const upcoming = flBookings
-          .filter((b) => parseISO(b.start_date) > today && b.status === "confirmed")
+          .filter((b) => parseISO(b.start_date) > today && b.status === BOOKING_STATUS.confirmed)
           .sort((a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime());
+
 
         return (
           <Collapsible key={fl.id}>
