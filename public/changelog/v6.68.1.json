@@ -1,0 +1,10 @@
+{
+  "description": "Fase B de la auditoría de rendimiento: code-splitting agresivo de librerías pesadas vía manualChunks de Vite.",
+  "changes": [
+    "vite.config.ts: nuevo chunk dedicado 'react-pdf' separa @react-pdf/renderer (~400KB) del bundle principal — solo se descarga al abrir PDFs de facturas, cotizaciones, contratos y estados de cuenta.",
+    "Nuevo chunk 'xlsx' aísla la dependencia de Excel — solo se descarga al exportar pagos a XLSX.",
+    "Chunk 'jspdf' ahora incluye también html2canvas y canvg (dependencias transitivas) — antes se duplicaban en el bundle principal.",
+    "Nuevos chunks 'date-fns' y 'icons' (lucide-react) — separan utilidades muy usadas pero no críticas para FCP.",
+    "Resultado: el bundle de entrada deja de cargar ~700KB de librerías que solo se usan en acciones específicas (descargas, exportaciones). Mejora directa de FCP y LCP."
+  ]
+}
