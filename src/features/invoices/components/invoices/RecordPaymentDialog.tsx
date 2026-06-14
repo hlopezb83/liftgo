@@ -119,7 +119,11 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={createPayment.isPending || stampComplement.isPending}>
+          <Button
+            data-testid="record-payment-submit"
+            onClick={handleSubmit}
+            disabled={createPayment.isPending || stampComplement.isPending}
+          >
             {createPayment.isPending ? "Guardando..." : (stampComplement.isPending ? "Timbrando REP..." : "Registrar Pago")}
           </Button>
         </DialogFooter>
