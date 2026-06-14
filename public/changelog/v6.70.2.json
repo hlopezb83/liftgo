@@ -1,0 +1,45 @@
+{
+  "version": "6.70.2",
+  "date": "2026-06-14",
+  "type": "patch",
+  "title": "Docs: estándar de naming en architecture.md",
+  "category": "docs",
+  "changes": [
+    {
+      "type": "docs",
+      "description": "Nueva sección §22 'Convenciones de naming' en architecture.md. Normativa para código nuevo; migración incremental para legacy."
+    },
+    {
+      "type": "docs",
+      "description": "§22.1 Carpetas: kebab-case general; features mantienen plural establecido; __tests__/ para co-localización."
+    },
+    {
+      "type": "docs",
+      "description": "§22.2 Archivos: PascalCase para componentes y páginas (sufijo Page obligatorio), camelCase para hooks (prefijo use), sufijos Helpers.ts/Builder.ts/Types.ts; prohíbe *Utils/*Manager/*Helper(singular)/*Service."
+    },
+    {
+      "type": "docs",
+      "description": "§22.3 Símbolos: booleanos con prefijo is/has/can/should; handlers handle (interno) vs on (prop); constantes globales en SCREAMING_SNAKE_CASE; SQL en snake_case."
+    },
+    {
+      "type": "docs",
+      "description": "§22.4 Rutas: paths kebab-case plural, params camelCase, query params snake_case alineado con SQL."
+    },
+    {
+      "type": "docs",
+      "description": "§22.5 IDs de documento: FAC/COT/CTR/RSV/ENT/DEV/NC/CP con padding 4 dígitos."
+    },
+    {
+      "type": "docs",
+      "description": "§22.6 Anti-patrones documentados (Page sin sufijo, kebab en hooks, sufijos genéricos, imports cruzados a internals, booleanos sin prefijo)."
+    },
+    {
+      "type": "docs",
+      "description": "§22.7 Plan de migración incremental: Fleet.tsx→FleetPage.tsx, dataTable/→data-table/, use-mobile.tsx→useIsMobile.tsx, src/test/*Flow.test.ts→src/features/*/__tests__/. No se renombra en bloque."
+    },
+    {
+      "type": "docs",
+      "description": "Renumerada sección Referencias de §22 a §23. No se modificó código fuente."
+    }
+  ]
+}
