@@ -19,11 +19,6 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
   const selection = usePaymentSelection(open, bills);
   const [notes, setNotes] = useState("");
 
-  // Reset notas cuando se abre el diálogo (la selección se resetea internamente).
-  if (open === false && notes !== "") {
-    // No-op: notes solo se limpia tras handleExport o cuando el caller cierra.
-  }
-
   const canExport = selection.selected.length > 0 && !selection.hasInvalid && !createBatch.isPending;
 
   const handleExport = async () => {
