@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.70.2",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "Docs: estándar de naming en architecture.md",
+    "description": "Nueva sección §22 'Convenciones de naming' en architecture.md (renumera Referencias a §23). Documenta normativa para carpetas (kebab-case), archivos (PascalCase componentes, camelCase hooks/helpers, sufijo Page obligatorio para páginas), símbolos (booleanos is/has, handlers handle/on, constantes SCREAMING_SNAKE_CASE), rutas (kebab-case path, snake_case query params), IDs de documento (FAC/COT/CTR/RSV/ENT/DEV/NC/CP), y anti-patrones (*Utils, *Manager, *Service, kebab en hooks). Incluye §22.7 con plan de migración incremental para inconsistencias detectadas en audit v6.70.x (Fleet.tsx→FleetPage.tsx, dataTable/→data-table/, use-mobile.tsx→useIsMobile.tsx, tests de flujo→__tests__/ por feature) sin renames en bloque. Solo cambios en docs; no se modificó código.",
+    "category": "docs"
+  },
+  {
     "version": "6.70.1",
     "date": "2026-06-14",
     "type": "patch",
