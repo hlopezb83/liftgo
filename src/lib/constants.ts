@@ -25,6 +25,25 @@ export const ROLE_COLORS: Record<AppRole, string> = {
 };
 
 export const FORKLIFT_STATUSES = ["available", "rented", "maintenance", "retired", "sold"] as const;
+export type ForkliftStatus = typeof FORKLIFT_STATUSES[number];
+
+export const BOOKING_STATUSES = ["confirmed", "completed", "cancelled"] as const;
+export type BookingStatus = typeof BOOKING_STATUSES[number];
+
+export const FORKLIFT_STATUS = {
+  available: "available",
+  rented: "rented",
+  maintenance: "maintenance",
+  retired: "retired",
+  sold: "sold",
+} as const satisfies Record<ForkliftStatus, ForkliftStatus>;
+
+export const BOOKING_STATUS = {
+  confirmed: "confirmed",
+  completed: "completed",
+  cancelled: "cancelled",
+} as const satisfies Record<BookingStatus, BookingStatus>;
+
 export const FUEL_TYPES = ["Diesel", "Electric", "LPG"] as const;
 export const SERVICE_TYPES = [
   "Inspección de Rutina", "Cambio de Aceite", "Servicio de Batería", "Reemplazo de Llantas",
