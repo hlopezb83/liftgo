@@ -72,7 +72,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto" data-testid="customer-form-dialog">
         <DialogHeader><DialogTitle>{isEdit ? "Editar Cliente" : "Agregar Cliente"}</DialogTitle></DialogHeader>
 
         {isEdit ? (

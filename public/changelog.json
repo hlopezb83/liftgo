@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.67.1",
+    "date": "2026-06-14",
+    "type": "patch",
+    "title": "E2E: data-testid en dialogs críticos + aserción de red en pago",
+    "description": "RecordPaymentDialog y CustomerFormDialog ahora exponen data-testid estables ('record-payment-dialog', 'record-payment-submit', 'customer-form-dialog') para selectores E2E robustos (en vez de regex por texto en español que rompe con cambios de copy). invoice-payment.spec.ts añade waitForResponse sobre POST /rest/v1/payments validando 2xx — antes el test solo verificaba el badge optimista, ahora detecta fallos reales de RLS o validación. Vitest 707/707 verde.",
+    "category": "improvement"
+  },
+  {
     "version": "6.67.0",
     "date": "2026-06-14",
     "type": "minor",
