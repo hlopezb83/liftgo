@@ -16,11 +16,14 @@ interface Props {
 
 export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, border, items, onSelectLog }: Props) {
   return (
-    <div className={cn("rounded-lg border p-3 min-h-[200px]", bg, border)}>
+    <div
+      className={cn("rounded-lg border p-3 min-h-[200px]", bg, border)}
+      data-testid={`maintenance-kanban-column-${id}`}
+    >
       <div className="flex items-center gap-2 mb-3">
         <Icon className={cn("h-4 w-4", color)} />
         <h3 className="text-sm font-semibold">{label}</h3>
-        <span className="ml-auto text-xs text-muted-foreground font-mono">{items.length}</span>
+        <span className="ml-auto text-xs text-muted-foreground font-mono" data-testid={`maintenance-kanban-count-${id}`}>{items.length}</span>
       </div>
       <Droppable droppableId={id}>
         {(provided, snapshot) => (
@@ -35,7 +38,7 @@ export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, bord
             {items.map((log, index) => (
               <Draggable key={log.id} draggableId={log.id} index={index}>
                 {(prov, snap) => (
-                  <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}>
+                  <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps} data-testid={`maintenance-kanban-card-${log.id}`}>
                     <MaintenanceKanbanCard log={log} isDragging={snap.isDragging} onSelect={() => onSelectLog(log)} />
                   </div>
                 )}

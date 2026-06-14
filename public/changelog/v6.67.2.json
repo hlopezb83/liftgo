@@ -1,0 +1,37 @@
+{
+  "version": "6.67.2",
+  "date": "2026-06-14",
+  "type": "patch",
+  "title": "E2E: spec de Kanban de Mantenimiento + seed extendido",
+  "category": "improvement",
+  "summary": "Primer spec E2E de Fase 4 ampliada: cobertura del Kanban de Mantenimiento con seed dedicado y data-testid estables.",
+  "changes": [
+    {
+      "area": "Migración - seed E2E",
+      "items": [
+        "e2e_seed_scenario ahora inserta una maintenance_logs con work_status='pending' vinculada al forklift sembrado y devuelve maintenance_log_id en el JSON.",
+        "Cleanup automático: FK maintenance_logs_forklift_id_fkey es ON DELETE CASCADE, así que el teardown existente (que borra forklifts) elimina también la WO sin código nuevo.",
+        "SeedIds en tests/e2e/fixtures/seed.ts incluye maintenance_log_id (string)."
+      ]
+    },
+    {
+      "area": "UI - data-testid",
+      "items": [
+        "MaintenanceKanbanColumn: contenedor con data-testid='maintenance-kanban-column-{id}' (pending/in_progress/waiting_parts/completed) y contador 'maintenance-kanban-count-{id}'.",
+        "Wrapper de Draggable: data-testid='maintenance-kanban-card-{logId}' por tarjeta."
+      ]
+    },
+    {
+      "area": "E2E - nuevo spec",
+      "items": [
+        "tests/e2e/maintenance-kanban.spec.ts: navega a /maintenance, activa toggle 'Vista de tablero', verifica que la WO sembrada está en la columna pending y que el click abre el sheet de detalle.",
+        "Decisión explícita: no probamos drag-and-drop entre columnas porque @hello-pangea/dnd es inestable en Playwright headless. La transición de estado ya está cubierta por test de hook useMaintenanceKanban en Vitest."
+      ]
+    }
+  ],
+  "validation": {
+    "vitest": "707/707 (cambios son aditivos: data-testid no afecta lógica)",
+    "playwright_local": "Requiere E2E_TEST_EMAIL/PASSWORD y allow_e2e_seed=true en company_settings para correr."
+  },
+  "fase4_progress": "1/8 specs nuevos completados (maintenance-kanban). Restantes: delivery-return-horometro, cfdi-cancel-credit-note, recurring-billing, rbac-role-paths, contract-pdf-sign, damage-photo-billing, crm-deal-to-quote."
+}
