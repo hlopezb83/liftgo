@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.69.0",
+    "date": "2026-06-14",
+    "type": "minor",
+    "title": "Performance Fase E: RPC get_activity_metrics agrega en DB",
+    "description": "Nueva función SQL public.get_activity_metrics(from, to) calcula byMember/byModule/byHour/previousCount con GROUP BY en Postgres (zona horaria America/Monterrey). useActivityMetrics deja de descargar hasta 10,000 filas de activity_feed (~10,535ms acumulados según pg_stat_statements) — ahora una sola llamada RPC trae los 4 agregados ya listos para graficar. fetchActivityRanges removido; aggregateActivity se conserva para los tests. Latencia, memoria del cliente y costo de red bajan drásticamente con el crecimiento del log.",
+    "category": "improvement"
+  },
+  {
     "version": "6.68.1",
     "date": "2026-06-14",
     "type": "patch",

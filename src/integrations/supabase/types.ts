@@ -3235,6 +3235,10 @@ export type Database = {
       e2e_seed_scenario: { Args: { p_scope: string }; Returns: Json }
       e2e_teardown: { Args: { p_scope: string }; Returns: Json }
       generate_feedback_number: { Args: never; Returns: string }
+      get_activity_metrics: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
       get_available_forklifts: {
         Args: { p_end_date: string; p_start_date: string }
         Returns: {

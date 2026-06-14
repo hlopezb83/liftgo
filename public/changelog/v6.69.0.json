@@ -1,0 +1,9 @@
+{
+  "description": "Fase E de la auditoría de rendimiento: agregación server-side de métricas de actividad vía RPC.",
+  "changes": [
+    "Nueva RPC public.get_activity_metrics(from, to) — agrega byMember, byModule, byHour y previousCount directamente en Postgres usando GROUP BY y date_part en America/Monterrey.",
+    "useActivityMetrics ya no descarga hasta 10,000 filas de activity_feed (~10,535ms acumulados según pg_stat_statements). Ahora una sola llamada RPC trae los 4 agregados.",
+    "fetchActivityRanges removido — quedó obsoleto al delegar la agregación a la base de datos. La función pura aggregateActivity se conserva exportada para los tests existentes (cubre la lógica equivalente que ahora vive en SQL).",
+    "Resultado: la página de métricas de actividad pasa de transferir miles de filas + agregar en JS a recibir solo los totales finales. Latencia y memoria del cliente bajan drásticamente con el crecimiento del log."
+  ]
+}
