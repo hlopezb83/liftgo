@@ -1,0 +1,35 @@
+{
+  "version": "6.66.19",
+  "date": "2026-06-14",
+  "type": "minor",
+  "category": "improvement",
+  "title": "Auditoría de tests Fase 1 — bugs activos cerrados",
+  "description": "Auditoría completa de las suites Vitest, Deno Edge Functions y Playwright E2E (vía 3 sub-agentes en paralelo). Fase 1 cierra los 3 bugs activos detectados: doble timbrado CFDI, auth check inconsistente en facturación recurrente, y teardown E2E silenciado en shards no-finales. Plan completo en .lovable/plan.md (4 fases).",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Guard de idempotencia en stamp-cfdi",
+      "description": "stamp-cfdi/handler.ts ahora retorna 409 cuando la factura ya tiene cfdi_status='stamped' y un cfdi_uuid presente. Antes una doble llamada generaba dos CFDIs distintos en el SAT (stamp-credit-note ya tenía este guard, la asimetría era un bug activo). Test handler_test.ts:132 verifica 409, ausencia de updates y que Facturapi no es invocado."
+    },
+    {
+      "type": "fix",
+      "title": "Auth check robusto en generate-recurring-invoices",
+      "description": "Cambio de `if (!authHeader)` a `if (!authHeader?.startsWith('Bearer '))`. Antes un header malformado (sin prefijo Bearer) pasaba el guard y fallaba downstream en getClaims con error 500 críptico. 2 tests nuevos: 401 sin header y 401 con header malformado."
+    },
+    {
+      "type": "fix",
+      "title": "Teardown E2E diferenciado por estado del test",
+      "description": "tests/e2e/fixtures/seed.ts y portalSeed.ts ahora relanzan errores de e2e_teardown cuando el test pasó (para detectar fugas) y solo loguean cuando el test falló (para no enmascarar el error original). Antes siempre se silenciaba: en CI con sharding el globalTeardown solo corre en el shard final, dejando filas E2E vivas indefinidamente si un teardown intermedio fallaba."
+    },
+    {
+      "type": "refactor",
+      "title": "Tipos compartidos en _shared/types.ts",
+      "description": "SupabaseLike y QueryBuilderLike se movieron de stamp-cfdi/handler.ts a _shared/types.ts. Antes supabaseClientMock.ts y stamp-credit-note/handler.ts importaban tipos de un handler específico, generando acoplamiento en cascada. stamp-cfdi/handler.ts los re-exporta para compatibilidad."
+    },
+    {
+      "type": "test",
+      "title": "Auditoría exhaustiva documentada",
+      "description": "Plan en .lovable/plan.md con 4 fases: (1) bugs activos [esta release], (2) hooks CFDI + Edge Functions críticas, (3) mutaciones de negocio + RLS faltantes, (4) E2E críticos y data-testid. Métricas objetivo: handler_test 3→12+, hooks CFDI 0→4, specs E2E 8→16+."
+    }
+  ]
+}

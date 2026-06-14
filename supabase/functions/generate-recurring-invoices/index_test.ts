@@ -15,3 +15,26 @@ Deno.test("generate-recurring-invoices: CORS preflight returns 200", async () =>
   await res.text();
   assertEquals(res.status, 200);
 });
+
+Deno.test("generate-recurring-invoices: rejects without Authorization (401)", async () => {
+  const res = await fetch(FN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  await res.text();
+  assertEquals(res.status, 401);
+});
+
+Deno.test("generate-recurring-invoices: rejects malformed Authorization (401)", async () => {
+  // Antes el guard usaba `if (!authHeader)` y permitía pasar headers
+  // malformados sin prefijo Bearer, provocando errores downstream en getClaims.
+  const res = await fetch(FN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "malformed-token-without-bearer",
+    },
+  });
+  await res.text();
+  assertEquals(res.status, 401);
+});

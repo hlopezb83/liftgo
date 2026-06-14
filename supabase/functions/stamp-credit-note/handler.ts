@@ -1,7 +1,8 @@
 // Pure handler for stamp-credit-note, deps-injected for testability.
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
-import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
+import type { StampCfdiDeps } from "../stamp-cfdi/handler.ts";
+import type { SupabaseLike } from "../_shared/types.ts";
 
 export type { SupabaseLike };
 export type StampCreditNoteDeps = StampCfdiDeps;

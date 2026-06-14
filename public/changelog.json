@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.66.19",
+    "date": "2026-06-14",
+    "type": "minor",
+    "title": "Auditoría de tests Fase 1 — bugs activos cerrados",
+    "description": "3 bugs activos cerrados: guard 409 en stamp-cfdi (doble timbrado), auth check robusto en generate-recurring-invoices, teardown E2E diferenciado por estado del test. Tipos compartidos extraídos a _shared/types.ts. Plan completo en .lovable/plan.md.",
+    "category": "improvement"
+  },
+  {
     "version": "6.66.18",
     "date": "2026-06-13",
     "type": "patch",

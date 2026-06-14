@@ -1,9 +1,6 @@
 // Lightweight Supabase client mock for Deno tests.
 // Configure per-table responses, then build a SupabaseLike via buildClient().
-import type {
-  QueryBuilderLike,
-  SupabaseLike,
-} from "../../stamp-cfdi/handler.ts";
+import type { QueryBuilderLike, SupabaseLike } from "../types.ts";
 
 export interface TableResponse {
   data: unknown;

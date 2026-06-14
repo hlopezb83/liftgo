@@ -2,42 +2,12 @@
 // The Deno.serve entry in index.ts wires real createClient + fetch + env.
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
+import type { QueryBuilderLike, SupabaseLike } from "../_shared/types.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
-// Minimal shape of Supabase JS client we use here. Tests provide a stub.
-export interface SupabaseLike {
-  auth: {
-    getClaims: (
-      token: string,
-    ) => Promise<
-      { data: { claims?: { sub?: string } } | null; error: unknown }
-    >;
-  };
-  from: (table: string) => QueryBuilderLike;
-  storage: {
-    from: (bucket: string) => {
-      upload: (
-        path: string,
-        body: Blob | Uint8Array,
-        opts?: Record<string, unknown>,
-      ) => Promise<{ error: unknown }>;
-    };
-  };
-}
-
-export interface QueryBuilderLike {
-  select: (cols?: string) => QueryBuilderLike;
-  insert: (rows: unknown) => QueryBuilderLike;
-  update: (patch: Record<string, unknown>) => QueryBuilderLike;
-  eq: (col: string, val: unknown) => QueryBuilderLike;
-  limit: (n: number) => QueryBuilderLike;
-  single: () => Promise<{ data: unknown; error: unknown }>;
-  maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
-  then: <T>(
-    onfulfilled: (v: { data: unknown; error: unknown }) => T,
-  ) => Promise<T>;
-}
+// Re-export para compatibilidad con consumidores existentes.
+export type { QueryBuilderLike, SupabaseLike };
 
 export interface StampCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
@@ -113,6 +83,20 @@ export async function handleStampCfdi(
       return json(
         { error: "E2E invoices cannot be stamped" },
         403,
+        jsonHeaders,
+      );
+    }
+
+    // Guard de idempotencia: si la factura ya fue timbrada con éxito, no
+    // permitir un re-stamp porque generaría un segundo CFDI en el SAT con
+    // UUID distinto (doble timbrado). Simetría con stamp-credit-note.
+    if (inv.cfdi_status === "stamped" && inv.cfdi_uuid) {
+      return json(
+        {
+          error: "Invoice already stamped",
+          cfdi_uuid: inv.cfdi_uuid,
+        },
+        409,
         jsonHeaders,
       );
     }
