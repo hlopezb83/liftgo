@@ -61,15 +61,15 @@ export function mapInvoiceBreakdown(raw?: Array<{ status: string; count: number;
 }
 
 type StatsLike = {
-  weekly_utilization?: Array<{ week_label: string; utilization: number }>;
+  monthly_utilization?: Array<{ month_label: string; utilization: number }>;
   utilization?: Array<{ name: string; revenue: number }>;
   cash_flow?: Array<{ month: string; invoiced: number; paid: number }>;
   invoice_stats?: { outstanding_revenue?: number };
   overdue_bookings?: unknown;
 };
 
-export function mapWeeklyUtilization(stats?: StatsLike) {
-  return (stats?.weekly_utilization ?? []).map((w) => ({ week_label: w.week_label, utilization: w.utilization }));
+export function mapMonthlyUtilization(stats?: StatsLike) {
+  return (stats?.monthly_utilization ?? []).map((m) => ({ month_label: m.month_label, utilization: m.utilization }));
 }
 
 export function mapRevenuePerUnit(stats?: StatsLike) {

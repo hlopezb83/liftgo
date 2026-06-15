@@ -1,0 +1,17 @@
+{
+  "version": "6.71.3",
+  "date": "2026-06-15",
+  "type": "patch",
+  "title": "Dashboard: utilización de flota ahora mensual (últimos 6 meses)",
+  "category": "improvement",
+  "summary": "La gráfica de utilización del dashboard cambia de 8 semanas a 6 meses para ofrecer una lectura más estable de la tendencia.",
+  "details": [
+    "RPC get_dashboard_stats: nueva clave monthly_utilization (6 meses incluyendo el actual) reemplaza a weekly_utilization.",
+    "Fórmula: SUM(días traslapados de bookings confirmed) / (flota_activa × días_del_mes) × 100, redondeado.",
+    "Excluye forklifts con status retired/sold y considera solo bookings confirmed con traslape al rango [month_start, month_end].",
+    "Labels en español mexicano sin depender de locale del servidor (Ene 26, Feb 26, … Dic 26).",
+    "Frontend: rename de weeklyUtilization → monthlyUtilization en useDashboardStats, useDashboardSections, dashboardSectionHelpers, DashboardChartsSection, UtilizationCharts y Dashboard.",
+    "Título del card actualizado a 'Utilización de Flota — Últimos 6 meses (%)'.",
+    "Test dashboardSectionHelpers.test.ts actualizado al nuevo shape."
+  ]
+}

@@ -41,8 +41,8 @@ export interface DashboardStats {
     utilization: number;
     revenue: number;
   }>;
-  weekly_utilization: Array<{
-    week_label: string;
+  monthly_utilization: Array<{
+    month_label: string;
     utilization: number;
   }>;
   overdue_bookings: Array<{

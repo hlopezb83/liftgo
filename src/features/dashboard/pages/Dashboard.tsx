@@ -12,7 +12,7 @@ export default function Dashboard() {
     isLoading, insuranceData,
     statCards, utilizationPercent,
     pieData, agingBuckets, maintenanceAlerts,
-    weeklyUtilization, revenuePerUnit, cashFlowData,
+    monthlyUtilization, revenuePerUnit, cashFlowData,
     overdueInvoices,
     financials, alertsProps,
   } = useDashboardSections();
@@ -48,7 +48,7 @@ export default function Dashboard() {
         />
         <DashboardChartsSection
           pieData={pieData}
-          weeklyUtilization={weeklyUtilization}
+          monthlyUtilization={monthlyUtilization}
           revenuePerUnit={revenuePerUnit}
           cashFlowData={cashFlowData}
         />
