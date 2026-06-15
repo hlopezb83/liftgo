@@ -27,10 +27,48 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Job barato (~5s) que detecta secrets ausentes para que e2e/edge-functions
+  # se salten en PRs desde forks o repos sin configurar, en lugar de fallar
+  # con 40+ errores opacos. Skipped cuenta como success en el gate.
+  # ---------------------------------------------------------------------------
+  secrets-check:
+    name: Secrets check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      has_supabase: ${{ steps.check.outputs.has_supabase }}
+      has_e2e: ${{ steps.check.outputs.has_e2e }}
+    steps:
+      - id: check
+        env:
+          SUPA_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPA_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          E2E_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          E2E_PASS: ${{ secrets.E2E_TEST_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            if [[ -n "${SUPA_URL:-}" && -n "${SUPA_KEY:-}" ]]; then
+              echo "has_supabase=true"
+            else
+              echo "has_supabase=false"
+              echo "::warning::Faltan secrets VITE_SUPABASE_URL/VITE_SUPABASE_PUBLISHABLE_KEY — edge-functions y e2e se saltarán."
+            fi
+            if [[ -n "${E2E_EMAIL:-}" && -n "${E2E_PASS:-}" ]]; then
+              echo "has_e2e=true"
+            else
+              echo "has_e2e=false"
+              echo "::warning::Faltan secrets E2E_TEST_EMAIL/E2E_TEST_PASSWORD — e2e se saltará."
+            fi
+          } >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
   # Jobs en paralelo (todos comparten cache de bun install).
   # Antes era un único job "quality" serializado: lint → typecheck → knip → tests → build (~12 min).
   # Ahora wall time = job más lento (tests con coverage).
   # ---------------------------------------------------------------------------
+
 
   lint:
     name: ESLint
