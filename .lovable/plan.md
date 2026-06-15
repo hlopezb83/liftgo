@@ -1,46 +1,39 @@
-# Plan: Partir `components/ui/sidebar.tsx` (#5 del audit)
+# Fix Gitleaks: 2 falsos positivos por JWT anon (publishable)
 
-Único item crítico pendiente. Objetivo: dividir el shadcn primitive de 637 LOC sin cambiar comportamiento ni romper a ningún consumer.
+## Diagnóstico
 
-## Estrategia
+El workflow `.github/workflows/gitleaks.yml` está marcando 2 "leaks":
 
-Convertir `src/components/ui/sidebar.tsx` en un directorio `src/components/ui/sidebar/` con un `index.ts` que re-exporta todo. Todos los `import { ... } from "@/components/ui/sidebar"` siguen funcionando sin tocar consumers.
+1. `.env` línea 2 — `VITE_SUPABASE_PUBLISHABLE_KEY` (JWT con rol `anon`)
+2. `tests/e2e/fixtures/seed.ts` línea 22 — el mismo JWT anon embebido para los tests E2E
 
-## Estructura objetivo
+Ambos son la **publishable/anon key** de Supabase. Por diseño es pública (se sirve al navegador) y Lovable Cloud la considera segura en código. Gitleaks la marca solo porque coincide con el patrón genérico `jwt` (entropía 5.5). No hay fuga real.
 
-```
-src/components/ui/sidebar/
-  index.ts            ← re-exports públicos (23 símbolos)
-  constants.ts        ← cookies, widths, atajo de teclado, breakpoint
-  variants.ts         ← cva() de SidebarMenuButton
-  context.tsx         ← SidebarProvider + useSidebar + tipos del contexto
-  Sidebar.tsx         ← Sidebar (desktop/mobile/floating) + SidebarInset + SidebarRail + SidebarTrigger
-  SidebarSections.tsx ← SidebarHeader, SidebarFooter, SidebarContent, SidebarSeparator, SidebarInput
-  SidebarGroup.tsx    ← SidebarGroup, SidebarGroupLabel, SidebarGroupAction, SidebarGroupContent
-  SidebarMenu.tsx     ← SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuAction, SidebarMenuBadge, SidebarMenuSkeleton
-  SidebarMenuSub.tsx  ← SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton
-```
+## Solución
 
-Cada archivo ≤150 LOC. Eliminar el archivo original `sidebar.tsx` al final.
+Agregar `.gitleaks.toml` en la raíz que:
 
-## Reglas no-funcionales
+1. Extiende la config default de Gitleaks (mantiene todas las demás reglas activas).
+2. Agrega un `allowlist` global que ignora:
+   - Cualquier match cuyo **secret decodificado** contenga `"role":"anon"` (regex sobre el contenido del JWT) — esto cubre `.env`, `seed.ts` y cualquier futuro lugar donde aparezca la anon key sin tener que mantener una lista de fingerprints.
+   - Los dos `fingerprints` exactos del reporte actual como red de seguridad por si el contenido del JWT cambia de formato.
+   - Las rutas `tests/e2e/fixtures/**` y `.env` (solo para la regla `jwt`) como tercera capa, para evitar que se vuelva a romper si se rota la key.
 
-- Copiar el código tal cual (mismos className, cva, props, displayNames). Cero cambios visuales o de comportamiento.
-- Mantener `forwardRef` y `displayName` en todos los componentes.
-- `useSidebar` y `SidebarContext` viven en `context.tsx`.
-- El barrel `index.ts` exporta exactamente los 23 símbolos actuales para no romper imports.
+Resultado esperado: el job de Gitleaks pasa con 0 leaks, y se siguen detectando JWTs con rol `service_role`, `authenticated` o cualquier otro secreto real.
 
-## Verificación
+## Cambios
 
-1. `bunx tsc --noEmit` debe pasar.
-2. Smoke manual: abrir el preview, colapsar/expandir el sidebar, abrir el sheet móvil, navegar entre rutas. No debe haber diferencias visuales.
-3. `rg "from \"@/components/ui/sidebar\"" src | wc -l` antes y después debe coincidir.
+### Archivos nuevos
+- `.gitleaks.toml` — config con allowlist descrita arriba.
 
-## Changelog
+### Archivos editados
+- `public/changelog.json` — entrada **v6.75.1** (patch).
+- `public/changelog/v6.75.1.json` — detalle: "CI: silenciar falsos positivos de Gitleaks por anon key publishable".
 
-`v6.74.1` (patch, refactor estructural sin cambios funcionales):
-- `public/changelog.json` + `public/changelog/v6.74.1.json`.
+### Sin cambios
+- No se toca `.env`, `seed.ts`, ni `gitleaks.yml`.
+- No se rotan keys (la anon key es pública por diseño).
 
-## Fuera de alcance
+## Validación
 
-Recomendaciones #6 en adelante del audit (constantes adicionales, renames kebab-case, knip, descomponer god components secundarios). Iteraciones futuras.
+Al hacer push, el workflow `Detectar secretos` debe terminar verde (`leaks found: 0`).
