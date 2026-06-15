@@ -97,7 +97,8 @@ jobs:
         run: |
           set -euo pipefail
           BYTES=$(cat .bundle-size-base/bytes)
-          echo "base_bytes=$BYTES" >> $GITHUB_OUTPUT
+          echo "base_bytes=$BYTES" >> "$GITHUB_OUTPUT"
+
           echo "Reutilizando bundle base desde cache: $BYTES bytes"
 
       - name: Consolidar base_bytes
