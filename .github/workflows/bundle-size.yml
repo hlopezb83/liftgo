@@ -125,7 +125,7 @@ jobs:
           BASE_KB=$(awk "BEGIN {printf \"%.1f\", $BASE_BYTES/1024}")
           DIFF_KB=$(awk "BEGIN {printf \"%+.1f\", $DIFF/1024}")
           BODY="### Bundle size (gzip)\n\n| | kB |\n|---|---|\n| main | ${BASE_KB} |\n| PR | ${PR_KB} |\n| diff | **${DIFF_KB} (${PCT}%)** |\n"
-          printf "%b" "$BODY" >> $GITHUB_STEP_SUMMARY
+          printf "%b" "$BODY" >> "$GITHUB_STEP_SUMMARY"
           if [[ -n "${PR_NUMBER:-}" ]]; then
             printf "%b" "$BODY" | gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file -
           fi
