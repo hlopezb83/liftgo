@@ -38,8 +38,9 @@ jobs:
           set -euo pipefail
           git fetch origin "${{ github.base_ref }}" --depth=1
           BASE_SHA=$(git rev-parse "origin/${{ github.base_ref }}")
-          echo "sha=$BASE_SHA" >> $GITHUB_OUTPUT
+          echo "sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
           echo "Base SHA: $BASE_SHA"
+
 
       # Cache del bundle base por commit SHA: si dos PRs apuntan al mismo main,
       # solo el primero hace el build doble; el resto reutiliza el size.
@@ -60,12 +61,17 @@ jobs:
           set -euo pipefail
           TOTAL=$(find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
           TOTAL_KB=$(awk "BEGIN {printf \"%.1f\", $TOTAL/1024}")
-          echo "pr_bytes=$TOTAL" >> $GITHUB_OUTPUT
-          echo "pr_kb=$TOTAL_KB" >> $GITHUB_OUTPUT
-          echo "## Bundle (gzip)" >> $GITHUB_STEP_SUMMARY
-          echo "PR total: **${TOTAL_KB} kB**" >> $GITHUB_STEP_SUMMARY
-          find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -printf '%f %s\n' \
-            | sort -k2 -n -r | head -20 >> $GITHUB_STEP_SUMMARY
+          {
+            echo "pr_bytes=$TOTAL"
+            echo "pr_kb=$TOTAL_KB"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "## Bundle (gzip)"
+            echo "PR total: **${TOTAL_KB} kB**"
+            find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -printf '%f %s\n' \
+              | sort -k2 -n -r | head -20
+          } >> "$GITHUB_STEP_SUMMARY"
+
 
       - name: Build base (cache miss)
         if: steps.base-cache.outputs.cache-hit != 'true'
@@ -82,7 +88,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           mkdir -p .bundle-size-base
           echo "$TOTAL" > .bundle-size-base/bytes
-          echo "base_bytes=$TOTAL" >> $GITHUB_OUTPUT
+          echo "base_bytes=$TOTAL" >> "$GITHUB_OUTPUT"
 
       - name: Leer bundle base desde cache
         if: steps.base-cache.outputs.cache-hit == 'true'
@@ -91,7 +97,8 @@ jobs:
         run: |
           set -euo pipefail
           BYTES=$(cat .bundle-size-base/bytes)
-          echo "base_bytes=$BYTES" >> $GITHUB_OUTPUT
+          echo "base_bytes=$BYTES" >> "$GITHUB_OUTPUT"
+
           echo "Reutilizando bundle base desde cache: $BYTES bytes"
 
       - name: Consolidar base_bytes
@@ -99,7 +106,7 @@ jobs:
         shell: bash
         run: |
           BYTES="${{ steps.base-build.outputs.base_bytes || steps.base-cached.outputs.base_bytes }}"
-          echo "base_bytes=$BYTES" >> $GITHUB_OUTPUT
+          echo "base_bytes=$BYTES" >> "$GITHUB_OUTPUT"
 
 
       - name: Comparar y comentar PR
@@ -118,7 +125,7 @@ jobs:
           BASE_KB=$(awk "BEGIN {printf \"%.1f\", $BASE_BYTES/1024}")
           DIFF_KB=$(awk "BEGIN {printf \"%+.1f\", $DIFF/1024}")
           BODY="### Bundle size (gzip)\n\n| | kB |\n|---|---|\n| main | ${BASE_KB} |\n| PR | ${PR_KB} |\n| diff | **${DIFF_KB} (${PCT}%)** |\n"
-          printf "%b" "$BODY" >> $GITHUB_STEP_SUMMARY
+          printf "%b" "$BODY" >> "$GITHUB_STEP_SUMMARY"
           if [[ -n "${PR_NUMBER:-}" ]]; then
             printf "%b" "$BODY" | gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file -
           fi

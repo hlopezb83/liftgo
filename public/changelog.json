@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.73.2",
+    "date": "2026-06-15",
+    "type": "patch",
+    "title": "CI: resolver nits de shellcheck en bundle-size.yml",
+    "description": "Limpia SC2086 (quoting de $GITHUB_OUTPUT y $GITHUB_STEP_SUMMARY) y SC2129 (agrupar redirecciones consecutivas en un solo bloque). actionlint queda en verde sin warnings.",
+    "category": "infrastructure"
+  },
+  {
+
     "version": "6.73.1",
     "date": "2026-06-15",
     "type": "patch",
