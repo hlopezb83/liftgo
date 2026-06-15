@@ -1,0 +1,4 @@
+# Fingerprints específicos reportados por gitleaks que corresponden a la anon key
+# publishable de Supabase (no es un secreto real). Ver .gitleaks.toml para detalle.
+be74f4b2865e431e3632efb4ef61c017874d0985:tests/e2e/fixtures/seed.ts:jwt:22
+8e5a49937a4bd6393d96e961d776c0d31d369697:.env:jwt:2
