@@ -108,7 +108,7 @@ jobs:
 
       - name: Publish Vitest results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6.4.1
         with:
           report_paths: reports/vitest-junit.xml
           check_name: Vitest results
@@ -160,7 +160,7 @@ jobs:
 
       - name: Publish RLS results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6.4.1
         with:
           report_paths: reports/rls-junit.xml
           check_name: RLS results
@@ -175,7 +175,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Setup Deno
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2.0.4
         with:
           deno-version: v2.x
 
@@ -307,7 +307,7 @@ jobs:
 
       - name: Publish Playwright results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@v6
+        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6.4.1
         with:
           report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
           check_name: Playwright results (shard ${{ matrix.shard }})
