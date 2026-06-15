@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.75.0",
+    "date": "2026-06-15",
+    "type": "minor",
+    "title": "Knip: configuración y reporte de dead code sweep",
+    "description": "Configura `knip.json` con entry points reales (Vitest, Playwright, edge functions) y agrega scripts `bun run knip` y `bun run knip:deep`. Reporte completo en `docs/audits/knip-2026-06-15.md`: 0 archivos huérfanos, 0 deps muertas; ~30 exports privados a borrar (bajo riesgo) y 6 grupos a revisar (residuos de refactors / fuentes de verdad duplicadas).",
+    "category": "tooling"
+  },
+  {
     "version": "6.74.1",
     "date": "2026-06-15",
     "type": "patch",
