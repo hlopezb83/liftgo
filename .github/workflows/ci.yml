@@ -209,6 +209,9 @@ jobs:
     name: Edge Functions (Deno smoke tests)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: secrets-check
+    if: needs.secrets-check.outputs.has_supabase == 'true'
+
     steps:
       - uses: actions/checkout@v6
 
