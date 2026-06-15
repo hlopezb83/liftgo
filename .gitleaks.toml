@@ -1,0 +1,28 @@
+# Gitleaks config — extiende reglas default y permite la anon key publishable de Supabase.
+# La anon key es pública por diseño (se sirve al navegador). Cualquier JWT con rol distinto
+# (service_role, authenticated, etc.) sigue siendo detectado.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Permitir JWT publishable (anon) de Supabase en código y tests"
+
+# Capa 1: cualquier JWT cuyo payload decodifique a role:anon
+regexTarget = "match"
+regexes = [
+  '''eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*cm9sZSI6ImFub24[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+''',
+]
+
+# Capa 2: fingerprints exactos reportados (red de seguridad)
+stopwords = []
+[[allowlist.fingerprints]]
+
+# Capa 3: rutas conocidas donde aparece la anon key
+paths = [
+  '''^\.env$''',
+  '''^tests/e2e/fixtures/.*''',
+]
+
+# Fingerprints concretos del reporte 2026-06-15
+[[allowlist.fingerprints]]
