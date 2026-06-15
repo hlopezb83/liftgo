@@ -38,8 +38,9 @@ jobs:
           set -euo pipefail
           git fetch origin "${{ github.base_ref }}" --depth=1
           BASE_SHA=$(git rev-parse "origin/${{ github.base_ref }}")
-          echo "sha=$BASE_SHA" >> $GITHUB_OUTPUT
+          echo "sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
           echo "Base SHA: $BASE_SHA"
+
 
       # Cache del bundle base por commit SHA: si dos PRs apuntan al mismo main,
       # solo el primero hace el build doble; el resto reutiliza el size.
