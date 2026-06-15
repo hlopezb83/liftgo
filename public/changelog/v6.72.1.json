@@ -1,0 +1,24 @@
+{
+  "version": "6.72.1",
+  "date": "2026-06-15",
+  "type": "patch",
+  "title": "CI: PR labeler automático por paths",
+  "category": "infrastructure",
+  "description": "Workflow actions/labeler@v5 que clasifica automáticamente cada pull request según los archivos modificados. Cubre tipos transversales (ci, dependencies, docs, changelog, database, edge-functions, tests, ui, pdf, auth, portal) y los módulos de negocio del ERP. sync-labels: true elimina etiquetas obsoletas cuando los cambios del PR ya no aplican.",
+  "changes": [
+    {
+      "category": "Workflows",
+      "items": [
+        ".github/workflows/labeler.yml usa pull_request_target con permisos pull-requests: write",
+        "concurrency cancel-in-progress por PR para no acumular ejecuciones en rebases"
+      ]
+    },
+    {
+      "category": "Configuración de labels",
+      "items": [
+        "Transversales: ci, dependencies, docs, changelog, database, edge-functions, tests, ui, pdf, auth, portal, feedback",
+        "Módulos: fleet, bookings, crm, maintenance, invoicing, quotes, logistics, dashboard, customers, inventory, reporting, suppliers"
+      ]
+    }
+  ]
+}
