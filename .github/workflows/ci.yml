@@ -288,9 +288,11 @@ jobs:
       # para no invalidar al cambiar otras deps.
       - name: Get Playwright version
         id: pw-version
+        shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').devDependencies['@playwright/test'] || require('./package.json').dependencies['@playwright/test']")
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
 
       - name: Cache Playwright browsers
         id: playwright-cache
