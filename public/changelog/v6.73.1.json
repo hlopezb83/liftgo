@@ -1,0 +1,8 @@
+{
+  "version": "6.73.1",
+  "date": "2026-06-15",
+  "type": "patch",
+  "title": "CI: secrets-check job + actionlint filtra solo errores + helper Deno defensivo",
+  "description": "Soluciona los 3 jobs en rojo del run de CI. (1) Nuevo job `secrets-check` que detecta ausencia de VITE_SUPABASE_URL/PUBLISHABLE_KEY y E2E_TEST_EMAIL/PASSWORD: edge-functions y e2e se skipean (gris) en lugar de fallar con 40 errores opacos cuando los secrets del repo no están configurados. (2) reviewdog/action-actionlint ahora usa `fail_level: error` + `filter_mode: added` en lugar del deprecado `fail_on_error: true`, evitando el rojo por nits de shellcheck (SC2086, SC2129) y el límite `Too many results in diff`. (3) `supabase/functions/_shared/test-helpers.ts` usa `||` en lugar de `??` para tratar strings vacíos como no configurados, y valida con `new URL()` para fallar con mensaje accionable en lugar del genérico `TypeError: Invalid URL: '/functions/v1/...'`. Pendiente manual: configurar los 7 secrets en Settings → Secrets and variables → Actions del repo de GitHub.",
+  "category": "infrastructure"
+}
