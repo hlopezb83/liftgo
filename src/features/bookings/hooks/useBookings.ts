@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
+import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { bookingKeys } from "../lib/queryKeys";
 export type { Booking, BookingWithForklift } from "@/types/rental";
 
@@ -9,7 +10,12 @@ export function useBookings(forkliftId?: string) {
     queryKey: forkliftId ? bookingKeys.byForklift(forkliftId) : bookingKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
-      let query = supabase.from("bookings").select("*, forklifts(name, model)").or("is_e2e.is.null,is_e2e.eq.false").order("start_date", { ascending: false }).limit(500);
+      let query = supabase
+        .from("bookings")
+        .select("*, forklifts(name, model)")
+        .or(EXCLUDE_E2E_FILTER)
+        .order("start_date", { ascending: false })
+        .limit(LIST_PAGE_LIMIT);
       if (forkliftId) query = query.eq("forklift_id", forkliftId);
       const { data, error } = await query;
       if (error) throw error;
@@ -34,7 +40,7 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
       const { data, error } = await supabase
         .from("bookings")
         .select("*, forklifts(name, model)")
-        .or("is_e2e.is.null,is_e2e.eq.false")
+        .or(EXCLUDE_E2E_FILTER)
         .gte("end_date", fromStr)
         .lte("start_date", toStr)
         .order("start_date", { ascending: true });

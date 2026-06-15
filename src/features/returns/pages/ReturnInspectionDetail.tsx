@@ -9,11 +9,10 @@ import { BookingCard } from "../components/return-inspection/BookingCard";
 import { InspectionCard } from "../components/return-inspection/InspectionCard";
 import { UsageFuelCard } from "../components/return-inspection/UsageFuelCard";
 import { DamagesCard } from "../components/return-inspection/DamagesCard";
-import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 export default function ReturnInspectionDetail() {
   const { id } = useParams<{ id: string }>();
-  const { data: rawInspection, isLoading } = useReturnInspection(id);
+  const { data: ins, isLoading } = useReturnInspection(id);
 
   if (isLoading) {
     return (
@@ -27,15 +26,13 @@ export default function ReturnInspectionDetail() {
     );
   }
 
-  if (!rawInspection) {
+  if (!ins) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh]">
         <p className="text-muted-foreground">Devolución no encontrada</p>
       </div>
     );
   }
-
-  const ins = rawInspection as ReturnInspectionWithJoins;
 
   return (
     <div className="space-y-6">
@@ -45,6 +42,7 @@ export default function ReturnInspectionDetail() {
         badges={<StatusBadge status={ins.condition} />}
         backTo="/returns"
       />
+
 
       <div className="grid gap-6 md:grid-cols-2">
         <EquipmentCard ins={ins} />

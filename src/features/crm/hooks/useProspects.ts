@@ -27,15 +27,18 @@ export function useProspects() {
         .select("*")
         .order("stage_order", { ascending: true });
       if (error) throw error;
-      const rows = (data ?? []) as unknown as ProspectRow[];
+      const rows: ProspectRow[] = data ?? [];
 
-      const creatorIds = [...new Set(rows.map((r) => r.created_by).filter(Boolean))] as string[];
+      const creatorIds = rows
+        .map((r) => r.created_by)
+        .filter((id): id is string => Boolean(id));
+      const uniqueCreatorIds = [...new Set(creatorIds)];
       const profileMap = new Map<string, string | null>();
-      if (creatorIds.length > 0) {
+      if (uniqueCreatorIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, full_name")
-          .in("user_id", creatorIds);
+          .in("user_id", uniqueCreatorIds);
         (profiles ?? []).forEach((p) => profileMap.set(p.user_id, p.full_name));
       }
 
