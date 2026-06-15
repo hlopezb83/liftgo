@@ -1,73 +1,120 @@
-# Diagnóstico del run de CI
+# Plan: Implementar recomendaciones críticas del audit (#1–5)
 
-Analicé el ZIP de logs (run #27527151246). De los 9 jobs, **3 fallaron** y arrastraron el gate `CI success` a rojo:
+Objetivo: eliminar las 5 deudas críticas de arquitectura sin cambiar comportamiento visible al usuario. Todo en frontend/hooks; sin migraciones de DB.
 
-| Job | Estado | Causa raíz |
-|---|---|---|
-| Edge Functions (Deno) | ❌ 40/40 fallaron | `secrets.VITE_SUPABASE_URL` vacío → `fnUrl()` arma `/functions/v1/...` (URL relativa inválida) → `TypeError: Invalid URL` |
-| E2E Playwright shard 1 | ❌ | Mismo: `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` no existen en Secrets del repo, y el `globalSetup` hace `throw` explícito |
-| E2E Playwright shard 2 | ❌ | Idéntico al shard 1 |
-| Actionlint | ⚠️ con error | reviewdog reporta nits de shellcheck (SC2086, SC2129) en scripts inline de workflows, y satura el límite de annotations (`Too many results`) marcando el step como error |
-| Typecheck / ESLint / Knip / RLS / Vitest / Build | ✅ | Sin issues |
+---
 
-Warning informativo (no rompe): `actions/cache@v4` corre sobre Node 20, deprecado a partir del 16-sep-2026. No hay v5 todavía; basta con monitorear.
+## #1 — Sacar Supabase de páginas y de `lib/`
 
-# Causa principal: faltan Secrets en GitHub
+**1.1 `features/auth/pages/AuthPage.tsx`**
+- Crear `features/auth/hooks/useAuthRedirect.ts` que encapsule:
+  - `supabase.auth.getSession()` inicial.
+  - `supabase.auth.onAuthStateChange()` con cleanup `subscription.unsubscribe()`.
+  - Retorno: `{ isAuthenticated: boolean | null }`.
+- `AuthPage.tsx` queda como vista pura: consume el hook y redirige con `<Navigate>`.
 
-Los workflows están bien escritos, pero el repo **no tiene configurados** estos secrets:
+**1.2 `features/invoices/lib/pdf/build.tsx`**
+- Crear `features/invoices/hooks/useInvoicePdfData.ts` (TanStack Query) que haga los `supabase.from("invoices")` + `supabase.from("customers")`.
+- `build.tsx` recibe los datos ya tipados como argumento y queda como render-only del PDF.
+- Caller (botón "Descargar PDF") usa el hook → llama `build()` con el resultado.
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_PROJECT_ID`
-- `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD`
-- `E2E_PORTAL_EMAIL` / `E2E_PORTAL_PASSWORD`
+---
 
-Eso es **configuración manual en GitHub** (Settings → Secrets and variables → Actions). No se puede arreglar desde Lovable; los valores ya están en `.env` del proyecto.
+## #2 — Eliminar `as unknown as` (5 sitios)
 
-# Plan de cambios en código (lo que sí puedo arreglar acá)
+Para cada caso: refinar el tipo del query Supabase (proyección explícita + tipo derivado) en lugar de castear.
 
-## 1. `supabase/functions/_shared/test-helpers.ts` — defensivo contra env vacío
-El operador `??` no captura strings vacíos. Si el secret existe pero está vacío, falla con URL relativa. Cambiar a:
+| Archivo | Acción |
+|---|---|
+| `features/crm/hooks/useProspects.ts:30` | Definir `type ProspectRow` desde `Database["public"]["Tables"]["prospects"]["Row"]` + joins explícitos. Eliminar `as unknown as`. |
+| `features/cash-flow/hooks/useCashFlowProjection.ts:93` | Resuelto en #3 al extraer transformadores. |
+| `features/returns/pages/ReturnInspectionDetail.tsx:38` | Tipar el hook `useReturnInspection(id)` con el shape de joins (`return_inspections + bookings + forklifts + customers`). |
+| `features/returns/pages/ReturnInspectionPage.tsx` (×5) | Mover el tipo `ReturnInspectionWithJoins` al hook que retorna la lista; quitar casts de accessors. |
+
+Regla: si Supabase no infiere bien por JSON columns, usar parsers en `lib/domain/` (ej. `parseLineItems(json)`).
+
+---
+
+## #3 — Descomponer `useCashFlowProjection`
+
+Crear `features/cash-flow/lib/cashFlowTransformers.ts` con funciones puras y testeables:
 
 ```ts
-const envUrl = (Deno.env.get("SUPABASE_URL") || Deno.env.get("VITE_SUPABASE_URL") || "").trim();
-export const SUPABASE_URL = envUrl || "http://localhost:54321";
+export const toMxn = (amount: number, currency: string, fxRate: number) => …
+export const buildPaidByInvoice = (payments: PaymentRow[]) => Map<string, number>
+export const invoiceToItem = (inv: InvoiceRow, paidMap, fxRate) => CashFlowItem
+export const billToItem = (bill: BillRow, fxRate) => CashFlowItem
+export const bucketByWeek = (items: CashFlowItem[], settings) => CashFlowBucket[]
 ```
 
-Y agregar al inicio del helper un `throw` claro si `SUPABASE_URL` no es una URL absoluta válida, para que el mensaje sea entendible en CI.
+`useCashFlowProjection.ts` queda ≤80 LOC:
+1. 3 queries paralelas tipadas (sin casts).
+2. Llama a los transformadores puros.
+3. Retorna `{ buckets, isLoading, error }`.
 
-## 2. `.github/workflows/ci.yml` — guardas tempranas en jobs que requieren secrets
-Agregar al inicio de los jobs `e2e` y `edge-functions` un step que valide presencia de secrets y, si faltan:
-- En PRs desde forks o repos sin secrets: marcar el job como **skipped** (no rojo) con `if: ${{ secrets.VITE_SUPABASE_URL != '' }}` a nivel job.
-- En `main` o ramas internas: fallar con mensaje explícito que indique exactamente qué secret falta y dónde configurarlo.
+Añadir tests en `lib/cashFlowTransformers.test.ts` (MXN/USD, semanas vacías, edge cases).
 
-Esto evita el flood de 40 fallos confusos y deja un solo mensaje accionable.
+---
 
-## 3. `.github/workflows/ci.yml` + composite action — limpiar shellcheck (SC2086, SC2129)
-Resolver los nits que dispara Actionlint:
-- **SC2086**: entrecomillar variables (`"$VAR"` en lugar de `$VAR`) en scripts inline de los steps (matrix shards, summaries, generación de reportes).
-- **SC2129**: agrupar redirecciones consecutivas (`{ echo a; echo b; } >> "$GITHUB_STEP_SUMMARY"`).
+## #4 — Limites silenciosos `.limit(500)`
 
-Targets afectados: `ci.yml` (steps de e2e summary, edge-functions runner, ci-success), `bundle-size.yml`, `supabase-lint.yml`, `.github/actions/setup-bun-project/action.yml`.
+**4.1 Constantes** (también cubre parte del #6 del audit):
+- Crear `src/lib/supabase/constants.ts`:
+  ```ts
+  export const LIST_PAGE_LIMIT = 500;
+  export const EXCLUDE_E2E_FILTER = "is_e2e.is.null,is_e2e.eq.false";
+  ```
 
-## 4. `.github/workflows/ci.yml` — bajar ruido de reviewdog
-Cambiar `fail_on_error: true` (deprecado) por `fail_level: error`, y agregar `filter_mode: nofilter` para que solo reporte cambios del PR. Eso evita el `Too many results in diff` que actualmente convierte warnings en error de step.
+**4.2 Refactor en hooks**:
+- `features/bookings/hooks/useBookings.ts` y `features/invoices/hooks/invoices/useInvoices.ts`: reemplazar `.limit(500)` por `.limit(LIST_PAGE_LIMIT)` y exponer un flag `hasReachedLimit: data.length >= LIST_PAGE_LIMIT`.
 
-## 5. Changelog
-Entrada nueva **v6.73.1** (patch):
+**4.3 Aviso UI**:
+- En `BookingsPage` e `InvoicesPage`, mostrar `<Alert variant="warning">` cuando `hasReachedLimit` indique truncamiento, con copy en es-MX: "Mostrando los primeros 500 registros. Refina los filtros para ver más."
+
+---
+
+## #5 — Partir `components/ui/sidebar.tsx` (637 LOC)
+
+Es un shadcn primitive. Dividir manteniendo la API pública intacta (mismos exports `Sidebar`, `SidebarTrigger`, etc.):
+
+```
+src/components/ui/sidebar/
+  index.ts                  ← re-exports (mantiene "@/components/ui/sidebar")
+  context.tsx               ← SidebarProvider, useSidebar, contexto + hooks de teclado
+  Sidebar.tsx               ← componente raíz + variantes mobile/desktop
+  SidebarRail.tsx           ← rail collapse
+  SidebarNav.tsx            ← SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuAction
+  SidebarSection.tsx        ← SidebarGroup, SidebarGroupLabel, SidebarGroupContent
+  SidebarLayout.tsx         ← SidebarHeader, SidebarFooter, SidebarContent, SidebarInset
+  variants.ts               ← cva tokens
+```
+
+Reglas:
+- Cero cambios a imports en consumidores (`@/components/ui/sidebar` sigue resolviendo igual via `index.ts`).
+- Cada archivo ≤150 LOC.
+- Sin cambios visuales — solo move + split.
+
+---
+
+## Detalles técnicos clave
+
+- TanStack Query: nuevos hooks siguen el patrón existente (`queryKey`, `staleTime`, `enabled`).
+- Estricto: nada de `any`/`!`/`as`. Tipos derivados de `Database` types.
+- Tests: añadir solo para `cashFlowTransformers` (los demás son refactors estructurales sin cambios de lógica; existing tests deben seguir verdes).
+- `index.ts` barrel del sidebar evita romper ~30+ imports en el codebase.
+
+## Verificación
+
+1. `bunx tsc --noEmit` debe pasar (la harness lo corre automático).
+2. `bunx vitest run` — tests existentes verdes + nuevos de transformers.
+3. Smoke manual: login, dashboard, cash flow, sidebar collapse/mobile, bookings/invoices lists, descarga PDF de factura, detalle de return inspection, listado CRM prospects.
+
+## Changelog
+
+Entrada **v6.74.0** (minor — refactor arquitectónico significativo sin cambios funcionales):
 - `public/changelog.json` (índice)
-- `public/changelog/v6.73.1.json` (detalle)
+- `public/changelog/v6.74.0.json` (detalle: 5 items críticos del audit).
 
-# Lo que NO entra en este plan (acción tuya manual)
-1. Configurar los 7 Secrets en GitHub (te paso copy-paste de nombres + valores tomados de tu `.env`).
-2. Configurar branch protection en `main` exigiendo el job `CI success`.
-3. (Opcional) Eliminar `actions/cache@v4` cuando salga v5 con Node 24.
+## Fuera de alcance (siguiente PR)
 
-# Detalles técnicos
-- No toco `auto-gen` (`client.ts`, `types.ts`, `.env`, `config.toml`).
-- No cambio comportamiento de las edge functions, solo el helper de tests.
-- El `if` a nivel job que skipea cuando faltan secrets usa `${{ secrets.NAME != '' }}` que es estándar y no requiere repo público.
-- Actionlint se mantiene en el gate `ci-success` después del fix.
-
-# Resultado esperado
-Después del fix + configurar los secrets manualmente: **9/9 jobs verdes**. Si decides no configurar secrets ahora, los jobs e2e/edge-functions quedan **skipped** (gris) y `CI success` pasa en verde con los 7 jobs restantes.
+Recomendaciones #6–27 del audit (constantes compartidas extra, renames kebab-case, knip, etc.). Solo se incluye en este PR la mínima constante necesaria para #4.
