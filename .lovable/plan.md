@@ -1,36 +1,58 @@
-# Cambiar Utilización de Flota: semanal → mensual
+# GitHub Actions faltantes
 
-Reemplazar la serie de 8 semanas por **6 meses** (incluyendo el mes en curso), manteniendo la misma fórmula de días-flota ocupados / días-flota disponibles.
+El CI actual (`.github/workflows/ci.yml`) ya cubre muy bien lint, typecheck, knip, tests + coverage, build, RLS, Edge Functions (Deno) y E2E (Playwright sharded) con gate `ci-success`. Lo que **falta** y aportaría valor real al proyecto:
 
-## Cambios
+## 1. `dependabot.yml` (configuración, no workflow)
+Actualizaciones semanales automáticas de:
+- `npm` (root) agrupando devDependencies menores/patch
+- `github-actions` (mantener `actions/checkout@v6`, `setup-deno@v2`, etc. al día)
+- Ignorar `jspdf` (locked en 4.0.0 por memoria de proyecto)
 
-### 1. RPC `get_dashboard_stats` (migración)
-Reemplazar el bloque `weekly_utilization` por uno equivalente mensual:
+## 2. `codeql.yml` — análisis estático de seguridad
+- Lenguajes: `javascript-typescript`
+- Trigger: push/PR a `main` + cron semanal
+- Permite el badge "Security" y bloquea vulnerabilidades de código (XSS, inyecciones, etc.)
 
-- Generar 6 meses con `generate_series` truncando a `month`.
-- Para cada mes calcular `[month_start, month_end]` (último día real del mes).
-- Utilización = `SUM(días traslapados de bookings confirmed) / (flota_activa × días_del_mes) × 100`, redondeado.
-- Excluir forklifts con status `retired` / `sold`.
-- Label: `TO_CHAR(month_start, 'Mon YY')` en español vía `TO_CHAR(... , 'TMMon YY')` con `lc_time` o, más simple, mapear los 12 nombres en SQL para garantizar es-MX (Ene, Feb, Mar, …). Voto por el mapeo explícito para no depender de locale del servidor.
+## 3. `gitleaks.yml` — escaneo de secretos
+- Corre en cada PR
+- Detecta llaves de Supabase service_role, Facturapi, tokens accidentales
+- Crítico porque el repo maneja CFDI/Facturapi y has tenido rotaciones de keys
 
-La clave del JSON se renombra a `monthly_utilization` (más honesta que reutilizar `weekly_utilization`).
+## 4. `supabase-lint.yml` — validación de migraciones
+- Trigger sólo cuando cambian `supabase/migrations/**`
+- Ejecuta `supabase db lint` + verifica que cada `CREATE TABLE public.*` tenga `GRANT` y `ENABLE ROW LEVEL SECURITY` (regex check), alineado con tu core rule
+- Falla el PR si faltan GRANTs (problema recurrente histórico)
 
-### 2. Frontend
-- `useDashboardStats.ts`: renombrar campo `weekly_utilization` → `monthly_utilization` y el item interno `week_label` → `month_label`.
-- `dashboardSectionHelpers.ts`: `mapWeeklyUtilization` → `mapMonthlyUtilization`, devuelve `{ month_label, utilization }`.
-- `UtilizationCharts.tsx`:
-  - Prop `weeklyUtilization` → `monthlyUtilization`.
-  - `dataKey="week_label"` → `dataKey="month_label"`.
-  - Texto del título: **"Utilización de Flota — Últimos 6 meses (%)"**.
-  - Texto de tendencia se mantiene (sigue siendo regresión lineal sobre los puntos).
-- `DashboardChartsSection.tsx` y `useDashboardSections.ts`: propagar el rename de la prop.
-- Test `dashboardSectionHelpers.test.ts`: actualizar al nuevo shape.
+## 5. `lighthouse.yml` — performance budget
+- Ya existe `scripts/lighthouse-baseline.sh` y `docs/lighthouse/baseline.md` sin runner
+- Workflow manual (`workflow_dispatch`) + nocturno (`schedule`) contra preview URL
+- Sube reporte como artifact; opcionalmente compara contra baseline
 
-### 3. Changelog
-Entrada `v6.71.3` (patch) en `public/changelog.json` + `public/changelog/v6.71.3.json`:
-- Título: "Dashboard: utilización de flota ahora mensual (6 meses)".
-- Razón: ventana semanal era muy corta para leer tendencias reales de rentas largas.
+## 6. `bundle-size.yml` — control de tamaño del bundle
+- En cada PR, build de Vite y comenta el diff de tamaño en kB (gzip) vs `main`
+- Útil porque cargas `jspdf` lazy y quieres mantener el bundle inicial pequeño
 
-## Out of scope
-- No se cambia el cálculo de utilización por unidad (sigue siendo ventana 30 días).
-- No se toca el KPI de MRR ni `/mrr`.
+---
+
+## Opcionales (menor prioridad, dilo si los quieres)
+- **PR labeler** automático por paths (`features/fleet/**` → `fleet`, etc.)
+- **Release Drafter** que arme release notes desde el changelog
+- **Stale bot** para issues/PRs viejos
+- **CODEOWNERS** + check requerido (sólo si trabajas en equipo)
+
+---
+
+## Detalles técnicos
+
+- Todos los nuevos workflows reusarían `./.github/actions/setup-bun-project` cuando apliquen.
+- Para CodeQL y Gitleaks: `permissions: security-events: write` y `contents: read`.
+- Supabase lint: usar `supabase/setup-cli@v1` (no requiere proyecto remoto, sólo CLI local).
+- Bundle-size: `andresz1/size-limit-action@v1` o script propio con `du -sh dist/assets/*.js`.
+- No tocar `ci.yml` existente; cada workflow nuevo es archivo independiente para no inflar el wall-time del PR principal.
+
+## Cambios al final
+Entrada `v6.72.0` (minor) en `public/changelog.json` + `public/changelog/v6.72.0.json` describiendo los workflows agregados.
+
+---
+
+¿Quieres que implemente los **6 recomendados**, sólo un subconjunto (dime cuáles), o también los opcionales?

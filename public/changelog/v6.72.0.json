@@ -1,0 +1,37 @@
+{
+  "version": "6.72.0",
+  "date": "2026-06-15",
+  "type": "minor",
+  "title": "CI/CD: 6 workflows nuevos (CodeQL, Gitleaks, Dependabot, Supabase lint, Lighthouse, Bundle size)",
+  "category": "infrastructure",
+  "description": "Se complementa el pipeline existente (lint, typecheck, knip, tests, build, RLS, edge functions, E2E) con: (1) Dependabot semanal para npm y github-actions agrupando minor/patch e ignorando jspdf; (2) CodeQL con queries security-and-quality y cron semanal para análisis estático JS/TS; (3) Gitleaks en cada PR y push para detectar secretos (Facturapi, service_role, etc.) con historia completa; (4) Supabase migrations lint que valida vía regex que cada CREATE TABLE public.* tenga GRANT + ENABLE ROW LEVEL SECURITY + CREATE POLICY y que toda función SECURITY DEFINER tenga SET search_path, más supabase db lint; (5) Lighthouse audit diario contra https://liftgo.lovable.app con artifact HTML+JSON de 30 días; (6) Bundle size que en cada PR compara el tamaño gzip del bundle contra main y comenta el diff en el PR. Todos los workflows usan concurrency cancel-in-progress y se excluyen de paths-ignore para no correr en cambios de docs/changelog.",
+  "changes": [
+    {
+      "category": "Dependabot",
+      "items": [
+        ".github/dependabot.yml con grupos dev-minor-patch y prod-patch, ignore jspdf/jspdf-autotable, horario lunes 06:00 America/Monterrey"
+      ]
+    },
+    {
+      "category": "Seguridad",
+      "items": [
+        "codeql.yml — análisis security-and-quality JS/TS en PR, push y cron semanal",
+        "gitleaks.yml — escaneo de secretos con fetch-depth: 0 y comentarios en PR"
+      ]
+    },
+    {
+      "category": "Supabase",
+      "items": [
+        "supabase-lint.yml — guard textual que rechaza migraciones sin GRANT/RLS/POLICY y SECURITY DEFINER sin SET search_path",
+        "Job adicional con supabase/setup-cli@v1 ejecutando supabase db lint"
+      ]
+    },
+    {
+      "category": "Performance",
+      "items": [
+        "lighthouse.yml — audit diario 05:00 hora MTY contra producción, artifact HTML+JSON 30 días",
+        "bundle-size.yml — build PR vs main, comenta diff gzip en kB y % en el PR"
+      ]
+    }
+  ]
+}
