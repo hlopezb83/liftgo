@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: "URL a auditar (default: preview de Lovable)"
+        description: "URL a auditar (default: producción)"
         required: false
         default: "https://liftgo.lovable.app"
 
@@ -20,36 +20,17 @@ concurrency:
 
 jobs:
   audit:
-    name: Lighthouse audit
+    name: Lighthouse CI con thresholds
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Run Lighthouse CI
+        # Pin a SHA (action de terceros). v12.6.2.
+        uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # v12.6.2
         with:
-          node-version: "20"
-
-      - name: Install Lighthouse
-        run: npm i -g lighthouse@12
-
-      - name: Run Lighthouse
-        env:
-          TARGET_URL: ${{ github.event.inputs.target_url || 'https://liftgo.lovable.app' }}
-        run: |
-          mkdir -p reports/lighthouse
-          lighthouse "$TARGET_URL" \
-            --output=html --output=json \
-            --output-path=reports/lighthouse/report \
-            --chrome-flags="--headless=new --no-sandbox" \
-            --quiet || true
-
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: lighthouse-report
-          path: reports/lighthouse/
-          retention-days: 30
-          if-no-files-found: warn
+          urls: ${{ github.event.inputs.target_url || 'https://liftgo.lovable.app' }}
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true

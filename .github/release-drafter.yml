@@ -1,0 +1,63 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+
+categories:
+  - title: "Nuevas funcionalidades"
+    labels:
+      - "feature"
+      - "enhancement"
+  - title: "Fixes"
+    labels:
+      - "fix"
+      - "bug"
+  - title: "Seguridad"
+    labels:
+      - "security"
+  - title: "Performance"
+    labels:
+      - "performance"
+  - title: "Infraestructura / CI"
+    labels:
+      - "ci"
+      - "infrastructure"
+      - "dependencies"
+  - title: "Base de datos"
+    labels:
+      - "database"
+  - title: "Documentación"
+    labels:
+      - "docs"
+
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - "major"
+      - "breaking"
+  minor:
+    labels:
+      - "minor"
+      - "feature"
+      - "enhancement"
+  patch:
+    labels:
+      - "patch"
+      - "fix"
+      - "bug"
+      - "chore"
+      - "dependencies"
+      - "docs"
+      - "ci"
+  default: patch
+
+exclude-labels:
+  - "skip-changelog"
+
+template: |
+  ## Cambios en esta versión
+
+  $CHANGES
+
+  **Changelog interno:** ver `public/changelog/v$RESOLVED_VERSION.json`.
