@@ -1,0 +1,14 @@
+{
+  "version": "6.74.1",
+  "date": "2026-06-15",
+  "type": "patch",
+  "title": "Refactor: partir components/ui/sidebar.tsx (#5 del audit)",
+  "summary": "Divide el primitivo Sidebar de 637 LOC en 8 módulos enfocados sin cambiar comportamiento. La API pública (`@/components/ui/sidebar`) se mantiene intacta mediante un barrel.",
+  "highlights": [
+    "Nuevo directorio `src/components/ui/sidebar/` con `constants.ts`, `variants.ts`, `context.tsx`, `Sidebar.tsx`, `SidebarSections.tsx`, `SidebarGroup.tsx`, `SidebarMenu.tsx`, `SidebarMenuSub.tsx` e `index.ts`.",
+    "Cada archivo dentro del rango Power of 10 (≤156 LOC).",
+    "Cero cambios en consumers: todos los imports `from \"@/components/ui/sidebar\"` siguen resolviendo via barrel.",
+    "Completa los 5 items críticos del audit (v6.74.0 cubrió #1–4)."
+  ],
+  "category": "refactor"
+}
