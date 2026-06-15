@@ -31,6 +31,25 @@ jobs:
 
       - uses: ./.github/actions/setup-bun-project
 
+      - name: Resolver SHA de base
+        id: base-sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          BASE_SHA=$(git rev-parse "origin/${{ github.base_ref }}")
+          echo "sha=$BASE_SHA" >> $GITHUB_OUTPUT
+          echo "Base SHA: $BASE_SHA"
+
+      # Cache del bundle base por commit SHA: si dos PRs apuntan al mismo main,
+      # solo el primero hace el build doble; el resto reutiliza el size.
+      - name: Cache bundle size de base
+        id: base-cache
+        uses: actions/cache@v4
+        with:
+          path: .bundle-size-base
+          key: bundle-size-base-${{ steps.base-sha.outputs.sha }}
+
       - name: Build PR
         run: bun run build
 
@@ -48,27 +67,48 @@ jobs:
           find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -printf '%f %s\n' \
             | sort -k2 -n -r | head -20 >> $GITHUB_STEP_SUMMARY
 
-      - name: Build base (main)
+      - name: Build base (cache miss)
+        if: steps.base-cache.outputs.cache-hit != 'true'
         id: base-build
         continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin ${{ github.base_ref }} --depth=1
-          git checkout origin/${{ github.base_ref }} -- .
+          git worktree add /tmp/base "${{ steps.base-sha.outputs.sha }}"
+          cd /tmp/base
           bun install --frozen-lockfile
-          rm -rf dist
           bun run build
           TOTAL=$(find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p .bundle-size-base
+          echo "$TOTAL" > .bundle-size-base/bytes
           echo "base_bytes=$TOTAL" >> $GITHUB_OUTPUT
 
+      - name: Leer bundle base desde cache
+        if: steps.base-cache.outputs.cache-hit == 'true'
+        id: base-cached
+        shell: bash
+        run: |
+          set -euo pipefail
+          BYTES=$(cat .bundle-size-base/bytes)
+          echo "base_bytes=$BYTES" >> $GITHUB_OUTPUT
+          echo "Reutilizando bundle base desde cache: $BYTES bytes"
+
+      - name: Consolidar base_bytes
+        id: base
+        shell: bash
+        run: |
+          BYTES="${{ steps.base-build.outputs.base_bytes || steps.base-cached.outputs.base_bytes }}"
+          echo "base_bytes=$BYTES" >> $GITHUB_OUTPUT
+
+
       - name: Comparar y comentar PR
-        if: steps.base-build.outcome == 'success'
+        if: steps.base.outputs.base_bytes != ''
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_BYTES: ${{ steps.pr-size.outputs.pr_bytes }}
-          BASE_BYTES: ${{ steps.base-build.outputs.base_bytes }}
+          BASE_BYTES: ${{ steps.base.outputs.base_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
@@ -82,3 +122,4 @@ jobs:
           if [[ -n "${PR_NUMBER:-}" ]]; then
             printf "%b" "$BODY" | gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file -
           fi
+

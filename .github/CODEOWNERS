@@ -1,0 +1,29 @@
+# CODEOWNERS — LiftGo ERP
+# Auto-asignación de reviewers por path.
+# El owner por defecto se aplica a todo lo no especificado abajo.
+
+# Default
+*                                   @rgalvanmty
+
+# CI / infraestructura
+/.github/                           @rgalvanmty
+/.lovable/                          @rgalvanmty
+/scripts/                           @rgalvanmty
+
+# Backend (Supabase)
+/supabase/migrations/               @rgalvanmty
+/supabase/functions/                @rgalvanmty
+
+# PDF / facturación (CFDI 4.0)
+/src/lib/pdf/                       @rgalvanmty
+/src/features/invoicing/            @rgalvanmty
+
+# Auth / roles (cambios críticos)
+/src/contexts/AuthContext.tsx       @rgalvanmty
+/src/layouts/AuthGuard.tsx          @rgalvanmty
+/src/layouts/RoleGuard.tsx          @rgalvanmty
+/src/lib/domain/roles.ts            @rgalvanmty
+
+# Changelog: cualquiera puede tocar, pero notificar
+/public/changelog.json              @rgalvanmty
+/public/changelog/                  @rgalvanmty

@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.73.0",
+    "date": "2026-06-15",
+    "type": "minor",
+    "title": "CI hardening: SHA pinning, actionlint, Lighthouse con budget, CODEOWNERS, Release Drafter, bundle-size con cache",
+    "description": "Todas las actions de terceros se pinearon a commit SHA con comentario de versión. Nuevo job actionlint en ci.yml, Lighthouse bloquea por thresholds vía lighthouserc.json, CODEOWNERS auto-asigna reviewers para áreas críticas, Release Drafter mantiene draft permanente por labels y bundle-size cachea el bundle base por SHA.",
+    "category": "infrastructure"
+  },
+  {
     "version": "6.72.1",
     "date": "2026-06-15",
     "type": "patch",

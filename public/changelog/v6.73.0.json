@@ -1,0 +1,39 @@
+{
+  "version": "6.73.0",
+  "date": "2026-06-15",
+  "type": "minor",
+  "title": "CI hardening: SHA pinning, actionlint, Lighthouse con budget, CODEOWNERS, Release Drafter, bundle-size con cache",
+  "category": "infrastructure",
+  "description": "Endurecimiento del pipeline siguiendo las recomendaciones de OpenSSF y GitHub Security. Todas las actions de terceros se pinearon a commit SHA con comentario de versión. Se agregó actionlint al CI para validar los YAML, Lighthouse ahora bloquea por thresholds (performance 0.75, a11y 0.9, LCP < 3.5s, CLS < 0.1), CODEOWNERS auto-asigna reviewers para áreas críticas, Release Drafter mantiene un draft permanente derivado de labels (alineado con el labeler), y bundle-size optimizado cachea el build base por SHA para evitar dobles instalaciones cuando varios PRs apuntan al mismo main.",
+  "changes": [
+    {
+      "category": "Seguridad de la cadena de suministro",
+      "items": [
+        "oven-sh/setup-bun pineado a 0c5077e (v2.2.0)",
+        "denoland/setup-deno pineado a 667a34c (v2.0.4)",
+        "gitleaks/gitleaks-action pineado a ff98106 (v2.3.9)",
+        "supabase/setup-cli pineado a 3c2f5e2 (v2.1.1)",
+        "mikepenz/action-junit-report pineado a 3a81627 (v6.4.1)",
+        "treosh/lighthouse-ci-action pineado a 3e7e23f (v12.6.2)",
+        "release-drafter pineado a 693d20e (v7.3.1)",
+        "reviewdog/action-actionlint pineado a 6fb7acc (v1.72.0)"
+      ]
+    },
+    {
+      "category": "Nuevos checks",
+      "items": [
+        "Job actionlint dentro de ci.yml; bloquea PRs con YAML inválido y se incluye en el gate ci-success",
+        "Lighthouse usa lighthouserc.json con assertions y 3 corridas promedio en preset desktop",
+        "Release Drafter (release-drafter.yml + workflow) genera draft automático categorizado por labels y resuelve major/minor/patch"
+      ]
+    },
+    {
+      "category": "Calidad",
+      "items": [
+        ".github/CODEOWNERS asigna reviewers por área (CI, Supabase, PDF, auth, changelog)",
+        "bundle-size.yml: cache por SHA de main, git worktree para el build base, segundo PR contra el mismo main reutiliza el tamaño cacheado",
+        "Consolidación de base_bytes en un step intermedio para tolerar cache-hit y cache-miss"
+      ]
+    }
+  ]
+}
