@@ -1,0 +1,127 @@
+# Configuración del PR labeler (actions/labeler@v5).
+# Cada label se aplica si algún archivo cambiado coincide con los globs.
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - "scripts/**"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "bun.lockb"
+          - "bun.lock"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+changelog:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "public/changelog/**"
+          - "public/changelog.json"
+
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "supabase/migrations/**"
+          - "supabase/config.toml"
+
+edge-functions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "supabase/functions/**"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.test.ts"
+          - "**/*.test.tsx"
+          - "**/__tests__/**"
+          - "tests/**"
+          - "vitest.config.ts"
+          - "playwright.config.ts"
+
+ui:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/components/**"
+          - "src/layouts/**"
+          - "src/index.css"
+          - "tailwind.config.ts"
+
+pdf:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/pdf/**"
+
+auth:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/contexts/AuthContext.tsx"
+          - "src/layouts/AuthGuard.tsx"
+          - "src/layouts/RoleGuard.tsx"
+          - "src/lib/domain/roles.ts"
+          - "src/features/users/**"
+
+# Módulos de negocio
+fleet:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/fleet/**"]
+
+bookings:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/bookings/**"]
+
+crm:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/crm/**"]
+
+maintenance:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/maintenance/**"]
+
+invoicing:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/invoicing/**"]
+
+quotes:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/quotes/**"]
+
+logistics:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/logistics/**", "src/features/returns/**"]
+
+dashboard:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/dashboard/**"]
+
+customers:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/customers/**"]
+
+inventory:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/inventory/**"]
+
+reporting:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/reporting/**"]
+
+suppliers:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/suppliers/**"]
+
+portal:
+  - changed-files:
+      - any-glob-to-any-file: ["src/layouts/CustomerPortal*.tsx", "src/features/portal/**"]
+
+feedback:
+  - changed-files:
+      - any-glob-to-any-file: ["src/features/feedback/**"]
