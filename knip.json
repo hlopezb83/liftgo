@@ -1,11 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
-    "src/main.tsx",
     "index.html",
-    "vite.config.ts",
-    "vitest.config.ts",
-    "playwright.config.ts",
     "src/**/*.{test,spec}.{ts,tsx}",
     "src/test/**/*.{ts,tsx}",
     "tests/e2e/**/*.{ts,tsx}",
@@ -15,9 +11,6 @@
   "ignore": [
     "src/integrations/supabase/**",
     "src/components/ui/**"
-  ],
-  "ignoreDependencies": [
-    "@types/node"
   ],
   "ignoreExportsUsedInFile": true
 }
