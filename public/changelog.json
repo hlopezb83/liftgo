@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.74.1",
+    "date": "2026-06-15",
+    "type": "patch",
+    "title": "Refactor: partir components/ui/sidebar.tsx (#5 del audit)",
+    "description": "Divide el primitivo Sidebar shadcn de 637 LOC en 8 módulos enfocados (`constants`, `variants`, `context`, `Sidebar`, `SidebarSections`, `SidebarGroup`, `SidebarMenu`, `SidebarMenuSub`) más un barrel `index.ts`. Cada archivo ≤156 LOC. La API pública `@/components/ui/sidebar` se mantiene intacta — cero cambios en consumers. Completa los 5 items críticos del audit.",
+    "category": "refactor"
+  },
+  {
     "version": "6.74.0",
     "date": "2026-06-15",
     "type": "minor",
