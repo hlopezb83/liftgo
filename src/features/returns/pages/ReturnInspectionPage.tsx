@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import type { ReturnInspectionWithJoins } from "@/types/rental";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useReturnInspections } from "../hooks/useReturnInspections";
@@ -66,14 +65,14 @@ export default function ReturnInspectionPage() {
       {
         id: "forklift_name",
         header: "Montacargas",
-        accessorFn: (i) => (i as ReturnInspectionWithJoins).forklifts?.name || "",
-        cell: ({ row }) => <span className="font-medium">{(row.original as ReturnInspectionWithJoins).forklifts?.name || "—"}</span>,
+        accessorFn: (i) => i.forklifts?.name || "",
+        cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
       },
       {
         id: "customer_name",
         header: "Cliente",
-        accessorFn: (i) => (i as ReturnInspectionWithJoins).bookings?.customer_name || "",
-        cell: ({ row }) => (row.original as ReturnInspectionWithJoins).bookings?.customer_name || "—",
+        accessorFn: (i) => i.bookings?.customer_name || "",
+        cell: ({ row }) => row.original.bookings?.customer_name || "—",
       },
       {
         id: "condition",
@@ -121,29 +120,26 @@ export default function ReturnInspectionPage() {
         table={table}
         onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"
-        mobileCardRender={(ins) => {
-          const insWithJoins = ins as ReturnInspectionWithJoins;
-          return (
-            <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
-                  <StatusBadge status={ins.condition} />
-                </div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold">{insWithJoins.forklifts?.name || "—"}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{insWithJoins.bookings?.customer_name || "—"}</p>
-                <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                  <span className="font-mono">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</span>
-                  {ins.damage_cost ? (
-                    <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
-                  ) : null}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        }}
+        mobileCardRender={(ins) => (
+          <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
+                <StatusBadge status={ins.condition} />
+              </div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-semibold">{ins.forklifts?.name || "—"}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">{ins.bookings?.customer_name || "—"}</p>
+              <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                <span className="font-mono">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</span>
+                {ins.damage_cost ? (
+                  <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       />
 
       <ReturnInspectionDialog

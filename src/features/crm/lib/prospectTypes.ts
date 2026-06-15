@@ -1,31 +1,16 @@
 /**
  * Tipos del dominio Prospects.
  *
- * - `ProspectRow`: shape crudo tal como llega de la tabla `prospects` (snake_case).
- *   Se usa para payloads de DB (insert/update) y dentro del mapper.
+ * - `ProspectRow`: shape crudo tal como llega de la tabla `prospects`,
+ *   derivado del tipo generado por Supabase para mantenerse sincronizado
+ *   con la migración de DB sin requerir casts.
  * - `Prospect`: view model camelCase con campos derivados ya formateados
  *   para consumo directo por la UI.
  */
 
-export interface ProspectRow {
-  id: string;
-  company_name: string;
-  contact_person: string | null;
-  email: string | null;
-  phone: string | null;
-  deal_value: number;
-  stage: string;
-  notes: string | null;
-  stage_order: number;
-  quote_id: string | null;
-  customer_id: string | null;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
-  closed_at: string | null;
-  lost_reason: string | null;
-  final_amount: number | null;
-}
+import type { Tables } from "@/integrations/supabase/types";
+
+export type ProspectRow = Tables<"prospects">;
 
 export interface Prospect {
   id: string;

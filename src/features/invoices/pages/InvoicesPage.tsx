@@ -10,7 +10,8 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt, X } from "lucide-react";
+import { Plus, Eye, Download, ChevronRight, RefreshCw, Receipt, X, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { exportToCsv } from "@/lib/exportCsv";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay } from "@/lib/utils";
@@ -19,6 +20,7 @@ import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { useResourceList } from "@/hooks/useResourceList";
 import { usePageActions } from "@/contexts/pageActions";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
@@ -110,29 +112,39 @@ export default function InvoicesPage() {
         </div>
       }
       filters={
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
-              {STATUSES.map((s) => (
-                <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-          <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
-            <div className="w-full sm:w-64">
-              <DateRangePickerField
-                label=""
-                dateRange={dateRange}
-                onSelect={setDateRange}
-                placeholder="Filtrar por fecha de emisión"
-              />
+        <div className="space-y-3">
+          {hasReachedListLimit(invoices) && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+              </AlertDescription>
+            </Alert>
+          )}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+              <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
+                {STATUSES.map((s) => (
+                  <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
+              <div className="w-full sm:w-64">
+                <DateRangePickerField
+                  label=""
+                  dateRange={dateRange}
+                  onSelect={setDateRange}
+                  placeholder="Filtrar por fecha de emisión"
+                />
+              </div>
+              {(dateRange?.from || dateRange?.to) && (
+                <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+              <SearchBar value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64" />
             </div>
-            {(dateRange?.from || dateRange?.to) && (
-              <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64" />
           </div>
         </div>
       }

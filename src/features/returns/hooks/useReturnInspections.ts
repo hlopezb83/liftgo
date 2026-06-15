@@ -3,13 +3,22 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { nowMty } from "@/lib/utils";
 import type { TablesInsert } from "@/integrations/supabase/types";
+import type { ReturnInspectionWithJoins } from "@/types/rental";
+
+const SELECT_WITH_JOINS =
+  "*, bookings(customer_name, start_date, end_date), forklifts(name, model)";
 
 export function useReturnInspection(id?: string) {
   return useQuery({
     queryKey: ["return_inspections", "detail", id],
     enabled: !!id,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("return_inspections").select("*, bookings(customer_name, start_date, end_date), forklifts(name, model)").eq("id", id ?? "").single();
+    queryFn: async (): Promise<ReturnInspectionWithJoins> => {
+      const { data, error } = await supabase
+        .from("return_inspections")
+        .select(SELECT_WITH_JOINS)
+        .eq("id", id ?? "")
+        .single()
+        .returns<ReturnInspectionWithJoins>();
       if (error) throw error;
       return data;
     },
@@ -20,12 +29,15 @@ export function useReturnInspections(forkliftId?: string) {
   return useQuery({
     queryKey: ["return_inspections", forkliftId],
     staleTime: 60_000,
-    queryFn: async () => {
-      let query = supabase.from("return_inspections").select("*, bookings(customer_name, start_date, end_date), forklifts(name, model)").order("inspected_at", { ascending: false });
+    queryFn: async (): Promise<ReturnInspectionWithJoins[]> => {
+      let query = supabase
+        .from("return_inspections")
+        .select(SELECT_WITH_JOINS)
+        .order("inspected_at", { ascending: false });
       if (forkliftId) query = query.eq("forklift_id", forkliftId);
-      const { data, error } = await query;
+      const { data, error } = await query.returns<ReturnInspectionWithJoins[]>();
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
 }

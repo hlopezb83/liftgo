@@ -13,9 +13,11 @@ import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBa
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, ChevronRight, CalendarDays } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, ChevronRight, CalendarDays, AlertTriangle } from "lucide-react";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 
@@ -109,13 +111,23 @@ export default function BookingsPage() {
         </Button>
       }
       filters={
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
-              {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>)}
-            </TabsList>
-          </Tabs>
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar por cliente…" className="w-full sm:w-64" />
+        <div className="space-y-3">
+          {hasReachedListLimit(bookings) && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+              </AlertDescription>
+            </Alert>
+          )}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+              <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
+                {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>)}
+              </TabsList>
+            </Tabs>
+            <SearchBar value={search} onChange={setSearch} placeholder="Buscar por cliente…" className="w-full sm:w-64" />
+          </div>
         </div>
       }
       isLoading={isLoading}

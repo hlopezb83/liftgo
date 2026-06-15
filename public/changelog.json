@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.74.0",
+    "date": "2026-06-15",
+    "type": "minor",
+    "title": "Refactor crítico: arquitectura limpia (#1–4 del audit)",
+    "description": "Saca el acceso a Supabase de páginas y de `lib/` (AuthPage y PDF de facturas), descompone `useCashFlowProjection` en transformadores puros con tests, elimina los `as unknown as` en CRM y devoluciones, y reemplaza los `.limit(500)` silenciosos por una constante compartida + aviso visible en BookingsPage e InvoicesPage cuando la lista se trunca.",
+    "category": "refactor"
+  },
+  {
     "version": "6.73.2",
     "date": "2026-06-15",
     "type": "patch",

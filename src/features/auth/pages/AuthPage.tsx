@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Users } from "lucide-react";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
+import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
@@ -26,12 +26,7 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const currentVersion = useCurrentVersion();
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setMode("reset");
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  useAuthPasswordRecoveryListener(useCallback(() => setMode("reset"), []));
 
   const runSubmit = async () => {
     if (mode === "forgot") {

@@ -27,7 +27,9 @@ function computeStaleDays(updatedAt: string): number {
 export function mapProspectRow(row: ProspectRow, opts: MapOptions): Prospect {
   const dealValue = row.deal_value ?? 0;
   const isClosed = CLOSED_STAGES.has(row.stage);
-  const staleDays = computeStaleDays(row.updated_at);
+  const createdAt = row.created_at ?? "";
+  const updatedAt = row.updated_at ?? createdAt;
+  const staleDays = updatedAt ? computeStaleDays(updatedAt) : 0;
 
   return {
     id: row.id,
@@ -38,15 +40,15 @@ export function mapProspectRow(row: ProspectRow, opts: MapOptions): Prospect {
     dealValue,
     dealValueLabel: formatCurrency(dealValue),
     stage: row.stage,
-    stageOrder: row.stage_order,
+    stageOrder: row.stage_order ?? 0,
     notes: row.notes,
     quoteId: row.quote_id,
     customerId: row.customer_id,
     createdBy: row.created_by,
     createdByName: opts.creatorName,
-    createdAt: row.created_at,
-    createdAtLabel: formatDateLabel(row.created_at) ?? "",
-    updatedAt: row.updated_at,
+    createdAt,
+    createdAtLabel: formatDateLabel(createdAt) ?? "",
+    updatedAt,
     staleDays,
     isStale: !isClosed && staleDays > STALE_THRESHOLD_DAYS,
     isClosed,

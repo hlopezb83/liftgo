@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
@@ -10,7 +11,12 @@ export function useInvoices() {
     queryKey: invoiceKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("invoices").select("*").or("is_e2e.is.null,is_e2e.eq.false").order("created_at", { ascending: false }).limit(500);
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("*")
+        .or(EXCLUDE_E2E_FILTER)
+        .order("created_at", { ascending: false })
+        .limit(LIST_PAGE_LIMIT);
       if (error) throw error;
       return data;
     },
