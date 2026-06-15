@@ -1,0 +1,20 @@
+{
+  "version": "6.74.0",
+  "date": "2026-06-15",
+  "type": "minor",
+  "title": "Refactor crítico: arquitectura limpia (#1–4 del audit)",
+  "summary": "Saca el acceso a Supabase de páginas y de `lib/`, descompone `useCashFlowProjection`, elimina los `as unknown as` y avisa cuando una lista alcanza el límite de 500 filas.",
+  "highlights": [
+    "Nuevo hook `useAuthPasswordRecoveryListener` aísla `supabase.auth.onAuthStateChange()` fuera de `AuthPage.tsx`.",
+    "Nuevo módulo `features/invoices/api/fetchInvoicePdfData.ts`: `lib/pdf/build.tsx` queda como capa de presentación pura y recibe el payload tipado.",
+    "`features/cash-flow/lib/cashFlowTransformers.ts`: funciones puras (`toMxn`, `buildPaidByInvoice`, `invoiceToItem`, `billToItem`) con tests en Vitest. `useCashFlowProjection` baja a ~50 LOC.",
+    "Eliminados los `as unknown as` en `useProspects`, `useReturnInspections`, `ReturnInspectionDetail` y `ReturnInspectionPage`: `ProspectRow` ahora se deriva de `Tables<\"prospects\">` y los hooks de devoluciones usan `.returns<ReturnInspectionWithJoins[]>()`.",
+    "`src/lib/supabase/constants.ts`: `LIST_PAGE_LIMIT`, `EXCLUDE_E2E_FILTER` y helper `hasReachedListLimit()`. `useBookings` y `useInvoices` los consumen.",
+    "`BookingsPage` e `InvoicesPage` muestran un `Alert` cuando se alcanzan los 500 registros, en lugar de truncar silenciosamente."
+  ],
+  "notes": [
+    "Sin cambios funcionales para el usuario final.",
+    "Item #5 del audit (partir `components/ui/sidebar.tsx` de 637 LOC) queda diferido a una iteración propia por el alcance de consumers afectados."
+  ],
+  "category": "refactor"
+}
