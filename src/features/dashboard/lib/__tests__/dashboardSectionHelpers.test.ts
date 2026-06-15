@@ -5,7 +5,7 @@ import {
   computeUtilizationPercent,
   mapMaintenanceAlerts,
   mapInvoiceBreakdown,
-  mapWeeklyUtilization,
+  mapMonthlyUtilization,
   mapCashFlow,
   EMPTY_COUNTS,
 } from "../dashboardSectionHelpers";
@@ -70,15 +70,15 @@ describe("mapInvoiceBreakdown", () => {
   });
 });
 
-describe("mapWeeklyUtilization / mapCashFlow", () => {
+describe("mapMonthlyUtilization / mapCashFlow", () => {
   it("devuelven [] sin stats", () => {
-    expect(mapWeeklyUtilization(undefined)).toEqual([]);
+    expect(mapMonthlyUtilization(undefined)).toEqual([]);
     expect(mapCashFlow(undefined)).toEqual([]);
   });
 
   it("pasan datos relevantes tal cual", () => {
-    expect(mapWeeklyUtilization({ weekly_utilization: [{ week_label: "S22", utilization: 80 }] }))
-      .toEqual([{ week_label: "S22", utilization: 80 }]);
+    expect(mapMonthlyUtilization({ monthly_utilization: [{ month_label: "May 26", utilization: 80 }] }))
+      .toEqual([{ month_label: "May 26", utilization: 80 }]);
     expect(mapCashFlow({ cash_flow: [{ month: "May", invoiced: 100, paid: 80 }] }))
       .toEqual([{ month: "May", invoiced: 100, paid: 80 }]);
   });

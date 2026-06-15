@@ -9,7 +9,7 @@ type CashFlowProps = ComponentProps<typeof CashFlowChart>;
 
 interface DashboardChartsSectionProps {
   pieData: FleetProps["data"];
-  weeklyUtilization: UtilizationProps["weeklyUtilization"];
+  monthlyUtilization: UtilizationProps["monthlyUtilization"];
   revenuePerUnit: UtilizationProps["revenuePerUnit"];
   cashFlowData: CashFlowProps["data"];
 }
@@ -18,7 +18,7 @@ export function DashboardChartsSection(props: DashboardChartsSectionProps) {
   return (
     <>
       <FleetStatusChart data={props.pieData} />
-      <UtilizationCharts weeklyUtilization={props.weeklyUtilization} revenuePerUnit={props.revenuePerUnit} />
+      <UtilizationCharts monthlyUtilization={props.monthlyUtilization} revenuePerUnit={props.revenuePerUnit} />
       <CashFlowChart data={props.cashFlowData} />
     </>
   );

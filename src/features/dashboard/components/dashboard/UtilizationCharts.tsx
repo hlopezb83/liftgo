@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
-interface WeeklyUtilizationItem {
-  week_label: string;
+interface MonthlyUtilizationItem {
+  month_label: string;
   utilization: number;
 }
 
@@ -14,15 +14,15 @@ interface RevenueItem {
 }
 
 interface UtilizationChartsProps {
-  weeklyUtilization: WeeklyUtilizationItem[];
+  monthlyUtilization: MonthlyUtilizationItem[];
   revenuePerUnit?: RevenueItem[];
 }
 
-interface TrendPoint extends WeeklyUtilizationItem {
+interface TrendPoint extends MonthlyUtilizationItem {
   trend: number;
 }
 
-function computeTrend(data: WeeklyUtilizationItem[]): { points: TrendPoint[]; delta: number } {
+function computeTrend(data: MonthlyUtilizationItem[]): { points: TrendPoint[]; delta: number } {
   const n = data.length;
   if (n < 2) return { points: data.map((d) => ({ ...d, trend: d.utilization })), delta: 0 };
   const xs = data.map((_, i) => i);
@@ -45,8 +45,8 @@ function computeTrend(data: WeeklyUtilizationItem[]): { points: TrendPoint[]; de
   return { points, delta };
 }
 
-export const UtilizationCharts = memo(function UtilizationCharts({ weeklyUtilization }: UtilizationChartsProps) {
-  const { points, delta } = useMemo(() => computeTrend(weeklyUtilization), [weeklyUtilization]);
+export const UtilizationCharts = memo(function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps) {
+  const { points, delta } = useMemo(() => computeTrend(monthlyUtilization), [monthlyUtilization]);
   const trendLabel = delta > 1
     ? { icon: TrendingUp, text: `Subiendo ${Math.abs(delta)}%`, cls: "text-status-available" }
     : delta < -1
@@ -58,8 +58,8 @@ export const UtilizationCharts = memo(function UtilizationCharts({ weeklyUtiliza
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Utilización de Flota (%)</CardTitle>
-          {weeklyUtilization.length >= 2 && (
+          <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Utilización de Flota — Últimos 6 meses (%)</CardTitle>
+          {monthlyUtilization.length >= 2 && (
             <div className={`flex items-center gap-1.5 text-xs font-medium ${trendLabel.cls}`}>
               <TrendIcon className="h-3.5 w-3.5" />
               <span>Tendencia: {trendLabel.text}</span>
@@ -72,7 +72,7 @@ export const UtilizationCharts = memo(function UtilizationCharts({ weeklyUtiliza
           <ResponsiveContainer width="100%" height={220}>
             <ComposedChart data={points} barSize={24}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis dataKey="week_label" tick={{ fontSize: 11 }} />
+              <XAxis dataKey="month_label" tick={{ fontSize: 11 }} />
               <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
               <Tooltip formatter={(v: number) => `${v}%`} />
               <Bar dataKey="utilization" name="Utilización" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
