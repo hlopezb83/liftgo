@@ -1,0 +1,32 @@
+{
+  "version": "6.75.0",
+  "date": "2026-06-15",
+  "type": "minor",
+  "title": "Knip: configuración y reporte de dead code sweep",
+  "category": "tooling",
+  "summary": "Setup de knip + reporte exhaustivo de exports/tipos sin uso por archivo.",
+  "changes": [
+    {
+      "area": "Tooling",
+      "items": [
+        "`knip.json` actualizado: entry points reales (`index.html`, tests Vitest, e2e Playwright, edge functions Supabase).",
+        "Mantiene ignore de `src/integrations/supabase/**` (auto-generado) y `src/components/ui/**` (primitives shadcn).",
+        "Nuevos scripts en `package.json`: `bun run knip` (estándar) y `bun run knip:deep` (incluye shadcn y entry exports)."
+      ]
+    },
+    {
+      "area": "Reporte",
+      "items": [
+        "Sweep estándar: 0 archivos huérfanos, 0 deps muertas, 0 imports rotos, 2 helpers de e2e sin uso.",
+        "Sweep profundo: 95 exports + 36 tipos sin uso, agrupados por archivo y categorizados (A: shadcn no tocar, B: app code a limpiar).",
+        "~30 exports de bajo riesgo listos para borrar mecánicamente; 6 grupos a revisar manualmente (residuos de refactors recientes en cash-flow, reports, PDF quotes y types/rental)."
+      ]
+    },
+    {
+      "area": "Documentación",
+      "items": [
+        "Nuevo archivo `docs/audits/knip-2026-06-15.md` con tabla acción-por-archivo, severidad y riesgo."
+      ]
+    }
+  ]
+}

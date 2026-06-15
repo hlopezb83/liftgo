@@ -15,7 +15,9 @@
     "test:rls": "VITEST_RLS_JUNIT=1 vitest run src/test/roleMatrix.test.ts src/test/rolePermissions.test.ts \"src/**/*.rls.test.ts\"",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "knip": "knip",
+    "knip:deep": "knip --files --dependencies --exports --include-entry-exports"
   },
   "engines": {
     "node": ">=24.0.0"
