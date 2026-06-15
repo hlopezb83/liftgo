@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.75.1",
+    "date": "2026-06-15",
+    "type": "patch",
+    "title": "CI: silenciar falsos positivos de Gitleaks (anon key publishable)",
+    "description": "Agrega `.gitleaks.toml` que extiende la config default y permite cualquier JWT con `role:anon` (la publishable key de Supabase es pública por diseño). Como red de seguridad se incluye `.gitleaksignore` con los fingerprints de `.env` y `tests/e2e/fixtures/seed.ts`. Cualquier JWT con otro rol (service_role, authenticated, etc.) sigue siendo detectado.",
+    "category": "tooling"
+  },
+  {
     "version": "6.75.0",
     "date": "2026-06-15",
     "type": "minor",

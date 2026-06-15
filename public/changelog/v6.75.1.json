@@ -1,0 +1,25 @@
+{
+  "version": "6.75.1",
+  "date": "2026-06-15",
+  "type": "patch",
+  "title": "CI: silenciar falsos positivos de Gitleaks (anon key publishable)",
+  "category": "tooling",
+  "summary": "Gitleaks marcaba 2 'leaks' que en realidad son la publishable/anon key de Supabase (pública por diseño). Se agrega configuración local que permite explícitamente JWTs con rol anon y deja activas todas las demás reglas.",
+  "changes": [
+    {
+      "type": "added",
+      "items": [
+        "`.gitleaks.toml` con `extend.useDefault = true` + allowlist por regex (`role:anon` codificado en base64url) y por rutas (`.env`, `tests/e2e/fixtures/**`).",
+        "`.gitleaksignore` con los fingerprints exactos reportados (`be74f4b…:tests/e2e/fixtures/seed.ts:jwt:22` y `8e5a499…:.env:jwt:2`) como red de seguridad."
+      ]
+    },
+    {
+      "type": "context",
+      "items": [
+        "No se rota ninguna key: la anon key de Supabase está diseñada para exponerse en el cliente.",
+        "JWTs con rol `service_role`, `authenticated` u otros siguen siendo detectados normalmente.",
+        "Resultado esperado del workflow `Detectar secretos`: `leaks found: 0`."
+      ]
+    }
+  ]
+}
