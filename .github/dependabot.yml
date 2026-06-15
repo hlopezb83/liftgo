@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # npm: dependencias del frontend
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Monterrey"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    groups:
+      dev-minor-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      prod-patch:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+    ignore:
+      # jsPDF locked en 4.0.0 (incompatibilidades conocidas en versiones superiores).
+      - dependency-name: "jspdf"
+      - dependency-name: "jspdf-autotable"
+
+  # GitHub Actions: mantener actions/* y setup-* actualizados
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Monterrey"
+    open-pull-requests-limit: 5
+    labels:
+      - "ci"
+      - "dependencies"
+    groups:
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"

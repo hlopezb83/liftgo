@@ -1,0 +1,84 @@
+name: Bundle size
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "public/changelog/**"
+      - "public/changelog.json"
+      - "**/*.md"
+      - ".lovable/**"
+      - "supabase/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bundle-size-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  size:
+    name: Medir tamaño de bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-bun-project
+
+      - name: Build PR
+        run: bun run build
+
+      - name: Medir bundle del PR
+        id: pr-size
+        shell: bash
+        run: |
+          set -euo pipefail
+          TOTAL=$(find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
+          TOTAL_KB=$(awk "BEGIN {printf \"%.1f\", $TOTAL/1024}")
+          echo "pr_bytes=$TOTAL" >> $GITHUB_OUTPUT
+          echo "pr_kb=$TOTAL_KB" >> $GITHUB_OUTPUT
+          echo "## Bundle (gzip)" >> $GITHUB_STEP_SUMMARY
+          echo "PR total: **${TOTAL_KB} kB**" >> $GITHUB_STEP_SUMMARY
+          find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -printf '%f %s\n' \
+            | sort -k2 -n -r | head -20 >> $GITHUB_STEP_SUMMARY
+
+      - name: Build base (main)
+        id: base-build
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git checkout origin/${{ github.base_ref }} -- .
+          bun install --frozen-lockfile
+          rm -rf dist
+          bun run build
+          TOTAL=$(find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
+          echo "base_bytes=$TOTAL" >> $GITHUB_OUTPUT
+
+      - name: Comparar y comentar PR
+        if: steps.base-build.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BYTES: ${{ steps.pr-size.outputs.pr_bytes }}
+          BASE_BYTES: ${{ steps.base-build.outputs.base_bytes }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          DIFF=$((PR_BYTES - BASE_BYTES))
+          PCT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $BASE_BYTES) * 100}")
+          PR_KB=$(awk "BEGIN {printf \"%.1f\", $PR_BYTES/1024}")
+          BASE_KB=$(awk "BEGIN {printf \"%.1f\", $BASE_BYTES/1024}")
+          DIFF_KB=$(awk "BEGIN {printf \"%+.1f\", $DIFF/1024}")
+          BODY="### Bundle size (gzip)\n\n| | kB |\n|---|---|\n| main | ${BASE_KB} |\n| PR | ${PR_KB} |\n| diff | **${DIFF_KB} (${PCT}%)** |\n"
+          printf "%b" "$BODY" >> $GITHUB_STEP_SUMMARY
+          if [[ -n "${PR_NUMBER:-}" ]]; then
+            printf "%b" "$BODY" | gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file -
+          fi
