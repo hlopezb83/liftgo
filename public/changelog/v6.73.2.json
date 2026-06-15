@@ -1,0 +1,7 @@
+{
+  "version": "6.73.2",
+  "date": "2026-06-15",
+  "type": "patch",
+  "title": "CI: resolver nits de shellcheck en bundle-size.yml",
+  "description": "Limpia SC2086 (variables sin entrecomillar al redirigir a $GITHUB_OUTPUT y $GITHUB_STEP_SUMMARY) y SC2129 (5 redirecciones consecutivas agrupadas en un solo bloque { ...; } >> archivo) en .github/workflows/bundle-size.yml. Con esto, reviewdog/action-actionlint deja de reportar el `e:` que rompía el job actionlint y desbordaba el límite de annotations (`Too many results in diff`)."
+}
