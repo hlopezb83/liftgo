@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.71.3",
+    "date": "2026-06-15",
+    "type": "patch",
+    "title": "Dashboard: utilización de flota ahora mensual (últimos 6 meses)",
+    "description": "La gráfica 'Utilización de Flota' pasa de ventana semanal (8 semanas) a mensual (6 meses) para leer mejor la tendencia en rentas largas. Misma fórmula: días-flota ocupados / (flota_activa × días_del_mes) × 100, excluyendo unidades retired/sold y considerando solo bookings confirmed que traslapen el mes. Labels en español (Ene 26, Feb 26…).",
+    "category": "improvement"
+  },
+  {
     "version": "6.71.2",
     "date": "2026-06-15",
     "type": "patch",
