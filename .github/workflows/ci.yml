@@ -27,10 +27,48 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Job barato (~5s) que detecta secrets ausentes para que e2e/edge-functions
+  # se salten en PRs desde forks o repos sin configurar, en lugar de fallar
+  # con 40+ errores opacos. Skipped cuenta como success en el gate.
+  # ---------------------------------------------------------------------------
+  secrets-check:
+    name: Secrets check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      has_supabase: ${{ steps.check.outputs.has_supabase }}
+      has_e2e: ${{ steps.check.outputs.has_e2e }}
+    steps:
+      - id: check
+        env:
+          SUPA_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPA_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          E2E_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          E2E_PASS: ${{ secrets.E2E_TEST_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            if [[ -n "${SUPA_URL:-}" && -n "${SUPA_KEY:-}" ]]; then
+              echo "has_supabase=true"
+            else
+              echo "has_supabase=false"
+              echo "::warning::Faltan secrets VITE_SUPABASE_URL/VITE_SUPABASE_PUBLISHABLE_KEY — edge-functions y e2e se saltarán."
+            fi
+            if [[ -n "${E2E_EMAIL:-}" && -n "${E2E_PASS:-}" ]]; then
+              echo "has_e2e=true"
+            else
+              echo "has_e2e=false"
+              echo "::warning::Faltan secrets E2E_TEST_EMAIL/E2E_TEST_PASSWORD — e2e se saltará."
+            fi
+          } >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
   # Jobs en paralelo (todos comparten cache de bun install).
   # Antes era un único job "quality" serializado: lint → typecheck → knip → tests → build (~12 min).
   # Ahora wall time = job más lento (tests con coverage).
   # ---------------------------------------------------------------------------
+
 
   lint:
     name: ESLint
@@ -171,6 +209,9 @@ jobs:
     name: Edge Functions (Deno smoke tests)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: secrets-check
+    if: needs.secrets-check.outputs.has_supabase == 'true'
+
     steps:
       - uses: actions/checkout@v6
 
@@ -224,10 +265,13 @@ jobs:
     name: E2E (Playwright shard ${{ matrix.shard }}/${{ matrix.total }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: secrets-check
+    if: needs.secrets-check.outputs.has_supabase == 'true' && needs.secrets-check.outputs.has_e2e == 'true'
     permissions:
       contents: read
       checks: write
       pull-requests: write
+
     # Sharding: 2 shards × 2 workers por shard = 4 tests en paralelo, aislados por e2e_scope.
     # CRÍTICO: el `globalTeardown` solo corre en el último shard (lógica en playwright.config.ts
     # vía env SHARD_INDEX === SHARD_TOTAL) para evitar race conditions.
@@ -244,9 +288,11 @@ jobs:
       # para no invalidar al cambiar otras deps.
       - name: Get Playwright version
         id: pw-version
+        shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').devDependencies['@playwright/test'] || require('./package.json').dependencies['@playwright/test']")
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -323,15 +369,21 @@ jobs:
       - name: Run actionlint
         uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
         with:
-          fail_on_error: true
+          # `fail_on_error` está deprecado; usamos `fail_level` para que solo
+          # errores (no warnings/shellcheck info) hagan rojo el step.
+          fail_level: error
+          # Solo reportar issues introducidos por el PR, evita el límite
+          # "Too many results in diff" cuando hay nits históricos.
+          filter_mode: added
           reporter: github-pr-check
 
   # Gate único para branch protection: requiere todos los jobs anteriores.
   ci-success:
     name: CI success
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, knip, tests, build, rls, edge-functions, e2e, actionlint]
+    needs: [secrets-check, lint, typecheck, knip, tests, build, rls, edge-functions, e2e, actionlint]
     if: always()
+
     steps:
       - name: Check all jobs succeeded
         run: |

@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.73.1",
+    "date": "2026-06-15",
+    "type": "patch",
+    "title": "CI: secrets-check job + actionlint filtra solo errores + helper Deno defensivo",
+    "description": "Soluciona los 3 jobs en rojo del run de CI. Nuevo job `secrets-check` que skipea edge-functions y e2e cuando faltan secrets del repo (en lugar de fallar con 40 errores opacos). actionlint usa `fail_level: error` + `filter_mode: added` para no fallar por nits de shellcheck. test-helpers.ts trata strings vacíos como no configurados y falla con mensaje accionable.",
+    "category": "infrastructure"
+  },
+  {
+
     "version": "6.73.0",
     "date": "2026-06-15",
     "type": "minor",
