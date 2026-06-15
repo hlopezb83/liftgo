@@ -1,68 +1,36 @@
-## Acciones de GitHub pendientes
+# Cambiar Utilización de Flota: semanal → mensual
 
-En el último run de CI (`logs_73952299441.zip`) hubo **4 jobs**. Solo arreglé uno:
+Reemplazar la serie de 8 semanas por **6 meses** (incluyendo el mes en curso), manteniendo la misma fórmula de días-flota ocupados / días-flota disponibles.
 
-| Job | Estado en el run | Causa |
-|---|---|---|
-| `quality` (Lint, Knip, Tests, Build) | falló | 2 errores `no-unsafe-finally` → **fixed v6.69.1** |
-| `edge-functions` (Deno smoke tests) | **falló** | `deno fmt --check`: 4 archivos sin formatear |
-| `rls` (RLS contract tests) | **saltado** | depende de `quality` |
-| `e2e` (Playwright sharded) | **saltado** | depende de `quality` |
+## Cambios
 
-`rls` y `e2e` correrán automáticamente cuando `quality` pase verde, pero `edge-functions` sigue rojo por su propio motivo.
+### 1. RPC `get_dashboard_stats` (migración)
+Reemplazar el bloque `weekly_utilization` por uno equivalente mensual:
 
-## Plan
+- Generar 6 meses con `generate_series` truncando a `month`.
+- Para cada mes calcular `[month_start, month_end]` (último día real del mes).
+- Utilización = `SUM(días traslapados de bookings confirmed) / (flota_activa × días_del_mes) × 100`, redondeado.
+- Excluir forklifts con status `retired` / `sold`.
+- Label: `TO_CHAR(month_start, 'Mon YY')` en español vía `TO_CHAR(... , 'TMMon YY')` con `lc_time` o, más simple, mapear los 12 nombres en SQL para garantizar es-MX (Ene, Feb, Mar, …). Voto por el mapeo explícito para no depender de locale del servidor.
 
-### 1. Fix `deno fmt --check` (job `edge-functions`)
+La clave del JSON se renombra a `monthly_utilization` (más honesta que reutilizar `weekly_utilization`).
 
-Reformatear los 4 archivos detectados por el step `Deno fmt --check`:
+### 2. Frontend
+- `useDashboardStats.ts`: renombrar campo `weekly_utilization` → `monthly_utilization` y el item interno `week_label` → `month_label`.
+- `dashboardSectionHelpers.ts`: `mapWeeklyUtilization` → `mapMonthlyUtilization`, devuelve `{ month_label, utilization }`.
+- `UtilizationCharts.tsx`:
+  - Prop `weeklyUtilization` → `monthlyUtilization`.
+  - `dataKey="week_label"` → `dataKey="month_label"`.
+  - Texto del título: **"Utilización de Flota — Últimos 6 meses (%)"**.
+  - Texto de tendencia se mantiene (sigue siendo regresión lineal sobre los puntos).
+- `DashboardChartsSection.tsx` y `useDashboardSections.ts`: propagar el rename de la prop.
+- Test `dashboardSectionHelpers.test.ts`: actualizar al nuevo shape.
 
-```text
-supabase/functions/cancel-cfdi/handler.ts
-supabase/functions/cancel-cfdi/handler_test.ts
-supabase/functions/refresh-cancellation-status/handler.ts
-supabase/functions/refresh-cancellation-status/handler_test.ts
-```
+### 3. Changelog
+Entrada `v6.71.3` (patch) en `public/changelog.json` + `public/changelog/v6.71.3.json`:
+- Título: "Dashboard: utilización de flota ahora mensual (6 meses)".
+- Razón: ventana semanal era muy corta para leer tendencias reales de rentas largas.
 
-Ejecutar `cd supabase/functions && deno fmt` localmente para que aplique exactamente el mismo formato que el check de CI (line-length, ordenación de imports, etc.). Verificar después con `deno fmt --check` que termine en exit 0.
-
-Los diffs mostrados en el log son cosméticos:
-- Imports multi-línea expandidos (`{ a, b }` → bloque con un import por línea cuando excede ancho).
-- Objects literales partidos en varias líneas.
-- Operadores ternarios reformateados.
-
-No hay cambios de lógica.
-
-### 2. Validar los steps de `quality` que no se alcanzaron
-
-El run anterior falló en ESLint, así que **typecheck, knip, vitest+coverage y build nunca corrieron** en CI. Antes de declarar el job verde, correr localmente en paralelo:
-
-```bash
-bunx tsc --noEmit -p tsconfig.app.json
-bunx knip --include files,dependencies,binaries --reporter compact
-bun run test --coverage
-bun run build
-```
-
-Si algún paso falla, arreglarlo en el mismo commit que el fmt para no consumir otro run de CI.
-
-### 3. Confirmar que `rls` y `e2e` arrancan
-
-Con `quality` verde, ambos jobs dejan de saltar. No tocamos su configuración — solo verificar en el siguiente push.
-
-### 4. Changelog
-
-Entrada **v6.69.2 (patch)** en `public/changelog.json` + `public/changelog/v6.69.2.json` describiendo el fix de Deno fmt y los validations locales.
-
-## Detalles técnicos
-
-- El step `Deno fmt --check` en `.github/workflows/ci.yml` corre `cd supabase/functions && deno fmt --check` y rompe el job si hay cualquier archivo no formateado — es un gate duro.
-- Los 4 archivos son recientes (relacionados con cancelación de CFDI / refresh de estatus SAT), probablemente editados sin pasar `deno fmt` antes de pushear.
-- No hay riesgo de regresión: `deno fmt` solo cambia whitespace/orden de imports, nunca semántica.
-- El job `edge-functions` no depende de nada, así que el fix lo desbloquea inmediatamente.
-
-## Fuera de alcance
-
-- No agregar nuevos workflows ni jobs.
-- No tocar la lógica de los handlers de Edge Functions.
-- No modificar la configuración de sharding de Playwright ni los seeds (ya pasaron review en turnos previos).
+## Out of scope
+- No se cambia el cálculo de utilización por unidad (sigue siendo ventana 30 días).
+- No se toca el KPI de MRR ni `/mrr`.
