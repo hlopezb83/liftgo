@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.72.1",
+    "date": "2026-06-15",
+    "type": "patch",
+    "title": "CI: PR labeler automático por paths",
+    "description": "Nuevo workflow .github/workflows/labeler.yml + configuración .github/labeler.yml (actions/labeler@v5). Etiqueta cada PR según los archivos modificados: ci, dependencies, docs, changelog, database, edge-functions, tests, ui, pdf, auth, portal, feedback y módulos de negocio (fleet, bookings, crm, maintenance, invoicing, quotes, logistics, dashboard, customers, inventory, reporting, suppliers). Usa sync-labels: true para mantener las etiquetas consistentes con los cambios actuales del PR.",
+    "category": "infrastructure"
+  },
+  {
     "version": "6.72.0",
     "date": "2026-06-15",
     "type": "minor",
