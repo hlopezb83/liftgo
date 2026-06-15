@@ -1,0 +1,15 @@
+{
+  "version": "6.71.2",
+  "date": "2026-06-15",
+  "type": "patch",
+  "title": "Fix: Utilización de Flota semanal en dashboard",
+  "category": "fix",
+  "summary": "Restaurada la serie weekly_utilization en get_dashboard_stats para que la gráfica 'Utilización de Flota (%)' vuelva a mostrar datos.",
+  "details": [
+    "El RPC get_dashboard_stats ya no devolvía la clave weekly_utilization, por lo que el componente UtilizationCharts caía al estado vacío ('Sin datos aún').",
+    "Se reincorpora el cálculo de las últimas 8 semanas usando: SUM(días-flota ocupados con traslape a la semana) / (flota_activa * 7) * 100, redondeado a entero.",
+    "Excluye unidades con status retired/sold y considera solo bookings confirmed que traslapen el rango [week_start, week_end].",
+    "Etiqueta cada barra como 'Snn' usando la semana ISO (TO_CHAR ... 'IW').",
+    "Sin cambios en frontend: el hook useDashboardStats y UtilizationCharts ya esperaban esta forma."
+  ]
+}

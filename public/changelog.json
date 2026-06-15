@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.71.2",
+    "date": "2026-06-15",
+    "type": "patch",
+    "title": "Fix: Utilización de Flota semanal en dashboard",
+    "description": "El RPC get_dashboard_stats no devolvía la clave weekly_utilization, dejando la gráfica 'Utilización de Flota (%)' del dashboard sin datos ('Sin datos aún'). Se agrega el cálculo de utilización para las últimas 8 semanas (días-flota ocupados / días-flota disponibles * 100), excluyendo unidades retiradas/vendidas y considerando solo bookings confirmados con traslape al rango de cada semana. Etiqueta como 'Snn' (semana ISO).",
+    "category": "fix"
+  },
+  {
     "version": "6.71.1",
     "date": "2026-06-14",
     "type": "patch",
