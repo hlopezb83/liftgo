@@ -106,7 +106,7 @@ jobs:
         shell: bash
         run: |
           BYTES="${{ steps.base-build.outputs.base_bytes || steps.base-cached.outputs.base_bytes }}"
-          echo "base_bytes=$BYTES" >> $GITHUB_OUTPUT
+          echo "base_bytes=$BYTES" >> "$GITHUB_OUTPUT"
 
 
       - name: Comparar y comentar PR
