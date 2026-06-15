@@ -265,10 +265,13 @@ jobs:
     name: E2E (Playwright shard ${{ matrix.shard }}/${{ matrix.total }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: secrets-check
+    if: needs.secrets-check.outputs.has_supabase == 'true' && needs.secrets-check.outputs.has_e2e == 'true'
     permissions:
       contents: read
       checks: write
       pull-requests: write
+
     # Sharding: 2 shards × 2 workers por shard = 4 tests en paralelo, aislados por e2e_scope.
     # CRÍTICO: el `globalTeardown` solo corre en el último shard (lógica en playwright.config.ts
     # vía env SHARD_INDEX === SHARD_TOTAL) para evitar race conditions.
