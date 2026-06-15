@@ -103,12 +103,12 @@ jobs:
 
 
       - name: Comparar y comentar PR
-        if: steps.base-build.outcome == 'success'
+        if: steps.base.outputs.base_bytes != ''
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_BYTES: ${{ steps.pr-size.outputs.pr_bytes }}
-          BASE_BYTES: ${{ steps.base-build.outputs.base_bytes }}
+          BASE_BYTES: ${{ steps.base.outputs.base_bytes }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
@@ -122,3 +122,4 @@ jobs:
           if [[ -n "${PR_NUMBER:-}" ]]; then
             printf "%b" "$BODY" | gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file -
           fi
+
