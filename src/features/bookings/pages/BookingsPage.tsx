@@ -13,9 +13,11 @@ import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBa
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, ChevronRight, CalendarDays } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, ChevronRight, CalendarDays, Info } from "lucide-react";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 
