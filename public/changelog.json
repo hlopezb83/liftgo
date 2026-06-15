@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.72.0",
+    "date": "2026-06-15",
+    "type": "minor",
+    "title": "CI/CD: 6 workflows nuevos (CodeQL, Gitleaks, Dependabot, Supabase lint, Lighthouse, Bundle size)",
+    "description": "Pipeline complementado con Dependabot (npm + github-actions, ignora jspdf), CodeQL semanal, Gitleaks en PRs, lint de migraciones que exige GRANT/RLS/POLICY y SET search_path, Lighthouse diario contra producción y comparación de bundle size gzip en cada PR.",
+    "category": "infrastructure"
+  },
+  {
     "version": "6.71.3",
     "date": "2026-06-15",
     "type": "patch",
