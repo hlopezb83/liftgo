@@ -18,6 +18,7 @@ import { Plus, ChevronRight, CalendarDays, AlertTriangle } from "lucide-react";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { useUserRole } from "@/features/users";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 
