@@ -1,4 +1,5 @@
 import { useCreateInvoice, useUpdateInvoice } from "../invoices/useInvoices";
+import { useSyncInvoiceBookings } from "../invoices/useInvoiceBookings";
 import { useUpdateQuote } from "@/features/quotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
