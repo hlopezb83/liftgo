@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { toast } from "sonner";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
@@ -17,9 +17,9 @@ export function useGenerateRecurringInvoices() {
 
   return useMutation({
     mutationFn: async (): Promise<GenerateRecurringResponse> => {
-      const { data, error } = await supabase.functions.invoke("generate-recurring-invoices");
-      if (error) throw error;
-      return data as GenerateRecurringResponse;
+      return await invokeEdgeFunction<GenerateRecurringResponse>(
+        "generate-recurring-invoices",
+      );
     },
     onSuccess: (data) => {
       const count = data?.invoicesCreated ?? 0;

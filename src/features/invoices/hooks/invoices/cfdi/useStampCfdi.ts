@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { toast } from "sonner";
 import { translateFacturapiError } from "../../../lib/facturapiErrors";
 
@@ -20,12 +20,9 @@ export function useStampCfdi() {
 
   return useMutation({
     mutationFn: async (invoiceId: string): Promise<StampCfdiResponse> => {
-      const { data, error } = await supabase.functions.invoke("stamp-cfdi", {
+      return await invokeEdgeFunction<StampCfdiResponse>("stamp-cfdi", {
         body: { invoice_id: invoiceId },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data as StampCfdiResponse;
     },
     onSuccess: (data, invoiceId) => {
       toast.success(

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 
@@ -8,12 +8,10 @@ export function useRefreshCancellationStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (invoiceId: string) => {
-      const { data, error } = await supabase.functions.invoke("refresh-cancellation-status", {
-        body: { invoice_id: invoiceId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data as { cancellation_status: string };
+      return await invokeEdgeFunction<{ cancellation_status: string }>(
+        "refresh-cancellation-status",
+        { body: { invoice_id: invoiceId } },
+      );
     },
     onSuccess: (data, invoiceId) => {
       const status = data?.cancellation_status;

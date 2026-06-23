@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 
 export type CfdiFormat = "pdf" | "xml";
 
@@ -17,10 +17,9 @@ const MIME_BY_FORMAT: Record<CfdiFormat, string> = {
  * Throws on transport or function errors; callers handle UI feedback.
  */
 export async function fetchCfdiBlob(target: CfdiTarget, format: CfdiFormat): Promise<Blob> {
-  const { data, error } = await supabase.functions.invoke("download-cfdi", {
+  const data = await invokeEdgeFunction<Blob | BlobPart>("download-cfdi", {
     body: { ...target, format },
   });
-  if (error) throw error;
   if (data instanceof Blob) return data;
   return new Blob([data as BlobPart], { type: MIME_BY_FORMAT[format] });
 }

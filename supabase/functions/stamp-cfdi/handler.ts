@@ -50,12 +50,14 @@ export async function handleStampCfdi(
       | null;
     const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
     if (rolesErr) {
+      console.error("[stamp-cfdi] roles lookup failed", { userId });
       return json({ error: "Authorization check failed" }, 500, jsonHeaders);
     }
     const allowed = (roles ?? []).some((r) =>
       r.role === "admin" || r.role === "administrativo"
     );
     if (!allowed) {
+      console.error("[stamp-cfdi] forbidden", { userId });
       return json({ error: "Forbidden" }, 403, jsonHeaders);
     }
 
@@ -63,6 +65,7 @@ export async function handleStampCfdi(
     const { invoice_id } = body as { invoice_id?: unknown };
 
     if (!isUUID(invoice_id)) {
+      console.error("[stamp-cfdi] invalid invoice_id");
       return json(
         { error: "invoice_id must be a valid UUID" },
         400,
@@ -74,12 +77,14 @@ export async function handleStampCfdi(
       .from("invoices").select("*").eq("id", invoice_id).single();
 
     if (invErr || !invoice) {
+      console.error("[stamp-cfdi] invoice not found", { invoice_id });
       return json({ error: "Invoice not found" }, 404, jsonHeaders);
     }
 
     const inv = invoice as Record<string, unknown>;
 
     if (inv.is_e2e === true) {
+      console.error("[stamp-cfdi] e2e invoice rejected", { invoice_id });
       return json(
         { error: "E2E invoices cannot be stamped" },
         403,
@@ -91,6 +96,7 @@ export async function handleStampCfdi(
     // permitir un re-stamp porque generaría un segundo CFDI en el SAT con
     // UUID distinto (doble timbrado). Simetría con stamp-credit-note.
     if (inv.cfdi_status === "stamped" && inv.cfdi_uuid) {
+      console.error("[stamp-cfdi] already stamped", { invoice_id, uuid: inv.cfdi_uuid });
       return json(
         {
           error: "Invoice already stamped",
@@ -109,6 +115,7 @@ export async function handleStampCfdi(
       .limit(1).maybeSingle();
 
     if (!company) {
+      console.error("[stamp-cfdi] company_settings missing", { invoice_id });
       return json(
         { error: "Company settings not configured" },
         400,
@@ -205,6 +212,11 @@ export async function handleStampCfdi(
 
     if (!createRes.ok) {
       const errBody = await createRes.text();
+      console.error("[stamp-cfdi] facturapi rejected", {
+        invoice_id,
+        status: createRes.status,
+        body: errBody.slice(0, 500),
+      });
       await supabase.from("invoices")
         .update({
           cfdi_status: "error",
@@ -278,6 +290,10 @@ export async function handleStampCfdi(
 
     const updateErr = (updRes as { error: unknown }).error;
     if (updateErr) {
+      console.error("[stamp-cfdi] DB update failed after stamp", {
+        invoice_id,
+        cfdiUuid,
+      });
       return json(
         { error: "Stamped but failed to save to DB" },
         500,
@@ -295,7 +311,8 @@ export async function handleStampCfdi(
       200,
       jsonHeaders,
     );
-  } catch (_err) {
+  } catch (err) {
+    console.error("[stamp-cfdi] unhandled exception", err);
     return json({ error: "Internal server error" }, 500, {
       ...getCorsHeaders(req),
       "Content-Type": "application/json",

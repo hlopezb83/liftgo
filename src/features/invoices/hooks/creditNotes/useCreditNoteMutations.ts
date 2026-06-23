@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
@@ -28,11 +29,9 @@ export function useCreateCreditNote() {
         .single();
       if (error) throw error;
       if (stamp) {
-        const { data: stampRes, error: stampErr } = await supabase.functions.invoke("stamp-credit-note", {
+        await invokeEdgeFunction("stamp-credit-note", {
           body: { credit_note_id: created.id },
         });
-        if (stampErr) throw stampErr;
-        if (stampRes?.error) throw new Error(stampRes.error);
       }
       return created;
     },
@@ -48,12 +47,9 @@ export function useStampCreditNote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (creditNoteId: string) => {
-      const { data, error } = await supabase.functions.invoke("stamp-credit-note", {
+      return await invokeEdgeFunction("stamp-credit-note", {
         body: { credit_note_id: creditNoteId },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
     },
     onSuccess: () => {
       toast.success("Nota de crédito timbrada");
@@ -67,16 +63,16 @@ export function useCancelCreditNote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { creditNoteId: string; motive: string; substitutionUuid?: string | null }) => {
-      const { data, error } = await supabase.functions.invoke("cancel-credit-note", {
-        body: {
-          credit_note_id: input.creditNoteId,
-          motive: input.motive,
-          substitution_uuid: input.substitutionUuid ?? undefined,
+      return await invokeEdgeFunction<{ cancellation_status: string }>(
+        "cancel-credit-note",
+        {
+          body: {
+            credit_note_id: input.creditNoteId,
+            motive: input.motive,
+            substitution_uuid: input.substitutionUuid ?? undefined,
+          },
         },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data as { cancellation_status: string };
+      );
     },
     onSuccess: (data) => {
       const s = data?.cancellation_status;

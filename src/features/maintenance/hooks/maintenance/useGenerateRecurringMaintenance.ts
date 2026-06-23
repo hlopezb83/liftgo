@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { toast } from "sonner";
 
 interface GenerateMaintenanceResponse {
@@ -19,9 +19,9 @@ export function useGenerateRecurringMaintenance() {
 
   return useMutation({
     mutationFn: async (): Promise<GenerateMaintenanceResponse> => {
-      const { data, error } = await supabase.functions.invoke("generate-recurring-maintenance");
-      if (error) throw error;
-      return data as GenerateMaintenanceResponse;
+      return await invokeEdgeFunction<GenerateMaintenanceResponse>(
+        "generate-recurring-maintenance",
+      );
     },
     onSuccess: (result) => {
       if (result.generated > 0) {

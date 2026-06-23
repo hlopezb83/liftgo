@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { toast } from "sonner";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
@@ -26,7 +26,7 @@ export function useCancelCfdi() {
 
   return useMutation({
     mutationFn: async ({ invoiceId, motive, substitutionUuid, cancellationReason }: CancelCfdiVars): Promise<CancelCfdiResponse> => {
-      const { data, error } = await supabase.functions.invoke("cancel-cfdi", {
+      return await invokeEdgeFunction<CancelCfdiResponse>("cancel-cfdi", {
         body: {
           invoice_id: invoiceId,
           motive,
@@ -34,9 +34,6 @@ export function useCancelCfdi() {
           cancellation_reason: cancellationReason || undefined,
         },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data as CancelCfdiResponse;
     },
     onSuccess: (data, { invoiceId }) => {
       if (data?.accepted) {
