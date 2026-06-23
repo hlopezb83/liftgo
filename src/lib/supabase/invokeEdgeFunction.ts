@@ -11,8 +11,12 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
+type InvokeBody = Parameters<typeof supabase.functions.invoke>[1] extends infer O
+  ? O extends { body?: infer B } ? B : never
+  : never;
+
 export interface InvokeEdgeOptions {
-  body?: unknown;
+  body?: InvokeBody;
   headers?: Record<string, string>;
 }
 
