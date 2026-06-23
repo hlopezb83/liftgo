@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.77.0",
+    "date": "2026-06-23",
+    "type": "minor",
+    "title": "Facturación multi-reserva",
+    "description": "Una sola factura puede agrupar varias reservas confirmadas del mismo cliente desde un selector múltiple en Nueva Factura.",
+    "category": "feature"
+  },
+  {
     "version": "6.76.7",
     "date": "2026-06-23",
     "type": "patch",
