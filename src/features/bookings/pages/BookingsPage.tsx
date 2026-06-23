@@ -107,11 +107,13 @@ export default function BookingsPage() {
       title="Reservas"
       subtitle="Administrar reservas de equipos"
       totalCount={filtered.length}
-      actions={<Button size="sm" onClick={() => navigate("/bookings/new")}><Plus className="h-4 w-4 mr-1" />Nueva Reserva</Button>}
+      actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><Plus className="h-4 w-4 mr-1" />Nueva Reserva</Button> : undefined}
       mobileFab={
-        <Button size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => navigate("/bookings/new")} aria-label="Nueva reserva">
-          <Plus className="h-6 w-6" />
-        </Button>
+        isAdmin ? (
+          <Button size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => navigate("/bookings/new")} aria-label="Nueva reserva">
+            <Plus className="h-6 w-6" />
+          </Button>
+        ) : undefined
       }
       filters={
         <div className="space-y-3">
