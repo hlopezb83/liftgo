@@ -1,69 +1,157 @@
-## Problema
+## Auditoría de toasts — LiftGo
 
-En `/invoices/53dec3e3-…` el usuario disparó una acción (probablemente **Timbrar CFDI**) y recibió un toast genérico:
+**Inventario:** 543 invocaciones en 98 archivos.
+- `notifyError`: 379 · `toast.success`: 144 · `notifyWarning`: 11 · `toast.error` directo: 10 · `toast.info`: 5 · `toast.warning` directo: 4 · `toast.promise` / `toast.loading`: **0**.
+- Stack: `sonner` con `<Toaster />` en `AppProviders`, position `top-center` (mobile) / `bottom-right` (desktop), border-left semántico por tipo.
+- Hay handler global en `QueryCache` y `MutationCache` que llama `notifyError` salvo `meta.silent`.
 
-> Edge Function returned a non-2xx status code
+Severidad: **CRITICAL** (riesgo de error de usuario o silencio total) → **HIGH** (inconsistencia visible) → **MEDIUM** (calidad/UX) → **LOW**.
 
-Causa raíz: el SDK de Supabase (`supabase.functions.invoke`) devuelve un `FunctionsHttpError` cuyo `message` es siempre ese string genérico — el cuerpo JSON real de la respuesta (`{ error: "Invoice already stamped" | "Company settings not configured" | "Facturapi error: 400" | … }`) queda atrapado en `error.context` (la `Response`) y nuestros hooks lo descartan haciendo `throw error` directo.
+---
 
-Los logs de la función confirman el timing exacto:
-- `stamp-cfdi` booteó a las `2026-06-23T19:05:55Z`
-- Error en cliente a las `19:06:00.192Z` → 5 s después → fue una llamada real, no un fallo de boot.
+### #1 — CRITICAL · Errores que ignoran el reporte estructurado
 
-El handler de `stamp-cfdi` puede devolver no-2xx por varias razones legítimas (409 ya timbrada, 400 sin company settings, 502 Facturapi, 403 rol, 404 invoice). Hoy ninguna llega al usuario.
+`toast.error(...)` directo en 6 lugares se salta `notifyError`, que es quien construye el `requestId`, el botón **Ver detalles** y la duración persistente. El usuario ve el toast 4 s y desaparece sin posibilidad de reportarlo.
 
-## Solución
+Archivos:
+- `src/lib/storage/openStorageFile.ts:19`
+- `src/features/invoices/hooks/invoiceDetail/useStampInvoiceFlow.ts:15`
+- `src/features/invoices/hooks/invoiceDetail/useDownloadInvoiceXml.ts:17`
+- `src/features/bank-reconciliation/components/BankStatementUploader.tsx:27`
+- `src/features/accounts-payable/hooks/useExportPaymentsForm.ts:36`
+- `src/features/portal/pages/PortalStatement.tsx:48`
 
-Centralizar la extracción del cuerpo de error de Edge Functions en un helper y aplicarlo a **todos** los hooks que invocan funciones (no sólo CFDI), de modo que el toast muestre el mensaje real del backend.
+**Fix:** reemplazar por `notifyError({ message, description?, error? })`. Mantener `toast.error` solo dentro de `appFeedback.ts` y para flujos de **validación inline** (donde no hay error de runtime).
 
-### 1. Helper nuevo `src/lib/supabase/invokeEdgeFunction.ts`
+Excepciones legítimas que se quedan como `toast.error`:
+- `useRefreshCancellationStatus` línea 19 ("Cancelación rechazada por el receptor") — es estado de negocio, no un error técnico. Mejor degradarlo a `toast.info` con icono ❌ o dejarlo.
+- `ErrorDetailsDialog.tsx:27` — ironía: notificar fallo de copiar dentro del propio diálogo de error. OK como `toast.error` corto.
 
-Wrapper sobre `supabase.functions.invoke` que:
-- Llama `invoke(name, options)`.
-- Si hay `error` y `error.context` es una `Response`, intenta `await error.context.clone().json()` y extrae `body.error` / `body.detail` / `body.message`.
-- Construye y lanza un `Error` con el mensaje real (ej. `"Invoice already stamped"`), preservando `cause: error` para Sentry/telemetry.
-- Si el body no es JSON parseable, hace fallback al `statusText` o al mensaje original.
-- Tipado genérico `<T>` para el `data` devuelto.
+---
 
-### 2. Refactor de hooks que invocan Edge Functions
+### #2 — CRITICAL · `notifyError` siempre `duration: Infinity` + `closeButton`
 
-Reemplazar el patrón `const { data, error } = await supabase.functions.invoke(...)` por el helper en:
+`appFeedback.ts:62-66` fija `duration: Infinity` para **todos** los errores. Cuando una mutación falla por algo trivial (validación de campo, "saldo cero", duplicado), el toast queda fijo hasta que el usuario lo cierre. En flujos con varios errores se acumulan y tapan UI.
 
-- `src/features/invoices/hooks/invoices/cfdi/useStampCfdi.ts`
-- `src/features/invoices/hooks/invoices/cfdi/useCancelCfdi.ts`
-- `src/features/invoices/hooks/invoices/cfdi/useRefreshCancellationStatus.ts`
-- `src/features/invoices/hooks/invoices/cfdi/usePaymentComplement.ts`
-- `src/features/invoices/hooks/invoices/pdf/useInvoicePdfDownload.ts`
-- `src/features/invoices/hooks/invoices/useRecordPaymentForm.ts` (si invoca)
-- `src/features/invoices/hooks/invoices/recurring/useGenerateRecurringInvoices.ts`
-- `src/features/invoices/hooks/creditNotes/useCreditNoteMutations.ts`
-- `src/features/invoices/lib/downloadCfdiBlob.ts`
-- `src/features/maintenance/hooks/maintenance/useGenerateRecurringMaintenance.ts`
-- `src/features/portal/hooks/paymentIntents/useCreatePaymentIntent.ts`
+**Fix:** introducir niveles:
+- `notifyError({ severity: "critical" })` → `duration: Infinity` (default actual).
+- `notifyError({ severity: "warning" })` → `duration: 6000`.
+- Validaciones de form (sin `error`, solo `message`) → `duration: 5000`.
 
-`translateFacturapiError` se sigue aplicando en `useStampCfdi.onError` sobre el mensaje ya extraído (mejora porque ahora recibirá el detalle real de Facturapi en lugar del string genérico).
+Auditar las 379 llamadas y degradar las que son meramente informativas (ej. "Monto inválido", "Tipo de cambio inválido", "Selecciona al menos un equipo") para que no requieran clic.
 
-### 3. Observabilidad mínima en `stamp-cfdi`
+---
 
-Agregar `console.error` en handler.ts en los `return json(...)` con status ≥ 400 (rolesErr, invoice not found, already stamped, company missing, Facturapi error, DB update error) para que aparezcan en `edge_function_logs` la próxima vez. Sin PII: sólo status + razón corta + invoice_id.
+### #3 — HIGH · No existe `notifySuccess` (144 `toast.success` sin estilo unificado)
 
-### 4. Tests
+144 `toast.success(...)` directos sin descripción, sin opciones, sin acción (`Ver`, `Deshacer`). Pierden la oportunidad de:
+- Linkear al recurso recién creado (ej. tras crear factura → botón **Ver factura**).
+- Permitir **Undo** en deletes destructivos (ej. `Reserva eliminada`).
+- Reporte estructurado para QA cuando se requiere telemetría.
 
-- `src/lib/supabase/__tests__/invokeEdgeFunction.test.ts`: cubre (a) éxito, (b) error con body JSON `{ error: "X" }`, (c) error con body no-JSON, (d) error sin `context`.
-- Actualizar `src/features/invoices/hooks/invoices/cfdi/__tests__/useStampCfdi.test.ts` para verificar que un fallo 409 con `{ error: "Invoice already stamped" }` propaga ese mensaje al `onError`.
+**Fix:** crear `notifySuccess({ title, description?, action?, durationMs? })` en `appFeedback.ts`, migrar los 144 sitios (codemod simple) y empezar a agregar acciones contextuales (al menos en deletes y creaciones de entidades principales: factura, cotización, reserva, cliente).
 
-### 5. Changelog
+---
 
-- Entrada **patch** `v6.75.2` en `public/changelog.json` + `public/changelog/v6.75.2.json` describiendo el fix de mensajes de Edge Functions.
+### #4 — HIGH · Strings de éxito duplicados y vagos
 
-## Lo que NO se toca
+Top duplicados: `"Eliminado"` ×3, `"Cliente actualizado"` ×3, `"Agregado"` ×3, `"Actualizado"` ×3, `"Reserva creada"` ×2, `"Pago registrado"` ×2, `"Estado actualizado"` ×2.
 
-- No se modifican las rutas ni las pantallas de invoices.
-- No se cambia la lógica de negocio del timbrado, sólo el reporte de errores.
-- No se rotan llaves ni se altera Facturapi.
+Vagos como `"Agregado"` o `"Actualizado"` no dicen qué se agregó/actualizó. En tablas con varias acciones por fila el usuario pierde contexto.
 
-## Validación
+**Fix:** catálogo centralizado en `src/lib/domain/feedbackMessages.ts` con builders tipo `successMessages.invoiceCreated(number)` → `"Factura ${number} creada"`. Cubre i18n futura (todo está en es-MX hoy) y elimina drift.
 
-1. `bun test` verde para los nuevos/ajustados tests.
-2. Reproducir manualmente en `/invoices/:id` (intentando timbrar una factura ya timbrada) — el toast debe mostrar `"Invoice already stamped"` en lugar del mensaje genérico.
-3. Revisar `supabase--edge_function_logs stamp-cfdi` y confirmar que las nuevas líneas `console.error` aparecen con el motivo real del 4xx/5xx del request fallido del usuario.
+---
+
+### #5 — HIGH · `notifyError` swallow del mensaje real cuando se pasa `message`
+
+`appFeedback.ts:60`: `const description = input.description ?? getErrorMessage(error)`. Bien. Pero muchas llamadas hacen `notifyError({ error: err, message: "Error al X" })` — `message` se usa como título genérico y la descripción real del error queda visible. **Correcto.** Pero hay llamadas que pasan solo `message` sin `error`, perdiendo la causa real (no hay stack, no hay `requestId`).
+
+Ejemplos: `useRecordPaymentForm.ts:45` `notifyError({ message: "Monto inválido" })` → no es un error, es validación. Debería ser **inline form error** o `toast.warning`.
+
+**Fix:** crear helper `notifyValidation({ field, message })` para validaciones de formulario que renderice un toast warning de 4 s, sin botón "Ver detalles" (no hay nada que ver).
+
+---
+
+### #6 — HIGH · `toast.success` dentro de `onSuccess` *antes* de invalidar queries
+
+Patrón en varios mutations: `toast.success(...)`; luego `queryClient.invalidateQueries(...)`. Si la invalidación falla (RLS, network), el usuario ya vio "OK" pero la UI no se actualizó.
+
+Ejemplo típico: `useCreditNoteMutations.ts`, `useCancelCfdi.ts`, `useRefreshCancellationStatus.ts`.
+
+**Fix:** el patrón no es bug real (invalidate raramente falla y refetch tiene retry), pero conviene documentarlo como convención. Bajar a **MEDIUM** si se prefiere.
+
+---
+
+### #7 — MEDIUM · `liftgo-toast-error` y `liftgo-toast-warning` className referenced pero **sin estilos en `index.css`**
+
+`appFeedback.ts:66` aplica `className: "liftgo-toast-error"` y `:82` `liftgo-toast-warning`. `grep` en `src/index.css` no encuentra ninguna regla con ese nombre. Son clases muertas.
+
+**Fix:** o bien añadir reglas reales en `index.css` (ej. `bg-destructive/5`, animación de shake), o eliminar la prop.
+
+---
+
+### #8 — MEDIUM · `toast.info` y `toast.warning` directos sin helper
+
+5 `toast.info` + 4 `toast.warning` directos. `notifyWarning` existe pero solo cubre `{title, description}`. No hay `notifyInfo`. Inconsistencia: a veces se usa helper, a veces no.
+
+**Fix:** añadir `notifyInfo` y `notifyWarning` con misma firma, migrar los 9 sitios.
+
+---
+
+### #9 — MEDIUM · No se usan `toast.promise` ni `toast.loading`
+
+0 ocurrencias. Operaciones largas (timbrado CFDI con Facturapi, generación de PDF, recurring invoices) no muestran progreso; el usuario ve botón disabled sin feedback. `toast.promise(promise, { loading, success, error })` resuelve esto en una sola línea.
+
+**Fix:** introducir `notifyAsync(label, promise)` envoltorio sobre `toast.promise` y aplicarlo en: timbrado, descarga de CFDI/PDF, recurring invoices, generate-recurring-maintenance, exportar pagos, importar bancos.
+
+---
+
+### #10 — MEDIUM · `position` y `duration` no son responsivos
+
+Mobile usa `top-center` (correcto, no tapa botones inferiores). Desktop `bottom-right`. Sin `expand={true}` se apilan colapsados; con muchos toasts en burst (ej. import bancario que dispara warnings por línea) el usuario solo ve el último.
+
+**Fix:** evaluar `expand={true}` en `<Toaster>`, y/o `richColors` para que la decoración semántica sea automática.
+
+---
+
+### #11 — LOW · Mensajes inconsistentes para mismas acciones
+
+- `"Reserva extendida"` vs `"Reserva extendida exitosamente"` (mismo evento, dos lugares).
+- `"Usuario creado exitosamente"` vs `"Cliente creado"` (uno con sufijo, otro no).
+- `"Nota de crédito timbrada"` vs `"CFDI timbrado exitosamente — UUID: …"` (con/sin detalle).
+
+**Fix:** estilo común en docs + catálogo del #4. Regla: verbo en pasado + sustantivo, sin "exitosamente"; opcionalmente ID/folio si está disponible.
+
+---
+
+### #12 — LOW · `toast.info` para estados de cancelación SAT
+
+`useRefreshCancellationStatus.ts:21` y `useCreditNoteMutations.ts:80-81` usan `toast.info(\`Estado SAT: ${status}\`)` como fallback. Si el SAT devuelve un estado inesperado el usuario ve una cadena críptica.
+
+**Fix:** mapear `status` a label en español (ya existe el patrón para `accepted/rejected/expired/pending`).
+
+---
+
+## Resumen de acciones recomendadas (prioridad)
+
+| # | Tarea | Esfuerzo | Impacto |
+|---|---|---|---|
+| 1 | Migrar 6 `toast.error` directos a `notifyError` | XS | Alto (reportabilidad) |
+| 2 | Severity en `notifyError` + auditoría de los 379 sitios | M | Alto |
+| 3 | Introducir `notifySuccess` + codemod 144 sitios | M | Alto |
+| 4 | Catálogo `feedbackMessages.ts` + reemplazos | M | Medio |
+| 7 | Limpiar / implementar `liftgo-toast-*` | XS | Bajo |
+| 8 | Añadir `notifyInfo`, migrar 9 directos | XS | Medio |
+| 9 | Introducir `notifyAsync` para operaciones largas | S | Alto |
+| 11+12 | Pulir mensajes inconsistentes | S | Medio |
+
+## Pregunta de scope
+
+Esta auditoría es **read-only** (no se modificó código). Las siguientes son las opciones de implementación:
+
+- **A — Quick wins (1 hr):** #1 + #7 + #8 (migración mecánica, sin riesgo).
+- **B — Plataforma toast (3-4 hr):** A + #3 (`notifySuccess`) + #9 (`notifyAsync`), sin codemod masivo.
+- **C — Completo (1 día):** B + #2 (severities) + #4 (catálogo centralizado) + codemod de los 144 `toast.success`.
+
+Indica qué scope ejecutamos y emito el plan de implementación correspondiente.
