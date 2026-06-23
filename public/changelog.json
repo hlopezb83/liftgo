@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.80.0",
+    "date": "2026-06-23",
+    "type": "minor",
+    "title": "Facturación recurrente: agrupar reservas del mismo cliente en una sola factura",
+    "description": "Las reservas recurrentes del mismo cliente y mismo período se consolidan en una sola factura con varios conceptos.",
+    "category": "improvement"
+  },
+  {
     "version": "6.79.2",
     "date": "2026-06-23",
     "type": "patch",
