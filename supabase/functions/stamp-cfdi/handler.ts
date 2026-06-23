@@ -212,6 +212,11 @@ export async function handleStampCfdi(
 
     if (!createRes.ok) {
       const errBody = await createRes.text();
+      console.error("[stamp-cfdi] facturapi rejected", {
+        invoice_id,
+        status: createRes.status,
+        body: errBody.slice(0, 500),
+      });
       await supabase.from("invoices")
         .update({
           cfdi_status: "error",
