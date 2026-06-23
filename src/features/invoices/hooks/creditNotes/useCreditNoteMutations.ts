@@ -63,16 +63,16 @@ export function useCancelCreditNote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { creditNoteId: string; motive: string; substitutionUuid?: string | null }) => {
-      const { data, error } = await supabase.functions.invoke("cancel-credit-note", {
-        body: {
-          credit_note_id: input.creditNoteId,
-          motive: input.motive,
-          substitution_uuid: input.substitutionUuid ?? undefined,
+      return await invokeEdgeFunction<{ cancellation_status: string }>(
+        "cancel-credit-note",
+        {
+          body: {
+            credit_note_id: input.creditNoteId,
+            motive: input.motive,
+            substitution_uuid: input.substitutionUuid ?? undefined,
+          },
         },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data as { cancellation_status: string };
+      );
     },
     onSuccess: (data) => {
       const s = data?.cancellation_status;
