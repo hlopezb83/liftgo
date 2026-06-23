@@ -6,6 +6,24 @@ import type { QueryBuilderLike, SupabaseLike } from "../_shared/types.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
+/**
+ * CFDI 4.0: legal_name del receptor debe ir EN MAYÚSCULAS, sin acentos,
+ * sin régimen societario (S.A. de C.V., S. de R.L., SAPI, etc.) y sin
+ * puntuación final. Coincide con la razón social registrada en el SAT.
+ */
+export function sanitizeLegalName(raw: string): string {
+  const SUFFIX_RE =
+    /\b(S\.?\s*A\.?\s*(DE\s*C\.?\s*V\.?)?|S\.?\s*DE\s*R\.?\s*L\.?\s*(DE\s*C\.?\s*V\.?)?|S\.?\s*C\.?|S\.?\s*A\.?\s*P\.?\s*I\.?\s*(DE\s*C\.?\s*V\.?)?|S\.?\s*A\.?\s*S\.?|A\.?\s*C\.?|S\.?\s*A\.?\s*B\.?\s*(DE\s*C\.?\s*V\.?)?)\b\.?/g;
+  return raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(SUFFIX_RE, "")
+    .replace(/[,.;]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // Re-export para compatibilidad con consumidores existentes.
 export type { QueryBuilderLike, SupabaseLike };
 
@@ -198,9 +216,10 @@ export async function handleStampCfdi(
     const payload: Record<string, unknown> = {
       type: "I",
       customer: {
-        legal_name: inv.receptor_razon_social || inv.customer_name ||
-          "Público General",
-        tax_id: inv.receptor_rfc || "XAXX010101000",
+        legal_name: sanitizeLegalName(
+          inv.receptor_razon_social || inv.customer_name || "Público General",
+        ),
+        tax_id: (inv.receptor_rfc || "XAXX010101000").toUpperCase(),
         tax_system: inv.receptor_regimen_fiscal || "616",
         address: { zip: inv.receptor_domicilio_fiscal_cp || "06600" },
       },
