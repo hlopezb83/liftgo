@@ -47,12 +47,9 @@ export function useStampCreditNote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (creditNoteId: string) => {
-      const { data, error } = await supabase.functions.invoke("stamp-credit-note", {
+      return await invokeEdgeFunction("stamp-credit-note", {
         body: { credit_note_id: creditNoteId },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
     },
     onSuccess: () => {
       toast.success("Nota de crédito timbrada");
