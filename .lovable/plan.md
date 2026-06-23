@@ -1,34 +1,65 @@
-## Problema
+## Resumen
 
-En `ExtendBookingDialog.tsx` (botón "Extender Renta" del header de RSV):
+Auditoría completa de localización es-MX (sólo lectura, sin cambios).
 
-1. **Fecha de fin actual**: muestra el valor crudo ISO (`YYYY-MM-DD`) en un `<Input disabled>`, no en formato mexicano.
-2. **Nueva fecha de fin**: usa `<input type="date">` nativo, cuyo formato depende del locale del navegador (en muchos casos MM/DD/YYYY), no respeta es-MX.
+**Bien configurado ya:**
+- `APP_CONFIG.LOCALE = "es-MX"`, `TIMEZONE = "America/Monterrey"`.
+- `formatCurrency` usa `Intl.NumberFormat(APP_CONFIG.LOCALE, ...)`.
+- `formatDateDisplay`, `formatMtyDate`, `nowMty`, `toYMD` centralizados.
+- `src/components/ui/calendar.tsx` ya pasa `locale={es}` por defecto a todos los `<Calendar>` del proyecto (semana inicia lunes vía locale `es`).
+- Ningún `format()` de date-fns usa patrones con nombres de mes/día (`MMM`, `EEEE`, etc.) sin locale: todos son numéricos (`dd/MM/yyyy`, `HH:mm`).
 
-## Cambios
+## Hallazgos
 
-Solo frontend, archivo único: `src/features/bookings/components/bookings/ExtendBookingDialog.tsx`.
+### 1. CRITICAL — `<input type="date">` nativo (formato depende del navegador, en/US muestra MM/DD/YYYY)
 
-1. **Fecha de fin actual (read-only)**: reemplazar el `<Input value={currentEndDate} disabled />` por un campo que muestre la fecha formateada con `formatDate` del proyecto (DD/MM/YYYY, timezone America/Monterrey). Parsear `currentEndDate` con el helper existente (sin `new Date(string)` directo).
+Mismo problema que ya corregimos en `ExtendBookingDialog`. Archivos pendientes:
 
-2. **Nueva fecha de fin**: reemplazar el `<input type="date">` nativo por el patrón estándar Shadcn Datepicker del proyecto:
-   - `Popover` + `Button` (trigger) + `Calendar` (`mode="single"`, `locale={es}` de `date-fns/locale`).
-   - Estado interno como `Date | undefined`; mostrar `format(date, "dd/MM/yyyy", { locale: es })`.
-   - `disabled` para fechas menores o iguales a `currentEndDate`.
-   - Al confirmar, convertir el `Date` a `YYYY-MM-DD` usando `toYMD()` (regla de memoria: columnas `date` se serializan con `toYMD`, no `toISOString`) antes de pasarlo a `createExtension.mutate`.
-   - Añadir `className="p-3 pointer-events-auto"` al Calendar (requerido dentro de Dialog).
+- `src/features/portal/components/ReportTransferDialog.tsx:55` — Portal del cliente: "Fecha de transferencia".
+- `src/features/fleet/components/forklift-form/InsuranceSection.tsx:20` — Vigencia del seguro (form de montacargas).
+- `src/features/crm/components/CloseWonDialog.tsx:76` — Fecha de cierre ganado en CRM.
+- `src/features/invoices/components/invoice-detail/CollectionNotesCard.tsx:59` — Fecha de seguimiento de cobranza.
 
-3. No tocar el hook `useCreateBookingExtension` ni la lógica de negocio — el payload sigue siendo `new_end_date: 'YYYY-MM-DD'`.
+**Impacto:** usuarios en navegadores con locale ≠ es-MX ven el calendario y picker en su idioma/orden de día-mes incorrecto.
 
-4. Agregar entrada al changelog (`public/changelog.json` + `public/changelog/v{X.Y.Z}.json`) como **patch**: "Modal Extender Renta localizado a es-MX (DD/MM/YYYY)".
+**Fix:** sustituir por el patrón Shadcn `Popover + Calendar` (ya estandarizado en el proyecto vía `DatePickerField`), serializando con `toYMD()`. Riesgo bajo — sólo capa de presentación.
 
-## Detalles técnicos
+### 2. HIGH — `<input type="time">` nativo (formato 12h/24h depende del navegador)
 
-- Importar `es` desde `date-fns/locale`, `format` desde `date-fns`, `Calendar`, `Popover*`, `cn`, `CalendarIcon` (lucide), y `toYMD` / `formatDate` desde los utilitarios del proyecto.
-- No introducir parseo manual con `new Date(string)`; usar los helpers existentes en `src/lib/date*` (a confirmar ruta al implementar).
-- Sin cambios de schema, RLS, hooks compartidos ni otros consumidores.
+- `src/features/deliveries/components/deliveries/PostDeliveryPickupDialog.tsx:60`
+- `src/features/deliveries/components/deliveries/DeliveryFormFields.tsx:81`
+- `src/features/bookings/components/bookings/PostBookingDeliveryDialog.tsx:65`
 
-## Fuera de alcance
+**Impacto:** algunos navegadores muestran AM/PM, otros 24h; inconsistencia visual.
 
-- Botón duplicado en `BookingActions.tsx` (tema separado, ya en discusión previa).
-- Cambios al diálogo legacy `BookingExtendDialog`.
+**Fix:** Opción A — dejarlo (los time inputs son menos problemáticos porque el valor que devuelven siempre es `HH:mm` 24h). Opción B — reemplazar por un `TimePicker` custom. Recomendación: dejar como está salvo que el cliente lo pida (no es bug funcional, solo UX).
+
+### 3. MEDIUM — `toLocaleString()` sin locale
+
+- `src/components/ui/chart.tsx:212` — `item.value.toLocaleString()` en tooltips de gráficas. Usa locale del navegador, no es-MX (separador de miles puede salir con coma en lugar de punto/coma según UA).
+
+**Fix:** cambiar a `item.value.toLocaleString(APP_CONFIG.LOCALE)` o usar `formatNumber()` helper.
+
+### 4. OK — Falsos positivos verificados
+
+- `format(d, "yyyy-MM-dd")` y similares en payloads/keys: correcto, son cadenas técnicas no localizadas.
+- `Calendar` en `ExtendBookingDialog`, `DateRangePickerField`, `DatePickerField` heredan `locale={es}` del componente base; el `weekStartsOn={1}` explícito en `ExtendBookingDialog` es redundante pero inocuo.
+
+## Recomendación de orden
+
+Fase 1 (recomendado ahora): arreglar **#1** — los cuatro `<input type="date">` restantes. Mismo patrón ya probado.
+
+Fase 2 (opcional): **#3** — un toque en `chart.tsx`.
+
+Fase 3 (sólo si lo pides): **#2** — time pickers custom.
+
+## Detalles técnicos para implementación posterior
+
+- Cada reemplazo de `<input type="date">` usa: `Popover` + `Calendar mode="single" selected={dateObj} onSelect={setDateObj}`, `formatDateDisplay`/`format(d,"dd/MM/yyyy",{locale:es})` para mostrar, y `toYMD(dateObj)` para serializar a Postgres `date` (regla de memoria).
+- En `CloseWonDialog` y `ReportTransferDialog` el estado actual es string `yyyy-MM-dd` desde `format(nowMty(),"yyyy-MM-dd")`; migrar a `Date | undefined` y serializar en submit.
+- No tocar lógica de negocio, hooks ni queries.
+- Cada fase = una entrada de changelog patch separada.
+
+## Fuera de alcance de esta auditoría
+
+PDFs (ya usan `dd/MM/yyyy` con `nowMty()` correctamente), validaciones Zod, mensajes en español (revisión de copy es otro tema).

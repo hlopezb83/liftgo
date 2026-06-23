@@ -1,0 +1,16 @@
+{
+  "version": "6.76.6",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Auditoría es-MX: selectores de fecha y formato de números",
+  "category": "improvement",
+  "changes": [
+    {
+      "area": "Localización",
+      "items": [
+        "Se reemplazaron los inputs nativos de fecha (formato dependiente del navegador) por el calendario Shadcn en español DD/MM/YYYY en: Reportar transferencia (portal), Vigencia del seguro (montacargas), Cerrar deal Ganado (CRM) y Próximo seguimiento de cobranza (facturas).",
+        "Los tooltips de gráficas ahora formatean números con separador de miles es-MX."
+      ]
+    }
+  ]
+}

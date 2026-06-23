@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCollectionNotes, useCreateCollectionNote } from "../../hooks/invoices/collections/useCollectionNotes";
 import { PhoneCall, Plus, Calendar } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
+import { DatePickerField } from "@/components/forms/DatePickerField";
 import { format } from "date-fns";
 
 interface CollectionNotesCardProps {
@@ -18,13 +19,13 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
   const createNote = useCreateCollectionNote();
   const [showForm, setShowForm] = useState(false);
   const [noteText, setNoteText] = useState("");
-  const [followupDate, setFollowupDate] = useState("");
+  const [followupDate, setFollowupDate] = useState<Date | undefined>(undefined);
 
   const handleSubmit = () => {
     if (!noteText.trim()) return;
     createNote.mutate(
-      { invoice_id: invoiceId, note: noteText.trim(), next_followup_date: followupDate || null },
-      { onSuccess: () => { setNoteText(""); setFollowupDate(""); setShowForm(false); } }
+      { invoice_id: invoiceId, note: noteText.trim(), next_followup_date: toYMD(followupDate) ?? null },
+      { onSuccess: () => { setNoteText(""); setFollowupDate(undefined); setShowForm(false); } }
     );
   };
 
@@ -52,12 +53,11 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
                 rows={2}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" /> Próximo seguimiento (opcional)
-              </Label>
-              <Input type="date" value={followupDate} onChange={(e) => setFollowupDate(e.target.value)} />
-            </div>
+            <DatePickerField
+              label="Próximo seguimiento (opcional)"
+              date={followupDate}
+              onSelect={setFollowupDate}
+            />
             <div className="flex gap-2">
               <Button size="sm" onClick={handleSubmit} disabled={createNote.isPending || !noteText.trim()}>
                 Guardar
@@ -88,3 +88,4 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
     </Card>
   );
 }
+
