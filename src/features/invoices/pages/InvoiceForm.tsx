@@ -99,19 +99,16 @@ export default function InvoiceForm() {
                 </div>
               )}
               {!f.isEdit && (
-                <FormField control={f.form.control} name="bookingId" render={({ field }) => (
+                <FormField control={f.form.control} name="bookingIds" render={({ field }) => (
                   <FormItem>
-                    <Label>Generar desde Reserva</Label>
-                    <Select value={field.value} onValueChange={f.handleBookingSelect}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar reserva (opcional)" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {f.availableBookings?.map((booking) => (
-                          <SelectItem key={booking.id} value={booking.id}>
-                            {(booking as BookingWithForklift).forklifts?.name} — {booking.customer_name || "Sin cliente"} ({formatDateRange(booking.start_date, booking.end_date)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Generar desde Reserva(s)</Label>
+                    <FormControl>
+                      <MultiBookingSelector
+                        bookings={f.availableBookings ?? []}
+                        selectedIds={field.value ?? []}
+                        onChange={f.handleBookingsChange}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
