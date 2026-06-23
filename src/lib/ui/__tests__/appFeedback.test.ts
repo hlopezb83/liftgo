@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock sonner antes de importar appFeedback.
-const sonner = {
+const sonner = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
   warning: vi.fn(),
   promise: vi.fn(),
-};
+}));
 
 vi.mock("sonner", () => ({ toast: sonner }));
 vi.mock("@/lib/ui/errorDetailsStore", () => ({ openErrorReport: vi.fn() }));
