@@ -1,0 +1,15 @@
+{
+  "version": "6.80.0",
+  "date": "2026-06-23",
+  "type": "minor",
+  "title": "Facturación recurrente: agrupar reservas del mismo cliente en una sola factura",
+  "description": "Al generar facturas recurrentes, las reservas del mismo cliente que comparten período mensual se consolidan en una sola factura con varios conceptos.",
+  "category": "improvement",
+  "details": [
+    "Edge function generate-recurring-invoices: agrupa por (customer_id, billingStart, billingEnd) y crea 1 factura por grupo.",
+    "Cada reserva del grupo aparece como concepto independiente con su renta mensual.",
+    "Las reservas quedan vinculadas vía la tabla pivote invoice_bookings.",
+    "Idempotencia: si alguna reserva del grupo ya tiene factura para ese período, se omite el grupo completo.",
+    "Response ahora incluye bookingsBilled además de invoicesCreated y duplicatesSkipped."
+  ]
+}
