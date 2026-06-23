@@ -1,0 +1,12 @@
+{
+  "version": "6.80.2",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Timbrado CFDI 4.0: normalizar razón social del receptor",
+  "category": "fix",
+  "description": "Se agrega sanitizeLegalName en stamp-cfdi: mayúsculas, sin acentos y sin régimen societario (S.A. de C.V., S. de R.L., SAPI, etc.). Resuelve el error CFDI40145 'el nombre no coincide con el RFC registrado en el SAT'.",
+  "changes": [
+    "Nuevo helper sanitizeLegalName en supabase/functions/stamp-cfdi/handler.ts.",
+    "RFC del receptor se envía siempre en mayúsculas."
+  ]
+}
