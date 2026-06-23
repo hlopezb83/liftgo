@@ -138,10 +138,10 @@ export default function BookingsPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
-      emptyMessage="No se encontraron reservas"
+      emptyMessage={isAdmin ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}
       emptyIcon={CalendarDays}
-      emptyActionLabel="Nueva Reserva"
-      onEmptyAction={() => navigate("/bookings/new")}
+      emptyActionLabel={isAdmin ? "Nueva Reserva" : undefined}
+      onEmptyAction={isAdmin ? () => navigate("/bookings/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(b) => (
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
