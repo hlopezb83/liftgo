@@ -90,6 +90,7 @@ export function buildFromInvoice(inv: ExistingInvoice, customers: Customer[] | u
   }
   return {
     bookingId: toStr(inv.booking_id),
+    bookingIds: inv.booking_id ? [inv.booking_id] : [],
     customerId: inv.customer_id,
     customerName: toStr(inv.customer_name),
     lineItems: (inv.line_items as LineItemValues[]) || [],
@@ -118,6 +119,7 @@ export function buildFromQuote({ q, assignments, forklifts, customers }: FromQuo
   const isSaleWithAssignments = q.quote_type === "sale" && !!assignments && assignments.length > 0;
   return {
     bookingId: "",
+    bookingIds: [],
     customerId: q.customer_id,
     customerName: toStr(q.customer_name),
     lineItems: items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)),
