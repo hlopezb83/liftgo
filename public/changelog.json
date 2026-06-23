@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.75.2",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Mensajes reales en errores de Edge Functions",
+    "description": "Centraliza `supabase.functions.invoke` en un helper que extrae el body JSON de `FunctionsHttpError` (antes atrapado en `error.context`). Los toasts ahora muestran el motivo real ('Invoice already stamped', 'Facturapi error: 400 — …') en lugar del genérico 'Edge Function returned a non-2xx status code'. Refactor en 9 hooks de CFDI/facturas/mantenimiento + logging en stamp-cfdi.",
+    "category": "improvement"
+  },
+  {
     "version": "6.75.1",
     "date": "2026-06-15",
     "type": "patch",

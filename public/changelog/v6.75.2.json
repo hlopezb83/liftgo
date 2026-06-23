@@ -1,0 +1,15 @@
+{
+  "version": "6.75.2",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Mensajes reales en errores de Edge Functions",
+  "description": "Centraliza el invoke de Edge Functions en `src/lib/supabase/invokeEdgeFunction.ts`, que extrae el body JSON real de `FunctionsHttpError` (Supabase SDK lo deja en `error.context`). Antes los toasts mostraban el genérico 'Edge Function returned a non-2xx status code'; ahora muestran el motivo real (ej. 'Invoice already stamped', 'Company settings not configured', 'Facturapi error: 400 — …').\n\nRefactor aplicado a 9 hooks (stamp/cancel CFDI, refresh cancellation, REP timbrado/cancelado, notas de crédito, facturas/mantenimiento recurrentes, descarga de CFDI). Se agrega `console.error` en `stamp-cfdi/handler.ts` en cada salida 4xx/5xx para que el motivo aparezca en los logs de la Edge Function.",
+  "category": "improvement",
+  "details": [
+    "Helper nuevo: `invokeEdgeFunction<T>(name, options)` lee `error.context.clone().text()` y prioriza `body.error` → `body.message` → `body.detail` → texto crudo → mensaje original.",
+    "Hooks refactorizados: useStampCfdi, useCancelCfdi, useRefreshCancellationStatus, useStampPaymentComplement, useCancelPaymentComplement, useStampCreditNote, useCancelCreditNote, useCreateCreditNote (rama stamp), useGenerateRecurringInvoices, useGenerateRecurringMaintenance, fetchCfdiBlob.",
+    "Logging en stamp-cfdi: roles lookup failed, forbidden, invoice not found, e2e rejected, already stamped, company missing, facturapi rejected (con status + body truncado a 500 chars), DB update failed, unhandled exception.",
+    "Tests nuevos: 5 casos en `invokeEdgeFunction.test.ts` (éxito, body JSON con error, body no-JSON, sin context, data.error legacy). useStampCfdi gana un caso que verifica extracción de 'Invoice already stamped' desde Response 409.",
+    "`translateFacturapiError` sigue activo en `useStampCfdi.onError` y ahora recibe el detalle real en lugar del string genérico."
+  ]
+}
