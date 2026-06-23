@@ -9,10 +9,15 @@ import type { Tables } from "@/integrations/supabase/types";
 interface Props {
   sourceQuote?: Pick<Tables<"quotes">, "id" | "quote_number"> | null;
   sourceBooking?: BookingWithForklift | null;
+  sourceBookings?: BookingWithForklift[];
 }
 
-export function InvoiceSourceLinks({ sourceQuote, sourceBooking }: Props) {
-  if (!sourceQuote && !sourceBooking) return null;
+export function InvoiceSourceLinks({ sourceQuote, sourceBooking, sourceBookings }: Props) {
+  const bookings: BookingWithForklift[] = sourceBookings && sourceBookings.length > 0
+    ? sourceBookings
+    : (sourceBooking ? [sourceBooking] : []);
+
+  if (!sourceQuote && bookings.length === 0) return null;
 
   return (
     <>
@@ -30,21 +35,24 @@ export function InvoiceSourceLinks({ sourceQuote, sourceBooking }: Props) {
         </Card>
       )}
 
-      {sourceBooking && (
+      {bookings.length > 0 && (
         <Card>
-          <CardContent className="py-3 space-y-1">
+          <CardContent className="py-3 space-y-2">
             <div className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Generada desde reserva:</span>
-              <Link to="/bookings">
-                <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-                  {sourceBooking.forklifts?.name || "Reserva"}
-                </Badge>
-              </Link>
+              <span className="text-sm text-muted-foreground">
+                {bookings.length === 1 ? "Generada desde reserva:" : `Generada desde ${bookings.length} reservas:`}
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground ml-6">
-              {sourceBooking.forklifts?.name} — {formatDateRange(sourceBooking.start_date, sourceBooking.end_date)}
-            </p>
+            <div className="flex flex-wrap gap-1.5 ml-6">
+              {bookings.map((b) => (
+                <Link key={b.id} to="/bookings">
+                  <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                    {b.forklifts?.name || "Reserva"} · {formatDateRange(b.start_date, b.end_date)}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
