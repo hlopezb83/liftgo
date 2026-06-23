@@ -1,0 +1,13 @@
+{
+  "version": "6.79.2",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Selector de fecha única: modal estable replicando el patrón del rango",
+  "description": "Todos los selectores de fecha única (cotizaciones, mantenimiento, daños, pagos, extender renta, etc.) ahora abren en modal centrado con botones Aplicar / Cancelar / Limpiar.",
+  "category": "improvement",
+  "details": [
+    "DatePickerField migrado de Popover a Dialog, eliminando saltos al elegir mes.",
+    "ExtendBookingDialog ahora reutiliza DatePickerField en lugar de un popover inline.",
+    "Mes inicial fijo al abrir el modal."
+  ]
+}
