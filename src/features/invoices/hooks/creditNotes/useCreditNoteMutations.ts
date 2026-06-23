@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
