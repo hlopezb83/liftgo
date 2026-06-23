@@ -1,0 +1,16 @@
+{
+  "version": "6.76.3",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Evitar folios duplicados al crear varias reservas en paralelo",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Reservas",
+      "items": [
+        "Al convertir una cotización con varios equipos, dos reservas podían recibir el mismo folio (RSV-XXXX) y la segunda fallaba con error de clave duplicada.",
+        "El RPC `create_booking` ahora serializa la asignación de folio con un bloqueo transaccional (`pg_advisory_xact_lock`), garantizando folios consecutivos sin colisiones."
+      ]
+    }
+  ]
+}
