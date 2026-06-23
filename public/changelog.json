@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.79.2",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Selector de fecha única: modal estable replicando el patrón del rango",
+    "description": "Todos los selectores de fecha única ahora abren en modal centrado con Aplicar/Cancelar/Limpiar.",
+    "category": "improvement"
+  },
+  {
     "version": "6.79.1",
     "date": "2026-06-23",
     "type": "patch",
