@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { toast } from "sonner";
+
 import { PlusCircle, TruckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,6 +12,7 @@ import { useBookings } from "@/features/bookings";
 import { useCreateDelivery } from "../../hooks/useDeliveries";
 import { deliverySchema } from "../../lib/deliveryFormSchema";
 import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormFields";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 const initialForm: DeliveryFormValues = {
   forkliftId: "", bookingId: "", type: "delivery",
@@ -45,7 +46,7 @@ export function DeliveryFormDialog() {
       },
       {
         onSuccess: () => {
-          toast.success("Transporte programado");
+          notifySuccess("Transporte programado");
           setOpen(false);
           form.reset(initialForm);
         },

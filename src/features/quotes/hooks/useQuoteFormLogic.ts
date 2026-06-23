@@ -4,10 +4,11 @@ import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "./quotes/useQuotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
-import { toast } from "sonner";
+
 import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
 import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
 import { buildSaleItems, buildRentalItems, validateQuoteForm, buildQuotePayload } from "./quoteForm/quoteFormHelpers";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 export function useQuoteFormLogic() {
   const { id } = useParams();
@@ -59,9 +60,9 @@ export function useQuoteFormLogic() {
     });
 
     if (id) {
-      updateQuote.mutate({ id, ...payload }, { onSuccess: () => { toast.success("Cotización actualizada"); navigate(`/quotes/${id}`); } });
+      updateQuote.mutate({ id, ...payload }, { onSuccess: () => { notifySuccess("Cotización actualizada"); navigate(`/quotes/${id}`); } });
     } else {
-      createQuote.mutate(payload, { onSuccess: () => { toast.success("Cotización creada"); navigate("/quotes"); } });
+      createQuote.mutate(payload, { onSuccess: () => { notifySuccess("Cotización creada"); navigate("/quotes"); } });
     }
   };
 

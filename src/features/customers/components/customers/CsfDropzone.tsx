@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+
 import { useParseCsf } from "../../hooks/useParseCsf";
 import type { CustomerFormData } from "../../lib/customerFormSchema";
 
@@ -39,7 +39,7 @@ export function CsfDropzone({ onParsed }: Props) {
           representante_legal: data.representante_legal || undefined,
         });
         setParsed(true);
-        toast.success("Datos fiscales extraídos. Revisa y completa la información.");
+        notifySuccess("Datos fiscales extraídos. Revisa y completa la información.");
       },
       onError: (e: unknown) => {
         notifyError({ error: e, message: "Error al procesar la constancia" });

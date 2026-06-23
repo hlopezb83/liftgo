@@ -9,7 +9,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { exportCustomerStatementPdf } from "@/lib/pdf/customerStatement";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/ui/appFeedback";
 
 type Payment = { id: string; invoice_id: string | null; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
@@ -45,7 +45,12 @@ export default function PortalStatement() {
     try {
       await exportCustomerStatementPdf({ customer, summary });
     } catch (e: unknown) {
-      toast.error("No se pudo generar el PDF");
+      notifyError({
+        error: e,
+        title: "No se pudo generar el PDF",
+        phase: "exportCustomerStatementPdf",
+        context: { customer_id: customer.id },
+      });
     }
   };
 

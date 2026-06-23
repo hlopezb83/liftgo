@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { parseBankCsv } from "../lib/csvParsers";
 import { CSV_PROFILES, CSV_PROFILE_LABELS, type CsvProfile } from "../lib/bankReconciliationConstants";
 import { useImportBankStatement } from "../hooks/useBankReconciliationMutations";
+import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 
 interface Props {
   bankAccountId: string;
@@ -24,11 +24,17 @@ export function BankStatementUploader({ bankAccountId }: Props) {
     const content = await file.text();
     const parsed = parseBankCsv(content, profile);
     if (parsed.lines.length === 0) {
-      toast.error(`No se pudieron leer movimientos del archivo (${parsed.errors[0] ?? "sin detalle"})`);
+      notifyError({
+        title: "No se pudieron leer movimientos del archivo",
+        description: parsed.errors[0] ?? "Sin detalle.",
+        phase: "parseBankCsv",
+        severity: "warning",
+        context: { profile, fileName: file.name },
+      });
       return;
     }
     if (parsed.errors.length > 0) {
-      toast.warning(`${parsed.lines.length} movimientos cargados, ${parsed.errors.length} líneas con error fueron ignoradas.`);
+      notifyWarning(`${parsed.lines.length} movimientos cargados, ${parsed.errors.length} líneas con error fueron ignoradas.`);
     }
     importMut.mutate(
       {

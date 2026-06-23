@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+
 import type { Tables } from "@/integrations/supabase/types";
 import type { FeedbackStatus } from "../lib/constants";
 
@@ -88,7 +88,7 @@ export function useUpdateFeedbackStatus() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ["feedback_reports"] });
       queryClient.invalidateQueries({ queryKey: ["feedback_leaderboard"] });
-      toast.success("Estado actualizado");
+      notifySuccess("Estado actualizado");
     },
     onError: (err: Error) => {
       notifyError({ title: "Error al cambiar estado", error: err });

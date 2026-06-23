@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export interface CashFlowSettings {
   id: string | null;
@@ -55,7 +55,7 @@ export function useUpdateCashFlowSettings() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CASH_FLOW_SETTINGS_QK });
       qc.invalidateQueries({ queryKey: ["company_settings"] });
-      toast.success("Preferencias de flujo de caja actualizadas");
+      notifySuccess("Preferencias de flujo de caja actualizadas");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });

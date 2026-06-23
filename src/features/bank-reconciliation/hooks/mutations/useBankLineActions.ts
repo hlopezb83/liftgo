@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { BANK_LINES_QK } from "../useBankStatementLines";
 
 export function useConfirmBankMatch() {
@@ -22,7 +22,7 @@ export function useConfirmBankMatch() {
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
-      toast.success("Movimiento conciliado");
+      notifySuccess("Movimiento conciliado");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });
@@ -37,7 +37,7 @@ export function useUnmatchBankLine() {
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
-      toast.success("Movimiento desemparejado");
+      notifySuccess("Movimiento desemparejado");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });
@@ -55,7 +55,7 @@ export function useIgnoreBankLine() {
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
-      toast.success("Movimiento marcado como ignorado");
+      notifySuccess("Movimiento marcado como ignorado");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });

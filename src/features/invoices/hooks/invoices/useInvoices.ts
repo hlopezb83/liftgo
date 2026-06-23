@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
@@ -84,7 +84,7 @@ export function useDeleteInvoice() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
-      toast.success("Factura eliminada");
+      notifySuccess("Factura eliminada");
     },
     onError: (err: Error) => {
       notifyError({ title: "Error al eliminar factura", error: err });

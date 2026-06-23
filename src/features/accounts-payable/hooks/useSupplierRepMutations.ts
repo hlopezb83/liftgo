@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
 import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
 
@@ -55,7 +55,7 @@ export function useUploadSupplierRep() {
     },
     onSuccess: (_d, vars) => {
       invalidate(qc, vars.billId ?? null);
-      toast.success("REP recibido y validado");
+      notifySuccess("REP recibido y validado");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo validar el REP" }),
   });
@@ -68,7 +68,7 @@ export function useRejectSupplierRep() {
       callRpc<null>("mark_supplier_rep_rejected", { p_payment_id: paymentId, p_notes: notes }),
     onSuccess: (_d, vars) => {
       invalidate(qc, vars.billId ?? null);
-      toast.success("REP marcado como rechazado");
+      notifySuccess("REP marcado como rechazado");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo rechazar el REP" }),
   });
@@ -81,7 +81,7 @@ export function useResetSupplierRep() {
       callRpc<null>("reset_supplier_rep_pending", { p_payment_id: paymentId }),
     onSuccess: (_d, vars) => {
       invalidate(qc, vars.billId ?? null);
-      toast.success("REP reiniciado a pendiente");
+      notifySuccess("REP reiniciado a pendiente");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo reiniciar el REP" }),
   });

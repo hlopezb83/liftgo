@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useUpdateBooking } from "@/features/bookings";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { toast } from "sonner";
+
 import { formatDateDisplay, nowMty } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
 import { AlertCard, AlertRow } from "./AlertCard";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface OverdueInvoice {
   id: string;
@@ -54,11 +55,11 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
       { id: inv.id, status: "paid", paid_at: toYMD(nowMty()) },
       {
         onSuccess: (data) => {
-          toast.success(`${inv.invoice_number} marcada como pagada`);
+          notifySuccess(`${inv.invoice_number} marcada como pagada`);
           if (data.booking_id) {
             updateBooking.mutate(
               { id: data.booking_id, status: "completed" },
-              { onSuccess: () => toast.success("Reserva vinculada completada") }
+              { onSuccess: () => notifySuccess("Reserva vinculada completada") }
             );
           }
         },

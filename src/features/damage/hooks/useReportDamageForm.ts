@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+
 import { useCreateDamageRecord } from "./useDamageRecords";
 import { useUploadDocument } from "@/hooks/useDocuments";
 
@@ -61,7 +61,7 @@ export function useReportDamageForm(onClose: () => void) {
         );
       }
 
-      toast.success("Daño reportado", {
+      notifySuccess("Daño reportado", {
         description: previews.length > 0
           ? `Registro creado con ${previews.length} foto(s).`
           : "El registro de daño se creó correctamente.",

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
 import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
 
@@ -34,7 +34,7 @@ export function useRegisterSupplierPayment() {
       qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
       qc.invalidateQueries({ queryKey: ["supplier_bill", variables.bill_id] });
       qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
-      toast.success("Pago registrado");
+      notifySuccess("Pago registrado");
     },
     onError: (e: unknown) =>
       notifyError({ error: e, message: "No se pudo registrar el pago" }),

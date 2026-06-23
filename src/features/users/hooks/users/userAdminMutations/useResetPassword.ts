@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+
 import { PasswordValidationError } from "../../../lib/PasswordValidationError";
 
 export function useResetPassword() {
@@ -20,7 +20,7 @@ export function useResetPassword() {
       return data as { email: string };
     },
     onSuccess: (data) => {
-      toast.success("Contraseña actualizada", {
+      notifySuccess("Contraseña actualizada", {
         description: `Comparte la nueva contraseña con ${data.email}`,
       });
     },

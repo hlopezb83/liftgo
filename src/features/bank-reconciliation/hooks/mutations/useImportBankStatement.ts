@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { ParsedBankLine } from "../../lib/csvParsers";
 import { BANK_LINES_QK } from "../useBankStatementLines";
 
@@ -55,11 +55,11 @@ export function useImportBankStatement() {
       qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
       const summary = Array.isArray(res) && res[0] ? res[0] : null;
       if (summary) {
-        toast.success(
+        notifySuccess(
           `Importación lista: ${summary.matched_count ?? 0} conciliados, ${summary.suggested_count ?? 0} sugeridos, ${summary.unmatched_count ?? 0} sin emparejar.`,
         );
       } else {
-        toast.success("Importación completada");
+        notifySuccess("Importación completada");
       }
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+
 import type { ProspectInsert, ProspectUpdate } from "./useProspects";
 
 const QUERY_KEY = ["prospects"];
@@ -27,7 +27,7 @@ export function useCreateProspect() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast.success("Prospecto creado");
+      notifySuccess("Prospecto creado");
     },
     onError: (e: Error) => notifyError({ title: "Error", error: e }),
   });
@@ -56,7 +56,7 @@ export function useDeleteProspect() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast.success("Prospecto eliminado");
+      notifySuccess("Prospecto eliminado");
     },
     onError: (e: Error) => notifyError({ title: "Error", error: e }),
   });

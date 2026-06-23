@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { toast } from "sonner";
+
 import type { AppRole } from "../useUserRole";
 import { USERS_QUERY_KEY } from "./useUsersQuery";
 
@@ -20,7 +20,7 @@ export function useUpdateRole() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      toast.success("Rol actualizado");
+      notifySuccess("Rol actualizado");
     },
     onError: (err: Error) => notifyError({ title: "Error al actualizar rol", error: err }),
   });
@@ -40,7 +40,7 @@ export function useUpdateName() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      toast.success("Nombre actualizado");
+      notifySuccess("Nombre actualizado");
     },
     onError: (err: Error) => notifyError({ title: "Error al actualizar nombre", error: err }),
   });

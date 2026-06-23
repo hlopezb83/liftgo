@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export interface AuditLog {
   id: string;
@@ -34,8 +33,6 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
       // Nota: el trigger de auditoría ya descarta filas con is_e2e=true desde 2026-06-10.
       // Un filtro client-side sobre old_data->>is_e2e en PostgREST descarta también los NULL,
       // lo cual vaciaba la bitácora. Se confía en el trigger.
-
-
 
       const { data, error } = await query;
       if (error) throw error;
@@ -70,7 +67,7 @@ export function useDeleteAuditLog() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["audit_logs"] });
-      toast.success("Registro eliminado correctamente");
+      notifySuccess("Registro eliminado correctamente");
     },
     onError: () => {
       notifyError({ message: "Error al eliminar el registro" });
@@ -89,7 +86,7 @@ export function useRevertAuditLog() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["audit_logs"] });
       queryClient.invalidateQueries({ queryKey: [variables.tableName] });
-      toast.success("Acción revertida y registro eliminado correctamente");
+      notifySuccess("Acción revertida y registro eliminado correctamente");
     },
     onError: (error: Error) => {
       notifyError({ message: error?.message || "Error al revertir la acción" });

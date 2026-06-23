@@ -11,8 +11,9 @@ import { useSuppliers } from "@/features/suppliers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { Pencil, Trash2, Wrench, Calendar, User, DollarSign, Truck, FileText } from "lucide-react";
-import { toast } from "sonner";
+
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pendiente", variant: "secondary" },
@@ -42,7 +43,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   const handleDelete = () => {
     deleteLog.mutate(log.id, {
       onSuccess: () => {
-        toast.success("Registro de mantenimiento eliminado");
+        notifySuccess("Registro de mantenimiento eliminado");
         onOpenChange(false);
       },
     });

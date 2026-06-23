@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { forkliftKeys } from "../../../lib/queryKeys";
-import { toast } from "sonner";
 
 export function useAssignForklift() {
   const queryClient = useQueryClient();
@@ -44,7 +43,7 @@ export function useAssignForklift() {
       if (logsError) throw logsError;
     },
     onSuccess: () => {
-      toast.success("Equipos asignados correctamente");
+      notifySuccess("Equipos asignados correctamente");
     },
     onError: (err: Error) => notifyError({ error: err }),
     onSettled: () => {

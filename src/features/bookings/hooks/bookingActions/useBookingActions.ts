@@ -1,7 +1,7 @@
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+
 import {
   useUpdateBooking,
   useDeleteBooking,
@@ -27,13 +27,13 @@ export function useBookingActions(booking: BookingWithForklift) {
 
   const handleDelete = () => {
     deleteBooking.mutate(booking.id, {
-      onSuccess: () => { toast.success("Reserva eliminada"); navigate("/bookings"); },
+      onSuccess: () => { notifySuccess("Reserva eliminada"); navigate("/bookings"); },
     });
   };
 
   const handleCancel = () => {
     cancelBooking.mutate(booking.id, {
-      onSuccess: () => toast.success("Reserva cancelada"),
+      onSuccess: () => notifySuccess("Reserva cancelada"),
     });
   };
 
@@ -50,7 +50,7 @@ export function useBookingActions(booking: BookingWithForklift) {
           );
         });
       }
-      toast.success(`Estatus cambiado a ${BOOKING_STATUS_LABELS[newStatus] || newStatus}`);
+      notifySuccess(`Estatus cambiado a ${BOOKING_STATUS_LABELS[newStatus] || newStatus}`);
       onSuccess();
     } catch (err: unknown) {
       notifyError({ title: "Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido") });
@@ -61,7 +61,7 @@ export function useBookingActions(booking: BookingWithForklift) {
     if (!newEndDate) return;
     updateBooking.mutate(
       { id: booking.id, end_date: format(newEndDate, "yyyy-MM-dd") },
-      { onSuccess: () => { toast.success("Reserva extendida"); onDone(); } }
+      { onSuccess: () => { notifySuccess("Reserva extendida"); onDone(); } }
     );
   };
 

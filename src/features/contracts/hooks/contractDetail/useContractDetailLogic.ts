@@ -1,7 +1,8 @@
 import { useParams } from "react-router-dom";
-import { toast } from "sonner";
+
 import { STATUS_LABELS } from "@/lib/constants";
 import { useContract, useUpdateContract } from "../useContracts";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 /**
  * Centraliza el id, fetch, mutación y handler de status de la página de detalle
@@ -16,7 +17,7 @@ export function useContractDetailLogic() {
     if (!id) return;
     updateContract.mutate(
       { id, status, ...extra },
-      { onSuccess: () => toast.success(`Contrato marcado como ${STATUS_LABELS[status] ?? status}`) }
+      { onSuccess: () => notifySuccess(`Contrato marcado como ${STATUS_LABELS[status] ?? status}`) }
     );
   };
 

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CompanyFiscalForm, PacConfigForm, useBillingSecrets, useCompanySettings, useUpsertBillingSecrets, useUpsertCompanySettings } from "@/features/company-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form } from "@/components/ui/form";
-import { toast } from "sonner";
+
 import { fiscalSchema, type FiscalDataValues } from "../../lib/operationsSchemas";
 
 const defaultValues: FiscalDataValues = {
@@ -63,7 +63,7 @@ export function FiscalDataTab() {
         form.setValue("facturapi_test_key", "");
         form.setValue("facturapi_live_key", "");
       }
-      toast.success("Datos fiscales guardados");
+      notifySuccess("Datos fiscales guardados");
     } catch (_err) {
       notifyError({ message: "No se pudieron guardar los datos fiscales" });
     }

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { invoiceKeys, paymentKeys } from "../../../lib/queryKeys";
 export function useStampPaymentComplement() {
@@ -13,7 +12,7 @@ export function useStampPaymentComplement() {
       });
     },
     onSuccess: (_d, _vars) => {
-      toast.success("Complemento de Pago timbrado");
+      notifySuccess("Complemento de Pago timbrado");
       queryClient.invalidateQueries({ queryKey: paymentKeys.all });
       queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
@@ -30,7 +29,7 @@ export function useCancelPaymentComplement() {
       });
     },
     onSuccess: () => {
-      toast.success("REP cancelado");
+      notifySuccess("REP cancelado");
       queryClient.invalidateQueries({ queryKey: paymentKeys.all });
       queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },

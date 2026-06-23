@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateMaintenancePolicy } from "@/features/maintenance";
 import { ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
+
 import { SERVICE_TYPES } from "@/lib/constants";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -42,7 +42,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
       },
       {
         onSuccess: () => {
-          toast.success("Póliza de mantenimiento creada");
+          notifySuccess("Póliza de mantenimiento creada");
           onSkip();
         },
       }

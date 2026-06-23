@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateDelivery } from "../../hooks/useDeliveries";
 import { Truck } from "lucide-react";
-import { toast } from "sonner";
+
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface PostDeliveryPickupDialogProps {
   open: boolean; onOpenChange: (open: boolean) => void;
@@ -27,7 +28,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
   const handleSchedule = () => {
     createDelivery.mutate(
       { forklift_id: delivery.forklift_id, booking_id: delivery.booking_id, type: "pickup", scheduled_date: bookingEndDate, scheduled_time: scheduledTime || null, address: address || null, driver_name: driverName || null, driver_phone: driverPhone || null, notes: notes || null, hours_reading: hoursReading ? parseFloat(hoursReading) : null },
-      { onSuccess: () => { toast.success("Recolección programada"); onOpenChange(false); } }
+      { onSuccess: () => { notifySuccess("Recolección programada"); onOpenChange(false); } }
     );
   };
 

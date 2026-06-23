@@ -26,6 +26,10 @@ vi.mock("sonner", () => ({
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: vi.fn(),
   notifyWarning: (...args: unknown[]) => notifyWarningMock(...args),
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
 }));
 
 import { useCancelCfdi } from "../useCancelCfdi";

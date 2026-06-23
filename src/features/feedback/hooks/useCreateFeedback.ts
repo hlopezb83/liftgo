@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { FeedbackFormValues } from "../lib/schema";
 import type { FeedbackContext } from "./useFeedbackContext";
@@ -67,7 +67,7 @@ export function useCreateFeedback() {
     },
     onSuccess: (report) => {
       queryClient.invalidateQueries({ queryKey: ["feedback_reports"] });
-      toast.success(`Reporte enviado: ${report.folio}`, {
+      notifySuccess(`Reporte enviado: ${report.folio}`, {
         description: "¡Gracias por ayudarnos a mejorar!",
       });
     },

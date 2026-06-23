@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
+import { satStatusLabel } from "@/lib/domain/feedbackMessages";
+
 import type { TablesInsert } from "@/integrations/supabase/types";
 
 import { creditNoteKeys, invoiceKeys } from "../../lib/queryKeys";
@@ -36,7 +37,7 @@ export function useCreateCreditNote() {
       return created;
     },
     onSuccess: (_d, vars) => {
-      toast.success(vars.stamp ? "Nota de crédito timbrada" : "Nota de crédito creada");
+      notifySuccess(vars.stamp ? "Nota de crédito timbrada" : "Nota de crédito creada");
       invalidateCreditNotes(qc);
     },
     onError: (err) => notifyError({ error: err, message: "Error al crear nota de crédito" }),
@@ -52,7 +53,7 @@ export function useStampCreditNote() {
       });
     },
     onSuccess: () => {
-      toast.success("Nota de crédito timbrada");
+      notifySuccess("Nota de crédito timbrada");
       invalidateCreditNotes(qc);
     },
     onError: (err) => notifyError({ error: err, message: "Error al timbrar nota de crédito" }),
@@ -76,9 +77,8 @@ export function useCancelCreditNote() {
     },
     onSuccess: (data) => {
       const s = data?.cancellation_status;
-      if (s === "accepted") toast.success("Nota de crédito cancelada");
-      else if (s === "pending") toast.info("Cancelación pendiente de aceptación SAT");
-      else toast.info(`Estado SAT: ${s}`);
+      if (s === "accepted") notifySuccess("Nota de crédito cancelada");
+      else notifyInfo(satStatusLabel(s));
       invalidateCreditNotes(qc);
     },
     onError: (err) => notifyError({ error: err, message: "Error al cancelar nota de crédito" }),
@@ -93,7 +93,7 @@ export function useDeleteCreditNote() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Nota de crédito eliminada");
+      notifySuccess("Nota de crédito eliminada");
       qc.invalidateQueries({ queryKey: creditNoteKeys.all });
     },
     onError: (err) => notifyError({ error: err, message: "Error al eliminar" }),

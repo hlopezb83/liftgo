@@ -44,7 +44,23 @@ vi.mock("sonner", () => ({
     },
   },
 }));
-vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: vi.fn() }));
+vi.mock("@/lib/ui/appFeedback", () => ({
+  notifyError: vi.fn(),
+  notifySuccess: (...a: unknown[]) => {
+    h.toastMock.success.calls++;
+    h.toastMock.success.fn(...a);
+  },
+  notifyInfo: (...a: unknown[]) => {
+    h.toastMock.info.calls++;
+    h.toastMock.info.fn(...a);
+  },
+  notifyWarning: (...a: unknown[]) => {
+    h.toastMock.warning.calls++;
+    h.toastMock.warning.fn(...a);
+  },
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
+}));
 
 import { useRefreshCancellationStatus } from "../useRefreshCancellationStatus";
 
@@ -57,7 +73,7 @@ describe("useRefreshCancellationStatus", () => {
     h.toastMock.info.calls = 0;
   });
 
-  it("SAT accepted -> toast.success", async () => {
+  it("SAT accepted -> notifySuccess", async () => {
     h.state.resp = { data: { cancellation_status: "accepted" }, error: null };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useRefreshCancellationStatus(), { wrapper: Wrapper });
@@ -66,16 +82,16 @@ describe("useRefreshCancellationStatus", () => {
     expect(h.toastMock.success.calls).toBeGreaterThan(0);
   });
 
-  it("SAT rejected -> toast.error", async () => {
+  it("SAT rejected -> notifyWarning (era toast.error, ahora se trata como estado de negocio)", async () => {
     h.state.resp = { data: { cancellation_status: "rejected" }, error: null };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useRefreshCancellationStatus(), { wrapper: Wrapper });
     result.current.mutate("inv-1");
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(h.toastMock.error.calls).toBeGreaterThan(0);
+    expect(h.toastMock.warning.calls).toBeGreaterThan(0);
   });
 
-  it("SAT expired -> toast.warning", async () => {
+  it("SAT expired -> notifyWarning", async () => {
     h.state.resp = { data: { cancellation_status: "expired" }, error: null };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useRefreshCancellationStatus(), { wrapper: Wrapper });

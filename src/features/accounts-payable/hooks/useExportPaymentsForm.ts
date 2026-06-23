@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { useExportablePayables } from "./useExportablePayables";
 import { useCreatePaymentBatch } from "./useCreatePaymentBatch";
 import { usePaymentSelection } from "./usePaymentSelection";
 import { downloadPaymentsXlsx, type PaymentExportRow } from "../lib/buildPaymentsXlsx";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 /**
  * Orquestador del diálogo de exportación de pagos.
@@ -33,7 +33,7 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
       amount: Number((selection.rowState[b.id]?.amount ?? b.balance).toFixed(2)),
     }));
     if (items.some((i) => i.amount <= 0)) {
-      toast.error("Todos los montos deben ser mayores a 0");
+      notifyValidation({ message: "Todos los montos deben ser mayores a 0." });
       return;
     }
     try {
@@ -56,7 +56,7 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
         };
       });
       const filename = downloadPaymentsXlsx(rows);
-      toast.success(`Excel descargado: ${filename}`);
+      notifySuccess(`Excel descargado: ${filename}`);
       setNotes("");
       onClose();
     } catch {

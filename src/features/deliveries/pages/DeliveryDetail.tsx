@@ -14,9 +14,10 @@ import {
 } from "../components/deliveries/DeliveryInfoCards";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+
 import { nowMty } from "@/lib/utils";
 import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHelpers";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 type PickupPrompt = {
   delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
@@ -77,7 +78,7 @@ export default function DeliveryDetail() {
       buildCompletionPayload(delivery.id, nowMty().toISOString(), signature, hoursReading),
       {
         onSuccess: () => {
-          toast.success("Marcado como completado");
+          notifySuccess("Marcado como completado");
           setSignatureOpen(false);
           promptPickupIfNeeded();
         },
@@ -87,7 +88,7 @@ export default function DeliveryDetail() {
 
   const handleDelete = () => {
     deleteDelivery.mutate(delivery.id, {
-      onSuccess: () => { toast.success("Entrega eliminada"); navigate("/deliveries"); },
+      onSuccess: () => { notifySuccess("Entrega eliminada"); navigate("/deliveries"); },
     });
   };
 

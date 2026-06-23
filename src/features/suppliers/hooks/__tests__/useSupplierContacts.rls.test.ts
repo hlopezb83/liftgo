@@ -12,7 +12,13 @@ let fromResp: SupabaseMockResponse = { data: [], error: null };
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ fromResolver: () => fromResp }),
 }));
-vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: vi.fn() }));
+vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: vi.fn(),
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
+}));
 
 import { useSupplierContacts } from "../useSupplierContacts";
 

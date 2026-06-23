@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 interface Props {
   open: boolean;
@@ -35,7 +34,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
     if (error) {
       notifyError({ title: "Error al cambiar contraseña", error: error });
     } else {
-      toast.success("Contraseña actualizada correctamente");
+      notifySuccess("Contraseña actualizada correctamente");
       setPassword("");
       setConfirm("");
       onOpenChange(false);

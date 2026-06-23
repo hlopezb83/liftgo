@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { UserPlus, Pencil, Trash2, FileDown } from "lucide-react";
-import { toast } from "sonner";
+
 import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "../components/customer-detail/CustomerFinancialSummary";
 import { CustomerProfitabilityCard } from "../components/customer-detail/CustomerProfitabilityCard";
@@ -25,7 +25,7 @@ export default function CustomerDetailPage() {
     try {
       const { exportCustomerStatementPdf } = await import("@/lib/pdf/customerStatement");
       await exportCustomerStatementPdf({ customer: s.customer, summary: s.summary });
-      toast.success("Estado de cuenta generado");
+      notifySuccess("Estado de cuenta generado");
     } catch {
       notifyError({ message: "No se pudo generar el PDF" });
     }

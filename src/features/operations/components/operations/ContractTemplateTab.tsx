@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Save, Info } from "lucide-react";
-import { toast } from "sonner";
+
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CONTRACT_PLACEHOLDERS as PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
@@ -56,7 +56,7 @@ export function ContractTemplateTab() {
         checklist_sections: checklistSections,
         pagare_text: pagareText,
       });
-      toast.success("Plantilla guardada correctamente.");
+      notifySuccess("Plantilla guardada correctamente.");
     } catch {
       notifyError({ message: "Error al guardar la plantilla." });
     }

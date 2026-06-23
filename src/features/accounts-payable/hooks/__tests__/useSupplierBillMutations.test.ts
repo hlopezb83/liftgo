@@ -18,6 +18,11 @@ vi.mock("sonner", () => ({
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: notifyErrorMock,
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
 }));
 
 const rpcCalls: Array<{ name: string; args: unknown }> = [];

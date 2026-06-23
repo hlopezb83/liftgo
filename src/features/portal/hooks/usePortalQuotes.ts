@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export function usePortalQuotes() {
   const { user } = useAuth();
@@ -53,7 +53,7 @@ export function useAcceptPortalQuote() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["portal_quotes"] });
       qc.invalidateQueries({ queryKey: ["portal_quote"] });
-      toast.success("Cotización aceptada");
+      notifySuccess("Cotización aceptada");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });
@@ -73,7 +73,7 @@ export function useRejectPortalQuote() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["portal_quotes"] });
       qc.invalidateQueries({ queryKey: ["portal_quote"] });
-      toast.success("Cotización rechazada");
+      notifySuccess("Cotización rechazada");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });

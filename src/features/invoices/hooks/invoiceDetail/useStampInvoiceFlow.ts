@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { notifyValidation } from "@/lib/ui/appFeedback";
 import { backfillStampSnapshot } from "../../lib/backfillStampSnapshot";
 import { getMissingStampFields } from "../../lib/cfdiPrechecks";
 import { useStampCfdi } from "../invoices/cfdi/useStampCfdi";
@@ -12,8 +12,9 @@ export function useStampInvoiceFlow(refetch: () => void) {
     const hydrated = await backfillStampSnapshot(invoice);
     const missing = getMissingStampFields(hydrated);
     if (missing.length > 0) {
-      toast.error("Faltan datos para timbrar", {
-        description: `Completa en el cliente o en la factura: ${missing.join(", ")}.`,
+      notifyValidation({
+        title: "Faltan datos para timbrar",
+        message: `Completa en el cliente o en la factura: ${missing.join(", ")}.`,
       });
       refetch();
       return;

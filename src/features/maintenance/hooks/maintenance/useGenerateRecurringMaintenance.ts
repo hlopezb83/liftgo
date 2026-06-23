@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { toast } from "sonner";
 
 interface GenerateMaintenanceResponse {
   generated: number;
@@ -25,12 +24,12 @@ export function useGenerateRecurringMaintenance() {
     },
     onSuccess: (result) => {
       if (result.generated > 0) {
-        toast.success(
+        notifySuccess(
           `${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`,
         );
         queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
       } else {
-        toast.info("No hay pólizas pendientes de generar para este mes");
+        notifyInfo("No hay pólizas pendientes de generar para este mes");
       }
     },
     onError: (err: unknown) => {

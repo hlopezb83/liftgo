@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { toast } from "sonner";
+
 import { useCustomers } from "@/features/customers";
 import { useCreateBooking } from "../useBookings";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import type { BookingFormData } from "../../lib/bookingFormSchema";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface PostBookingState {
   bookingId: string;
@@ -23,7 +24,6 @@ export function useBookingFormSubmit() {
   const createBooking = useCreateBooking();
   const [postBooking, setPostBooking] = useState<PostBookingState | null>(null);
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
-
 
   const onSubmit = (data: BookingFormData) => {
     const { from, to } = data.date_range;
@@ -65,7 +65,7 @@ export function useBookingFormSubmit() {
       setShowPolicyDialog(true);
     } else {
       setPostBooking(null);
-      toast.success("Reserva creada");
+      notifySuccess("Reserva creada");
       navigate("/calendar");
     }
   };
@@ -73,7 +73,7 @@ export function useBookingFormSubmit() {
   const handlePolicyDone = () => {
     setShowPolicyDialog(false);
     setPostBooking(null);
-    toast.success("Reserva creada");
+    notifySuccess("Reserva creada");
     navigate("/calendar");
   };
 

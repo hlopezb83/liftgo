@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+
 import { USERS_QUERY_KEY } from "../useUsersQuery";
 
 export function useToggleStatus() {
@@ -15,7 +15,7 @@ export function useToggleStatus() {
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      toast.success(vars.isActive ? "Usuario activado" : "Usuario desactivado");
+      notifySuccess(vars.isActive ? "Usuario activado" : "Usuario desactivado");
     },
     onError: (err: Error) => notifyError({ title: "Error al cambiar estado", error: err }),
   });

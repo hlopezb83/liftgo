@@ -2,8 +2,9 @@ import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useD
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Paperclip, Trash2, Upload, FileText, Image, File } from "lucide-react";
-import { toast } from "sonner";
+
 import { useRef } from "react";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 function FileIcon({ mime }: { mime?: string | null }) {
   if (mime?.startsWith("image/")) return <Image className="h-4 w-4 text-status-rented" />;
@@ -21,12 +22,12 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
     const files = e.target.files;
     if (!files) return;
     for (const file of Array.from(files)) { await uploadDoc.mutateAsync({ file, entityType, entityId }); }
-    toast.success(`${files.length} archivo(s) subido(s)`);
+    notifySuccess(`${files.length} archivo(s) subido(s)`);
     if (fileRef.current) fileRef.current.value = "";
   };
 
   const handleDelete = (id: string) => {
-    deleteDoc.mutate(id, { onSuccess: () => toast.success("Archivo eliminado") });
+    deleteDoc.mutate(id, { onSuccess: () => notifySuccess("Archivo eliminado") });
   };
 
   const formatSize = (bytes?: number | null) => {
