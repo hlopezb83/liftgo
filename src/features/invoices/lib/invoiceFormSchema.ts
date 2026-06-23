@@ -30,6 +30,7 @@ export const cfdiSchema = z.object({
 
 export const invoiceFormSchema = z.object({
   bookingId: z.string(),
+  bookingIds: z.array(z.string()).default([]),
   customerId: z.string().nullable(),
   customerName: z.string(),
   lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
@@ -57,6 +58,7 @@ export const EMPTY_LINE: LineItemValues = {
 
 export const buildEmptyInvoiceValues = (): InvoiceFormValues => ({
   bookingId: "",
+  bookingIds: [],
   customerId: null,
   customerName: "",
   lineItems: [],
