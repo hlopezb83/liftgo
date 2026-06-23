@@ -56,5 +56,21 @@ describe("useStampCfdi", () => {
     const { result } = renderHook(() => useStampCfdi(), { wrapper: Wrapper });
     result.current.mutate(INVOICE_ID);
     await waitFor(() => expect(result.current.isError).toBe(true));
+    expect((result.current.error as Error).message).toBe("network down");
+  });
+
+  it("extrae el body JSON de FunctionsHttpError (409 Invoice already stamped)", async () => {
+    const ctx = new Response(JSON.stringify({ error: "Invoice already stamped" }), {
+      status: 409,
+    });
+    const err = Object.assign(new Error("Edge Function returned a non-2xx status code"), {
+      context: ctx,
+    });
+    stampResp = { data: null, error: err as unknown as { message: string } };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useStampCfdi(), { wrapper: Wrapper });
+    result.current.mutate(INVOICE_ID);
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect((result.current.error as Error).message).toBe("Invoice already stamped");
   });
 });
