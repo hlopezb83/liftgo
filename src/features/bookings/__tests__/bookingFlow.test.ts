@@ -51,6 +51,7 @@ describe("useCreateBooking — hook real", () => {
       start_date: "2026-03-01",
       end_date: "2026-03-15",
       recurring_billing: true,
+      quote_id: "quote-1",
     });
 
     expect(id).toBe("new-booking-id");
@@ -62,6 +63,7 @@ describe("useCreateBooking — hook real", () => {
       p_start_date: "2026-03-01",
       p_end_date: "2026-03-15",
       p_recurring_billing: true,
+      p_quote_id: "quote-1",
     });
 
     await waitFor(() => {
