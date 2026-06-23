@@ -290,6 +290,10 @@ export async function handleStampCfdi(
 
     const updateErr = (updRes as { error: unknown }).error;
     if (updateErr) {
+      console.error("[stamp-cfdi] DB update failed after stamp", {
+        invoice_id,
+        cfdiUuid,
+      });
       return json(
         { error: "Stamped but failed to save to DB" },
         500,
@@ -307,7 +311,8 @@ export async function handleStampCfdi(
       200,
       jsonHeaders,
     );
-  } catch (_err) {
+  } catch (err) {
+    console.error("[stamp-cfdi] unhandled exception", err);
     return json({ error: "Internal server error" }, 500, {
       ...getCorsHeaders(req),
       "Content-Type": "application/json",
