@@ -1,0 +1,17 @@
+{
+  "version": "6.76.2",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Historial completo de la reserva con autor",
+  "category": "improvement",
+  "changes": [
+    {
+      "area": "Reservas",
+      "items": [
+        "La tarjeta 'Historial de Estatus' del detalle de reserva ahora se llama 'Historial de la Reserva' y muestra todos los cambios (estatus, fechas, tarifa, equipo, cliente, notas, etc.), no solo los de estatus.",
+        "Cada entrada muestra fecha/hora, autor del cambio (o 'Sistema') y la acción (Creación / Actualización / Eliminación) en formato de línea de tiempo.",
+        "Los cambios de tarifa se muestran formateados como moneda y las fechas en DD/MM/YYYY."
+      ]
+    }
+  ]
+}

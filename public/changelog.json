@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.76.2",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Historial completo de la reserva con autor",
+    "description": "El detalle de cada reserva ahora muestra todos los cambios (estatus, fechas, tarifa, equipo, cliente, notas) con el nombre del usuario que los hizo, en formato de línea de tiempo.",
+    "category": "improvement"
+  },
+  {
     "version": "6.76.1",
     "date": "2026-06-23",
     "type": "patch",
