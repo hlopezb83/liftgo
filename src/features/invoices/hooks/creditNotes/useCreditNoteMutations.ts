@@ -29,7 +29,6 @@ export function useCreateCreditNote() {
         .single();
       if (error) throw error;
       if (stamp) {
-      if (stamp) {
         await invokeEdgeFunction("stamp-credit-note", {
           body: { credit_note_id: created.id },
         });
