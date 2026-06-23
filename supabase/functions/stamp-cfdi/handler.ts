@@ -96,7 +96,10 @@ export async function handleStampCfdi(
     // permitir un re-stamp porque generaría un segundo CFDI en el SAT con
     // UUID distinto (doble timbrado). Simetría con stamp-credit-note.
     if (inv.cfdi_status === "stamped" && inv.cfdi_uuid) {
-      console.error("[stamp-cfdi] already stamped", { invoice_id, uuid: inv.cfdi_uuid });
+      console.error("[stamp-cfdi] already stamped", {
+        invoice_id,
+        uuid: inv.cfdi_uuid,
+      });
       return json(
         {
           error: "Invoice already stamped",
