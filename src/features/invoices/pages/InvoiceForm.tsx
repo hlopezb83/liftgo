@@ -1,5 +1,4 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import type { BookingWithForklift } from "@/features/bookings";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -14,9 +13,9 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
+import { MultiBookingSelector } from "../components/invoice-form/MultiBookingSelector";
 
 import { AlertTriangle } from "lucide-react";
-import { formatDateRange } from "@/lib/utils";
 import { useNextInvoiceNumber } from "../hooks/invoices/useNextInvoiceNumber";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 import { notifySuccess } from "@/lib/ui/appFeedback";
@@ -32,13 +31,19 @@ export default function InvoiceForm() {
 
   const onSubmit = (values: InvoiceFormValues) => {
     const payload = f.onSubmit(values);
+    const bookingIds = values.bookingIds ?? [];
     if (f.isEdit && f.id) {
       f.updateInvoice.mutate({ id: f.id, ...payload }, {
-        onSuccess: () => { notifySuccess("Factura actualizada"); navigate(`/invoices/${f.id}`); },
+        onSuccess: async () => {
+          await f.syncInvoiceBookings.mutateAsync({ invoiceId: f.id!, bookingIds });
+          notifySuccess("Factura actualizada");
+          navigate(`/invoices/${f.id}`);
+        },
       });
     } else {
       f.createInvoice.mutate(payload, {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
+          await f.syncInvoiceBookings.mutateAsync({ invoiceId: data.id, bookingIds });
           notifySuccess(`Factura ${data.invoice_number} creada`);
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           navigate(`/invoices/${data.id}`);
