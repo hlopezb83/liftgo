@@ -95,7 +95,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/fleet/:id/edit", component: ForkliftForm, module: "Flota" },
   { path: "/calendar", component: CalendarPage, module: "Calendario" },
   { path: "/bookings", component: BookingsPage, module: "Reservas" },
-  { path: "/bookings/new", component: BookingForm, module: "Reservas" },
+  { path: "/bookings/new", component: BookingForm, module: "Reservas", adminOnly: true },
   { path: "/bookings/:id", component: BookingDetail, module: "Reservas" },
   { path: "/customers", component: CustomersPage, module: "Clientes" },
   { path: "/customers/:id", component: CustomerDetailPage, module: "Clientes" },
