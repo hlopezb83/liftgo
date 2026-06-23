@@ -299,14 +299,18 @@ Deno.serve(async (req) => {
 
       const invoiceId = insertedInvoice?.id as string;
 
-      // Vincular todas las reservas vía pivote.
+      // Vincular todas las reservas vía pivote. Si falla, rollback de la factura.
       const { error: pivotErr } = await supabase
         .from("invoice_bookings")
         .insert(
           bookingIds.map((bId) => ({ invoice_id: invoiceId, booking_id: bId })),
         );
       if (pivotErr) {
-        console.error("[recurring-invoices] pivot insert error", pivotErr);
+        console.error(
+          "[recurring-invoices] pivot insert error, rollback invoice",
+          pivotErr,
+        );
+        await supabase.from("invoices").delete().eq("id", invoiceId);
         throw pivotErr;
       }
 
