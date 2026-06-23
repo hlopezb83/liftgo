@@ -17,7 +17,7 @@ export function useInvoiceBookings(invoiceId: string | undefined) {
       if (!invoiceId) return [];
       const { data, error } = await supabase
         .from("invoice_bookings")
-        .select("invoice_id, booking_id, line_index")
+        .select("invoice_id, booking_id, line_index, bookings(*, forklifts(name, model))")
         .eq("invoice_id", invoiceId)
         .order("line_index", { ascending: true });
       if (error) throw error;
