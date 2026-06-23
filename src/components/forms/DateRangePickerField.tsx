@@ -1,13 +1,21 @@
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
   label: string;
@@ -24,58 +32,96 @@ const normalize = (d?: Date) =>
 const normalizeRange = (r?: DateRange): DateRange | undefined =>
   r ? { from: normalize(r.from), to: normalize(r.to) } : undefined;
 
-export function DateRangePickerField({ label, dateRange, onSelect, placeholder = "Seleccionar fechas", required, error }: DateRangePickerFieldProps) {
+export function DateRangePickerField({
+  label,
+  dateRange,
+  onSelect,
+  placeholder = "Seleccionar fechas",
+  required,
+  error,
+}: DateRangePickerFieldProps) {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  // Local range to avoid re-rendering trigger while calendar is open
   const [localRange, setLocalRange] = useState<DateRange | undefined>(dateRange);
 
-  const handleSelect = (range?: DateRange) => {
-    const normalized = normalizeRange(range);
-    setLocalRange(normalized);
-    if (normalized?.from && normalized?.to) {
-      // Both dates selected — propagate and schedule close
-      onSelect(normalized);
-      setTimeout(() => setOpen(false), 200);
-    }
+  // Sync local state when dialog opens to reflect external value
+  useEffect(() => {
+    if (open) setLocalRange(dateRange);
+  }, [open, dateRange]);
+
+  const formatTrigger = () => {
+    if (!dateRange?.from) return placeholder;
+    if (!dateRange.to) return `${format(dateRange.from, "dd/MM/yyyy")} — …`;
+    return `${format(dateRange.from, "dd/MM/yyyy")} — ${format(dateRange.to, "dd/MM/yyyy")}`;
   };
 
-
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (isOpen) {
-      // Reset local range to current external value when opening
-      setLocalRange(dateRange);
-    }
+  const formatLive = () => {
+    if (!localRange?.from) return "Selecciona la fecha de inicio";
+    if (!localRange.to) return `${format(localRange.from, "dd/MM/yyyy")} — selecciona fin`;
+    return `${format(localRange.from, "dd/MM/yyyy")} → ${format(localRange.to, "dd/MM/yyyy")}`;
   };
 
-  const displayRange = open ? localRange : dateRange;
-
-  const formatLabel = () => {
-    if (!displayRange?.from) return placeholder;
-    if (!displayRange.to) return format(displayRange.from, "dd/MM/yyyy") + " — …";
-    return format(displayRange.from, "dd/MM") + " — " + format(displayRange.to, "dd/MM/yyyy");
+  const handleApply = () => {
+    onSelect(normalizeRange(localRange));
+    setOpen(false);
   };
+
+  const handleClear = () => {
+    setLocalRange(undefined);
+  };
+
+  const canApply = !!(localRange?.from && localRange?.to);
 
   return (
     <div className="space-y-1.5">
-      <Label>{label}{required && " *"}</Label>
-      <Popover open={open} onOpenChange={handleOpenChange}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !dateRange?.from && "text-muted-foreground")}>
+      <Label>
+        {label}
+        {required && " *"}
+      </Label>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !dateRange?.from && "text-muted-foreground",
+            )}
+          >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {formatLabel()}
+            {formatTrigger()}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="range"
-            selected={localRange}
-            onSelect={handleSelect}
-            numberOfMonths={2}
-            className="p-3 pointer-events-auto"
-          />
-        </PopoverContent>
-      </Popover>
+        </DialogTrigger>
+        <DialogContent className="max-w-fit p-0 gap-0">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b">
+            <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
+            <p className="text-sm text-muted-foreground font-mono mt-1">{formatLive()}</p>
+          </DialogHeader>
+          <div className="p-3">
+            <Calendar
+              mode="range"
+              selected={localRange}
+              onSelect={(r) => setLocalRange(normalizeRange(r))}
+              numberOfMonths={isMobile ? 1 : 2}
+              defaultMonth={localRange?.from ?? new Date()}
+              className="pointer-events-auto"
+            />
+          </div>
+          <DialogFooter className="px-5 py-3 border-t flex-row justify-between sm:justify-between gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={handleClear} disabled={!localRange?.from}>
+              Limpiar
+            </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="button" size="sm" onClick={handleApply} disabled={!canApply}>
+                Aplicar
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
