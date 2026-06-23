@@ -33,7 +33,9 @@ const getDuration = (start: string, end: string) => {
 export default function BookingsPage() {
   const { data: bookings, isLoading, refetch } = useBookings();
   const navigate = useNavigate();
-  usePageActions({ onNew: () => navigate("/bookings/new"), onRefresh: refetch, newLabel: "Nueva reserva" });
+  const { data: role } = useUserRole();
+  const isAdmin = role === "admin";
+  usePageActions({ onNew: isAdmin ? () => navigate("/bookings/new") : undefined, onRefresh: refetch, newLabel: "Nueva reserva" });
 
   const columns = useMemo<ColumnDef<Booking>[]>(
     () => [
