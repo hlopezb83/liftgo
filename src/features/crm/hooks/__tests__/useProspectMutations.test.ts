@@ -16,7 +16,7 @@ const { toastSuccess, notifyErrorMock } = vi.hoisted(() => ({
 
 vi.mock("sonner", () => ({ toast: { success: toastSuccess, error: vi.fn() } }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
-  notifySuccess: vi.fn(),
+  notifySuccess: toastSuccess,
   notifyInfo: vi.fn(),
   notifyWarning: vi.fn(),
   notifyValidation: vi.fn(),

@@ -21,8 +21,8 @@ vi.mock("sonner", () => ({
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: notifyErrorMock,
-  notifySuccess: vi.fn(),
-  notifyInfo: vi.fn(),
+  notifySuccess: toastSuccess,
+  notifyInfo: toastInfo,
   notifyWarning: vi.fn(),
   notifyValidation: vi.fn(),
   notifyAsync: vi.fn(),
