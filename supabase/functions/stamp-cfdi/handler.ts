@@ -65,6 +65,7 @@ export async function handleStampCfdi(
     const { invoice_id } = body as { invoice_id?: unknown };
 
     if (!isUUID(invoice_id)) {
+      console.error("[stamp-cfdi] invalid invoice_id");
       return json(
         { error: "invoice_id must be a valid UUID" },
         400,
@@ -76,12 +77,14 @@ export async function handleStampCfdi(
       .from("invoices").select("*").eq("id", invoice_id).single();
 
     if (invErr || !invoice) {
+      console.error("[stamp-cfdi] invoice not found", { invoice_id });
       return json({ error: "Invoice not found" }, 404, jsonHeaders);
     }
 
     const inv = invoice as Record<string, unknown>;
 
     if (inv.is_e2e === true) {
+      console.error("[stamp-cfdi] e2e invoice rejected", { invoice_id });
       return json(
         { error: "E2E invoices cannot be stamped" },
         403,
@@ -93,6 +96,7 @@ export async function handleStampCfdi(
     // permitir un re-stamp porque generaría un segundo CFDI en el SAT con
     // UUID distinto (doble timbrado). Simetría con stamp-credit-note.
     if (inv.cfdi_status === "stamped" && inv.cfdi_uuid) {
+      console.error("[stamp-cfdi] already stamped", { invoice_id, uuid: inv.cfdi_uuid });
       return json(
         {
           error: "Invoice already stamped",
@@ -111,6 +115,7 @@ export async function handleStampCfdi(
       .limit(1).maybeSingle();
 
     if (!company) {
+      console.error("[stamp-cfdi] company_settings missing", { invoice_id });
       return json(
         { error: "Company settings not configured" },
         400,
