@@ -31,7 +31,7 @@ export function CsfDropzone({ onParsed }: Props) {
     parseCsf.mutate(file, {
       onSuccess: (data) => {
         onParsed({
-          name: data.name || undefined,
+          name: data.name || data.razon_social || undefined,
           rfc: data.rfc || undefined,
           domicilio_fiscal_cp: data.domicilio_fiscal_cp || undefined,
           address: data.address || undefined,
