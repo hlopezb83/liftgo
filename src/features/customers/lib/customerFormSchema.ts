@@ -15,7 +15,6 @@ export const customerFormSchema = z.object({
   contact_person: z.string().default(""),
 
   rfc: z.string().default(""),
-  razon_social: z.string().default(""),
   regimen_fiscal: z.string().default(""),
   uso_cfdi: z.string().default(""),
   domicilio_fiscal_cp: z.string().default(""),

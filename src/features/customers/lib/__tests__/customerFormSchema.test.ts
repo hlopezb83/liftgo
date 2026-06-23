@@ -17,7 +17,6 @@ describe("customerFormSchema", () => {
     expect(parsed.email).toBe("");
     expect(parsed.phone).toBe("");
     expect(parsed.rfc).toBe("");
-    expect(parsed.razon_social).toBe("");
   });
 
   it("rechaza name vacío con mensaje en español", () => {
@@ -50,7 +49,6 @@ describe("customerFormSchema", () => {
     const parsed = customerFormSchema.parse({
       ...base,
       rfc: "XAXX010101000",
-      razon_social: "ACME SA DE CV",
       regimen_fiscal: "601",
       uso_cfdi: "G03",
       domicilio_fiscal_cp: "64000",

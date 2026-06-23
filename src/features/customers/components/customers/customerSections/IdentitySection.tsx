@@ -14,9 +14,9 @@ export function IdentitySection() {
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nombre / Empresa *</FormLabel>
+            <FormLabel>Nombre / Razón Social *</FormLabel>
             <FormControl>
-              <Input placeholder="Montacargas del Norte S.A." {...field} />
+              <Input placeholder="MONTACARGAS DEL NORTE" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

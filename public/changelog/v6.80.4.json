@@ -1,0 +1,14 @@
+{
+  "version": "6.80.4",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Clientes: un solo campo para Nombre / Razón Social",
+  "description": "Se eliminó el campo duplicado de Razón Social en el formulario de clientes (alta y edición). El Nombre / Razón Social ahora se captura una sola vez y se sincroniza automáticamente con los datos fiscales para CFDI 4.0, PDFs y snapshots de facturas.",
+  "category": "improvement",
+  "changes": [
+    "Quitado el campo Razón Social de la sección Datos Fiscales del cliente.",
+    "El label de Identidad cambia a 'Nombre / Razón Social'.",
+    "El payload del cliente sincroniza automáticamente razon_social = name al guardar.",
+    "La importación desde CSF mapea la razón social del SAT al campo único de nombre."
+  ]
+}

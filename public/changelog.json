@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.80.4",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Clientes: un solo campo para Nombre / Razón Social",
+    "description": "Se eliminó el campo duplicado de Razón Social en el formulario de clientes. Ahora se captura una sola vez y se sincroniza automáticamente con los datos fiscales CFDI 4.0.",
+    "category": "improvement"
+  },
+  {
     "version": "6.80.3",
     "date": "2026-06-23",
     "type": "patch",

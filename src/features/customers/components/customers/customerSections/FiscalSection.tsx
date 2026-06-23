@@ -1,7 +1,7 @@
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/domain/satCatalogs";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
 import { SectionHeading } from "./SectionHeading";
@@ -11,20 +11,6 @@ export function FiscalSection() {
   return (
     <div className="space-y-3">
       <SectionHeading>Datos Fiscales (CFDI)</SectionHeading>
-      <FormField
-        control={control}
-        name="razon_social"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Razón Social</FormLabel>
-            <FormControl>
-              <Input placeholder="Como aparece en la Constancia de Situación Fiscal" {...field} />
-            </FormControl>
-            <FormDescription>Si se deja vacío, se usará el Nombre / Empresa al timbrar.</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={control}
