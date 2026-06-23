@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.79.0",
+    "date": "2026-06-23",
+    "type": "minor",
+    "title": "Reservas solo desde cotización (excepto Admin)",
+    "description": "Para crear una reserva ahora es obligatorio partir de una cotización aceptada. Solo el rol Admin puede crear reservas directas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.78.0",
     "date": "2026-06-23",
     "type": "minor",

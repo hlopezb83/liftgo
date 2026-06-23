@@ -17,6 +17,7 @@ export function useCreateBooking() {
         p_start_date: booking.start_date,
         p_end_date: booking.end_date,
         p_recurring_billing: booking.recurring_billing ?? false,
+        p_quote_id: booking.quote_id ?? undefined,
       });
       if (error) throw error;
       return data;

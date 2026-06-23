@@ -18,6 +18,7 @@ import { Plus, ChevronRight, CalendarDays, AlertTriangle } from "lucide-react";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { useUserRole } from "@/features/users";
 
 const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
 
@@ -32,7 +33,9 @@ const getDuration = (start: string, end: string) => {
 export default function BookingsPage() {
   const { data: bookings, isLoading, refetch } = useBookings();
   const navigate = useNavigate();
-  usePageActions({ onNew: () => navigate("/bookings/new"), onRefresh: refetch, newLabel: "Nueva reserva" });
+  const { data: role } = useUserRole();
+  const isAdmin = role === "admin";
+  usePageActions({ onNew: isAdmin ? () => navigate("/bookings/new") : undefined, onRefresh: refetch, newLabel: "Nueva reserva" });
 
   const columns = useMemo<ColumnDef<Booking>[]>(
     () => [
@@ -104,11 +107,13 @@ export default function BookingsPage() {
       title="Reservas"
       subtitle="Administrar reservas de equipos"
       totalCount={filtered.length}
-      actions={<Button size="sm" onClick={() => navigate("/bookings/new")}><Plus className="h-4 w-4 mr-1" />Nueva Reserva</Button>}
+      actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><Plus className="h-4 w-4 mr-1" />Nueva Reserva</Button> : undefined}
       mobileFab={
-        <Button size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => navigate("/bookings/new")} aria-label="Nueva reserva">
-          <Plus className="h-6 w-6" />
-        </Button>
+        isAdmin ? (
+          <Button size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => navigate("/bookings/new")} aria-label="Nueva reserva">
+            <Plus className="h-6 w-6" />
+          </Button>
+        ) : undefined
       }
       filters={
         <div className="space-y-3">
@@ -133,10 +138,10 @@ export default function BookingsPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
-      emptyMessage="No se encontraron reservas"
+      emptyMessage={isAdmin ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}
       emptyIcon={CalendarDays}
-      emptyActionLabel="Nueva Reserva"
-      onEmptyAction={() => navigate("/bookings/new")}
+      emptyActionLabel={isAdmin ? "Nueva Reserva" : undefined}
+      onEmptyAction={isAdmin ? () => navigate("/bookings/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(b) => (
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
