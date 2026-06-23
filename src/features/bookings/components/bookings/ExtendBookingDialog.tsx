@@ -23,7 +23,9 @@ interface ExtendBookingDialogProps {
 export function ExtendBookingDialog({ open, onOpenChange, bookingId, currentEndDate }: ExtendBookingDialogProps) {
   const [newEndDate, setNewEndDate] = useState<Date | undefined>(undefined);
   const [reason, setReason] = useState("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const createExtension = useCreateBookingExtension();
+
 
   const currentEndDateObj = (() => {
     try {
