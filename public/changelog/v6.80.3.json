@@ -1,0 +1,11 @@
+{
+  "version": "6.80.3",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Editar cliente: habilitar importación desde CSF",
+  "category": "improvement",
+  "description": "Se muestra la pestaña 'Importar desde CSF' también en modo edición del cliente, permitiendo actualizar datos fiscales subiendo el PDF del SAT.",
+  "changes": [
+    "CustomerFormDialog renderiza las pestañas manual/CSF tanto al crear como al editar."
+  ]
+}

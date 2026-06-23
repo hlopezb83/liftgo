@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.80.3",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Editar cliente: habilitar importación desde CSF",
+    "description": "La pestaña 'Importar desde CSF' ahora también aparece al editar un cliente, no solo al crearlo.",
+    "category": "improvement"
+  },
+  {
     "version": "6.80.2",
     "date": "2026-06-23",
     "type": "patch",

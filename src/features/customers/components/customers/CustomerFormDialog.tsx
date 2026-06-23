@@ -75,25 +75,21 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto" data-testid="customer-form-dialog">
         <DialogHeader><DialogTitle>{isEdit ? "Editar Cliente" : "Agregar Cliente"}</DialogTitle></DialogHeader>
 
-        {isEdit ? (
-          formFields
-        ) : (
-          <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="w-full">
-              <TabsTrigger value="manual" className="flex-1">Llenar manualmente</TabsTrigger>
-              <TabsTrigger value="csf" className="flex-1">Importar desde CSF</TabsTrigger>
-            </TabsList>
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="w-full">
+            <TabsTrigger value="manual" className="flex-1">Llenar manualmente</TabsTrigger>
+            <TabsTrigger value="csf" className="flex-1">Importar desde CSF</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="manual">
-              {formFields}
-            </TabsContent>
+          <TabsContent value="manual">
+            {formFields}
+          </TabsContent>
 
-            <TabsContent value="csf" className="space-y-4">
-              <CsfDropzone onParsed={handleCsfParsed} />
-              {formFields}
-            </TabsContent>
-          </Tabs>
-        )}
+          <TabsContent value="csf" className="space-y-4">
+            <CsfDropzone onParsed={handleCsfParsed} />
+            {formFields}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
