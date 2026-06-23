@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useInvoice } from "../hooks/invoices/useInvoices";
-import { useBooking } from "@/features/bookings";
+import { useInvoiceBookings } from "../hooks/invoices/useInvoiceBookings";
+import type { BookingWithForklift } from "@/features/bookings";
 import { usePayments } from "../hooks/usePayments";
 import { useQuote } from "@/features/quotes";
 import { useUserRole } from "@/features/users";
@@ -62,7 +63,11 @@ export default function InvoiceDetail() {
   const { data: userRole } = useUserRole();
   const { data: company } = useCompanySettings();
   const { data: sourceQuote } = useQuote(invoice?.quote_id ?? undefined);
-  const { data: sourceBooking } = useBooking(invoice?.booking_id ?? undefined);
+  const { data: invoiceBookingsRows } = useInvoiceBookings(id);
+  const sourceBookings: BookingWithForklift[] = (invoiceBookingsRows ?? [])
+    .map((r) => (r as unknown as { bookings: BookingWithForklift | null }).bookings)
+    .filter((b): b is BookingWithForklift => !!b);
+
 
   const actions = useInvoiceDetailActions(invoice, refetch);
 
@@ -114,7 +119,7 @@ export default function InvoiceDetail() {
         showCfdiError={showCfdiError}
       />
 
-      <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBooking={sourceBooking} />
+      <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBookings={sourceBookings} />
       <InvoiceFiscalDataCard invoice={invoice} />
       <ReadOnlyLineItemsTable lineItems={lineItems} />
       <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={total} />

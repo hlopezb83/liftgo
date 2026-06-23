@@ -1,4 +1,5 @@
 import { useCreateInvoice, useUpdateInvoice } from "../invoices/useInvoices";
+import { useSyncInvoiceBookings } from "../invoices/useInvoiceBookings";
 import { useUpdateQuote } from "@/features/quotes";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
@@ -52,13 +53,15 @@ export function useInvoiceFormSubmit() {
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const updateQuote = useUpdateQuote();
+  const syncInvoiceBookings = useSyncInvoiceBookings();
 
   const buildPayload = ({ values, isEdit, fromQuoteId, existingBookingId, existingQuoteId }: BuildPayloadArgs) => {
-    const { bookingId, customerId, customerName, lineItems, taxRate, dueDate, issueDate, notes, cfdi } = values;
+    const { bookingIds, customerId, customerName, lineItems, taxRate, dueDate, issueDate, notes, cfdi } = values;
     const items = toLineItems(lineItems);
     const { subtotal, taxAmount, total } = computeTotals(items, taxRate);
+    const primaryBookingId = bookingIds[0] || values.bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null;
     return {
-      booking_id: bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null,
+      booking_id: primaryBookingId,
       customer_id: customerId,
       customer_name: nn(customerName),
       quote_id: fromQuoteId || (isEdit ? orEmpty(existingQuoteId, null) : null) || null,
@@ -73,8 +76,8 @@ export function useInvoiceFormSubmit() {
   };
 
   return {
-    createInvoice, updateInvoice, updateQuote,
+    createInvoice, updateInvoice, updateQuote, syncInvoiceBookings,
     buildPayload,
-    isPending: createInvoice.isPending || updateInvoice.isPending,
+    isPending: createInvoice.isPending || updateInvoice.isPending || syncInvoiceBookings.isPending,
   };
 }

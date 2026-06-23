@@ -1479,6 +1479,49 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_bookings: {
+        Row: {
+          booking_id: string
+          created_at: string
+          invoice_id: string
+          line_index: number | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          invoice_id: string
+          line_index?: number | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          invoice_id?: string
+          line_index?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_bookings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_bookings_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_bookings_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_number_settings: {
         Row: {
           id: string

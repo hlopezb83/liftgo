@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
+import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useCustomers } from "@/features/customers";
 import { useQuote, useQuoteSaleAssignmentStatus } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
@@ -42,13 +43,19 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
   const { data: sourceQuote } = useQuote(fromQuoteId || undefined);
   const { data: assignments } = useQuoteAssignments(fromQuoteId || undefined);
   const { data: invoices } = useInvoices();
+  const { data: allInvoiceBookings } = useAllInvoiceBookings();
+  const { data: invoiceBookingsRows } = useInvoiceBookings(id);
+  const existingBookingIds = useMemo(
+    () => (invoiceBookingsRows ?? []).map((r) => r.booking_id),
+    [invoiceBookingsRows],
+  );
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: buildEmptyInvoiceValues(),
   });
 
-  useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form });
+  useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds });
 
   const quoteLineItems = useMemo<LineItem[]>(
     () => (Array.isArray(sourceQuote?.line_items) ? (sourceQuote?.line_items as unknown as LineItem[]) : []),
@@ -72,13 +79,21 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
   }, [isEdit, sourceQuote, fromQuoteId, quoteAssignmentStatus]);
 
   const submit = useInvoiceFormSubmit();
-  const { handleCustomerSelect, handleBookingSelect } = useInvoiceFormHandlers({ form, customers, bookings, forklifts });
+  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts });
   const totals = useInvoiceFormTotals(form);
 
-  const invoicedBookingIds = useMemo(() => new Set(
-    invoices?.filter((invoice) => invoice.status !== "cancelled" && invoice.booking_id)
-      .map((invoice) => invoice.booking_id),
-  ), [invoices]);
+  const invoicedBookingIds = useMemo(() => {
+    const set = new Set<string>();
+    invoices?.forEach((inv) => {
+      if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
+    });
+    // Reservas vinculadas vía pivote (excluyendo las de la factura que se está editando).
+    allInvoiceBookings?.forEach((row) => {
+      if (isEdit && row.invoice_id === id) return;
+      set.add(row.booking_id);
+    });
+    return set;
+  }, [invoices, allInvoiceBookings, isEdit, id]);
 
   const availableBookings = bookings?.filter(
     (booking) => booking.status === "confirmed" && !invoicedBookingIds.has(booking.id),
@@ -95,11 +110,12 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
     customers, availableBookings,
     sourceQuote,
     saleAssignmentGuard,
-    handleCustomerSelect, handleBookingSelect,
+    handleCustomerSelect, handleBookingSelect, handleBookingsChange,
     onSubmit,
     createInvoice: submit.createInvoice,
     updateInvoice: submit.updateInvoice,
     updateQuote: submit.updateQuote,
+    syncInvoiceBookings: submit.syncInvoiceBookings,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,
     isPending: submit.isPending,
   };

@@ -1,0 +1,15 @@
+{
+  "version": "6.77.0",
+  "date": "2026-06-23",
+  "type": "minor",
+  "title": "Facturación multi-reserva",
+  "description": "Ahora una sola factura puede agrupar varias reservas confirmadas del mismo cliente. El formulario de Nueva Factura tiene un selector múltiple que precarga automáticamente los conceptos de cada reserva. El detalle de factura muestra todas las reservas vinculadas.",
+  "category": "feature",
+  "details": [
+    "Nueva tabla pivote invoice_bookings (factura ↔ reservas) con RLS por rol.",
+    "Selector múltiple de reservas en /invoices/new que filtra al mismo cliente tras la primera selección.",
+    "Las líneas de la factura se regeneran al agregar/quitar reservas.",
+    "Reservas ya facturadas (por booking_id directo o por la pivote) se ocultan del selector.",
+    "InvoiceDetail muestra chips con todas las reservas origen."
+  ]
+}
