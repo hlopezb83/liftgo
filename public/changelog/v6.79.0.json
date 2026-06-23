@@ -1,0 +1,14 @@
+{
+  "version": "6.79.0",
+  "date": "2026-06-23",
+  "type": "minor",
+  "title": "Reservas solo desde cotización (excepto Admin)",
+  "description": "Para crear una reserva ahora es obligatorio partir de una cotización aceptada. Solo el rol Admin puede seguir creando reservas directas.",
+  "category": "improvement",
+  "details": [
+    "Administrativo, Despachador y Ventas: el botón 'Nueva Reserva' y la ruta /bookings/new dejan de estar disponibles.",
+    "Estos roles deben crear reservas desde el detalle de una cotización ('Convertir a reserva').",
+    "RPC create_booking: nuevo parámetro p_quote_id. No-admins reciben error si intentan crear sin cotización.",
+    "La reserva queda vinculada a la cotización desde el INSERT (antes se ligaba con un UPDATE posterior)."
+  ]
+}
