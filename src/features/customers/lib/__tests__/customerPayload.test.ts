@@ -11,7 +11,6 @@ const base: CustomerFormData = {
   website: "",
   contact_person: "",
   rfc: "",
-  razon_social: "",
   regimen_fiscal: "",
   uso_cfdi: "",
   domicilio_fiscal_cp: "",
