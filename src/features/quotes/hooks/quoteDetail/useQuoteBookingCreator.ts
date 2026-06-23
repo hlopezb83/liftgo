@@ -1,5 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { useCreateBooking } from "@/features/bookings";
@@ -20,8 +18,9 @@ type StateResult = ReturnType<typeof useQuoteConversionState>;
 
 /**
  * Encapsula la creación atómica de reservas a partir de una cotización:
- * actualiza tarifas, crea bookings en paralelo, los vincula a la cotización
- * y prepara la lista de entregas pendientes para el flujo post-conversión.
+ * actualiza tarifas, crea bookings en paralelo (ya vinculados a la cotización
+ * vía p_quote_id en el RPC create_booking) y prepara la lista de entregas
+ * pendientes para el flujo post-conversión.
  */
 export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
   const updateQuote = useUpdateQuote();
@@ -44,19 +43,11 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
             customer_id: quote.customer_id,
             status: "confirmed",
             recurring_billing: recurring,
+            quote_id: quote.id,
           }),
         ),
       );
 
-      if (bookingIds.length > 0) {
-        const { data: linked, error: linkErr } = await supabase
-          .from("bookings")
-          .update({ quote_id: quote.id })
-          .in("id", bookingIds)
-          .select("id");
-        if (linkErr) throw linkErr;
-        assertRowsAffected(linked, "Vincular reservas a cotización");
-      }
       updateQuote.mutate({ id: quote.id, status: "accepted" });
       notifySuccess(`${bookingIds.length} reserva(s) creada(s) desde cotización`);
       if (ratesApplied > 0) {
@@ -73,6 +64,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
       state.setIsConverting(false);
     }
   };
+
 
   const convertLegacy = async (recurring: boolean) => {
     if (!quote || !forklifts) return;
