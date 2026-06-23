@@ -50,12 +50,14 @@ export async function handleStampCfdi(
       | null;
     const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
     if (rolesErr) {
+      console.error("[stamp-cfdi] roles lookup failed", { userId });
       return json({ error: "Authorization check failed" }, 500, jsonHeaders);
     }
     const allowed = (roles ?? []).some((r) =>
       r.role === "admin" || r.role === "administrativo"
     );
     if (!allowed) {
+      console.error("[stamp-cfdi] forbidden", { userId });
       return json({ error: "Forbidden" }, 403, jsonHeaders);
     }
 
