@@ -21,6 +21,11 @@ vi.mock("@/integrations/supabase/client", () => ({
 const notifyErrorMock = vi.fn();
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
 }));
 
 import { useCreateBooking } from "@/features/bookings";

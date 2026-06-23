@@ -14,7 +14,13 @@ const { toastSuccess, notifyErrorMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("sonner", () => ({ toast: { success: toastSuccess, error: vi.fn() } }));
-vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock }));
+vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
+  notifySuccess: toastSuccess,
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
+}));
 
 const rpcCalls: Array<{ name: string; args: unknown }> = [];
 const updatedPayloads: Array<{ patch: unknown; calls: unknown }> = [];

@@ -3,6 +3,11 @@ import { validateQuoteForm } from "../quoteFormValidation";
 
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: vi.fn(),
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
 }));
 
 import { notifyError } from "@/lib/ui/appFeedback";

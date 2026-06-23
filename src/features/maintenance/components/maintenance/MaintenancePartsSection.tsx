@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -9,7 +9,7 @@ import {
   useAddMaintenancePart,
   type PartInventory,
 } from "@/features/inventory";
-import { toast } from "sonner";
+
 import { AddMaintenancePartForm } from "./AddMaintenancePartForm";
 
 interface Props {
@@ -46,7 +46,7 @@ export function MaintenancePartsSection({ maintenanceLogId, currentCost }: Props
       },
       {
         onSuccess: () => {
-          toast.success("Refacción agregada");
+          notifySuccess("Refacción agregada");
           setSelectedPart(null);
           setQuantity(1);
         },

@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
 import { useInviteCustomer } from "../customers/useInviteCustomer";
 import type { CustomerFormData } from "../../lib/customerFormSchema";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 const OPTIONAL_NULL_FIELDS = [
   "email", "phone", "address", "notes", "website", "contact_person",
@@ -45,14 +46,14 @@ export function useCustomerDetailActions({
   const handleEditSubmit = (form: CustomerFormData) => {
     if (!id) return;
     updateCustomer.mutate({ id, ...customerFormToUpdate(form) }, {
-      onSuccess: () => { toast.success("Cliente actualizado"); setEditOpen(false); },
+      onSuccess: () => { notifySuccess("Cliente actualizado"); setEditOpen(false); },
     });
   };
 
   const handleDelete = () => {
     if (!id) return;
     deleteCustomer.mutate(id, {
-      onSuccess: () => { toast.success("Cliente eliminado"); navigate("/customers"); },
+      onSuccess: () => { notifySuccess("Cliente eliminado"); navigate("/customers"); },
     });
   };
 

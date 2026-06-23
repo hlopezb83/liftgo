@@ -14,11 +14,12 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
-import { toast } from "sonner";
+
 import { AlertTriangle } from "lucide-react";
 import { formatDateRange } from "@/lib/utils";
 import { useNextInvoiceNumber } from "../hooks/invoices/useNextInvoiceNumber";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
@@ -33,12 +34,12 @@ export default function InvoiceForm() {
     const payload = f.onSubmit(values);
     if (f.isEdit && f.id) {
       f.updateInvoice.mutate({ id: f.id, ...payload }, {
-        onSuccess: () => { toast.success("Factura actualizada"); navigate(`/invoices/${f.id}`); },
+        onSuccess: () => { notifySuccess("Factura actualizada"); navigate(`/invoices/${f.id}`); },
       });
     } else {
       f.createInvoice.mutate(payload, {
         onSuccess: (data) => {
-          toast.success(`Factura ${data.invoice_number} creada`);
+          notifySuccess(`Factura ${data.invoice_number} creada`);
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           navigate(`/invoices/${data.id}`);
         },

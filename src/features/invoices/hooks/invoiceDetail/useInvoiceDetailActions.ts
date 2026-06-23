@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+
 import { STATUS_LABELS } from "@/lib/constants";
 import { useUpdateInvoice, useDeleteInvoice } from "../invoices/useInvoices";
 import { useUpdateBooking } from "@/features/bookings";
 import { useStampInvoiceFlow } from "./useStampInvoiceFlow";
 import { useDownloadInvoiceXml } from "./useDownloadInvoiceXml";
 import type { Tables } from "@/integrations/supabase/types";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 /**
  * Orchestrator hook for InvoiceDetail page actions.
@@ -32,11 +33,11 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
       { id, status, ...(paidAt ? { paid_at: paidAt } : {}) },
       {
         onSuccess: (data) => {
-          toast.success(`Factura marcada como ${STATUS_LABELS[status] ?? status}`);
+          notifySuccess(`Factura marcada como ${STATUS_LABELS[status] ?? status}`);
           if (status === "paid" && data.booking_id) {
             updateBooking.mutate(
               { id: data.booking_id, status: "completed" },
-              { onSuccess: () => toast.success("Reserva vinculada marcada como completada") }
+              { onSuccess: () => notifySuccess("Reserva vinculada marcada como completada") }
             );
           }
         },

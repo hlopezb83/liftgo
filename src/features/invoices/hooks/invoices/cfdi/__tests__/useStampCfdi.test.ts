@@ -21,6 +21,10 @@ vi.mock("sonner", () => ({
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: vi.fn(),
   notifyWarning: vi.fn(),
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
 }));
 
 import { useStampCfdi } from "../useStampCfdi";

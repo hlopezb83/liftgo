@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogoUploader, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
-import { toast } from "sonner";
+
 import { Image as ImageIcon, Save, CheckCircle2, AlertCircle, ImageOff } from "lucide-react";
 import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
 
@@ -44,7 +44,7 @@ export function CompanyLogoTab() {
         lugar_expedicion: settings.lugar_expedicion || "",
         logo_url: values.logo_url || null,
       },
-      { onSuccess: () => toast.success("Logo guardado") }
+      { onSuccess: () => notifySuccess("Logo guardado") }
     );
   };
 

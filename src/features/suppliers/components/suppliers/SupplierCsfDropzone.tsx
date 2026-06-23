@@ -1,15 +1,14 @@
 import { useCallback, useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+
 import { useParseCsf } from "@/features/customers";
 import type { SupplierForm } from "./supplierFormTypes";
 
 interface Props {
   onParsed: (patch: Partial<SupplierForm>, file: File) => void;
 }
-
 
 export function SupplierCsfDropzone({ onParsed }: Props) {
   const parseCsf = useParseCsf();
@@ -40,7 +39,7 @@ export function SupplierCsfDropzone({ onParsed }: Props) {
         if (data.representante_legal) patch.contact_person = data.representante_legal;
         onParsed(patch, file);
         setParsed(true);
-        toast.success("Datos fiscales extraídos. Revisa y completa la información.");
+        notifySuccess("Datos fiscales extraídos. Revisa y completa la información.");
       },
       onError: (e: unknown) => {
         notifyError({ error: e, message: "Error al procesar la constancia" });

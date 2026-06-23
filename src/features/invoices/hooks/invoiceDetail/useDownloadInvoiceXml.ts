@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { fetchCfdiBlob, triggerBlobDownload } from "../../lib/downloadCfdiBlob";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -14,8 +14,11 @@ export function useDownloadInvoiceXml() {
         triggerBlobDownload(new Blob([invoice.cfdi_xml], { type: "application/xml" }), filename);
         return;
       }
-      toast.error("Error al descargar XML", {
-        description: err instanceof Error ? err.message : "Intenta de nuevo.",
+      notifyError({
+        error: err,
+        title: "Error al descargar XML",
+        phase: "fetchCfdiBlob",
+        context: { invoice_id: invoice.id },
       });
     }
   };

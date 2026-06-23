@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+
 import { quoteStatusLabel } from "../../constants";
 import { useUpdateQuote, useDeleteQuote } from "../quotes/useQuotes";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
@@ -25,13 +25,13 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
 
   const setStatus = (status: string) => {
     if (!id) return;
-    updateQuote.mutate({ id, status }, { onSuccess: () => toast.success(`Cotización marcada como ${quoteStatusLabel(status)}`) });
+    updateQuote.mutate({ id, status }, { onSuccess: () => notifySuccess(`Cotización marcada como ${quoteStatusLabel(status)}`) });
   };
 
   const handleDelete = () => {
     if (!id) return;
     deleteQuote.mutate(id, {
-      onSuccess: () => { toast.success("Cotización eliminada"); navigate("/quotes"); },
+      onSuccess: () => { notifySuccess("Cotización eliminada"); navigate("/quotes"); },
       onError: (err: Error) => notifyError({ error: err }),
     });
   };
@@ -77,7 +77,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
       customer_name: state.reassignCustomerName,
     });
     state.setShowCustomerReassignDialog(false);
-    toast.success("Cliente actualizado");
+    notifySuccess("Cliente actualizado");
     proceedWithConversion();
   };
 

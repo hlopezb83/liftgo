@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/ui/appFeedback";
 
 const DEFAULT_TTL_SECONDS = 60;
 
@@ -16,7 +16,13 @@ export async function openStorageFile(
   const ttl = options?.ttlSeconds ?? DEFAULT_TTL_SECONDS;
   const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, ttl);
   if (error || !data?.signedUrl) {
-    toast.error(options?.errorMessage ?? "No se pudo abrir el archivo");
+    notifyError({
+      error,
+      title: options?.errorMessage ?? "No se pudo abrir el archivo",
+      phase: "storage.createSignedUrl",
+      context: { bucket, path },
+      severity: "warning",
+    });
     return;
   }
   window.open(data.signedUrl, "_blank", "noopener");

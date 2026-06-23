@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
+import { notifyError, notifyInfo, notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { toast } from "sonner";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
 interface CancelCfdiVars {
@@ -37,9 +36,9 @@ export function useCancelCfdi() {
     },
     onSuccess: (data, { invoiceId }) => {
       if (data?.accepted) {
-        toast.success("CFDI cancelado ante el SAT");
+        notifySuccess("CFDI cancelado ante el SAT");
       } else {
-        toast.info("Solicitud de cancelación enviada al SAT");
+        notifyInfo("Solicitud de cancelación enviada al SAT");
       }
       if (data?.warning) notifyWarning({ title: data.warning });
       queryClient.invalidateQueries({ queryKey: invoiceKeys.all });

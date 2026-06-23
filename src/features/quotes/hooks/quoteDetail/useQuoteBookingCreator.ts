@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+
 import { useCreateBooking } from "@/features/bookings";
 import { useUpdateQuote } from "../quotes/useQuotes";
 import type { useQuoteDetailData } from "./useQuoteDetailData";
@@ -58,9 +58,9 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
         assertRowsAffected(linked, "Vincular reservas a cotización");
       }
       updateQuote.mutate({ id: quote.id, status: "accepted" });
-      toast.success(`${bookingIds.length} reserva(s) creada(s) desde cotización`);
+      notifySuccess(`${bookingIds.length} reserva(s) creada(s) desde cotización`);
       if (ratesApplied > 0) {
-        toast.success(`Tarifas actualizadas en ${ratesApplied} equipo(s) según la cotización`);
+        notifySuccess(`Tarifas actualizadas en ${ratesApplied} equipo(s) según la cotización`);
       }
       state.setShowAssignmentDialog(false);
       state.setCurrentDeliveryIndex(0);

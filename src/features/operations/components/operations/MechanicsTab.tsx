@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 
 export function MechanicsTab() {
   const { data: mechanics, isLoading } = useMechanics();
@@ -38,9 +37,9 @@ export function MechanicsTab() {
       else notifyError({ message: "Error al guardar mecánico" });
     };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); }, onError });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); }, onError });
     } else {
-      create.mutate(payload, { onSuccess: () => { toast.success("Agregado"); setOpen(false); }, onError });
+      create.mutate(payload, { onSuccess: () => { notifySuccess("Agregado"); setOpen(false); }, onError });
     }
   };
 
@@ -62,7 +61,7 @@ export function MechanicsTab() {
               <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader><AlertDialogTitle>¿Eliminar {row.original.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
+                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>

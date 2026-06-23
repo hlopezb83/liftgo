@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+
 import { useCreateForklift, useUpdateForklift, useForklifts } from "../forklifts/useForklifts";
 import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 import {
@@ -33,12 +33,12 @@ export function useForkliftFormSubmit({ id, isEdit }: Args) {
 
     if (isEdit && id) {
       update.mutate({ id, ...payload }, {
-        onSuccess: () => { toast.success("Montacargas actualizado"); navigate(`/fleet/${id}`); },
+        onSuccess: () => { notifySuccess("Montacargas actualizado"); navigate(`/fleet/${id}`); },
         onError,
       });
     } else {
       create.mutate(payload, {
-        onSuccess: () => { toast.success("Montacargas agregado"); navigate("/fleet"); },
+        onSuccess: () => { notifySuccess("Montacargas agregado"); navigate("/fleet"); },
         onError,
       });
     }

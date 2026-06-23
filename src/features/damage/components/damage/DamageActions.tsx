@@ -4,7 +4,8 @@ import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { Wrench, Receipt } from "lucide-react";
-import { toast } from "sonner";
+
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface DamageActionsProps { record: DamageRecordWithJoins; }
 
@@ -16,7 +17,7 @@ export function DamageActions({ record }: DamageActionsProps) {
   const handleCreateWorkOrder = () => {
     createMaintenance.mutate(
       { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, cost: record.estimated_cost || 0 },
-      { onSuccess: (data) => { updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id }); toast.success("Orden de mantenimiento creada"); } }
+      { onSuccess: (data) => { updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id }); notifySuccess("Orden de mantenimiento creada"); } }
     );
   };
 

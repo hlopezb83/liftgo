@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
+
 import { useCreateReturnInspection } from "../useReturnInspections";
 import {
   returnInspectionSchema,
@@ -62,7 +62,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
         },
         {
           onSuccess: () => {
-            toast.success("Inspección de devolución registrada — montacargas marcado como disponible");
+            notifySuccess("Inspección de devolución registrada — montacargas marcado como disponible");
             setDialogOpen(false);
             form.reset(initialReturnInspectionForm);
           },

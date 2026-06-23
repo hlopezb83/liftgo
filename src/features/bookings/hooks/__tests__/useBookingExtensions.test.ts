@@ -43,7 +43,13 @@ vi.mock("@/integrations/supabase/client", () => ({
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
-vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: vi.fn() }));
+vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: vi.fn(),
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
+}));
 
 import { useCreateBookingExtension } from "../useBookingExtensions";
 

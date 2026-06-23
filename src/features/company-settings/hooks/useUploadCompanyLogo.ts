@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+
 import { supabase } from "@/integrations/supabase/client";
 
 export function useUploadCompanyLogo() {
@@ -23,7 +23,7 @@ export function useUploadCompanyLogo() {
       const { error: uploadError } = await supabase.storage.from("documents").upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);
-      toast.success("Logo subido correctamente");
+      notifySuccess("Logo subido correctamente");
       return urlData.publicUrl;
     } catch (err: unknown) {
       notifyError({ error: err, message: "Error al subir logo" });

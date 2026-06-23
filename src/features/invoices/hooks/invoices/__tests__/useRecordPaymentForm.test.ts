@@ -8,6 +8,11 @@ const notifyErrorMock = vi.fn();
 
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 // Interfaz completa de los hooks mockeados: si el componente lee isError /

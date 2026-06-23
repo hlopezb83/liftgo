@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { toast } from "sonner";
+
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface StatusChangeCardProps {
   forkliftId: string;
@@ -21,7 +22,7 @@ export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCard
     if (!newStatus || newStatus === currentStatus) return;
     updateStatus.mutate(
       { forkliftId, fromStatus: currentStatus, toStatus: newStatus, note: statusNote || undefined },
-      { onSuccess: () => { toast.success("Estado actualizado"); setNewStatus(""); setStatusNote(""); } }
+      { onSuccess: () => { notifySuccess("Estado actualizado"); setNewStatus(""); setStatusNote(""); } }
     );
   };
 

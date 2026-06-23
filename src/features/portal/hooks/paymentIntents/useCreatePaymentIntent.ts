@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export interface PaymentIntentInput {
   invoice_id: string;
@@ -44,7 +44,7 @@ export function useCreatePaymentIntent() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["portal_payment_intents"] });
-      toast.success("Reporte de pago enviado. Lo revisaremos a la brevedad.");
+      notifySuccess("Reporte de pago enviado. Lo revisaremos a la brevedad.");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });

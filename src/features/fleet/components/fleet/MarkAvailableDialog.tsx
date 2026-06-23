@@ -2,7 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
 import { CheckCircle } from "lucide-react";
-import { toast } from "sonner";
+
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface MarkAvailableDialogProps { open: boolean; onOpenChange: (open: boolean) => void; forkliftId: string; forkliftName: string; }
 
@@ -11,7 +12,7 @@ export function MarkAvailableDialog({ open, onOpenChange, forkliftId, forkliftNa
   const handleConfirm = () => {
     updateStatus.mutate(
       { forkliftId, fromStatus: "maintenance", toStatus: "available", note: "Mantenimiento completado" },
-      { onSuccess: () => { toast.success(`${forkliftName} marcado como disponible`); onOpenChange(false); } }
+      { onSuccess: () => { notifySuccess(`${forkliftName} marcado como disponible`); onOpenChange(false); } }
     );
   };
 

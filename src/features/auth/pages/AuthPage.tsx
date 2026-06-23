@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+
 import { Users } from "lucide-react";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
@@ -32,13 +32,13 @@ export default function AuthPage() {
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
       if (error) notifyError({ error: error });
-      else toast.success("Revisa tu correo para restablecer tu contraseña");
+      else notifySuccess("Revisa tu correo para restablecer tu contraseña");
       return;
     }
     if (mode === "reset") {
       const { error } = await updatePassword(password);
       if (error) { notifyError({ error: error }); return; }
-      toast.success("Contraseña actualizada");
+      notifySuccess("Contraseña actualizada");
       setMode("sign-in");
       return;
     }

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
 import type { Database } from "@/integrations/supabase/types";
 import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
@@ -31,15 +31,12 @@ export function useCreateSupplierBill() {
     },
     onSuccess: (row) => {
       qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-      toast.success("Factura registrada", { description: row.bill_number });
+      notifySuccess("Factura registrada", { description: row.bill_number });
     },
     onError: (e: unknown) =>
       notifyError({ error: e, message: "No se pudo registrar la factura" }),
   });
 }
-
-
-
 
 export function useCancelSupplierBill() {
   const qc = useQueryClient();
@@ -55,7 +52,7 @@ export function useCancelSupplierBill() {
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
       qc.invalidateQueries({ queryKey: ["supplier_bill", id] });
-      toast.success("Factura cancelada");
+      notifySuccess("Factura cancelada");
     },
     onError: (e: unknown) =>
       notifyError({ error: e, message: "No se pudo cancelar la factura" }),

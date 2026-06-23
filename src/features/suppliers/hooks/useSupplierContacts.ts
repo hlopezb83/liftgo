@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierContact = Database["public"]["Tables"]["supplier_contacts"]["Row"];
@@ -65,7 +65,7 @@ export function useCreateSupplierContact() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["supplier_contacts", vars.supplier_id] });
-      toast.success("Contacto agregado");
+      notifySuccess("Contacto agregado");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo crear el contacto" }),
   });
@@ -84,7 +84,7 @@ export function useUpdateSupplierContact() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["supplier_contacts", vars.supplier_id] });
-      toast.success("Contacto actualizado");
+      notifySuccess("Contacto actualizado");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo actualizar el contacto" }),
   });
@@ -100,7 +100,7 @@ export function useDeleteSupplierContact() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["supplier_contacts", vars.supplier_id] });
-      toast.success("Contacto eliminado");
+      notifySuccess("Contacto eliminado");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo eliminar el contacto" }),
   });

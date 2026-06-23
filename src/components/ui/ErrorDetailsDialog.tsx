@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { useErrorReport, closeErrorReport } from "@/lib/ui/errorDetailsStore";
 import { formatReportText } from "@/lib/ui/errorReportFormat";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 /**
  * Diálogo global de detalles de error. Montar una sola vez en el root.
@@ -21,7 +22,7 @@ export function ErrorDetailsDialog() {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      toast.success("Reporte copiado al portapapeles");
+      notifySuccess("Reporte copiado al portapapeles");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("No se pudo copiar el reporte");

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
-import { toast } from "sonner";
+
 import { format, parseISO } from "date-fns";
 
 const METHODS = [
@@ -58,7 +58,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
       },
       {
         onSuccess: () => {
-          toast.success("Pago actualizado");
+          notifySuccess("Pago actualizado");
           onOpenChange(false);
         },
         onError: (err) => notifyError({ error: err }),

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, EquipmentModel } from "@/features/fleet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 
 export function EquipmentModelsTab() {
@@ -34,9 +34,9 @@ export function EquipmentModelsTab() {
     if (!form.manufacturer || !form.model) { notifyError({ message: "Fabricante y modelo son requeridos" }); return; }
     const payload = { manufacturer: form.manufacturer, model: form.model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type, default_daily_rate: form.default_daily_rate ? parseFloat(form.default_daily_rate) : 0, default_weekly_rate: form.default_weekly_rate ? parseFloat(form.default_weekly_rate) : 0, default_monthly_rate: form.default_monthly_rate ? parseFloat(form.default_monthly_rate) : 0 };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { toast.success("Actualizado"); setOpen(false); } });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); } });
     } else {
-      create.mutate(payload, { onSuccess: () => { toast.success("Agregado"); setOpen(false); } });
+      create.mutate(payload, { onSuccess: () => { notifySuccess("Agregado"); setOpen(false); } });
     }
   };
 
@@ -58,7 +58,7 @@ export function EquipmentModelsTab() {
               <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader><AlertDialogTitle>¿Eliminar {row.original.manufacturer} {row.original.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => toast.success("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
+                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>

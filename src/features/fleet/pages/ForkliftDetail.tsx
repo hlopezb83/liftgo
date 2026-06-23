@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useForklift, useDeleteForklift, useStatusLogs } from "../hooks/forklifts/useForklifts";
 import { useBookings } from "@/features/bookings";
 import { useMaintenanceLogs } from "@/features/maintenance";
@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Edit, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { DamagePhotosSection } from "@/features/damage";
@@ -40,7 +40,7 @@ export default function ForkliftDetail() {
 
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {
-      onSuccess: () => { toast.success("Montacargas eliminado"); navigate("/fleet"); },
+      onSuccess: () => { notifySuccess("Montacargas eliminado"); navigate("/fleet"); },
       onError: () => notifyError({ message: "Error al eliminar" }),
     });
   };

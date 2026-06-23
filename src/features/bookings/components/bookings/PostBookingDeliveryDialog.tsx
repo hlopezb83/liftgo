@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateDelivery } from "@/features/deliveries";
 import { Truck, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface PostBookingDeliveryDialogProps {
   open: boolean; onOpenChange: (open: boolean) => void; bookingId: string; forkliftId: string;
@@ -29,7 +30,7 @@ export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkl
   const handleSchedule = () => {
     createDelivery.mutate(
       { forklift_id: forkliftId, booking_id: bookingId, scheduled_date: startDate, scheduled_time: scheduledTime || null, address: address || null, driver_name: driverName || null, driver_phone: driverPhone || null, notes: notes || null, type: "delivery", hours_reading: hoursReading ? parseFloat(hoursReading) : null },
-      { onSuccess: () => { toast.success("Entrega programada"); onSkip(); } }
+      { onSuccess: () => { notifySuccess("Entrega programada"); onSkip(); } }
     );
   };
 

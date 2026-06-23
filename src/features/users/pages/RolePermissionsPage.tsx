@@ -1,5 +1,5 @@
 import { PageTransition } from "@/components/layout/PageTransition";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Eye, Minus, Loader2 } from "lucide-react";
@@ -9,7 +9,6 @@ import { useRolePermissions, useUpdatePermission, MODULES, type AccessLevel } fr
 import { useUserRole } from "../hooks/useUserRole";
 import type { AppRole } from "../hooks/useUserRole";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 const accessConfig = {
   full: { icon: Check, color: "text-emerald-500", label: "Acceso completo" },
@@ -38,7 +37,7 @@ export default function RolePermissionsPage() {
     updateMutation.mutate(
       { role, module, access_level: next },
       {
-        onSuccess: () => toast.success(`${ROLE_LABELS[role]} → ${module}: ${accessConfig[next].label}`),
+        onSuccess: () => notifySuccess(`${ROLE_LABELS[role]} → ${module}: ${accessConfig[next].label}`),
         onError: () => notifyError({ message: "Error al actualizar permiso" }),
       }
     );

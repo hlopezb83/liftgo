@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export interface BankStatementImportRow {
   id: string;
@@ -84,7 +84,7 @@ export function useDeleteBankImport() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BANK_IMPORTS_QK });
       qc.invalidateQueries({ queryKey: ["bank_statement_lines"] });
-      toast.success("Import eliminado");
+      notifySuccess("Import eliminado");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });

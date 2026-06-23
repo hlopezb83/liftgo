@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
-import { toast } from "sonner";
+
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { usePortalCollectionAccount } from "../hooks/usePortalExtras";
 import { Skeleton } from "@/components/ui/skeleton";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface Props {
   amount: number;
@@ -12,7 +13,7 @@ interface Props {
 }
 
 function copy(text: string, label: string) {
-  navigator.clipboard.writeText(text).then(() => toast.success(`${label} copiado`));
+  navigator.clipboard.writeText(text).then(() => notifySuccess(`${label} copiado`));
 }
 
 export function StpTransferCard({ amount, concept }: Props) {

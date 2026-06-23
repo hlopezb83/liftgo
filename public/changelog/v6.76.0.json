@@ -1,0 +1,66 @@
+{
+  "version": "6.76.0",
+  "date": "2026-06-23",
+  "type": "minor",
+  "title": "Plataforma unificada de toasts (notifySuccess / notifyInfo / notifyAsync)",
+  "summary": "Auditoría completa de los 543 toasts de la app y refactor para que todo el feedback pase por `@/lib/ui/appFeedback`.",
+  "highlights": [
+    {
+      "title": "Helpers nuevos en appFeedback",
+      "items": [
+        "`notifySuccess(title, opts?)` — sustituye a `toast.success` con duración estándar (3.5 s) y soporte de description/action/durationMs.",
+        "`notifyInfo(title, opts?)` — para estados neutrales ('No hay pólizas pendientes'), 4 s.",
+        "`notifyWarning(title|input, opts?)` — acepta string u objeto, 6 s.",
+        "`notifyValidation({ title?, message })` — toast warning corto (5 s) para validaciones de formulario, sin botón 'Ver detalles'.",
+        "`notifyAsync(promise, { loading, success, error? })` — envoltorio sobre `toast.promise` para operaciones largas (timbrado CFDI, generación de PDF, imports masivos)."
+      ]
+    },
+    {
+      "title": "Errores con severidad",
+      "items": [
+        "`notifyError` ahora acepta `severity: 'critical' | 'warning'`. `critical` (default) mantiene duración Infinity con botón 'Ver detalles'. `warning` cierra solo a los 6 s para errores esperables y recuperables.",
+        "Se eliminó la className muerta `liftgo-toast-error` / `liftgo-toast-warning` (no existía en `index.css`)."
+      ]
+    },
+    {
+      "title": "Migración masiva (codemod)",
+      "items": [
+        "148 llamadas a `toast.success/info/warning` migradas a los nuevos helpers en 92 archivos.",
+        "6 `toast.error` directos que se saltaban el reporte estructurado migrados a `notifyError`: `openStorageFile`, `useStampInvoiceFlow`, `useDownloadInvoiceXml`, `BankStatementUploader`, `useExportPaymentsForm`, `PortalStatement`.",
+        "`useStampInvoiceFlow` y `useExportPaymentsForm` ahora usan `notifyValidation` para validaciones (faltan datos / montos ≤ 0) en lugar de un error persistente.",
+        "26 tests actualizados para exponer los nuevos helpers en sus mocks de `appFeedback`."
+      ]
+    },
+    {
+      "title": "Catálogo central de mensajes",
+      "items": [
+        "Nuevo `src/lib/domain/feedbackMessages.ts` con builders (`successMessages.invoiceCreated`, `bookingCancelled`, etc.) y `satStatusLabel(status)` para traducir estados del SAT a etiquetas amigables.",
+        "Se reemplazaron strings crípticos tipo `\"Estado SAT: ${status}\"` por `satStatusLabel(status)` en `useRefreshCancellationStatus` y `useCreditNoteMutations`.",
+        "Convención de copy documentada en `appFeedback.ts`: verbo en pasado + sustantivo, sin 'exitosamente', con folio/ID cuando exista."
+      ]
+    }
+  ],
+  "files": {
+    "created": [
+      "src/lib/domain/feedbackMessages.ts",
+      "src/lib/ui/__tests__/appFeedback.test.ts",
+      "scripts/codemod-toast-helpers.cjs",
+      "scripts/codemod-test-mocks.cjs",
+      "scripts/codemod-route-notify-to-spies.cjs"
+    ],
+    "edited": [
+      "src/lib/ui/appFeedback.ts",
+      "src/lib/storage/openStorageFile.ts",
+      "src/features/invoices/hooks/invoiceDetail/useStampInvoiceFlow.ts",
+      "src/features/invoices/hooks/invoiceDetail/useDownloadInvoiceXml.ts",
+      "src/features/invoices/hooks/invoices/cfdi/useRefreshCancellationStatus.ts",
+      "src/features/invoices/hooks/creditNotes/useCreditNoteMutations.ts",
+      "src/features/bank-reconciliation/components/BankStatementUploader.tsx",
+      "src/features/accounts-payable/hooks/useExportPaymentsForm.ts",
+      "src/features/portal/pages/PortalStatement.tsx",
+      "92 archivos migrados por codemod (toast.success/info/warning → notifySuccess/notifyInfo/notifyWarning)",
+      "26 tests con mocks de appFeedback ampliados"
+    ]
+  },
+  "audit": "docs/audits/toasts-2026-06-23.md (12 hallazgos categorizados CRITICAL/HIGH/MEDIUM/LOW)"
+}

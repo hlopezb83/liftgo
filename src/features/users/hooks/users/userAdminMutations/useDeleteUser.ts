@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { USERS_QUERY_KEY } from "../useUsersQuery";
 
 export function useDeleteUser() {
@@ -16,7 +16,7 @@ export function useDeleteUser() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      toast.success("Usuario eliminado");
+      notifySuccess("Usuario eliminado");
     },
     onError: (err: Error) =>
       notifyError({ error: err, title: "No se pudo eliminar usuario", method: "delete-user" }),

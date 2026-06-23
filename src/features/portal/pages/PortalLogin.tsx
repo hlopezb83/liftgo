@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+
 import { Building2 } from "lucide-react";
 import { usePublicBranding } from "@/features/company-settings";
 
@@ -38,7 +38,7 @@ export default function PortalLogin() {
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
       if (error) notifyError({ error: error });
-      else toast.success("Revisa tu correo para el enlace de restablecimiento");
+      else notifySuccess("Revisa tu correo para el enlace de restablecimiento");
     } else {
       const { error } = await signIn(email, password);
       if (error) notifyError({ error: error });

@@ -7,7 +7,7 @@ import { SwipeableCard } from "@/components/feedback/SwipeableCard";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { ChevronRight, Plus, Phone } from "lucide-react";
-import { toast } from "sonner";
+
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
@@ -17,6 +17,7 @@ import type { CustomerFormData } from "../lib/customerFormSchema";
 import { buildCustomerPayload, getE2ECustomerMetadata } from "../lib/customerPayload";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
@@ -67,7 +68,6 @@ export default function CustomersPage() {
 
   const paginatedItems = table.getRowModel().rows.map((r) => r.original);
 
-
   const mobileContent = isMobile ? (
     <MobileCardList
       items={paginatedItems}
@@ -106,19 +106,19 @@ export default function CustomersPage() {
   usePageActions({ onNew: openCreate, onRefresh: refetch, newLabel: "Nuevo cliente" });
 
   const handleCreateSuccess = (newCustomer: { id?: string } | null | undefined) => {
-    toast.success("Cliente agregado");
+    notifySuccess("Cliente agregado");
     setDialogOpen(false);
     if (!prospectId || !newCustomer?.id) return;
     updateProspect.mutate({ id: prospectId, customer_id: newCustomer.id });
     setProspectId(null);
-    toast.success("Prospecto vinculado al nuevo cliente");
+    notifySuccess("Prospecto vinculado al nuevo cliente");
   };
 
   const handleSubmit = (form: CustomerFormData) => {
     const payload = buildCustomerPayload(form);
     if (editId) {
       updateCustomer.mutate({ id: editId, ...payload }, {
-        onSuccess: () => { toast.success("Cliente actualizado"); setDialogOpen(false); },
+        onSuccess: () => { notifySuccess("Cliente actualizado"); setDialogOpen(false); },
       });
       return;
     }

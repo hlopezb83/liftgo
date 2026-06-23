@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { useUploadDocument } from "@/hooks/useDocuments";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
-import { toast } from "sonner";
+
 import { cn } from "@/lib/utils";
 
 interface DragDropImageUploaderProps {
@@ -48,7 +48,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
       for (const { file } of previews) {
         await uploadDoc.mutateAsync({ file, entityType, entityId });
       }
-      toast.success(`${previews.length} foto(s) subida(s)`);
+      notifySuccess(`${previews.length} foto(s) subida(s)`);
       previews.forEach((p) => URL.revokeObjectURL(p.url));
       setPreviews([]);
     } catch {

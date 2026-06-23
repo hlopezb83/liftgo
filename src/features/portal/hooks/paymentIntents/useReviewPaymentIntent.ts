@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 interface ReviewParams {
   intentId: string;
@@ -43,7 +43,7 @@ export function useReviewPaymentIntent() {
       qc.invalidateQueries({ queryKey: ["admin_payment_intents"] });
       qc.invalidateQueries({ queryKey: ["invoice_payments"] });
       qc.invalidateQueries({ queryKey: ["invoices"] });
-      toast.success("Intento de pago actualizado");
+      notifySuccess("Intento de pago actualizado");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { toast } from "sonner";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
 interface GenerateRecurringResponse {
@@ -23,7 +22,7 @@ export function useGenerateRecurringInvoices() {
     },
     onSuccess: (data) => {
       const count = data?.invoicesCreated ?? 0;
-      toast.success(count > 0 ? `${count} factura(s) generada(s)` : "Sin facturas pendientes", {
+      notifySuccess(count > 0 ? `${count} factura(s) generada(s)` : "Sin facturas pendientes", {
         description:
           count > 0
             ? "Se crearon borradores de facturas recurrentes."

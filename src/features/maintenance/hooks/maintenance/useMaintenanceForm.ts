@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+
 import {
   useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog,
 } from "./useMaintenanceLogs";
 import type { Tables } from "@/integrations/supabase/types";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
   maintenanceFormSchema, initialMaintenanceForm, maintenanceLogToFormValues,
   buildMaintenancePayload, type MaintenanceFormValues,
@@ -40,7 +41,7 @@ export function useMaintenanceForm(forkliftMap: ForkliftMap) {
     if (editingLogId) {
       updateLog.mutate({ id: editingLogId, ...payload }, {
         onSuccess: () => {
-          toast.success("Registro de mantenimiento actualizado");
+          notifySuccess("Registro de mantenimiento actualizado");
           setDialogOpen(false);
           setEditingLogId(null);
           form.reset(initialMaintenanceForm);
@@ -51,7 +52,7 @@ export function useMaintenanceForm(forkliftMap: ForkliftMap) {
     const selectedForklift = forkliftMap.get(values.forkliftId);
     createLog.mutate(payload, {
       onSuccess: () => {
-        toast.success("Registro de mantenimiento agregado");
+        notifySuccess("Registro de mantenimiento agregado");
         setDialogOpen(false);
         if (selectedForklift && selectedForklift.status === "maintenance") {
           setAvailablePrompt({ forkliftId: selectedForklift.id, forkliftName: selectedForklift.name });

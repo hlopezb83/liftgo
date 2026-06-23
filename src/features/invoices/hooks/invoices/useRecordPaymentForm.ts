@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import { useCreatePayment } from "../usePayments";
@@ -67,7 +67,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onO
       },
       {
         onSuccess: async (created) => {
-          toast.success("Pago registrado");
+          notifySuccess("Pago registrado");
           if (ppdStamped && stampRep && created?.id) {
             stampComplement.mutate(created.id);
           }

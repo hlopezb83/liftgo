@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { toast } from "sonner";
+
 import { translateFacturapiError } from "../../../lib/facturapiErrors";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
@@ -25,7 +25,7 @@ export function useStampCfdi() {
       });
     },
     onSuccess: (data, invoiceId) => {
-      toast.success(
+      notifySuccess(
         `CFDI timbrado${data.stub ? " (modo prueba)" : " exitosamente"} — UUID: ${data.cfdi_uuid}`,
       );
       queryClient.invalidateQueries({ queryKey: invoiceKeys.all });

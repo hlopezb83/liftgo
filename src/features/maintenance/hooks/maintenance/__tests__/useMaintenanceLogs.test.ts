@@ -10,7 +10,13 @@ import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
  */
 
 const { notifyErrorMock } = vi.hoisted(() => ({ notifyErrorMock: vi.fn() }));
-vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock }));
+vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
+  notifySuccess: vi.fn(),
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
+}));
 
 const insertedPayloads: unknown[] = [];
 const updatedPayloads: unknown[] = [];

@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export interface Supplier {
   id: string;
@@ -61,7 +60,7 @@ export function useCreateSupplier() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      toast.success("Proveedor creado");
+      notifySuccess("Proveedor creado");
     },
     onError: (err: Error) => notifyError({ error: err, message: `Error al crear proveedor: ${translateSupplierError(err)}` }),
   });
@@ -77,10 +76,9 @@ export function useUpdateSupplier() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      toast.success("Proveedor actualizado");
+      notifySuccess("Proveedor actualizado");
     },
     onError: (err: Error) => notifyError({ error: err, message: `Error al actualizar proveedor: ${translateSupplierError(err)}` }),
   });
 }
-
 

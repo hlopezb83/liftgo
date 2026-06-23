@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
 import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
 
@@ -18,7 +18,7 @@ export function useApproveSupplierBill() {
       callRpc<null>("approve_supplier_bill", { p_bill_id: billId, p_notes: notes ?? null }),
     onSuccess: (_d, vars) => {
       buildInvalidator(qc, vars.billId);
-      toast.success("Factura aprobada");
+      notifySuccess("Factura aprobada");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo aprobar la factura" }),
   });
@@ -31,7 +31,7 @@ export function useRejectSupplierBill() {
       callRpc<null>("reject_supplier_bill", { p_bill_id: billId, p_notes: notes }),
     onSuccess: (_d, vars) => {
       buildInvalidator(qc, vars.billId);
-      toast.success("Factura rechazada");
+      notifySuccess("Factura rechazada");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo rechazar la factura" }),
   });
@@ -44,7 +44,7 @@ export function useRequestBillReapproval() {
       callRpc<null>("request_bill_reapproval", { p_bill_id: billId, p_notes: notes ?? null }),
     onSuccess: (_d, vars) => {
       buildInvalidator(qc, vars.billId);
-      toast.success("Reaprobación solicitada");
+      notifySuccess("Reaprobación solicitada");
     },
     onError: (e: unknown) =>
       notifyError({ error: e, message: "No se pudo solicitar reaprobación" }),

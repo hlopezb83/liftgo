@@ -19,6 +19,11 @@ vi.mock("sonner", () => ({
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: notifyErrorMock,
+  notifySuccess: toastSuccess,
+  notifyInfo: vi.fn(),
+  notifyWarning: vi.fn(),
+  notifyValidation: vi.fn(),
+  notifyAsync: vi.fn(),
 }));
 
 let rpcResp: { data: unknown; error: { message: string } | null } = {

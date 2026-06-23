@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { toast } from "sonner";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+
 import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
@@ -40,12 +40,12 @@ export function useContractFormLogic() {
 
     if (isEdit) {
       updateContract.mutate({ id, ...payload }, {
-        onSuccess: () => { toast.success("Contrato actualizado"); navigate(`/contracts/${id}`); },
+        onSuccess: () => { notifySuccess("Contrato actualizado"); navigate(`/contracts/${id}`); },
       });
     } else {
       createContract.mutate(payload, {
         onSuccess: (data) => {
-          toast.success("Contrato creado");
+          notifySuccess("Contrato creado");
           navigate(`/contracts/${data.id}`);
         },
       });

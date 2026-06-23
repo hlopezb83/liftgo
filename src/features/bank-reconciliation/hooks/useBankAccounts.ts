@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { notifyError } from "@/lib/ui/appFeedback";
+
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export interface BankAccount {
   id: string;
@@ -59,7 +59,7 @@ export function useUpsertBankAccount() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BANK_ACCOUNTS_QK });
-      toast.success("Cuenta bancaria guardada");
+      notifySuccess("Cuenta bancaria guardada");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });
@@ -74,7 +74,7 @@ export function useDeleteBankAccount() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: BANK_ACCOUNTS_QK });
-      toast.success("Cuenta eliminada");
+      notifySuccess("Cuenta eliminada");
     },
     onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });

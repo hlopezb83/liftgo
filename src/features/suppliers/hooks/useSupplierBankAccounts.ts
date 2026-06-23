@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];
@@ -67,7 +67,7 @@ export function useCreateSupplierBankAccount() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["supplier_bank_accounts", vars.supplier_id] });
-      toast.success("Cuenta bancaria agregada");
+      notifySuccess("Cuenta bancaria agregada");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo crear la cuenta bancaria" }),
   });
@@ -84,7 +84,7 @@ export function useUpdateSupplierBankAccount() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["supplier_bank_accounts", vars.supplier_id] });
-      toast.success("Cuenta bancaria actualizada");
+      notifySuccess("Cuenta bancaria actualizada");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo actualizar la cuenta bancaria" }),
   });
@@ -100,7 +100,7 @@ export function useDeleteSupplierBankAccount() {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["supplier_bank_accounts", vars.supplier_id] });
-      toast.success("Cuenta bancaria eliminada");
+      notifySuccess("Cuenta bancaria eliminada");
     },
     onError: (e: unknown) => notifyError({ error: e, message: "No se pudo eliminar la cuenta bancaria" }),
   });
