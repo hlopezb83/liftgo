@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.76.0",
+    "date": "2026-06-23",
+    "type": "minor",
+    "title": "Plataforma unificada de toasts (notifySuccess / notifyInfo / notifyAsync)",
+    "description": "Auditoría completa de los 543 usos de toasts. Se introduce `notifySuccess`, `notifyInfo`, `notifyValidation` y `notifyAsync` en `@/lib/ui/appFeedback`, además de severidad `critical|warning` en `notifyError` para no fijar errores triviales para siempre. Se migraron 148 llamadas a `toast.success/info/warning` directas y los 6 `toast.error` que se saltaban el reporte estructurado. Se centraliza el copy en `feedbackMessages.ts` con `satStatusLabel`, se eliminan clases CSS muertas (`liftgo-toast-*`) y se documenta la convención de copy (verbo en pasado + sustantivo, sin 'exitosamente').",
+    "category": "improvement"
+  },
+  {
     "version": "6.75.2",
     "date": "2026-06-23",
     "type": "patch",
