@@ -198,9 +198,10 @@ export async function handleStampCfdi(
     const payload: Record<string, unknown> = {
       type: "I",
       customer: {
-        legal_name: inv.receptor_razon_social || inv.customer_name ||
-          "Público General",
-        tax_id: inv.receptor_rfc || "XAXX010101000",
+        legal_name: sanitizeLegalName(
+          inv.receptor_razon_social || inv.customer_name || "Público General",
+        ),
+        tax_id: (inv.receptor_rfc || "XAXX010101000").toUpperCase(),
         tax_system: inv.receptor_regimen_fiscal || "616",
         address: { zip: inv.receptor_domicilio_fiscal_cp || "06600" },
       },
