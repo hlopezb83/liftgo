@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.76.1",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Forzar FormaPago=99 en CFDI con MetodoPago PPD",
+    "description": "Corrige timbrado de facturas PPD (Pago en Parcialidades o Diferido). El SAT exige que `FormaPago` sea \"99\" (Por definir) cuando `MetodoPago` es PPD. `stamp-cfdi` ahora normaliza el valor automáticamente antes de enviar a Facturapi, evitando el rechazo CFDI40105.",
+    "category": "bugfix"
+  },
+  {
     "version": "6.76.0",
     "date": "2026-06-23",
     "type": "minor",

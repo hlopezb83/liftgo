@@ -1,0 +1,16 @@
+{
+  "version": "6.76.1",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Forzar FormaPago=99 en CFDI con MetodoPago PPD",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Facturación / CFDI",
+      "items": [
+        "`stamp-cfdi` ahora fuerza `payment_form = \"99\"` cuando `metodo_pago = \"PPD\"`, cumpliendo la validación SAT CFDI40105.",
+        "Resuelve el error 400 de Facturapi: 'El campo FormaPago no contiene el valor \"99\"' al timbrar facturas a crédito."
+      ]
+    }
+  ]
+}
