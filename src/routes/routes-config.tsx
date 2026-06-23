@@ -84,6 +84,7 @@ export interface RouteConfig {
   path: string;
   component: ComponentType;
   module?: string;
+  adminOnly?: boolean;
 }
 
 export const appRoutes: RouteConfig[] = [
