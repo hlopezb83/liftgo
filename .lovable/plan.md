@@ -1,65 +1,50 @@
-## Objetivo
+## Diagnóstico
 
-Convertir la tarjeta "Historial de Estatus" de la página de reserva (`/bookings/:id`) en un **Historial de Reserva** completo: incluir todos los campos modificados (no solo `status`), el autor de cada cambio, y enriquecerlo con eventos relacionados (extensiones, entregas/devoluciones, pagos).
+**Causa raíz: race condition** al convertir una cotización con varios equipos.
 
-Solo cambios de presentación + un hook de datos. Sin cambios de schema ni de lógica de negocio.
+En `useQuoteBookingCreator.createBookingsFor` se invoca `createBooking.mutateAsync` con `Promise.all` (una llamada por equipo asignado). Cada llamada ejecuta el RPC `public.create_booking`, que en su interior hace:
 
-## Alcance
-
-Aplica únicamente a `src/features/bookings/components/bookings/BookingStatusHistory.tsx` y su hook. Se renombra a `BookingHistory` semánticamente, pero **se mantiene el mismo archivo y exports** para no tocar `BookingDetail.tsx` más allá del título visible.
-
-## Cambios
-
-### 1. Hook `useBookingStatusHistory` → `useBookingHistory`
-
-Archivo: `src/features/bookings/hooks/bookingDetail/useBookingStatusHistory.ts`
-
-- Quitar el filtro `.contains("changed_fields", ["status"])` para traer **todos** los cambios de la reserva.
-- Mantener `table_name='bookings'` y `record_id=bookingId`, orden descendente.
-- Después del fetch principal, hacer un segundo query a `profiles` (`user_id, full_name`) con los `user_id` únicos para resolver el autor (mismo patrón que `useAuditLogs`).
-- Retornar `Array<AuditLog & { user_name?: string }>`.
-
-### 2. Componente `BookingStatusHistory`
-
-- Renombrar título visible a **"Historial de la Reserva"**.
-- Para cada log calcular `changed_fields` y renderizar una fila por campo cambiado, con un mapa de labels en español:
-  - `status` → "Estatus" (sigue mostrando `StatusBadge` antes/después)
-  - `start_date`, `end_date` → fechas DD/MM/YYYY
-  - `monthly_rate` → `formatCurrency`
-  - `forklift_id` → "Equipo asignado" (mostrar UUID corto)
-  - `customer_id`, `customer_name`, `site_contact_name`, `site_contact_phone`, `notes`, `included_hours`, `extra_hour_rate`, etc. → labels legibles; valores como texto.
-  - Fallback genérico: nombre del campo + `String(old) → String(new)`.
-- Cada entrada muestra: fecha/hora DD/MM/YYYY HH:mm, autor (`user_name` o "Sistema"), acción (`INSERT`/`UPDATE`/`DELETE` traducido: "Creación", "Actualización", "Eliminación"), y la lista de campos cambiados.
-- Para `INSERT` mostrar "Reserva creada por {autor}"; para `DELETE` "Reserva eliminada".
-- Mantener empty state y skeleton existentes.
-
-### 3. Estructura visual (timeline)
-
-```text
-●  23/06/2026 15:42 · Sonia Hernández · Actualización
-│    Estatus: [Reservada] → [Confirmada]
-│    Tarifa mensual: $12,000 → $13,500 MXN
-●  20/06/2026 10:11 · Hector López · Creación
-     Reserva creada
+```sql
+v_booking_number := next_booking_number();  -- SELECT MAX(...) + 1
+INSERT INTO bookings (... booking_number ...) VALUES (..., v_booking_number);
 ```
 
-Bullet + línea vertical sutil con `border-l` en `text-muted-foreground/30`.
+`next_booking_number()` solo lee `MAX(...) + 1`. No hay bloqueo. Cuando dos transacciones corren en paralelo, ambas leen el mismo MAX y calculan el mismo número (`RSV-0018`). Una hace commit primero; la segunda choca con el índice único `bookings_booking_number_key` → `23505`.
 
-## Detalles técnicos
+Los datos lo confirman: la reserva `RSV-0018` se creó a las **18:39:05.159**, y el error reporta **18:39:05.235** (76 ms después) — exactamente el mismo clic, dos inserts paralelos.
 
-- Reusar `formatCurrency` de `@/lib/format/formatCurrency` y `format` de `date-fns`.
-- Mapa de labels en una constante local (`FIELD_LABELS: Record<string, string>`) dentro del componente; campos no mapeados se muestran con su nombre crudo.
-- No tocar el trigger de auditoría: ya registra todos los cambios en `audit_logs` (verificado: 9 columnas, `changed_fields text[]`, `old_data/new_data jsonb`, `user_id uuid`).
-- `user_id` puede ser `null` (cambios del sistema/triggers) → mostrar "Sistema".
-- Sin cambios a `bookings`, ni nuevos endpoints, ni RPCs.
+El mismo patrón existe en `next_quote_number`, `next_invoice_number`, etc., así que aplico la corrección al de bookings y dejo nota para replicar después si vuelve a pasar.
+
+## Fix
+
+Serializar la sección crítica con un **advisory lock transaccional** dentro del RPC `create_booking`. El lock se libera automáticamente al commit/rollback, no requiere infra extra y solo bloquea otras llamadas a `create_booking` (no toda la tabla).
+
+### Migración
+
+`ALTER FUNCTION public.create_booking` para que justo antes de `v_booking_number := next_booking_number()` haga:
+
+```sql
+PERFORM pg_advisory_xact_lock(hashtext('bookings.booking_number'));
+```
+
+Esto garantiza que dos inserts simultáneos se serialicen al asignar folio. El resto del RPC (validación de rol, verificación de disponibilidad, insert, update de forklift, status_log) queda igual.
+
+### Sin cambios en frontend
+
+`useQuoteBookingCreator` puede seguir usando `Promise.all`. Después del fix la conversión de una cotización con N equipos producirá N folios consecutivos sin colisiones.
+
+## Limpieza de datos
+
+No hay datos huérfanos que limpiar: la reserva `RSV-0018` válida ya está creada; lo que falló fue el segundo insert que nunca llegó a la tabla.
 
 ## Changelog
 
-Agregar entrada `patch` (6.76.2) en `public/changelog.json` y `public/changelog/v6.76.2.json`:
-- Título: "Historial completo de la reserva con autor"
-- Descripción: "El detalle de cada reserva ahora muestra todos los cambios (estatus, fechas, tarifa, equipo, cliente…) con el nombre del usuario que los hizo."
+Entrada `patch` 6.76.3 en `public/changelog.json` + `public/changelog/v6.76.3.json`:
+- Tipo: bugfix
+- Título: "Evitar folios duplicados al crear varias reservas en paralelo"
+- Descripción: "Al convertir una cotización con varios equipos, dos reservas podían recibir el mismo folio (RSV-XXXX) y la segunda fallaba. Se serializa la asignación de folio con un bloqueo transaccional."
 
 ## Fuera de alcance
 
-- No se agregan eventos cruzados (extensiones, entregas, pagos) en esta iteración — se puede hacer después si lo deseas.
-- No se modifica la vista global `/auditoria`.
+- No se modifica `next_quote_number`, `next_invoice_number`, etc. Si se observan colisiones similares ahí, se aplicará el mismo patrón en una iteración posterior.
+- No se cambia el front (no es necesario).
