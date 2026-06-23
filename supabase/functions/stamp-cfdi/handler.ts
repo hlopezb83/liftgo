@@ -188,6 +188,12 @@ export async function handleStampCfdi(
       }))
       : [];
 
+    const paymentMethod = inv.metodo_pago || "PUE";
+    // SAT CFDI 4.0: cuando metodo_pago = PPD, forma_pago DEBE ser "99" (Por definir)
+    const paymentForm = paymentMethod === "PPD"
+      ? "99"
+      : (inv.forma_pago || "99");
+
     const payload: Record<string, unknown> = {
       type: "I",
       customer: {
@@ -198,8 +204,8 @@ export async function handleStampCfdi(
         address: { zip: inv.receptor_domicilio_fiscal_cp || "06600" },
       },
       items,
-      payment_form: inv.forma_pago || "99",
-      payment_method: inv.metodo_pago || "PUE",
+      payment_form: paymentForm,
+      payment_method: paymentMethod,
       use: inv.uso_cfdi || "G03",
       currency: inv.moneda || "MXN",
       exchange: inv.tipo_cambio || 1,
