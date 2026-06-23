@@ -1,157 +1,65 @@
-## Auditoría de toasts — LiftGo
+## Objetivo
 
-**Inventario:** 543 invocaciones en 98 archivos.
-- `notifyError`: 379 · `toast.success`: 144 · `notifyWarning`: 11 · `toast.error` directo: 10 · `toast.info`: 5 · `toast.warning` directo: 4 · `toast.promise` / `toast.loading`: **0**.
-- Stack: `sonner` con `<Toaster />` en `AppProviders`, position `top-center` (mobile) / `bottom-right` (desktop), border-left semántico por tipo.
-- Hay handler global en `QueryCache` y `MutationCache` que llama `notifyError` salvo `meta.silent`.
+Convertir la tarjeta "Historial de Estatus" de la página de reserva (`/bookings/:id`) en un **Historial de Reserva** completo: incluir todos los campos modificados (no solo `status`), el autor de cada cambio, y enriquecerlo con eventos relacionados (extensiones, entregas/devoluciones, pagos).
 
-Severidad: **CRITICAL** (riesgo de error de usuario o silencio total) → **HIGH** (inconsistencia visible) → **MEDIUM** (calidad/UX) → **LOW**.
+Solo cambios de presentación + un hook de datos. Sin cambios de schema ni de lógica de negocio.
 
----
+## Alcance
 
-### #1 — CRITICAL · Errores que ignoran el reporte estructurado
+Aplica únicamente a `src/features/bookings/components/bookings/BookingStatusHistory.tsx` y su hook. Se renombra a `BookingHistory` semánticamente, pero **se mantiene el mismo archivo y exports** para no tocar `BookingDetail.tsx` más allá del título visible.
 
-`toast.error(...)` directo en 6 lugares se salta `notifyError`, que es quien construye el `requestId`, el botón **Ver detalles** y la duración persistente. El usuario ve el toast 4 s y desaparece sin posibilidad de reportarlo.
+## Cambios
 
-Archivos:
-- `src/lib/storage/openStorageFile.ts:19`
-- `src/features/invoices/hooks/invoiceDetail/useStampInvoiceFlow.ts:15`
-- `src/features/invoices/hooks/invoiceDetail/useDownloadInvoiceXml.ts:17`
-- `src/features/bank-reconciliation/components/BankStatementUploader.tsx:27`
-- `src/features/accounts-payable/hooks/useExportPaymentsForm.ts:36`
-- `src/features/portal/pages/PortalStatement.tsx:48`
+### 1. Hook `useBookingStatusHistory` → `useBookingHistory`
 
-**Fix:** reemplazar por `notifyError({ message, description?, error? })`. Mantener `toast.error` solo dentro de `appFeedback.ts` y para flujos de **validación inline** (donde no hay error de runtime).
+Archivo: `src/features/bookings/hooks/bookingDetail/useBookingStatusHistory.ts`
 
-Excepciones legítimas que se quedan como `toast.error`:
-- `useRefreshCancellationStatus` línea 19 ("Cancelación rechazada por el receptor") — es estado de negocio, no un error técnico. Mejor degradarlo a `toast.info` con icono ❌ o dejarlo.
-- `ErrorDetailsDialog.tsx:27` — ironía: notificar fallo de copiar dentro del propio diálogo de error. OK como `toast.error` corto.
+- Quitar el filtro `.contains("changed_fields", ["status"])` para traer **todos** los cambios de la reserva.
+- Mantener `table_name='bookings'` y `record_id=bookingId`, orden descendente.
+- Después del fetch principal, hacer un segundo query a `profiles` (`user_id, full_name`) con los `user_id` únicos para resolver el autor (mismo patrón que `useAuditLogs`).
+- Retornar `Array<AuditLog & { user_name?: string }>`.
 
----
+### 2. Componente `BookingStatusHistory`
 
-### #2 — CRITICAL · `notifyError` siempre `duration: Infinity` + `closeButton`
+- Renombrar título visible a **"Historial de la Reserva"**.
+- Para cada log calcular `changed_fields` y renderizar una fila por campo cambiado, con un mapa de labels en español:
+  - `status` → "Estatus" (sigue mostrando `StatusBadge` antes/después)
+  - `start_date`, `end_date` → fechas DD/MM/YYYY
+  - `monthly_rate` → `formatCurrency`
+  - `forklift_id` → "Equipo asignado" (mostrar UUID corto)
+  - `customer_id`, `customer_name`, `site_contact_name`, `site_contact_phone`, `notes`, `included_hours`, `extra_hour_rate`, etc. → labels legibles; valores como texto.
+  - Fallback genérico: nombre del campo + `String(old) → String(new)`.
+- Cada entrada muestra: fecha/hora DD/MM/YYYY HH:mm, autor (`user_name` o "Sistema"), acción (`INSERT`/`UPDATE`/`DELETE` traducido: "Creación", "Actualización", "Eliminación"), y la lista de campos cambiados.
+- Para `INSERT` mostrar "Reserva creada por {autor}"; para `DELETE` "Reserva eliminada".
+- Mantener empty state y skeleton existentes.
 
-`appFeedback.ts:62-66` fija `duration: Infinity` para **todos** los errores. Cuando una mutación falla por algo trivial (validación de campo, "saldo cero", duplicado), el toast queda fijo hasta que el usuario lo cierre. En flujos con varios errores se acumulan y tapan UI.
+### 3. Estructura visual (timeline)
 
-**Fix:** introducir niveles:
-- `notifyError({ severity: "critical" })` → `duration: Infinity` (default actual).
-- `notifyError({ severity: "warning" })` → `duration: 6000`.
-- Validaciones de form (sin `error`, solo `message`) → `duration: 5000`.
+```text
+●  23/06/2026 15:42 · Sonia Hernández · Actualización
+│    Estatus: [Reservada] → [Confirmada]
+│    Tarifa mensual: $12,000 → $13,500 MXN
+●  20/06/2026 10:11 · Hector López · Creación
+     Reserva creada
+```
 
-Auditar las 379 llamadas y degradar las que son meramente informativas (ej. "Monto inválido", "Tipo de cambio inválido", "Selecciona al menos un equipo") para que no requieran clic.
+Bullet + línea vertical sutil con `border-l` en `text-muted-foreground/30`.
 
----
+## Detalles técnicos
 
-### #3 — HIGH · No existe `notifySuccess` (144 `toast.success` sin estilo unificado)
+- Reusar `formatCurrency` de `@/lib/format/formatCurrency` y `format` de `date-fns`.
+- Mapa de labels en una constante local (`FIELD_LABELS: Record<string, string>`) dentro del componente; campos no mapeados se muestran con su nombre crudo.
+- No tocar el trigger de auditoría: ya registra todos los cambios en `audit_logs` (verificado: 9 columnas, `changed_fields text[]`, `old_data/new_data jsonb`, `user_id uuid`).
+- `user_id` puede ser `null` (cambios del sistema/triggers) → mostrar "Sistema".
+- Sin cambios a `bookings`, ni nuevos endpoints, ni RPCs.
 
-144 `toast.success(...)` directos sin descripción, sin opciones, sin acción (`Ver`, `Deshacer`). Pierden la oportunidad de:
-- Linkear al recurso recién creado (ej. tras crear factura → botón **Ver factura**).
-- Permitir **Undo** en deletes destructivos (ej. `Reserva eliminada`).
-- Reporte estructurado para QA cuando se requiere telemetría.
+## Changelog
 
-**Fix:** crear `notifySuccess({ title, description?, action?, durationMs? })` en `appFeedback.ts`, migrar los 144 sitios (codemod simple) y empezar a agregar acciones contextuales (al menos en deletes y creaciones de entidades principales: factura, cotización, reserva, cliente).
+Agregar entrada `patch` (6.76.2) en `public/changelog.json` y `public/changelog/v6.76.2.json`:
+- Título: "Historial completo de la reserva con autor"
+- Descripción: "El detalle de cada reserva ahora muestra todos los cambios (estatus, fechas, tarifa, equipo, cliente…) con el nombre del usuario que los hizo."
 
----
+## Fuera de alcance
 
-### #4 — HIGH · Strings de éxito duplicados y vagos
-
-Top duplicados: `"Eliminado"` ×3, `"Cliente actualizado"` ×3, `"Agregado"` ×3, `"Actualizado"` ×3, `"Reserva creada"` ×2, `"Pago registrado"` ×2, `"Estado actualizado"` ×2.
-
-Vagos como `"Agregado"` o `"Actualizado"` no dicen qué se agregó/actualizó. En tablas con varias acciones por fila el usuario pierde contexto.
-
-**Fix:** catálogo centralizado en `src/lib/domain/feedbackMessages.ts` con builders tipo `successMessages.invoiceCreated(number)` → `"Factura ${number} creada"`. Cubre i18n futura (todo está en es-MX hoy) y elimina drift.
-
----
-
-### #5 — HIGH · `notifyError` swallow del mensaje real cuando se pasa `message`
-
-`appFeedback.ts:60`: `const description = input.description ?? getErrorMessage(error)`. Bien. Pero muchas llamadas hacen `notifyError({ error: err, message: "Error al X" })` — `message` se usa como título genérico y la descripción real del error queda visible. **Correcto.** Pero hay llamadas que pasan solo `message` sin `error`, perdiendo la causa real (no hay stack, no hay `requestId`).
-
-Ejemplos: `useRecordPaymentForm.ts:45` `notifyError({ message: "Monto inválido" })` → no es un error, es validación. Debería ser **inline form error** o `toast.warning`.
-
-**Fix:** crear helper `notifyValidation({ field, message })` para validaciones de formulario que renderice un toast warning de 4 s, sin botón "Ver detalles" (no hay nada que ver).
-
----
-
-### #6 — HIGH · `toast.success` dentro de `onSuccess` *antes* de invalidar queries
-
-Patrón en varios mutations: `toast.success(...)`; luego `queryClient.invalidateQueries(...)`. Si la invalidación falla (RLS, network), el usuario ya vio "OK" pero la UI no se actualizó.
-
-Ejemplo típico: `useCreditNoteMutations.ts`, `useCancelCfdi.ts`, `useRefreshCancellationStatus.ts`.
-
-**Fix:** el patrón no es bug real (invalidate raramente falla y refetch tiene retry), pero conviene documentarlo como convención. Bajar a **MEDIUM** si se prefiere.
-
----
-
-### #7 — MEDIUM · `liftgo-toast-error` y `liftgo-toast-warning` className referenced pero **sin estilos en `index.css`**
-
-`appFeedback.ts:66` aplica `className: "liftgo-toast-error"` y `:82` `liftgo-toast-warning`. `grep` en `src/index.css` no encuentra ninguna regla con ese nombre. Son clases muertas.
-
-**Fix:** o bien añadir reglas reales en `index.css` (ej. `bg-destructive/5`, animación de shake), o eliminar la prop.
-
----
-
-### #8 — MEDIUM · `toast.info` y `toast.warning` directos sin helper
-
-5 `toast.info` + 4 `toast.warning` directos. `notifyWarning` existe pero solo cubre `{title, description}`. No hay `notifyInfo`. Inconsistencia: a veces se usa helper, a veces no.
-
-**Fix:** añadir `notifyInfo` y `notifyWarning` con misma firma, migrar los 9 sitios.
-
----
-
-### #9 — MEDIUM · No se usan `toast.promise` ni `toast.loading`
-
-0 ocurrencias. Operaciones largas (timbrado CFDI con Facturapi, generación de PDF, recurring invoices) no muestran progreso; el usuario ve botón disabled sin feedback. `toast.promise(promise, { loading, success, error })` resuelve esto en una sola línea.
-
-**Fix:** introducir `notifyAsync(label, promise)` envoltorio sobre `toast.promise` y aplicarlo en: timbrado, descarga de CFDI/PDF, recurring invoices, generate-recurring-maintenance, exportar pagos, importar bancos.
-
----
-
-### #10 — MEDIUM · `position` y `duration` no son responsivos
-
-Mobile usa `top-center` (correcto, no tapa botones inferiores). Desktop `bottom-right`. Sin `expand={true}` se apilan colapsados; con muchos toasts en burst (ej. import bancario que dispara warnings por línea) el usuario solo ve el último.
-
-**Fix:** evaluar `expand={true}` en `<Toaster>`, y/o `richColors` para que la decoración semántica sea automática.
-
----
-
-### #11 — LOW · Mensajes inconsistentes para mismas acciones
-
-- `"Reserva extendida"` vs `"Reserva extendida exitosamente"` (mismo evento, dos lugares).
-- `"Usuario creado exitosamente"` vs `"Cliente creado"` (uno con sufijo, otro no).
-- `"Nota de crédito timbrada"` vs `"CFDI timbrado exitosamente — UUID: …"` (con/sin detalle).
-
-**Fix:** estilo común en docs + catálogo del #4. Regla: verbo en pasado + sustantivo, sin "exitosamente"; opcionalmente ID/folio si está disponible.
-
----
-
-### #12 — LOW · `toast.info` para estados de cancelación SAT
-
-`useRefreshCancellationStatus.ts:21` y `useCreditNoteMutations.ts:80-81` usan `toast.info(\`Estado SAT: ${status}\`)` como fallback. Si el SAT devuelve un estado inesperado el usuario ve una cadena críptica.
-
-**Fix:** mapear `status` a label en español (ya existe el patrón para `accepted/rejected/expired/pending`).
-
----
-
-## Resumen de acciones recomendadas (prioridad)
-
-| # | Tarea | Esfuerzo | Impacto |
-|---|---|---|---|
-| 1 | Migrar 6 `toast.error` directos a `notifyError` | XS | Alto (reportabilidad) |
-| 2 | Severity en `notifyError` + auditoría de los 379 sitios | M | Alto |
-| 3 | Introducir `notifySuccess` + codemod 144 sitios | M | Alto |
-| 4 | Catálogo `feedbackMessages.ts` + reemplazos | M | Medio |
-| 7 | Limpiar / implementar `liftgo-toast-*` | XS | Bajo |
-| 8 | Añadir `notifyInfo`, migrar 9 directos | XS | Medio |
-| 9 | Introducir `notifyAsync` para operaciones largas | S | Alto |
-| 11+12 | Pulir mensajes inconsistentes | S | Medio |
-
-## Pregunta de scope
-
-Esta auditoría es **read-only** (no se modificó código). Las siguientes son las opciones de implementación:
-
-- **A — Quick wins (1 hr):** #1 + #7 + #8 (migración mecánica, sin riesgo).
-- **B — Plataforma toast (3-4 hr):** A + #3 (`notifySuccess`) + #9 (`notifyAsync`), sin codemod masivo.
-- **C — Completo (1 día):** B + #2 (severities) + #4 (catálogo centralizado) + codemod de los 144 `toast.success`.
-
-Indica qué scope ejecutamos y emito el plan de implementación correspondiente.
+- No se agregan eventos cruzados (extensiones, entregas, pagos) en esta iteración — se puede hacer después si lo deseas.
+- No se modifica la vista global `/auditoria`.
