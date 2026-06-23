@@ -61,7 +61,7 @@ export function ExtendBookingDialog({ open, onOpenChange, bookingId, currentEndD
           </div>
           <div className="space-y-1.5">
             <Label>Nueva fecha de fin *</Label>
-            <Popover>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -78,7 +78,7 @@ export function ExtendBookingDialog({ open, onOpenChange, bookingId, currentEndD
                 <Calendar
                   mode="single"
                   selected={newEndDate}
-                  onSelect={setNewEndDate}
+                  onSelect={(d) => { setNewEndDate(d); setCalendarOpen(false); }}
                   locale={es}
                   weekStartsOn={1}
                   disabled={(date) => (currentEndDateObj ? date <= currentEndDateObj : false)}
@@ -87,6 +87,7 @@ export function ExtendBookingDialog({ open, onOpenChange, bookingId, currentEndD
                 />
               </PopoverContent>
             </Popover>
+
           </div>
           <div className="space-y-1.5">
             <Label>Motivo (opcional)</Label>
