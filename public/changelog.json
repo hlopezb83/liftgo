@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.78.0",
+    "date": "2026-06-23",
+    "type": "minor",
+    "title": "Timbrado obligatorio para pasar de Borrador a Sin Pagar",
+    "description": "Para pasar una factura de Borrador a Sin Pagar ahora es obligatorio timbrar el CFDI. Se eliminó el botón 'Marcar Enviada'.",
+    "category": "improvement"
+  },
+  {
     "version": "6.77.0",
     "date": "2026-06-23",
     "type": "minor",

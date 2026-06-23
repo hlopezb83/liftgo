@@ -152,6 +152,7 @@ export async function handleStampCfdi(
           cfdi_uuid: mockUuid,
           cfdi_xml: mockXml,
           cfdi_status: "stamped",
+          ...(inv.status === "draft" ? { status: "sent" } : {}),
         })
         .eq("id", invoice_id);
 
@@ -295,6 +296,7 @@ export async function handleStampCfdi(
       cfdi_status: "stamped",
       cfdi_error_message: null,
       facturapi_invoice_id: facturApiId,
+      ...(inv.status === "draft" ? { status: "sent" } : {}),
     }).eq("id", invoice_id);
 
     const updateErr = (updRes as { error: unknown }).error;

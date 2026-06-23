@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { Send, Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
+import { Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 
@@ -12,7 +12,6 @@ interface Props {
   cfdiStatus: string;
   userRole: string | undefined;
   isStamping: boolean;
-  onSent: () => void;
   onOpenPayment: () => void;
   onEdit: () => void;
   onStamp: () => void;
@@ -42,7 +41,7 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?
     isPayable,
     showPaymentBtn: isPayable || status === "partial",
     canEdit: isDraft || userRole === "admin",
-    canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && !isDraft,
+    canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
     isStamped: cfdiStatus === "stamped",
     isPendingCancel: cancellationStatus === "pending",
     isRejectedCancel: cancellationStatus === "rejected",
@@ -116,14 +115,17 @@ function ActionsMenu({ flags, isStamping, onEdit, onStamp, onDownloadXml, onCanc
 
 export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole,
-  isStamping, onSent, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
+  isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
   const flags = computeFlags(invoice, cfdiStatus, userRole);
   return (
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
-      {flags.isDraft && (
-        <Button size="sm" onClick={onSent}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
+      {flags.isDraft && flags.canStamp && (
+        <Button size="sm" onClick={onStamp} disabled={isStamping}>
+          <Stamp className="h-4 w-4 mr-1" />
+          {isStamping ? "Timbrando..." : "Timbrar CFDI"}
+        </Button>
       )}
       {flags.showPaymentBtn && (
         <Button size="sm" onClick={onOpenPayment}>

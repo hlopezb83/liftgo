@@ -1,0 +1,14 @@
+{
+  "version": "6.78.0",
+  "date": "2026-06-23",
+  "type": "minor",
+  "title": "Timbrado obligatorio para pasar de Borrador a Sin Pagar",
+  "description": "Para mover una factura de Borrador a Sin Pagar ahora es obligatorio timbrar el CFDI. Se eliminó el botón 'Marcar Enviada' que saltaba este paso.",
+  "category": "improvement",
+  "details": [
+    "El botón 'Timbrar CFDI' ahora aparece como acción primaria cuando la factura está en borrador.",
+    "Al timbrar exitosamente, la factura pasa automáticamente a estado Sin Pagar.",
+    "Si el timbrado falla, la factura permanece en borrador y permite reintentar.",
+    "Edge function stamp-cfdi: actualiza invoice.status = 'sent' cuando viene de 'draft'."
+  ]
+}
