@@ -1,50 +1,100 @@
 ## Diagnóstico
 
-**Causa raíz: race condition** al convertir una cotización con varios equipos.
+Dos problemas independientes contaminando `activity_feed` y `audit_logs`:
 
-En `useQuoteBookingCreator.createBookingsFor` se invoca `createBooking.mutateAsync` con `Promise.all` (una llamada por equipo asignado). Cada llamada ejecuta el RPC `public.create_booking`, que en su interior hace:
+### Problema 1 — Triggers duplicados en `activity_feed`
 
-```sql
-v_booking_number := next_booking_number();  -- SELECT MAX(...) + 1
-INSERT INTO bookings (... booking_number ...) VALUES (..., v_booking_number);
+Tres tablas tienen **dos triggers de actividad apuntando a la misma función `log_activity()`**:
+
+| Tabla | Triggers (duplicados) |
+|---|---|
+| `bookings` | `activity_bookings` + `log_activity_bookings` |
+| `invoices` | `activity_invoices` + `log_activity_invoices` |
+| `maintenance_logs` | `activity_maintenance_logs` + `log_activity_maintenance_logs` |
+
+Por eso cada evento aparece dos veces con el mismo timestamp:
+
+```
+22:10:34.948 — Creación de Mantenimiento (a1086dbb)
+22:10:34.948 — Creación de Mantenimiento (a1086dbb)   ← duplicado
 ```
 
-`next_booking_number()` solo lee `MAX(...) + 1`. No hay bloqueo. Cuando dos transacciones corren en paralelo, ambas leen el mismo MAX y calculan el mismo número (`RSV-0018`). Una hace commit primero; la segunda choca con el índice único `bookings_booking_number_key` → `23505`.
+### Problema 2 — Filtro de E2E demasiado estrecho
 
-Los datos lo confirman: la reserva `RSV-0018` se creó a las **18:39:05.159**, y el error reporta **18:39:05.235** (76 ms después) — exactamente el mismo clic, dos inserts paralelos.
+Tanto `audit_trigger_fn` como `log_activity` solo descartan filas cuando la fila origen tiene `is_e2e=true`. Los E2E modernos usan el usuario `e2e-admin@liftgo.test` y entran por los mismos endpoints que el usuario real, así que la fila origen no lleva `is_e2e=true`. Resultado actual en la base:
 
-El mismo patrón existe en `next_quote_number`, `next_invoice_number`, etc., así que aplico la corrección al de bookings y dejo nota para replicar después si vuelve a pasar.
+- `activity_feed`: **302 filas** con `actor_name = 'e2e-admin@liftgo.test'`, todas con `is_e2e=false`.
+- `audit_logs`: **475 filas** atadas al `user_id` de `e2e-admin@liftgo.test`.
 
 ## Fix
 
-Serializar la sección crítica con un **advisory lock transaccional** dentro del RPC `create_booking`. El lock se libera automáticamente al commit/rollback, no requiere infra extra y solo bloquea otras llamadas a `create_booking` (no toda la tabla).
-
-### Migración
-
-`ALTER FUNCTION public.create_booking` para que justo antes de `v_booking_number := next_booking_number()` haga:
+### 1. Migración A — Eliminar triggers duplicados
 
 ```sql
-PERFORM pg_advisory_xact_lock(hashtext('bookings.booking_number'));
+DROP TRIGGER IF EXISTS activity_bookings         ON public.bookings;
+DROP TRIGGER IF EXISTS activity_invoices         ON public.invoices;
+DROP TRIGGER IF EXISTS activity_maintenance_logs ON public.maintenance_logs;
 ```
 
-Esto garantiza que dos inserts simultáneos se serialicen al asignar folio. El resto del RPC (validación de rol, verificación de disponibilidad, insert, update de forklift, status_log) queda igual.
+Se conservan los `log_activity_*` (consistentes con el resto de las tablas).
 
-### Sin cambios en frontend
+### 2. Migración B — Reforzar filtro de E2E por actor
 
-`useQuoteBookingCreator` puede seguir usando `Promise.all`. Después del fix la conversión de una cotización con N equipos producirá N folios consecutivos sin colisiones.
+Reemplazar `log_activity()` y `audit_trigger_fn()` para que además de revisar `is_e2e` de la fila, consulten el email del actor en `auth.users` y descarten cuando coincida con el patrón E2E.
 
-## Limpieza de datos
+Helper interno (inline en cada función para evitar dependencias entre migraciones):
 
-No hay datos huérfanos que limpiar: la reserva `RSV-0018` válida ya está creada; lo que falló fue el segundo insert que nunca llegó a la tabla.
+```sql
+SELECT email INTO v_email
+FROM auth.users
+WHERE id = v_user_id;
+
+IF v_email ILIKE 'e2e-%@%' OR v_email ILIKE '%@liftgo.test' THEN
+  RETURN COALESCE(NEW, OLD);
+END IF;
+```
+
+Se aplica al inicio de cada rama (INSERT/UPDATE/DELETE) en `audit_trigger_fn`, y antes del `INSERT INTO activity_feed` en `log_activity`. Envuelto en `BEGIN/EXCEPTION WHEN OTHERS THEN NULL` por seguridad (acceso a `auth.users` requiere SECURITY DEFINER, que ya tienen).
+
+Mantienen el filtro existente por `is_e2e` de la fila para no romper los RPCs E2E que ya lo usan correctamente.
+
+### 3. Migración C — Limpieza de filas contaminadas existentes
+
+```sql
+DELETE FROM public.activity_feed
+WHERE actor_name ILIKE 'e2e-%' OR actor_name ILIKE '%@liftgo.test';
+
+DELETE FROM public.audit_logs
+WHERE user_id IN (
+  SELECT id FROM auth.users
+  WHERE email ILIKE 'e2e-%@%' OR email ILIKE '%@liftgo.test'
+);
+```
+
+Y deduplicar las filas residuales de `activity_feed` creadas por los triggers duplicados antes del fix (mismo `entity_type`, `entity_id`, `event_type`, `created_at`):
+
+```sql
+DELETE FROM public.activity_feed a
+USING public.activity_feed b
+WHERE a.id > b.id
+  AND a.entity_type = b.entity_type
+  AND a.entity_id   = b.entity_id
+  AND a.event_type  = b.event_type
+  AND a.created_at  = b.created_at;
+```
+
+## Sin cambios en frontend
+
+Los hooks de actividad y bitácora ya ocultan `is_e2e=true`. Después del fix las filas problemáticas dejan de existir y de generarse.
 
 ## Changelog
 
-Entrada `patch` 6.76.3 en `public/changelog.json` + `public/changelog/v6.76.3.json`:
+Entrada `patch` `6.76.4` en `public/changelog.json` + `public/changelog/v6.76.4.json`:
 - Tipo: bugfix
-- Título: "Evitar folios duplicados al crear varias reservas en paralelo"
-- Descripción: "Al convertir una cotización con varios equipos, dos reservas podían recibir el mismo folio (RSV-XXXX) y la segunda fallaba. Se serializa la asignación de folio con un bloqueo transaccional."
+- Título: "Bitácora y actividad: eliminar duplicados y contaminación E2E"
+- Descripción: "Se eliminaron triggers duplicados en bookings/invoices/maintenance_logs (causaban filas repetidas en Actividad). Los triggers de auditoría y actividad ahora descartan también eventos del usuario e2e-*@liftgo.test, y se limpiaron 302 filas en Actividad y 475 en Bitácora generadas por pruebas E2E."
 
 ## Fuera de alcance
 
-- No se modifica `next_quote_number`, `next_invoice_number`, etc. Si se observan colisiones similares ahí, se aplicará el mismo patrón en una iteración posterior.
-- No se cambia el front (no es necesario).
+- No se cambia el flujo de los tests E2E.
+- No se modifican otras tablas; los triggers restantes ya están correctos.

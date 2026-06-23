@@ -1,0 +1,17 @@
+{
+  "version": "6.76.4",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Bitácora y actividad: eliminar duplicados y contaminación E2E",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Actividad / Bitácora",
+      "items": [
+        "Se eliminaron triggers duplicados en Reservas, Facturas y Mantenimiento que causaban que cada evento apareciera dos veces en el feed de Actividad.",
+        "Los triggers `audit_trigger_fn` y `log_activity` ahora descartan eventos cuyo autor sea un usuario E2E (`e2e-*@*` o `*@liftgo.test`), no solo cuando la fila origen tenga `is_e2e=true`.",
+        "Limpieza de datos: se eliminaron 302 filas de Actividad y 475 de Bitácora generadas previamente por el usuario de pruebas, además de filas duplicadas residuales."
+      ]
+    }
+  ]
+}
