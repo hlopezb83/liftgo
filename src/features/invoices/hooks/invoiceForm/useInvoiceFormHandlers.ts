@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
+import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import type { Forklift } from "@/features/fleet";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
@@ -25,6 +25,18 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
   });
 }
 
+function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
+  const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
+  if (!forklift) return [];
+  const items = generateLineItems(forklift, booking.start_date, booking.end_date);
+  return items.map((item) => ({
+    ...item,
+    clave_prod_serv: "78181500",
+    clave_unidad: "DAY",
+    objeto_imp: "02",
+  }));
+}
+
 export function useInvoiceFormHandlers({ form, customers, bookings, forklifts }: Props) {
   const handleCustomerSelect = useCallback((selectedCustomerId: string) => {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
@@ -34,23 +46,32 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts }:
     applyCfdiPatch(form, customer);
   }, [form, customers]);
 
-  const handleBookingSelect = useCallback((selectedBookingId: string) => {
-    form.setValue("bookingId", selectedBookingId, { shouldDirty: true });
-    const booking = bookings?.find((b) => b.id === selectedBookingId);
-    if (!booking) return;
-    form.setValue("customerName", booking.customer_name || "", { shouldDirty: true });
-    form.setValue("customerId", booking.customer_id || null, { shouldDirty: true });
-    if (booking.customer_id && customers) {
-      const customer = customers.find((c) => c.id === booking.customer_id);
+  const handleBookingsChange = useCallback((selectedIds: string[]) => {
+    const selected = selectedIds
+      .map((id) => bookings?.find((b) => b.id === id))
+      .filter((b): b is Booking => !!b);
+
+    form.setValue("bookingIds", selectedIds, { shouldDirty: true });
+    form.setValue("bookingId", selectedIds[0] ?? "", { shouldDirty: true });
+
+    if (selected.length === 0) return;
+
+    const first = selected[0];
+    form.setValue("customerName", first.customer_name || "", { shouldDirty: true });
+    form.setValue("customerId", first.customer_id || null, { shouldDirty: true });
+    if (first.customer_id && customers) {
+      const customer = customers.find((c) => c.id === first.customer_id);
       if (customer) applyCfdiPatch(form, customer);
     }
-    const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
-    if (!forklift) return;
-    const items = generateLineItems(forklift, booking.start_date, booking.end_date);
-    form.setValue("lineItems", items.map((item) => ({
-      ...item, clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
-    })), { shouldDirty: true });
+
+    const allLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
+    form.setValue("lineItems", allLines, { shouldDirty: true });
   }, [form, bookings, customers, forklifts]);
 
-  return { handleCustomerSelect, handleBookingSelect };
+  // Compat: handler antiguo single-select (delega al multi).
+  const handleBookingSelect = useCallback((id: string) => {
+    handleBookingsChange(id ? [id] : []);
+  }, [handleBookingsChange]);
+
+  return { handleCustomerSelect, handleBookingSelect, handleBookingsChange };
 }
