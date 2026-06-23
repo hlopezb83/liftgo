@@ -53,6 +53,8 @@ async function extractErrorMessage(error: unknown): Promise<string> {
     ? error.message
     : typeof error === "string"
     ? error
+    : typeof (error as { message?: unknown })?.message === "string"
+    ? (error as { message: string }).message
     : "Edge Function error";
 
   const ctx = (error as { context?: unknown }).context;
