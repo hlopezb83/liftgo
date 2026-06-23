@@ -27,25 +27,31 @@ const App = () => (
           }
         />
         <Route element={<AuthGuard><MainLayout /></AuthGuard>}>
-          {appRoutes.map(({ path, component: Component, module }) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <RouteErrorBoundary>
-                  <Suspense fallback={<PageFallback />}>
-                    {module ? (
-                      <RoleGuard module={module}>
-                        <Component />
-                      </RoleGuard>
-                    ) : (
-                      <Component />
-                    )}
-                  </Suspense>
-                </RouteErrorBoundary>
-              }
-            />
-          ))}
+          {appRoutes.map(({ path, component: Component, module, adminOnly }) => {
+            const guarded = module ? (
+              <RoleGuard module={module}>
+                <Component />
+              </RoleGuard>
+            ) : (
+              <Component />
+            );
+            const element = adminOnly ? (
+              <AdminRouteGuard module={module}>{guarded}</AdminRouteGuard>
+            ) : (
+              guarded
+            );
+            return (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageFallback />}>{element}</Suspense>
+                  </RouteErrorBoundary>
+                }
+              />
+            );
+          })}
           <Route
             path="*"
             element={
