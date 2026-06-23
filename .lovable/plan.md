@@ -1,75 +1,36 @@
-## Objetivo
+## Diagnóstico
 
-Bloquear la creación **manual/directa** de reservas para todos los roles excepto **Admin**. Para crear una reserva, los demás roles deben partir de una cotización aceptada y usar el flujo "Convertir a reserva".
+El selector "brinca" porque `DateRangePickerField` usa un `Popover` con `numberOfMonths={2}`. En viewports estrechos (como el tuyo, 983px) Radix Popover hace *collision detection* y reposiciona el panel cada vez que cambia la altura/ancho del calendario (al navegar meses o al pasar de "from" a "to"). Además, cuando el `selected` cambia mid-interacción, react-day-picker recalcula el `defaultMonth` visible y el panel "salta" de mes.
 
-## Comportamiento actual
+## Solución
 
-- `/bookings/new` (BookingForm) está accesible para Admin, Administrativo, Despachador y Ventas.
-- La RPC `create_booking` permite los 4 roles indistintamente, sin distinguir si la reserva proviene de una cotización.
-- El flujo "Convertir cotización → reservas" (`useQuoteBookingCreator`) crea bookings con la misma RPC y luego les setea `quote_id`.
+Convertir el rango de fechas a un **modal centrado** (Dialog) en lugar de un Popover, manteniendo `react-day-picker` (la librería que ya usa shadcn `Calendar` por debajo). El modal no depende de coordenadas del trigger, así que no se reposiciona nunca. Aprovecho para fijar el mes visible y dar control explícito Aplicar/Cancelar.
 
-## Comportamiento nuevo
+No se cambian las otras 4 pantallas que ya usan `DateRangePickerField` — solo mejoran al heredar el modal.
 
-- Solo **Admin** puede acceder a `/bookings/new` y al botón "Nueva Reserva" en la lista.
-- Los roles **Administrativo, Despachador, Ventas** ya no ven el botón ni la ruta directa, pero pueden seguir convirtiendo cotizaciones a reservas.
-- A nivel DB, la RPC `create_booking` exige que se pase `p_quote_id` cuando el caller no es admin. Si es admin, `p_quote_id` puede ser NULL (reserva directa permitida).
+### Cambios
 
-## Cambios técnicos
+`src/components/forms/DateRangePickerField.tsx` — reescribir:
 
-### Base de datos (migración)
+- Reemplazar `Popover`/`PopoverContent` por `Dialog`/`DialogContent` (shadcn) con `max-w-fit` y `p-4`.
+- Mantener `Calendar` (react-day-picker) con `mode="range"`, `numberOfMonths={2}` en sm+ y `1` en mobile (via `useMediaQuery` ya existente, o `hidden sm:block`).
+- Estado local `localRange` que solo se commitea al rango externo al presionar **Aplicar**.
+- `defaultMonth={localRange?.from ?? new Date()}` fijo al abrir, para que el calendario no salte cuando seleccionas la segunda fecha.
+- Header del modal con el rango formateado en vivo (DD/MM/YYYY → DD/MM/YYYY).
+- Footer con botones **Cancelar** (descarta) y **Aplicar** (cierra + propaga `onSelect`); **Aplicar** se deshabilita si falta `from` o `to`.
+- Botón secundario "Limpiar" cuando ya hay rango.
 
-Reescribir `public.create_booking` agregando parámetro opcional `p_quote_id uuid DEFAULT NULL`:
+### Librería
 
-```sql
-IF NOT has_role(auth.uid(), 'admin') THEN
-  -- No-admins solo pueden crear reservas vinculadas a una cotización
-  IF p_quote_id IS NULL THEN
-    RAISE EXCEPTION 'Solo administradores pueden crear reservas directas. Crea una cotización primero.';
-  END IF;
-  IF NOT (has_role(auth.uid(), 'administrativo') OR has_role(auth.uid(), 'dispatcher') OR has_role(auth.uid(), 'ventas')) THEN
-    RAISE EXCEPTION 'Forbidden';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM quotes WHERE id = p_quote_id) THEN
-    RAISE EXCEPTION 'Cotización no encontrada';
-  END IF;
-END IF;
-```
+Se reutiliza **react-day-picker** (ya instalado vía `@/components/ui/calendar`). No se agregan nuevas dependencias — `react-day-picker` es justamente la librería estándar para este caso y eliminar el Popover resuelve el problema de salto sin instalar nada extra.
 
-Además, **incluir `quote_id` directamente en el INSERT** para evitar el `UPDATE` posterior:
-
-```sql
-INSERT INTO bookings (..., quote_id) VALUES (..., p_quote_id) ...
-```
-
-Mantener `SECURITY DEFINER` y `SET search_path = public`.
-
-### Frontend
-
-`src/features/bookings/hooks/useBookingMutations.ts`
-- Extender el hook para pasar `p_quote_id: booking.quote_id ?? undefined` en el `rpc('create_booking', ...)`.
-
-`src/features/quotes/hooks/quoteDetail/useQuoteBookingCreator.ts`
-- En cada `createBooking.mutateAsync({...})` agregar `quote_id: quote.id`.
-- Eliminar el `update({ quote_id })` posterior (ya no necesario porque el INSERT lo trae).
-
-`src/features/bookings/pages/BookingsPage.tsx`
-- Envolver botones "Nueva Reserva" (header, FAB, empty state) y `usePageActions onNew` con check de rol: solo se muestran si `useUserRole().data === "admin"`.
-
-`src/routes/routes-config.tsx`
-- Para la ruta `/bookings/new`, agregar un guard de admin. Si existe patrón previo (revisar otras rutas restrictivas), reutilizarlo; si no, usar `RoleGuard` con un check específico de admin o un nuevo `<AdminOnlyGuard>` envolviendo el componente lazy.
-
-### Tests
-
-- Actualizar `src/features/bookings/__tests__/bookingFlow.test.ts` para incluir `p_quote_id` en los args esperados del RPC mock.
-- Agregar caso: no-admin sin `quote_id` recibe error de la RPC.
+Si prefieres una librería dedicada de rango (p. ej. `react-date-range`), dilo y la cambio; descarté esa ruta porque añade ~50KB y duplica utilidades que ya tenemos.
 
 ### Changelog
-- Nueva entrada `v6.79.0` (minor): "Reservas solo desde cotización para roles distintos a Admin".
 
-## UX
-- Texto en la página de Reservas para no-admins (banner pequeño o tooltip en el botón ausente): "Para crear una reserva, parte de una cotización aceptada y conviértela desde el detalle." (opcional, puede incluirse o dejarse fuera).
+Nueva entrada `v6.79.1` (patch) — "Selector de rango de fechas: modal estable sin saltos".
 
 ## Fuera de alcance
-- No se modifican las políticas RLS de `bookings` (la validación de origen se hace en la RPC, único punto de creación).
-- No se altera el flujo de edición, cancelación, extensión, ni la lista de reservas.
-- No se cambia la facturación, conversión a factura ni recurring billing.
+
+- `DatePickerField` (fecha única) sigue igual; no presenta el problema.
+- No se tocan los rangos en Invoices/Reports/Bookings más allá de heredar el modal.

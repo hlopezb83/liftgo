@@ -1,0 +1,14 @@
+{
+  "version": "6.79.1",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Selector de rango de fechas: modal estable sin saltos",
+  "description": "El selector de rango (cotizaciones, facturas, reservas, reportes) ahora abre en modal centrado en lugar de popover, eliminando los saltos al cambiar de mes o seleccionar la segunda fecha.",
+  "category": "improvement",
+  "details": [
+    "Modal con botones Aplicar / Cancelar / Limpiar.",
+    "Mes inicial fijo al abrir (no se reposiciona al seleccionar el fin).",
+    "Vista de 2 meses en desktop y 1 mes en mobile.",
+    "Cabecera del modal muestra el rango en vivo en formato DD/MM/YYYY."
+  ]
+}
