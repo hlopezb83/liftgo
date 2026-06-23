@@ -1,0 +1,16 @@
+{
+  "version": "6.76.5",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Modal Extender Renta localizado a es-MX",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Reservas",
+      "items": [
+        "El selector de nueva fecha de fin ahora usa el calendario Shadcn con locale español (semana inicia en lunes) y formato DD/MM/YYYY, en lugar del input nativo del navegador que mostraba MM/DD/YYYY.",
+        "La fecha de fin actual se muestra formateada como DD/MM/YYYY en lugar del valor crudo ISO."
+      ]
+    }
+  ]
+}

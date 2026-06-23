@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.76.5",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Modal Extender Renta localizado a es-MX (DD/MM/YYYY)",
+    "description": "El selector de nueva fecha de fin del modal Extender Renta usa ahora el calendario Shadcn en español (semana inicia en lunes, formato DD/MM/YYYY) en lugar del input nativo del navegador. La fecha de fin actual también se muestra formateada.",
+    "category": "bugfix"
+  },
+  {
     "version": "6.76.4",
     "date": "2026-06-23",
     "type": "patch",
