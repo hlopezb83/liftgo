@@ -1,0 +1,13 @@
+{
+  "version": "6.80.5",
+  "date": "2026-06-23",
+  "type": "patch",
+  "title": "Importación CSF: limpiar sufijo de régimen societario",
+  "description": "La razón social extraída desde la Constancia de Situación Fiscal ya no incluye 'S.A. de C.V.', 'SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE', 'S. de R.L.', 'SAPI', etc. El nombre se devuelve en mayúsculas, sin acentos y sin régimen societario para cumplir con CFDI 4.0.",
+  "category": "fix",
+  "changes": [
+    "Prompt del extractor CSF actualizado para omitir el sufijo de régimen societario.",
+    "Sanitizador defensivo en el cliente como segunda línea: sanitizeCsfName().",
+    "Tests unitarios para el sanitizador."
+  ]
+}

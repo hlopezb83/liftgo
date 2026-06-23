@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.80.5",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Importación CSF: limpiar sufijo de régimen societario",
+    "description": "La razón social extraída desde la CSF ahora se devuelve sin 'S.A. de C.V.', 'SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE', etc., en mayúsculas y sin acentos para cumplir CFDI 4.0.",
+    "category": "fix"
+  },
+  {
     "version": "6.80.4",
     "date": "2026-06-23",
     "type": "patch",
