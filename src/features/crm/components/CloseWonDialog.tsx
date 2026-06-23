@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Trophy } from "lucide-react";
-import { format } from "date-fns";
-import { nowMty } from "@/lib/utils";
+import { nowMty, formatDateDisplay } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
+import { DatePickerField } from "@/components/forms/DatePickerField";
 import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
@@ -19,13 +20,13 @@ interface Props {
 
 export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPending }: Props) {
   const [amount, setAmount] = useState("0");
-  const [date, setDate] = useState(format(nowMty(), "yyyy-MM-dd"));
+  const [date, setDate] = useState<Date | undefined>(() => nowMty());
   const [extraNote, setExtraNote] = useState("");
 
   useEffect(() => {
     if (open && prospect) {
       setAmount(String(prospect.dealValue ?? 0));
-      setDate(format(nowMty(), "yyyy-MM-dd"));
+      setDate(nowMty());
       setExtraNote("");
     }
   }, [open, prospect]);
@@ -34,12 +35,13 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
 
   const handleConfirm = () => {
     const numAmount = Number(amount);
-    if (!numAmount || numAmount <= 0) return;
+    if (!numAmount || numAmount <= 0 || !date) return;
+    const ymd = toYMD(date);
     const baseNotes = prospect.notes ? `${prospect.notes}\n\n` : "";
-    const closingNote = extraNote ? `[Cierre Ganado ${date}] ${extraNote}` : null;
+    const closingNote = extraNote ? `[Cierre Ganado ${formatDateDisplay(ymd)}] ${extraNote}` : null;
     onConfirm({
       final_amount: numAmount,
-      closed_at: new Date(date).toISOString(),
+      closed_at: date.toISOString(),
       notes: closingNote ? `${baseNotes}${closingNote}` : prospect.notes,
     });
   };
@@ -69,15 +71,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="close-date">Fecha de cierre</Label>
-            <Input
-              id="close-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
+          <DatePickerField label="Fecha de cierre" date={date} onSelect={setDate} required />
           <div className="space-y-2">
             <Label htmlFor="close-note">Nota (opcional)</Label>
             <Textarea
@@ -94,7 +88,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancelar
           </Button>
-          <Button onClick={handleConfirm} disabled={isPending || Number(amount) <= 0} className="bg-success hover:bg-success/90 text-success-foreground">
+          <Button onClick={handleConfirm} disabled={isPending || Number(amount) <= 0 || !date} className="bg-success hover:bg-success/90 text-success-foreground">
             <Trophy className="h-4 w-4 mr-1" />
             Confirmar Ganado
           </Button>
@@ -103,3 +97,4 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
     </Dialog>
   );
 }
+
