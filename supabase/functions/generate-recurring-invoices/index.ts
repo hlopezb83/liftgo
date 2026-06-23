@@ -146,9 +146,28 @@ Deno.serve(async (req) => {
     // 1) Calcular el período objetivo de cada reserva y filtrar las elegibles.
     const eligible: EligibleBooking[] = [];
     for (const booking of bookings || []) {
+      // Sanidad: si last_billed_date apunta a un período sin factura vinculada,
+      // tratamos la reserva como nunca facturada (autorrecuperación).
+      let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
+      if (effectiveLastBilled) {
+        const { data: linkedInvoice } = await supabase
+          .from("invoice_bookings")
+          .select("invoice_id, invoices!inner(billing_period_end)")
+          .eq("booking_id", booking.id)
+          .eq("invoices.billing_period_end", effectiveLastBilled)
+          .limit(1)
+          .maybeSingle();
+        if (!linkedInvoice) {
+          console.warn(
+            `[recurring-invoices] booking=${booking.id} last_billed_date=${effectiveLastBilled} sin factura vinculada; se ignora.`,
+          );
+          effectiveLastBilled = null;
+        }
+      }
+
       let billingStart: Date;
-      if (booking.last_billed_date) {
-        const lastBilled = dateOnlyToMty(booking.last_billed_date);
+      if (effectiveLastBilled) {
+        const lastBilled = dateOnlyToMty(effectiveLastBilled);
         billingStart = new Date(
           Date.UTC(lastBilled.getUTCFullYear(), lastBilled.getUTCMonth() + 1, 1),
         );
@@ -280,14 +299,18 @@ Deno.serve(async (req) => {
 
       const invoiceId = insertedInvoice?.id as string;
 
-      // Vincular todas las reservas vía pivote.
+      // Vincular todas las reservas vía pivote. Si falla, rollback de la factura.
       const { error: pivotErr } = await supabase
         .from("invoice_bookings")
         .insert(
           bookingIds.map((bId) => ({ invoice_id: invoiceId, booking_id: bId })),
         );
       if (pivotErr) {
-        console.error("[recurring-invoices] pivot insert error", pivotErr);
+        console.error(
+          "[recurring-invoices] pivot insert error, rollback invoice",
+          pivotErr,
+        );
+        await supabase.from("invoices").delete().eq("id", invoiceId);
         throw pivotErr;
       }
 

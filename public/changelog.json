@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.80.1",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Facturación recurrente: autorrecuperación de reservas marcadas sin factura",
+    "description": "Reservas con 'último facturado' pero sin factura vinculada vuelven a considerarse pendientes; si la vinculación falla, la factura se elimina para evitar huérfanos.",
+    "category": "fix"
+  },
+  {
     "version": "6.80.0",
     "date": "2026-06-23",
     "type": "minor",
