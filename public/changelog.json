@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.76.7",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Modal Extender Renta: cerrar calendario al seleccionar fecha",
+    "description": "El calendario del modal Extender Renta ahora se cierra automáticamente al elegir una fecha.",
+    "category": "bugfix"
+  },
+  {
     "version": "6.76.6",
     "date": "2026-06-23",
     "type": "patch",
