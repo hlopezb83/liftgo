@@ -115,14 +115,17 @@ function ActionsMenu({ flags, isStamping, onEdit, onStamp, onDownloadXml, onCanc
 
 export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole,
-  isStamping, onSent, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
+  isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
   const flags = computeFlags(invoice, cfdiStatus, userRole);
   return (
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
-      {flags.isDraft && (
-        <Button size="sm" onClick={onSent}><Send className="h-4 w-4 mr-1" />Marcar Enviada</Button>
+      {flags.isDraft && flags.canStamp && (
+        <Button size="sm" onClick={onStamp} disabled={isStamping}>
+          <Stamp className="h-4 w-4 mr-1" />
+          {isStamping ? "Timbrando..." : "Timbrar CFDI"}
+        </Button>
       )}
       {flags.showPaymentBtn && (
         <Button size="sm" onClick={onOpenPayment}>
