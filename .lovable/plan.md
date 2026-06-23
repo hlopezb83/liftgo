@@ -1,76 +1,49 @@
 ## Objetivo
 
-Permitir facturar varias reservas confirmadas del mismo cliente en una sola factura, vinculándolas mediante una tabla pivote `invoice_bookings` y agregando sus conceptos automáticamente como líneas de la factura.
+Forzar el paso por **timbrado del CFDI** para mover una factura de **Borrador → Sin Pagar**. Eliminar la transición manual "Marcar Enviada" que hoy salta este paso.
 
-## Cambios funcionales
+## Comportamiento actual
 
-1. **Selector multi-reserva en `/invoices/new`**
-   - Reemplazar el `Select` único de "Reserva" por un selector múltiple (popover con checkboxes, basado en el patrón actual de la app).
-   - Al elegir la primera reserva: precargar cliente y datos CFDI (igual que hoy).
-   - Al elegir reservas adicionales: solo se permiten las del **mismo cliente** que la primera (las demás se deshabilitan o se filtran).
-   - Cada reserva agrega sus líneas (`generateLineItems(forklift, start, end)`) a `lineItems`, con un sufijo indicando montacargas/periodo para distinguirlas.
-   - Quitar una reserva del selector elimina sus líneas asociadas.
-   - El campo `bookingId` único actual se mantiene como "reserva principal" (la primera elegida) por compatibilidad con `invoices.booking_id` y reportes existentes; el resto vive en la pivote.
+- En `InvoiceDetail` hay un botón **"Marcar Enviada"** que llama `setStatus("sent")` sin timbrar.
+- "Timbrar CFDI" en el menú solo está habilitado si la factura **NO** está en borrador (`canStamp: !isDraft`), así que para timbrar el usuario debe primero usar el botón manual.
 
-2. **Filtro de disponibles**
-   - `availableBookings` excluye reservas ya facturadas (ya implementado vía `invoicedBookingIds`); ampliar la verificación para considerar tanto `invoices.booking_id` como las filas en `invoice_bookings`.
+## Comportamiento nuevo
 
-3. **Detalle de factura (`InvoiceDetail`)**
-   - En `InvoiceSourceLinks`, mostrar todas las reservas vinculadas (no solo `booking_id`).
+- Eliminar el botón "Marcar Enviada".
+- Permitir **Timbrar CFDI** desde estado borrador (botón principal cuando `status === "draft"` y `cfdi_status` ∈ {pending, error}).
+- Al timbrar exitosamente, la factura pasa automáticamente a `status: "sent"` (Sin Pagar) si estaba en borrador.
+- Si el timbrado falla, la factura sigue en borrador (queda con `cfdi_status: "error"` y permite reintentar).
 
 ## Cambios técnicos
 
-### Base de datos (migración)
+### Edge function `supabase/functions/stamp-cfdi/handler.ts`
+- En el `update` final tras timbrar exitosamente, además de los campos CFDI, incluir:
+  - `status: inv.status === "draft" ? "sent" : inv.status`
+- Mantener el mismo update en el branch de re-timbrado (líneas ~151) si aplica.
 
-- Crear tabla pivote `public.invoice_bookings`:
-  - `invoice_id uuid` (FK → `invoices.id` ON DELETE CASCADE)
-  - `booking_id uuid` (FK → `bookings.id` ON DELETE RESTRICT)
-  - `line_index int` (orden de las líneas asociadas, opcional)
-  - PK compuesta `(invoice_id, booking_id)`
-  - `created_at timestamptz default now()`
-- GRANTs: `authenticated` (SELECT/INSERT/UPDATE/DELETE), `service_role` ALL.
-- RLS: políticas equivalentes a `invoices` (roles admin/administrativo/ventas para escritura; lectura para roles internos; portal cliente solo SELECT de sus propias facturas vía join).
-- Backfill: insertar fila por cada `invoices.booking_id IS NOT NULL` existente.
-- Mantener `invoices.booking_id` como reserva "principal" para no romper consultas/PDF/reportes actuales.
+### Frontend
 
-### Capa de datos
+`src/features/invoices/components/invoice-detail/InvoiceDetailActions.tsx`
+- En `computeFlags`:
+  - `canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled"` — quitar la restricción `!isDraft`.
+- Eliminar el botón "Marcar Enviada" del render.
+- Cuando `isDraft && canStamp`, mostrar **"Timbrar CFDI"** como botón primario (fuera del menú "Acciones") con icono `Stamp`, para que sea la acción evidente desde borrador.
+- Quitar la prop `onSent` (y removerla en el llamador `InvoiceDetail.tsx`).
 
-- Nuevo hook `useInvoiceBookings(invoiceId)` para lectura en detalle.
-- En `useInvoiceFormSubmit`:
-  - Después de `insert`/`update` de la factura, sincronizar `invoice_bookings` (delete + insert del array `bookingIds`).
-  - Mantener `invoices.booking_id` = primera reserva del array.
-- En `useInvoiceFormLogic`:
-  - `invoicedBookingIds` ahora también consulta `invoice_bookings` (nuevo hook `useInvoicedBookingIds`).
-- Edición: prefill carga el array desde `invoice_bookings` si existe.
+`src/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions.ts`
+- Eliminar uso de `setStatus("sent")` desde `onSent`. Conservar `setStatus` para `paid` y otros usos internos.
 
-### Formulario
+`src/features/invoices/pages/InvoiceDetail.tsx`
+- Quitar `onSent={() => actions.setStatus("sent")}` del render de `InvoiceDetailActions`.
 
-- `invoiceFormSchema`: agregar `bookingIds: z.array(z.string().uuid()).default([])`; `bookingId` se deriva como `bookingIds[0] ?? null`.
-- `useInvoiceFormHandlers`: reemplazar `handleBookingSelect` por `handleBookingsChange(ids: string[])` que recalcula líneas concatenando `generateLineItems` por cada reserva en orden.
-- `InvoiceForm.tsx`: reemplazar el `Select` por un componente `MultiBookingSelector` (nuevo, usando `Popover` + `Command` con checkboxes, consistente con selectores existentes).
+### Mensajes
+- Al timbrar desde borrador, toast: "CFDI timbrado — factura marcada como Sin Pagar". (Ya existe notificación de timbrado en `useStampCfdi`; agregar segunda notificación o cambiar copy condicionalmente en el `onSuccess` del flujo.)
 
-### UI
-
-- `MultiBookingSelector` en `src/features/invoices/components/invoice-form/MultiBookingSelector.tsx`.
-- Mostrar chips con las reservas seleccionadas, botón `x` para remover.
-- Mensaje de ayuda: "Solo reservas confirmadas del mismo cliente".
-
-## Archivos a tocar
-
-- `supabase/migrations/<timestamp>_invoice_bookings.sql` (nuevo)
-- `src/features/invoices/lib/invoiceFormSchema.ts`
-- `src/features/invoices/hooks/useInvoiceFormLogic.ts`
-- `src/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers.ts`
-- `src/features/invoices/hooks/invoiceForm/useInvoiceFormSubmit.ts`
-- `src/features/invoices/hooks/invoiceForm/useInvoicePrefill.ts`
-- `src/features/invoices/hooks/invoices/useInvoices.ts` (nuevo hook `useInvoiceBookings`)
-- `src/features/invoices/pages/InvoiceForm.tsx`
-- `src/features/invoices/components/invoice-form/MultiBookingSelector.tsx` (nuevo)
-- `src/features/invoices/components/invoice-detail/InvoiceSourceLinks.tsx`
-- `public/changelog.json` + `public/changelog/v6.77.0.json` (minor: nueva funcionalidad)
+### Changelog
+- Nueva entrada `v6.78.0` (minor): "Timbrado obligatorio para pasar de Borrador a Sin Pagar".
 
 ## Fuera de alcance
 
-- No cambia generación de PDF (usa `lineItems` ya consolidados).
-- No cambia facturación recurrente (sigue 1 reserva ↔ 1 factura mensual).
-- No agrega acción masiva desde la lista de reservas (puede ser fase 2).
+- No se cambia la transición Sin Pagar → Pagada (sigue por registro de pago).
+- No se cambia el flujo de cancelación CFDI.
+- No se modifica facturación recurrente (las facturas auto-generadas ya nacen con su flujo propio; si nacen en borrador deberán timbrarse igual).
