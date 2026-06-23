@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.80.2",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Timbrado CFDI 4.0: normalizar razón social del receptor",
+    "description": "El legal_name enviado a Facturapi ahora se sanitiza (mayúsculas, sin acentos, sin régimen societario) para cumplir con la validación SAT CFDI40145.",
+    "category": "fix"
+  },
+  {
     "version": "6.80.1",
     "date": "2026-06-23",
     "type": "patch",
