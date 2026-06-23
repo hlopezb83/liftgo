@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreatePaymentIntent } from "../hooks/usePortalExtras";
-import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
+import { DatePickerField } from "@/components/forms/DatePickerField";
 
 interface Props {
   open: boolean;
@@ -17,7 +18,7 @@ interface Props {
 
 export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId, balance }: Props) {
   const { mutate, isPending } = useCreatePaymentIntent();
-  const [transferDate, setTransferDate] = useState(format(nowMty(), "yyyy-MM-dd"));
+  const [transferDate, setTransferDate] = useState<Date | undefined>(() => nowMty());
   const [amount, setAmount] = useState(balance.toFixed(2));
   const [senderBank, setSenderBank] = useState("");
   const [senderLast4, setSenderLast4] = useState("");
@@ -26,13 +27,14 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
 
   const handleSubmit = () => {
     const amt = Number(amount);
-    if (!Number.isFinite(amt) || amt <= 0) return;
+    const ymd = toYMD(transferDate);
+    if (!Number.isFinite(amt) || amt <= 0 || !ymd) return;
     mutate(
       {
         invoice_id: invoiceId,
         customer_id: customerId,
         amount: amt,
-        transfer_date: transferDate,
+        transfer_date: ymd,
         sender_bank: senderBank.trim() || null,
         sender_last4: senderLast4.trim() || null,
         tracking_key: trackingKey.trim() || null,
@@ -50,10 +52,7 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
         </DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">Fecha</Label>
-              <Input type="date" value={transferDate} onChange={(e) => setTransferDate(e.target.value)} />
-            </div>
+            <DatePickerField label="Fecha" date={transferDate} onSelect={setTransferDate} required />
             <div>
               <Label className="text-xs">Monto (MXN)</Label>
               <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
@@ -88,3 +87,4 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
     </Dialog>
   );
 }
+
