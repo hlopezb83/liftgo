@@ -4,6 +4,7 @@ import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
 
 import { useParseCsf } from "../../hooks/useParseCsf";
+import { sanitizeCsfName } from "../../lib/csfSanitize";
 import type { CustomerFormData } from "../../lib/customerFormSchema";
 
 interface Props {
@@ -30,8 +31,9 @@ export function CsfDropzone({ onParsed }: Props) {
     setParsed(false);
     parseCsf.mutate(file, {
       onSuccess: (data) => {
+        const cleanName = sanitizeCsfName(data.name || data.razon_social || "");
         onParsed({
-          name: data.name || data.razon_social || undefined,
+          name: cleanName || undefined,
           rfc: data.rfc || undefined,
           domicilio_fiscal_cp: data.domicilio_fiscal_cp || undefined,
           address: data.address || undefined,
