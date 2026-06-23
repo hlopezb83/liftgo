@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.76.3",
+    "date": "2026-06-23",
+    "type": "patch",
+    "title": "Evitar folios duplicados al crear varias reservas en paralelo",
+    "description": "Corrige una race condition al convertir una cotización con varios equipos: dos reservas podían recibir el mismo folio RSV-XXXX y la segunda fallaba. El RPC `create_booking` ahora serializa la asignación de folio con un bloqueo transaccional.",
+    "category": "bugfix"
+  },
+  {
     "version": "6.76.2",
     "date": "2026-06-23",
     "type": "patch",
