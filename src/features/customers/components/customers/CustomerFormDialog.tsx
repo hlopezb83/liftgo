@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FormDialog } from "@/components/forms/FormDialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormActions } from "@/components/forms/FormActions";
 import { CsfDropzone } from "@/components/forms/CsfDropzone";
 import { sanitizeCsfName } from "../../lib/csfSanitize";
@@ -60,51 +60,6 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
     form.reset(next, { keepDirty: true });
   }, [form]);
 
-  const sections = (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" id="customer-form">
-        <IdentitySection />
-        <FiscalSection />
-        <ContactSection />
-        <AddressNotesSection />
-      </form>
-    </Form>
-  );
-
-  const topSlot = (
-    <Tabs value={tab} onValueChange={setTab}>
-      <TabsList className="w-full">
-        <TabsTrigger value="manual" className="flex-1">
-          <Pencil className="h-3.5 w-3.5 mr-1.5" />
-          Llenar manualmente
-        </TabsTrigger>
-        <TabsTrigger value="csf" className="flex-1">
-          <FileText className="h-3.5 w-3.5 mr-1.5" />
-          Importar desde CSF
-        </TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="manual" className="mt-4">{sections}</TabsContent>
-      <TabsContent value="csf" className="mt-4 space-y-4">
-        <CsfDropzone<CustomerFormData>
-          onParsed={(patch) => handleCsfParsed(patch)}
-          mapData={(data) => {
-            const cleanName = sanitizeCsfName(data.name || data.razon_social || "");
-            return {
-              name: cleanName || undefined,
-              rfc: data.rfc || undefined,
-              domicilio_fiscal_cp: data.domicilio_fiscal_cp || undefined,
-              address: data.address || undefined,
-              regimen_fiscal: data.regimen_fiscal || undefined,
-              representante_legal: data.representante_legal || undefined,
-            };
-          }}
-        />
-        {sections}
-      </TabsContent>
-    </Tabs>
-  );
-
   return (
     <FormDialog
       open={open}
@@ -112,15 +67,61 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       title={isEdit ? "Editar Cliente" : "Nuevo Cliente"}
       width="lg"
       testId="customer-form-dialog"
-      footer={
-        <FormActions
-          submitLabel={isEdit ? "Guardar cambios" : "Agregar cliente"}
-          isPending={isPending ?? false}
-          onCancel={() => onOpenChange(false)}
-        />
-      }
     >
-      {topSlot}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="w-full">
+              <TabsTrigger value="manual" className="flex-1">
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Llenar manualmente
+              </TabsTrigger>
+              <TabsTrigger value="csf" className="flex-1">
+                <FileText className="h-3.5 w-3.5 mr-1.5" />
+                Importar desde CSF
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="manual" className="mt-4 space-y-5">
+              <IdentitySection />
+              <FiscalSection />
+              <ContactSection />
+              <AddressNotesSection />
+            </TabsContent>
+
+            <TabsContent value="csf" className="mt-4 space-y-4">
+              <CsfDropzone<CustomerFormData>
+                onParsed={(patch) => handleCsfParsed(patch)}
+                mapData={(data) => {
+                  const cleanName = sanitizeCsfName(data.name || data.razon_social || "");
+                  return {
+                    name: cleanName || undefined,
+                    rfc: data.rfc || undefined,
+                    domicilio_fiscal_cp: data.domicilio_fiscal_cp || undefined,
+                    address: data.address || undefined,
+                    regimen_fiscal: data.regimen_fiscal || undefined,
+                    representante_legal: data.representante_legal || undefined,
+                  };
+                }}
+              />
+              <div className="space-y-5">
+                <IdentitySection />
+                <FiscalSection />
+                <ContactSection />
+                <AddressNotesSection />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <FormDialogFooter>
+            <FormActions
+              submitLabel={isEdit ? "Guardar cambios" : "Agregar cliente"}
+              isPending={isPending ?? false}
+              onCancel={() => onOpenChange(false)}
+            />
+          </FormDialogFooter>
+        </form>
+      </Form>
     </FormDialog>
   );
 }

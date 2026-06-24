@@ -7,7 +7,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { FormActions } from "./FormActions";
 import { cn } from "@/lib/utils";
 
 type Width = "sm" | "md" | "lg" | "xl" | "2xl";
@@ -27,16 +26,10 @@ interface FormDialogProps {
   title: string;
   /** Descripción opcional debajo del título. */
   description?: ReactNode;
-  /** Cuerpo del modal. Si `onSubmit` está presente se envuelve en un `<form>`. */
+  /** Cuerpo del modal — incluye típicamente un `<form>` con `<FormSection>`s
+   *  y, al final, un `<FormDialogFooter>` para mantener el footer sticky
+   *  dentro del scope del `<form>`. */
   children: ReactNode;
-  /** Slot encima del contenido (típicamente `<Tabs>` o un dropzone). */
-  topSlot?: ReactNode;
-  /** Cuando se define, el modal renderiza un `<form>` y un footer estándar. */
-  onSubmit?: () => void;
-  submitLabel?: string;
-  isPending?: boolean;
-  /** Permite reemplazar el footer (p.ej. botón destructivo + secundario). */
-  footer?: ReactNode;
   /** Ancho máximo. Default 'lg'. */
   width?: Width;
   /** Test id en el DialogContent. */
@@ -47,10 +40,9 @@ interface FormDialogProps {
 
 /**
  * Shell estándar para modales de formulario.
- * Aplica: sticky header con border-b, sticky footer con border-t,
- * scroll interno (max-h-[85vh]), ancho consistente.
- *
- * Mantén el cuerpo en `<FormSection>` para conservar el ritmo visual.
+ * Aplica: ancho consistente, scroll interno (max-h-[85vh]) y header sticky
+ * con `border-b`. El cuerpo y el footer los maneja el caller (normalmente
+ * un `<form>` con `<FormSection>`s y un `<FormDialogFooter>` al final).
  */
 export function FormDialog({
   open,
@@ -58,31 +50,10 @@ export function FormDialog({
   title,
   description,
   children,
-  topSlot,
-  onSubmit,
-  submitLabel = "Guardar",
-  
-  isPending,
-  footer,
   width = "lg",
   testId,
   className,
 }: FormDialogProps) {
-  const body = (
-    <>
-      {topSlot ? <div className="pt-2">{topSlot}</div> : null}
-      <div className={cn("space-y-5", topSlot ? "mt-4" : "pt-2")}>{children}</div>
-    </>
-  );
-
-  const footerSlot = footer ?? (onSubmit ? (
-    <FormActions
-      submitLabel={submitLabel}
-      isPending={isPending ?? false}
-      onCancel={() => onOpenChange(false)}
-    />
-  ) : null);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -93,27 +64,21 @@ export function FormDialog({
           <DialogTitle>{title}</DialogTitle>
           {description ? <DialogDescription>{description}</DialogDescription> : null}
         </DialogHeader>
-
-        {onSubmit ? (
-          <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
-            {body}
-            {footerSlot ? (
-              <DialogFooter className="sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t">
-                {footerSlot}
-              </DialogFooter>
-            ) : null}
-          </form>
-        ) : (
-          <>
-            {body}
-            {footerSlot ? (
-              <DialogFooter className="sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t">
-                {footerSlot}
-              </DialogFooter>
-            ) : null}
-          </>
-        )}
+        <div className="pt-2">{children}</div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * Footer sticky para usar al final del `<form>` dentro de `<FormDialog>`.
+ * Garantiza que las acciones (Cancelar / CTA) siempre estén visibles
+ * aunque el formulario haga scroll.
+ */
+export function FormDialogFooter({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <DialogFooter className={cn("sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t", className)}>
+      {children}
+    </DialogFooter>
   );
 }
