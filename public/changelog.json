@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.84.1",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Encabezado responsivo en listados",
+    "description": "En pantallas menores a 1024px el título de cada listado ya no queda aplastado: los botones de acción se reacomodan debajo conservando su tamaño.",
+    "category": "fix"
+  },
+  {
     "version": "6.84.0",
     "date": "2026-06-24",
     "type": "minor",
