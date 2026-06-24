@@ -1,16 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { useCreateSupplier, useUpdateSupplier } from "../../hooks/useSuppliers";
-import type { Supplier } from "../../hooks/useSuppliers";
-import { useUploadDocument } from "@/hooks/useDocuments";
+import { useState, useCallback } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil, FileText } from "lucide-react";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormActions } from "@/components/forms/FormActions";
+import { CsfDropzone } from "@/components/forms/CsfDropzone";
+import { notifyError } from "@/lib/ui/appFeedback";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { useUploadDocument } from "@/hooks/useDocuments";
 
+import { useCreateSupplier, useUpdateSupplier } from "../../hooks/useSuppliers";
+import type { Supplier } from "../../hooks/useSuppliers";
+import {
+  supplierFormSchema,
+  emptySupplierFormData,
+  type SupplierFormData,
+} from "../../lib/supplierFormSchema";
 import { SupplierFormFields } from "./SupplierFormFields";
-import { SupplierCsfDropzone } from "./SupplierCsfDropzone";
-import { emptySupplierForm, type SupplierForm } from "./supplierFormTypes";
-
 
 interface SupplierFormDialogProps {
   open: boolean;
@@ -18,7 +26,7 @@ interface SupplierFormDialogProps {
   supplier: Supplier | null;
 }
 
-function supplierToForm(supplier: Supplier): SupplierForm {
+function supplierToFormData(supplier: Supplier): SupplierFormData {
   return {
     name: supplier.name,
     contact_person: supplier.contact_person || "",
@@ -31,79 +39,60 @@ function supplierToForm(supplier: Supplier): SupplierForm {
     category: supplier.category || "",
     notes: supplier.notes || "",
     default_payment_terms_days: supplier.default_payment_terms_days != null
-      ? String(supplier.default_payment_terms_days) : "",
+      ? String(supplier.default_payment_terms_days)
+      : "",
   };
 }
 
-function parseTermsDays(raw: string): number | null | "invalid" {
-  const t = raw.trim();
-  if (t === "") return null;
-  const n = Number(t);
-  if (!Number.isFinite(n) || n < 0 || n > 365) return "invalid";
-  return n;
-}
+function nullable(v: string): string | null { return v.trim() ? v.trim() : null; }
 
-function nullable(v: string): string | null { return v || null; }
-
-function buildSupplierPayload(form: SupplierForm, termsNum: number | null) {
+function buildPayload(data: SupplierFormData) {
+  const termsRaw = data.default_payment_terms_days.trim();
+  const terms = termsRaw === "" ? null : Number(termsRaw);
   return {
-    name: form.name.trim(),
-    contact_person: nullable(form.contact_person),
-    email: nullable(form.email),
-    phone: nullable(form.phone),
-    website: nullable(form.website),
-    address: nullable(form.address),
-    rfc: form.rfc.trim() ? form.rfc.trim().toUpperCase() : null,
-    regimen_fiscal: nullable(form.regimen_fiscal),
-    category: nullable(form.category),
-    notes: nullable(form.notes),
-    default_payment_terms_days: termsNum,
+    name: data.name.trim(),
+    contact_person: nullable(data.contact_person),
+    email: nullable(data.email),
+    phone: nullable(data.phone),
+    website: nullable(data.website),
+    address: nullable(data.address),
+    rfc: data.rfc.trim() ? data.rfc.trim().toUpperCase() : null,
+    regimen_fiscal: nullable(data.regimen_fiscal),
+    category: nullable(data.category),
+    notes: nullable(data.notes),
+    default_payment_terms_days: terms,
   };
 }
-
-function validateSupplierForm(form: SupplierForm) {
-  if (!form.name.trim()) { notifyError({ message: "El nombre es requerido" }); return null; }
-  const terms = parseTermsDays(form.default_payment_terms_days);
-  if (terms === "invalid") {
-    notifyError({ message: "Días de crédito debe estar entre 0 y 365" });
-    return null;
-  }
-  return buildSupplierPayload(form, terms);
-}
-
-
 
 export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFormDialogProps) {
   const createSupplier = useCreateSupplier();
   const updateSupplier = useUpdateSupplier();
   const uploadDoc = useUploadDocument();
-  const [form, setForm] = useState<SupplierForm>(emptySupplierForm);
+
+  const form = useForm<SupplierFormData>({
+    resolver: zodResolver(supplierFormSchema),
+    defaultValues: emptySupplierFormData,
+  });
   const [tab, setTab] = useState("manual");
   const [csfFile, setCsfFile] = useState<File | null>(null);
 
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!open) return;
     setTab("manual");
     setCsfFile(null);
-    setForm(supplier ? supplierToForm(supplier) : emptySupplierForm);
+    form.reset(supplier ? supplierToFormData(supplier) : emptySupplierFormData);
   }, [open, supplier]);
 
-  const setField = <K extends keyof SupplierForm>(key: K, value: SupplierForm[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
-
-  const handleCsfParsed = useCallback((patch: Partial<SupplierForm>, file: File) => {
+  const handleCsfParsed = useCallback((patch: Partial<SupplierFormData>, file: File) => {
     setCsfFile(file);
-    setForm((prev) => {
-      const next = { ...prev };
-      (Object.keys(patch) as (keyof SupplierForm)[]).forEach((k) => {
-        const v = patch[k];
-        if (v !== undefined && v !== "") {
-          (next[k] as SupplierForm[typeof k]) = v as SupplierForm[typeof k];
-        }
-      });
-      return next;
+    const current = form.getValues();
+    const next: SupplierFormData = { ...current };
+    (Object.keys(patch) as (keyof SupplierFormData)[]).forEach((k) => {
+      const v = patch[k];
+      if (v !== undefined && v !== "") (next as Record<string, unknown>)[k] = v;
     });
-  }, []);
+    form.reset(next, { keepDirty: true });
+  }, [form]);
 
   const uploadCsfIfAny = async (supplierId: string) => {
     if (!csfFile) return;
@@ -114,57 +103,76 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
     }
   };
 
-  const handleSave = () => {
-    const validated = validateSupplierForm(form);
-    if (!validated) return;
+  const onSubmit = (data: SupplierFormData) => {
+    const payload = buildPayload(data);
     if (supplier) {
-      updateSupplier.mutate({ id: supplier.id, ...validated }, {
+      updateSupplier.mutate({ id: supplier.id, ...payload }, {
         onSuccess: async () => { await uploadCsfIfAny(supplier.id); onOpenChange(false); },
       });
     } else {
-      createSupplier.mutate(validated, {
+      createSupplier.mutate(payload, {
         onSuccess: async (created) => { if (created?.id) await uploadCsfIfAny(created.id); onOpenChange(false); },
       });
     }
   };
 
+  const isPending = createSupplier.isPending || updateSupplier.isPending;
 
   const formContent = (
-    <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
-      <SupplierFormFields form={form} setField={setField} />
-      <DialogFooter>
-        <FormActions
-          submitLabel={supplier ? "Guardar" : "Crear"}
-          isPending={createSupplier.isPending || updateSupplier.isPending}
-          onCancel={() => onOpenChange(false)}
-        />
-      </DialogFooter>
-    </form>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <SupplierFormFields />
+        <DialogFooter className="sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t">
+          <FormActions
+            submitLabel={supplier ? "Guardar cambios" : "Agregar proveedor"}
+            isPending={isPending}
+            onCancel={() => onOpenChange(false)}
+          />
+        </DialogFooter>
+      </form>
+    </FormProvider>
   );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto" data-testid="supplier-form-dialog">
+        <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pb-3 border-b">
           <DialogTitle>{supplier ? "Editar Proveedor" : "Nuevo Proveedor"}</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={setTab}>
+        <Tabs value={tab} onValueChange={setTab} className="pt-2">
           <TabsList className="w-full">
-            <TabsTrigger value="manual" className="flex-1">Llenar manualmente</TabsTrigger>
-            <TabsTrigger value="csf" className="flex-1">Importar desde CSF</TabsTrigger>
+            <TabsTrigger value="manual" className="flex-1">
+              <Pencil className="h-3.5 w-3.5 mr-1.5" />
+              Llenar manualmente
+            </TabsTrigger>
+            <TabsTrigger value="csf" className="flex-1">
+              <FileText className="h-3.5 w-3.5 mr-1.5" />
+              Importar desde CSF
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="manual">
+          <TabsContent value="manual" className="mt-4">
             {formContent}
           </TabsContent>
 
-          <TabsContent value="csf" className="space-y-4">
-            <SupplierCsfDropzone onParsed={handleCsfParsed} />
+          <TabsContent value="csf" className="mt-4 space-y-4">
+            <CsfDropzone<SupplierFormData>
+              onParsed={handleCsfParsed}
+              mapData={(data) => {
+                const patch: Partial<SupplierFormData> = {};
+                const name = data.name || data.razon_social;
+                if (name) patch.name = name;
+                if (data.rfc) patch.rfc = data.rfc;
+                if (data.regimen_fiscal) patch.regimen_fiscal = data.regimen_fiscal;
+                if (data.address) patch.address = data.address;
+                if (data.representante_legal) patch.contact_person = data.representante_legal;
+                return patch;
+              }}
+            />
             {formContent}
           </TabsContent>
         </Tabs>
-
       </DialogContent>
     </Dialog>
   );

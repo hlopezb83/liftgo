@@ -1,17 +1,21 @@
 import { useCallback, useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useParseCsf, type ParsedCsfData } from "@/features/customers/hooks/useParseCsf";
 
-import { useParseCsf } from "../../hooks/useParseCsf";
-import { sanitizeCsfName } from "../../lib/csfSanitize";
-import type { CustomerFormData } from "../../lib/customerFormSchema";
-
-interface Props {
-  onParsed: (patch: Partial<CustomerFormData>) => void;
+interface Props<T> {
+  /** Receives the mapped patch plus the original File for later upload. */
+  onParsed: (patch: Partial<T>, file: File) => void;
+  /** Maps the raw CSF parser output to the form-specific shape. */
+  mapData: (data: ParsedCsfData) => Partial<T>;
 }
 
-export function CsfDropzone({ onParsed }: Props) {
+/**
+ * Generic CSF (Constancia de Situación Fiscal) PDF dropzone.
+ * Shared across Cliente / Proveedor dialogs to keep one visual language.
+ */
+export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
   const parseCsf = useParseCsf();
   const parsing = parseCsf.isPending;
   const [parsed, setParsed] = useState(false);
@@ -31,15 +35,7 @@ export function CsfDropzone({ onParsed }: Props) {
     setParsed(false);
     parseCsf.mutate(file, {
       onSuccess: (data) => {
-        const cleanName = sanitizeCsfName(data.name || data.razon_social || "");
-        onParsed({
-          name: cleanName || undefined,
-          rfc: data.rfc || undefined,
-          domicilio_fiscal_cp: data.domicilio_fiscal_cp || undefined,
-          address: data.address || undefined,
-          regimen_fiscal: data.regimen_fiscal || undefined,
-          representante_legal: data.representante_legal || undefined,
-        });
+        onParsed(mapData(data), file);
         setParsed(true);
         notifySuccess("Datos fiscales extraídos. Revisa y completa la información.");
       },
@@ -47,7 +43,7 @@ export function CsfDropzone({ onParsed }: Props) {
         notifyError({ error: e, message: "Error al procesar la constancia" });
       },
     });
-  }, [parseCsf, onParsed]);
+  }, [parseCsf, onParsed, mapData]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -80,14 +76,14 @@ export function CsfDropzone({ onParsed }: Props) {
       {parsing ? (
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 text-primary animate-spin" />
-          <p className="text-sm text-muted-foreground">Extrayendo datos fiscales...</p>
+          <p className="text-sm text-muted-foreground">Extrayendo datos fiscales…</p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3">
           <Upload className="h-10 w-10 text-muted-foreground" />
           <div>
             <p className="text-sm font-medium">Arrastra tu CSF aquí o haz clic para seleccionar</p>
-            <p className="text-xs text-muted-foreground mt-1">Constancia de Situación Fiscal del SAT (PDF)</p>
+            <p className="text-xs text-muted-foreground mt-1">Constancia de Situación Fiscal del SAT (PDF, máx. 10 MB)</p>
           </div>
         </div>
       )}

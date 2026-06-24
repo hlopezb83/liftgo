@@ -1,0 +1,8 @@
+{
+  "version": "6.85.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Modales de Cliente y Proveedor unificados",
+  "description": "Mismo lenguaje visual en los modales de Nuevo Cliente y Nuevo Proveedor: encabezados de sección consistentes, separadores entre bloques, header y footer fijos, placeholders ejemplares, validación inline con Zod, asterisco rojo para campos requeridos, tabs con iconos, dropzone CSF compartida, y microcopy alineada (Nuevo X en título, Agregar X en CTA). En Proveedor se reorganizan las secciones: Categoría queda en Condiciones Comerciales.",
+  "category": "improvement"
+}

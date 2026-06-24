@@ -2,9 +2,12 @@ import { useState, useCallback } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Pencil, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormActions } from "@/components/forms/FormActions";
+import { CsfDropzone } from "@/components/forms/CsfDropzone";
+import { sanitizeCsfName } from "../../lib/csfSanitize";
 import { customerFormSchema, type CustomerFormData } from "../../lib/customerFormSchema";
 import {
   Form,
@@ -13,7 +16,6 @@ import {
   ContactSection,
   AddressNotesSection,
 } from "./CustomerFormSections";
-import { CsfDropzone } from "./CsfDropzone";
 
 const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
@@ -61,11 +63,19 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
   const formFields = (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <IdentitySection />
-        <FiscalSection />
-        <ContactSection />
-        <AddressNotesSection />
-        <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Agregar Cliente"} isPending={isPending ?? false} onCancel={() => onOpenChange(false)} />
+        <div className="space-y-5">
+          <IdentitySection />
+          <FiscalSection />
+          <ContactSection />
+          <AddressNotesSection />
+        </div>
+        <DialogFooter className="sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t">
+          <FormActions
+            submitLabel={isEdit ? "Guardar cambios" : "Agregar cliente"}
+            isPending={isPending ?? false}
+            onCancel={() => onOpenChange(false)}
+          />
+        </DialogFooter>
       </form>
     </Form>
   );
@@ -73,20 +83,41 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto" data-testid="customer-form-dialog">
-        <DialogHeader><DialogTitle>{isEdit ? "Editar Cliente" : "Agregar Cliente"}</DialogTitle></DialogHeader>
+        <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pb-3 border-b">
+          <DialogTitle>{isEdit ? "Editar Cliente" : "Nuevo Cliente"}</DialogTitle>
+        </DialogHeader>
 
-        <Tabs value={tab} onValueChange={setTab}>
+        <Tabs value={tab} onValueChange={setTab} className="pt-2">
           <TabsList className="w-full">
-            <TabsTrigger value="manual" className="flex-1">Llenar manualmente</TabsTrigger>
-            <TabsTrigger value="csf" className="flex-1">Importar desde CSF</TabsTrigger>
+            <TabsTrigger value="manual" className="flex-1">
+              <Pencil className="h-3.5 w-3.5 mr-1.5" />
+              Llenar manualmente
+            </TabsTrigger>
+            <TabsTrigger value="csf" className="flex-1">
+              <FileText className="h-3.5 w-3.5 mr-1.5" />
+              Importar desde CSF
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="manual">
+          <TabsContent value="manual" className="mt-4">
             {formFields}
           </TabsContent>
 
-          <TabsContent value="csf" className="space-y-4">
-            <CsfDropzone onParsed={handleCsfParsed} />
+          <TabsContent value="csf" className="mt-4 space-y-4">
+            <CsfDropzone<CustomerFormData>
+              onParsed={(patch) => handleCsfParsed(patch)}
+              mapData={(data) => {
+                const cleanName = sanitizeCsfName(data.name || data.razon_social || "");
+                return {
+                  name: cleanName || undefined,
+                  rfc: data.rfc || undefined,
+                  domicilio_fiscal_cp: data.domicilio_fiscal_cp || undefined,
+                  address: data.address || undefined,
+                  regimen_fiscal: data.regimen_fiscal || undefined,
+                  representante_legal: data.representante_legal || undefined,
+                };
+              }}
+            />
             {formFields}
           </TabsContent>
         </Tabs>
