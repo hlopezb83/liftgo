@@ -63,10 +63,7 @@ const month: MonthData = {
   salesByCustomer: {},
   grossProfit: 9_000,
   grossMargin: 90,
-  expenses: {
-    renta: 0, nomina: 1_000, software: 0, depreciacion: 0,
-    otro: 0, costo_venta: 0, caja_chica: 0, publicidad: 0,
-  },
+  expenses: { ...emptyExpenses(), nomina: 1_000 },
   totalExpenses: 2_000,
   profitBeforeDepreciation: 8_000,
   marginBeforeDepreciation: 80,
