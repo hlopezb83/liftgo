@@ -44,18 +44,22 @@ describe("cellColor", () => {
 
 describe("getBreakdownFor", () => {
   const dep: BreakdownRow[] = [{ label: "A", values: [1], total: 1 }];
+  const cogs: BreakdownRow[] = [{ label: "C", values: [1], total: 1 }];
   const rental: BreakdownRow[] = [{ label: "R", values: [1], total: 1 }];
   const sales: BreakdownRow[] = [{ label: "S", values: [1], total: 1 }];
 
   it("mapea etiquetas exactas", () => {
-    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, rental, sales))
+    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rental, sales))
       .toEqual({ rows: dep, key: "dep" });
-    expect(getBreakdownFor("  Ingresos por Rentas", dep, rental, sales))
+    expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rental, sales))
+      .toEqual({ rows: cogs, key: "cogs" });
+    expect(getBreakdownFor("  Ingresos por Rentas", dep, cogs, rental, sales))
       .toEqual({ rows: rental, key: "rental" });
-    expect(getBreakdownFor("  Ingresos por Ventas", dep, rental, sales))
+    expect(getBreakdownFor("  Ingresos por Ventas", dep, cogs, rental, sales))
       .toEqual({ rows: sales, key: "sales" });
   });
   it("retorna null para etiquetas no mapeadas", () => {
-    expect(getBreakdownFor("Otra cosa", dep, rental, sales)).toBeNull();
+    expect(getBreakdownFor("Otra cosa", dep, cogs, rental, sales)).toBeNull();
   });
 });
+
