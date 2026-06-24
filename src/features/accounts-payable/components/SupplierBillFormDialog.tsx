@@ -13,7 +13,7 @@ import {
   PAYMENT_METHOD_SAT_OPTIONS,
   CURRENCIES,
 } from "../lib/supplierBillConstants";
-import { useSupplierBillForm } from "../hooks/useSupplierBillForm";
+import { useSupplierBillForm, type SupplierBillFormOverrides } from "../hooks/useSupplierBillForm";
 
 import type { SupplierBillDetail } from "../hooks/useSupplierBill";
 
@@ -21,11 +21,13 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bill?: SupplierBillDetail | null;
+  overrides?: SupplierBillFormOverrides;
+  titleOverride?: string;
 }
 
-export function SupplierBillFormDialog({ open, onOpenChange, bill }: Props) {
+export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, titleOverride }: Props) {
   const { form, selectedSupplier, suggestedDueDate, total, isEdit, isPending, onSubmit } =
-    useSupplierBillForm(open, () => onOpenChange(false), bill);
+    useSupplierBillForm(open, () => onOpenChange(false), bill, overrides);
   const currency = form.watch("currency");
 
   return (
