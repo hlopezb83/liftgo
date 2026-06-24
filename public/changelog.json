@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.95.1",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Mensaje claro para error SAT CFDI40148 (CP fiscal ≠ RFC)",
+    "description": "El timbrado ahora muestra un mensaje accionable cuando Facturapi rechaza con CFDI40148/40149 (CP fiscal del receptor no coincide con el RFC en el SAT). stamp-cfdi propaga código + mensaje original al cliente y el traductor sugiere revisar la CSF del cliente.",
+    "category": "fix"
+  },
+  {
     "version": "6.95.0",
     "date": "2026-06-24",
     "type": "minor",

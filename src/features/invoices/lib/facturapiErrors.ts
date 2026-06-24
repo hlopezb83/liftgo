@@ -3,6 +3,11 @@
  * Si no encuentra coincidencia devuelve el mensaje original.
  */
 const PATTERNS: Array<{ test: RegExp; message: string }> = [
+  {
+    test: /CFDI40148|CFDI40149|DomicilioFiscalReceptor|debe pertenecer al nombre asociado al RFC/i,
+    message:
+      "El código postal fiscal del cliente no coincide con el RFC registrado en el SAT. Verifica la Constancia de Situación Fiscal (CSF) del cliente y corrige el CP fiscal, RFC o razón social.",
+  },
   { test: /CFDI40101|tax_id.*required|RFC.*required/i,
     message: "El RFC del receptor es obligatorio y debe ser válido." },
   { test: /CFDI40102|tax_system|regimen.*fiscal/i,
