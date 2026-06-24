@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.91.2",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Equipos vendidos sin status_log ahora aparecen en COGS",
+    "description": "El Costo de Equipos Vendidos ahora usa la fecha de actualización del equipo como fallback cuando no hay historial de cambio de estado, y se agrega alerta para equipos vendidos sin costo de adquisición registrado.",
+    "category": "fix"
+  },
+  {
     "version": "6.91.1",
     "date": "2026-06-24",
     "type": "patch",

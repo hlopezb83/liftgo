@@ -32,6 +32,7 @@ interface RpcMonthRow {
 interface RpcResult {
   months: RpcMonthRow[];
   rented_without_cost: { id: string; name: string }[];
+  sold_without_cost: { id: string; name: string }[];
 }
 
 export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
@@ -82,6 +83,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
 
 
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
+  const soldWithoutCost = rpc?.sold_without_cost ?? [];
 
-  return { data, rentedWithoutCost };
+  return { data, rentedWithoutCost, soldWithoutCost };
 }

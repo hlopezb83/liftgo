@@ -21,6 +21,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     filteredData, totals, statementRows, comparisonRows, yearTotals,
     csvRows, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
     rentedWithoutCost,
+    soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
   } = useIncomeStatementData({ startDate, endDate, accountingBasis });
 
@@ -59,6 +60,18 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
             Los siguientes equipos rentados no tienen costo de adquisición registrado y se omiten del cálculo de depreciación:{" "}
             <span className="font-semibold">{rentedWithoutCost.map((fl) => fl.name).join(", ")}</span>.
             Actualiza el costo en la ficha del equipo para incluirlos.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {soldWithoutCost.length > 0 && (
+        <Alert variant="destructive" className="border-amber-500/50 text-amber-700 dark:text-amber-400 [&>svg]:text-amber-600">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Equipos vendidos sin costo de adquisición</AlertTitle>
+          <AlertDescription>
+            Los siguientes equipos están marcados como vendidos pero no tienen costo de adquisición registrado, por lo que no aparecen en el Costo de Equipos Vendidos:{" "}
+            <span className="font-semibold">{soldWithoutCost.map((fl) => fl.name).join(", ")}</span>.
+            Actualiza el costo en la ficha del equipo.
           </AlertDescription>
         </Alert>
       )}

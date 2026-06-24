@@ -19,7 +19,7 @@ interface UseIncomeStatementDataProps {
 export function useIncomeStatementData({
   startDate, endDate, accountingBasis = "accrual",
 }: UseIncomeStatementDataProps) {
-  const { data, rentedWithoutCost } = useMonthlyData({ startDate, endDate, accountingBasis });
+  const { data, rentedWithoutCost, soldWithoutCost } = useMonthlyData({ startDate, endDate, accountingBasis });
   const {
     filteredData, totals, yearTotals,
     availableYears, selectedYear, setSelectedYear, isComparison,
@@ -34,6 +34,7 @@ export function useIncomeStatementData({
     data, filteredData, totals, statementRows, comparisonRows, yearTotals,
     csvRows, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
     rentedWithoutCost,
+    soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
   };
 }
