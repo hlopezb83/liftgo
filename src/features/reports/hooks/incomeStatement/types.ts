@@ -2,8 +2,29 @@ import type { ExpenseCategory } from "@/features/accounts-payable";
 import { EXPENSE_CATEGORY_LABELS } from "@/features/accounts-payable";
 import { roundMoney } from "@/lib/money";
 
-export const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
-export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  "renta",
+  "nomina",
+  "servicios_publicos",
+  "honorarios",
+  "papeleria",
+  "capacitacion",
+  "publicidad",
+  "comisiones_ventas",
+  "viajes_representacion",
+  "intereses",
+  "comisiones_bancarias",
+  "caja_chica",
+  "otro",
+];
+export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = [
+  "costo_venta",
+  "mantenimiento",
+  "refacciones",
+  "combustible",
+  "transporte_logistica",
+  "seguros_equipo",
+];
 
 export { EXPENSE_CATEGORY_LABELS };
 export type { ExpenseCategory };
