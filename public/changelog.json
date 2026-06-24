@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.95.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Fix Estado de Resultados: COGS de venta ligado a la factura",
+    "description": "El COGS de equipos vendidos ahora se calcula por factura de venta (quote_assigned_forklifts → forklifts.acquisition_cost) en el mismo mes y cliente del ingreso, en lugar de depender de forklifts.status='sold' y status_logs. Elimina COGS huérfanos y desfases entre meses. El desglose cogs_by_forklift ahora muestra 'Cliente — Equipo'.",
+    "category": "fix"
+  },
+  {
     "version": "6.94.0",
     "date": "2026-06-24",
     "type": "minor",

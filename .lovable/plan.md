@@ -1,102 +1,70 @@
-## ¿Qué es soft delete?
+# Fix Estado de Resultados — COGS de Ventas
 
-**Soft delete** = en lugar de borrar físicamente el registro (`DELETE FROM tabla`), se marca como inactivo con una columna (típicamente `deleted_at TIMESTAMPTZ` o `is_deleted BOOLEAN`) y se filtra en todas las lecturas (`WHERE deleted_at IS NULL`). El dato sigue en la base, recuperable, auditable y con integridad referencial intacta.
+## Problema
 
-**Hard delete** = `DELETE` físico. El registro desaparece; las FKs deben tener `ON DELETE CASCADE/SET NULL` o el borrado falla.
+El RPC `get_income_statement` calcula COGS de equipos vendidos a partir de `forklifts.status = 'sold'` y la fecha del `status_logs`, **sin ligarlo a la factura ni al cliente**. Esto produce:
 
----
+1. **Desfase de mes**: si el equipo se marca `sold` semanas o meses después de facturado, el COGS cae en un mes distinto al ingreso.
+2. **Atribución engañosa en la UI**: el desglose COGS del mes muestra equipos cuyo ingreso pertenece a otra factura/cliente. (Caso reportado: BERN CO feb-2026 muestra COGS $882,232.43 que en realidad corresponde a un equipo vendido a INDIMEX GLASS en nov-2025, cuyo status flipeó en febrero).
+3. **COGS huérfano**: ventas históricas re-aparecen como COGS al volverse a tocar el status; ventas nuevas se quedan sin COGS hasta que alguien cambie manualmente el status.
+4. **Resta de meses rentados** se aplica también a equipos de venta directa que nunca se rentaron — sólo aplica si previamente hubo depreciación reconocida.
 
-## Auditoría del ERP actual
+## Solución
 
-### Lo que SÍ tenemos (equivalentes funcionales)
+Reescribir la sección de COGS del RPC `get_income_statement` para que se base en la **factura de venta** (fuente de verdad del ingreso), no en `forklifts.status`.
 
-| Mecanismo | Dónde | Qué cubre |
-|---|---|---|
-| **Cancelación de estado** | `invoices.cfdi_status='cancelled'`, `credit_notes`, `payment_complements`, `bookings.status='cancelled'`, `quotes.status='cancelled'`, `contracts` | Documentos fiscales y de negocio — el registro nunca se borra, se marca cancelado. Esto **ya es soft delete de facto** para todo lo fiscal/contable. |
-| **Audit trail row-level** | `audit_logs` (11 tablas con diffs) | Aunque borres, queda historial del cambio anterior. Permite forense pero **no recuperación operativa**. |
-| **RPC de cancelación atómica** | `refresh-cancellation-status`, `cancel-cfdi`, `cancel-credit-note`, `cancel-payment-complement` | Cierra ciclo fiscal SAT + estado interno consistente. |
-| **Restricciones de borrado** | Customers, equipment_models, forklifts con bookings/facturas activas — bloqueados | Previene borrado accidental de datos referenciados. |
+### Nueva fuente de COGS
 
-### Lo que hacemos HARD DELETE hoy (152 llamadas `.delete()`)
+Para cada factura de venta dentro del período (`quote_type = 'sale'`, no e2e, no cancelada, no borrador):
 
-Categorías:
+1. Obtener los equipos vendidos vía `quote_assigned_forklifts` (mapeo `line_index`).
+2. Sumar `acquisition_cost` (neto de depreciación previamente reconocida) de esos equipos.
+3. Reconocer ese COGS en el **mismo mes y basis** que el ingreso de la factura (`issued_at` o `paid_at`).
+4. Atribuirlo al **mismo `customer_name`** que el ingreso.
 
-1. **Catálogos auxiliares** — `mechanics`, `drivers`, `equipment_models`, `supplier_contacts`, `supplier_bank_accounts`, `bank_accounts`, `maintenance_policies`, `parts_inventory`
-2. **Operativo borrador** — `prospects`, `quotes` en draft, `bookings` sin movimientos, `maintenance_logs`, `deliveries`, `damage_records`
-3. **Documentos** — `documents` (archivos adjuntos), `invoice_bookings` (joins)
-4. **Roles/usuarios** — `user_roles`, `profiles` (vía cascade auth)
-5. **Limpieza transaccional** — `supplier_bills` no aprobadas, `supplier_payments`, `credit_notes` draft
+### Ajustes específicos en el RPC
 
-### Vacíos reales detectados
+- Reemplazar CTEs `sold_forklifts`, `sold_in_period`, `months_rented_per_sold`, `cogs_per_sold`, `cogs_by_month` por:
+  - `sale_invoices` = `inv_classified` filtrado por `NOT is_rental` y `quote_id IS NOT NULL`.
+  - `sale_invoice_forklifts` = join con `quote_assigned_forklifts` → `forklifts` (sólo `acquisition_cost > 0`, no e2e).
+  - `cogs_per_invoice` = book_value por equipo con la fórmula existente de descuento por meses rentados (`bookings` previos a `issued_at`).
+  - `cogs_by_month` = SUM por `month_key`, `jsonb_object_agg` por `customer_name — forklift_name` para que el desglose UI muestre a quién pertenece cada COGS.
+- `sold_without_cost` se redefine como: equipos referenciados en facturas de venta del período cuyo `acquisition_cost` es nulo/0 (no por `status='sold'`).
+- Conservar consolidación con `supplier_bills.category = 'costo_venta'` tal como hoy (en TS).
 
-- **Forklifts borrados** → se pierde histórico de ROI/utilización aunque haya audit_logs (no permite reportes "como si todavía existiera")
-- **Customers borrados** → bloqueado por FK, pero si se forzara se perdería contexto histórico de facturas viejas
-- **Maintenance_logs** → borrado físico permite ocultar mantenimientos hechos (riesgo de manipulación)
-- **Quotes/Bookings draft** → borrado real, no aparecen en audit_logs si nunca cambiaron de estado tras crearse
+### Cambios en frontend
 
----
+- `useMonthlyData.ts`: sin cambios estructurales (sigue leyendo `cogs_by_forklift` del RPC). El label ahora incluirá cliente: `"BERN CO — LIFT GO FB25"`.
+- `incomeStatementHelpers.ts` `getBreakdownFor`: sin cambios.
+- Tooltip/alerta "Equipos vendidos sin costo": sigue mostrando los del nuevo cálculo.
 
-## ¿Vale la pena implementarlo? Análisis costo/beneficio
+### Verificación
 
-### Por categoría
+- Test unitario nuevo en `src/test/` (o `useMonthlyData.test.ts` si existe) que simule:
+  - Factura de venta con 1 equipo → COGS = acquisition_cost en mes de `issued_at`.
+  - Factura de venta multi-equipo → suma de costos.
+  - Equipo con flip de status fuera del período → no aparece como COGS.
+  - Equipo previamente rentado → book value descontado por meses rentados.
+- Validación manual en preview: feb-2026 debe mostrar COGS ≈ $316,794 ligado a BERN CO; el $882k debe **desaparecer** de feb y aparecer como ajuste retroactivo a nov-2025 (donde está la factura FAC-0001 de INDIMEX GLASS).
 
-| Categoría | ¿Soft delete? | Razón |
-|---|---|---|
-| **Documentos fiscales** (invoices, credit_notes, payment_complements) | **YA ES SOFT** vía status `cancelled` | No tocar. SAT exige no perder UUIDs timbrados. |
-| **Bookings, contracts, quotes** | **YA ES SOFT** vía status | No tocar. |
-| **Forklifts** | **SÍ — añadir `deleted_at`** | ROI histórico, reportes retrospectivos, auditoría fiscal de activos depreciables. Costo bajo, beneficio alto. |
-| **Customers / Suppliers** | **SÍ — añadir `deleted_at`** | Facturas históricas necesitan razón social aunque el cliente "ya no exista". CFDI 4.0 obliga a conservar datos del receptor. |
-| **Maintenance_logs / Damage_records** | **SÍ — añadir `deleted_at`** | Trazabilidad. Un mecánico no debería borrar evidencia. |
-| **Catálogos auxiliares** (drivers, mechanics, bank_accounts, equipment_models, maintenance_policies) | **SÍ — añadir `deleted_at`** | Reportes históricos los referencian ("mantenimiento hecho por mecánico X" aunque X ya no trabaje aquí). |
-| **Prospects** | NO — hard delete OK | Datos pre-venta, sin obligación fiscal/legal. |
-| **Documents (archivos)** | NO — hard delete + storage cleanup | Costo de storage real, no requieren historia. |
-| **Joins (invoice_bookings, quote_assigned_forklifts)** | NO | Son relaciones; el soft delete está en las entidades padre. |
-| **user_roles / profiles** | Caso aparte — desactivar usuario, no borrar | Auditoría de quién hizo qué requiere preservar perfil. |
-| **Borradores nunca usados** | NO — hard delete OK | Sin valor histórico. |
+## Detalles técnicos
 
-### ¿Es **necesario**? — Respuesta directa
+- Una sola migración nueva: `supabase/migrations/<ts>_fix_income_statement_cogs.sql` con `CREATE OR REPLACE FUNCTION public.get_income_statement(...)`. `SET search_path = public`, `SECURITY DEFINER`, mismos checks de rol.
+- `acquisition_cost` se lee a la fecha actual del forklift; no hay snapshot histórico. Aceptable porque el costo de adquisición no cambia.
+- Si una factura de venta no tiene `quote_id` o el quote no tiene `quote_assigned_forklifts`, se reporta en `sold_without_cost` para que el usuario lo arregle (no se asume costo).
+- `is_e2e` se respeta tanto en facturas como en forklifts.
+- Entrada en `public/changelog.json` + detalle `public/changelog/v6.95.0.json` (patch de bug crítico de reporting → minor por cambio de semántica del cálculo).
 
-**No es crítico ni urgente.** El ERP ya cubre los riesgos fiscales más graves (CFDI, contratos, bookings) vía status de cancelación. El `audit_logs` cubre forense.
+## Archivos a tocar
 
-**Pero sí aporta valor medio** en 5 tablas concretas: `forklifts`, `customers`, `suppliers`, `maintenance_logs`, `damage_records`. Sin esto, borrar un forklift rompe reportes históricos de ROI; borrar un cliente bloquea (correcto) pero impide "limpiar" sin perder contexto.
+- `supabase/migrations/<nueva>.sql` (nueva)
+- `public/changelog.json` (edit)
+- `public/changelog/v6.95.0.json` (nueva)
+- `src/integrations/supabase/types.ts` (regenerado automáticamente; sin cambio manual)
+- Test nuevo en `src/test/` o `src/features/reports/hooks/__tests__/`
 
-**Prioridad:** P2 (después de P0 idempotencia y otros temas fiscales). No bloqueante. Implementación incremental.
+## Fuera de alcance
 
----
-
-## Mejores prácticas (si se implementa)
-
-1. **Columna estándar:** `deleted_at TIMESTAMPTZ NULL` (no booleano — permite saber **cuándo**) + opcional `deleted_by UUID`.
-2. **Índice parcial** para no degradar queries:  
-   `CREATE INDEX ON tabla (campo) WHERE deleted_at IS NULL;`
-3. **Vista o RLS filtra por defecto:** policy `USING (deleted_at IS NULL)` para `authenticated`; rol admin puede ver borrados con filtro explícito.
-4. **UNIQUE constraints parciales:** `CREATE UNIQUE INDEX ON customers(rfc) WHERE deleted_at IS NULL;` — permite reusar el RFC tras borrado.
-5. **Cascadas lógicas vía trigger o RPC**, no `ON DELETE CASCADE` (que es para hard delete).
-6. **Hard delete real solo por job nocturno** tras N días (ej. 90) para cumplir GDPR/derecho al olvido si aplicara.
-7. **Nunca usar soft delete para documentos fiscales** — usar status de cancelación (ya lo hacemos correctamente).
-8. **UI consistente:** botón "Archivar" en lugar de "Eliminar" para tablas con soft delete; "Papelera" en admin para restaurar.
-9. **Tests:** verificar que listados filtran, que UNIQUE permite reuso, que reportes históricos siguen funcionando.
-
----
-
-## Recomendación final
-
-**No implementar soft delete global.** El ROI es bajo: el ERP ya tiene los mecanismos correctos donde más importa (fiscal, contractual).
-
-**Sí considerar (P2, cuando haya hueco)** soft delete acotado a:
-- `forklifts` — preservar histórico de activos
-- `customers`, `suppliers` — preservar referencia para facturas viejas + limpieza de catálogo
-- `maintenance_logs`, `damage_records` — trazabilidad anti-manipulación
-
-Esto agregaría ~5 columnas, ~10 índices parciales, ~5 ajustes RLS y refactor de ~15 mutations. Estimado: 1-2 días de trabajo.
-
----
-
-## Siguiente paso
-
-¿Procedemos con alguna de estas opciones?
-
-1. **Solo análisis** — dejar documentado el roadmap, sin implementar.
-2. **Implementar soft delete acotado** en las 5 tablas recomendadas (P2).
-3. **Implementar solo `forklifts` y `customers`** — las dos de mayor valor histórico.
-4. **Reforzar lo que ya existe** — endurecer flujos de cancelación / bloqueos de borrado sin agregar `deleted_at`.
+- Reformulación de depreciación de equipos rentados (lógica actual se conserva).
+- Atribución por cliente del ingreso por rentas (ya funciona).
+- Snapshots históricos de `acquisition_cost`.
