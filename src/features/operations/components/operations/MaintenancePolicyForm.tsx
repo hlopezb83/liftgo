@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import type { MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
@@ -23,47 +25,51 @@ export function MaintenancePolicyForm({
   open, onOpenChange, isEdit, isPending, form, availableForklifts, onChange, onSave,
 }: Props) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{isEdit ? "Editar" : "Nueva"} Póliza de Mantenimiento</DialogTitle></DialogHeader>
-        <div className="space-y-4">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`${isEdit ? "Editar" : "Nueva"} Póliza de Mantenimiento`}
+      width="md"
+    >
+      <FormSection title="Equipo y proveedor" first>
+        <div className="space-y-1.5">
+          <Label>Montacargas <RequiredMark /></Label>
+          <Select value={form.forklift_id} onValueChange={(v) => onChange("forklift_id", v)}>
+            <SelectTrigger><SelectValue placeholder="Seleccionar montacargas rentado" /></SelectTrigger>
+            <SelectContent>
+              {availableForklifts?.map((f) => (
+                <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Proveedor <RequiredMark /></Label>
+          <Input value={form.provider_name} onChange={(e) => onChange("provider_name", e.target.value)} placeholder="Nombre del proveedor externo" />
+        </div>
+      </FormSection>
+      <FormSection title="Condiciones">
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Montacargas *</Label>
-            <Select value={form.forklift_id} onValueChange={(v) => onChange("forklift_id", v)}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar montacargas rentado" /></SelectTrigger>
-              <SelectContent>
-                {availableForklifts?.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Costo Mensual ($)</Label>
+            <Input type="number" value={form.monthly_cost} onChange={(e) => onChange("monthly_cost", e.target.value)} placeholder="0" />
           </div>
           <div className="space-y-1.5">
-            <Label>Proveedor *</Label>
-            <Input value={form.provider_name} onChange={(e) => onChange("provider_name", e.target.value)} placeholder="Nombre del proveedor externo" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Costo Mensual ($)</Label>
-              <Input type="number" value={form.monthly_cost} onChange={(e) => onChange("monthly_cost", e.target.value)} placeholder="0" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Tipo de Servicio</Label>
-              <Input value={form.service_type} onChange={(e) => onChange("service_type", e.target.value)} placeholder="Póliza de Mantenimiento" />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Descripción</Label>
-            <Textarea value={form.description} onChange={(e) => onChange("description", e.target.value)} rows={2} placeholder="Detalles de la póliza..." />
+            <Label>Tipo de Servicio</Label>
+            <Input value={form.service_type} onChange={(e) => onChange("service_type", e.target.value)} placeholder="Póliza de Mantenimiento" />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={onSave} disabled={isPending}>
-            {isEdit ? "Guardar" : "Crear"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-1.5">
+          <Label>Descripción</Label>
+          <Textarea value={form.description} onChange={(e) => onChange("description", e.target.value)} rows={2} placeholder="Detalles de la póliza..." />
+        </div>
+      </FormSection>
+      <FormDialogFooter>
+        <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        <Button onClick={onSave} disabled={isPending}>
+          {isEdit ? "Guardar" : "Agregar póliza"}
+        </Button>
+      </FormDialogFooter>
+    </FormDialog>
   );
 }

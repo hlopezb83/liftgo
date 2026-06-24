@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,15 +20,15 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
   const f = useCreditNoteForm(invoice, maxCreditable, () => onOpenChange(false));
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) f.reset(); onOpenChange(o); }}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Nueva Nota de Crédito</DialogTitle>
-          <DialogDescription>
-            Reduce el saldo de la factura {invoice.invoice_number}. Máximo acreditable:{" "}
-            <span className="font-mono font-semibold">{formatCurrency(maxCreditable)}</span>
-          </DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={(o) => { if (!o) f.reset(); onOpenChange(o); }}
+      title="Nueva Nota de Crédito"
+      width="2xl"
+      description={<>Reduce el saldo de la factura {invoice.invoice_number}. Máximo acreditable:{" "}
+        <span className="font-mono font-semibold">{formatCurrency(maxCreditable)}</span></>}
+    >
+
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -83,7 +83,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
           </div>
         </div>
 
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={f.isPending}>
             Cancelar
           </Button>
@@ -93,8 +93,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
           <Button onClick={() => f.submit(true)} disabled={!f.canSubmit}>
             {f.isPending ? "Procesando..." : "Guardar y timbrar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }

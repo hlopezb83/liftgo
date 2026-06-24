@@ -1,5 +1,5 @@
-import { KeyRound, Eye, EyeOff, Sparkles } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,15 +26,13 @@ export function SetPasswordDialog({ user, onClose }: Props) {
   } = useSetPasswordForm(user, onClose);
 
   return (
-    <Dialog open={!!user} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />
-            Asignar nueva contraseña
-          </DialogTitle>
-          <DialogDescription>{describeUser(user)}</DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={!!user}
+      onOpenChange={(v) => !v && onClose()}
+      title="Asignar nueva contraseña"
+      width="md"
+      description={describeUser(user)}
+    >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="set-password">Nueva contraseña</Label>
@@ -85,14 +83,13 @@ export function SetPasswordDialog({ user, onClose }: Props) {
           <p className="text-xs text-muted-foreground">
             Mínimo 8 caracteres. Evita secuencias comunes (<code>1234567890</code>, <code>qwerty</code>, fechas o nombres) aunque incluyan símbolos — son rechazadas por la política de filtraciones (HIBP). Lo más seguro es pulsar <strong>Generar contraseña segura</strong>. Comparte la contraseña por un canal seguro.
           </p>
-          <DialogFooter>
+          <FormDialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={isPending}>
               {isPending ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </FormDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

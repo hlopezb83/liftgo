@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.87.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Migración masiva de modales al design language unificado",
+    "description": "29 form-dialogs migrados a <FormDialog>/<FormDialogFooter>/<FormSection> en una sola pasada: Mantenimiento, Refacciones, Entregas, Cuentas bancarias (propias y de proveedor), Contactos de proveedor, Pagos (registrar/editar), Notas de crédito, Pagos de proveedor (registrar/rechazar/aprobar/rechazar factura), REP, Exportar pagos, Reportar transferencia, Extender renta, Operadores, Mecánicos, Modelos de equipo, Pólizas de mantenimiento, Feedback, Invitar/Editar/SetPassword/ChangePassword usuarios, Credenciales, Firma de entrega, Invitar al portal del cliente. Header y footer sticky, secciones small-caps consistentes y microcopy mexicana alineada.",
+    "category": "improvement"
+  },
+  {
     "version": "6.86.0",
     "date": "2026-06-24",
     "type": "minor",

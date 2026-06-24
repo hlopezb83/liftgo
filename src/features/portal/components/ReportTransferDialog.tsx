@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,11 +45,8 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Reportar transferencia</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={onOpenChange} title="Reportar transferencia" width="md">
+
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <DatePickerField label="Fecha" date={transferDate} onSelect={setTransferDate} required />
@@ -79,12 +76,11 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
             />
           </div>
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Cancelar</Button>
           <Button onClick={handleSubmit} disabled={isPending}>Enviar reporte</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }
 

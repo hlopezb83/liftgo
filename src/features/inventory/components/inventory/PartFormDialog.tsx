@@ -4,7 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreatePart, useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
@@ -62,16 +64,17 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
   const isPending = createPart.isPending || updatePart.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{part ? "Editar Refacción" : "Nueva Refacción"}</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={part ? "Editar Refacción" : "Nueva Refacción"}
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormSection title="Identidad" first>
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre *</FormLabel>
+                <FormLabel>Nombre <RequiredMark /></FormLabel>
                 <FormControl><Input {...field} placeholder="Ej. Filtro de aceite" /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -85,7 +88,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
             )} />
             <FormField control={form.control} name="category" render={({ field }) => (
               <FormItem>
-                <FormLabel>Categoría *</FormLabel>
+                <FormLabel>Categoría <RequiredMark /></FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                   <SelectContent>
@@ -95,6 +98,8 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
                 <FormMessage />
               </FormItem>
             )} />
+          </FormSection>
+          <FormSection title="Inventario y costo">
             <div className="grid grid-cols-3 gap-3">
               <FormField control={form.control} name="stock_quantity" render={({ field }) => (
                 <FormItem>
@@ -123,16 +128,16 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
                 </FormItem>
               )} />
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Guardando…" : "Guardar"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          </FormSection>
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Guardando…" : part ? "Guardar" : "Agregar refacción"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }
 

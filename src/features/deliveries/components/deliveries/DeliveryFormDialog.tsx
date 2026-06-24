@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 
-import { PlusCircle, TruckIcon } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormActions } from "@/components/forms/FormActions";
 import { useActiveDrivers, useForkliftMap } from "@/features/fleet";
 import { useBookings } from "@/features/bookings";
@@ -60,17 +60,14 @@ export function DeliveryFormDialog() {
         <PlusCircle className="h-4 w-4 mr-1" /> Programar
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><TruckIcon className="h-4 w-4" /> Programar Transporte</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <DeliveryFormFields form={form} forklifts={forklifts} bookings={bookings} activeDrivers={activeDrivers} />
+      <FormDialog open={open} onOpenChange={setOpen} title="Programar Transporte">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <DeliveryFormFields form={form} forklifts={forklifts} bookings={bookings} activeDrivers={activeDrivers} />
+          <FormDialogFooter>
             <FormActions submitLabel="Programar" isPending={createDelivery.isPending} onCancel={() => setOpen(false)} />
-          </form>
-        </DialogContent>
-      </Dialog>
+          </FormDialogFooter>
+        </form>
+      </FormDialog>
     </>
   );
 }

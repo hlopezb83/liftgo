@@ -1,5 +1,5 @@
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,9 +30,13 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
   } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" data-testid="record-payment-dialog">
-        <DialogHeader><DialogTitle>Registrar Pago</DialogTitle></DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Registrar Pago"
+      width="md"
+      testId="record-payment-dialog"
+    >
         <div className="space-y-4">
           <div>
             <Label htmlFor="recordPaymentAmount">Monto</Label>
@@ -117,7 +121,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
             </div>
           )}
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             data-testid="record-payment-submit"
@@ -126,8 +130,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
           >
             {createPayment.isPending ? "Guardando..." : (stampComplement.isPending ? "Timbrando REP..." : "Registrar Pago")}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }

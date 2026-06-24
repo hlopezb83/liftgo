@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,11 +123,8 @@ export function RegisterSupplierPaymentDialog({
 
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Registrar pago — {billNumber}</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
+
         <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Saldo actual</span>
           <span className="font-mono font-bold">{formatCurrency(balance)}</span>
@@ -180,16 +177,15 @@ export function RegisterSupplierPaymentDialog({
             <Label>Notas</Label>
             <Textarea rows={2} {...form.register("notes")} />
           </div>
-          <DialogFooter>
+          <FormDialogFooter>
             <FormActions
               submitLabel={uploader.isPending ? "Subiendo…" : "Registrar pago"}
               isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />
-          </DialogFooter>
+          </FormDialogFooter>
 
         </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

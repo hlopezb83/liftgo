@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,11 +42,12 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
       <DialogTrigger asChild>
         <Button><UserPlus className="mr-2 h-4 w-4" />Crear Usuario</Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Crear Nuevo Usuario</DialogTitle>
-          <DialogDescription>Crea una nueva cuenta de personal. El usuario recibirá instrucciones de acceso por correo electrónico.</DialogDescription>
-        </DialogHeader>
+      <FormDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Crear Nuevo Usuario"
+        description="Crea una nueva cuenta de personal. El usuario recibirá instrucciones de acceso por correo electrónico."
+      >
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="inv-name">Nombre Completo</Label>
@@ -69,13 +71,13 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
             </Select>
           </div>
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
             {inviteUser.isPending ? "Creando…" : "Crear Usuario"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </FormDialogFooter>
+      </FormDialog>
     </Dialog>
   );
 }

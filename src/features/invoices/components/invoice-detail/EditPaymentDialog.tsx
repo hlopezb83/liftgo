@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,9 +67,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Editar Pago</DialogTitle></DialogHeader>
+    <FormDialog open={open} onOpenChange={onOpenChange} title="Editar Pago" width="md">
         <div className="space-y-4">
           <div>
             <Label>Monto</Label>
@@ -101,13 +99,12 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={handleSubmit} disabled={updatePayment.isPending}>
             {updatePayment.isPending ? "Guardando..." : "Guardar Cambios"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }

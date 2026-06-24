@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { KeyRound } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,15 +41,13 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />
-            Cambiar Contraseña
-          </DialogTitle>
-          <DialogDescription>Ingresa tu nueva contraseña.</DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Cambiar Contraseña"
+      width="sm"
+      description="Ingresa tu nueva contraseña."
+    >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="new-password">Nueva contraseña</Label>
@@ -76,14 +73,13 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
               autoComplete="new-password"
             />
           </div>
-          <DialogFooter>
+          <FormDialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </FormDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

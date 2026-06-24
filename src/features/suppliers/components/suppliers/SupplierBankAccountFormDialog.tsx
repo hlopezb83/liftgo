@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -96,20 +98,24 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{account ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-3">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={account ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}
+      width="md"
+    >
+      <form onSubmit={onSubmit} className="space-y-4">
+        <FormSection title="Identidad" first>
           <div className="space-y-1.5">
-            <Label>Banco *</Label>
+            <Label>Banco <RequiredMark /></Label>
             <Input value={form.bank_name} onChange={(e) => set("bank_name", e.target.value)} placeholder="BBVA, Banorte..." maxLength={80} />
           </div>
           <div className="space-y-1.5">
-            <Label>Titular *</Label>
+            <Label>Titular <RequiredMark /></Label>
             <Input value={form.account_holder} onChange={(e) => set("account_holder", e.target.value)} maxLength={120} />
           </div>
+        </FormSection>
+        <FormSection title="Datos bancarios">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>CLABE (18 dígitos)</Label>
@@ -135,10 +141,6 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
             <Label>Núm. de cuenta (opcional)</Label>
             <Input value={form.account_number} onChange={(e) => set("account_number", e.target.value)} maxLength={30} />
           </div>
-          <div className="space-y-1.5">
-            <Label>Notas</Label>
-            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} />
-          </div>
           <div className="flex items-center justify-between rounded-md border p-3">
             <div>
               <Label>Cuenta primaria</Label>
@@ -146,15 +148,21 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
             </div>
             <Switch checked={form.is_primary} onCheckedChange={(v) => set("is_primary", v)} />
           </div>
-          <DialogFooter>
-            <FormActions
-              submitLabel={account ? "Guardar" : "Agregar"}
-              isPending={create.isPending || update.isPending}
-              onCancel={() => onOpenChange(false)}
-            />
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </FormSection>
+        <FormSection title="Interno">
+          <div className="space-y-1.5">
+            <Label>Notas</Label>
+            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} />
+          </div>
+        </FormSection>
+        <FormDialogFooter>
+          <FormActions
+            submitLabel={account ? "Guardar" : "Agregar cuenta"}
+            isPending={create.isPending || update.isPending}
+            onCancel={() => onOpenChange(false)}
+          />
+        </FormDialogFooter>
+      </form>
+    </FormDialog>
   );
 }

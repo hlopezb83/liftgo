@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -86,9 +86,7 @@ export function DriversTab() {
         <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Operador</Button>
       </div>
       <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Operador</DialogTitle><DialogDescription>Administrar datos del operador para programación de entregas.</DialogDescription></DialogHeader>
+      <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
             <div className="grid grid-cols-2 gap-4">
@@ -102,12 +100,11 @@ export function DriversTab() {
             </div>
             <div className="space-y-1.5"><Label>Notas</Label><Input placeholder="Notas opcionales" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
           </div>
-          <DialogFooter>
+          <FormDialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </FormDialogFooter>
+        </FormDialog>
     </div>
   );
 }

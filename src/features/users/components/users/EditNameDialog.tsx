@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,20 +25,17 @@ export function EditNameDialog({ user, onClose }: EditNameDialogProps) {
   };
 
   return (
-    <Dialog open={!!user} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Editar Nombre</DialogTitle></DialogHeader>
+    <FormDialog open={!!user} onOpenChange={(v) => { if (!v) onClose(); }} title="Editar Nombre">
         <div className="space-y-2 py-2">
           <Label htmlFor="edit-name">Nombre Completo</Label>
           <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={handleSave} disabled={updateName.isPending || !name.trim()}>
             {updateName.isPending ? "Guardando…" : "Guardar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }
