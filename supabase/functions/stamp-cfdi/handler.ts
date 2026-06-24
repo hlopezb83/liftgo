@@ -110,19 +110,37 @@ export async function handleStampCfdi(
       );
     }
 
-    // Guard de idempotencia: si la factura ya fue timbrada con éxito, no
-    // permitir un re-stamp porque generaría un segundo CFDI en el SAT con
-    // UUID distinto (doble timbrado). Simetría con stamp-credit-note.
+    // Guard de idempotencia (chequeo rápido — solo evita pagar Facturapi):
     if (inv.cfdi_status === "stamped" && inv.cfdi_uuid) {
       console.error("[stamp-cfdi] already stamped", {
         invoice_id,
         uuid: inv.cfdi_uuid,
       });
       return json(
-        {
-          error: "Invoice already stamped",
-          cfdi_uuid: inv.cfdi_uuid,
-        },
+        { error: "Invoice already stamped", cfdi_uuid: inv.cfdi_uuid },
+        409,
+        jsonHeaders,
+      );
+    }
+
+    // Claim atómico: solo una petición concurrente puede pasar de
+    // pending|error → stamping. Cierra la ventana entre el SELECT anterior
+    // y la llamada a Facturapi para evitar doble timbrado.
+    const claimRes = await supabase
+      .from("invoices")
+      .update({ cfdi_status: "stamping" })
+      .eq("id", invoice_id)
+      .in("cfdi_status", ["pending", "error"])
+      .is("cfdi_uuid", null)
+      .select("id")
+      .maybeSingle();
+    const claimedRow = (claimRes as { data: unknown }).data;
+    if (!claimedRow) {
+      console.error("[stamp-cfdi] claim failed — concurrent stamp in progress", {
+        invoice_id,
+      });
+      return json(
+        { error: "Invoice already stamped or in progress" },
         409,
         jsonHeaders,
       );
