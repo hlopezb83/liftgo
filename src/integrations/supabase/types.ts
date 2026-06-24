@@ -2604,6 +2604,7 @@ export type Database = {
           category: Database["public"]["Enums"]["expense_category"] | null
           cfdi_use: string | null
           cfdi_uuid: string | null
+          cfdi_xml_url: string | null
           created_at: string
           created_by: string | null
           currency: string
@@ -2640,6 +2641,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["expense_category"] | null
           cfdi_use?: string | null
           cfdi_uuid?: string | null
+          cfdi_xml_url?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -2676,6 +2678,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["expense_category"] | null
           cfdi_use?: string | null
           cfdi_uuid?: string | null
+          cfdi_xml_url?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
