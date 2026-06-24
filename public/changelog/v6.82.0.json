@@ -1,0 +1,14 @@
+{
+  "version": "6.82.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Editar y eliminar Facturas de Proveedor",
+  "description": "Desde el panel de detalle de Facturas de Proveedor ahora se puede editar la factura mientras esté pendiente de aprobación y sin pagos, y eliminarla físicamente (solo Admin) si aún no fue aprobada ni tiene pagos. Tooltips explican cuándo se bloquean las acciones.",
+  "category": "feature",
+  "changes": [
+    "Editar (Admin / Administrativo): disponible solo en facturas pendientes de aprobación, no canceladas ni pagadas y sin pagos registrados.",
+    "Eliminar (solo Admin): hard-delete con confirmación; requiere que la factura no esté aprobada, cancelada ni tenga pagos.",
+    "El formulario de alta se reutiliza para edición con título y botón dinámicos.",
+    "Tooltips indican el motivo cuando una acción está deshabilitada."
+  ]
+}

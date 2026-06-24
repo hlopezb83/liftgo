@@ -5,8 +5,9 @@ import { z } from "zod";
 import { useSuppliers } from "@/features/suppliers";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
-import { useCreateSupplierBill } from "./useSupplierBillMutations";
+import { useCreateSupplierBill, useUpdateSupplierBill } from "./useSupplierBillMutations";
 import type { ExpenseCategory } from "../lib/supplierBillConstants";
+import type { SupplierBillDetail } from "./useSupplierBill";
 
 export const supplierBillFormSchema = z.object({
   supplier_id: z.string().min(1, "Selecciona un proveedor"),
@@ -26,23 +27,69 @@ export const supplierBillFormSchema = z.object({
 
 export type SupplierBillFormData = z.infer<typeof supplierBillFormSchema>;
 
-export function useSupplierBillForm(open: boolean, onClose: () => void) {
+function parseYMD(value: string | null | undefined): Date | undefined {
+  if (!value) return undefined;
+  const [y, m, d] = value.split("-").map(Number);
+  if (!y || !m || !d) return undefined;
+  return new Date(y, m - 1, d);
+}
+
+function billToFormDefaults(bill: SupplierBillDetail): SupplierBillFormData {
+  return {
+    supplier_id: bill.supplier_id ?? "",
+    category: bill.category ?? "",
+    description: bill.description ?? "",
+    issue_date: parseYMD(bill.issue_date) ?? nowMty(),
+    due_date: parseYMD(bill.due_date),
+    currency: (bill.currency === "USD" ? "USD" : "MXN"),
+    exchange_rate: Number(bill.exchange_rate ?? 1),
+    subtotal: Number(bill.subtotal),
+    tax_amount: Number(bill.tax_amount),
+    retention_iva: Number(bill.retention_iva),
+    retention_isr: Number(bill.retention_isr),
+    cfdi_uuid: bill.cfdi_uuid ?? "",
+    payment_method_sat:
+      bill.payment_method_sat === "PUE" || bill.payment_method_sat === "PPD"
+        ? bill.payment_method_sat
+        : undefined,
+  };
+}
+
+export function useSupplierBillForm(
+  open: boolean,
+  onClose: () => void,
+  initialBill?: SupplierBillDetail | null,
+) {
   const create = useCreateSupplierBill();
+  const update = useUpdateSupplierBill();
+  const isEdit = !!initialBill;
 
   const form = useForm<SupplierBillFormData>({
     resolver: zodResolver(supplierBillFormSchema),
-    defaultValues: {
-      supplier_id: "", category: "", description: "",
-      issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
-      subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
-      cfdi_uuid: "",
-    },
+    defaultValues: initialBill
+      ? billToFormDefaults(initialBill)
+      : {
+          supplier_id: "", category: "", description: "",
+          issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
+          subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
+          cfdi_uuid: "",
+        },
   });
 
   useEffect(() => {
-    if (open) form.reset();
+    if (!open) return;
+    form.reset(
+      initialBill
+        ? billToFormDefaults(initialBill)
+        : {
+            supplier_id: "", category: "", description: "",
+            issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
+            subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
+            cfdi_uuid: "",
+          },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, initialBill?.id]);
 
   const { data: suppliersList } = useSuppliers();
   const supplierId = form.watch("supplier_id");
@@ -62,7 +109,7 @@ export function useSupplierBillForm(open: boolean, onClose: () => void) {
   }, [selectedSupplier, issueDate]);
 
   useEffect(() => {
-    if (suggestedDueDate && !dueDate) {
+    if (suggestedDueDate && !dueDate && !isEdit) {
       form.setValue("due_date", suggestedDueDate);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,30 +122,37 @@ export function useSupplierBillForm(open: boolean, onClose: () => void) {
   const total = subtotal + tax - retIva - retIsr;
 
   const onSubmit = (data: SupplierBillFormData) => {
-    create.mutate(
-      {
-        supplier_id: data.supplier_id,
-        category: data.category as ExpenseCategory,
-        description: data.description || null,
-        issue_date: toYMD(data.issue_date) ?? "",
-        due_date: toYMD(data.due_date) ?? null,
-        currency: data.currency,
-        exchange_rate: data.exchange_rate,
-        subtotal: data.subtotal,
-        tax_amount: data.tax_amount,
-        retention_iva: data.retention_iva,
-        retention_isr: data.retention_isr,
-        total,
-        cfdi_uuid: data.cfdi_uuid || null,
-        payment_method_sat: data.payment_method_sat ?? null,
-      },
-      { onSuccess: onClose },
-    );
+    const payload = {
+      supplier_id: data.supplier_id,
+      category: data.category as ExpenseCategory,
+      description: data.description || null,
+      issue_date: toYMD(data.issue_date) ?? "",
+      due_date: toYMD(data.due_date) ?? null,
+      currency: data.currency,
+      exchange_rate: data.exchange_rate,
+      subtotal: data.subtotal,
+      tax_amount: data.tax_amount,
+      retention_iva: data.retention_iva,
+      retention_isr: data.retention_isr,
+      total,
+      cfdi_uuid: data.cfdi_uuid || null,
+      payment_method_sat: data.payment_method_sat ?? null,
+    };
+
+    if (isEdit && initialBill) {
+      update.mutate(
+        { id: initialBill.id, patch: payload },
+        { onSuccess: onClose },
+      );
+    } else {
+      create.mutate(payload, { onSuccess: onClose });
+    }
   };
 
   return {
     form, selectedSupplier, suggestedDueDate, total,
-    isPending: create.isPending,
+    isEdit,
+    isPending: create.isPending || update.isPending,
     onSubmit: form.handleSubmit(onSubmit),
   };
 }

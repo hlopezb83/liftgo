@@ -4,16 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { CreditCard, FileText, XCircle, Loader2 } from "lucide-react";
+import { CreditCard, FileText, XCircle, Loader2, Pencil, Trash2 } from "lucide-react";
 import { useSupplierBill } from "../hooks/useSupplierBill";
+import { useDeleteSupplierBill } from "../hooks/useSupplierBillMutations";
+import { useUserRole } from "@/features/users/hooks/useUserRole";
 import {
   SUPPLIER_BILL_STATUS_LABELS,
   EXPENSE_CATEGORY_LABELS,
 } from "../lib/supplierBillConstants";
 import { RegisterSupplierPaymentDialog } from "./RegisterSupplierPaymentDialog";
 import { CancelSupplierBillDialog } from "./CancelSupplierBillDialog";
+import { SupplierBillFormDialog } from "./SupplierBillFormDialog";
 import { BillApprovalSection } from "./BillApprovalSection";
 import { SupplierPaymentRow } from "./SupplierPaymentRow";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -64,9 +68,27 @@ function FinancialsSection({ bill }: { bill: BillData }) {
   );
 }
 
+interface BillActionsState {
+  status: string;
+  approval_status: string;
+  payments: unknown[];
+}
+
 function PaymentActions({
-  bill, onPayClick, onCancelClick,
-}: { bill: { status: string; approval_status: string; payments: unknown[] }; onPayClick: () => void; onCancelClick: () => void }) {
+  bill, isAdmin, canEdit, canDelete, editBlockedReason, deleteBlockedReason,
+  onPayClick, onCancelClick, onEditClick, onDeleteClick,
+}: {
+  bill: BillActionsState;
+  isAdmin: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  editBlockedReason: string | null;
+  deleteBlockedReason: string | null;
+  onPayClick: () => void;
+  onCancelClick: () => void;
+  onEditClick: () => void;
+  onDeleteClick: () => void;
+}) {
   const payBlocked =
     bill.status === "paid" ||
     bill.status === "cancelled" ||
@@ -76,32 +98,102 @@ function PaymentActions({
     bill.approval_status === "pending" ? "Requiere aprobación" :
     bill.approval_status === "rejected" ? "La factura fue rechazada" : null;
   return (
-    <div className="flex gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="flex-1">
-              <Button className="w-full" disabled={payBlocked} onClick={onPayClick}>
-                <CreditCard className="h-4 w-4 mr-1" /> Registrar pago
-              </Button>
-            </span>
-          </TooltipTrigger>
-          {tooltipReason && <TooltipContent>{tooltipReason}</TooltipContent>}
-        </Tooltip>
-      </TooltipProvider>
-      <Button variant="outline"
-        disabled={bill.status === "cancelled" || bill.payments.length > 0}
-        onClick={onCancelClick}>
-        <XCircle className="h-4 w-4 mr-1" /> Cancelar
-      </Button>
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex-1">
+                <Button className="w-full" disabled={payBlocked} onClick={onPayClick}>
+                  <CreditCard className="h-4 w-4 mr-1" /> Registrar pago
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {tooltipReason && <TooltipContent>{tooltipReason}</TooltipContent>}
+          </Tooltip>
+        </TooltipProvider>
+        <Button variant="outline"
+          disabled={bill.status === "cancelled" || bill.payments.length > 0}
+          onClick={onCancelClick}>
+          <XCircle className="h-4 w-4 mr-1" /> Cancelar
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex-1">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={!canEdit}
+                  onClick={onEditClick}
+                >
+                  <Pencil className="h-4 w-4 mr-1" /> Editar
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!canEdit && editBlockedReason && <TooltipContent>{editBlockedReason}</TooltipContent>}
+          </Tooltip>
+        </TooltipProvider>
+        {isAdmin && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex-1">
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    disabled={!canDelete}
+                    onClick={onDeleteClick}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!canDelete && deleteBlockedReason && <TooltipContent>{deleteBlockedReason}</TooltipContent>}
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
     </div>
   );
 }
 
 export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
   const { data: bill, isLoading } = useSupplierBill(open ? billId : null);
+  const { data: role } = useUserRole();
+  const deleteBill = useDeleteSupplierBill();
   const [payDialog, setPayDialog] = useState(false);
   const [cancelDialog, setCancelDialog] = useState(false);
+  const [editDialog, setEditDialog] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+
+  const isAdmin = role === "admin";
+  const hasPayments = (bill?.payments?.length ?? 0) > 0;
+
+  const canEdit = !!bill
+    && bill.approval_status === "pending"
+    && bill.status !== "cancelled"
+    && bill.status !== "paid"
+    && !hasPayments;
+  const editBlockedReason = !bill ? null
+    : bill.status === "cancelled" ? "Factura cancelada"
+    : bill.status === "paid" ? "Factura pagada"
+    : hasPayments ? "Tiene pagos registrados"
+    : bill.approval_status === "approved" ? "Ya fue aprobada"
+    : bill.approval_status === "rejected" ? "Fue rechazada"
+    : null;
+
+  const canDelete = !!bill
+    && !hasPayments
+    && bill.approval_status !== "approved"
+    && bill.status !== "cancelled";
+  const deleteBlockedReason = !bill ? null
+    : hasPayments ? "Tiene pagos registrados"
+    : bill.approval_status === "approved" ? "Ya fue aprobada — usa Cancelar"
+    : bill.status === "cancelled" ? "Ya está cancelada"
+    : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -177,8 +269,15 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
             <RoleGuard module="Facturas de Proveedor" minAccess="full">
               <PaymentActions
                 bill={bill}
+                isAdmin={isAdmin}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                editBlockedReason={editBlockedReason}
+                deleteBlockedReason={deleteBlockedReason}
                 onPayClick={() => setPayDialog(true)}
                 onCancelClick={() => setCancelDialog(true)}
+                onEditClick={() => setEditDialog(true)}
+                onDeleteClick={() => setDeleteDialog(true)}
               />
             </RoleGuard>
 
@@ -195,6 +294,27 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
               billId={bill.id}
               billNumber={bill.bill_number}
               onCancelled={() => onOpenChange(false)}
+            />
+            <SupplierBillFormDialog
+              open={editDialog}
+              onOpenChange={setEditDialog}
+              bill={bill}
+            />
+            <ConfirmDialog
+              open={deleteDialog}
+              onOpenChange={setDeleteDialog}
+              title={`Eliminar factura ${bill.bill_number}`}
+              description="Esta acción es irreversible y elimina el registro físico de la factura. No se permite si ya fue aprobada o tiene pagos. Considera Cancelar en esos casos."
+              confirmLabel="Eliminar definitivamente"
+              destructive
+              onConfirm={() => {
+                deleteBill.mutate(bill.id, {
+                  onSuccess: () => {
+                    setDeleteDialog(false);
+                    onOpenChange(false);
+                  },
+                });
+              }}
             />
           </div>
         )}
