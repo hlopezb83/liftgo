@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { Edit, Stamp, XCircle, Download, DollarSign, MoreHorizontal, Trash2, RefreshCw } from "lucide-react";
+import { Edit, Stamp, XCircle, Download, DollarSign, Trash2, RefreshCw } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 
@@ -67,52 +66,6 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
   );
 }
 
-interface MenuProps {
-  flags: Flags;
-  isStamping: boolean;
-  onEdit: () => void;
-  onStamp: () => void;
-  onDownloadXml: () => void;
-  onCancelCfdi: () => void;
-  onDelete: () => void;
-}
-
-function ActionsMenu({ flags, isStamping, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete }: MenuProps) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm"><MoreHorizontal className="h-4 w-4 mr-1" /> Acciones</Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {flags.canEdit && (
-          <DropdownMenuItem onClick={onEdit}><Edit className="h-4 w-4 mr-2" /> Editar</DropdownMenuItem>
-        )}
-        {flags.canStamp && (
-          <DropdownMenuItem onClick={onStamp} disabled={isStamping}>
-            <Stamp className="h-4 w-4 mr-2" /> {isStamping ? "Timbrando..." : "Timbrar CFDI"}
-          </DropdownMenuItem>
-        )}
-        {flags.isStamped && (
-          <>
-            <DropdownMenuItem onClick={onDownloadXml}><Download className="h-4 w-4 mr-2" /> Descargar XML</DropdownMenuItem>
-            {!flags.isPendingCancel && (
-              <DropdownMenuItem onClick={onCancelCfdi} className="text-destructive focus:text-destructive">
-                <XCircle className="h-4 w-4 mr-2" /> Cancelar CFDI
-              </DropdownMenuItem>
-            )}
-          </>
-        )}
-        <RoleGuard module="Facturas" minAccess="full">
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-            <Trash2 className="h-4 w-4 mr-2" /> Eliminar
-          </DropdownMenuItem>
-        </RoleGuard>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole,
   isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
@@ -132,11 +85,41 @@ export function InvoiceDetailActions({
           <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
         </Button>
       )}
-      <ActionsMenu
-        flags={flags} isStamping={isStamping}
-        onEdit={onEdit} onStamp={onStamp} onDownloadXml={onDownloadXml}
-        onCancelCfdi={onCancelCfdi} onDelete={onDelete}
-      />
+      {flags.canEdit && (
+        <Button size="sm" variant="outline" onClick={onEdit}>
+          <Edit className="h-4 w-4 mr-1" /> Editar
+        </Button>
+      )}
+      {flags.canStamp && !flags.isDraft && (
+        <Button size="sm" variant="outline" onClick={onStamp} disabled={isStamping}>
+          <Stamp className="h-4 w-4 mr-1" /> {isStamping ? "Timbrando..." : "Timbrar CFDI"}
+        </Button>
+      )}
+      {flags.isStamped && (
+        <Button size="sm" variant="outline" onClick={onDownloadXml}>
+          <Download className="h-4 w-4 mr-1" /> Descargar XML
+        </Button>
+      )}
+      {flags.isStamped && !flags.isPendingCancel && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onCancelCfdi}
+          className="text-destructive hover:text-destructive"
+        >
+          <XCircle className="h-4 w-4 mr-1" /> Cancelar CFDI
+        </Button>
+      )}
+      <RoleGuard module="Facturas" minAccess="full">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onDelete}
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+        </Button>
+      </RoleGuard>
       <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
     </>
   );
