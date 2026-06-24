@@ -1,0 +1,25 @@
+{
+  "version": "6.91.5",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Formateo de meses centralizado en helper único",
+  "category": "fix",
+  "summary": "Se ampliaron y consolidaron los helpers de formateo de meses en español como única fuente de verdad, previniendo regresiones de idioma cuando se olvida pasar { locale: es } a date-fns.",
+  "changes": [
+    {
+      "area": "Infraestructura",
+      "items": [
+        "src/lib/format/formatMonthEs.ts ahora exporta tres helpers: formatMonthShortEs(monthKey) → 'Jun 26', formatMonthShortEsFromDate(date) → 'Jun 26', formatMonthLongEs(date) → 'Junio 2026'."
+      ]
+    },
+    {
+      "area": "Reportes",
+      "items": [
+        "RevenueReport: migrado de date-fns + locale es a formatMonthShortEsFromDate.",
+        "IncomeStatementPage (selector de rango): migrado a formatMonthLongEs."
+      ]
+    }
+  ],
+  "notes": "Regla actualizada en memoria de proyecto: usar siempre los helpers en lugar de date-fns directo para etiquetas de mes.",
+  "breaking": false
+}

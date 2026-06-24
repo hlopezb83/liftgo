@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
-import { es } from "date-fns/locale";
+import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
 import { Download } from "lucide-react";
 import { useInvoices } from "@/features/invoices";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -24,7 +24,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
     const months: Record<string, Row> = {};
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
-      const label = format(startOfMonth(parseISO(inv.issued_at)), "MMM yyyy", { locale: es });
+      const label = formatMonthShortEsFromDate(startOfMonth(parseISO(inv.issued_at)));
       if (!months[key]) months[key] = { month: label, invoiced: 0, paid: 0, count: 0 };
       months[key].invoiced += Number(inv.total);
       months[key].count++;
