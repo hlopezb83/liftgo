@@ -1,11 +1,12 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { capitalize, parseDateLocal } from "@/lib/utils";
 import { AccountsPayableKpiCards } from "./AccountsPayableKpiCards";
 import {
-  EXPENSE_CATEGORY_LABELS, SUPPLIER_BILL_STATUSES, SUPPLIER_BILL_STATUS_LABELS,
+  EXPENSE_CATEGORY_LABELS, EXPENSE_CATEGORY_GROUPS,
+  SUPPLIER_BILL_STATUSES, SUPPLIER_BILL_STATUS_LABELS,
   APPROVAL_STATUSES, APPROVAL_STATUS_LABELS,
 } from "../lib/supplierBillConstants";
 import { SUPPLIER_REP_STATUSES, SUPPLIER_REP_STATUS_LABELS } from "../lib/supplierRepConstants";
