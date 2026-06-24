@@ -267,14 +267,33 @@ export async function handleStampCfdi(
         status: createRes.status,
         body: errBody.slice(0, 500),
       });
+      // Parse Facturapi JSON error to surface code + message to the client.
+      let facturapiCode: string | null = null;
+      let facturapiMessage: string | null = null;
+      try {
+        const parsed = JSON.parse(errBody) as {
+          code?: string;
+          message?: string;
+        };
+        facturapiCode = parsed.code ?? null;
+        facturapiMessage = parsed.message ?? null;
+      } catch { /* keep nulls */ }
       await supabase.from("invoices")
         .update({
           cfdi_status: "error",
           cfdi_error_message: errBody.slice(0, 1000),
         })
         .eq("id", invoice_id);
+      const errorText = facturapiCode && facturapiMessage
+        ? `${facturapiCode}: ${facturapiMessage}`
+        : facturapiMessage ?? `Facturapi error: ${createRes.status}`;
       return json(
-        { error: `Facturapi error: ${createRes.status}`, detail: errBody },
+        {
+          error: errorText,
+          code: facturapiCode,
+          status: createRes.status,
+          detail: errBody,
+        },
         502,
         jsonHeaders,
       );
