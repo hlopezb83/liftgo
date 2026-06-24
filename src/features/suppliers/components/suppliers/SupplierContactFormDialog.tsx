@@ -86,14 +86,16 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{contact ? "Editar contacto" : "Nuevo contacto"}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-3">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={contact ? "Editar contacto" : "Nuevo contacto"}
+      width="md"
+    >
+      <form onSubmit={onSubmit} className="space-y-4">
+        <FormSection title="Identidad" first>
           <div className="space-y-1.5">
-            <Label>Nombre *</Label>
+            <Label>Nombre <RequiredMark /></Label>
             <Input value={form.name} onChange={(e) => set("name", e.target.value)} maxLength={100} />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -111,13 +113,11 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
               <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} maxLength={30} />
             </div>
           </div>
+        </FormSection>
+        <FormSection title="Contacto">
           <div className="space-y-1.5">
             <Label>Correo</Label>
             <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} maxLength={255} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Notas</Label>
-            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} />
           </div>
           <div className="flex items-center justify-between rounded-md border p-3">
             <div>
@@ -126,15 +126,21 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
             </div>
             <Switch checked={form.is_primary} onCheckedChange={(v) => set("is_primary", v)} />
           </div>
-          <DialogFooter>
-            <FormActions
-              submitLabel={contact ? "Guardar" : "Agregar"}
-              isPending={create.isPending || update.isPending}
-              onCancel={() => onOpenChange(false)}
-            />
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </FormSection>
+        <FormSection title="Interno">
+          <div className="space-y-1.5">
+            <Label>Notas</Label>
+            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} />
+          </div>
+        </FormSection>
+        <FormDialogFooter>
+          <FormActions
+            submitLabel={contact ? "Guardar" : "Agregar contacto"}
+            isPending={create.isPending || update.isPending}
+            onCancel={() => onOpenChange(false)}
+          />
+        </FormDialogFooter>
+      </form>
+    </FormDialog>
   );
 }
