@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
       weekly_rate?: number;
       monthly_rate?: number;
     };
-    type Booking = (typeof bookings extends Array<infer T> ? T : never);
+    type Booking = typeof bookings extends Array<infer T> ? T : never;
     type EligibleBooking = {
       booking: Booking;
       forklift: Forklift | null;
@@ -169,7 +169,11 @@ Deno.serve(async (req) => {
       if (effectiveLastBilled) {
         const lastBilled = dateOnlyToMty(effectiveLastBilled);
         billingStart = new Date(
-          Date.UTC(lastBilled.getUTCFullYear(), lastBilled.getUTCMonth() + 1, 1),
+          Date.UTC(
+            lastBilled.getUTCFullYear(),
+            lastBilled.getUTCMonth() + 1,
+            1,
+          ),
         );
       } else {
         const startDate = dateOnlyToMty(booking.start_date);
@@ -213,7 +217,9 @@ Deno.serve(async (req) => {
       // Idempotencia: ¿ya existe factura ligada a alguna de estas reservas en este período?
       const { data: existingLink } = await supabase
         .from("invoice_bookings")
-        .select("invoice_id, invoices!inner(id, billing_period_start, billing_period_end)")
+        .select(
+          "invoice_id, invoices!inner(id, billing_period_start, billing_period_end)",
+        )
         .in("booking_id", bookingIds)
         .eq("invoices.billing_period_start", startStr)
         .eq("invoices.billing_period_end", endStr)
@@ -245,7 +251,9 @@ Deno.serve(async (req) => {
       }
 
       const lineItems = items.map((i) => ({
-        description: `${i.forklift?.name || "Montacargas"} — Renta mensual (${fmtMx(i.billingStart)} al ${fmtMx(i.billingEnd)})`,
+        description: `${i.forklift?.name || "Montacargas"} — Renta mensual (${
+          fmtMx(i.billingStart)
+        } al ${fmtMx(i.billingEnd)})`,
         quantity: 1,
         unit_price: i.monthlyRate,
         total: i.monthlyRate,
@@ -276,7 +284,8 @@ Deno.serve(async (req) => {
           billing_period_start: startStr,
           billing_period_end: endStr,
           receptor_rfc: customer?.rfc ?? null,
-          receptor_razon_social: customer?.razon_social || customer?.name || null,
+          receptor_razon_social: customer?.razon_social || customer?.name ||
+            null,
           receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
           receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
           uso_cfdi: customer?.uso_cfdi ?? "G03",
@@ -327,7 +336,12 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, invoicesCreated, bookingsBilled, duplicatesSkipped }),
+      JSON.stringify({
+        success: true,
+        invoicesCreated,
+        bookingsBilled,
+        duplicatesSkipped,
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
