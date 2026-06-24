@@ -108,8 +108,13 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
               <Select value={form.watch("category")} onValueChange={(v) => form.setValue("category", v)}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(EXPENSE_CATEGORY_LABELS).map(([v, l]) => (
-                    <SelectItem key={v} value={v}>{l}</SelectItem>
+                  {EXPENSE_CATEGORY_GROUPS.map((g) => (
+                    <SelectGroup key={g.label}>
+                      <SelectLabel>{g.label}</SelectLabel>
+                      {g.categories.map((v) => (
+                        <SelectItem key={v} value={v}>{EXPENSE_CATEGORY_LABELS[v]}</SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
