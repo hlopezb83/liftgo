@@ -18,10 +18,8 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
   notifyAsync: vi.fn(),
 }));
 
-// Mockeamos insertCostoVentaIfSold para aislar useUpdateStatus.
-vi.mock("../../../lib/insertCostoVentaIfSold", () => ({
-  insertCostoVentaIfSold: vi.fn(async () => {}),
-}));
+
+
 
 const forkliftInserts: unknown[] = [];
 const statusLogInserts: unknown[] = [];
