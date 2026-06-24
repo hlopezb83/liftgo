@@ -25,15 +25,9 @@ const directCostRows = (filteredData: MonthData[], totals: RowTotals): Statement
 const operatingExpenseGroupRows = (filteredData: MonthData[], totals: RowTotals): StatementRow[] => {
   const rows: StatementRow[] = [];
   for (const group of OPERATING_EXPENSE_GROUPS) {
-    rows.push({
-      label: `  ${group.label}`,
-      values: filteredData.map(() => 0),
-      total: 0,
-      isSubtotal: true,
-    });
     for (const c of group.categories) {
       rows.push({
-        label: `    (-) ${EXPENSE_CATEGORY_LABELS[c]}`,
+        label: `  (-) ${EXPENSE_CATEGORY_LABELS[c]}`,
         values: filteredData.map((r) => r.expenses[c]),
         total: totals.expenses[c],
         isCost: true,
@@ -43,7 +37,7 @@ const operatingExpenseGroupRows = (filteredData: MonthData[], totals: RowTotals)
       sumMoney(group.categories.map((c) => r.expenses[c])),
     );
     rows.push({
-      label: `  = Total ${group.label}`,
+      label: `= Total ${group.label}`,
       values: groupValues,
       total: sumMoney(group.categories.map((c) => totals.expenses[c])),
       isSubtotal: true,
@@ -52,6 +46,7 @@ const operatingExpenseGroupRows = (filteredData: MonthData[], totals: RowTotals)
   }
   return rows;
 };
+
 
 export function buildStatementRows(filteredData: MonthData[], totals: RowTotals): StatementRow[] {
   return [
