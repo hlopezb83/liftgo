@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, FileClock, BarChart3, FileSpreadsheet } from "lucide-react";
+import { Plus, FileClock, BarChart3, FileSpreadsheet, FileUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useLiftgoTable } from "@/components/dataTable/v2";
