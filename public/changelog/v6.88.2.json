@@ -1,0 +1,17 @@
+{
+  "version": "6.88.2",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Formato Deno en generate-recurring-invoices",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "CI",
+      "items": [
+        "Aplicado deno fmt a supabase/functions/generate-recurring-invoices/index.ts en 6 zonas (líneas 135, 172, 216, 248, 279, 330).",
+        "Cambios puramente cosméticos: alias de tipo sin paréntesis envolventes, Date.UTC multilínea, .select() partido, template literal con fmtMx en línea propia, fallback de razon_social roto a dos líneas y JSON.stringify de la respuesta final expandido.",
+        "deno fmt --check ahora pasa, desbloqueando el job de CI."
+      ]
+    }
+  ]
+}
