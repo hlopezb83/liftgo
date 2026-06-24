@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.92.2",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Limpieza: elimina insertCostoVentaIfSold sin uso",
+    "description": "Se elimina el archivo src/features/fleet/lib/insertCostoVentaIfSold.ts (detectado por knip como huérfano tras la unificación de COGS en v6.92.0) y se retira su mock del test de useForkliftMutations.",
+    "category": "fix"
+  },
+  {
     "version": "6.92.1",
     "date": "2026-06-24",
     "type": "patch",
