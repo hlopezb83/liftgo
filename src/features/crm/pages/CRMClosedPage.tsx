@@ -4,10 +4,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useClosedProspects } from "../hooks/useClosedProspects";
 import { ClosedTable } from "../components/closed/ClosedTable";
@@ -59,20 +56,14 @@ export default function CRMClosedPage() {
         </Tabs>
       </div>
 
-      <AlertDialog open={s.reopenTarget !== null} onOpenChange={(open) => !open && s.setReopenTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reabrir deal</AlertDialogTitle>
-            <AlertDialogDescription>
-              {s.reopenTarget ? `¿Reabrir deal con ${s.reopenTarget.companyName}? Volverá a la columna de Negociación.` : ""}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={s.confirmReopen}>Reabrir</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={s.reopenTarget !== null}
+        onOpenChange={(open) => !open && s.setReopenTarget(null)}
+        title="Reabrir deal"
+        description={s.reopenTarget ? `¿Reabrir deal con ${s.reopenTarget.companyName}? Volverá a la columna de Negociación.` : ""}
+        confirmLabel="Reabrir"
+        onConfirm={s.confirmReopen}
+      />
     </PageTransition>
   );
 }
