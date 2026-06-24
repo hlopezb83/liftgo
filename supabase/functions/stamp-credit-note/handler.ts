@@ -71,6 +71,22 @@ export async function handleStampCreditNote(
     if (ncRow.cfdi_status === "stamped") {
       return json({ error: "Credit note already stamped" }, 409, jsonHeaders);
     }
+    // Claim atómico para evitar doble timbrado concurrente.
+    const claimRes = await supabase
+      .from("credit_notes")
+      .update({ cfdi_status: "stamping" })
+      .eq("id", credit_note_id)
+      .in("cfdi_status", ["pending", "error"])
+      .is("cfdi_uuid", null)
+      .select("id")
+      .maybeSingle();
+    if (!(claimRes as { data: unknown }).data) {
+      return json(
+        { error: "Credit note already stamped or in progress" },
+        409,
+        jsonHeaders,
+      );
+    }
 
     const { data: invoice, error: invErr } = await supabase
       .from("invoices").select("*").eq("id", ncRow.invoice_id).single();
