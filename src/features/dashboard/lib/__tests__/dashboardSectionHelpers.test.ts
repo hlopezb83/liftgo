@@ -79,7 +79,7 @@ describe("mapMonthlyUtilization / mapCashFlow", () => {
   it("pasan datos relevantes tal cual", () => {
     expect(mapMonthlyUtilization({ monthly_utilization: [{ month_label: "May 26", utilization: 80 }] }))
       .toEqual([{ month_label: "May 26", utilization: 80 }]);
-    expect(mapCashFlow({ cash_flow: [{ month: "May", invoiced: 100, paid: 80 }] }))
-      .toEqual([{ month: "May", invoiced: 100, paid: 80 }]);
+    expect(mapCashFlow({ cash_flow: [{ month: "May 2026", month_key: "2026-05", invoiced: 100, paid: 80 }] }))
+      .toEqual([{ month: "May 26", invoiced: 100, paid: 80 }]);
   });
 });
