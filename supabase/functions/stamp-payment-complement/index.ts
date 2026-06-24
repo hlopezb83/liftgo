@@ -84,6 +84,22 @@ Deno.serve(async (req) => {
         { status: 400, headers: jsonHeaders },
       );
     }
+    // Claim atómico: solo una petición concurrente puede transicionar
+    // de pending|error → stamping. Cierra la ventana antes de llamar a Facturapi.
+    const claimRes = await supabase
+      .from("payments")
+      .update({ rep_cfdi_status: "stamping" })
+      .eq("id", payment_id)
+      .in("rep_cfdi_status", ["pending", "error", "none"])
+      .is("rep_cfdi_uuid", null)
+      .select("id")
+      .maybeSingle();
+    if (!(claimRes as { data: unknown }).data) {
+      return new Response(
+        JSON.stringify({ error: "REP ya está siendo timbrado o ya fue timbrado" }),
+        { status: 409, headers: jsonHeaders },
+      );
+    }
 
     // Load invoice
     const { data: invoice } = await supabase
