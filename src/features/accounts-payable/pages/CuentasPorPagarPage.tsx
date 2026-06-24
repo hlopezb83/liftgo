@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, FileClock, BarChart3, FileSpreadsheet, FileUp } from "lucide-react";
+import { Plus, FileClock, BarChart3, FileSpreadsheet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useLiftgoTable } from "@/components/dataTable/v2";
@@ -13,7 +13,6 @@ import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
 import { SupplierBillDetailSheet } from "../components/SupplierBillDetailSheet";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
-import { ImportSupplierBillXmlDialog } from "../components/ImportSupplierBillXmlDialog";
 import { SupplierBillsFilters } from "../components/SupplierBillsFilters";
 import {
   useSupplierBillColumns,
@@ -25,7 +24,6 @@ export default function CuentasPorPagarPage() {
   const { data: suppliers } = useSuppliers();
   const f = useAccountsPayableFilters(bills);
   const createDialog = useToggleDialog();
-  const importDialog = useToggleDialog();
   const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -54,9 +52,6 @@ export default function CuentasPorPagarPage() {
             <Button variant="outline" onClick={exportDialog.openDialog}>
               <FileSpreadsheet className="h-4 w-4 mr-1" />Exportar pagos
             </Button>
-            <Button variant="outline" onClick={importDialog.openDialog}>
-              <FileUp className="h-4 w-4 mr-1" />Importar XML
-            </Button>
             <Button onClick={createDialog.openDialog}>
               <Plus className="h-4 w-4 mr-1" />Nueva Factura
             </Button>
@@ -75,7 +70,6 @@ export default function CuentasPorPagarPage() {
       />
 
       <SupplierBillFormDialog open={createDialog.open} onOpenChange={createDialog.setOpen} />
-      <ImportSupplierBillXmlDialog open={importDialog.open} onOpenChange={importDialog.setOpen} />
       <ExportPaymentsDialog open={exportDialog.open} onOpenChange={exportDialog.setOpen} />
       <SupplierBillDetailSheet
         billId={selectedId}

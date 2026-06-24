@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,8 @@ import {
   CURRENCIES,
 } from "../lib/supplierBillConstants";
 import { useSupplierBillForm, type SupplierBillFormOverrides } from "../hooks/useSupplierBillForm";
+import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
+import { SupplierBillCfdiDropzone } from "./SupplierBillCfdiDropzone";
 
 import type { SupplierBillDetail } from "../hooks/useSupplierBill";
 
@@ -26,9 +29,55 @@ interface Props {
 }
 
 export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, titleOverride }: Props) {
-  const { form, selectedSupplier, suggestedDueDate, total, isEdit, isPending, onSubmit } =
-    useSupplierBillForm(open, () => onOpenChange(false), bill, overrides);
+  const isEdit = !!bill;
+  const allowImport = !isEdit && !overrides;
+
+  const cfdi = useImportSupplierBillCfdi();
+  const [importedValues, setImportedValues] = useState<SupplierBillFormOverrides | undefined>(undefined);
+
+  // Reset import state on close.
+  useEffect(() => {
+    if (!open) {
+      cfdi.reset();
+      setImportedValues(undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const activeOverrides = overrides ?? importedValues;
+
+  const { form, selectedSupplier, suggestedDueDate, total, isPending, onSubmit } =
+    useSupplierBillForm(open, () => onOpenChange(false), bill, activeOverrides);
   const currency = form.watch("currency");
+
+  const handleFile = async (file: File) => {
+    const r = await cfdi.importXml(file);
+    if (r) {
+      const next: SupplierBillFormOverrides = {
+        initialValues: r.initialValues,
+        cfdiXmlUrl: r.uploaded.signedUrl,
+      };
+      setImportedValues(next);
+      form.reset({
+        supplier_id: "", category: "", description: "",
+        issue_date: new Date(), currency: "MXN", exchange_rate: 1,
+        subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
+        cfdi_uuid: "",
+        ...r.initialValues,
+      });
+    }
+  };
+
+  const handleClear = () => {
+    cfdi.reset();
+    setImportedValues(undefined);
+    form.reset({
+      supplier_id: "", category: "", description: "",
+      issue_date: new Date(), currency: "MXN", exchange_rate: 1,
+      subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
+      cfdi_uuid: "",
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -39,6 +88,15 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
+          {allowImport && (
+            <SupplierBillCfdiDropzone
+              busy={cfdi.busy}
+              error={cfdi.error}
+              result={cfdi.result}
+              onFile={handleFile}
+              onClear={handleClear}
+            />
+          )}
           <SupplierSelector
             value={form.watch("supplier_id")}
             onChange={(v) => form.setValue("supplier_id", v)}
