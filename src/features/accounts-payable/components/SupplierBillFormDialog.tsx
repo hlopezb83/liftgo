@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { SupplierSelector } from "@/features/suppliers";
@@ -11,6 +11,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import { formatDateDisplay } from "@/lib/utils";
 import {
   EXPENSE_CATEGORY_LABELS,
+  EXPENSE_CATEGORY_GROUPS,
   PAYMENT_METHOD_SAT_OPTIONS,
   CURRENCIES,
 } from "../lib/supplierBillConstants";
