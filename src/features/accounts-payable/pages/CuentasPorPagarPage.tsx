@@ -75,6 +75,7 @@ export default function CuentasPorPagarPage() {
       />
 
       <SupplierBillFormDialog open={createDialog.open} onOpenChange={createDialog.setOpen} />
+      <ImportSupplierBillXmlDialog open={importDialog.open} onOpenChange={importDialog.setOpen} />
       <ExportPaymentsDialog open={exportDialog.open} onOpenChange={exportDialog.setOpen} />
       <SupplierBillDetailSheet
         billId={selectedId}
