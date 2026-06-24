@@ -1,127 +1,102 @@
+## ¿Qué es soft delete?
 
-# Idempotencia en LiftGo ERP — ¿Es necesaria?
+**Soft delete** = en lugar de borrar físicamente el registro (`DELETE FROM tabla`), se marca como inactivo con una columna (típicamente `deleted_at TIMESTAMPTZ` o `is_deleted BOOLEAN`) y se filtra en todas las lecturas (`WHERE deleted_at IS NULL`). El dato sigue en la base, recuperable, auditable y con integridad referencial intacta.
 
-## Respuesta corta
-
-**Sí, pero selectivamente.** No todo el ERP la necesita. Los flujos que tocan dinero, fisco o triggers irreversibles (CFDI, pagos, facturación recurrente) sí. Los flujos UI con un usuario haciendo clic en su pantalla, no — basta con `disabled={isPending}` y constraints de BD.
-
-Hoy el ERP **ya tiene idempotencia parcial** (guards en `stamp-cfdi`, `generate-recurring-invoices`, `payment_in_progress_at` en lotes), pero con **ventanas de race condition** y **dos antipatrones de "numeración + insert"** que pueden producir duplicados silenciosos bajo doble-clic o retry de red.
+**Hard delete** = `DELETE` físico. El registro desaparece; las FKs deben tener `ON DELETE CASCADE/SET NULL` o el borrado falla.
 
 ---
 
-## Qué es idempotencia (en una línea)
+## Auditoría del ERP actual
 
-Que ejecutar la misma operación 1 vez o N veces produzca exactamente el mismo resultado — sin duplicados, sin efectos secundarios extra.
+### Lo que SÍ tenemos (equivalentes funcionales)
 
----
+| Mecanismo | Dónde | Qué cubre |
+|---|---|---|
+| **Cancelación de estado** | `invoices.cfdi_status='cancelled'`, `credit_notes`, `payment_complements`, `bookings.status='cancelled'`, `quotes.status='cancelled'`, `contracts` | Documentos fiscales y de negocio — el registro nunca se borra, se marca cancelado. Esto **ya es soft delete de facto** para todo lo fiscal/contable. |
+| **Audit trail row-level** | `audit_logs` (11 tablas con diffs) | Aunque borres, queda historial del cambio anterior. Permite forense pero **no recuperación operativa**. |
+| **RPC de cancelación atómica** | `refresh-cancellation-status`, `cancel-cfdi`, `cancel-credit-note`, `cancel-payment-complement` | Cierra ciclo fiscal SAT + estado interno consistente. |
+| **Restricciones de borrado** | Customers, equipment_models, forklifts con bookings/facturas activas — bloqueados | Previene borrado accidental de datos referenciados. |
 
-## Matriz costo/beneficio por módulo
+### Lo que hacemos HARD DELETE hoy (152 llamadas `.delete()`)
 
-| Módulo | Riesgo real hoy | Impacto si pasa | Costo de implementar | ¿Vale la pena? |
-|---|---|---|---|---|
-| **Timbrado CFDI** (`stamp-cfdi`, `stamp-credit-note`, `stamp-payment-complement`) | Medio — guards existen pero con ventana | **ALTO** — doble timbre ante SAT, cancelación manual + multa | Bajo — `UPDATE ... WHERE status='draft' RETURNING` antes de llamar a Facturapi | **SÍ — P0** |
-| **Facturación recurrente** (`generate-recurring-invoices` cron) | Alto — race window entre SELECT y INSERT | **ALTO** — doble factura al cliente, doble timbrado, conciliación rota | Medio — `UNIQUE(customer_id, billing_period_start, billing_period_end)` parcial + advisory lock | **SÍ — P0** |
-| **Numeración** (`next_invoice_number`, `next_supplier_bill_number`, etc.) | Alto — `MAX()+1` sin lock; sin UNIQUE constraint | Medio — números repetidos rompen contabilidad y export SAT | Bajo — secuencia atómica dentro de RPC + `UNIQUE` constraint | **SÍ — P0** |
-| **Lotes de pago a proveedor** (`create_supplier_payment_batch`) | Medio — `payment_in_progress_at` no bloquea segundo lote | Alto — doble transferencia bancaria | Bajo — `RAISE EXCEPTION` si `payment_in_progress_at IS NOT NULL` | **SÍ — P1** |
-| **Mantenimiento recurrente** (`generate-recurring-maintenance`) | Medio — bulk insert sin verificación previa | Bajo-Medio — logs duplicados, ruido operativo | Bajo — actualizar `last_generated_month` ANTES del insert dentro de transacción | **SÍ — P1** |
-| **Importación CFDI gastos** (`parse-cfdi-expense`) | Ya idempotente (chequea UUID) | — | — | **YA OK** |
-| **Importación bancaria** (`useImportBankStatement`) | Ya idempotente (`upsert` por hash) | — | — | **YA OK** |
-| **Mutations UI normales** (crear cliente, prospecto, etc.) | Bajo — botón disabled + UNIQUE en BD | Bajo — error visible, sin daño | Alto si se sobre-ingeniera | **NO — basta lo actual** |
+Categorías:
 
----
+1. **Catálogos auxiliares** — `mechanics`, `drivers`, `equipment_models`, `supplier_contacts`, `supplier_bank_accounts`, `bank_accounts`, `maintenance_policies`, `parts_inventory`
+2. **Operativo borrador** — `prospects`, `quotes` en draft, `bookings` sin movimientos, `maintenance_logs`, `deliveries`, `damage_records`
+3. **Documentos** — `documents` (archivos adjuntos), `invoice_bookings` (joins)
+4. **Roles/usuarios** — `user_roles`, `profiles` (vía cascade auth)
+5. **Limpieza transaccional** — `supplier_bills` no aprobadas, `supplier_payments`, `credit_notes` draft
 
-## Patrones de implementación recomendados
+### Vacíos reales detectados
 
-Tres niveles, del más barato al más caro. Aplicar el mínimo que cubra el riesgo.
-
-### Nivel 1 — Constraints + numeración atómica (BD)
-
-Para todo lo que tenga "número de documento" (facturas, CFDI, lotes, complementos, mantenimientos):
-
-```text
-1. UNIQUE constraint en la columna de número.
-2. Reemplazar next_*_number (MAX+1) por SEQUENCE de Postgres
-   o por un INSERT ... RETURNING que reserve el número dentro
-   de la misma transacción del documento.
-3. El cliente nunca obtiene el número antes; lo recibe en la respuesta.
-```
-
-Cubre: numeración duplicada, doble-clic, retry de red — **sin tocar Edge Functions**.
-
-### Nivel 2 — Idempotency key (Edge Functions críticas)
-
-Para timbrado CFDI, facturación recurrente, lotes de pago:
-
-```text
-1. Tabla idempotency_keys(key text PK, response jsonb, created_at,
-   expires_at).
-2. Cliente envía header Idempotency-Key (UUID generado en el form).
-3. Edge Function:
-   - SELECT por key; si existe y < 24h → devolver response cacheada
-   - INSERT key (UNIQUE falla si concurrente → 409)
-   - Ejecutar operación
-   - UPDATE response cacheada
-```
-
-Cubre: retries automáticos, cron disparado dos veces, doble submit cross-tab.
-Estándar de la industria (Stripe, AWS).
-
-### Nivel 3 — Advisory locks / state machine atómica
-
-Para flujos donde el Nivel 2 no basta (timbrado SAT, transferencias):
-
-```text
-1. UPDATE invoices SET cfdi_status='stamping'
-   WHERE id=? AND cfdi_status='draft' RETURNING *;
-2. Si no devolvió fila → otra petición ya está timbrando → 409.
-3. Llamar Facturapi.
-4. UPDATE a 'stamped' o rollback a 'draft' en finally.
-```
-
-Cierra la ventana entre check y acción externa irreversible.
+- **Forklifts borrados** → se pierde histórico de ROI/utilización aunque haya audit_logs (no permite reportes "como si todavía existiera")
+- **Customers borrados** → bloqueado por FK, pero si se forzara se perdería contexto histórico de facturas viejas
+- **Maintenance_logs** → borrado físico permite ocultar mantenimientos hechos (riesgo de manipulación)
+- **Quotes/Bookings draft** → borrado real, no aparecen en audit_logs si nunca cambiaron de estado tras crearse
 
 ---
 
-## Roadmap propuesto
+## ¿Vale la pena implementarlo? Análisis costo/beneficio
 
-### P0 — Esta semana (riesgo financiero/fiscal)
-1. **UNIQUE constraints** en `invoices.invoice_number`, `supplier_bills.bill_number`, `credit_notes.credit_note_number`, `payments.payment_number`, `contracts.contract_number`, etc.
-2. **Refactor `next_*_number` RPCs** para emitir el número dentro del mismo INSERT (eliminar el patrón cliente-pide-número, cliente-inserta).
-3. **State guard atómico** en `stamp-cfdi`, `stamp-credit-note`, `stamp-payment-complement` (UPDATE returning antes de llamar a Facturapi).
-4. **Advisory lock o UNIQUE parcial** en `generate-recurring-invoices` por `(customer_id, period_start, period_end)` para cerrar la race window del cron.
+### Por categoría
 
-### P1 — Próximas dos semanas
-5. **Bloquear segundo lote** en `create_supplier_payment_batch` cuando `payment_in_progress_at` esté seteado.
-6. **Reordenar `generate-recurring-maintenance`**: marcar `last_generated_month` ANTES del bulk insert, ambos dentro de una transacción RPC.
+| Categoría | ¿Soft delete? | Razón |
+|---|---|---|
+| **Documentos fiscales** (invoices, credit_notes, payment_complements) | **YA ES SOFT** vía status `cancelled` | No tocar. SAT exige no perder UUIDs timbrados. |
+| **Bookings, contracts, quotes** | **YA ES SOFT** vía status | No tocar. |
+| **Forklifts** | **SÍ — añadir `deleted_at`** | ROI histórico, reportes retrospectivos, auditoría fiscal de activos depreciables. Costo bajo, beneficio alto. |
+| **Customers / Suppliers** | **SÍ — añadir `deleted_at`** | Facturas históricas necesitan razón social aunque el cliente "ya no exista". CFDI 4.0 obliga a conservar datos del receptor. |
+| **Maintenance_logs / Damage_records** | **SÍ — añadir `deleted_at`** | Trazabilidad. Un mecánico no debería borrar evidencia. |
+| **Catálogos auxiliares** (drivers, mechanics, bank_accounts, equipment_models, maintenance_policies) | **SÍ — añadir `deleted_at`** | Reportes históricos los referencian ("mantenimiento hecho por mecánico X" aunque X ya no trabaje aquí). |
+| **Prospects** | NO — hard delete OK | Datos pre-venta, sin obligación fiscal/legal. |
+| **Documents (archivos)** | NO — hard delete + storage cleanup | Costo de storage real, no requieren historia. |
+| **Joins (invoice_bookings, quote_assigned_forklifts)** | NO | Son relaciones; el soft delete está en las entidades padre. |
+| **user_roles / profiles** | Caso aparte — desactivar usuario, no borrar | Auditoría de quién hizo qué requiere preservar perfil. |
+| **Borradores nunca usados** | NO — hard delete OK | Sin valor histórico. |
 
-### P2 — Cuando se integre webhooks o terceros entrantes
-7. **Tabla `idempotency_keys` + header `Idempotency-Key`** en las 3 Edge Functions críticas (timbrado, recurrente, lotes). Solo se vuelve necesario cuando Facturapi/SAT reintenten webhooks o cuando se exponga API a integradores.
+### ¿Es **necesario**? — Respuesta directa
+
+**No es crítico ni urgente.** El ERP ya cubre los riesgos fiscales más graves (CFDI, contratos, bookings) vía status de cancelación. El `audit_logs` cubre forense.
+
+**Pero sí aporta valor medio** en 5 tablas concretas: `forklifts`, `customers`, `suppliers`, `maintenance_logs`, `damage_records`. Sin esto, borrar un forklift rompe reportes históricos de ROI; borrar un cliente bloquea (correcto) pero impide "limpiar" sin perder contexto.
+
+**Prioridad:** P2 (después de P0 idempotencia y otros temas fiscales). No bloqueante. Implementación incremental.
 
 ---
 
-## Lo que NO se debe hacer
+## Mejores prácticas (si se implementa)
 
-- No agregar idempotencia a mutations triviales (`createCustomer`, `updateProspect`) — basta con el `UNIQUE` actual y el botón disabled.
-- No implementar Nivel 2/3 sin primero cerrar Nivel 1 (los UNIQUE constraints atrapan el 80% de los casos por sí solos).
-- No usar `upsert` indiscriminadamente como "solución" — oculta bugs lógicos y rompe auditoría.
-
----
-
-## Detalles técnicos (referencia)
-
-Antipatrones detectados en el código actual:
-
-- `src/features/invoices/hooks/invoices/useInvoices.ts:42-57` — RPC + insert en dos pasos.
-- `src/features/accounts-payable/hooks/useSupplierBillMutations.ts:24-31` — mismo patrón.
-- `supabase/functions/generate-recurring-invoices/index.ts:218-270` — SELECT/INSERT con ventana, comentario de "rollback" sin rollback real.
-- `supabase/functions/generate-recurring-maintenance/index.ts:73-97` — UPDATE de marca de generación después del INSERT.
-- `supabase/functions/stamp-payment-complement/index.ts:62-68` — check sin actualización optimista.
-- `supabase/migrations/20260609185156_*.sql:123-160` — `create_supplier_payment_batch` permite incluir factura ya en lote en progreso.
-
-Ya idempotentes (no tocar): `parse-cfdi-expense` (UUID check), `useImportBankStatement` (upsert por hash), `stamp-cfdi` (guard 409 — falta cerrar ventana pero no inserta duplicado en BD).
+1. **Columna estándar:** `deleted_at TIMESTAMPTZ NULL` (no booleano — permite saber **cuándo**) + opcional `deleted_by UUID`.
+2. **Índice parcial** para no degradar queries:  
+   `CREATE INDEX ON tabla (campo) WHERE deleted_at IS NULL;`
+3. **Vista o RLS filtra por defecto:** policy `USING (deleted_at IS NULL)` para `authenticated`; rol admin puede ver borrados con filtro explícito.
+4. **UNIQUE constraints parciales:** `CREATE UNIQUE INDEX ON customers(rfc) WHERE deleted_at IS NULL;` — permite reusar el RFC tras borrado.
+5. **Cascadas lógicas vía trigger o RPC**, no `ON DELETE CASCADE` (que es para hard delete).
+6. **Hard delete real solo por job nocturno** tras N días (ej. 90) para cumplir GDPR/derecho al olvido si aplicara.
+7. **Nunca usar soft delete para documentos fiscales** — usar status de cancelación (ya lo hacemos correctamente).
+8. **UI consistente:** botón "Archivar" en lugar de "Eliminar" para tablas con soft delete; "Papelera" en admin para restaurar.
+9. **Tests:** verificar que listados filtran, que UNIQUE permite reuso, que reportes históricos siguen funcionando.
 
 ---
 
 ## Recomendación final
 
-**Hacer P0 ya** (es deuda técnica con impacto fiscal real). **P1 cuando haya hueco.** **P2 solo cuando se exponga API a terceros o entren webhooks.** No invertir en idempotencia "global" — el ROI cae a cero fuera de los flujos listados.
+**No implementar soft delete global.** El ROI es bajo: el ERP ya tiene los mecanismos correctos donde más importa (fiscal, contractual).
+
+**Sí considerar (P2, cuando haya hueco)** soft delete acotado a:
+- `forklifts` — preservar histórico de activos
+- `customers`, `suppliers` — preservar referencia para facturas viejas + limpieza de catálogo
+- `maintenance_logs`, `damage_records` — trazabilidad anti-manipulación
+
+Esto agregaría ~5 columnas, ~10 índices parciales, ~5 ajustes RLS y refactor de ~15 mutations. Estimado: 1-2 días de trabajo.
+
+---
+
+## Siguiente paso
+
+¿Procedemos con alguna de estas opciones?
+
+1. **Solo análisis** — dejar documentado el roadmap, sin implementar.
+2. **Implementar soft delete acotado** en las 5 tablas recomendadas (P2).
+3. **Implementar solo `forklifts` y `customers`** — las dos de mayor valor histórico.
+4. **Reforzar lo que ya existe** — endurecer flujos de cancelación / bloqueos de borrado sin agregar `deleted_at`.
