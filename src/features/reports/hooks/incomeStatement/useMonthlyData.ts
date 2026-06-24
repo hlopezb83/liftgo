@@ -52,8 +52,19 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   });
 
   const data: MonthData[] = (rpc?.months ?? []).map((m): MonthData => {
-    const expenses = { ...emptyExpenses(), ...m.expenses } as Record<ExpenseCategory, number>;
-    const cogsForkliftSales = Number(m.cogs_forklift_sales ?? 0);
+    const rawExpenses = { ...emptyExpenses(), ...m.expenses } as Record<ExpenseCategory, number>;
+    // Consolidación COGS: las facturas de proveedor con categoría `costo_venta`
+    // representan el mismo concepto que el valor en libros de equipos vendidos.
+    // Se suman a `cogsForkliftSales` y se retiran de `expenses` para evitar
+    // doble conteo en la utilidad bruta y en el total de egresos.
+    const cogsManual = Number(rawExpenses.costo_venta ?? 0);
+    const expenses = { ...rawExpenses, costo_venta: 0 };
+    const cogsAuto = Number(m.cogs_forklift_sales ?? 0);
+    const cogsForkliftSales = cogsAuto + cogsManual;
+    const cogsByForklift: Record<string, number> = { ...(m.cogs_by_forklift ?? {}) };
+    if (cogsManual > 0) {
+      cogsByForklift["Facturas de proveedor (manual)"] = cogsManual;
+    }
     const derived = computeDerivedTotals({
       revenue: Number(m.revenue),
       maintenanceCost: Number(m.maintenance_cost),
@@ -73,7 +84,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       damageCost: Number(m.damage_cost),
       depreciation: Number(m.depreciation),
       cogsForkliftSales,
-      cogsByForklift: m.cogs_by_forklift ?? {},
+      cogsByForklift,
       depreciationByForklift: m.depreciation_by_forklift ?? {},
       rentalByCustomer: m.rental_by_customer ?? {},
       salesByCustomer: m.sales_by_customer ?? {},
