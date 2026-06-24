@@ -25,9 +25,7 @@ export function EditNameDialog({ user, onClose }: EditNameDialogProps) {
   };
 
   return (
-    <Dialog open={!!user} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Editar Nombre</DialogTitle></DialogHeader>
+    <FormDialog open={!!user} onOpenChange={(v) => { if (!v) onClose(); }} title="Editar Nombre">
         <div className="space-y-2 py-2">
           <Label htmlFor="edit-name">Nombre Completo</Label>
           <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />

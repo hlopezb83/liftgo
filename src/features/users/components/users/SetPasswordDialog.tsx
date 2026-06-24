@@ -26,15 +26,13 @@ export function SetPasswordDialog({ user, onClose }: Props) {
   } = useSetPasswordForm(user, onClose);
 
   return (
-    <Dialog open={!!user} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />
-            Asignar nueva contraseña
-          </DialogTitle>
-          <DialogDescription>{describeUser(user)}</DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={!!user}
+      onOpenChange={(v) => !v && onClose()}
+      title="Asignar nueva contraseña"
+      width="md"
+      description={describeUser(user)}
+    >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="set-password">Nueva contraseña</Label>

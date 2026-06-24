@@ -67,9 +67,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Editar Pago</DialogTitle></DialogHeader>
+    <FormDialog open={open} onOpenChange={onOpenChange} title="Editar Pago" width="md">
         <div className="space-y-4">
           <div>
             <Label>Monto</Label>

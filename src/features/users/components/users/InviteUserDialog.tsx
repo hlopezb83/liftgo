@@ -42,11 +42,12 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
       <DialogTrigger asChild>
         <Button><UserPlus className="mr-2 h-4 w-4" />Crear Usuario</Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Crear Nuevo Usuario</DialogTitle>
-          <DialogDescription>Crea una nueva cuenta de personal. El usuario recibirá instrucciones de acceso por correo electrónico.</DialogDescription>
-        </DialogHeader>
+      <FormDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Crear Nuevo Usuario"
+        description="Crea una nueva cuenta de personal. El usuario recibirá instrucciones de acceso por correo electrónico."
+      >
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="inv-name">Nombre Completo</Label>

@@ -45,11 +45,8 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Reportar transferencia</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={onOpenChange} title="Reportar transferencia" width="md">
+
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <DatePickerField label="Fecha" date={transferDate} onSelect={setTransferDate} required />

@@ -123,11 +123,8 @@ export function RegisterSupplierPaymentDialog({
 
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Registrar pago — {billNumber}</DialogTitle>
-        </DialogHeader>
+    <FormDialog open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
+
         <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Saldo actual</span>
           <span className="font-mono font-bold">{formatCurrency(balance)}</span>

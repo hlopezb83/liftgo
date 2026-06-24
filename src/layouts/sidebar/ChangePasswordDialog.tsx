@@ -42,15 +42,13 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />
-            Cambiar Contraseña
-          </DialogTitle>
-          <DialogDescription>Ingresa tu nueva contraseña.</DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Cambiar Contraseña"
+      width="sm"
+      description="Ingresa tu nueva contraseña."
+    >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="new-password">Nueva contraseña</Label>
