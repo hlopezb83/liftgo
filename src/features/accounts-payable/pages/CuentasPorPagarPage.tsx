@@ -53,7 +53,7 @@ export default function CuentasPorPagarPage() {
               <FileSpreadsheet className="h-4 w-4 mr-1" />Exportar pagos
             </Button>
             <Button onClick={createDialog.openDialog}>
-              <Plus className="h-4 w-4 mr-1" />Nueva Cuenta
+              <Plus className="h-4 w-4 mr-1" />Nueva Factura
             </Button>
           </div>
         }
