@@ -1,13 +1,5 @@
 [
   {
-    "version": "6.92.1",
-    "date": "2026-06-24",
-    "type": "patch",
-    "title": "Limpieza de facturas duplicadas de costo de venta",
-    "description": "Se eliminaron 5 facturas históricas (CXP-0001 a CXP-0005) con categoría 'Costo de venta' que duplicaban el COGS calculado automáticamente por el Estado de Resultados sobre montacargas ya vendidos.",
-    "category": "fix"
-  },
-  {
     "version": "6.92.0",
     "date": "2026-06-24",
     "type": "minor",
