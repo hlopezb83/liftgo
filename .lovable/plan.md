@@ -1,34 +1,55 @@
 ## Diagnóstico
 
-`FAC-0072` (LOGISTORAGE, $55,500) tiene 3 reservas de renta vinculadas en la tabla `invoice_bookings` (RSV-0018, 19, 20), pero el RPC `get_income_statement` clasifica el ingreso como renta o venta usando únicamente:
+Cuando se vende un montacargas:
 
-```sql
-is_rental = (i.booking_id IS NOT NULL OR (i.quote_id IS NOT NULL AND i.quote_id IN rental_quotes))
+- El ingreso entra correctamente en **Ingresos por Ventas**.
+- Pero el **costo del activo (valor en libros remanente) no se descuenta** en ninguna línea del P&L. La depreciación deja de acumularse al vender, y el costo histórico nunca se reconoce como gasto.
+- Resultado: la venta se ve 100% como utilidad y **infla la Utilidad Bruta y Neta**.
+
+## Solución: nueva línea automática "(-) Costo de Equipos Vendidos"
+
+Aplicada como costo directo (afecta Margen Bruto), justo arriba de "= Utilidad Bruta", con desglose por montacargas (igual que Depreciación e Ingresos).
+
+### Fórmula del valor en libros al vender
+
+```text
+months_rented = meses con reserva confirmada/completada antes de la fecha de venta (cap 36)
+depreciacion_acumulada = acquisition_cost × min(36, months_rented) / 36
+valor_en_libros = max(0, acquisition_cost − depreciacion_acumulada)
 ```
 
-En facturas multi-reserva (las que usan la relación many-to-many `invoice_bookings`), `invoices.booking_id` queda en NULL, así que el ingreso cae por defecto a "Ventas". Cualquier factura recurrente con varios montacargas tiene el mismo problema.
+El valor en libros se reconoce como COGS **en el mes de la venta** (fecha de venta = última entrada en `status_logs` con `to_status = 'sold'`).
 
-## Fix
+## Cambios técnicos
 
-Actualizar el RPC `get_income_statement` para reconocer también `invoice_bookings`:
+1. **RPC `get_income_statement`** (migración):
+   - Nuevos CTEs `sold_forklifts`, `sold_in_period`, `months_rented_per_sold`, `cogs_per_sold`, `cogs_by_month`.
+   - El CTE `combined` agrega `cogs_forklift_sales` (número) y `cogs_by_forklift` (jsonb { nombre → valor }).
+   - Sin cambios en firma, `SECURITY DEFINER`, `search_path`.
 
-```sql
-is_rental = (
-  i.booking_id IS NOT NULL
-  OR EXISTS (SELECT 1 FROM invoice_bookings ib WHERE ib.invoice_id = i.id)
-  OR (i.quote_id IS NOT NULL AND i.quote_id IN (SELECT id FROM rental_quotes))
-)
-```
+2. **`incomeStatement/types.ts`**:
+   - `MonthData` y `YearTotals`: agregar `cogsForkliftSales: number` y `cogsByForklift: Record<string, number>` (solo MonthData).
+   - `computeDerivedTotals`: restar `cogsForkliftSales` de `grossProfit` y sumarlo a `totalExpenses`.
 
-Esto se aplica en el CTE principal del RPC, así que `revenue_rental`, `revenue_sales`, `rental_by_customer` y `sales_by_customer` quedan corregidos en un solo lugar.
+3. **`useMonthlyData.ts`**: leer los nuevos campos del RPC y pasarlos a `computeDerivedTotals`.
 
-## Cambios
+4. **`useStatementTotals.ts`**: agregar `cogsForkliftSales` al reducer y a los totals iniciales.
 
-1. **Migración SQL** — `CREATE OR REPLACE FUNCTION public.get_income_statement(...)` con la condición ampliada. Cuerpo de la función idéntico al actual salvo esa línea. Mantiene firma, `SECURITY DEFINER` y `SET search_path = public`.
-2. **Changelog v6.90.2** (patch — bug fix) en `public/changelog.json` + `public/changelog/v6.90.2.json`.
+5. **`statementRowFactories.ts`** (`buildStatementRows`): insertar la fila `(-) Costo de Equipos Vendidos` justo después de los direct cost rows y antes de `= Utilidad Bruta`.
+
+6. **`useStatementRows.ts`**:
+   - Agregar `cogsBreakdownRows` con `buildBreakdownRows(filteredData, m => m.cogsByForklift, true)`.
+   - En `useComparisonRows` insertar la línea equivalente.
+
+7. **`useIncomeStatementData.ts`** + **`IncomeStatementReport.tsx`** + **`IncomeStatementTable.tsx`**: propagar `cogsBreakdownRows`.
+
+8. **`incomeStatementHelpers.ts`** (`getBreakdownFor`): mapear `(-) Costo de Equipos Vendidos` → `cogsBreakdownRows`.
+
+9. **Changelog v6.91.0** (minor — nueva regla contable) en `public/changelog.json` + `public/changelog/v6.91.0.json`.
 
 ## Notas
 
-- No cambia el frontend ni el esquema de tablas.
-- No impacta facturas de venta legítimas (no tienen filas en `invoice_bookings`).
-- Tras aplicar, FAC-0072 y futuras facturas multi-reserva se reportarán automáticamente en "Ingresos por Rentas".
+- Cap de 36 meses respeta la regla de depreciación lineal existente.
+- Forklifts vendidos sin `acquisition_cost` o sin `status_logs` quedan en $0 (sin COGS); aparecen igual que hoy en "rentados sin costo".
+- No cambia el manejo manual de `costo_venta` en facturas de proveedor — si alguien quiere registrar costo adicional (transporte de la venta, comisión, etc.) lo sigue haciendo manual y se suma normalmente al bloque de Costo de Servicio.
+- No requiere backfill: el cálculo es derivado, así que toda venta histórica aparece automáticamente con su COGS al refrescar el reporte.
