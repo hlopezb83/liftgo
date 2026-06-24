@@ -30,13 +30,12 @@ export function EditNameDialog({ user, onClose }: EditNameDialogProps) {
           <Label htmlFor="edit-name">Nombre Completo</Label>
           <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={handleSave} disabled={updateName.isPending || !name.trim()}>
             {updateName.isPending ? "Guardando…" : "Guardar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }

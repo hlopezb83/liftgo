@@ -83,14 +83,13 @@ export function SetPasswordDialog({ user, onClose }: Props) {
           <p className="text-xs text-muted-foreground">
             Mínimo 8 caracteres. Evita secuencias comunes (<code>1234567890</code>, <code>qwerty</code>, fechas o nombres) aunque incluyan símbolos — son rechazadas por la política de filtraciones (HIBP). Lo más seguro es pulsar <strong>Generar contraseña segura</strong>. Comparte la contraseña por un canal seguro.
           </p>
-          <DialogFooter>
+          <FormDialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={isPending}>
               {isPending ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </FormDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

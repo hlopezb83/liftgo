@@ -76,12 +76,11 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
             />
           </div>
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Cancelar</Button>
           <Button onClick={handleSubmit} disabled={isPending}>Enviar reporte</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }
 

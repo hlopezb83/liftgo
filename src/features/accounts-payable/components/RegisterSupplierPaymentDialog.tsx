@@ -177,16 +177,15 @@ export function RegisterSupplierPaymentDialog({
             <Label>Notas</Label>
             <Textarea rows={2} {...form.register("notes")} />
           </div>
-          <DialogFooter>
+          <FormDialogFooter>
             <FormActions
               submitLabel={uploader.isPending ? "Subiendo…" : "Registrar pago"}
               isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />
-          </DialogFooter>
+          </FormDialogFooter>
 
         </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

@@ -99,13 +99,12 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={handleSubmit} disabled={updatePayment.isPending}>
             {updatePayment.isPending ? "Guardando..." : "Guardar Cambios"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }

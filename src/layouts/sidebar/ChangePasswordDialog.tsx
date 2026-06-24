@@ -74,14 +74,13 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
               autoComplete="new-password"
             />
           </div>
-          <DialogFooter>
+          <FormDialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando..." : "Guardar"}
             </Button>
-          </DialogFooter>
+          </FormDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

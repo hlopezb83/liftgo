@@ -71,13 +71,13 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
             </Select>
           </div>
         </div>
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
             {inviteUser.isPending ? "Creando…" : "Crear Usuario"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </FormDialogFooter>
+      </FormDialog>
     </Dialog>
   );
 }
