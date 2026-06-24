@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.88.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Confirmaciones unificadas con ConfirmDialog",
+    "description": "17 AlertDialogs de confirmación migrados a la primitiva ConfirmDialog (CRM, Customers, Bookings, Users, Quotes, Inventory, Fleet, Maintenance, AP, Invoices, Deliveries, Operations). Primitiva extendida con loading, descriptionNode y hideConfirm para cubrir todos los casos de uso.",
+    "category": "improvement"
+  },
+  {
     "version": "6.87.0",
     "date": "2026-06-24",
     "type": "minor",
