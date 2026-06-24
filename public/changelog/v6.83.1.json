@@ -1,0 +1,8 @@
+{
+  "version": "6.83.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Editar Facturas de Proveedor: permitir 'No requiere aprobación'",
+  "description": "Las facturas marcadas como 'No requiere aprobación' (o vencidas/pendientes sin pagos) ahora pueden editarse. Antes la regla exigía aprobación 'pendiente' y dejaba bloqueadas las que no la requerían.",
+  "category": "fix"
+}

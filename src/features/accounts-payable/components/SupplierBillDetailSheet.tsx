@@ -173,7 +173,8 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
   const hasPayments = (bill?.payments?.length ?? 0) > 0;
 
   const canEdit = !!bill
-    && bill.approval_status === "pending"
+    && bill.approval_status !== "approved"
+    && bill.approval_status !== "rejected"
     && bill.status !== "cancelled"
     && bill.status !== "paid"
     && !hasPayments;
