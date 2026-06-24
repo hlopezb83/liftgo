@@ -2,21 +2,31 @@ import type { ExpenseCategory } from "@/features/accounts-payable";
 import { EXPENSE_CATEGORY_LABELS } from "@/features/accounts-payable";
 import { roundMoney } from "@/lib/money";
 
-export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  "renta",
-  "nomina",
-  "servicios_publicos",
-  "honorarios",
-  "papeleria",
-  "capacitacion",
-  "publicidad",
-  "comisiones_ventas",
-  "viajes_representacion",
-  "intereses",
-  "comisiones_bancarias",
-  "caja_chica",
-  "otro",
+export interface OperatingExpenseGroup {
+  label: string;
+  categories: ExpenseCategory[];
+}
+
+export const OPERATING_EXPENSE_GROUPS: OperatingExpenseGroup[] = [
+  {
+    label: "Gastos Administrativos",
+    categories: ["renta", "nomina", "servicios_publicos", "honorarios", "papeleria", "capacitacion"],
+  },
+  {
+    label: "Gastos Comerciales",
+    categories: ["publicidad", "comisiones_ventas", "viajes_representacion"],
+  },
+  {
+    label: "Gastos Financieros",
+    categories: ["intereses", "comisiones_bancarias"],
+  },
+  {
+    label: "Otros Gastos",
+    categories: ["caja_chica", "otro"],
+  },
 ];
+
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = OPERATING_EXPENSE_GROUPS.flatMap((g) => g.categories);
 export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = [
   "costo_venta",
   "mantenimiento",
@@ -25,6 +35,7 @@ export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = [
   "transporte_logistica",
   "seguros_equipo",
 ];
+
 
 export { EXPENSE_CATEGORY_LABELS };
 export type { ExpenseCategory };
