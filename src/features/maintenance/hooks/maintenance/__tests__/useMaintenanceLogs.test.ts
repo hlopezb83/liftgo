@@ -20,7 +20,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
 
 const insertedPayloads: unknown[] = [];
 const updatedPayloads: unknown[] = [];
-const deletedCalls: unknown[] = [];
+const rpcCalls: Array<{ name: string; args: unknown }> = [];
 
 let insertResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "log-1" },
@@ -30,18 +30,22 @@ let updateResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "log-1" },
   error: null,
 };
-let deleteResp: { data: unknown; error: { message: string } | null } = { data: null, error: null };
+let rpcResp: { data: unknown; error: { message: string } | null } = { data: null, error: null };
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
+    rpcResolvers: {
+      soft_delete_maintenance_log: (args) => {
+        rpcCalls.push({ name: "soft_delete_maintenance_log", args });
+        return rpcResp;
+      },
+    },
     tableResolvers: {
       maintenance_logs: (calls) => {
         const ins = calls.find((c) => c.method === "insert");
         if (ins) { insertedPayloads.push(ins.args[0]); return insertResp; }
         const upd = calls.find((c) => c.method === "update");
         if (upd) { updatedPayloads.push(upd.args[0]); return updateResp; }
-        const del = calls.find((c) => c.method === "delete");
-        if (del) { deletedCalls.push(calls); return deleteResp; }
         return { data: null, error: null };
       },
     },
