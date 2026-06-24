@@ -60,17 +60,14 @@ export function DeliveryFormDialog() {
         <PlusCircle className="h-4 w-4 mr-1" /> Programar
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><TruckIcon className="h-4 w-4" /> Programar Transporte</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <DeliveryFormFields form={form} forklifts={forklifts} bookings={bookings} activeDrivers={activeDrivers} />
+      <FormDialog open={open} onOpenChange={setOpen} title="Programar Transporte">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <DeliveryFormFields form={form} forklifts={forklifts} bookings={bookings} activeDrivers={activeDrivers} />
+          <FormDialogFooter>
             <FormActions submitLabel="Programar" isPending={createDelivery.isPending} onCancel={() => setOpen(false)} />
-          </form>
-        </DialogContent>
-      </Dialog>
+          </FormDialogFooter>
+        </form>
+      </FormDialog>
     </>
   );
 }
