@@ -54,6 +54,9 @@ export default function CuentasPorPagarPage() {
             <Button variant="outline" onClick={exportDialog.openDialog}>
               <FileSpreadsheet className="h-4 w-4 mr-1" />Exportar pagos
             </Button>
+            <Button variant="outline" onClick={importDialog.openDialog}>
+              <FileUp className="h-4 w-4 mr-1" />Importar XML
+            </Button>
             <Button onClick={createDialog.openDialog}>
               <Plus className="h-4 w-4 mr-1" />Nueva Factura
             </Button>
