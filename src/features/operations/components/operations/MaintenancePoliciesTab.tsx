@@ -10,7 +10,7 @@ import {
 import { useForklifts } from "@/features/fleet";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Plus, Pencil, Trash2 } from "lucide-react";
@@ -87,24 +87,11 @@ export function MaintenancePoliciesTab() {
         header: "",
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}><Pencil className="h-4 w-4" /></Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Eliminar póliza?</AlertDialogTitle>
-                  <AlertDialogDescription>Se eliminará la póliza de {row.original.forklift_name}. Los registros de mantenimiento ya generados no se afectarán.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => del.mutate(row.original.id)}>Eliminar</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          <MaintenancePolicyRowActions
+            policy={row.original}
+            onEdit={() => openEdit(row.original)}
+            onDelete={() => del.mutate(row.original.id)}
+          />
         ),
       },
     ],
