@@ -138,7 +138,7 @@ export function ImportSupplierBillXmlDialog({ open, onOpenChange }: Props) {
         setBusy(false);
       }
     },
-    [suppliers, uploadXml],
+    [suppliers, uploadXml, companyRfc],
   );
 
   const onPickFile = (file: File | null) => {
