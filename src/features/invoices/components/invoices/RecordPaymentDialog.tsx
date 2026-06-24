@@ -30,9 +30,13 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
   } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" data-testid="record-payment-dialog">
-        <DialogHeader><DialogTitle>Registrar Pago</DialogTitle></DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Registrar Pago"
+      width="md"
+      testId="record-payment-dialog"
+    >
         <div className="space-y-4">
           <div>
             <Label htmlFor="recordPaymentAmount">Monto</Label>
