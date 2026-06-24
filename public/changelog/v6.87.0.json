@@ -1,0 +1,52 @@
+{
+  "version": "6.87.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Migración masiva de modales al design language unificado",
+  "summary": "29 form-dialogs migrados en una sola pasada a las primitivas FormDialog / FormDialogFooter / FormSection para unificar header sticky, footer fijo, secciones small-caps y microcopy mexicana en toda la app.",
+  "changes": [
+    {
+      "category": "improvement",
+      "title": "Operaciones y mantenimiento",
+      "items": [
+        "MaintenanceFormDialog: secciones 'Equipo y servicio' + 'Ejecución y costo', footer sticky.",
+        "MaintenancePolicyForm: secciones 'Equipo y proveedor' + 'Condiciones', CTA 'Agregar póliza'.",
+        "Tabs de Operaciones (Operadores, Mecánicos, Modelos de Equipo) migrados a FormDialog."
+      ]
+    },
+    {
+      "category": "improvement",
+      "title": "Inventario y logística",
+      "items": [
+        "PartFormDialog: 'Identidad' + 'Inventario y costo', CTA 'Agregar refacción'.",
+        "DeliveryFormDialog y DeliverySignatureDialog ahora viven sobre FormDialog.",
+        "ExtendBookingDialog migrado con CTA 'Confirmar Extensión'."
+      ]
+    },
+    {
+      "category": "improvement",
+      "title": "Cuentas por cobrar y por pagar",
+      "items": [
+        "BankAccountFormDialog: secciones Identidad / Condiciones / Interno, CTA 'Agregar cuenta'.",
+        "Supplier: ContactFormDialog, BankAccountFormDialog, ApproveBillDialog, RejectBillDialog, CancelSupplierBillDialog complemento, SupplierPaymentRejectDialog, UploadSupplierRepDialog, ExportPaymentsDialog, RegisterSupplierPaymentDialog.",
+        "Invoices: RecordPaymentDialog, EditPaymentDialog, CreateCreditNoteDialog."
+      ]
+    },
+    {
+      "category": "improvement",
+      "title": "Clientes, portal y usuarios",
+      "items": [
+        "CustomerInviteDialog reescrito con FormDialog.",
+        "Portal: ReportTransferDialog migrado.",
+        "Users: InviteUserDialog, EditNameDialog, SetPasswordDialog, ChangePasswordDialog, CredentialsDialog."
+      ]
+    },
+    {
+      "category": "improvement",
+      "title": "Feedback",
+      "items": [
+        "FeedbackFormDialog ahora hereda el header sticky y el footer fijo del shell común."
+      ]
+    }
+  ]
+}
