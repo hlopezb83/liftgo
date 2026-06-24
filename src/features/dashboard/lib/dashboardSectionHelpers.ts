@@ -63,7 +63,7 @@ export function mapInvoiceBreakdown(raw?: Array<{ status: string; count: number;
 type StatsLike = {
   monthly_utilization?: Array<{ month_label: string; utilization: number }>;
   utilization?: Array<{ name: string; revenue: number }>;
-  cash_flow?: Array<{ month: string; invoiced: number; paid: number }>;
+  cash_flow?: Array<{ month: string; month_key?: string; invoiced: number; paid: number }>;
   invoice_stats?: { outstanding_revenue?: number };
   overdue_bookings?: unknown;
 };
