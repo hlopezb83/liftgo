@@ -1,53 +1,20 @@
+## Cambio
 
-## Diagnóstico
+Reemplazar el menú `Acciones` (3 puntos) en el header de detalle de factura por botones inline. Mismas acciones, misma lógica condicional, sin DropdownMenu.
 
-El timbrado falló con error de Facturapi **CFDI40148**:
+## Archivo
+- `src/features/invoices/components/invoke-detail/InvoiceDetailActions.tsx`
 
-> "El campo DomicilioFiscalReceptor del receptor, debe pertenecer al nombre asociado al RFC registrado en el campo Rfc del Receptor."
-
-Esto **no es un bug de código** — es un dato incorrecto. El SAT valida que el **código postal fiscal** del receptor (DomicilioFiscalReceptor) coincida con el que tiene registrado el RFC en la Constancia de Situación Fiscal (CSF). En la factura `430e32af-0391-4fc1-aed4-a7317ff710b0`, el CP del cliente no corresponde al RFC capturado.
-
-Causas típicas:
-1. CP del cliente mal capturado o desactualizado (el contribuyente cambió domicilio fiscal en SAT y nuestro registro quedó viejo).
-2. RFC equivocado para ese nombre/razón social.
-3. Cliente "Público en General" sin reasignar (RFC genérico XAXX010101000 requiere CP del emisor, no del receptor real).
-
-## Plan
-
-### 1. Acción inmediata para el usuario (sin código)
-Validar contra la CSF del cliente:
-- Abrir el detalle del cliente de esa factura.
-- Pedir/subir CSF actualizada (ya hay `CsfDropzone`) y confirmar **RFC + CP fiscal + Régimen + Razón social** exactos como SAT los tiene.
-- Corregir el campo CP en el cliente, regenerar la factura (o re-timbrar si aún está como borrador) y reintentar.
-
-### 2. Mejora UX en el frontend (precheck + mensaje claro)
-Actualmente el error llega como `Facturapi error: 400` genérico. Cambios acotados a presentación:
-
-- **`src/features/invoices/lib/facturapiErrors.ts`**: mapear código `CFDI40148` (y vecinos comunes: `CFDI40147`, `CFDI40149`) a mensaje accionable en español:
-  > "El código postal fiscal del cliente no coincide con el RFC en el SAT. Verifica la Constancia de Situación Fiscal del cliente y corrige el CP."
-- **`src/features/invoices/lib/cfdiPrechecks.ts`**: agregar precheck antes de invocar `stamp-cfdi`:
-  - CP receptor presente y 5 dígitos.
-  - RFC con formato válido.
-  - Régimen fiscal presente.
-  - Si cliente es genérico (`XAXX010101000` / `XEXX010101000`), validar que el CP usado sea el del emisor.
-- **`ErrorDetailsDialog`**: ya muestra `details`; verificar que `useStampInvoiceFlow` propague el `code` y el `message` de Facturapi (hoy el handler los recibe pero el cliente solo ve "Facturapi error: 400").
-
-### 3. Propagación del error desde la Edge Function
-Revisar `supabase/functions/stamp-cfdi/handler.ts` y `src/lib/supabase/invokeEdgeFunction.ts`:
-- Confirmar que el body de error de Facturapi (`{message, code, status}`) se devuelva al cliente en lugar de aplanarse a `Facturapi error: 400`.
-- En `useStampCfdi` / `useStampInvoiceFlow`, leer `code` y mapear vía `facturapiErrors.ts`.
-
-### 4. Test
-- Test en `src/features/invoices/lib/__tests__/facturapiErrors.test.ts` para `CFDI40148` → mensaje en español.
-- Test del precheck para CP/RFC/régimen faltantes.
-
-### 5. Changelog
-- `public/changelog.json` + `public/changelog/v6.95.1.json` (patch): "Mensaje claro y precheck para error SAT CFDI40148 (CP fiscal del receptor)."
+## Detalle
+- Eliminar `ActionsMenu` y el import de `DropdownMenu*` y `MoreHorizontal`.
+- Renderizar como `<Button size="sm" variant="outline">` (cada uno con su ícono actual) en el mismo flex del header, en este orden:
+  1. `Editar` — si `canEdit`
+  2. `Timbrar CFDI` — si `canStamp` y NO es draft (el draft ya tiene botón primario aparte)
+  3. `Descargar XML` — si `isStamped`
+  4. `Cancelar CFDI` — si `isStamped && !isPendingCancel`, variante `outline` con texto destructivo
+  5. `Eliminar` — dentro de `RoleGuard module="Facturas" minAccess="full"`, variante `outline` destructiva
+- Mantener: `CancellationBlock`, botón primario de `Timbrar` en draft, botón primario `Registrar Pago`, `InvoicePDFButton` (Descargar PDF SAT).
+- El contenedor padre ya hace flex-wrap; no se requiere cambio adicional.
 
 ## Fuera de alcance
-- No se modifica lógica de negocio del COGS (cambio anterior).
-- No se altera `stamp-cfdi` más allá de propagar mejor el error.
-- No se autocompleta CP desde CSF en este cambio (potencial mejora futura).
-
-## Pregunta para ti
-¿Quieres también que agregue un botón **"Ver CSF del cliente"** directo en el `ErrorDetailsDialog` cuando el código sea `CFDI40148/47/49`, para acelerar la corrección? (Opcional, suma ~20 LOC.)
+Otras pantallas con menús de 3 puntos (listado, otros detalles).

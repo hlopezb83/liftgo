@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.95.2",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Acciones inline en detalle de factura",
+    "description": "El menú 'Acciones' (3 puntos) en el header de detalle de factura se reemplazó por botones inline (Editar, Timbrar CFDI, Descargar XML, Cancelar CFDI, Eliminar). Aprovecha el espacio disponible y reduce clics.",
+    "category": "improvement"
+  },
+  {
     "version": "6.95.1",
     "date": "2026-06-24",
     "type": "patch",
