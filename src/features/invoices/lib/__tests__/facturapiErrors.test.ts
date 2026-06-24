@@ -38,6 +38,21 @@ describe("translateFacturapiError", () => {
     );
   });
 
+  it("CFDI40148 → mensaje de CP fiscal vs RFC", () => {
+    expect(
+      translateFacturapiError(
+        "CFDI40148: El campo DomicilioFiscalReceptor del receptor, debe pertenecer al nombre asociado al RFC registrado en el campo Rfc del Receptor.",
+      ),
+    ).toMatch(/c[oó]digo postal fiscal del cliente no coincide/i);
+  });
+
+  it("mensaje SAT sin código → match por texto DomicilioFiscalReceptor", () => {
+    expect(
+      translateFacturapiError(
+        "El campo DomicilioFiscalReceptor debe pertenecer al nombre asociado al RFC",
+      ),
+    ).toMatch(/Constancia de Situaci[oó]n Fiscal/);
+
   it("mensaje > 200 chars sin match → truncado con '…'", () => {
     const long = "X".repeat(250);
     const result = translateFacturapiError(long);
