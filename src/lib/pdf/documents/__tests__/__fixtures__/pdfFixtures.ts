@@ -8,6 +8,7 @@ import type { CustomerSummary } from "@/lib/domain/customerTypes";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
 } from "@/features/reports/hooks/useIncomeStatementData";
+import { emptyExpenses } from "@/features/reports/hooks/incomeStatement/types";
 import type { ContractData, TemplateData } from "@/lib/pdf/contract/data";
 
 export const company: CompanyData = {
