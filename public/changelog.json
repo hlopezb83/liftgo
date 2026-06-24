@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.91.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Costo automático de montacargas vendidos en el Estado de Resultados",
+    "description": "Nueva línea '(-) Costo de Equipos Vendidos' que descuenta automáticamente el valor en libros del equipo vendido en el mes de la venta, con desglose por unidad.",
+    "category": "feature"
+  },
+  {
+
     "version": "6.90.2",
     "date": "2026-06-24",
     "type": "patch",

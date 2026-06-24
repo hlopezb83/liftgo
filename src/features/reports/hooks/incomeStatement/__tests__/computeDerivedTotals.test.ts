@@ -8,6 +8,7 @@ describe("computeDerivedTotals (P&L)", () => {
       maintenanceCost: 0,
       damageCost: 0,
       depreciation: 0,
+      cogsForkliftSales: 0,
       expenses: { ...emptyExpenses(), software: 999_999, depreciacion: 999_999 },
     };
     const r = computeDerivedTotals(t);
@@ -22,6 +23,7 @@ describe("computeDerivedTotals (P&L)", () => {
       maintenanceCost: 0,
       damageCost: 0,
       depreciation: 0,
+      cogsForkliftSales: 0,
       expenses: { ...emptyExpenses(), costo_venta: 4000 },
     };
     const r = computeDerivedTotals(t);
@@ -37,6 +39,7 @@ describe("computeDerivedTotals (P&L)", () => {
       maintenanceCost: 1000,
       damageCost: 500,
       depreciation: 2000,
+      cogsForkliftSales: 0,
       expenses: { ...emptyExpenses(), nomina: 1500 },
     };
     const r = computeDerivedTotals(t);
@@ -57,6 +60,7 @@ describe("computeDerivedTotals (P&L)", () => {
       maintenanceCost: 0,
       damageCost: 0,
       depreciation: 100,
+      cogsForkliftSales: 0,
       expenses: emptyExpenses(),
     };
     const r = computeDerivedTotals(t);

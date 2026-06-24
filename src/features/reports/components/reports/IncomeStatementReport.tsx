@@ -19,10 +19,11 @@ interface Props {
 export function IncomeStatementReport({ startDate, endDate, accountingBasis = "accrual" }: Props) {
   const {
     filteredData, totals, statementRows, comparisonRows, yearTotals,
-    csvRows, depreciationBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
+    csvRows, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
     rentedWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
   } = useIncomeStatementData({ startDate, endDate, accountingBasis });
+
 
   const [pdfLoading, setPdfLoading] = useState(false);
 
@@ -96,8 +97,10 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         comparisonRows={comparisonRows}
         statementRows={statementRows}
         depreciationBreakdownRows={depreciationBreakdownRows}
+        cogsBreakdownRows={cogsBreakdownRows}
         rentalBreakdownRows={rentalBreakdownRows}
         salesBreakdownRows={salesBreakdownRows}
+
       />
     </>
   );

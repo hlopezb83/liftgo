@@ -21,10 +21,12 @@ interface RpcMonthRow {
   maintenance_cost: number;
   damage_cost: number;
   depreciation: number;
+  cogs_forklift_sales: number;
   expenses: Partial<Record<ExpenseCategory, number>>;
   rental_by_customer: Record<string, number>;
   sales_by_customer: Record<string, number>;
   depreciation_by_forklift: Record<string, number>;
+  cogs_by_forklift: Record<string, number>;
 }
 
 interface RpcResult {
@@ -49,14 +51,15 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
 
   const data: MonthData[] = (rpc?.months ?? []).map((m): MonthData => {
     const expenses = { ...emptyExpenses(), ...m.expenses } as Record<ExpenseCategory, number>;
+    const cogsForkliftSales = Number(m.cogs_forklift_sales ?? 0);
     const derived = computeDerivedTotals({
       revenue: Number(m.revenue),
       maintenanceCost: Number(m.maintenance_cost),
       damageCost: Number(m.damage_cost),
       depreciation: Number(m.depreciation),
+      cogsForkliftSales,
       expenses,
     });
-    // Capitalize month label (es-MX) for consistency with previous client output
     const label = m.month_label.charAt(0).toUpperCase() + m.month_label.slice(1);
     return {
       monthKey: m.month_key,
@@ -67,6 +70,8 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       maintenanceCost: Number(m.maintenance_cost),
       damageCost: Number(m.damage_cost),
       depreciation: Number(m.depreciation),
+      cogsForkliftSales,
+      cogsByForklift: m.cogs_by_forklift ?? {},
       depreciationByForklift: m.depreciation_by_forklift ?? {},
       rentalByCustomer: m.rental_by_customer ?? {},
       salesByCustomer: m.sales_by_customer ?? {},
@@ -74,6 +79,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       ...derived,
     };
   });
+
 
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
 

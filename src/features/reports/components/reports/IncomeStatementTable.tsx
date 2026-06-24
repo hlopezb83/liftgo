@@ -16,15 +16,16 @@ interface Props {
   comparisonRows: ComparisonRow[];
   statementRows: StatementRow[];
   depreciationBreakdownRows: BreakdownRow[];
+  cogsBreakdownRows: BreakdownRow[];
   rentalBreakdownRows: BreakdownRow[];
   salesBreakdownRows: BreakdownRow[];
 }
 
 export function IncomeStatementTable({
   isComparison, filteredData, yearTotals, comparisonRows, statementRows,
-  depreciationBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
+  depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
 }: Props) {
-  const [open, setOpen] = useState<Record<string, boolean>>({ dep: false, rental: false, sales: false });
+  const [open, setOpen] = useState<Record<string, boolean>>({ dep: false, cogs: false, rental: false, sales: false });
 
   if (isComparison && comparisonRows.length > 0) {
     return <ComparisonTable comparisonRows={comparisonRows} yearTotals={yearTotals} />;
@@ -46,10 +47,11 @@ export function IncomeStatementTable({
           </TableHeader>
           <TableBody>
             {statementRows.map((row) => {
-              const breakdown = getBreakdownFor(row.label, depreciationBreakdownRows, rentalBreakdownRows, salesBreakdownRows);
+              const breakdown = getBreakdownFor(row.label, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows);
               const isExpandable = breakdown !== null;
               const isOpen = isExpandable && !!open[breakdown.key];
               const toggle = () => breakdown && setOpen((prev) => ({ ...prev, [breakdown.key]: !prev[breakdown.key] }));
+
               return (
                 <StatementTableRow
                   key={row.label}
