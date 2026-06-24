@@ -133,3 +133,22 @@ export function MaintenancePoliciesTab() {
     </div>
   );
 }
+
+function MaintenancePolicyRowActions({ policy, onEdit, onDelete }: { policy: MaintenancePolicy; onEdit: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex gap-1">
+      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="¿Eliminar póliza?"
+        description={`Se eliminará la póliza de ${policy.forklift_name}. Los registros de mantenimiento ya generados no se afectarán.`}
+        confirmLabel="Eliminar"
+        destructive
+        onConfirm={onDelete}
+      />
+    </div>
+  );
+}
