@@ -1,0 +1,19 @@
+{
+  "version": "6.91.2",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Equipos vendidos sin status_log ahora aparecen en COGS",
+  "category": "fix",
+  "summary": "Se corrigieron dos problemas en el cálculo del Costo de Equipos Vendidos del Estado de Resultados que provocaban que algunos equipos vendidos no aparecieran en el reporte.",
+  "changes": [
+    {
+      "area": "Estado de Resultados",
+      "items": [
+        "Fallback de fecha de venta: si un equipo marcado como vendido no tiene entrada en el historial de cambios de estado, ahora se usa su fecha de última actualización como fecha de venta.",
+        "Nueva alerta amarilla 'Equipos vendidos sin costo de adquisición' que lista los equipos que están marcados como vendidos pero tienen acquisition_cost en 0 o nulo, para que el usuario los corrija."
+      ]
+    }
+  ],
+  "impact": "Los equipos vendidos manualmente (sin pasar por el flujo que registra el log) ahora se reconocen automáticamente. Los equipos vendidos sin costo registrado se visibilizan con una alerta clara.",
+  "breaking": false
+}
