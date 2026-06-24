@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.94.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Soft delete: archivar en lugar de eliminar (5 tablas críticas)",
+    "description": "Forklifts, Customers, Suppliers, Maintenance Logs y Damage Records ahora se archivan (deleted_at) en lugar de borrarse físicamente, preservando historial completo para reportes, facturas y auditoría. UNIQUE indexes parciales permiten reusar nombre/serie/RFC tras archivar. Nuevos RPCs soft_delete_* validan rol y dependencias activas. UI cambia 'Eliminar' por 'Archivar' con descripción que aclara que la acción es reversible.",
+    "category": "feature"
+  },
+  {
     "version": "6.93.0",
     "date": "2026-06-24",
     "type": "minor",

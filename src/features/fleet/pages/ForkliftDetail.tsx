@@ -42,8 +42,8 @@ export default function ForkliftDetail() {
 
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {
-      onSuccess: () => { notifySuccess("Montacargas eliminado"); navigate("/fleet"); },
-      onError: () => notifyError({ message: "Error al eliminar" }),
+      onSuccess: () => { notifySuccess("Montacargas archivado"); navigate("/fleet"); },
+      onError: (err) => notifyError({ message: err.message || "Error al archivar" }),
     });
   };
 
@@ -60,20 +60,21 @@ export default function ForkliftDetail() {
               <Edit className="h-4 w-4 mr-1" /> Editar
             </Button>
             <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+              <Trash2 className="h-4 w-4 mr-1" /> Archivar
             </Button>
             <ConfirmDialog
               open={deleteOpen}
               onOpenChange={setDeleteOpen}
-              title={`¿Eliminar ${forklift.name}?`}
-              description="Esto eliminará permanentemente este montacargas y todos sus registros relacionados. Esta acción no se puede deshacer."
-              confirmLabel="Eliminar"
+              title={`¿Archivar ${forklift.name}?`}
+              description="El montacargas se ocultará de los listados activos pero se conservará el historial completo (bookings, mantenimientos, daños) para reportes y auditoría. No se puede archivar si tiene reservas activas."
+              confirmLabel="Archivar"
               destructive
               onConfirm={handleDelete}
             />
           </>
         }
       />
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ForkliftSpecsCard forklift={forklift} currentLocation={locationData} />

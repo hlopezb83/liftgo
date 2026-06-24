@@ -930,6 +930,8 @@ export type Database = {
           company: string | null
           contact_person: string | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           domicilio_fiscal_cp: string | null
           e2e_scope: string | null
           email: string | null
@@ -954,6 +956,8 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           domicilio_fiscal_cp?: string | null
           e2e_scope?: string | null
           email?: string | null
@@ -978,6 +982,8 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           domicilio_fiscal_cp?: string | null
           e2e_scope?: string | null
           email?: string | null
@@ -1004,6 +1010,8 @@ export type Database = {
           booking_id: string | null
           created_at: string
           customer_id: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           description: string
           estimated_cost: number | null
           forklift_id: string
@@ -1019,6 +1027,8 @@ export type Database = {
           booking_id?: string | null
           created_at?: string
           customer_id?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           description: string
           estimated_cost?: number | null
           forklift_id: string
@@ -1034,6 +1044,8 @@ export type Database = {
           booking_id?: string | null
           created_at?: string
           customer_id?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string
           estimated_cost?: number | null
           forklift_id?: string
@@ -1404,6 +1416,8 @@ export type Database = {
           capacity_kg: number | null
           created_at: string
           daily_rate: number | null
+          deleted_at: string | null
+          deleted_by: string | null
           e2e_scope: string | null
           fuel_type: string | null
           id: string
@@ -1430,6 +1444,8 @@ export type Database = {
           capacity_kg?: number | null
           created_at?: string
           daily_rate?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           e2e_scope?: string | null
           fuel_type?: string | null
           id?: string
@@ -1456,6 +1472,8 @@ export type Database = {
           capacity_kg?: number | null
           created_at?: string
           daily_rate?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           e2e_scope?: string | null
           fuel_type?: string | null
           id?: string
@@ -1710,6 +1728,8 @@ export type Database = {
         Row: {
           cost: number | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           forklift_id: string
           id: string
@@ -1724,6 +1744,8 @@ export type Database = {
         Insert: {
           cost?: number | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           forklift_id: string
           id?: string
@@ -1738,6 +1760,8 @@ export type Database = {
         Update: {
           cost?: number | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           forklift_id?: string
           id?: string
@@ -2958,6 +2982,8 @@ export type Database = {
           contact_person: string | null
           created_at: string
           default_payment_terms_days: number | null
+          deleted_at: string | null
+          deleted_by: string | null
           email: string | null
           id: string
           name: string
@@ -2974,6 +3000,8 @@ export type Database = {
           contact_person?: string | null
           created_at?: string
           default_payment_terms_days?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           name: string
@@ -2990,6 +3018,8 @@ export type Database = {
           contact_person?: string | null
           created_at?: string
           default_payment_terms_days?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           name?: string
@@ -3313,6 +3343,8 @@ export type Database = {
           capacity_kg: number | null
           created_at: string
           daily_rate: number | null
+          deleted_at: string | null
+          deleted_by: string | null
           e2e_scope: string | null
           fuel_type: string | null
           id: string
@@ -3549,6 +3581,22 @@ export type Database = {
         Returns: undefined
       }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
+      soft_delete_customer: {
+        Args: { p_customer_id: string }
+        Returns: undefined
+      }
+      soft_delete_damage_record: {
+        Args: { p_damage_id: string }
+        Returns: undefined
+      }
+      soft_delete_maintenance_log: {
+        Args: { p_log_id: string }
+        Returns: undefined
+      }
+      soft_delete_supplier: {
+        Args: { p_supplier_id: string }
+        Returns: undefined
+      }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
     }
     Enums: {

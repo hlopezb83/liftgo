@@ -1,0 +1,46 @@
+{
+  "version": "6.94.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Soft delete: archivar en lugar de eliminar (5 tablas críticas)",
+  "summary": "Implementación P2 del análisis de soft delete acotada a tablas con valor histórico real (fleet, CRM, suppliers, mantenimiento, daños). Preserva integridad referencial de reportes, facturas y auditoría sin sacrificar la posibilidad de 'limpiar' catálogos.",
+  "sections": [
+    {
+      "heading": "Esquema de base de datos",
+      "items": [
+        "Columnas deleted_at TIMESTAMPTZ + deleted_by UUID en: forklifts, customers, suppliers, maintenance_logs, damage_records.",
+        "UNIQUE indexes reemplazados por versiones parciales (WHERE deleted_at IS NULL): forklifts_name_unique, forklifts_serial_number_unique, suppliers_rfc_unique_idx. Permite reusar el mismo nombre/serie/RFC tras archivar.",
+        "Índices parciales idx_*_active para acelerar listados de registros activos."
+      ]
+    },
+    {
+      "heading": "RPCs de archivado",
+      "items": [
+        "delete_forklift refactorizado: ya NO hace cascade hard delete de bookings/deliveries/maintenance. Solo marca el montacargas como archivado y bloquea si tiene reservas confirmadas/en curso.",
+        "Nuevos: soft_delete_customer (bloquea si hay bookings activos), soft_delete_supplier (bloquea si hay facturas pending/approved/partially_paid), soft_delete_maintenance_log (solo admin/administrativo — anti-manipulación), soft_delete_damage_record.",
+        "Todos validan rol vía has_role, registran deleted_by = auth.uid() y son SECURITY DEFINER con search_path fijo."
+      ]
+    },
+    {
+      "heading": "Hooks y UI",
+      "items": [
+        "useForklifts, useCustomers, useSuppliers, useMaintenanceLogs, useDamageRecords filtran .is('deleted_at', null) en sus queries de listado.",
+        "useDeleteCustomer, useDeleteMaintenanceLog migrados de .delete() a RPC soft_delete_*. Añadidos useDeleteSupplier, useDeleteDamageRecord.",
+        "ForkliftDetail, CustomerDeleteDialog, MaintenanceDetailSheet: botón 'Eliminar' → 'Archivar', descripción aclara que el historial se preserva y la acción es reversible.",
+        "Mensaje 'Cliente/Montacargas archivado' reemplaza al anterior 'eliminado'."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "useMaintenanceLogs.test.ts actualizado para validar invocación de RPC soft_delete_maintenance_log con p_log_id.",
+        "useForkliftMutations.test.ts sin cambios (sigue invocando delete_forklift que ahora hace soft delete por dentro)."
+      ]
+    }
+  ],
+  "notes": [
+    "Estrategia: filtrar en el query layer (no en RLS) para que un futuro panel 'Papelera' admin pueda restaurar sin tocar policies.",
+    "Documentos fiscales (invoices, credit_notes, payment_complements) y entidades de negocio (bookings, contracts, quotes) NO usan soft delete — ya tienen el patrón de cancelación de status, que es el correcto para cumplimiento SAT.",
+    "Restauración de registros archivados se realiza vía SQL directo (UPDATE deleted_at = NULL). No hay UI de 'Papelera' aún; agregar si surge necesidad operativa."
+  ]
+}

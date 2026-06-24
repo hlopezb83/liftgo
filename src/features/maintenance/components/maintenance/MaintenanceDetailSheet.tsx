@@ -104,14 +104,14 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
                 <Pencil className="h-4 w-4 mr-1" /> Editar
               </Button>
               <Button variant="destructive" className="flex-1" onClick={() => setConfirmOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                <Trash2 className="h-4 w-4 mr-1" /> Archivar
               </Button>
               <ConfirmDialog
                 open={confirmOpen}
                 onOpenChange={setConfirmOpen}
-                title="¿Eliminar registro de mantenimiento?"
-                description={`Esta acción no se puede deshacer. Se eliminará permanentemente el registro de "${log.service_type}" del ${formatDateDisplay(log.performed_at)}.`}
-                confirmLabel="Eliminar"
+                title="¿Archivar registro de mantenimiento?"
+                description={`Se ocultará de los listados pero se conservará el historial del servicio "${log.service_type}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
+                confirmLabel="Archivar"
                 destructive
                 loading={deleteLog.isPending}
                 onConfirm={handleDelete}

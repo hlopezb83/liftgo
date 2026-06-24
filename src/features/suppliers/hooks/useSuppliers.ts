@@ -35,10 +35,26 @@ export function useSuppliers() {
       const { data, error } = await supabase
         .from("suppliers")
         .select("*")
+        .is("deleted_at", null)
         .order("name");
       if (error) throw error;
       return data as Supplier[];
     },
+  });
+}
+
+export function useDeleteSupplier() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc("soft_delete_supplier", { p_supplier_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+      notifySuccess("Proveedor archivado");
+    },
+    onError: (err: Error) => notifyError({ error: err, message: `Error al archivar proveedor: ${err.message}` }),
   });
 }
 

@@ -53,7 +53,7 @@ export function useCustomerDetailActions({
   const handleDelete = () => {
     if (!id) return;
     deleteCustomer.mutate(id, {
-      onSuccess: () => { notifySuccess("Cliente eliminado"); navigate("/customers"); },
+      onSuccess: () => { notifySuccess("Cliente archivado"); navigate("/customers"); },
     });
   };
 

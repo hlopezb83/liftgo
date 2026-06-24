@@ -14,6 +14,7 @@ export function useCustomers() {
       const { data, error } = await supabase
         .from("customers")
         .select("*")
+        .is("deleted_at", null)
         .or("is_e2e.is.null,is_e2e.eq.false")
         .not("name", "ilike", "E2E%")
         .or("email.is.null,email.neq.e2e-ui@test.local")
@@ -58,12 +59,13 @@ export function useDeleteCustomer() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("customers").delete().eq("id", id);
+      // Soft delete: preserva historial de facturas y bookings
+      const { error } = await supabase.rpc("soft_delete_customer", { p_customer_id: id });
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: customerKeys.all }),
     onError: (err: Error) => {
-      notifyError({ title: "Error al eliminar cliente", error: err });
+      notifyError({ title: "Error al archivar cliente", error: err });
     },
   });
 }

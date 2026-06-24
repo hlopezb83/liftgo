@@ -9,7 +9,7 @@ export function useForklifts() {
     queryKey: forkliftKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("forklifts").select("*").or("is_e2e.is.null,is_e2e.eq.false").order("name");
+      const { data, error } = await supabase.from("forklifts").select("*").is("deleted_at", null).or("is_e2e.is.null,is_e2e.eq.false").order("name");
       if (error) throw error;
       return data;
     },

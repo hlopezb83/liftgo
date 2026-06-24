@@ -12,9 +12,24 @@ export function useDamageRecords() {
       const { data, error } = await supabase
         .from("damage_records")
         .select("*, forklifts(name, model), customers(name)")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+export function useDeleteDamageRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc("soft_delete_damage_record", { p_damage_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
+    onError: (err: Error) => {
+      notifyError({ title: "Error al archivar registro de daño", error: err });
     },
   });
 }
