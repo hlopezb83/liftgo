@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
@@ -83,9 +83,7 @@ export function EquipmentModelsTab() {
         <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Modelo</Button>
       </div>
       <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay modelos de equipo configurados" />
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editId ? "Editar" : "Agregar"} Modelo de Equipo</DialogTitle><DialogDescription>Define una combinación de fabricante/modelo con especificaciones predeterminadas.</DialogDescription></DialogHeader>
+      <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Modelo de Equipo`} description="Define una combinación de fabricante/modelo con especificaciones predeterminadas.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Fabricante *</Label><Input placeholder="ej. Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} /></div>
             <div className="space-y-1.5"><Label>Modelo *</Label><Input placeholder="ej. H50" value={form.model} onChange={(e) => set("model", e.target.value)} /></div>
@@ -106,12 +104,11 @@ export function EquipmentModelsTab() {
               <div className="space-y-1.5"><Label>Tarifa Mensual</Label><Input type="number" placeholder="0" value={form.default_monthly_rate} onChange={(e) => set("default_monthly_rate", e.target.value)} /></div>
             </div>
           </div>
-          <DialogFooter>
+          <FormDialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </FormDialogFooter>
+        </FormDialog>
     </div>
   );
 }
