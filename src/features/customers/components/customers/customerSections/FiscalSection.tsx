@@ -2,14 +2,14 @@ import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { SectionHeading } from "@/components/forms/SectionHeading";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/domain/satCatalogs";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
-import { SectionHeading } from "./SectionHeading";
 
 export function FiscalSection() {
   const { control } = useFormContext<CustomerFormData>();
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 border-t pt-4">
       <SectionHeading>Datos Fiscales (CFDI)</SectionHeading>
       <div className="grid grid-cols-2 gap-4">
         <FormField
@@ -37,7 +37,7 @@ export function FiscalSection() {
             <FormItem>
               <FormLabel>C.P. Fiscal</FormLabel>
               <FormControl>
-                <Input placeholder="06600" maxLength={5} {...field} />
+                <Input placeholder="64000" maxLength={5} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -57,7 +57,7 @@ export function FiscalSection() {
                 </FormControl>
                 <SelectContent>
                   {REGIMEN_FISCAL.map((r) => (
-                    <SelectItem key={r.code} value={r.code}>{r.label}</SelectItem>
+                    <SelectItem key={r.code} value={r.code}>{r.code} — {r.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -77,7 +77,7 @@ export function FiscalSection() {
                 </FormControl>
                 <SelectContent>
                   {USO_CFDI.map((u) => (
-                    <SelectItem key={u.code} value={u.code}>{u.label}</SelectItem>
+                    <SelectItem key={u.code} value={u.code}>{u.code} — {u.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -86,6 +86,19 @@ export function FiscalSection() {
           )}
         />
       </div>
+      <FormField
+        control={control}
+        name="representante_legal"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Representante Legal (opcional)</FormLabel>
+            <FormControl>
+              <Input placeholder="Lic. Juan Pérez" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 }
