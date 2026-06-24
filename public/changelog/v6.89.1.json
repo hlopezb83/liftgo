@@ -1,0 +1,8 @@
+{
+  "version": "6.89.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Corregido cálculo duplicado de IVA y retenciones al importar XML",
+  "description": "El parser de CFDI 4.0 (parseCfdiXml) sumaba los impuestos tanto del nodo <cfdi:Impuestos> por cada <cfdi:Concepto> como del nodo de totales del comprobante, lo que duplicaba IVA trasladado y retenciones (IVA/ISR) al cargar el XML en el modal de Nueva Factura de Proveedor. Ahora se leen únicamente del nodo <cfdi:Impuestos> hijo directo del Comprobante, preferiendo el atributo TotalImpuestosTrasladados cuando está presente. Se agregaron pruebas con un CFDI de doble nivel y otro sin impuestos.",
+  "category": "bugfix"
+}
