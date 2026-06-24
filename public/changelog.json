@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.89.2",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Columna cfdi_xml_url faltante en facturas de proveedor",
+    "description": "Se agregó la columna cfdi_xml_url a supplier_bills. El guardado de facturas importadas desde XML fallaba con error PGRST204 al no existir la columna en la base de datos.",
+    "category": "bugfix"
+  },
+  {
     "version": "6.89.1",
     "date": "2026-06-24",
     "type": "patch",
