@@ -120,16 +120,18 @@ export function computeDerivedTotals(t: {
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
+  cogsForkliftSales: number;
   expenses: Record<ExpenseCategory, number>;
 }) {
   const costoVenta = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
-  const grossProfit = roundMoney(t.revenue - t.maintenanceCost - t.damageCost - costoVenta);
+  const grossProfit = roundMoney(t.revenue - t.maintenanceCost - t.damageCost - costoVenta - t.cogsForkliftSales);
   const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
   const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
-  const totalExpenses = roundMoney(t.maintenanceCost + t.damageCost + costoVenta + opexTotal);
+  const totalExpenses = roundMoney(t.maintenanceCost + t.damageCost + costoVenta + t.cogsForkliftSales + opexTotal);
   const profitBeforeDepreciation = roundMoney(t.revenue - totalExpenses);
   const marginBeforeDepreciation = t.revenue > 0 ? (profitBeforeDepreciation / t.revenue) * 100 : 0;
   const netProfit = roundMoney(profitBeforeDepreciation - t.depreciation);
   const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
   return { grossProfit, grossMargin, totalExpenses, profitBeforeDepreciation, marginBeforeDepreciation, netProfit, margin };
 }
+
