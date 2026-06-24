@@ -1,0 +1,12 @@
+{
+  "version": "6.95.2",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Acciones inline en detalle de factura",
+  "category": "improvement",
+  "changes": [
+    "Reemplazado el DropdownMenu 'Acciones' del header de detalle de factura por botones inline.",
+    "Acciones disponibles según estado: Editar, Timbrar CFDI, Descargar XML, Cancelar CFDI, Eliminar.",
+    "Misma lógica condicional (canEdit, canStamp, isStamped, RoleGuard para Eliminar)."
+  ]
+}
