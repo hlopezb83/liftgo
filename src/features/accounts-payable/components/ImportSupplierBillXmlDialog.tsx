@@ -6,7 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { useSuppliers } from "@/features/suppliers";
 import { useCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
 import { parseCfdiXml, CfdiParseError, type CfdiParsed } from "../lib/parseCfdiXml";
