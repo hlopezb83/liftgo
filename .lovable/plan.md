@@ -1,37 +1,44 @@
-## Problema
-Al importar desde CSF, el campo `name` viene con sufijo de régimen societario (ej: "LOGISTORAGE SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE"). Como ahora unificamos Nombre y Razón Social en un único campo, el sufijo queda visible en el formulario y luego rompe el timbrado CFDI 4.0 (regla CFDI40145).
+## Objetivo
+Renombrar el módulo **Cuentas por Pagar** → **Facturas de Proveedor** en toda la app, incluyendo la clave de permisos en BD.
 
-El sanitizador `sanitizeLegalName` ya existe en `supabase/functions/stamp-cfdi/handler.ts` y limpia el sufijo en el timbrado, pero el usuario lo ve "sucio" en la UI y al guardar el cliente queda almacenado con el sufijo.
+Se mantiene la URL `/cuentas-por-pagar` (no se cambia ruta para no romper bookmarks, links de cash-flow, audit logs ni redirects de `/expenses`). Solo cambian etiquetas visibles y la clave de módulo de permisos.
 
 ## Cambios
 
-### 1. Edge function `parse-csf/index.ts` — prompt
-Actualizar el `systemPrompt` para que el modelo regrese `name` ya **sin** el sufijo de régimen societario y en mayúsculas sin acentos. Añadir línea explícita:
-> `name`: denominación o razón social SIN el sufijo de régimen societario (omite "S.A. de C.V.", "S. de R.L. de C.V.", "SAPI de C.V.", "S.C.", "A.C.", "S.A.B. de C.V.", etc.). Devuelve en MAYÚSCULAS y sin acentos.
+### 1. Migración SQL (BD)
+Renombrar la clave de módulo en `role_permissions`:
+```sql
+UPDATE public.role_permissions
+SET module = 'Facturas de Proveedor'
+WHERE module = 'Cuentas por Pagar';
+```
+Solo afecta filas con la clave vieja (2 filas según verificación). No hay constraint NOT NULL que rompa.
 
-### 2. Defensa en el cliente — `CsfDropzone.tsx`
-El prompt puede no cumplirse al 100% en todas las CSF. Añadir un helper local `sanitizeCsfName(raw)` (copia mínima de la lógica de `sanitizeLegalName`) que:
-- Normaliza a mayúsculas sin acentos.
-- Elimina sufijos comunes con regex (`/\s+(S\.?\s*A\.?\s*B?\.?(\s+DE\s+C\.?\s*V\.?)?|S\.?\s*DE\s*R\.?\s*L\.?(\s+DE\s+C\.?\s*V\.?)?|SAPI(\s+DE\s+C\.?\s*V\.?)?|S\.?\s*C\.?|A\.?\s*C\.?|S\.?\s*A\.?\s*P\.?\s*I\.?)\.?$/i`).
-- Limpia puntuación final y espacios.
+### 2. Frontend — clave de módulo (RoleGuard, mapeo y catálogo)
+Reemplazar el string literal `"Cuentas por Pagar"` por `"Facturas de Proveedor"` en:
+- `src/routes/routes-config.tsx` (campos `module` de las dos rutas).
+- `src/features/users/hooks/useRolePermissions.ts` (lista de módulos y mapeo de rutas).
+- `src/features/cash-flow/pages/CashFlowPage.tsx` (`RoleGuard module=`).
+- `src/features/bank-reconciliation/pages/BankReconciliationPage.tsx` y `BankAccountsPage.tsx`.
+- `src/features/accounts-payable/components/SupplierBillDetailSheet.tsx`.
+- `src/features/audit/lib/activityConstants.ts` (etiquetas de `supplier_bills` y `supplier_bill`).
 
-Aplicar antes del `onParsed`: `name: sanitizeCsfName(data.name || data.razon_social || "")`.
-
-### 3. Tests
-- `supabase/functions/parse-csf/index_test.ts`: el test ya mockea la respuesta del modelo, así que no requiere cambio funcional. Validar que sigue pasando con el prompt actualizado (sólo cambia el texto del prompt, no la forma de la respuesta).
-- Agregar test unitario para `sanitizeCsfName` en `src/features/customers/lib/__tests__/csfSanitize.test.ts` cubriendo: "LOGISTORAGE SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE", "ACME S.A. DE C.V.", "FOO S. DE R.L. DE C.V.", "BAR SAPI DE C.V.", "Persona Física con acentos".
+### 3. UI visible (etiquetas, títulos, sidebar, atajos)
+- `src/layouts/sidebar/navConfig.ts`: `title: "Facturas de Proveedor"`.
+- `src/features/accounts-payable/pages/CuentasPorPagarPage.tsx`: `title="Facturas de Proveedor"`.
+- `src/lib/shortcuts/registry.ts`: `label: "Facturas de Proveedor"` (atajo `g a` se conserva).
+- `src/features/operations/components/operations/CxpApprovalTab.tsx`: `CardTitle` → `"Aprobación de Facturas de Proveedor"`.
+- `src/features/accounts-payable/pages/AgingReportPage.tsx`: ajustar título si dice "Cuentas por Pagar" (verificar al editar).
 
 ### 4. Changelog
-Nueva entrada `v6.80.5` (patch — fix de extracción CSF).
+Nueva entrada `v6.81.0` (minor — rename de módulo, no rompe URLs ni datos pero cambia clave de permisos).
 
 ## Fuera de alcance
-- No se cambia el sanitizador en `stamp-cfdi` (sigue como segunda línea de defensa).
-- No se migran clientes existentes con sufijo en `name`/`razon_social`; sólo afecta nuevas importaciones desde CSF.
+- No se cambia la URL `/cuentas-por-pagar` ni la carpeta `src/features/accounts-payable`.
+- No se renombra el componente `CuentasPorPagarPage` ni los hooks `useAccountsPayableKpis` etc. (nombres internos, no visibles).
+- No se modifican entradas de changelog históricas.
+- No se tocan tablas `supplier_bills` ni `supplier_payments`.
 
 ## Detalles técnicos
-- Archivos editados:
-  - `supabase/functions/parse-csf/index.ts` (sólo `systemPrompt`).
-  - `src/features/customers/components/customers/CsfDropzone.tsx` (helper + uso).
-  - `src/features/customers/lib/csfSanitize.ts` (nuevo, exporta `sanitizeCsfName`).
-  - `src/features/customers/lib/__tests__/csfSanitize.test.ts` (nuevo).
-  - `public/changelog.json` y `public/changelog/v6.80.5.json`.
+- Orden: primero migración SQL (requiere aprobación), luego edits de frontend. La clave nueva en BD debe existir antes de que se hagan deploys de frontend para que `useRolePermissions` no muestre módulo huérfano.
+- Verificación: tras el rename, los usuarios admin siguen viendo el módulo; revisar `/usuarios` no muestre clave vieja.
