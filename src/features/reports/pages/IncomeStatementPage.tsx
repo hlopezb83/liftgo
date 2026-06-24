@@ -16,8 +16,8 @@ function generateMonthOptions(count: number) {
   for (let i = 0; i < count; i++) {
     const d = subMonths(now, i);
     const value = format(d, "yyyy-MM");
-    const label = format(d, "MMMM yyyy", { locale: es });
-    options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+    const label = formatMonthLongEs(d);
+    options.push({ value, label });
   }
   return options;
 }
