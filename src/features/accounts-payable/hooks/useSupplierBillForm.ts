@@ -55,39 +55,41 @@ function billToFormDefaults(bill: SupplierBillDetail): SupplierBillFormData {
   };
 }
 
+export interface SupplierBillFormOverrides {
+  initialValues?: Partial<SupplierBillFormData>;
+  cfdiXmlUrl?: string | null;
+}
+
 export function useSupplierBillForm(
   open: boolean,
   onClose: () => void,
   initialBill?: SupplierBillDetail | null,
+  overrides?: SupplierBillFormOverrides,
 ) {
   const create = useCreateSupplierBill();
   const update = useUpdateSupplierBill();
   const isEdit = !!initialBill;
 
+  const emptyDefaults: SupplierBillFormData = {
+    supplier_id: "", category: "", description: "",
+    issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
+    subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
+    cfdi_uuid: "",
+  };
+
+  const buildDefaults = (): SupplierBillFormData => {
+    if (initialBill) return billToFormDefaults(initialBill);
+    return { ...emptyDefaults, ...(overrides?.initialValues ?? {}) };
+  };
+
   const form = useForm<SupplierBillFormData>({
     resolver: zodResolver(supplierBillFormSchema),
-    defaultValues: initialBill
-      ? billToFormDefaults(initialBill)
-      : {
-          supplier_id: "", category: "", description: "",
-          issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
-          subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
-          cfdi_uuid: "",
-        },
+    defaultValues: buildDefaults(),
   });
 
   useEffect(() => {
     if (!open) return;
-    form.reset(
-      initialBill
-        ? billToFormDefaults(initialBill)
-        : {
-            supplier_id: "", category: "", description: "",
-            issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
-            subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
-            cfdi_uuid: "",
-          },
-    );
+    form.reset(buildDefaults());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialBill?.id]);
 
