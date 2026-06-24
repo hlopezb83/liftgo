@@ -32,7 +32,7 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
       >
         <Download className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
-      <Button onClick={onCreate} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo Cliente</Button>
+      <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo Cliente</Button>
     </div>
   );
 }

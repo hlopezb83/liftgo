@@ -1,0 +1,23 @@
+{
+  "version": "6.88.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Correcciones E2E: enlace reserva en factura y aria-label cliente",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Sembrado E2E",
+      "items": [
+        "e2e_seed_scenario ahora inserta la fila correspondiente en invoice_bookings (line_index=0) además de invoices.booking_id legacy.",
+        "Con esto, el detalle de factura renderiza InvoiceSourceLinks con el badge 'Generada desde reserva' que valida booking-to-invoice.spec.ts."
+      ]
+    },
+    {
+      "heading": "Toolbar de Clientes",
+      "items": [
+        "El botón 'Nuevo Cliente' del CustomersActions expone aria-label='Agregar cliente'.",
+        "customer-create.spec.ts encuentra el botón en viewport desktop (1280×720) sin depender del FAB móvil que solo aparece en isMobile."
+      ]
+    }
+  ]
+}
