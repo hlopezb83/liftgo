@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
-import { es } from "date-fns/locale";
+import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
 import { Download } from "lucide-react";
 import { useInvoices } from "@/features/invoices";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
