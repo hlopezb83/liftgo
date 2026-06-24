@@ -2,8 +2,29 @@ import type { ExpenseCategory } from "@/features/accounts-payable";
 import { EXPENSE_CATEGORY_LABELS } from "@/features/accounts-payable";
 import { roundMoney } from "@/lib/money";
 
-export const EXPENSE_CATEGORIES: ExpenseCategory[] = ["renta", "nomina", "caja_chica", "publicidad", "otro"];
-export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = ["costo_venta"];
+export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  "renta",
+  "nomina",
+  "servicios_publicos",
+  "honorarios",
+  "papeleria",
+  "capacitacion",
+  "publicidad",
+  "comisiones_ventas",
+  "viajes_representacion",
+  "intereses",
+  "comisiones_bancarias",
+  "caja_chica",
+  "otro",
+];
+export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = [
+  "costo_venta",
+  "mantenimiento",
+  "refacciones",
+  "combustible",
+  "transporte_logistica",
+  "seguros_equipo",
+];
 
 export { EXPENSE_CATEGORY_LABELS };
 export type { ExpenseCategory };
@@ -72,6 +93,11 @@ export type AccountingBasis = "accrual" | "cash";
 export const emptyExpenses = (): Record<ExpenseCategory, number> => ({
   renta: 0, nomina: 0, software: 0, depreciacion: 0,
   otro: 0, costo_venta: 0, caja_chica: 0, publicidad: 0,
+  mantenimiento: 0, refacciones: 0, combustible: 0,
+  transporte_logistica: 0, seguros_equipo: 0,
+  servicios_publicos: 0, honorarios: 0, papeleria: 0, capacitacion: 0,
+  comisiones_ventas: 0, viajes_representacion: 0,
+  intereses: 0, comisiones_bancarias: 0,
 });
 
 export function computeDerivedTotals(t: {

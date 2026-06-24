@@ -1,0 +1,25 @@
+{
+  "version": "6.90.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Catálogo ampliado de categorías contables para gastos",
+  "description": "Se agregaron 13 nuevas categorías al módulo de Cuentas por Pagar agrupadas en Operativas (mantenimiento, refacciones, combustible, transporte y logística, seguros de equipo), Administrativas (servicios públicos, honorarios, papelería, capacitación), Comerciales (comisiones de ventas, viajes y representación) y Financieras (intereses, comisiones bancarias). Los selectores ahora muestran las categorías agrupadas y el Estado de Resultados clasifica automáticamente las operativas como Costo de Servicio (impactando Margen Bruto), mientras que las administrativas, comerciales y financieras se reportan como gastos operativos debajo del Margen Bruto.",
+  "category": "feature",
+  "details": {
+    "added": [
+      "Operativas: Mantenimiento de Equipo, Refacciones y Consumibles, Combustible, Transporte y Logística, Seguros de Equipo",
+      "Administrativas: Servicios Públicos, Honorarios, Papelería y Oficina, Capacitación",
+      "Comerciales: Comisiones de Ventas, Viajes y Representación",
+      "Financieras: Intereses Financieros, Comisiones Bancarias",
+      "Selectores agrupados por bloque contable en formulario y filtros de Cuentas por Pagar"
+    ],
+    "changed": [
+      "Estado de Resultados: las nuevas categorías operativas se clasifican como Costo de Servicio (afectan Margen Bruto)",
+      "Reordenamiento del catálogo de categorías por bloque contable"
+    ],
+    "notes": [
+      "No se eliminó ni renombró ninguna categoría existente; los registros previos siguen vigentes",
+      "Software y Depreciación continúan excluidos del P&L según política contable"
+    ]
+  }
+}

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { SupplierSelector } from "@/features/suppliers";
@@ -11,6 +11,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import { formatDateDisplay } from "@/lib/utils";
 import {
   EXPENSE_CATEGORY_LABELS,
+  EXPENSE_CATEGORY_GROUPS,
   PAYMENT_METHOD_SAT_OPTIONS,
   CURRENCIES,
 } from "../lib/supplierBillConstants";
@@ -107,8 +108,13 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
               <Select value={form.watch("category")} onValueChange={(v) => form.setValue("category", v)}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(EXPENSE_CATEGORY_LABELS).map(([v, l]) => (
-                    <SelectItem key={v} value={v}>{l}</SelectItem>
+                  {EXPENSE_CATEGORY_GROUPS.map((g) => (
+                    <SelectGroup key={g.label}>
+                      <SelectLabel>{g.label}</SelectLabel>
+                      {g.categories.map((v) => (
+                        <SelectItem key={v} value={v}>{EXPENSE_CATEGORY_LABELS[v]}</SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
