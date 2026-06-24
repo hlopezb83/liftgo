@@ -1,0 +1,19 @@
+{
+  "version": "6.93.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Idempotencia P0: numeración atómica + claim de timbrado CFDI",
+  "category": "feature",
+  "description": "Cierra ventanas de duplicación que afectaban facturas, contratos, CFDI y lotes de pago a proveedor.",
+  "highlights": [
+    "Numeración atómica vía secuencias de Postgres para FAC-, CXP-, NC- y CTR-. Elimina la posibilidad de que dos creaciones simultáneas reciban el mismo folio.",
+    "UNIQUE constraint en invoices.invoice_number y contracts.contract_number (parciales, excluyen registros E2E).",
+    "Claim atómico antes de timbrar en stamp-cfdi, stamp-credit-note y stamp-payment-complement: solo una petición concurrente puede transicionar de pending|error|none → stamping. Cierra la ventana entre el check de estado y la llamada a Facturapi, evitando doble timbrado ante el SAT.",
+    "create_supplier_payment_batch rechaza facturas con payment_in_progress_at activo: bloquea que la misma factura entre en dos lotes simultáneos.",
+    "Índice de consulta en invoices(customer_id, billing_period_start, billing_period_end) para detección de duplicados de facturación recurrente."
+  ],
+  "knownIssues": [
+    "El UNIQUE definitivo en (customer_id, billing_period_start, billing_period_end) quedó pendiente: existen 7 facturas duplicadas históricas en junio 2026 (5 de un cliente + 2 de otro) que deben revisarse y cancelarse antes de promover el índice a UNIQUE. Mientras tanto, el cron de facturación recurrente puede seguir generando duplicados bajo concurrencia.",
+    "P1 (recurring-maintenance, advisory lock en generate-recurring-invoices) y P2 (Idempotency-Key header para webhooks) quedan fuera de esta entrega."
+  ]
+}

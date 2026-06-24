@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.93.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Idempotencia P0: numeración atómica + claim de timbrado CFDI",
+    "description": "Numeración de folios vía secuencias atómicas (FAC/CXP/NC/CTR), UNIQUE en folios de facturas y contratos, claim atómico antes de timbrar ante Facturapi (cierra ventana de doble timbrado) y bloqueo de doble lote de pago a proveedor. Pendiente: limpiar 7 facturas duplicadas históricas para promover el índice de período recurrente a UNIQUE.",
+    "category": "feature"
+  },
+  {
     "version": "6.92.2",
     "date": "2026-06-24",
     "type": "patch",
