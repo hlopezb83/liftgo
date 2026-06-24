@@ -1,0 +1,11 @@
+{
+  "version": "6.95.3",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Reordenamiento de acciones en detalle de factura",
+  "category": "improvement",
+  "changes": [
+    "Los botones del header de detalle de factura se reordenaron a: Editar → Timbrar CFDI → Registrar Pago → Descargar XML → Descargar PDF SAT → Cancelar CFDI → Eliminar.",
+    "Se aprovecha el espacio horizontal disponible para reflejar el flujo natural del documento: edición → timbrado → cobro → descargas → cancelación → eliminación."
+  ]
+}
