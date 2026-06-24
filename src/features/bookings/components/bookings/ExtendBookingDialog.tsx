@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,36 +45,31 @@ export function ExtendBookingDialog({ open, onOpenChange, bookingId, currentEndD
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Extender Renta</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Fecha de fin actual</Label>
-            <Input value={formatDateDisplay(currentEndDate)} disabled />
-          </div>
-          <DatePickerField
-            label="Nueva fecha de fin"
-            required
-            date={newEndDate}
-            onSelect={setNewEndDate}
-            placeholder="Selecciona una fecha"
-            disabled={(date) => (currentEndDateObj ? date <= currentEndDateObj : false)}
-          />
-          <div className="space-y-1.5">
-            <Label>Motivo (opcional)</Label>
-            <Textarea placeholder="Ej: Cliente solicitó extensión por 2 semanas más..." value={reason} onChange={(e) => setReason(e.target.value)} rows={2} />
-          </div>
+    <FormDialog open={open} onOpenChange={onOpenChange} title="Extender Renta" width="md">
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <Label>Fecha de fin actual</Label>
+          <Input value={formatDateDisplay(currentEndDate)} disabled />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={!newEndDate || createExtension.isPending}>
-            {createExtension.isPending ? "Extendiendo..." : "Confirmar Extensión"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <DatePickerField
+          label="Nueva fecha de fin"
+          required
+          date={newEndDate}
+          onSelect={setNewEndDate}
+          placeholder="Selecciona una fecha"
+          disabled={(date) => (currentEndDateObj ? date <= currentEndDateObj : false)}
+        />
+        <div className="space-y-1.5">
+          <Label>Motivo (opcional)</Label>
+          <Textarea placeholder="Ej: Cliente solicitó extensión por 2 semanas más..." value={reason} onChange={(e) => setReason(e.target.value)} rows={2} />
+        </div>
+      </div>
+      <FormDialogFooter>
+        <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        <Button onClick={handleSubmit} disabled={!newEndDate || createExtension.isPending}>
+          {createExtension.isPending ? "Extendiendo..." : "Confirmar Extensión"}
+        </Button>
+      </FormDialogFooter>
+    </FormDialog>
   );
 }
