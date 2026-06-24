@@ -93,6 +93,11 @@ export type AccountingBasis = "accrual" | "cash";
 export const emptyExpenses = (): Record<ExpenseCategory, number> => ({
   renta: 0, nomina: 0, software: 0, depreciacion: 0,
   otro: 0, costo_venta: 0, caja_chica: 0, publicidad: 0,
+  mantenimiento: 0, refacciones: 0, combustible: 0,
+  transporte_logistica: 0, seguros_equipo: 0,
+  servicios_publicos: 0, honorarios: 0, papeleria: 0, capacitacion: 0,
+  comisiones_ventas: 0, viajes_representacion: 0,
+  intereses: 0, comisiones_bancarias: 0,
 });
 
 export function computeDerivedTotals(t: {
