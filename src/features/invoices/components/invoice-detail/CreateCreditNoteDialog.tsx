@@ -83,7 +83,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
           </div>
         </div>
 
-        <DialogFooter>
+        <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={f.isPending}>
             Cancelar
           </Button>
@@ -93,8 +93,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
           <Button onClick={() => f.submit(true)} disabled={!f.canSubmit}>
             {f.isPending ? "Procesando..." : "Guardar y timbrar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialogFooter>
+    </FormDialog>
   );
 }
