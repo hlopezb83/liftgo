@@ -1,5 +1,7 @@
 import type { UseFormReturn } from "react-hook-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,7 +9,6 @@ import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { SupplierSelector } from "@/features/suppliers";
-import { Wrench } from "lucide-react";
 import { SERVICE_TYPES } from "@/lib/constants";
 import type { MaintenanceFormValues } from "../../hooks/maintenance/useMaintenanceForm";
 
