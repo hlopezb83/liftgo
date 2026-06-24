@@ -1,4 +1,5 @@
 import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
+import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 
 export const STATUS_COLORS = {
   available: "hsl(var(--status-available))",
