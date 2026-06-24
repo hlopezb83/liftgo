@@ -25,6 +25,7 @@ export default function CuentasPorPagarPage() {
   const { data: suppliers } = useSuppliers();
   const f = useAccountsPayableFilters(bills);
   const createDialog = useToggleDialog();
+  const importDialog = useToggleDialog();
   const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
