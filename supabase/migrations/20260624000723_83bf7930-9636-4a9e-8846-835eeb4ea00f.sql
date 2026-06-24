@@ -1,0 +1,1 @@
+UPDATE public.role_permissions SET module = 'Facturas de Proveedor' WHERE module = 'Cuentas por Pagar';

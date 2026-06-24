@@ -39,7 +39,7 @@ export default function CuentasPorPagarPage() {
   return (
     <>
       <ListPageLayout<SupplierBillListItem>
-        title="Cuentas por Pagar"
+        title="Facturas de Proveedor"
         subtitle="Facturas de proveedores y su seguimiento de pago"
         totalCount={f.filtered.length}
         actions={

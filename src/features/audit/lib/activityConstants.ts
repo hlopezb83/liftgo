@@ -11,10 +11,10 @@ export const ENTITY_LABELS: Record<string, string> = {
   deliveries: "Entregas",
   payments: "Pagos",
   operating_expenses: "Gastos (legado)",
-  supplier_bills: "Cuentas por Pagar",
+  supplier_bills: "Facturas de Proveedor",
   supplier_payments: "Pagos a proveedores",
   supplier_bill_approvals: "Aprobaciones CxP",
-  supplier_bill: "Cuentas por Pagar",
+  supplier_bill: "Facturas de Proveedor",
   prospects: "Prospectos",
   suppliers: "Proveedores",
 };

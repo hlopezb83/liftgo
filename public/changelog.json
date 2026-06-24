@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.81.0",
+    "date": "2026-06-23",
+    "type": "minor",
+    "title": "Renombrar módulo a 'Facturas de Proveedor'",
+    "description": "El módulo 'Cuentas por Pagar' ahora se llama 'Facturas de Proveedor' en toda la app. La URL /cuentas-por-pagar se mantiene.",
+    "category": "improvement"
+  },
+  {
     "version": "6.80.5",
     "date": "2026-06-23",
     "type": "patch",

@@ -15,7 +15,7 @@ export const MODULES = [
   "CRM / Prospectos", "Mantenimiento", "Daños", "Refacciones",
   "Gastos", "Proveedores", "Reportes", "MRR", "Configuración", "Gestión de Usuarios",
   "Feedback",
-  "Cuentas por Pagar", "Flujo de Caja", "Cuentas Bancarias", "Conciliación Bancaria",
+  "Facturas de Proveedor", "Flujo de Caja", "Cuentas Bancarias", "Conciliación Bancaria",
 ] as const;
 
 /** Map sidebar route → module name */
@@ -43,8 +43,8 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/returns": "Entregas",
   "/income-statement": "Reportes",
   "/feedback": "Feedback",
-  "/cuentas-por-pagar": "Cuentas por Pagar",
-  "/cuentas-por-pagar/antiguedad": "Cuentas por Pagar",
+  "/cuentas-por-pagar": "Facturas de Proveedor",
+  "/cuentas-por-pagar/antiguedad": "Facturas de Proveedor",
   "/flujo-de-caja": "Flujo de Caja",
   "/cuentas-bancarias": "Cuentas Bancarias",
   "/conciliacion-bancaria": "Conciliación Bancaria",
