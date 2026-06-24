@@ -42,7 +42,7 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
   const repStatus = (p.rep_status as SupplierRepStatus | null) ?? "not_required";
 
   const deleteBlocked =
-    repStatus === "approved" ? "Revierte primero el REP fiscal aprobado" :
+    repStatus === "received" ? "Revierte primero el REP fiscal recibido" :
     billCancelled ? "La factura está cancelada" : null;
   const canDelete = isAdmin && !deleteBlocked;
 
