@@ -14,6 +14,7 @@ export function useCustomers() {
       const { data, error } = await supabase
         .from("customers")
         .select("*")
+        .is("deleted_at", null)
         .or("is_e2e.is.null,is_e2e.eq.false")
         .not("name", "ilike", "E2E%")
         .or("email.is.null,email.neq.e2e-ui@test.local")
