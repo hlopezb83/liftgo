@@ -29,7 +29,7 @@ export const NAV_SHORTCUTS: NavShortcut[] = [
   { key: "m", url: "/maintenance", label: "Mantenimiento" },
   { key: "p", url: "/suppliers", label: "Proveedores" },
   { key: "x", url: "/expenses", label: "Gastos" },
-  { key: "a", url: "/accounts-payable", label: "Cuentas por Pagar" },
+  { key: "a", url: "/accounts-payable", label: "Facturas de Proveedor" },
   { key: "r", url: "/reports", label: "Reportes" },
   { key: "s", url: "/crm", label: "CRM" },
 ];

@@ -25,7 +25,7 @@ export function CxpApprovalTab() {
   return (
     <Card className="max-w-xl">
       <CardHeader>
-        <CardTitle className="text-base">Aprobación de Cuentas por Pagar</CardTitle>
+        <CardTitle className="text-base">Aprobación de Facturas de Proveedor</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">

@@ -174,7 +174,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
             />
 
             <Separator />
-            <RoleGuard module="Cuentas por Pagar" minAccess="full">
+            <RoleGuard module="Facturas de Proveedor" minAccess="full">
               <PaymentActions
                 bill={bill}
                 onPayClick={() => setPayDialog(true)}

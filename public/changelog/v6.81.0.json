@@ -1,0 +1,14 @@
+{
+  "version": "6.81.0",
+  "date": "2026-06-23",
+  "type": "minor",
+  "title": "Renombrar módulo a 'Facturas de Proveedor'",
+  "description": "El módulo 'Cuentas por Pagar' ahora se llama 'Facturas de Proveedor' en toda la app: sidebar, títulos, atajos de teclado, permisos por rol, RoleGuard y bitácora de actividad. La URL /cuentas-por-pagar se mantiene para no romper bookmarks ni enlaces existentes.",
+  "category": "improvement",
+  "changes": [
+    "Sidebar, atajo 'g a' y títulos de página actualizados.",
+    "Clave de módulo en role_permissions migrada a 'Facturas de Proveedor'.",
+    "RoleGuard de Cash Flow, Cuentas Bancarias y Conciliación apuntan al nuevo nombre.",
+    "Etiqueta de bitácora de actividad para supplier_bills actualizada."
+  ]
+}

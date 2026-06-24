@@ -20,7 +20,7 @@ export default function BankAccountsPage() {
   const handleEdit = (a: BankAccount) => { setEditing(a); setOpen(true); };
 
   return (
-    <RoleGuard module="Cuentas por Pagar" minAccess="read">
+    <RoleGuard module="Facturas de Proveedor" minAccess="read">
       <PageTransition>
         <div className="p-4 sm:p-6 space-y-4">
           <PageHeader

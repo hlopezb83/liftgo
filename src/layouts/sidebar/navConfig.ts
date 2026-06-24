@@ -46,7 +46,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Finanzas",
     items: [
       { title: "Facturas", url: "/invoices", icon: Receipt },
-      { title: "Cuentas por Pagar", url: "/cuentas-por-pagar", icon: FileClock },
+      { title: "Facturas de Proveedor", url: "/cuentas-por-pagar", icon: FileClock },
       { title: "Proveedores", url: "/suppliers", icon: Handshake },
       { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
       { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: Landmark },
