@@ -1,0 +1,8 @@
+{
+  "version": "6.84.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Encabezado responsivo en listados",
+  "description": "En pantallas menores a 1024px (laptops y tablets), el título de los listados ya no queda aplastado por la barra de acciones. Ahora los botones de acción se reacomodan debajo del título y conservan su tamaño completo.",
+  "category": "fix"
+}
