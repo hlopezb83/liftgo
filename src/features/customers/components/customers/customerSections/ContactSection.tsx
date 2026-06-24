@@ -1,14 +1,13 @@
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SectionHeading } from "@/components/forms/SectionHeading";
+import { FormSection } from "@/components/forms/FormSection";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
 
 export function ContactSection() {
   const { control } = useFormContext<CustomerFormData>();
   return (
-    <div className="space-y-3 border-t pt-4">
-      <SectionHeading>Contacto</SectionHeading>
+    <FormSection title="Contacto">
       <FormField control={control} name="contact_person" render={({ field }) => (
         <FormItem><FormLabel>Persona de Contacto</FormLabel><FormControl><Input placeholder="María García" {...field} /></FormControl><FormMessage /></FormItem>
       )} />
@@ -23,6 +22,6 @@ export function ContactSection() {
       <FormField control={control} name="website" render={({ field }) => (
         <FormItem><FormLabel>Sitio Web</FormLabel><FormControl><Input placeholder="https://empresa.com" {...field} /></FormControl><FormMessage /></FormItem>
       )} />
-    </div>
+    </FormSection>
   );
 }

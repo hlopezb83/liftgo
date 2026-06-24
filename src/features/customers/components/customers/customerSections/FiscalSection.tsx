@@ -2,15 +2,14 @@ import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SectionHeading } from "@/components/forms/SectionHeading";
+import { FormSection } from "@/components/forms/FormSection";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/domain/satCatalogs";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
 
 export function FiscalSection() {
   const { control } = useFormContext<CustomerFormData>();
   return (
-    <div className="space-y-3 border-t pt-4">
-      <SectionHeading>Datos Fiscales (CFDI)</SectionHeading>
+    <FormSection title="Datos Fiscales (CFDI)">
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={control}
@@ -99,6 +98,6 @@ export function FiscalSection() {
           </FormItem>
         )}
       />
-    </div>
+    </FormSection>
   );
 }
