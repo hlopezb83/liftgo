@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.85.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Modales de Cliente y Proveedor unificados",
+    "description": "Mismo lenguaje visual en los modales de Nuevo Cliente y Nuevo Proveedor: encabezados, separadores, header/footer fijos, validación inline con Zod, placeholders ejemplares, dropzone CSF compartida y microcopy alineada.",
+    "category": "improvement"
+  },
+  {
     "version": "6.84.1",
     "date": "2026-06-24",
     "type": "patch",
