@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { Pencil, Trash2, Trophy, XCircle, RotateCcw } from "lucide-react";
 import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
@@ -62,27 +62,19 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
           <Button variant="outline" className="flex-1" onClick={() => { onEdit(); onClose(); }}>
             <Pencil className="h-4 w-4 mr-1" /> Editar
           </Button>
-          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" className="flex-1 text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4 mr-1" /> Eliminar
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>¿Eliminar prospecto?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta acción no se puede deshacer. Se eliminará permanentemente el prospecto "{prospect.companyName}".
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} disabled={deleteProspect.isPending}>
-                  {deleteProspect.isPending ? "Eliminando..." : "Eliminar"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button variant="ghost" className="flex-1 text-destructive hover:text-destructive" onClick={() => setConfirmOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+          </Button>
+          <ConfirmDialog
+            open={confirmOpen}
+            onOpenChange={setConfirmOpen}
+            title="¿Eliminar prospecto?"
+            description={`Esta acción no se puede deshacer. Se eliminará permanentemente el prospecto "${prospect.companyName}".`}
+            confirmLabel="Eliminar"
+            destructive
+            loading={deleteProspect.isPending}
+            onConfirm={handleDelete}
+          />
         </div>
       </div>
 

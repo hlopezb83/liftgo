@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useCancelSupplierBill } from "../hooks/useSupplierBillMutations";
@@ -35,25 +32,25 @@ export function CancelSupplierBillDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Cancelar factura {billNumber}</AlertDialogTitle>
-          <AlertDialogDescription>
-            Esta acción marcará la factura como cancelada. Solo se permite cuando no tiene pagos aplicados.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className="space-y-1.5">
-          <Label>Motivo (opcional)</Label>
-          <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Cancelar factura ${billNumber}`}
+      descriptionNode={
+        <div className="space-y-3">
+          <p>Esta acción marcará la factura como cancelada. Solo se permite cuando no tiene pagos aplicados.</p>
+          <div className="space-y-1.5">
+            <Label>Motivo (opcional)</Label>
+            <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+          </div>
         </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Volver</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} disabled={cancel.isPending}>
-            {cancel.isPending ? "Cancelando…" : "Cancelar factura"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      }
+      confirmLabel="Cancelar factura"
+      cancelLabel="Volver"
+      destructive
+      loading={cancel.isPending}
+      onConfirm={handleConfirm}
+    />
   );
 }
+

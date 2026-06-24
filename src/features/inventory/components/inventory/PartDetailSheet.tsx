@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -102,27 +102,19 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(part); onOpenChange(false); }}>
                 <Pencil className="h-4 w-4 mr-1" /> Editar
               </Button>
-              <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="flex-1">
-                    <Trash2 className="h-4 w-4 mr-1" /> Eliminar
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>¿Eliminar refacción?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta acción no se puede deshacer. Se eliminará permanentemente "{part.name}" del inventario.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} disabled={deletePart.isPending}>
-                      {deletePart.isPending ? "Eliminando..." : "Eliminar"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button variant="destructive" className="flex-1" onClick={() => setConfirmOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+              </Button>
+              <ConfirmDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                title="¿Eliminar refacción?"
+                description={`Esta acción no se puede deshacer. Se eliminará permanentemente "${part.name}" del inventario.`}
+                confirmLabel="Eliminar"
+                destructive
+                loading={deletePart.isPending}
+                onConfirm={handleDelete}
+              />
             </div>
           </RoleGuard>
         </div>

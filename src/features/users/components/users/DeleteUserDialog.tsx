@@ -1,4 +1,4 @@
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDeleteUser, type UserRow } from "../../hooks/useUserManagement";
 
 interface DeleteUserDialogProps {
@@ -16,21 +16,19 @@ export function DeleteUserDialog({ user, onClose }: DeleteUserDialogProps) {
   };
 
   return (
-    <AlertDialog open={!!user} onOpenChange={(v) => !v && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Se eliminará permanentemente a <strong>{user?.full_name ?? "este usuario"}</strong> y su cuenta de acceso. Esta acción no se puede deshacer.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDelete} disabled={deleteUser.isPending}>
-            {deleteUser.isPending ? "Eliminando…" : "Eliminar"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      open={!!user}
+      onOpenChange={(v) => !v && onClose()}
+      title="¿Eliminar usuario?"
+      descriptionNode={
+        <span>
+          Se eliminará permanentemente a <strong>{user?.full_name ?? "este usuario"}</strong> y su cuenta de acceso. Esta acción no se puede deshacer.
+        </span>
+      }
+      confirmLabel="Eliminar"
+      destructive
+      loading={deleteUser.isPending}
+      onConfirm={handleDelete}
+    />
   );
 }

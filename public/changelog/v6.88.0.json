@@ -1,0 +1,13 @@
+{
+  "version": "6.88.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Confirmaciones unificadas con ConfirmDialog",
+  "category": "improvement",
+  "summary": "17 AlertDialogs de confirmación migrados a la primitiva ConfirmDialog para cerrar el lenguaje unificado de modales.",
+  "highlights": [
+    "Primitiva ConfirmDialog extendida con loading (spinner + disable), descriptionNode (JSX rico) y hideConfirm (variante informativa).",
+    "Confirmaciones unificadas en CRM (Reabrir deal, Eliminar prospecto), Customers (Eliminar cliente), Bookings (Eliminar y Cancelar reserva), Users (Cambiar rol, Eliminar usuario), Quotes (Eliminar cotización), Inventory (Eliminar refacción), Fleet (Eliminar montacargas), Maintenance (Eliminar registro), AP (Cancelar factura), Invoices (Eliminar factura), Deliveries (Eliminar entrega).",
+    "Operations: Mecánicos, Operadores, Modelos de equipo y Pólizas de mantenimiento migrados con RowActions locales que abren ConfirmDialog destructivo."
+  ]
+}

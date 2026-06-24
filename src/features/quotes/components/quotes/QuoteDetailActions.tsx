@@ -2,10 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { QuotePDFButton } from "./QuotePDFButton";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Receipt } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
@@ -80,28 +78,21 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
 }
 
 function DeleteDialog({ quoteNumber, onDelete }: { quoteNumber: string; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
   return (
     <RoleGuard module="Cotizaciones" minAccess="full">
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button size="sm" variant="destructive"><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar cotización?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente la cotización {quoteNumber}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={onDelete}
-            >Eliminar</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Button size="sm" variant="destructive" onClick={() => setOpen(true)}>
+        <Trash2 className="h-4 w-4 mr-1" />Eliminar
+      </Button>
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="¿Eliminar cotización?"
+        description={`Esta acción no se puede deshacer. Se eliminará permanentemente la cotización ${quoteNumber}.`}
+        confirmLabel="Eliminar"
+        destructive
+        onConfirm={onDelete}
+      />
     </RoleGuard>
   );
 }

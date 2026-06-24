@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -52,16 +52,11 @@ export function EquipmentModelsTab() {
         header: "",
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}><Pencil className="h-4 w-4" /></Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader><AlertDialogTitle>¿Eliminar {row.original.manufacturer} {row.original.model}?</AlertDialogTitle><AlertDialogDescription>Esto no afectará los montacargas existentes.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          <EquipmentModelRowActions
+            model={row.original}
+            onEdit={() => openEdit(row.original)}
+            onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+          />
         ),
       },
     ],
@@ -109,6 +104,25 @@ export function EquipmentModelsTab() {
             <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </FormDialogFooter>
         </FormDialog>
+    </div>
+  );
+}
+
+function EquipmentModelRowActions({ model, onEdit, onDelete }: { model: EquipmentModel; onEdit: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex gap-1">
+      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`¿Eliminar ${model.manufacturer} ${model.model}?`}
+        description="Esto no afectará los montacargas existentes."
+        confirmLabel="Eliminar"
+        destructive
+        onConfirm={onDelete}
+      />
     </div>
   );
 }

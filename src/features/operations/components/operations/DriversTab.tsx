@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { Plus, Pencil, Trash2 } from "lucide-react";
@@ -55,16 +55,11 @@ export function DriversTab() {
         header: "",
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => openEdit(row.original)}><Pencil className="h-4 w-4" /></Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button></AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader><AlertDialogTitle>¿Eliminar {row.original.name}?</AlertDialogTitle><AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}>Eliminar</AlertDialogAction></AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          <DriverRowActions
+            driver={row.original}
+            onEdit={() => openEdit(row.original)}
+            onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+          />
         ),
       },
     ],
@@ -105,6 +100,25 @@ export function DriversTab() {
             <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </FormDialogFooter>
         </FormDialog>
+    </div>
+  );
+}
+
+function DriverRowActions({ driver, onEdit, onDelete }: { driver: Driver; onEdit: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex gap-1">
+      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`¿Eliminar ${driver.name}?`}
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        destructive
+        onConfirm={onDelete}
+      />
     </div>
   );
 }
