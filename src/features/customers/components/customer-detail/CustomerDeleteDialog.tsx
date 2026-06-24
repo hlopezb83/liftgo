@@ -15,42 +15,38 @@ interface Props {
 export function CustomerDeleteDialog({
   open, onOpenChange, customerName, bookingsCount, invoicesCount, outstanding, isPending, onDelete,
 }: Props) {
-  const hasDependencies = bookingsCount > 0 || invoicesCount > 0;
+  const hasActiveDeps = outstanding > 0;
 
-  const descriptionNode = hasDependencies ? (
+  const descriptionNode = hasActiveDeps ? (
     <div className="space-y-2">
-      <p className="font-medium text-destructive">No se puede eliminar a {customerName}.</p>
+      <p className="font-medium text-destructive">No se puede archivar a {customerName}.</p>
       <p>Este cliente tiene:</p>
       <ul className="list-disc list-inside text-sm space-y-1 ml-2">
-        {bookingsCount > 0 && (
-          <li>{bookingsCount} reserva{bookingsCount === 1 ? "" : "s"} registrada{bookingsCount === 1 ? "" : "s"}</li>
-        )}
-        {invoicesCount > 0 && (
-          <li>{invoicesCount} factura{invoicesCount === 1 ? "" : "s"} emitida{invoicesCount === 1 ? "" : "s"}</li>
-        )}
-        {outstanding > 0 && (
-          <li className="text-destructive font-medium">Saldo pendiente: {formatCurrency(outstanding)}</li>
-        )}
+        <li className="text-destructive font-medium">Saldo pendiente: {formatCurrency(outstanding)}</li>
       </ul>
-      <p className="text-xs text-muted-foreground pt-2">Elimina o cancela primero las dependencias.</p>
+      <p className="text-xs text-muted-foreground pt-2">Liquida o cancela el saldo antes de archivar.</p>
     </div>
   ) : (
-    <p>
-      Esta acción no se puede deshacer. Se eliminará permanentemente
-      a <strong>{customerName}</strong> del sistema.
-    </p>
+    <div className="space-y-2">
+      <p>
+        Se archivará a <strong>{customerName}</strong>: se ocultará de los listados pero
+        se conservará todo su historial ({bookingsCount} reserva{bookingsCount === 1 ? "" : "s"},{" "}
+        {invoicesCount} factura{invoicesCount === 1 ? "" : "s"}) para auditoría y reportes.
+      </p>
+      <p className="text-xs text-muted-foreground">Esta acción es reversible desde la base de datos.</p>
+    </div>
   );
 
   return (
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="¿Eliminar cliente?"
+      title="¿Archivar cliente?"
       descriptionNode={descriptionNode}
-      confirmLabel="Eliminar"
+      confirmLabel="Archivar"
       destructive
       loading={isPending}
-      hideConfirm={hasDependencies}
+      hideConfirm={hasActiveDeps}
       onConfirm={onDelete}
     />
   );
