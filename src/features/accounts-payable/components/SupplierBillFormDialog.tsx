@@ -15,21 +15,26 @@ import {
 } from "../lib/supplierBillConstants";
 import { useSupplierBillForm } from "../hooks/useSupplierBillForm";
 
+import type { SupplierBillDetail } from "../hooks/useSupplierBill";
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  bill?: SupplierBillDetail | null;
 }
 
-export function SupplierBillFormDialog({ open, onOpenChange }: Props) {
-  const { form, selectedSupplier, suggestedDueDate, total, isPending, onSubmit } =
-    useSupplierBillForm(open, () => onOpenChange(false));
+export function SupplierBillFormDialog({ open, onOpenChange, bill }: Props) {
+  const { form, selectedSupplier, suggestedDueDate, total, isEdit, isPending, onSubmit } =
+    useSupplierBillForm(open, () => onOpenChange(false), bill);
   const currency = form.watch("currency");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nueva Cuenta por Pagar</DialogTitle>
+          <DialogTitle>
+            {isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva Factura de Proveedor"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
           <SupplierSelector
@@ -131,7 +136,7 @@ export function SupplierBillFormDialog({ open, onOpenChange }: Props) {
           </div>
           <DialogFooter>
             <FormActions
-              submitLabel="Registrar"
+              submitLabel={isEdit ? "Guardar cambios" : "Registrar"}
               isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />
