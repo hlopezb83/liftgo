@@ -22,7 +22,8 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   destructive?: boolean;
   loading?: boolean;
-  onConfirm: () => void;
+  hideConfirm?: boolean;
+  onConfirm?: () => void;
 }
 
 /**
