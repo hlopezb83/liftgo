@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.90.1",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Estado de Resultados agrupado por bloque contable",
+    "description": "Los gastos operativos del Estado de Resultados ahora se agrupan en Administrativos, Comerciales, Financieros y Otros, con subtotal por grupo. Aplica también a la comparativa anual y al PDF.",
+    "category": "improvement"
+  },
+  {
+
     "version": "6.90.0",
     "date": "2026-06-24",
     "type": "minor",

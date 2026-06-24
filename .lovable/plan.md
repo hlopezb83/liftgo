@@ -1,47 +1,70 @@
+## Contexto
 
-## Objetivo
+El Estado de Resultados ya **muestra automáticamente** las 13 nuevas categorías porque itera `DIRECT_COST_CATEGORIES` (operativas, en Costo de Servicio) y `EXPENSE_CATEGORIES` (administrativas/comerciales/financieras, bajo Margen Bruto). Sin embargo, hoy todas aparecen como una lista plana de renglones `(-) <Categoría>` sin distinguir los bloques contables.
 
-Ampliar el catálogo de categorías de gasto del módulo de **Cuentas por Pagar** (y reportes de P&L) con las principales para un negocio de renta de montacargas, agrupadas en 4 bloques contables.
+Este plan agrega **agrupación visual y subtotales por bloque** para que el P&L refleje la estructura contable solicitada.
 
-## Categorías a agregar al enum `expense_category`
+## Estructura nueva del P&L
 
-Actuales: `renta`, `nomina`, `software`, `depreciacion`, `costo_venta`, `caja_chica`, `publicidad`, `otro`.
+```text
+  Ingresos por Rentas
+  Ingresos por Ventas
+= Total Ingresos
+(-) Mantenimiento
+(-) Daños
+(-) Costo de Venta
+(-) Refacciones y Consumibles
+(-) Combustible
+(-) Transporte y Logística
+(-) Seguros de Equipo
+(-) Mantenimiento de Equipo
+= Utilidad Bruta
+  Margen Bruto
 
-**Operativas (Costo de Servicio):**
-- `mantenimiento` — Mantenimiento de Equipo
-- `refacciones` — Refacciones y Consumibles
-- `combustible` — Combustible
-- `transporte_logistica` — Transporte y Logística
-- `seguros_equipo` — Seguros de Equipo
+  Gastos Administrativos
+    (-) Renta
+    (-) Nómina
+    (-) Servicios Públicos
+    (-) Honorarios
+    (-) Papelería y Oficina
+    (-) Capacitación
+  = Total Administrativos
 
-**Administrativas:**
-- `servicios_publicos` — Servicios Públicos (luz, agua, internet)
-- `honorarios` — Honorarios (contables/legales)
-- `papeleria` — Papelería y Oficina
-- `capacitacion` — Capacitación
-- (ya existentes: `renta`, `nomina`, `software`)
+  Gastos Comerciales
+    (-) Publicidad
+    (-) Comisiones de Ventas
+    (-) Viajes y Representación
+  = Total Comerciales
 
-**Comerciales:**
-- `comisiones_ventas` — Comisiones de Ventas
-- `viajes_representacion` — Viajes y Representación
-- (ya existente: `publicidad`)
+  Gastos Financieros
+    (-) Intereses Financieros
+    (-) Comisiones Bancarias
+  = Total Financieros
 
-**Financieras:**
-- `intereses` — Intereses Financieros
-- `comisiones_bancarias` — Comisiones Bancarias
+  Otros Gastos
+    (-) Caja Chica
+    (-) Otro
+  = Total Otros
+
+= Total Egresos
+= Utilidad antes de Depreciación
+  Margen antes de Depreciación
+(-) Depreciación (Equipos Rentados)
+= Utilidad Neta
+  Margen Neto
+```
 
 ## Cambios técnicos
 
-1. **Migración SQL** — `ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS '<x>'` para cada nuevo valor (en sentencias separadas, sin tocar valores existentes).
-2. **`supplierBillConstants.ts`** — Extender `EXPENSE_CATEGORY_LABELS` con los nuevos valores y reordenarlos por grupo para que el `<Select>` los muestre lógicamente. Agregar `EXPENSE_CATEGORY_GROUPS` para agrupar visualmente (label + lista de keys) y usarlo en `SupplierBillFormDialog` y `SupplierBillsFilters` con `SelectGroup`/`SelectLabel`.
-3. **Reportes P&L** (`features/reports/hooks/incomeStatement/types.ts`):
-   - `DIRECT_COST_CATEGORIES`: agregar `mantenimiento`, `refacciones`, `combustible`, `transporte_logistica`, `seguros_equipo` (junto a `costo_venta`).
-   - `EXPENSE_CATEGORIES` (operating below GM): agregar `servicios_publicos`, `honorarios`, `papeleria`, `capacitacion`, `comisiones_ventas`, `viajes_representacion`, `intereses`, `comisiones_bancarias` (junto a `renta`, `nomina`, `caja_chica`, `publicidad`, `otro`).
-   - Excluir `software` y `depreciacion` del P&L (regla de memoria vigente).
-4. **Changelog v6.90.0** (minor — nuevo catálogo) en `public/changelog.json` + `public/changelog/v6.90.0.json`.
+1. **`incomeStatement/types.ts`** — Agregar `OPERATING_EXPENSE_GROUPS: { label, categories }[]` con los 4 bloques (Administrativos, Comerciales, Financieros, Otros). `EXPENSE_CATEGORIES` se deriva como el `flatMap` de esos grupos (mantiene compatibilidad con `computeDerivedTotals` y `useStatementTotals`).
+2. **`statementRowFactories.ts`** — Reemplazar `operatingExpenseRows` por un builder que, por cada grupo, emite: un encabezado, las filas de categorías y un subtotal `= Total <Grupo>`. Indentar las categorías con doble espacio. Subtotal usa `isSubtotal: true` + `isCost: true`.
+3. **`useStatementRows.ts` (comparativa anual)** — Replicar la misma agrupación en `useComparisonRows` para que la vista comparativa muestre los mismos subtotales.
+4. **PDF (`IncomeStatementDocument`)** — Sin cambios: renderiza `statementRows`/`comparisonRows` tal cual.
+5. **Changelog v6.90.1** (patch — refinamiento de presentación) en `public/changelog.json` + `public/changelog/v6.90.1.json`.
 
 ## Notas
 
-- No se elimina ni renombra ninguna categoría existente (compatibilidad con datos previos).
-- No se modifican RLS ni GRANTs (solo se extiende un enum).
-- El `Select` de filtro y formulario mostrará separadores por grupo (Operativas / Administrativas / Comerciales / Financieras / Otros).
+- No cambian las fórmulas: `totalExpenses`, `grossProfit`, `netProfit` siguen igual; solo se añaden filas de subtotal informativas.
+- No requiere migración SQL.
+- Software y Depreciación siguen excluidos del P&L (regla vigente).
+- El export CSV incluirá los nuevos renglones de subtotal y encabezado de grupo (cada uno con su `Concepto` y totales).

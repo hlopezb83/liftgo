@@ -1,7 +1,7 @@
 import { sumMoney } from "@/lib/money";
 import {
   type MonthData, type StatementRow, type YearTotals,
-  EXPENSE_CATEGORIES, DIRECT_COST_CATEGORIES, EXPENSE_CATEGORY_LABELS,
+  EXPENSE_CATEGORY_LABELS, DIRECT_COST_CATEGORIES, OPERATING_EXPENSE_GROUPS,
 } from "./types";
 
 interface RowTotals {
@@ -22,13 +22,31 @@ const directCostRows = (filteredData: MonthData[], totals: RowTotals): Statement
     isCost: true,
   }));
 
-const operatingExpenseRows = (filteredData: MonthData[], totals: RowTotals): StatementRow[] =>
-  EXPENSE_CATEGORIES.map((c) => ({
-    label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
-    values: filteredData.map((r) => r.expenses[c]),
-    total: totals.expenses[c],
-    isCost: true,
-  }));
+const operatingExpenseGroupRows = (filteredData: MonthData[], totals: RowTotals): StatementRow[] => {
+  const rows: StatementRow[] = [];
+  for (const group of OPERATING_EXPENSE_GROUPS) {
+    for (const c of group.categories) {
+      rows.push({
+        label: `  (-) ${EXPENSE_CATEGORY_LABELS[c]}`,
+        values: filteredData.map((r) => r.expenses[c]),
+        total: totals.expenses[c],
+        isCost: true,
+      });
+    }
+    const groupValues = filteredData.map((r) =>
+      sumMoney(group.categories.map((c) => r.expenses[c])),
+    );
+    rows.push({
+      label: `= Total ${group.label}`,
+      values: groupValues,
+      total: sumMoney(group.categories.map((c) => totals.expenses[c])),
+      isSubtotal: true,
+      isCost: true,
+    });
+  }
+  return rows;
+};
+
 
 export function buildStatementRows(filteredData: MonthData[], totals: RowTotals): StatementRow[] {
   return [
@@ -40,7 +58,7 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     ...directCostRows(filteredData, totals),
     { label: "= Utilidad Bruta", values: filteredData.map((r) => r.grossProfit), total: totals.grossProfit, isSubtotal: true },
     { label: "Margen Bruto", values: filteredData.map((r) => r.grossMargin), total: totals.grossMargin, isPercent: true },
-    ...operatingExpenseRows(filteredData, totals),
+    ...operatingExpenseGroupRows(filteredData, totals),
     { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
     { label: "= Utilidad antes de Depreciación", values: filteredData.map((r) => r.profitBeforeDepreciation), total: totals.profitBeforeDepreciation, isSubtotal: true },
     { label: "Margen antes de Depreciación", values: filteredData.map((r) => r.marginBeforeDepreciation), total: totals.marginBeforeDepreciation, isPercent: true },
@@ -49,6 +67,7 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ];
 }
+
 
 export function buildBreakdownRows(
   filteredData: MonthData[],
