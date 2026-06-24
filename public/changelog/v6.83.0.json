@@ -1,0 +1,14 @@
+{
+  "version": "6.83.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Eliminar pago aplicado a Factura de Proveedor",
+  "description": "Administradores pueden eliminar un pago registrado desde el panel de detalle. El saldo y estado de la factura se recalculan automáticamente y, si el pago estaba conciliado con una línea bancaria, queda desvinculado.",
+  "category": "feature",
+  "changes": [
+    "Botón 'Eliminar pago' (solo Admin) en cada pago dentro del panel de detalle.",
+    "Bloqueado cuando el REP fiscal está aprobado o la factura está cancelada (con tooltip explicativo).",
+    "Confirmación destructiva muestra una advertencia adicional si el pago estaba conciliado con una cuenta bancaria.",
+    "El trigger de BD recalcula saldo/estado de la factura automáticamente."
+  ]
+}
