@@ -1,0 +1,20 @@
+{
+  "version": "6.91.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Depreciación ajustada a 25% anual (48 meses) según ISR",
+  "category": "fix",
+  "summary": "Se actualizó la tasa de depreciación de equipos de renta de 36 a 48 meses para cumplir con el 25% anual que establece la Ley del Impuesto Sobre la Renta en México.",
+  "changes": [
+    {
+      "area": "Estado de Resultados",
+      "items": [
+        "Depreciación mensual por unidad rentada: ahora se distribuye en 48 meses (antes 36).",
+        "Costo de Equipos Vendidos: el valor en libros al vender refleja depreciación acumulada con base en 48 meses, lo que resulta en un COGS más alto y utilidad de venta más precisa.",
+        "El cambio aplica retroactivo a todo el histórico al refrescar el reporte (cálculo derivado, sin backfill)."
+      ]
+    }
+  ],
+  "impact": "El gasto mensual de depreciación baja aproximadamente 25% por unidad, y el costo reconocido al vender un montacargas sube proporcionalmente.",
+  "breaking": false
+}
