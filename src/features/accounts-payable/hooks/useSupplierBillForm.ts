@@ -138,6 +138,7 @@ export function useSupplierBillForm(
       retention_isr: data.retention_isr,
       total,
       cfdi_uuid: data.cfdi_uuid || null,
+      cfdi_xml_url: overrides?.cfdiXmlUrl ?? null,
       payment_method_sat: data.payment_method_sat ?? null,
     };
 
