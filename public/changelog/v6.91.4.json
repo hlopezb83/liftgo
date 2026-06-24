@@ -1,0 +1,25 @@
+{
+  "version": "6.91.4",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Meses en español en gráfica de Flujo de Efectivo",
+  "category": "fix",
+  "summary": "Se centralizó el formateo de etiquetas de mes en español en un helper compartido y se aplicó a la gráfica de Flujo de Efectivo del dashboard.",
+  "changes": [
+    {
+      "area": "Infraestructura",
+      "items": [
+        "Nuevo helper src/lib/format/formatMonthEs.ts con formatMonthShortEs(monthKey) → 'Jun 26'.",
+        "Estado de Resultados refactorizado para usar el helper compartido."
+      ]
+    },
+    {
+      "area": "Dashboard",
+      "items": [
+        "Gráfica de Flujo de Efectivo ahora formatea los meses en es-MX desde el month_key, ignorando la etiqueta en inglés del RPC."
+      ]
+    }
+  ],
+  "notes": "El Reporte de Ingresos y la Utilización Mensual ya estaban en español. El Balance General no existe como reporte en el sistema.",
+  "breaking": false
+}
