@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.91.5",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Formateo de meses centralizado en helper único",
+    "description": "Se consolidó el formateo de etiquetas de mes en src/lib/format/formatMonthEs.ts (variantes corta y larga). Reportes de Ingresos y selector del Estado de Resultados ahora usan el helper para evitar regresiones de idioma.",
+    "category": "fix"
+  },
+  {
     "version": "6.91.4",
     "date": "2026-06-24",
     "type": "patch",
