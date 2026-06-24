@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.91.1",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Depreciación ajustada a 25% anual (48 meses) según ISR",
+    "description": "El Estado de Resultados ahora deprecia los equipos en 48 meses conforme a la Ley del ISR mexicana. Afecta la depreciación mensual y el Costo de Equipos Vendidos.",
+    "category": "fix"
+  },
+  {
     "version": "6.91.0",
     "date": "2026-06-24",
     "type": "minor",
