@@ -9,7 +9,8 @@ import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useState } from "react";
 import { Edit, Trash2 } from "lucide-react";
 
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
@@ -34,6 +35,7 @@ export default function ForkliftDetail() {
   const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
   const { data: locationData } = useForkliftLocation(id);
   const deleteForklift = useDeleteForklift();
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
   if (!forklift) return <div className="p-6 text-muted-foreground">Montacargas no encontrado</div>;
@@ -57,23 +59,18 @@ export default function ForkliftDetail() {
             <Button variant="outline" size="sm" onClick={() => navigate(`/fleet/${id}/edit`)}>
               <Edit className="h-4 w-4 mr-1" /> Editar
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm"><Trash2 className="h-4 w-4 mr-1" /> Eliminar</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Eliminar {forklift.name}?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esto eliminará permanentemente este montacargas y todos sus registros relacionados. Esta acción no se puede deshacer.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+            </Button>
+            <ConfirmDialog
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              title={`¿Eliminar ${forklift.name}?`}
+              description="Esto eliminará permanentemente este montacargas y todos sus registros relacionados. Esta acción no se puede deshacer."
+              confirmLabel="Eliminar"
+              destructive
+              onConfirm={handleDelete}
+            />
           </>
         }
       />

@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { type BookingWithForklift } from "../../hooks/useBookings";
 import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "lucide-react";
 import { formatDateRange } from "@/lib/utils";
@@ -8,33 +9,6 @@ import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionD
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 
-function ConfirmActionDialog({
-  trigger, title, description, confirmLabel, onConfirm,
-}: {
-  trigger: React.ReactNode;
-  title: string;
-  description: string;
-  confirmLabel: string;
-  onConfirm: () => void;
-}) {
-  return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            {confirmLabel}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
 
 export function BookingActions({ booking }: BookingActionsProps) {
   const {
@@ -48,6 +22,9 @@ export function BookingActions({ booking }: BookingActionsProps) {
     updateBookingPending,
   } = useBookingActionsLogic(booking);
 
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+
   const statusChangeDialog = (
     <BookingStatusChangeDialog
       open={statusDialogOpen}
@@ -59,18 +36,25 @@ export function BookingActions({ booking }: BookingActionsProps) {
     />
   );
 
-  const deleteButton = (
-    <ConfirmActionDialog
-      trigger={
-        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-          <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
-        </Button>
-      }
+  const deleteDialog = (
+    <ConfirmDialog
+      open={deleteOpen}
+      onOpenChange={setDeleteOpen}
       title="¿Eliminar esta reserva?"
       description={`Se eliminará permanentemente la reserva de ${booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.`}
       confirmLabel="Eliminar"
+      destructive
       onConfirm={handleDelete}
     />
+  );
+
+  const deleteButton = (
+    <>
+      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
+        <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
+      </Button>
+      {deleteDialog}
+    </>
   );
 
   if (booking.status !== "confirmed") {
@@ -107,15 +91,16 @@ export function BookingActions({ booking }: BookingActionsProps) {
         </>
       )}
 
-      <ConfirmActionDialog
-        trigger={
-          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-            <XCircle className="h-3.5 w-3.5 mr-1" />Cancelar
-          </Button>
-        }
+      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setCancelOpen(true)}>
+        <XCircle className="h-3.5 w-3.5 mr-1" />Cancelar
+      </Button>
+      <ConfirmDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
         title="¿Cancelar esta reserva?"
         description={`Se cancelará la reserva de ${booking.customer_name || "este cliente"} (${formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.`}
         confirmLabel="Cancelar Reserva"
+        destructive
         onConfirm={handleCancel}
       />
 
