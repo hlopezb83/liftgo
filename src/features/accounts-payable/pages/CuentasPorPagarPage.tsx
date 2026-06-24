@@ -13,6 +13,7 @@ import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
 import { SupplierBillDetailSheet } from "../components/SupplierBillDetailSheet";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
+import { ImportSupplierBillXmlDialog } from "../components/ImportSupplierBillXmlDialog";
 import { SupplierBillsFilters } from "../components/SupplierBillsFilters";
 import {
   useSupplierBillColumns,
