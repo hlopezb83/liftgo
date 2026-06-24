@@ -251,7 +251,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
               ) : (
                 <div className="space-y-2">
                   {bill.payments.map((p) => (
-                    <SupplierPaymentRow key={p.id} payment={p} billId={bill.id} currency={bill.currency} />
+                    <SupplierPaymentRow key={p.id} payment={p} billId={bill.id} currency={bill.currency} billCancelled={bill.status === "cancelled"} />
                   ))}
                 </div>
               )}

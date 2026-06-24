@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.83.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Eliminar pago aplicado a Factura de Proveedor",
+    "description": "Administradores pueden eliminar un pago registrado; el saldo y estado de la factura se recalculan automáticamente.",
+    "category": "feature"
+  },
+  {
     "version": "6.82.0",
     "date": "2026-06-24",
     "type": "minor",

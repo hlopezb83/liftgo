@@ -1,57 +1,57 @@
 ## Objetivo
-Agregar **Editar** y **Eliminar** a Facturas de Proveedor (`/cuentas-por-pagar`) con guardas estrictas para no romper integridad contable.
+Permitir **eliminar un pago** registrado en una Factura de Proveedor desde el panel de detalle, con guardas estrictas (la operación recalcula saldo/estado automáticamente vía trigger existente).
 
 ## Reglas de negocio
 
-### Editar
-- **Quién**: usuarios con permiso `Facturas de Proveedor: full` (admin / administrativo).
-- **Cuándo**: la factura debe estar `approval_status = 'pending'` AND `status != 'cancelled'` AND `status != 'paid'` AND `payments.length === 0`. Una vez aprobada o con pagos, no se edita.
-- **Qué se edita**: los mismos campos del alta — proveedor, categoría, descripción, fechas, moneda, tipo de cambio, montos (subtotal/IVA/retenciones), UUID, método SAT. `bill_number` se mantiene. `balance` se recalcula con el nuevo total.
-
-### Eliminar
-- **Quién**: solo rol `admin`.
-- **Cuándo**: `payments.length === 0` AND `approval_status != 'approved'` AND `status != 'cancelled'`. Si está aprobada o cancelada, mejor cancelar (no borrar).
-- **Acción**: `DELETE` físico de la fila. Las RLS ya permiten DELETE a admin/administrativo; restringimos a admin desde la UI. Triggers de auditoría existentes capturan el evento.
-- **Confirmación**: `ConfirmDialog` con texto explícito ("Esta acción es irreversible") y el folio de la factura.
+- **Quién**: solo rol `admin` (revertir un pago aplicado es operación contable sensible).
+- **Cuándo NO se permite**:
+  - El pago tiene un **REP aprobado** (`rep_status = 'approved'`) — debe revertirse primero el REP.
+  - La factura está **cancelada** — no tiene sentido modificar pagos de una factura cancelada.
+- **Cuándo se permite con advertencia explícita**:
+  - El pago está **conciliado** con una línea bancaria. Borrar el pago dejará la línea bancaria como no conciliada (el FK `matched_supplier_payment_id` es `ON DELETE SET NULL`). El usuario debe confirmar explícitamente.
+- **Qué pasa al eliminar**:
+  - DELETE físico de la fila en `supplier_payments`.
+  - El trigger `trg_sp_recalc_aiud` recalcula automáticamente `balance` y `status` de la factura (vuelve a `pending` / `partial` / `paid` según corresponda).
+  - Las líneas bancarias conciliadas se desvinculan (FK SET NULL).
+  - Auditoría: el trigger genérico de `supplier_payments` ya registra el cambio.
 
 ## Cambios
 
-### 1. Hooks de mutaciones — `useSupplierBillMutations.ts`
-Agregar:
-- `useUpdateSupplierBill()`: `mutationFn({ id, patch })` → `update(patch)` + recalcular `total` y `balance` en cliente; invalida `SUPPLIER_BILLS_QK` y `["supplier_bill", id]`.
-- `useDeleteSupplierBill()`: `mutationFn(id)` → `delete().eq("id", id)`; invalida queries; cierra el panel.
+### 1. Nuevo hook — `useDeleteSupplierPayment.ts`
+- `useMutation` que ejecuta `supabase.from("supplier_payments").delete().eq("id", paymentId)`.
+- En `onSuccess` invalida:
+  - `SUPPLIER_BILLS_QK`
+  - `["supplier_bill", billId]`
+  - `["accounts_payable_kpis"]`
+  - `["reconciliation_status", "supplier:" + paymentId]`
+  - Queries de líneas bancarias (`["bank_statement_lines"]`) por si se desvinculó alguna.
+- `notifySuccess("Pago eliminado")` / `notifyError`.
 
-### 2. Formulario reutilizable — `useSupplierBillForm.ts` + `SupplierBillFormDialog.tsx`
-- `useSupplierBillForm(open, onClose, initialBill?)`: si recibe `initialBill`, hace `form.reset()` con sus valores, y en `onSubmit` decide entre `create.mutate` o `update.mutate({ id, patch })`.
-- `SupplierBillFormDialog`: prop opcional `bill?: SupplierBillDetail | null`. Si viene `bill`, título cambia a "Editar factura {bill_number}", botón a "Guardar cambios". Si no, alta normal.
+### 2. UI — `SupplierPaymentRow.tsx`
+- Importar `useDeleteSupplierPayment` y `useReconciliationStatus`.
+- Solo si `role === "admin"`: agregar botón **Eliminar pago** (ícono `Trash2`, variant `ghost` destructivo, tamaño `sm`) en el footer del row.
+- Botón deshabilitado con tooltip cuando:
+  - `rep_status === "approved"` → "Revierte primero el REP fiscal".
+  - factura `cancelled` → "La factura está cancelada".
+- Al hacer clic → `ConfirmDialog` (destructivo) con:
+  - Título: "Eliminar pago de {monto}".
+  - Descripción: explicar que se recalculará el saldo y, si está conciliado, agregar línea adicional "Este pago está conciliado con {cuenta} el {fecha}. Al eliminarlo, la línea bancaria volverá a quedar sin conciliar."
+  - Confirm: "Eliminar pago".
 
-### 3. Panel de detalle — `SupplierBillDetailSheet.tsx`
-- Importar `useUserRole`, abrir state `editDialog` y `deleteDialog`.
-- En el bloque `PaymentActions`, agregar dos botones nuevos:
-  - **Editar** (ícono `Pencil`): visible si `canEdit = approval_status === 'pending' && status !== 'cancelled' && status !== 'paid' && payments.length === 0`. Disabled con tooltip cuando no aplique.
-  - **Eliminar** (ícono `Trash2`, variant `destructive`): visible solo si `role === 'admin'`. Disabled con tooltip si no cumple `payments.length === 0 && approval_status !== 'approved' && status !== 'cancelled'`.
-- Al hacer clic en Eliminar → `ConfirmDialog` ("¿Eliminar factura {bill_number}? Esta acción es irreversible y eliminará el registro de auditoría operativa. No se permite si la factura ya fue aprobada o tiene pagos.").
-- Al hacer clic en Editar → abre `SupplierBillFormDialog` con `bill={bill}`. Al guardar, cierra el dialog y refresca el panel.
+### 3. Bill status
+- Sin cambios; los triggers existentes manejan `balance` y `status`.
 
-### 4. Visibilidad en la lista
-- Sin cambios en la lista (la acción se hace desde el drill-down panel, en línea con el patrón del módulo).
-
-### 5. Changelog
-Nueva entrada `v6.82.0` (minor — nueva capacidad).
+### 4. Changelog
+Nueva entrada `v6.83.0` (minor — nueva capacidad).
 
 ## Fuera de alcance
-- No se cambia la cancelación existente (sigue como acción reversible para facturas aprobadas).
-- No se edita la factura ya aprobada — solo borrador. Si en el futuro se necesita corregir aprobadas, se hará vía nota de cargo/crédito.
-- Sin cambios en la BD: las RLS ya permiten UPDATE/DELETE a admin. El UI agrega la restricción de "admin only" para delete.
-- No se agrega edición masiva.
+- No se permite editar un pago (si está mal, se elimina y se vuelve a registrar).
+- No se toca el flujo de REP — si hay REP aprobado, primero se reinicia.
+- No se desconcilia automáticamente la línea bancaria; queda lista para volver a conciliarse.
+- Sin migraciones de BD (las RLS y triggers ya cubren el caso).
 
 ## Detalles técnicos
-- Archivos editados:
-  - `src/features/accounts-payable/hooks/useSupplierBillMutations.ts` (+ 2 hooks).
-  - `src/features/accounts-payable/hooks/useSupplierBillForm.ts` (acepta `initialBill?`, soporta update path).
-  - `src/features/accounts-payable/components/SupplierBillFormDialog.tsx` (prop `bill?`, título/botón dinámicos).
-  - `src/features/accounts-payable/components/SupplierBillDetailSheet.tsx` (botones Editar/Eliminar + diálogos).
-- Archivos nuevos: ninguno (reuso de `ConfirmDialog` existente).
-- Tests:
-  - Extender `src/features/accounts-payable/hooks/__tests__/useSupplierBillMutations.test.ts` con casos de update y delete (mock de supabase chain).
-- Changelog: `public/changelog/v6.82.0.json` + entry en `public/changelog.json`.
+- Archivos nuevos: `src/features/accounts-payable/hooks/useDeleteSupplierPayment.ts`.
+- Archivos editados: `src/features/accounts-payable/components/SupplierPaymentRow.tsx`.
+- El componente necesita conocer si la factura está cancelada — agregar prop `billCancelled: boolean` desde `SupplierBillDetailSheet`.
+- Changelog: `public/changelog/v6.83.0.json` + entry en `public/changelog.json`.
