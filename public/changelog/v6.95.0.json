@@ -1,0 +1,32 @@
+{
+  "version": "6.95.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Fix Estado de Resultados: COGS de venta ligado a la factura",
+  "summary": "El cálculo de Costo de Equipos Vendidos (COGS) dejaba huérfanos y desfases porque se basaba en forklifts.status='sold' y la fecha del status_logs. Ahora se basa en las facturas de venta del período, alineando ingreso, costo, mes y cliente en una sola fila del desglose.",
+  "sections": [
+    {
+      "heading": "Bug corregido",
+      "items": [
+        "Antes: si un equipo cambiaba a estatus 'sold' en un mes distinto al de su facturación, su valor en libros aterrizaba como COGS en el mes equivocado, atribuido al desglose mensual sin cliente real. Caso reportado: feb-2026 mostraba COGS $882,232.43 que correspondía a un equipo facturado a INDIMEX GLASS en nov-2025, junto al ingreso de BERN CO ($501,325) cuyo COGS real ($316,794) ni siquiera aparecía.",
+        "Después: COGS se calcula por factura de venta vía quote_assigned_forklifts → forklifts.acquisition_cost, en el mismo mes y basis (accrual/cash) del ingreso."
+      ]
+    },
+    {
+      "heading": "RPC get_income_statement",
+      "items": [
+        "Reemplazadas las CTEs sold_forklifts / sold_in_period / months_rented_per_sold / cogs_per_sold por sale_invoice_forklifts / months_rented_per_sale / cogs_per_sale, todas derivadas de inv_classified (facturas no rentas con quote_id).",
+        "La depreciación previamente reconocida (meses rentados antes de la fecha de facturación) se sigue descontando del costo de adquisición para no doble-contabilizar.",
+        "Desglose cogs_by_forklift ahora usa la etiqueta 'Cliente — Equipo' para que la UI muestre a quién pertenece cada COGS.",
+        "sold_without_cost se redefine: equipos referenciados por facturas de venta del período cuyo acquisition_cost es nulo o cero (ya no depende del estatus del equipo)."
+      ]
+    },
+    {
+      "heading": "Impacto en reportes",
+      "items": [
+        "Recalcula automáticamente todos los meses históricos del Estado de Resultados al recargar.",
+        "Ventas sin un quote_id de tipo 'sale' (facturas manuales) no generan COGS automático; se requiere supplier_bill categoría costo_venta para reconocerlas (mismo comportamiento que antes, ahora consistente)."
+      ]
+    }
+  ]
+}
