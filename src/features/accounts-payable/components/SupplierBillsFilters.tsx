@@ -65,8 +65,13 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
           <SelectTrigger className="w-full sm:w-[170px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas las categorías</SelectItem>
-            {Object.entries(EXPENSE_CATEGORY_LABELS).map(([v, l]) => (
-              <SelectItem key={v} value={v}>{l}</SelectItem>
+            {EXPENSE_CATEGORY_GROUPS.map((g) => (
+              <SelectGroup key={g.label}>
+                <SelectLabel>{g.label}</SelectLabel>
+                {g.categories.map((v) => (
+                  <SelectItem key={v} value={v}>{EXPENSE_CATEGORY_LABELS[v]}</SelectItem>
+                ))}
+              </SelectGroup>
             ))}
           </SelectContent>
         </Select>
