@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.86.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Primitivas compartidas para modales de formulario",
+    "description": "Nuevas primitivas <FormDialog>, <FormDialogFooter> y <FormSection> para que todos los modales de entidad compartan el mismo lenguaje visual. Cliente y Proveedor migrados como referencia.",
+    "category": "improvement"
+  },
+  {
     "version": "6.85.0",
     "date": "2026-06-24",
     "type": "minor",

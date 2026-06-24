@@ -3,8 +3,8 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, FileText } from "lucide-react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormActions } from "@/components/forms/FormActions";
 import { CsfDropzone } from "@/components/forms/CsfDropzone";
 import { notifyError } from "@/lib/ui/appFeedback";
@@ -118,62 +118,59 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
 
   const isPending = createSupplier.isPending || updateSupplier.isPending;
 
-  const formContent = (
-    <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <SupplierFormFields />
-        <DialogFooter className="sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t">
-          <FormActions
-            submitLabel={supplier ? "Guardar cambios" : "Agregar proveedor"}
-            isPending={isPending}
-            onCancel={() => onOpenChange(false)}
-          />
-        </DialogFooter>
-      </form>
-    </FormProvider>
-  );
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto" data-testid="supplier-form-dialog">
-        <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pb-3 border-b">
-          <DialogTitle>{supplier ? "Editar Proveedor" : "Nuevo Proveedor"}</DialogTitle>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={supplier ? "Editar Proveedor" : "Nuevo Proveedor"}
+      width="lg"
+      testId="supplier-form-dialog"
+    >
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="w-full">
+              <TabsTrigger value="manual" className="flex-1">
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Llenar manualmente
+              </TabsTrigger>
+              <TabsTrigger value="csf" className="flex-1">
+                <FileText className="h-3.5 w-3.5 mr-1.5" />
+                Importar desde CSF
+              </TabsTrigger>
+            </TabsList>
 
-        <Tabs value={tab} onValueChange={setTab} className="pt-2">
-          <TabsList className="w-full">
-            <TabsTrigger value="manual" className="flex-1">
-              <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              Llenar manualmente
-            </TabsTrigger>
-            <TabsTrigger value="csf" className="flex-1">
-              <FileText className="h-3.5 w-3.5 mr-1.5" />
-              Importar desde CSF
-            </TabsTrigger>
-          </TabsList>
+            <TabsContent value="manual" className="mt-4">
+              <SupplierFormFields />
+            </TabsContent>
 
-          <TabsContent value="manual" className="mt-4">
-            {formContent}
-          </TabsContent>
+            <TabsContent value="csf" className="mt-4 space-y-4">
+              <CsfDropzone<SupplierFormData>
+                onParsed={handleCsfParsed}
+                mapData={(data) => {
+                  const patch: Partial<SupplierFormData> = {};
+                  const name = data.name || data.razon_social;
+                  if (name) patch.name = name;
+                  if (data.rfc) patch.rfc = data.rfc;
+                  if (data.regimen_fiscal) patch.regimen_fiscal = data.regimen_fiscal;
+                  if (data.address) patch.address = data.address;
+                  if (data.representante_legal) patch.contact_person = data.representante_legal;
+                  return patch;
+                }}
+              />
+              <SupplierFormFields />
+            </TabsContent>
+          </Tabs>
 
-          <TabsContent value="csf" className="mt-4 space-y-4">
-            <CsfDropzone<SupplierFormData>
-              onParsed={handleCsfParsed}
-              mapData={(data) => {
-                const patch: Partial<SupplierFormData> = {};
-                const name = data.name || data.razon_social;
-                if (name) patch.name = name;
-                if (data.rfc) patch.rfc = data.rfc;
-                if (data.regimen_fiscal) patch.regimen_fiscal = data.regimen_fiscal;
-                if (data.address) patch.address = data.address;
-                if (data.representante_legal) patch.contact_person = data.representante_legal;
-                return patch;
-              }}
+          <FormDialogFooter>
+            <FormActions
+              submitLabel={supplier ? "Guardar cambios" : "Agregar proveedor"}
+              isPending={isPending}
+              onCancel={() => onOpenChange(false)}
             />
-            {formContent}
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+          </FormDialogFooter>
+        </form>
+      </FormProvider>
+    </FormDialog>
   );
 }

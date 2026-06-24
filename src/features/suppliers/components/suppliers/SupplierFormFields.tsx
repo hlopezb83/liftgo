@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SectionHeading } from "@/components/forms/SectionHeading";
+import { FormSection } from "@/components/forms/FormSection";
 import { RequiredMark } from "@/components/forms/RequiredMark";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 import { SUPPLIER_CATEGORIES } from "../../hooks/useSuppliers";
@@ -14,9 +14,7 @@ export function SupplierFormFields() {
 
   return (
     <div className="space-y-5">
-      {/* Identidad */}
-      <div className="space-y-3">
-        <SectionHeading>Identidad</SectionHeading>
+      <FormSection title="Identidad" first>
         <FormField
           control={control}
           name="name"
@@ -30,11 +28,9 @@ export function SupplierFormFields() {
             </FormItem>
           )}
         />
-      </div>
+      </FormSection>
 
-      {/* Datos Fiscales */}
-      <div className="space-y-3 border-t pt-4">
-        <SectionHeading>Datos Fiscales (CFDI)</SectionHeading>
+      <FormSection title="Datos Fiscales (CFDI)">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={control}
@@ -75,11 +71,9 @@ export function SupplierFormFields() {
             )}
           />
         </div>
-      </div>
+      </FormSection>
 
-      {/* Contacto */}
-      <div className="space-y-3 border-t pt-4">
-        <SectionHeading>Contacto</SectionHeading>
+      <FormSection title="Contacto">
         <FormField
           control={control}
           name="contact_person"
@@ -134,11 +128,9 @@ export function SupplierFormFields() {
             </FormItem>
           )}
         />
-      </div>
+      </FormSection>
 
-      {/* Dirección */}
-      <div className="space-y-3 border-t pt-4">
-        <SectionHeading>Dirección</SectionHeading>
+      <FormSection title="Dirección">
         <FormField
           control={control}
           name="address"
@@ -152,11 +144,9 @@ export function SupplierFormFields() {
             </FormItem>
           )}
         />
-      </div>
+      </FormSection>
 
-      {/* Condiciones Comerciales */}
-      <div className="space-y-3 border-t pt-4">
-        <SectionHeading>Condiciones Comerciales</SectionHeading>
+      <FormSection title="Condiciones Comerciales">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={control}
@@ -195,11 +185,9 @@ export function SupplierFormFields() {
             )}
           />
         </div>
-      </div>
+      </FormSection>
 
-      {/* Interno */}
-      <div className="space-y-3 border-t pt-4">
-        <SectionHeading>Interno</SectionHeading>
+      <FormSection title="Interno">
         <FormField
           control={control}
           name="notes"
@@ -213,7 +201,7 @@ export function SupplierFormFields() {
             </FormItem>
           )}
         />
-      </div>
+      </FormSection>
     </div>
   );
 }
