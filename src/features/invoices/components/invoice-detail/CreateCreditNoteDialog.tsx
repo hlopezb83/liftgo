@@ -20,15 +20,15 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
   const f = useCreditNoteForm(invoice, maxCreditable, () => onOpenChange(false));
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) f.reset(); onOpenChange(o); }}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Nueva Nota de Crédito</DialogTitle>
-          <DialogDescription>
-            Reduce el saldo de la factura {invoice.invoice_number}. Máximo acreditable:{" "}
-            <span className="font-mono font-semibold">{formatCurrency(maxCreditable)}</span>
-          </DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={(o) => { if (!o) f.reset(); onOpenChange(o); }}
+      title="Nueva Nota de Crédito"
+      width="2xl"
+      description={<>Reduce el saldo de la factura {invoice.invoice_number}. Máximo acreditable:{" "}
+        <span className="font-mono font-semibold">{formatCurrency(maxCreditable)}</span></>}
+    >
+
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
