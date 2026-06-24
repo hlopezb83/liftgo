@@ -17,14 +17,31 @@ describe("computeDerivedTotals (P&L)", () => {
     expect(r.margin).toBe(100);
   });
 
-  it("cuenta costo_venta como costo directo (sobre Utilidad Bruta)", () => {
+  it("ignora la categoría costo_venta (se consolida con cogsForkliftSales aguas arriba)", () => {
     const t = {
       revenue: 10000,
       maintenanceCost: 0,
       damageCost: 0,
       depreciation: 0,
       cogsForkliftSales: 0,
+      // costo_venta debe ser movido a cogsForkliftSales por useMonthlyData antes
+      // de llegar aquí. Si llega como expense, no se considera (evita duplicar).
       expenses: { ...emptyExpenses(), costo_venta: 4000 },
+    };
+    const r = computeDerivedTotals(t);
+    expect(r.grossProfit).toBe(10000);
+    expect(r.totalExpenses).toBe(0);
+    expect(r.netProfit).toBe(10000);
+  });
+
+  it("cuenta cogsForkliftSales (COGS consolidado) como costo directo", () => {
+    const t = {
+      revenue: 10000,
+      maintenanceCost: 0,
+      damageCost: 0,
+      depreciation: 0,
+      cogsForkliftSales: 4000,
+      expenses: emptyExpenses(),
     };
     const r = computeDerivedTotals(t);
     expect(r.grossProfit).toBe(6000);
