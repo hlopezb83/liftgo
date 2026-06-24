@@ -34,6 +34,7 @@ interface FormDialogProps {
   /** Cuando se define, el modal renderiza un `<form>` y un footer estándar. */
   onSubmit?: () => void;
   submitLabel?: string;
+  /** Reservado para uso futuro (FormActions ya rotula "Cancelar"). */
   cancelLabel?: string;
   isPending?: boolean;
   /** Permite reemplazar el footer (p.ej. botón destructivo + secundario). */
