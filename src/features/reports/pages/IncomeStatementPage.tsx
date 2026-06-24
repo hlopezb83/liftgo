@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
 import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
-import { es } from "date-fns/locale";
+import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { nowMty } from "@/lib/utils";
 
 function generateMonthOptions(count: number) {
