@@ -52,6 +52,9 @@ describe("translateFacturapiError", () => {
         "El campo DomicilioFiscalReceptor debe pertenecer al nombre asociado al RFC",
       ),
     ).toMatch(/Constancia de Situaci[oó]n Fiscal/);
+  });
+
+
 
   it("mensaje > 200 chars sin match → truncado con '…'", () => {
     const long = "X".repeat(250);
