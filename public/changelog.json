@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.84.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Importar Facturas de Proveedor desde XML (CFDI 4.0)",
+    "description": "Nuevo botón 'Importar XML' en Cuentas por Pagar: extrae automáticamente los datos del CFDI, valida UUID duplicado, busca al proveedor por RFC y guarda el XML adjunto.",
+    "category": "feature"
+  },
+  {
     "version": "6.83.1",
     "date": "2026-06-24",
     "type": "patch",

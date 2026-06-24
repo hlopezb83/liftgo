@@ -55,39 +55,41 @@ function billToFormDefaults(bill: SupplierBillDetail): SupplierBillFormData {
   };
 }
 
+export interface SupplierBillFormOverrides {
+  initialValues?: Partial<SupplierBillFormData>;
+  cfdiXmlUrl?: string | null;
+}
+
 export function useSupplierBillForm(
   open: boolean,
   onClose: () => void,
   initialBill?: SupplierBillDetail | null,
+  overrides?: SupplierBillFormOverrides,
 ) {
   const create = useCreateSupplierBill();
   const update = useUpdateSupplierBill();
   const isEdit = !!initialBill;
 
+  const emptyDefaults: SupplierBillFormData = {
+    supplier_id: "", category: "", description: "",
+    issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
+    subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
+    cfdi_uuid: "",
+  };
+
+  const buildDefaults = (): SupplierBillFormData => {
+    if (initialBill) return billToFormDefaults(initialBill);
+    return { ...emptyDefaults, ...(overrides?.initialValues ?? {}) };
+  };
+
   const form = useForm<SupplierBillFormData>({
     resolver: zodResolver(supplierBillFormSchema),
-    defaultValues: initialBill
-      ? billToFormDefaults(initialBill)
-      : {
-          supplier_id: "", category: "", description: "",
-          issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
-          subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
-          cfdi_uuid: "",
-        },
+    defaultValues: buildDefaults(),
   });
 
   useEffect(() => {
     if (!open) return;
-    form.reset(
-      initialBill
-        ? billToFormDefaults(initialBill)
-        : {
-            supplier_id: "", category: "", description: "",
-            issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
-            subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
-            cfdi_uuid: "",
-          },
-    );
+    form.reset(buildDefaults());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialBill?.id]);
 
@@ -122,7 +124,7 @@ export function useSupplierBillForm(
   const total = subtotal + tax - retIva - retIsr;
 
   const onSubmit = (data: SupplierBillFormData) => {
-    const payload = {
+    const basePayload = {
       supplier_id: data.supplier_id,
       category: data.category as ExpenseCategory,
       description: data.description || null,
@@ -138,6 +140,10 @@ export function useSupplierBillForm(
       cfdi_uuid: data.cfdi_uuid || null,
       payment_method_sat: data.payment_method_sat ?? null,
     };
+    const payload =
+      overrides?.cfdiXmlUrl !== undefined
+        ? { ...basePayload, cfdi_xml_url: overrides.cfdiXmlUrl }
+        : basePayload;
 
     if (isEdit && initialBill) {
       update.mutate(
