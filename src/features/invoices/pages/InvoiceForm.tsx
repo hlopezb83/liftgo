@@ -33,11 +33,12 @@ export default function InvoiceForm() {
     const payload = f.onSubmit(values);
     const bookingIds = values.bookingIds ?? [];
     if (f.isEdit && f.id) {
-      f.updateInvoice.mutate({ id: f.id, ...payload }, {
+      const invoiceId = f.id;
+      f.updateInvoice.mutate({ id: invoiceId, ...payload }, {
         onSuccess: async () => {
-          await f.syncInvoiceBookings.mutateAsync({ invoiceId: f.id!, bookingIds });
+          await f.syncInvoiceBookings.mutateAsync({ invoiceId, bookingIds });
           notifySuccess("Factura actualizada");
-          navigate(`/invoices/${f.id}`);
+          navigate(`/invoices/${invoiceId}`);
         },
       });
     } else {
