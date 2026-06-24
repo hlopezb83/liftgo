@@ -27,8 +27,9 @@ export const OPERATING_EXPENSE_GROUPS: OperatingExpenseGroup[] = [
 ];
 
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = OPERATING_EXPENSE_GROUPS.flatMap((g) => g.categories);
+// Nota: `costo_venta` NO se incluye aquí: se consolida con `cogsForkliftSales`
+// (Costo de Equipos Vendidos) para evitar duplicar el COGS en el P&L.
 export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = [
-  "costo_venta",
   "mantenimiento",
   "refacciones",
   "combustible",
