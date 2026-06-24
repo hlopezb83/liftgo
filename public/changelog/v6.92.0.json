@@ -1,0 +1,15 @@
+{
+  "version": "6.92.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Estado de Resultados: COGS consolidado en una sola línea",
+  "category": "improvement",
+  "summary": "Auditoría del P&L: se unifica el 'Costo de Venta' (facturas de proveedor) con el 'Costo de Equipos Vendidos' (valor en libros automático) en una sola línea para evitar doble conteo de COGS.",
+  "details": [
+    "Antes existían dos líneas separadas — '(-) Costo de Venta' (facturas de proveedor con categoría costo_venta) y '(-) Costo de Equipos Vendidos' (valor en libros automático de equipos vendidos en el periodo) — que representaban el mismo concepto contable y podían descontarse dos veces de la utilidad bruta.",
+    "Ahora ambos se consolidan bajo la única línea '(-) Costo de Equipos Vendidos'. El desglose expandible muestra el COGS automático por montacargas más una línea adicional 'Facturas de proveedor (manual)' cuando existen facturas con categoría costo_venta en el mes.",
+    "Variable interna `costoVenta` renombrada a `directCostsSubtotal` en computeDerivedTotals (era engañosa: agrupaba 5 categorías de costos directos).",
+    "Nota informativa al pie del reporte advirtiendo del posible doble conteo entre 'Mantenimiento' (de bitácoras) y facturas de proveedor con categoría 'Mantenimiento'/'Refacciones' — usar un solo canal por evento.",
+    "Tests actualizados: computeDerivedTotals ya no trata costo_venta como costo directo (se mueve aguas arriba a cogsForkliftSales en useMonthlyData)."
+  ]
+}
