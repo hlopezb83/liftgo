@@ -50,12 +50,12 @@ export function useDeleteMaintenanceLog() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("maintenance_logs").delete().eq("id", id);
+      const { error } = await supabase.rpc("soft_delete_maintenance_log", { p_log_id: id });
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] }),
     onError: (err: Error) => {
-      notifyError({ title: "Error al eliminar registro de mantenimiento", error: err });
+      notifyError({ title: "Error al archivar registro de mantenimiento", error: err });
     },
   });
 }
