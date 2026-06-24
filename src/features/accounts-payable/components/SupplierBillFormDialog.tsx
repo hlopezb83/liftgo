@@ -35,7 +35,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva Factura de Proveedor"}
+            {titleOverride ?? (isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva Factura de Proveedor")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
