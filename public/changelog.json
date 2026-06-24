@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.92.1",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "CXP-0001..0005: hueco intencional tras unificar COGS",
+    "description": "Se documenta que las facturas CXP-0001 a CXP-0005 quedan vacías por diseño. Eran las facturas de costo de venta auto-generadas al marcar montacargas como vendidos (insertCostoVentaIfSold, removido en v6.92.0). Su COGS ahora lo calcula el RPC del Estado de Resultados sobre el valor en libros, por lo que recrearlas reintroduciría el doble conteo. Se conserva el hueco en la secuencia para preservar trazabilidad histórica.",
+    "category": "fix"
+  },
+  {
     "version": "6.92.0",
     "date": "2026-06-24",
     "type": "minor",

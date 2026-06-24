@@ -1,67 +1,40 @@
-## Auditoría completa del Estado de Resultados
+# Diagnóstico: las facturas CXP-0001..0005 no deben volver
 
-### Hallazgos
+## Qué encontré
 
-#### 🔴 1. Doble registro de COGS (lo que reportas)
+1. **No existen en la base de datos.** La numeración actual arranca en `CXP-0006` (capturada el 2026-03-20 a las 00:09). No hay registro de las 0001..0005 en `supplier_bills` ni rastro alguno en `audit_logs`.
+2. **El revert del chat no restaura datos.** Solo revierte código y migraciones aprobadas; las filas eliminadas o nunca creadas no regresan automáticamente.
+3. **Match exacto con los montacargas vendidos.** En `forklifts` hay 5 unidades con `status='sold'` y `acquisition_cost > 0`, todas actualizadas entre el 2026-03-12 y 2026-03-20 (justo antes de CXP-0006):
 
-`(-) Costo de Venta` y `(-) Costo de Equipos Vendidos` son el mismo concepto contable. Hoy aparecen como dos renglones independientes y ambos se restan de la utilidad bruta:
+   ```text
+   MCDLC100A48/001     882,232.43
+   MCDLC50A048/001     547,311.70
+   MCAPC035A048/002    394,255.15
+   MCAPC035A048/004    394,255.15
+   MCLTC025A048/007    316,794.00
+   ```
 
-- **Costo de Venta** = facturas de proveedor con `category = 'costo_venta'` (canal manual).
-- **Costo de Equipos Vendidos** = valor en libros calculado automático al vender un montacargas (v6.91.0).
+   Cuadran número (5) y fecha con las 5 facturas faltantes. Casi con seguridad **CXP-0001..0005 fueron las facturas de costo de venta que generaba automáticamente `insertCostoVentaIfSold`** al marcar cada montacargas como vendido.
 
-Si el usuario llegara a registrar una factura de proveedor `costo_venta` para una venta que ya fue contada automáticamente → **doble descuento de utilidad**.
+## Por qué no debemos recrearlas
 
-#### 🟡 2. Potencial doble conteo de mantenimiento y refacciones
+En `v6.92.0` consolidamos COGS en una sola fuente: el RPC del Estado de Resultados ahora calcula el costo de equipos vendidos a partir del valor en libros del forklift en el mes de venta. Si volvemos a meter esas 5 facturas con categoría `costo_venta`, **regresa el doble conteo** que acabamos de quitar: el RPC sumaría el valor en libros *y* las facturas manuales, inflando el COGS y reduciendo la utilidad.
 
-`DIRECT_COST_CATEGORIES` incluye las categorías `mantenimiento` y `refacciones` de `supplier_bills`, **además** del `(-) Mantenimiento` que viene de `maintenance_logs.cost`. Si el usuario registra el mismo gasto en ambos lados, se duplica. Hoy no hay aviso ni guardrail.
+Es decir: **su ausencia es el estado correcto post-fix**, no un dato perdido.
 
-#### 🟡 3. Variable interna mal nombrada
+## Qué propongo hacer
 
-En `computeDerivedTotals`, la variable se llama `costoVenta` pero en realidad es la suma de **todas las 6 categorías** de `DIRECT_COST_CATEGORIES` (costo_venta + mantenimiento + refacciones + combustible + transporte_logistica + seguros_equipo). Induce a error al leer el código.
+1. **No restaurar CXP-0001..0005.** Dejarlas fuera. El COGS de esos 5 montacargas ya está reflejado en el Estado de Resultados a través de la línea `(-) Costo de Equipos Vendidos` calculada por el RPC sobre el valor en libros.
+2. **Validar visualmente el ER del mes de venta** (marzo y mayo 2026, según el `updated_at` de los sold) para confirmar que el COGS aparece con los montos esperados (≈ 2.53 M de los 4 vendidos en marzo + el de mayo).
+3. **Reservar el rango `CXP-0001..0005` o no.** Decisión menor: podemos dejarlo con hueco (más simple, conserva trazabilidad histórica) o recomprimir la secuencia. Recomiendo dejarlo con hueco; recomprimir números de documentos contables no es buena práctica.
+4. **Documentar el caso en el changelog `v6.92.1`** (patch, docs): explicar que CXP-0001..0005 quedaron vacías por diseño tras la unificación de COGS, para que el equipo no intente "rellenarlas" después.
 
-#### 🟢 4. Decisiones intencionales (no son bugs, pero las documento)
+## Pregunta abierta
 
-- **Depreciación solo aplica a equipos con renta activa en el mes**: criterio de management accounting (depreciación ligada a generación de ingreso). Distinto al criterio fiscal puro. **Confirmar si así se mantiene.**
-- **Depreciación va fuera de `totalExpenses`** y se resta después para mostrar "Utilidad antes de Depreciación" (estilo EBITDA). Correcto.
-- **Clasificación renta vs venta**: factura es renta si tiene `booking_id` o link en `invoice_bookings` o `quote_id` de tipo `rental`. Validado en v6.90.2.
+Si tú recuerdas haber capturado alguna de esas 5 a mano (no auto-generada), dímelo y la recapturamos como `CXP-####` nueva con los datos que tengas — pero según los rastros del sistema, todo apunta a que eran las automáticas.
 
-#### 🟢 5. Sin issues encontrados
+## Detalles técnicos
 
-- Cálculo COGS automático con 48 meses (ISR) — correcto.
-- Filtros `is_e2e` aplicados en invoices, bookings, forklifts y quotes.
-- `maintenance_logs` y `damage_records` no tienen columna `is_e2e`, por lo que no aplica filtrar ahí.
-
----
-
-## Plan de corrección
-
-### A. Unificar COGS en una sola línea
-
-1. **Quitar `costo_venta` de `DIRECT_COST_CATEGORIES`** en `types.ts`.
-2. **Sumar `expenses.costo_venta` dentro de `cogsForkliftSales`** en `computeDerivedTotals`, renombrando el campo a `cogsTotal` (con campos derivados `cogsAuto` y `cogsManual` para el desglose).
-3. **Una sola fila visible**: `(-) Costo de Equipos Vendidos` con el `cogsTotal`. El desglose expandible muestra:
-   - "Automático: \<nombre forklift\>" → valor en libros (lo que ya hace).
-   - "Manual: Factura \<folio\>" → línea por cada bill con categoría `costo_venta` que caiga en el mes.
-4. **Backend (RPC)**: agregar CTE `costo_venta_bills_by_month` que devuelva `{ amount_total, breakdown: jsonb }` con folio del bill. Mergear el breakdown en el `cogs_by_forklift` (renombrarlo a `cogs_breakdown`).
-
-### B. Renombrar variable interna
-
-5. `costoVenta` → `directCostsSubtotal` en `computeDerivedTotals` (cosmético, no cambia el cálculo).
-
-### C. Aviso de posible doble conteo (no bloqueante)
-
-6. **Tooltip o nota al pie** debajo de `(-) Mantenimiento`: "Incluye solo registros de `maintenance_logs`. Si también registras facturas de proveedor con categoría 'Mantenimiento', se contarán por separado."
-   - Alternativa más fuerte (no propongo ahora): excluir bills de categoría `mantenimiento` cuando estén ligadas a un `maintenance_log` vía `supplier_id`. Requiere decisión de negocio.
-
-### D. Tests + Changelog
-
-7. Actualizar `computeDerivedTotals.test.ts` y `statementRowFactories.test.ts` para reflejar la unión.
-8. **Changelog `v6.92.0`** (minor — cambio de línea contable visible).
-
----
-
-## Pregunta de validación
-
-Antes de implementar, confirmar:
-
-**¿Mantienes la regla "depreciación solo para equipos con renta activa"?** Si quieres que el ISR (25% anual sobre todo el parque, vendido o no) se aplique a todo equipo en operación, hay que cambiar el filtro del RPC. (Mi propuesta: dejarlo como está — es un P&L de management más útil que el fiscal. Pero tú decides.)
+- Tablas revisadas: `supplier_bills` (filtrando `bill_number ILIKE 'CXP-%'`), `audit_logs` (sin coincidencias para 0001..0005), `forklifts` (`status='sold'`).
+- Código relevante ya removido en v6.92.0: `insertCostoVentaIfSold` en `src/features/fleet/hooks/forklifts/useForkliftMutations.ts`.
+- Fuente de verdad actual del COGS: RPC del Estado de Resultados, consumido por `src/features/reports/hooks/incomeStatement/useMonthlyData.ts` (`cogsForkliftSales` + breakdown).

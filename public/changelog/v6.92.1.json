@@ -1,0 +1,33 @@
+{
+  "version": "6.92.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "category": "fix",
+  "title": "CXP-0001..0005: hueco intencional tras unificar COGS",
+  "summary": "Las facturas CXP-0001 a CXP-0005 no existen en la base de datos por diseño. Eran las facturas de costo de venta que generaba automáticamente insertCostoVentaIfSold al marcar un montacargas como vendido. Esa lógica se removió en v6.92.0 al unificar el COGS en una sola fuente (RPC del Estado de Resultados sobre valor en libros).",
+  "details": [
+    {
+      "section": "Diagnóstico",
+      "items": [
+        "supplier_bills arranca en CXP-0006 (capturada 2026-03-20 00:09).",
+        "audit_logs no registra creación ni borrado de CXP-0001..0005.",
+        "5 forklifts con status='sold' actualizados entre 2026-03-12 y 2026-03-20 cuadran número y fecha con las facturas faltantes: MCDLC100A48/001 ($882,232.43), MCDLC50A048/001 ($547,311.70), MCAPC035A048/002 ($394,255.15), MCAPC035A048/004 ($394,255.15), MCLTC025A048/007 ($316,794.00)."
+      ]
+    },
+    {
+      "section": "Por qué no se restauran",
+      "items": [
+        "El COGS de esos 5 equipos ya se refleja en el Estado de Resultados vía la línea (-) Costo de Equipos Vendidos calculada por el RPC.",
+        "Recrear las facturas con categoría costo_venta reintroduciría el doble conteo que se corrigió en v6.92.0.",
+        "Se conserva el hueco en la secuencia (CXP-0001..0005 vacíos) para preservar trazabilidad histórica; recomprimir números de documentos contables no es buena práctica."
+      ]
+    },
+    {
+      "section": "Acción para el equipo",
+      "items": [
+        "No registrar manualmente facturas en el rango CXP-0001..0005.",
+        "Si se identifica una factura real que se haya perdido (no auto-generada), capturarla con el siguiente número disponible y referenciar el caso original en notas."
+      ]
+    }
+  ]
+}
