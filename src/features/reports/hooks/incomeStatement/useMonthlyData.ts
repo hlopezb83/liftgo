@@ -83,6 +83,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
 
 
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
+  const soldWithoutCost = rpc?.sold_without_cost ?? [];
 
-  return { data, rentedWithoutCost };
+  return { data, rentedWithoutCost, soldWithoutCost };
 }
