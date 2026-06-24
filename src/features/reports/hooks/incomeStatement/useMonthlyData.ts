@@ -61,7 +61,11 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       cogsForkliftSales,
       expenses,
     });
-    const label = m.month_label.charAt(0).toUpperCase() + m.month_label.slice(1);
+    const [yy, mm] = m.month_key.split("-").map(Number);
+    const raw = new Intl.DateTimeFormat("es-MX", { month: "short", year: "2-digit" })
+      .format(new Date(yy, (mm ?? 1) - 1, 1))
+      .replace(/\./g, "");
+    const label = raw.charAt(0).toUpperCase() + raw.slice(1);
     return {
       monthKey: m.month_key,
       month: label,
