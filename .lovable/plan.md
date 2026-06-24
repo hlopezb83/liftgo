@@ -1,82 +1,43 @@
-## Estructura final del sidebar
+## Bug encontrado
 
-```text
-General
-  · Panel
-  · Calendario
+`parseCfdiXml` está duplicando los impuestos. La función `sumImpuestos` (y `sumRetencionByImpuesto`) recorre **todos** los nodos `<cfdi:Traslados>` / `<cfdi:Retenciones>` del documento, sin distinguir niveles. En un CFDI 4.0 normal hay dos niveles:
 
-Ventas                      ← colapsable, abre por defecto
-  · CRM
-  · Clientes
-  · Cotizaciones
-  · Contratos
+1. Dentro de cada `<cfdi:Concepto>` (impuestos por línea).
+2. Dentro del `<cfdi:Impuestos>` hijo directo del `<cfdi:Comprobante>` (totales del comprobante).
 
-Operaciones                 ← colapsable
-  · Reservas
-  · Entregas
-  · Devoluciones
+Tu XML trae ambos, así que el modal recibe el doble:
 
-Compras                     ← colapsable
-  · Proveedores
-  · Facturas de Proveedor
+| Campo          | XML real | Cargado hoy |
+| -------------- | -------- | ----------- |
+| IVA trasladado | 1,600.00 | 3,200.00    |
+| Retención IVA  | 1,067.00 | 2,134.00    |
+| Retención ISR  | 125.00   | 250.00      |
+| Subtotal       | 10,000   | 10,000 ✓    |
+| Total          | 10,408   | 10,408 ✓    |
 
-Facturación y Finanzas      ← colapsable
-  · Facturas
-  · Flujo de Caja
-  · Cuentas Bancarias
-  · Conciliación Bancaria
-  · Estado de Resultados
+Por eso "no cuadra": subtotal y total están bien (vienen de atributos del `Comprobante`), pero los impuestos vienen al doble y el total calculado en el form deja de cuadrar con el XML.
 
-Flota
-  · Equipos
-  · Mantenimiento
-  · Daños
-  · Refacciones
+## Plan
 
-Análisis
-  · Reportes
-  · MRR / Métricas
+Corregir `src/features/accounts-payable/lib/parseCfdiXml.ts` para leer los impuestos **únicamente** del nodo `<cfdi:Impuestos>` que es hijo directo del `Comprobante` (totales oficiales del CFDI). Si por alguna razón no existe ese nodo (CFDI sin impuestos), devolver 0.
 
-Comunidad
-  · Mis Reportes
-  · Tabla de Honor
-  · Gestión de Feedback
+### Cambios
 
-Sistema
-  · Usuarios
-  · Configuración
-  · Actividad
-  · Bitácora
-  · Changelog
-  · Ayuda
-```
+1. **`src/features/accounts-payable/lib/parseCfdiXml.ts`**
+   - Nueva helper `getComprobanteImpuestosNode(comprobante)` que devuelve el `<cfdi:Impuestos>` **hijo directo** del `Comprobante` (no los anidados en conceptos).
+   - Reescribir `sumImpuestos` y `sumRetencionByImpuesto` para que reciban ese nodo y sólo sumen sus hijos directos `Traslados>Traslado` / `Retenciones>Retencion`.
+   - Preferir los atributos `TotalImpuestosTrasladados` y `TotalImpuestosRetenidos` cuando estén presentes (ya vienen agregados por el PAC); usarlos como `taxAmount` total, y desglosar IVA/ISR de retención recorriendo solo los hijos directos del nodo de impuestos del comprobante.
+   - Si no existe el nodo (CFDI sin impuestos), todo queda en 0.
 
-**Movimientos clave**
-- `Ventas` queda solo con el ciclo pre-operativo: CRM, Clientes, Cotizaciones, Contratos.
-- `Operaciones` agrupa el ciclo de cumplimiento: Reservas → Entregas → Devoluciones.
-- `Compras` separa proveedores y sus facturas de "Finanzas".
-- `Facturación y Finanzas` se queda con dinero entrando/saliendo y reportes contables.
-- `Historial de Imports` sale del sidebar (subruta navegable desde Conciliación Bancaria).
+2. **Test** (nuevo) `src/features/accounts-payable/lib/__tests__/parseCfdiXml.test.ts`
+   - Caso con doble nivel (concepto + comprobante) usando el XML de Melissa Ramírez como fixture inline: esperar `taxAmount=1600`, `retentionIva=1067`, `retentionIsr=125`, `subtotal=10000`, `total=10408`.
+   - Caso sin nodo `Impuestos` (CFDI exento): todos en 0.
 
-## Cambios técnicos
+3. **Changelog v6.89.1 (patch)**
+   - `public/changelog.json`: nueva entrada al inicio.
+   - `public/changelog/v6.89.1.json`: descripción del fix ("Corregido cálculo duplicado de IVA y retenciones al importar XML de CFDI en factura de proveedor").
 
-1. **`src/layouts/sidebar/navConfig.ts`**
-   - Extender `NavGroup` con `collapsible?: boolean`.
-   - Reescribir `NAV_GROUPS` con los 9 grupos listados. Marcar `Ventas`, `Operaciones`, `Compras`, `Facturación y Finanzas` con `collapsible: true`.
+### Fuera de alcance
 
-2. **`src/layouts/sidebar/SidebarNavSection.tsx`**
-   - Cuando `group.collapsible`, envolver `SidebarGroupContent` en `Collapsible`/`CollapsibleContent` con `SidebarGroupLabel` como `CollapsibleTrigger` + chevron animado.
-   - `defaultOpen` = `true` si el `pathname` actual matchea alguna ruta del grupo (usar `useLocation`).
-   - En modo `collapsed` (icon) del sidebar, render plano sin colapsable.
-
-3. **`src/layouts/hooks/useVisibleNavGroups.ts`**
-   - Verificar que el filtrado por permisos siga ok (estructura no cambia, solo contenido).
-
-4. **Changelog v6.89.0 (minor)**
-   - Entrada en `public/changelog.json` + `public/changelog/v6.89.0.json`.
-
-## Notas
-
-- No se cambian URLs ni rutas en `src/routes/routes.ts`.
-- No toca `ALWAYS_VISIBLE_ROUTES`.
-- `collapsible="icon"` del `<Sidebar>` sigue funcionando: los colapsables solo afectan modo expandido.
+- No se toca el `SupplierBillFormDialog` ni el dropzone — sólo el parser.
+- No se toca `parse-cfdi-expense` (edge function) porque ese flujo distinto vive en otro módulo.
