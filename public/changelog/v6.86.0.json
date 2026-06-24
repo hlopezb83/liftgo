@@ -1,0 +1,8 @@
+{
+  "version": "6.86.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Primitivas compartidas para modales de formulario",
+  "description": "Nuevas primitivas <FormDialog>, <FormDialogFooter> y <FormSection> en @/components/forms para que todos los modales de entidad sigan el mismo lenguaje visual. Cliente y Proveedor migrados como referencia. Reduce duplicación de markup de Dialog/Header/Footer y garantiza header/footer sticky en todos los formularios futuros.",
+  "category": "improvement"
+}
