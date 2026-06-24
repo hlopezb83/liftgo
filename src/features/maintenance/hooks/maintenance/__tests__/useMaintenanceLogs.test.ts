@@ -117,7 +117,7 @@ describe("useUpdateMaintenanceLog", () => {
 });
 
 describe("useDeleteMaintenanceLog", () => {
-  it("elimina por id", async () => {
+  it("invoca RPC soft_delete_maintenance_log por id", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useDeleteMaintenanceLog(), { wrapper: Wrapper });
 
@@ -125,11 +125,11 @@ describe("useDeleteMaintenanceLog", () => {
       await result.current.mutateAsync("log-9");
     });
 
-    expect(deletedCalls).toHaveLength(1);
+    expect(rpcCalls).toEqual([{ name: "soft_delete_maintenance_log", args: { p_log_id: "log-9" } }]);
   });
 
-  it("propaga error con título 'Error al eliminar registro de mantenimiento'", async () => {
-    deleteResp = { data: null, error: { message: "fk" } };
+  it("propaga error con título 'Error al archivar registro de mantenimiento'", async () => {
+    rpcResp = { data: null, error: { message: "forbidden" } };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useDeleteMaintenanceLog(), { wrapper: Wrapper });
 
@@ -139,7 +139,7 @@ describe("useDeleteMaintenanceLog", () => {
 
     await waitFor(() => expect(notifyErrorMock).toHaveBeenCalled());
     expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({
-      title: "Error al eliminar registro de mantenimiento",
+      title: "Error al archivar registro de mantenimiento",
     });
   });
 });
