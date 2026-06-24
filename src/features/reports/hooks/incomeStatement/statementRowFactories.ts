@@ -58,6 +58,8 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     { label: "(-) Mantenimiento", values: filteredData.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },
     { label: "(-) Daños", values: filteredData.map((r) => r.damageCost), total: totals.damageCost, isCost: true },
     ...directCostRows(filteredData, totals),
+    { label: "(-) Costo de Equipos Vendidos", values: filteredData.map((r) => r.cogsForkliftSales), total: totals.cogsForkliftSales, isCost: true },
+
     { label: "= Utilidad Bruta", values: filteredData.map((r) => r.grossProfit), total: totals.grossProfit, isSubtotal: true },
     { label: "Margen Bruto", values: filteredData.map((r) => r.grossMargin), total: totals.grossMargin, isPercent: true },
     ...operatingExpenseGroupRows(filteredData, totals),
