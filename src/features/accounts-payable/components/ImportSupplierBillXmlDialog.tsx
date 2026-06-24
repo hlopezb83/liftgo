@@ -222,26 +222,6 @@ export function ImportSupplierBillXmlDialog({ open, onOpenChange }: Props) {
           }}
         />
       )}
-
-      {prepared && companyRfc && prepared.parsed.receiverRfc && prepared.parsed.receiverRfc !== companyRfc && (
-        <Alert variant="default" className="mt-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>RFC receptor no coincide</AlertTitle>
-          <AlertDescription>
-            El CFDI fue emitido a {prepared.parsed.receiverRfc}, pero el RFC configurado es {companyRfc}.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {prepared && !prepared.supplierId && (
-        <Alert variant="default" className="mt-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Proveedor no encontrado</AlertTitle>
-          <AlertDescription>
-            No hay proveedor con RFC {prepared.parsed.emitterRfc}. Selecciónalo manualmente o créalo desde el módulo Proveedores.
-          </AlertDescription>
-        </Alert>
-      )}
     </>
   );
 }
