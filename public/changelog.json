@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.82.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Editar y eliminar Facturas de Proveedor",
+    "description": "Desde el panel de detalle ahora se puede editar (mientras esté pendiente y sin pagos) y eliminar físicamente (solo Admin) una Factura de Proveedor.",
+    "category": "feature"
+  },
+  {
     "version": "6.81.0",
     "date": "2026-06-23",
     "type": "minor",
