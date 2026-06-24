@@ -1,0 +1,8 @@
+{
+  "version": "6.89.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Sidebar reorganizado por flujos de negocio",
+  "description": "El sidebar se reorganizó en 9 grupos alineados al flujo: Ventas (CRM, Clientes, Cotizaciones, Contratos), Operaciones (Reservas, Entregas, Devoluciones), Compras (Proveedores, Facturas de Proveedor) y Facturación y Finanzas (Facturas, Flujo, Bancos, Conciliación, Estado de Resultados) son colapsables y se abren automáticamente cuando la ruta activa pertenece al grupo. Flota, Análisis, Comunidad y Sistema quedan planos. Se removió 'Historial de Imports' del sidebar (sigue navegable desde Conciliación Bancaria).",
+  "category": "improvement"
+}

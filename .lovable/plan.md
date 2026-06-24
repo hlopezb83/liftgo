@@ -1,29 +1,82 @@
-## Objetivo
-Integrar la importación de CFDI XML dentro del modal "Nueva Factura de Proveedor" y eliminar el botón extra "Importar XML" de la barra de acciones de `/cuentas-por-pagar`.
+## Estructura final del sidebar
 
-## Cambios
+```text
+General
+  · Panel
+  · Calendario
 
-### 1. `SupplierBillFormDialog.tsx`
-- Agregar una sección superior (solo cuando `!isEdit && !bill`) con una **dropzone CFDI** compacta: "Arrastra el XML aquí o haz clic — opcional, autocompleta los campos".
-- Al soltar/seleccionar XML: parsear, validar UUID, verificar duplicado, subir a Storage y hacer `form.reset({ ...defaults, ...initialValues })` + guardar `cfdiXmlUrl` en estado local que se pasa como `overrides.cfdiXmlUrl` al submit (vía `useSupplierBillForm`).
-- Mostrar estados: idle / procesando (spinner) / éxito (chip "CFDI cargado · UUID xxxx") / error (Alert inline).
-- Warnings no bloqueantes (RFC receptor distinto, proveedor no encontrado) siguen vía `notifyWarning` toast.
+Ventas                      ← colapsable, abre por defecto
+  · CRM
+  · Clientes
+  · Cotizaciones
+  · Contratos
 
-### 2. Nuevo hook `useImportSupplierBillCfdi.ts`
-Extrae la lógica de parseo + verificación de duplicado + upload desde `ImportSupplierBillXmlDialog`, para mantener el form dialog ≤150 LOC y reutilizable. Devuelve `{ importXml, busy, error, reset, result }`.
+Operaciones                 ← colapsable
+  · Reservas
+  · Entregas
+  · Devoluciones
 
-### 3. `CuentasPorPagarPage.tsx`
-- Eliminar el botón `<Button … Importar XML>` (línea 57-59) y el ícono `FileUp` del import.
-- Eliminar `importDialog` (`useToggleDialog`) y el render de `<ImportSupplierBillXmlDialog … />`.
-- Eliminar import de `ImportSupplierBillXmlDialog`.
+Compras                     ← colapsable
+  · Proveedores
+  · Facturas de Proveedor
 
-### 4. Borrar archivo
-- `src/features/accounts-payable/components/ImportSupplierBillXmlDialog.tsx` (su funcionalidad queda absorbida por el form dialog + hook).
+Facturación y Finanzas      ← colapsable
+  · Facturas
+  · Flujo de Caja
+  · Cuentas Bancarias
+  · Conciliación Bancaria
+  · Estado de Resultados
 
-### 5. Changelog (patch)
-- Crear `public/changelog/v6.88.3.json` y agregar la entrada en `public/changelog.json` describiendo: "Importación de CFDI XML unificada dentro del modal de Nueva Factura de Proveedor; se removió el botón extra de la barra".
+Flota
+  · Equipos
+  · Mantenimiento
+  · Daños
+  · Refacciones
 
-## Notas técnicas
-- No cambia la firma de `useSupplierBillForm` ni de `SupplierBillFormOverrides`: el dialog sigue pasando `overrides={{ initialValues, cfdiXmlUrl }}` internamente cuando se importa XML, solo que ahora desde su propio estado en lugar de venir de un dialog padre.
-- En modo edición la dropzone no se renderiza (un CFDI ya facturado no se reimporta).
-- Sin cambios en backend, RLS, ni en el bucket `supplier-bill-cfdi-xml`.
+Análisis
+  · Reportes
+  · MRR / Métricas
+
+Comunidad
+  · Mis Reportes
+  · Tabla de Honor
+  · Gestión de Feedback
+
+Sistema
+  · Usuarios
+  · Configuración
+  · Actividad
+  · Bitácora
+  · Changelog
+  · Ayuda
+```
+
+**Movimientos clave**
+- `Ventas` queda solo con el ciclo pre-operativo: CRM, Clientes, Cotizaciones, Contratos.
+- `Operaciones` agrupa el ciclo de cumplimiento: Reservas → Entregas → Devoluciones.
+- `Compras` separa proveedores y sus facturas de "Finanzas".
+- `Facturación y Finanzas` se queda con dinero entrando/saliendo y reportes contables.
+- `Historial de Imports` sale del sidebar (subruta navegable desde Conciliación Bancaria).
+
+## Cambios técnicos
+
+1. **`src/layouts/sidebar/navConfig.ts`**
+   - Extender `NavGroup` con `collapsible?: boolean`.
+   - Reescribir `NAV_GROUPS` con los 9 grupos listados. Marcar `Ventas`, `Operaciones`, `Compras`, `Facturación y Finanzas` con `collapsible: true`.
+
+2. **`src/layouts/sidebar/SidebarNavSection.tsx`**
+   - Cuando `group.collapsible`, envolver `SidebarGroupContent` en `Collapsible`/`CollapsibleContent` con `SidebarGroupLabel` como `CollapsibleTrigger` + chevron animado.
+   - `defaultOpen` = `true` si el `pathname` actual matchea alguna ruta del grupo (usar `useLocation`).
+   - En modo `collapsed` (icon) del sidebar, render plano sin colapsable.
+
+3. **`src/layouts/hooks/useVisibleNavGroups.ts`**
+   - Verificar que el filtrado por permisos siga ok (estructura no cambia, solo contenido).
+
+4. **Changelog v6.89.0 (minor)**
+   - Entrada en `public/changelog.json` + `public/changelog/v6.89.0.json`.
+
+## Notas
+
+- No se cambian URLs ni rutas en `src/routes/routes.ts`.
+- No toca `ALWAYS_VISIBLE_ROUTES`.
+- `collapsible="icon"` del `<Sidebar>` sigue funcionando: los colapsables solo afectan modo expandido.

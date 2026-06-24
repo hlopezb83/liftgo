@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 export type NavItem = { title: string; url: string; icon: React.ElementType };
-export type NavGroup = { label: string; items: NavItem[] };
+export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean };
 
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -17,24 +17,45 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Comercial",
+    label: "Ventas",
+    collapsible: true,
     items: [
       { title: "CRM", url: "/crm", icon: Target },
       { title: "Clientes", url: "/customers", icon: Users },
       { title: "Cotizaciones", url: "/quotes", icon: FileText },
       { title: "Contratos", url: "/contracts", icon: ScrollText },
-      { title: "Reservas", url: "/bookings", icon: BookOpen },
     ],
   },
   {
     label: "Operaciones",
+    collapsible: true,
     items: [
+      { title: "Reservas", url: "/bookings", icon: BookOpen },
       { title: "Entregas", url: "/deliveries", icon: TruckIcon },
       { title: "Devoluciones", url: "/returns", icon: ClipboardCheck },
     ],
   },
   {
-    label: "Flota y Mantenimiento",
+    label: "Compras",
+    collapsible: true,
+    items: [
+      { title: "Proveedores", url: "/suppliers", icon: Handshake },
+      { title: "Facturas de Proveedor", url: "/cuentas-por-pagar", icon: FileClock },
+    ],
+  },
+  {
+    label: "Facturación y Finanzas",
+    collapsible: true,
+    items: [
+      { title: "Facturas", url: "/invoices", icon: Receipt },
+      { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
+      { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: Landmark },
+      { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
+      { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
+    ],
+  },
+  {
+    label: "Flota",
     items: [
       { title: "Equipos", url: "/fleet", icon: Truck },
       { title: "Mantenimiento", url: "/maintenance", icon: Wrench },
@@ -43,19 +64,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Finanzas",
-    items: [
-      { title: "Facturas", url: "/invoices", icon: Receipt },
-      { title: "Facturas de Proveedor", url: "/cuentas-por-pagar", icon: FileClock },
-      { title: "Proveedores", url: "/suppliers", icon: Handshake },
-      { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
-      { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: Landmark },
-      { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
-      { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign },
-    ],
-  },
-  {
-    label: "Reportes y Análisis",
+    label: "Análisis",
     items: [
       { title: "Reportes", url: "/reports", icon: BarChart3 },
       { title: "MRR / Métricas", url: "/mrr", icon: TrendingUp },
@@ -76,7 +85,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Configuración", url: "/settings/operations", icon: Settings },
       { title: "Actividad", url: "/activity", icon: Activity },
       { title: "Bitácora", url: "/audit", icon: History },
-      { title: "Historial de Imports", url: "/conciliacion-bancaria/historial", icon: History },
       { title: "Changelog", url: "/changelog", icon: ScrollText },
       { title: "Ayuda", url: "/help", icon: HelpCircle },
     ],
@@ -85,4 +93,3 @@ export const NAV_GROUPS: NavGroup[] = [
 
 // Items that bypass the permissions check
 export const ALWAYS_VISIBLE_ROUTES = ["/changelog", "/help", "/activity", "/audit", "/mis-reportes", "/leaderboard"];
-

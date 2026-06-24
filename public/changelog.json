@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.89.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Sidebar reorganizado por flujos de negocio",
+    "description": "9 grupos alineados al flujo: Ventas, Operaciones, Compras y Facturación y Finanzas ahora son colapsables y se abren automáticamente con la ruta activa. Flota, Análisis, Comunidad y Sistema quedan planos. Se removió 'Historial de Imports' del sidebar.",
+    "category": "improvement"
+  },
+  {
     "version": "6.88.3",
     "date": "2026-06-24",
     "type": "patch",
