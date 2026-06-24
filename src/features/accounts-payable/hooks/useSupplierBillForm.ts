@@ -124,7 +124,7 @@ export function useSupplierBillForm(
   const total = subtotal + tax - retIva - retIsr;
 
   const onSubmit = (data: SupplierBillFormData) => {
-    const payload = {
+    const payload: Record<string, unknown> = {
       supplier_id: data.supplier_id,
       category: data.category as ExpenseCategory,
       description: data.description || null,
@@ -138,9 +138,11 @@ export function useSupplierBillForm(
       retention_isr: data.retention_isr,
       total,
       cfdi_uuid: data.cfdi_uuid || null,
-      cfdi_xml_url: overrides?.cfdiXmlUrl ?? null,
       payment_method_sat: data.payment_method_sat ?? null,
     };
+    if (overrides?.cfdiXmlUrl !== undefined) {
+      payload.cfdi_xml_url = overrides.cfdiXmlUrl;
+    }
 
     if (isEdit && initialBill) {
       update.mutate(
