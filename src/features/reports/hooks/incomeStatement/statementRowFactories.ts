@@ -7,12 +7,14 @@ import {
 interface RowTotals {
   revenue: number; revenueRental: number; revenueSales: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
+  cogsForkliftSales: number;
   expenses: MonthData["expenses"];
   grossProfit: number; grossMargin: number;
   totalExpenses: number;
   profitBeforeDepreciation: number; marginBeforeDepreciation: number;
   netProfit: number; margin: number;
 }
+
 
 const directCostRows = (filteredData: MonthData[], totals: RowTotals): StatementRow[] =>
   DIRECT_COST_CATEGORIES.map((c) => ({
