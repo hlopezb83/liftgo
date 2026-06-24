@@ -1,0 +1,17 @@
+{
+  "version": "6.91.3",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Meses del Estado de Resultados en español",
+  "category": "fix",
+  "summary": "Los encabezados de columna por mes (ej. 'Ene 26', 'Feb 26') ahora se generan en español desde el cliente en lugar de depender del locale de PostgreSQL.",
+  "changes": [
+    {
+      "area": "Estado de Resultados",
+      "items": [
+        "Labels de mes formateadas con Intl.DateTimeFormat('es-MX') a partir del month_key (YYYY-MM)."
+      ]
+    }
+  ],
+  "breaking": false
+}
