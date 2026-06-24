@@ -96,7 +96,9 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!(claimRes as { data: unknown }).data) {
       return new Response(
-        JSON.stringify({ error: "REP ya está siendo timbrado o ya fue timbrado" }),
+        JSON.stringify({
+          error: "REP ya está siendo timbrado o ya fue timbrado",
+        }),
         { status: 409, headers: jsonHeaders },
       );
     }
