@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { callRpc } from "@/lib/rpc";
 import { format } from "date-fns";
+import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 import {
   type MonthData, type AccountingBasis, type ExpenseCategory,
   emptyExpenses, computeDerivedTotals,
