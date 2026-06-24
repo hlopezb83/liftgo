@@ -22,6 +22,7 @@ export function useVisibleNavGroups(): NavGroup[] {
     () =>
       NAV_GROUPS.map((group) => ({
         label: group.label,
+        collapsible: group.collapsible,
         items: group.items.filter((item) => getItemAccess(perms, role ?? undefined, item.url) !== "none"),
       })).filter((group) => group.items.length > 0),
     [perms, role],
