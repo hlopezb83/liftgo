@@ -109,6 +109,18 @@ export function ImportSupplierBillXmlDialog({ open, onOpenChange }: Props) {
         // Subir XML a Storage
         const up = await uploadXml.mutateAsync({ file, uuid: parsed.uuid });
 
+        // Warnings no bloqueantes vía toast (el preview ya abre).
+        if (companyRfc && parsed.receiverRfc && parsed.receiverRfc !== companyRfc) {
+          notifyWarning("RFC receptor no coincide", {
+            description: `CFDI emitido a ${parsed.receiverRfc}; configurado: ${companyRfc}.`,
+          });
+        }
+        if (!supplierId) {
+          notifyWarning("Proveedor no encontrado por RFC", {
+            description: `Selecciona manualmente el proveedor (RFC emisor: ${parsed.emitterRfc ?? "—"}).`,
+          });
+        }
+
         setPrepared({ parsed, file, supplierId, initialValues });
         setUploaded(up);
       } catch (e: unknown) {
