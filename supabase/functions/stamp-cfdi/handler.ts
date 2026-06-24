@@ -136,9 +136,12 @@ export async function handleStampCfdi(
       .maybeSingle();
     const claimedRow = (claimRes as { data: unknown }).data;
     if (!claimedRow) {
-      console.error("[stamp-cfdi] claim failed — concurrent stamp in progress", {
-        invoice_id,
-      });
+      console.error(
+        "[stamp-cfdi] claim failed — concurrent stamp in progress",
+        {
+          invoice_id,
+        },
+      );
       return json(
         { error: "Invoice already stamped or in progress" },
         409,
