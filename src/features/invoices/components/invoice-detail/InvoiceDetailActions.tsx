@@ -74,20 +74,15 @@ export function InvoiceDetailActions({
   return (
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
+      {flags.canEdit && (
+        <Button size="sm" variant="outline" onClick={onEdit}>
+          <Edit className="h-4 w-4 mr-1" /> Editar
+        </Button>
+      )}
       {flags.isDraft && flags.canStamp && (
         <Button size="sm" onClick={onStamp} disabled={isStamping}>
           <Stamp className="h-4 w-4 mr-1" />
           {isStamping ? "Timbrando..." : "Timbrar CFDI"}
-        </Button>
-      )}
-      {flags.showPaymentBtn && (
-        <Button size="sm" onClick={onOpenPayment}>
-          <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
-        </Button>
-      )}
-      {flags.canEdit && (
-        <Button size="sm" variant="outline" onClick={onEdit}>
-          <Edit className="h-4 w-4 mr-1" /> Editar
         </Button>
       )}
       {flags.canStamp && !flags.isDraft && (
@@ -95,11 +90,17 @@ export function InvoiceDetailActions({
           <Stamp className="h-4 w-4 mr-1" /> {isStamping ? "Timbrando..." : "Timbrar CFDI"}
         </Button>
       )}
+      {flags.showPaymentBtn && (
+        <Button size="sm" onClick={onOpenPayment}>
+          <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
+        </Button>
+      )}
       {flags.isStamped && (
         <Button size="sm" variant="outline" onClick={onDownloadXml}>
           <Download className="h-4 w-4 mr-1" /> Descargar XML
         </Button>
       )}
+      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
       {flags.isStamped && !flags.isPendingCancel && (
         <Button
           size="sm"
@@ -120,7 +121,6 @@ export function InvoiceDetailActions({
           <Trash2 className="h-4 w-4 mr-1" /> Eliminar
         </Button>
       </RoleGuard>
-      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
     </>
   );
 }
