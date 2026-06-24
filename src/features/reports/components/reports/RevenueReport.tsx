@@ -24,7 +24,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
     const months: Record<string, Row> = {};
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
-      const label = format(startOfMonth(parseISO(inv.issued_at)), "MMM yyyy", { locale: es });
+      const label = formatMonthShortEsFromDate(startOfMonth(parseISO(inv.issued_at)));
       if (!months[key]) months[key] = { month: label, invoiced: 0, paid: 0, count: 0 };
       months[key].invoiced += Number(inv.total);
       months[key].count++;
