@@ -64,6 +64,18 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         </Alert>
       )}
 
+      {soldWithoutCost.length > 0 && (
+        <Alert variant="destructive" className="border-amber-500/50 text-amber-700 dark:text-amber-400 [&>svg]:text-amber-600">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Equipos vendidos sin costo de adquisición</AlertTitle>
+          <AlertDescription>
+            Los siguientes equipos están marcados como vendidos pero no tienen costo de adquisición registrado, por lo que no aparecen en el Costo de Equipos Vendidos:{" "}
+            <span className="font-semibold">{soldWithoutCost.map((fl) => fl.name).join(", ")}</span>.
+            Actualiza el costo en la ficha del equipo.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {!isComparison && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {kpis.map((kpi) => (
