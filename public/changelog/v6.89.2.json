@@ -1,0 +1,8 @@
+{
+  "version": "6.89.2",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Columna cfdi_xml_url faltante en facturas de proveedor",
+  "description": "Se agregó la columna cfdi_xml_url a la tabla supplier_bills. El guardado de facturas de proveedor importadas desde XML fallaba con error PGRST204 (Could not find the 'cfdi_xml_url' column) porque el hook useSupplierBillForm enviaba el campo pero la columna nunca había sido creada en la base de datos.",
+  "category": "bugfix"
+}
