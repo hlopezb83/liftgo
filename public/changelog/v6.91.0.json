@@ -1,0 +1,22 @@
+{
+  "version": "6.91.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Costo automático de montacargas vendidos en el Estado de Resultados",
+  "description": "El Estado de Resultados ahora descuenta automáticamente el valor en libros remanente de los montacargas vendidos como Costo de Equipos Vendidos en el mes de la venta, con desglose por unidad. Antes, las ventas de equipo se reportaban 100% como utilidad porque su costo histórico nunca se reconocía.",
+  "category": "feature",
+  "details": {
+    "added": [
+      "Nueva línea '(-) Costo de Equipos Vendidos' en P&L (mensual, anual y comparativa)",
+      "Desglose expandible por montacargas vendido, igual que Depreciación",
+      "Fórmula: valor_en_libros = acquisition_cost − depreciación lineal a 36 meses acumulada hasta la fecha de venta"
+    ],
+    "fixed": [
+      "Utilidad Bruta y Neta ya no se sobreestiman al vender un montacargas con valor en libros remanente"
+    ],
+    "notes": [
+      "Detecta la fecha de venta usando la última transición a status='sold' en status_logs",
+      "Montacargas vendidos sin acquisition_cost se omiten (queda en $0)"
+    ]
+  }
+}
