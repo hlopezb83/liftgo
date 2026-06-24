@@ -43,16 +43,19 @@ describe("cellColor", () => {
 
 describe("getBreakdownFor", () => {
   const dep: Array<{ label: string; values: number[]; total: number }> = [{ label: "d", values: [], total: 0 }];
+  const cogs: Array<{ label: string; values: number[]; total: number }> = [{ label: "c", values: [], total: 0 }];
   const rental: Array<{ label: string; values: number[]; total: number }> = [{ label: "r", values: [], total: 0 }];
   const sales: Array<{ label: string; values: number[]; total: number }> = [{ label: "s", values: [], total: 0 }];
 
   it("mapea labels conocidos a su breakdown", () => {
-    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, rental, sales)?.key).toBe("dep");
-    expect(getBreakdownFor("  Ingresos por Rentas", dep, rental, sales)?.key).toBe("rental");
-    expect(getBreakdownFor("  Ingresos por Ventas", dep, rental, sales)?.key).toBe("sales");
+    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rental, sales)?.key).toBe("dep");
+    expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rental, sales)?.key).toBe("cogs");
+    expect(getBreakdownFor("  Ingresos por Rentas", dep, cogs, rental, sales)?.key).toBe("rental");
+    expect(getBreakdownFor("  Ingresos por Ventas", dep, cogs, rental, sales)?.key).toBe("sales");
   });
 
   it("devuelve null para label sin breakdown", () => {
-    expect(getBreakdownFor("Otro", dep, rental, sales)).toBeNull();
+    expect(getBreakdownFor("Otro", dep, cogs, rental, sales)).toBeNull();
   });
 });
+
