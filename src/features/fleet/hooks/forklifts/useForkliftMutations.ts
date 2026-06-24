@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { insertCostoVentaIfSold } from "../../lib/insertCostoVentaIfSold";
+
 import { forkliftKeys } from "../../lib/queryKeys";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type { Forklift } from "@/types/rental";
@@ -86,12 +86,14 @@ export function useUpdateStatus() {
       await supabase.from("status_logs").insert({
         forklift_id: forkliftId, from_status: fromStatus, to_status: toStatus, note,
       });
-      await insertCostoVentaIfSold(forkliftId, toStatus);
+      // Nota: el COGS de equipos vendidos se calcula automáticamente en el RPC
+      // del Estado de Resultados a partir del valor en libros (acquisition_cost
+      // menos depreciación acumulada). NO insertamos una factura `costo_venta`
+      // para evitar doble conteo del COGS en el P&L (v6.92.0).
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
       queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-      queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
     },
   });
 }

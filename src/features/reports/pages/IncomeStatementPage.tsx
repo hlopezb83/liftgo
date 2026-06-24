@@ -86,6 +86,13 @@ export default function IncomeStatementPage() {
           endDate={endDate}
           accountingBasis={accountingBasis}
         />
+
+        <p className="text-xs text-muted-foreground px-1">
+          Nota: <strong>(-) Mantenimiento</strong> proviene de los registros de mantenimiento.
+          Si además captura una factura de proveedor con categoría "Mantenimiento" o "Refacciones"
+          para el mismo trabajo, ambos importes se restarán por separado. Use un solo canal por evento
+          para evitar duplicar el gasto.
+        </p>
       </div>
     </PageTransition>
   );
