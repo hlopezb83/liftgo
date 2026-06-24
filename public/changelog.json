@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.91.3",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Meses del Estado de Resultados en español",
+    "description": "Los encabezados de mes ahora se formatean en español (es-MX) desde el cliente, garantizando consistencia sin depender del locale del servidor.",
+    "category": "fix"
+  },
+  {
     "version": "6.91.2",
     "date": "2026-06-24",
     "type": "patch",
