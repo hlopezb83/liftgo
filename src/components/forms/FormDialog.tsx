@@ -63,7 +63,7 @@ export function FormDialog({
   topSlot,
   onSubmit,
   submitLabel = "Guardar",
-  cancelLabel = "Cancelar",
+  cancelLabel: _cancelLabel,
   isPending,
   footer,
   width = "lg",
