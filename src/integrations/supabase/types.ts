@@ -3563,6 +3563,19 @@ export type Database = {
         | "costo_venta"
         | "caja_chica"
         | "publicidad"
+        | "mantenimiento"
+        | "refacciones"
+        | "combustible"
+        | "transporte_logistica"
+        | "seguros_equipo"
+        | "servicios_publicos"
+        | "honorarios"
+        | "papeleria"
+        | "capacitacion"
+        | "comisiones_ventas"
+        | "viajes_representacion"
+        | "intereses"
+        | "comisiones_bancarias"
       payment_intent_status: "pending_review" | "approved" | "rejected"
       supplier_bill_approval_status:
         | "not_required"
@@ -3722,6 +3735,19 @@ export const Constants = {
         "costo_venta",
         "caja_chica",
         "publicidad",
+        "mantenimiento",
+        "refacciones",
+        "combustible",
+        "transporte_logistica",
+        "seguros_equipo",
+        "servicios_publicos",
+        "honorarios",
+        "papeleria",
+        "capacitacion",
+        "comisiones_ventas",
+        "viajes_representacion",
+        "intereses",
+        "comisiones_bancarias",
       ],
       payment_intent_status: ["pending_review", "approved", "rejected"],
       supplier_bill_approval_status: [

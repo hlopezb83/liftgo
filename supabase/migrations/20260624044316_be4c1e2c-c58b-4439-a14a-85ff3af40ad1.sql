@@ -1,0 +1,13 @@
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'mantenimiento';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'refacciones';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'combustible';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'transporte_logistica';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'seguros_equipo';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'servicios_publicos';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'honorarios';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'papeleria';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'capacitacion';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'comisiones_ventas';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'viajes_representacion';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'intereses';
+ALTER TYPE public.expense_category ADD VALUE IF NOT EXISTS 'comisiones_bancarias';
