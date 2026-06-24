@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.90.2",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Facturas multi-reserva clasificadas como ingresos por renta",
+    "description": "El Estado de Resultados ahora clasifica como Ingresos por Rentas las facturas vinculadas a varias reservas vía invoice_bookings (antes caían como ventas).",
+    "category": "bugfix"
+  },
+  {
+
     "version": "6.90.1",
     "date": "2026-06-24",
     "type": "patch",

@@ -1,0 +1,14 @@
+{
+  "version": "6.90.2",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Facturas multi-reserva clasificadas correctamente como ingresos por renta",
+  "description": "El Estado de Resultados clasificaba como 'Ingresos por Ventas' las facturas vinculadas a varias reservas a la vez (relación many-to-many invoice_bookings) porque solo revisaba la columna antigua invoices.booking_id. Ahora se reconocen ambas relaciones y los ingresos recurrentes con múltiples montacargas se reportan como renta.",
+  "category": "bugfix",
+  "details": {
+    "fixed": [
+      "Facturas con múltiples reservas (ej. FAC-0072 de LOGISTORAGE con 3 montacargas) ahora cuentan como Ingresos por Rentas",
+      "Desglose 'Por Cliente' del Estado de Resultados refleja el ingreso de renta en el cliente correcto"
+    ]
+  }
+}
