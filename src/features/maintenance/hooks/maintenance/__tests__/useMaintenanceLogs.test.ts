@@ -61,11 +61,11 @@ import {
 beforeEach(() => {
   insertedPayloads.length = 0;
   updatedPayloads.length = 0;
-  deletedCalls.length = 0;
+  rpcCalls.length = 0;
   notifyErrorMock.mockReset();
   insertResp = { data: { id: "log-1" }, error: null };
   updateResp = { data: { id: "log-1" }, error: null };
-  deleteResp = { data: null, error: null };
+  rpcResp = { data: null, error: null };
 });
 
 describe("useCreateMaintenanceLog", () => {
