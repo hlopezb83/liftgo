@@ -5,12 +5,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { useSuppliers } from "@/features/suppliers";
 import { useCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
 import { parseCfdiXml, CfdiParseError, type CfdiParsed } from "../lib/parseCfdiXml";
 import { useUploadSupplierBillXml, type UploadedCfdiXml } from "../hooks/useUploadSupplierBillXml";
+import { checkSupplierBillCfdiUuid } from "../hooks/useCheckSupplierBillCfdiUuid";
 import { SupplierBillFormDialog } from "./SupplierBillFormDialog";
 import type { SupplierBillFormData } from "../hooks/useSupplierBillForm";
 
@@ -72,12 +72,7 @@ export function ImportSupplierBillXmlDialog({ open, onOpenChange }: Props) {
         }
 
         // Verificar duplicado de UUID
-        const { data: dup, error: dupErr } = await supabase
-          .from("supplier_bills")
-          .select("id, bill_number")
-          .eq("cfdi_uuid", parsed.uuid)
-          .maybeSingle();
-        if (dupErr) throw dupErr;
+        const dup = await checkSupplierBillCfdiUuid(parsed.uuid);
         if (dup) {
           throw new CfdiParseError(
             `Este CFDI ya está registrado como factura ${dup.bill_number}`,
