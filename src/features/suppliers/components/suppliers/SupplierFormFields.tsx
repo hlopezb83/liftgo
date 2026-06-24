@@ -1,103 +1,219 @@
+import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SUPPLIER_CATEGORIES } from "../../hooks/useSuppliers";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { SectionHeading } from "@/components/forms/SectionHeading";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
+import { SUPPLIER_CATEGORIES } from "../../hooks/useSuppliers";
+import type { SupplierFormData } from "../../lib/supplierFormSchema";
 
-import { type SupplierForm } from "./supplierFormTypes";
+export function SupplierFormFields() {
+  const { control } = useFormContext<SupplierFormData>();
 
-interface Props {
-  form: SupplierForm;
-  setField: <K extends keyof SupplierForm>(key: K, value: SupplierForm[K]) => void;
-}
-
-export function SupplierFormFields({ form, setField }: Props) {
   return (
-    <>
+    <div className="space-y-5">
+      {/* Identidad */}
       <div className="space-y-3">
-        <div className="space-y-1.5">
-          <Label>Nombre *</Label>
-          <Input value={form.name} onChange={(e) => setField("name", e.target.value)} placeholder="Nombre del proveedor" />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Persona de Contacto</Label>
-          <Input value={form.contact_person} onChange={(e) => setField("contact_person", e.target.value)} />
-        </div>
+        <SectionHeading>Identidad</SectionHeading>
+        <FormField
+          control={control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre / Razón Social <RequiredMark /></FormLabel>
+              <FormControl>
+                <Input placeholder="GRUPO INDUSTRIAL DEL NORTE" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
-      <div className="space-y-3 border-t pt-3">
-        <p className="text-sm font-medium text-muted-foreground">Datos Fiscales</p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>RFC</Label>
-            <Input value={form.rfc} onChange={(e) => setField("rfc", e.target.value)} placeholder="XAXX010101000" />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Régimen Fiscal</Label>
-            <Select value={form.regimen_fiscal} onValueChange={(v) => setField("regimen_fiscal", v)}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-              <SelectContent>
-                {REGIMEN_FISCAL.map((r) => <SelectItem key={r.code} value={r.code}>{r.code} — {r.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Categoría</Label>
-          <Select value={form.category} onValueChange={(v) => setField("category", v)}>
-            <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-            <SelectContent>
-              {Object.entries(SUPPLIER_CATEGORIES).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-3 border-t pt-3">
-        <p className="text-sm font-medium text-muted-foreground">Condiciones Comerciales</p>
-        <div className="space-y-1.5">
-          <Label>Días de crédito (default)</Label>
-          <Input
-            type="number"
-            min={0}
-            max={365}
-            placeholder="Ej. 30"
-            value={form.default_payment_terms_days}
-            onChange={(e) => setField("default_payment_terms_days", e.target.value)}
+      {/* Datos Fiscales */}
+      <div className="space-y-3 border-t pt-4">
+        <SectionHeading>Datos Fiscales (CFDI)</SectionHeading>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="rfc"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>RFC</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="XAXX010101000"
+                    maxLength={13}
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <p className="text-xs text-muted-foreground">
-            Se aplicará automáticamente como vencimiento al registrar nuevas CxP.
-          </p>
+          <FormField
+            control={control}
+            name="regimen_fiscal"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Régimen Fiscal</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {REGIMEN_FISCAL.map((r) => (
+                      <SelectItem key={r.code} value={r.code}>{r.code} — {r.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
       </div>
 
-      <div className="space-y-3 border-t pt-3">
-        <p className="text-sm font-medium text-muted-foreground">Contacto</p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label>Correo</Label>
-            <Input type="email" value={form.email} onChange={(e) => setField("email", e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Teléfono</Label>
-            <Input value={form.phone} onChange={(e) => setField("phone", e.target.value)} />
-          </div>
+      {/* Contacto */}
+      <div className="space-y-3 border-t pt-4">
+        <SectionHeading>Contacto</SectionHeading>
+        <FormField
+          control={control}
+          name="contact_person"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Persona de Contacto</FormLabel>
+              <FormControl>
+                <Input placeholder="Lic. Juan Pérez" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Correo</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="contacto@proveedor.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input placeholder="+52 81 1234 5678" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <div className="space-y-1.5">
-          <Label>Sitio Web</Label>
-          <Input value={form.website} onChange={(e) => setField("website", e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Dirección</Label>
-          <Input value={form.address} onChange={(e) => setField("address", e.target.value)} />
+        <FormField
+          control={control}
+          name="website"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Sitio Web</FormLabel>
+              <FormControl>
+                <Input placeholder="https://proveedor.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Dirección */}
+      <div className="space-y-3 border-t pt-4">
+        <SectionHeading>Dirección</SectionHeading>
+        <FormField
+          control={control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dirección</FormLabel>
+              <FormControl>
+                <Input placeholder="Av. Industrial 123, Col. Centro, 64000, Monterrey" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Condiciones Comerciales */}
+      <div className="space-y-3 border-t pt-4">
+        <SectionHeading>Condiciones Comerciales</SectionHeading>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Categoría</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Object.entries(SUPPLIER_CATEGORIES).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="default_payment_terms_days"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Días de crédito</FormLabel>
+                <FormControl>
+                  <Input type="number" min={0} max={365} placeholder="Ej. 30" {...field} />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  Se aplicará como vencimiento al registrar nuevas CxP.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
       </div>
 
-      <div className="space-y-1.5 border-t pt-3">
-        <Label>Notas</Label>
-        <Textarea value={form.notes} onChange={(e) => setField("notes", e.target.value)} rows={2} />
+      {/* Interno */}
+      <div className="space-y-3 border-t pt-4">
+        <SectionHeading>Interno</SectionHeading>
+        <FormField
+          control={control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notas</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Notas internas sobre el proveedor…" rows={3} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
-    </>
+    </div>
   );
 }
