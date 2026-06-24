@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { callRpc } from "@/lib/rpc";
 import { format } from "date-fns";
+import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 import {
   type MonthData, type AccountingBasis, type ExpenseCategory,
   emptyExpenses, computeDerivedTotals,
@@ -61,11 +62,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       cogsForkliftSales,
       expenses,
     });
-    const [yy, mm] = m.month_key.split("-").map(Number);
-    const raw = new Intl.DateTimeFormat("es-MX", { month: "short", year: "2-digit" })
-      .format(new Date(yy, (mm ?? 1) - 1, 1))
-      .replace(/\./g, "");
-    const label = raw.charAt(0).toUpperCase() + raw.slice(1);
+    const label = formatMonthShortEs(m.month_key);
     return {
       monthKey: m.month_key,
       month: label,

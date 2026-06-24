@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.91.4",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Meses en español en gráfica de Flujo de Efectivo",
+    "description": "La gráfica de Flujo de Efectivo del dashboard ahora muestra los meses en español (es-MX) mediante un helper compartido reutilizable.",
+    "category": "fix"
+  },
+  {
     "version": "6.91.3",
     "date": "2026-06-24",
     "type": "patch",

@@ -1,4 +1,5 @@
 import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
+import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 
 export const STATUS_COLORS = {
   available: "hsl(var(--status-available))",
@@ -63,7 +64,7 @@ export function mapInvoiceBreakdown(raw?: Array<{ status: string; count: number;
 type StatsLike = {
   monthly_utilization?: Array<{ month_label: string; utilization: number }>;
   utilization?: Array<{ name: string; revenue: number }>;
-  cash_flow?: Array<{ month: string; invoiced: number; paid: number }>;
+  cash_flow?: Array<{ month: string; month_key?: string; invoiced: number; paid: number }>;
   invoice_stats?: { outstanding_revenue?: number };
   overdue_bookings?: unknown;
 };
@@ -77,7 +78,11 @@ export function mapRevenuePerUnit(stats?: StatsLike) {
 }
 
 export function mapCashFlow(stats?: StatsLike) {
-  return (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid }));
+  return (stats?.cash_flow ?? []).map((cf) => ({
+    month: cf.month_key ? formatMonthShortEs(cf.month_key) : cf.month,
+    invoiced: cf.invoiced,
+    paid: cf.paid,
+  }));
 }
 
 type KpisLike = { mrr?: number; dso?: number; overdue_total?: number; expiring_contracts?: unknown };
