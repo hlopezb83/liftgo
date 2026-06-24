@@ -58,9 +58,12 @@ const month: MonthData = {
   maintenanceCost: 1_000,
   damageCost: 0,
   depreciation: 500,
+  cogsForkliftSales: 0,
+  cogsByForklift: {},
   depreciationByForklift: {},
   rentalByCustomer: {},
   salesByCustomer: {},
+
   grossProfit: 9_000,
   grossMargin: 90,
   expenses: { ...emptyExpenses(), nomina: 1_000 },
