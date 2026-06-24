@@ -3278,10 +3278,17 @@ export type Database = {
         }
         Returns: string
       }
-      create_supplier_payment_batch: {
-        Args: { p_items: Json; p_notes?: string }
-        Returns: string
-      }
+      create_supplier_payment_batch:
+        | {
+            Args: {
+              p_bill_ids: string[]
+              p_notes?: string
+              p_payment_method: string
+              p_scheduled_for: string
+            }
+            Returns: string
+          }
+        | { Args: { p_items: Json; p_notes?: string }; Returns: string }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       delete_quote_with_unassign: {
         Args: { p_quote_id: string }
