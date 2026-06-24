@@ -3581,6 +3581,22 @@ export type Database = {
         Returns: undefined
       }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
+      soft_delete_customer: {
+        Args: { p_customer_id: string }
+        Returns: undefined
+      }
+      soft_delete_damage_record: {
+        Args: { p_damage_id: string }
+        Returns: undefined
+      }
+      soft_delete_maintenance_log: {
+        Args: { p_log_id: string }
+        Returns: undefined
+      }
+      soft_delete_supplier: {
+        Args: { p_supplier_id: string }
+        Returns: undefined
+      }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
     }
     Enums: {
