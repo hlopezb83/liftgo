@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
