@@ -10,6 +10,7 @@ import {
 interface Totals {
   revenue: number; revenueRental: number; revenueSales: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
+  cogsForkliftSales: number;
   expenses: MonthData["expenses"];
   grossProfit: number; grossMargin: number;
   totalExpenses: number;
@@ -32,6 +33,10 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
     () => buildBreakdownRows(filteredData, (m) => m.depreciationByForklift, true),
     [filteredData],
   );
+  const cogsBreakdownRows = useMemo(
+    () => buildBreakdownRows(filteredData, (m) => m.cogsByForklift, true),
+    [filteredData],
+  );
   const rentalBreakdownRows = useMemo(
     () => buildBreakdownRows(filteredData, (m) => m.rentalByCustomer),
     [filteredData],
@@ -41,8 +46,9 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
     [filteredData],
   );
 
-  return { statementRows, csvRows, depreciationBreakdownRows, rentalBreakdownRows, salesBreakdownRows };
+  return { statementRows, csvRows, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows };
 }
+
 
 export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
   return useMemo(() => {
