@@ -34,6 +34,8 @@ const SEGMENT_LABELS: Record<string, string> = {
   settings: "Configuración",
   operations: "Operaciones",
   company: "Empresa",
+  "cuentas-por-pagar": "Facturas de Proveedor",
+  antiguedad: "Antigüedad",
   new: "Nuevo",
   edit: "Editar",
 };
