@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.88.2",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Formato Deno en generate-recurring-invoices",
+    "description": "Reformat de supabase/functions/generate-recurring-invoices/index.ts según deno fmt: paréntesis multilínea, template literals partidos y select() en dos líneas. Sin cambios funcionales — desbloquea el job de CI deno fmt --check.",
+    "category": "fix"
+  },
+  {
     "version": "6.88.1",
     "date": "2026-06-24",
     "type": "patch",
