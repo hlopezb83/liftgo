@@ -77,7 +77,11 @@ export function mapRevenuePerUnit(stats?: StatsLike) {
 }
 
 export function mapCashFlow(stats?: StatsLike) {
-  return (stats?.cash_flow ?? []).map((cf) => ({ month: cf.month, invoiced: cf.invoiced, paid: cf.paid }));
+  return (stats?.cash_flow ?? []).map((cf) => ({
+    month: cf.month_key ? formatMonthShortEs(cf.month_key) : cf.month,
+    invoiced: cf.invoiced,
+    paid: cf.paid,
+  }));
 }
 
 type KpisLike = { mrr?: number; dso?: number; overdue_total?: number; expiring_contracts?: unknown };
