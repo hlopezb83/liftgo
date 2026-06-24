@@ -49,6 +49,8 @@ export interface MonthData {
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
+  cogsForkliftSales: number;
+  cogsByForklift: Record<string, number>;
   depreciationByForklift: Record<string, number>;
   rentalByCustomer: Record<string, number>;
   salesByCustomer: Record<string, number>;
@@ -79,6 +81,7 @@ export interface YearTotals {
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
+  cogsForkliftSales: number;
   expenses: Record<ExpenseCategory, number>;
   grossProfit: number;
   grossMargin: number;
@@ -88,6 +91,7 @@ export interface YearTotals {
   netProfit: number;
   margin: number;
 }
+
 
 export interface ComparisonRow {
   label: string;
