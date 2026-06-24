@@ -1,0 +1,17 @@
+{
+  "version": "6.90.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Estado de Resultados agrupado por bloque contable",
+  "description": "El Estado de Resultados ahora agrupa los gastos operativos (debajo del Margen Bruto) en Administrativos, Comerciales, Financieros y Otros, con un subtotal '= Total <Grupo>' por bloque. Aplica también a la vista comparativa anual y al PDF.",
+  "category": "improvement",
+  "details": {
+    "changed": [
+      "Gastos operativos agrupados en 4 bloques contables con subtotal por grupo",
+      "Misma agrupación en la comparativa anual y en el PDF del Estado de Resultados"
+    ],
+    "notes": [
+      "Las fórmulas de Utilidad Bruta, Utilidad antes de Depreciación y Utilidad Neta no cambian"
+    ]
+  }
+}
