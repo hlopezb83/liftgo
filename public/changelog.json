@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.88.3",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Importar CFDI XML dentro del modal de Nueva Factura",
+    "description": "La importación de CFDI XML del proveedor ahora vive como dropzone opcional en la parte superior del modal 'Nueva Factura de Proveedor'. Se eliminó el botón extra 'Importar XML' de la barra y el dialog independiente. Lógica de parseo + upload extraída al hook useImportSupplierBillCfdi.",
+    "category": "improvement"
+  },
+  {
     "version": "6.88.2",
     "date": "2026-06-24",
     "type": "patch",
