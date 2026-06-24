@@ -1,0 +1,14 @@
+{
+  "version": "6.92.1",
+  "date": "2026-06-24",
+  "type": "patch",
+  "title": "Limpieza de facturas duplicadas de costo de venta",
+  "category": "fix",
+  "summary": "Se eliminaron facturas históricas de proveedor con categoría 'costo_venta' que duplicaban el COGS automático del Estado de Resultados.",
+  "details": [
+    "Migración SQL que elimina facturas con category='costo_venta' cuya descripción ('Costo de venta: <equipo>') coincide con un montacargas en estatus 'sold' y con acquisition_cost > 0 — los mismos equipos que el RPC get_income_statement ya contabiliza en cogs_forklift_sales.",
+    "Facturas eliminadas: CXP-0001 ($547,311.70), CXP-0002 ($316,794.00), CXP-0003 ($394,255.15), CXP-0004 ($394,255.15), CXP-0005 ($882,232.43).",
+    "Los pagos asociados (supplier_payments) se eliminan en cascada por la FK existente.",
+    "Complementa v6.92.0, donde se desactivó la creación automática de estas facturas (insertCostoVentaIfSold) y se consolidó el COGS en una sola línea del reporte."
+  ]
+}
