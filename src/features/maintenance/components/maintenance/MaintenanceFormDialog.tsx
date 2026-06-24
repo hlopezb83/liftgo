@@ -30,19 +30,17 @@ export function MaintenanceFormDialog({
   open, onOpenChange, isEdit, isPending, form, onSubmit, forklifts, mechanics,
 }: Props) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wrench className="h-4 w-4" />
-            {isEdit ? "Editar Mantenimiento" : "Registrar Mantenimiento"}
-          </DialogTitle>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "Editar Mantenimiento" : "Registrar Mantenimiento"}
+    >
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-4">
-            <FormField control={form.control} name="forkliftId" render={({ field }) => (
+            <FormSection title="Equipo y servicio" first>
+              <FormField control={form.control} name="forkliftId" render={({ field }) => (
               <FormItem className="space-y-1.5">
-                <FormLabel>Montacargas *</FormLabel>
+                <FormLabel>Montacargas <RequiredMark /></FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar montacargas" /></SelectTrigger></FormControl>
                   <SelectContent>
@@ -56,7 +54,7 @@ export function MaintenanceFormDialog({
             )} />
             <FormField control={form.control} name="serviceType" render={({ field }) => (
               <FormItem className="space-y-1.5">
-                <FormLabel>Tipo de Servicio *</FormLabel>
+                <FormLabel>Tipo de Servicio <RequiredMark /></FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar tipo de servicio" /></SelectTrigger></FormControl>
                   <SelectContent>
@@ -72,6 +70,8 @@ export function MaintenanceFormDialog({
                 <FormControl><Textarea {...field} placeholder="Detalles del servicio..." rows={3} /></FormControl>
               </FormItem>
             )} />
+            </FormSection>
+            <FormSection title="Ejecución y costo">
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="cost" render={({ field }) => (
                 <FormItem className="space-y-1.5">
@@ -112,14 +112,16 @@ export function MaintenanceFormDialog({
                 <SupplierSelector value={field.value} onChange={field.onChange} />
               </FormItem>
             )} />
-            <FormActions
-              submitLabel={isEdit ? "Guardar Cambios" : "Agregar Registro"}
-              isPending={isPending}
-              onCancel={() => onOpenChange(false)}
-            />
+            </FormSection>
+            <FormDialogFooter>
+              <FormActions
+                submitLabel={isEdit ? "Guardar Cambios" : "Agregar Registro"}
+                isPending={isPending}
+                onCancel={() => onOpenChange(false)}
+              />
+            </FormDialogFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }
