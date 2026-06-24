@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.88.1",
+    "date": "2026-06-24",
+    "type": "patch",
+    "title": "Correcciones E2E: enlace reserva en factura y aria-label cliente",
+    "description": "El sembrado E2E ahora puebla invoice_bookings, por lo que el detalle de factura sí muestra el enlace a la reserva origen. Botón 'Nuevo Cliente' del toolbar desktop expone aria-label='Agregar cliente' para que la suite Playwright lo encuentre sin caer al FAB móvil.",
+    "category": "fix"
+  },
+  {
     "version": "6.88.0",
     "date": "2026-06-24",
     "type": "minor",
