@@ -81,7 +81,9 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
         label: `(-) ${EXPENSE_CATEGORY_LABELS[c]}`,
         ...v((yt) => yt.expenses[c], { isCost: true }),
       })),
+      { label: "(-) Costo de Equipos Vendidos", ...v((yt) => yt.cogsForkliftSales, { isCost: true }) },
       { label: "= Utilidad Bruta", ...v((yt) => yt.grossProfit, { isSubtotal: true }) },
+
       { label: "Margen Bruto", ...v((yt) => yt.grossMargin, { isPercent: true }) },
       ...groupRows,
       { label: "= Total Egresos", ...v((yt) => yt.totalExpenses, { isSubtotal: true, isCost: true }) },
