@@ -186,11 +186,13 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
     const mode = (company?.facturapi_mode as string | undefined) || "test";
-    const apiKey = mode === "live"
-      ? ((secrets?.facturapi_live_key as string | null) ||
-        Deno.env.get("FACTURAPI_LIVE_KEY"))
-      : ((secrets?.facturapi_test_key as string | null) ||
-        Deno.env.get("FACTURAPI_TEST_KEY"));
+    const apiKey = resolveFacturapiKey({
+      mode: mode === "live" ? "live" : "test",
+      dbTestKey: secrets?.facturapi_test_key as string | null | undefined,
+      dbLiveKey: secrets?.facturapi_live_key as string | null | undefined,
+      envTestKey: Deno.env.get("FACTURAPI_TEST_KEY"),
+      envLiveKey: Deno.env.get("FACTURAPI_LIVE_KEY"),
+    });
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "Facturapi key not configured" }),
@@ -234,85 +236,68 @@ Deno.serve(async (req) => {
       complements: [{ type: "pago", data: [dataEntry] }],
     };
 
-    const createRes = await fetch(`${FACTURAPI_BASE}/invoices`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!createRes.ok) {
-      const errBody = await createRes.text();
-      console.error("Facturapi REP create error:", errBody);
+    const client = createFacturapiClient(apiKey);
+    let repInvoice: { id: string; uuid: string };
+    try {
+      repInvoice = await client.invoices.create(payload) as {
+        id: string;
+        uuid: string;
+      };
+    } catch (err) {
+      const desc = describeFacturapiError(err);
+      console.error("Facturapi REP create error:", desc.detail);
       await supabase
         .from("payments")
         .update({
           rep_cfdi_status: "error",
-          rep_error_message: errBody.slice(0, 1000),
+          rep_error_message: desc.detail.slice(0, 1000),
         })
         .eq("id", payment_id);
       return new Response(
         JSON.stringify({
-          error: `Facturapi error: ${createRes.status}`,
-          detail: errBody,
+          error: `Facturapi error: ${desc.status}`,
+          detail: desc.detail,
         }),
-        {
-          status: 502,
-          headers: jsonHeaders,
-        },
+        { status: 502, headers: jsonHeaders },
       );
     }
 
-    const repInvoice = await createRes.json();
-    const repId = repInvoice.id as string;
-    const repUuid = repInvoice.uuid as string;
+    const repId = repInvoice.id;
+    const repUuid = repInvoice.uuid;
 
     let xmlPath: string | null = null;
     let pdfPath: string | null = null;
 
     try {
-      const xmlRes = await fetch(`${FACTURAPI_BASE}/invoices/${repId}/xml`, {
-        headers: { "Authorization": `Bearer ${apiKey}` },
-      });
-      if (xmlRes.ok) {
-        const xmlTxt = await xmlRes.text();
-        const p = `${invoice.id}/rep-${repUuid}.xml`;
-        const { error: upErr } = await supabase.storage.from(BUCKET).upload(
-          p,
-          new Blob([xmlTxt], { type: "application/xml" }),
-          {
-            contentType: "application/xml",
-            upsert: true,
-          },
-        );
-        if (!upErr) xmlPath = p;
-      }
+      const xmlTxt = await binaryToText(
+        await client.invoices.downloadXml(repId),
+      );
+      const p = `${invoice.id}/rep-${repUuid}.xml`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(
+        p,
+        new Blob([xmlTxt], { type: "application/xml" }),
+        { contentType: "application/xml", upsert: true },
+      );
+      if (!upErr) xmlPath = p;
     } catch (e) {
       console.error("REP XML download failed:", e);
     }
 
     try {
-      const pdfRes = await fetch(`${FACTURAPI_BASE}/invoices/${repId}/pdf`, {
-        headers: { "Authorization": `Bearer ${apiKey}` },
-      });
-      if (pdfRes.ok) {
-        const pdfBytes = new Uint8Array(await pdfRes.arrayBuffer());
-        const p = `${invoice.id}/rep-${repUuid}.pdf`;
-        const { error: upErr } = await supabase.storage.from(BUCKET).upload(
-          p,
-          pdfBytes,
-          {
-            contentType: "application/pdf",
-            upsert: true,
-          },
-        );
-        if (!upErr) pdfPath = p;
-      }
+      const pdfBytes = await binaryToBytes(
+        await client.invoices.downloadPdf(repId),
+      );
+      const p = `${invoice.id}/rep-${repUuid}.pdf`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(
+        p,
+        pdfBytes,
+        { contentType: "application/pdf", upsert: true },
+      );
+      if (!upErr) pdfPath = p;
     } catch (e) {
       console.error("REP PDF download failed:", e);
     }
+
 
     const { error: updErr } = await supabase
       .from("payments")
