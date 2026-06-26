@@ -151,7 +151,6 @@ Deno.serve(async (req) => {
       }
     }
 
-
     const isAccepted = satStatus === "accepted";
     const update: Record<string, unknown> = {
       cancellation_status: satStatus,

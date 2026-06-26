@@ -235,7 +235,6 @@ export async function handleStampCreditNote(
       if (!upErr) pdfPath = path;
     } catch (_e) { /* keep null */ }
 
-
     await supabase.from("credit_notes").update({
       facturapi_invoice_id: facturApiId,
       cfdi_uuid: cfdiUuid,

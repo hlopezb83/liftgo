@@ -126,7 +126,10 @@ export async function handleRefreshCancellation(
     } catch (err) {
       const desc = describeFacturapiError(err);
       return json(
-        { error: `Facturapi status error: ${desc.status}`, detail: desc.detail },
+        {
+          error: `Facturapi status error: ${desc.status}`,
+          detail: desc.detail,
+        },
         502,
       );
     }

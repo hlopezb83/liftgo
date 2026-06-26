@@ -133,10 +133,12 @@ export async function handleCancelCfdi(
       }
       try {
         // deno-lint-ignore no-explicit-any
-        const cancelJson = await client.invoices.cancel(facturApiId, params as any);
-        const rawStatus =
-          ((cancelJson as { cancellation_status?: string })
-            ?.cancellation_status) ?? "accepted";
+        const cancelJson = await client.invoices.cancel(
+          facturApiId,
+          params as any,
+        );
+        const rawStatus = ((cancelJson as { cancellation_status?: string })
+          ?.cancellation_status) ?? "accepted";
         satStatus = VALID_SAT_STATUSES.includes(rawStatus)
           ? rawStatus
           : "pending";
@@ -151,7 +153,6 @@ export async function handleCancelCfdi(
         );
       }
     }
-
 
     const isAccepted = satStatus === "accepted";
     const update: Record<string, unknown> = {
