@@ -128,10 +128,9 @@ Deno.serve(async (req) => {
         params.substitution = substitution_uuid;
       }
       try {
-        // deno-lint-ignore no-explicit-any
         const cancelJson = await client.invoices.cancel(
           nc.facturapi_invoice_id as string,
-          params as any,
+          params,
         );
         const raw = ((cancelJson as { cancellation_status?: string })
           ?.cancellation_status) ?? "accepted";

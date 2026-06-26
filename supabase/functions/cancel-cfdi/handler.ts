@@ -132,10 +132,9 @@ export async function handleCancelCfdi(
         params.substitution = substitution_uuid as string;
       }
       try {
-        // deno-lint-ignore no-explicit-any
         const cancelJson = await client.invoices.cancel(
           facturApiId,
-          params as any,
+          params,
         );
         const rawStatus = ((cancelJson as { cancellation_status?: string })
           ?.cancellation_status) ?? "accepted";
