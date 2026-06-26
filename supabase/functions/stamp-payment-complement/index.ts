@@ -298,7 +298,6 @@ Deno.serve(async (req) => {
       console.error("REP PDF download failed:", e);
     }
 
-
     const { error: updErr } = await supabase
       .from("payments")
       .update({

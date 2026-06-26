@@ -35,10 +35,13 @@ async function fetchFromFacturapi(
 
 function resolveKey(
   company: { facturapi_mode?: string | null } | null | undefined,
-  secrets: {
-    facturapi_test_key?: string | null;
-    facturapi_live_key?: string | null;
-  } | null | undefined,
+  secrets:
+    | {
+      facturapi_test_key?: string | null;
+      facturapi_live_key?: string | null;
+    }
+    | null
+    | undefined,
 ): string | null {
   const mode = (company?.facturapi_mode as string | undefined) || "test";
   return resolveFacturapiKey({

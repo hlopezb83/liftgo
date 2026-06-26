@@ -94,7 +94,9 @@ export async function binaryToBytes(bin: unknown): Promise<Uint8Array> {
   if (bin instanceof Uint8Array) return bin;
   if (bin instanceof ArrayBuffer) return new Uint8Array(bin);
   // Stream tipo Node (defensivo, no debería ocurrir en Deno).
-  if (bin && typeof (bin as { arrayBuffer?: unknown }).arrayBuffer === "function") {
+  if (
+    bin && typeof (bin as { arrayBuffer?: unknown }).arrayBuffer === "function"
+  ) {
     const ab = await (bin as { arrayBuffer: () => Promise<ArrayBuffer> })
       .arrayBuffer();
     return new Uint8Array(ab);

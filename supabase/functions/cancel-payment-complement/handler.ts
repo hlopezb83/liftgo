@@ -103,7 +103,10 @@ export async function handleCancelPaymentComplement(
     const client = createFacturapiClient(apiKey);
     try {
       // deno-lint-ignore no-explicit-any
-      await client.invoices.cancel(pay.rep_facturapi_id as string, { motive: motiveCode } as any);
+      await client.invoices.cancel(
+        pay.rep_facturapi_id as string,
+        { motive: motiveCode } as any,
+      );
     } catch (err) {
       const desc = describeFacturapiError(err);
       return json(
@@ -115,7 +118,6 @@ export async function handleCancelPaymentComplement(
         jsonHeaders,
       );
     }
-
 
     await supabase.from("payments")
       .update({

@@ -306,7 +306,9 @@ export async function handleStampCfdi(
     let pdfStoragePath: string | null = null;
 
     try {
-      cfdiXml = await binaryToText(await client.invoices.downloadXml(facturApiId));
+      cfdiXml = await binaryToText(
+        await client.invoices.downloadXml(facturApiId),
+      );
       const path = `${invoice_id}/${cfdiUuid}.xml`;
       const { error: upErr } = await supabase.storage.from("cfdi-files")
         .upload(
@@ -330,7 +332,6 @@ export async function handleStampCfdi(
         );
       if (!upErr) pdfStoragePath = path;
     } catch (_e) { /* keep null */ }
-
 
     const updRes = await supabase.from("invoices").update({
       cfdi_uuid: cfdiUuid,
