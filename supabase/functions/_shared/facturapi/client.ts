@@ -8,9 +8,15 @@
 // - Mantenido oficialmente por Facturapi (v4.18+).
 //
 // deno-lint-ignore-file no-explicit-any
-import Facturapi, { FacturapiError } from "npm:facturapi@4.18.0";
+import FacturapiNs, { FacturapiError } from "npm:facturapi@4.18.0";
+
+// El paquete exporta una clase como default; en algunos contextos de tipos
+// el namespace queda primero. Casteamos a constructor para uso consistente.
+const Facturapi = FacturapiNs as unknown as new (apiKey: string) => any;
 
 export { Facturapi, FacturapiError };
+
+export type FacturapiClient = any;
 
 export type FacturapiMode = "test" | "live";
 
