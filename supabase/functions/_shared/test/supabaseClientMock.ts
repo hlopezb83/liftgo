@@ -68,6 +68,10 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         filters.push({ col, val: vals });
         return builder;
       },
+      is: (col, val) => {
+        filters.push({ col, val });
+        return builder;
+      },
       limit: () => builder,
       single: () => resolveSelect(),
       maybeSingle: () => resolveSelect(),
