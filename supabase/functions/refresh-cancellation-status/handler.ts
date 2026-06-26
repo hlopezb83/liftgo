@@ -2,6 +2,11 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
+import {
+  createFacturapiClient,
+  describeFacturapiError,
+  resolveFacturapiKey,
+} from "../_shared/facturapi/client.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_SAT_STATUSES = [
