@@ -10,14 +10,19 @@
 // deno-lint-ignore-file no-explicit-any
 import * as FacturapiPkg from "npm:facturapi@4.18.0";
 
+// El SDK se publica como módulo dual ESM/CJS. La interop de Deno expone la
+// clase como `default.default` (CJS) o `default` (ESM), así que resolvemos
+// ambos casos de forma defensiva.
 // deno-lint-ignore no-explicit-any
 const pkgAny = FacturapiPkg as any;
-console.error("[facturapi-debug] keys:", Object.keys(pkgAny), "defaultType:", typeof pkgAny.default, "defaultKeys:", pkgAny.default ? Object.keys(pkgAny.default).slice(0,10) : null);
 const Facturapi = (pkgAny.default?.default ?? pkgAny.default ?? pkgAny) as new (
   apiKey: string,
   options?: Record<string, unknown>,
 ) => any;
-const FacturapiError = pkgAny.FacturapiError ?? pkgAny.default?.FacturapiError;
+const FacturapiError = pkgAny.FacturapiError ??
+  pkgAny.default?.FacturapiError ??
+  pkgAny.default?.default?.FacturapiError ??
+  class FacturapiError extends Error {};
 
 export { Facturapi, FacturapiError };
 
