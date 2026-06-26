@@ -2,6 +2,11 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
+import {
+  createFacturapiClient,
+  describeFacturapiError,
+  resolveFacturapiKey,
+} from "../_shared/facturapi/client.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_SAT_STATUSES = [
@@ -84,35 +89,47 @@ export async function handleRefreshCancellation(
     const co = (company ?? {}) as Record<string, unknown>;
     const sec = (secrets ?? {}) as Record<string, unknown>;
     const mode = (co.facturapi_mode as string) || "test";
-    const apiKey = mode === "live"
-      ? ((sec.facturapi_live_key as string | null) ||
-        deps.env("FACTURAPI_LIVE_KEY"))
-      : ((sec.facturapi_test_key as string | null) ||
-        deps.env("FACTURAPI_TEST_KEY"));
+    const apiKey = resolveFacturapiKey({
+      mode: mode === "live" ? "live" : "test",
+      dbTestKey: sec.facturapi_test_key as string | null | undefined,
+      dbLiveKey: sec.facturapi_live_key as string | null | undefined,
+      envTestKey: deps.env("FACTURAPI_TEST_KEY"),
+      envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
+    });
     if (!apiKey) return json({ error: "Facturapi key not configured" }, 400);
 
     const fid = inv.facturapi_invoice_id as string;
-    const updateRes = await deps.fetchImpl(
-      `${FACTURAPI_BASE}/invoices/${fid}/status`,
-      {
-        method: "PUT",
-        headers: { "Authorization": `Bearer ${apiKey}` },
-      },
-    );
-    if (!updateRes.ok) {
-      const errBody = await updateRes.text();
+    const client = createFacturapiClient(apiKey);
+    let facturApiInv: Record<string, unknown> = {};
+    try {
+      // updateStatus pide a Facturapi que refresque el estatus en el SAT.
+      // La respuesta puede ser vacía, así que después hacemos retrieve para
+      // obtener la factura con el `cancellation_status` actualizado.
+      // deno-lint-ignore no-explicit-any
+      const inv = client.invoices as any;
+      if (typeof inv.updateStatus === "function") {
+        try {
+          const updated = await inv.updateStatus(fid);
+          if (updated && typeof updated === "object") {
+            facturApiInv = updated as Record<string, unknown>;
+          }
+        } catch (_e) {
+          // Si updateStatus falla (404 SAT, etc.) seguimos con retrieve.
+        }
+      }
+      if (!facturApiInv.cancellation_status) {
+        facturApiInv = await client.invoices.retrieve(fid) as Record<
+          string,
+          unknown
+        >;
+      }
+    } catch (err) {
+      const desc = describeFacturapiError(err);
       return json(
-        {
-          error: `Facturapi status error: ${updateRes.status}`,
-          detail: errBody,
-        },
+        { error: `Facturapi status error: ${desc.status}`, detail: desc.detail },
         502,
       );
     }
-    const invRes = await deps.fetchImpl(`${FACTURAPI_BASE}/invoices/${fid}`, {
-      headers: { "Authorization": `Bearer ${apiKey}` },
-    });
-    const facturApiInv = await invRes.json().catch(() => ({}));
     const rawStatus =
       (facturApiInv?.cancellation_status as string | undefined) ??
         (inv.cancellation_status as string | undefined) ?? "pending";

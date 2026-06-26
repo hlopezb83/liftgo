@@ -3,6 +3,13 @@ import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { StampCfdiDeps } from "../stamp-cfdi/handler.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
+import {
+  binaryToBytes,
+  binaryToText,
+  createFacturapiClient,
+  describeFacturapiError,
+  resolveFacturapiKey,
+} from "../_shared/facturapi/client.ts";
 
 export type { SupabaseLike };
 export type StampCreditNoteDeps = StampCfdiDeps;
@@ -110,11 +117,13 @@ export async function handleStampCreditNote(
     const co = (company ?? {}) as Record<string, unknown>;
     const sec = (secrets ?? {}) as Record<string, unknown>;
     const mode = (co.facturapi_mode as string | undefined) || "test";
-    const apiKey = mode === "live"
-      ? ((sec.facturapi_live_key as string | null) ||
-        deps.env("FACTURAPI_LIVE_KEY"))
-      : ((sec.facturapi_test_key as string | null) ||
-        deps.env("FACTURAPI_TEST_KEY"));
+    const apiKey = resolveFacturapiKey({
+      mode: mode === "live" ? "live" : "test",
+      dbTestKey: sec.facturapi_test_key as string | null | undefined,
+      dbLiveKey: sec.facturapi_live_key as string | null | undefined,
+      envTestKey: deps.env("FACTURAPI_TEST_KEY"),
+      envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
+    });
 
     if (!apiKey) {
       const mockUuid = crypto.randomUUID();
@@ -131,6 +140,8 @@ export async function handleStampCreditNote(
         jsonHeaders,
       );
     }
+
+    const client = createFacturapiClient(apiKey);
 
     const items = Array.isArray(ncRow.line_items)
       ? (ncRow.line_items as LineItem[]).map((li) => ({
@@ -171,31 +182,27 @@ export async function handleStampCreditNote(
       ],
     };
 
-    const createRes = await deps.fetchImpl(`${FACTURAPI_BASE}/invoices`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!createRes.ok) {
-      const errBody = await createRes.text();
+    let fa: { id: string; uuid: string };
+    try {
+      fa = await client.invoices.create(payload) as {
+        id: string;
+        uuid: string;
+      };
+    } catch (err) {
+      const desc = describeFacturapiError(err);
       await supabase.from("credit_notes")
         .update({
           cfdi_status: "error",
-          cfdi_error_message: errBody.slice(0, 1000),
+          cfdi_error_message: desc.detail.slice(0, 1000),
         })
         .eq("id", credit_note_id);
       return json(
-        { error: `Facturapi error: ${createRes.status}`, detail: errBody },
+        { error: `Facturapi error: ${desc.status}`, detail: desc.detail },
         502,
         jsonHeaders,
       );
     }
 
-    const fa = await createRes.json();
     const facturApiId = fa.id;
     const cfdiUuid = fa.uuid;
 
@@ -203,42 +210,31 @@ export async function handleStampCreditNote(
     let pdfPath: string | null = null;
 
     try {
-      const xmlRes = await deps.fetchImpl(
-        `${FACTURAPI_BASE}/invoices/${facturApiId}/xml`,
-        {
-          headers: { "Authorization": `Bearer ${apiKey}` },
-        },
+      const xml = await binaryToText(
+        await client.invoices.downloadXml(facturApiId),
       );
-      if (xmlRes.ok) {
-        const xml = await xmlRes.text();
-        const path = `credit-notes/${credit_note_id}/${cfdiUuid}.xml`;
-        const { error: upErr } = await supabase.storage.from(BUCKET).upload(
-          path,
-          new Blob([xml], { type: "application/xml" }),
-          { contentType: "application/xml", upsert: true },
-        );
-        if (!upErr) xmlPath = path;
-      }
+      const path = `credit-notes/${credit_note_id}/${cfdiUuid}.xml`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(
+        path,
+        new Blob([xml], { type: "application/xml" }),
+        { contentType: "application/xml", upsert: true },
+      );
+      if (!upErr) xmlPath = path;
     } catch (_e) { /* keep null */ }
 
     try {
-      const pdfRes = await deps.fetchImpl(
-        `${FACTURAPI_BASE}/invoices/${facturApiId}/pdf`,
-        {
-          headers: { "Authorization": `Bearer ${apiKey}` },
-        },
+      const bytes = await binaryToBytes(
+        await client.invoices.downloadPdf(facturApiId),
       );
-      if (pdfRes.ok) {
-        const bytes = new Uint8Array(await pdfRes.arrayBuffer());
-        const path = `credit-notes/${credit_note_id}/${cfdiUuid}.pdf`;
-        const { error: upErr } = await supabase.storage.from(BUCKET).upload(
-          path,
-          bytes,
-          { contentType: "application/pdf", upsert: true },
-        );
-        if (!upErr) pdfPath = path;
-      }
+      const path = `credit-notes/${credit_note_id}/${cfdiUuid}.pdf`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(
+        path,
+        bytes,
+        { contentType: "application/pdf", upsert: true },
+      );
+      if (!upErr) pdfPath = path;
     } catch (_e) { /* keep null */ }
+
 
     await supabase.from("credit_notes").update({
       facturapi_invoice_id: facturApiId,
