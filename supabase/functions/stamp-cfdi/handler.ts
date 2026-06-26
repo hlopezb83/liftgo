@@ -3,7 +3,15 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { QueryBuilderLike, SupabaseLike } from "../_shared/types.ts";
+import {
+  binaryToBytes,
+  binaryToText,
+  createFacturapiClient,
+  describeFacturapiError,
+  resolveFacturapiKey,
+} from "../_shared/facturapi/client.ts";
 
+// Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
 /**
