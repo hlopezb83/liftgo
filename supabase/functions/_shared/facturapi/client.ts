@@ -10,11 +10,10 @@
 // deno-lint-ignore-file no-explicit-any
 import * as FacturapiPkg from "npm:facturapi@4.18.0";
 
-// Deno's npm CJS interop puede exponer la clase como `default` o directamente
-// como el módulo. Resolvemos ambos casos.
 // deno-lint-ignore no-explicit-any
 const pkgAny = FacturapiPkg as any;
-const Facturapi = (pkgAny.default ?? pkgAny) as new (
+console.error("[facturapi-debug] keys:", Object.keys(pkgAny), "defaultType:", typeof pkgAny.default, "defaultKeys:", pkgAny.default ? Object.keys(pkgAny.default).slice(0,10) : null);
+const Facturapi = (pkgAny.default?.default ?? pkgAny.default ?? pkgAny) as new (
   apiKey: string,
   options?: Record<string, unknown>,
 ) => any;
