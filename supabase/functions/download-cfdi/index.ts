@@ -1,9 +1,54 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
+import {
+  binaryToBytes,
+  createFacturapiClient,
+  describeFacturapiError,
+  resolveFacturapiKey,
+} from "../_shared/facturapi/client.ts";
 
-const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const BUCKET = "cfdi-files";
+
+async function fetchFromFacturapi(
+  apiKey: string,
+  facturapiId: string,
+  format: "xml" | "pdf",
+): Promise<
+  { ok: true; bytes: Uint8Array } | {
+    ok: false;
+    status: number;
+    detail: string;
+  }
+> {
+  const client = createFacturapiClient(apiKey);
+  try {
+    const bin = format === "pdf"
+      ? await client.invoices.downloadPdf(facturapiId)
+      : await client.invoices.downloadXml(facturapiId);
+    return { ok: true, bytes: await binaryToBytes(bin) };
+  } catch (err) {
+    const desc = describeFacturapiError(err);
+    return { ok: false, status: desc.status, detail: desc.detail };
+  }
+}
+
+function resolveKey(
+  company: { facturapi_mode?: string | null } | null | undefined,
+  secrets: {
+    facturapi_test_key?: string | null;
+    facturapi_live_key?: string | null;
+  } | null | undefined,
+): string | null {
+  const mode = (company?.facturapi_mode as string | undefined) || "test";
+  return resolveFacturapiKey({
+    mode: mode === "live" ? "live" : "test",
+    dbTestKey: secrets?.facturapi_test_key ?? null,
+    dbLiveKey: secrets?.facturapi_live_key ?? null,
+    envTestKey: Deno.env.get("FACTURAPI_TEST_KEY"),
+    envLiveKey: Deno.env.get("FACTURAPI_LIVE_KEY"),
+  });
+}
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
