@@ -1,8 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
+import {
+  createFacturapiClient,
+  describeFacturapiError,
+  resolveFacturapiKey,
+} from "../_shared/facturapi/client.ts";
 
-const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 
 Deno.serve(async (req) => {
