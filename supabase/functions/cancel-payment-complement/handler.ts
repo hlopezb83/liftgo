@@ -2,6 +2,11 @@
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
+import {
+  createFacturapiClient,
+  describeFacturapiError,
+  resolveFacturapiKey,
+} from "../_shared/facturapi/client.ts";
 
 export type { SupabaseLike };
 export type CancelRepDeps = StampCfdiDeps;
