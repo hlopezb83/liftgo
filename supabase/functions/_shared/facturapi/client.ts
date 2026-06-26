@@ -8,11 +8,17 @@
 // - Mantenido oficialmente por Facturapi (v4.18+).
 //
 // deno-lint-ignore-file no-explicit-any
-import FacturapiNs, { FacturapiError } from "npm:facturapi@4.18.0";
+import * as FacturapiPkg from "npm:facturapi@4.18.0";
 
-// El paquete exporta una clase como default; en algunos contextos de tipos
-// el namespace queda primero. Casteamos a constructor para uso consistente.
-const Facturapi = FacturapiNs as unknown as new (apiKey: string) => any;
+// Deno's npm CJS interop puede exponer la clase como `default` o directamente
+// como el módulo. Resolvemos ambos casos.
+// deno-lint-ignore no-explicit-any
+const pkgAny = FacturapiPkg as any;
+const Facturapi = (pkgAny.default ?? pkgAny) as new (
+  apiKey: string,
+  options?: Record<string, unknown>,
+) => any;
+const FacturapiError = pkgAny.FacturapiError ?? pkgAny.default?.FacturapiError;
 
 export { Facturapi, FacturapiError };
 
