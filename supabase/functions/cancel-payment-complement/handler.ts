@@ -89,31 +89,33 @@ export async function handleCancelPaymentComplement(
     const co = (company ?? {}) as Record<string, unknown>;
     const sec = (secrets ?? {}) as Record<string, unknown>;
     const mode = (co.facturapi_mode as string | undefined) || "test";
-    const apiKey = mode === "live"
-      ? ((sec.facturapi_live_key as string | null) ||
-        deps.env("FACTURAPI_LIVE_KEY"))
-      : ((sec.facturapi_test_key as string | null) ||
-        deps.env("FACTURAPI_TEST_KEY"));
+    const apiKey = resolveFacturapiKey({
+      mode: mode === "live" ? "live" : "test",
+      dbTestKey: sec.facturapi_test_key as string | null | undefined,
+      dbLiveKey: sec.facturapi_live_key as string | null | undefined,
+      envTestKey: deps.env("FACTURAPI_TEST_KEY"),
+      envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
+    });
     if (!apiKey) {
       return json({ error: "Facturapi key not configured" }, 400, jsonHeaders);
     }
 
-    const params = new URLSearchParams({ motive: motiveCode });
-    const cancelRes = await deps.fetchImpl(
-      `${FACTURAPI_BASE}/invoices/${pay.rep_facturapi_id}?${params.toString()}`,
-      { method: "DELETE", headers: { "Authorization": `Bearer ${apiKey}` } },
-    );
-    if (!cancelRes.ok) {
-      const errBody = await cancelRes.text();
+    const client = createFacturapiClient(apiKey);
+    try {
+      // deno-lint-ignore no-explicit-any
+      await client.invoices.cancel(pay.rep_facturapi_id as string, { motive: motiveCode } as any);
+    } catch (err) {
+      const desc = describeFacturapiError(err);
       return json(
         {
-          error: `Facturapi cancel error: ${cancelRes.status}`,
-          detail: errBody,
+          error: `Facturapi cancel error: ${desc.status}`,
+          detail: desc.detail,
         },
         502,
         jsonHeaders,
       );
     }
+
 
     await supabase.from("payments")
       .update({
