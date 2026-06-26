@@ -64,6 +64,11 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         filters.push({ col, val });
         return builder;
       },
+      // deno-lint-ignore no-explicit-any
+      in: (col: string, vals: any[]) => {
+        filters.push({ col, val: vals });
+        return builder;
+      } as unknown as QueryBuilderLike["eq"],
       limit: () => builder,
       single: () => resolveSelect(),
       maybeSingle: () => resolveSelect(),
