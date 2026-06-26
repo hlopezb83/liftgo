@@ -41,7 +41,8 @@ export function resolveFacturapiKey(input: ResolveKeyInput): string | null {
 }
 
 /** Crea una instancia del SDK con la API key resuelta. */
-export function createFacturapiClient(apiKey: string): Facturapi {
+/** Crea una instancia del SDK con la API key resuelta. */
+export function createFacturapiClient(apiKey: string): FacturapiClient {
   return new Facturapi(apiKey);
 }
 
