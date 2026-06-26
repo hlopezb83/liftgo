@@ -13,7 +13,6 @@ import * as FacturapiPkg from "npm:facturapi@4.18.0";
 // El SDK se publica como módulo dual ESM/CJS. La interop de Deno expone la
 // clase como `default.default` (CJS) o `default` (ESM), así que resolvemos
 // ambos casos de forma defensiva.
-// deno-lint-ignore no-explicit-any
 const pkgAny = FacturapiPkg as any;
 const Facturapi = (pkgAny.default?.default ?? pkgAny.default ?? pkgAny) as new (
   apiKey: string,

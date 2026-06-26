@@ -102,10 +102,9 @@ export async function handleCancelPaymentComplement(
 
     const client = createFacturapiClient(apiKey);
     try {
-      // deno-lint-ignore no-explicit-any
       await client.invoices.cancel(
         pay.rep_facturapi_id as string,
-        { motive: motiveCode } as any,
+        { motive: motiveCode },
       );
     } catch (err) {
       const desc = describeFacturapiError(err);
