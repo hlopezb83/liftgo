@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.96.0",
+    "date": "2026-06-24",
+    "type": "minor",
+    "title": "Migración a SDK oficial de Facturapi",
+    "description": "Las Edge Functions de timbrado, cancelación y descarga ahora usan el SDK oficial npm:facturapi@4.18.0 con errores tipados y wrapper compartido.",
+    "category": "improvement"
+  },
+  {
     "version": "6.95.3",
     "date": "2026-06-24",
     "type": "patch",
