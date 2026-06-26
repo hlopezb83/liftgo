@@ -110,47 +110,47 @@ Deno.serve(async (req) => {
       "facturapi_test_key, facturapi_live_key",
     ).limit(1).maybeSingle();
     const mode = (company?.facturapi_mode as string | undefined) || "test";
-    const apiKey = mode === "live"
-      ? ((secrets?.facturapi_live_key as string | null) ||
-        Deno.env.get("FACTURAPI_LIVE_KEY"))
-      : ((secrets?.facturapi_test_key as string | null) ||
-        Deno.env.get("FACTURAPI_TEST_KEY"));
+    const apiKey = resolveFacturapiKey({
+      mode: mode === "live" ? "live" : "test",
+      dbTestKey: secrets?.facturapi_test_key as string | null | undefined,
+      dbLiveKey: secrets?.facturapi_live_key as string | null | undefined,
+      envTestKey: Deno.env.get("FACTURAPI_TEST_KEY"),
+      envLiveKey: Deno.env.get("FACTURAPI_LIVE_KEY"),
+    });
 
     let satStatus = "accepted";
     const isStub = !apiKey || !nc.facturapi_invoice_id;
 
     if (apiKey && nc.facturapi_invoice_id) {
-      const params = new URLSearchParams({ motive });
+      const client = createFacturapiClient(apiKey);
+      const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {
-        params.set("substitution", substitution_uuid);
+        params.substitution = substitution_uuid;
       }
-      const url =
-        `${FACTURAPI_BASE}/invoices/${nc.facturapi_invoice_id}?${params.toString()}`;
-      const cancelRes = await fetch(url, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${apiKey}` },
-      });
-      if (!cancelRes.ok) {
-        const errBody = await cancelRes.text();
+      try {
+        // deno-lint-ignore no-explicit-any
+        const cancelJson = await client.invoices.cancel(
+          nc.facturapi_invoice_id as string,
+          params as any,
+        );
+        const raw = ((cancelJson as { cancellation_status?: string })
+          ?.cancellation_status) ?? "accepted";
+        satStatus =
+          ["accepted", "pending", "rejected", "expired", "none"].includes(raw)
+            ? raw
+            : "pending";
+      } catch (err) {
+        const desc = describeFacturapiError(err);
         return new Response(
           JSON.stringify({
-            error: `Facturapi cancel error: ${cancelRes.status}`,
-            detail: errBody,
+            error: `Facturapi cancel error: ${desc.status}`,
+            detail: desc.detail,
           }),
-          {
-            status: 502,
-            headers: jsonHeaders,
-          },
+          { status: 502, headers: jsonHeaders },
         );
       }
-      const cancelJson = await cancelRes.json().catch(() => ({}));
-      const raw = (cancelJson?.cancellation_status as string | undefined) ??
-        "accepted";
-      satStatus =
-        ["accepted", "pending", "rejected", "expired", "none"].includes(raw)
-          ? raw
-          : "pending";
     }
+
 
     const isAccepted = satStatus === "accepted";
     const update: Record<string, unknown> = {
