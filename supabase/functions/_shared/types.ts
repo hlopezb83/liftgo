@@ -8,6 +8,7 @@ export interface QueryBuilderLike {
   insert: (rows: unknown) => QueryBuilderLike;
   update: (patch: Record<string, unknown>) => QueryBuilderLike;
   eq: (col: string, val: unknown) => QueryBuilderLike;
+  in: (col: string, vals: unknown[]) => QueryBuilderLike;
   limit: (n: number) => QueryBuilderLike;
   single: () => Promise<{ data: unknown; error: unknown }>;
   maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
