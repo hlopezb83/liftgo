@@ -262,31 +262,29 @@ Deno.serve(async (req) => {
       const { data: secrets } = await supabase.from("billing_secrets").select(
         "facturapi_test_key, facturapi_live_key",
       ).limit(1).maybeSingle();
-      const mode = (company?.facturapi_mode as string) || "test";
-      const apiKey = mode === "live"
-        ? ((secrets?.facturapi_live_key as string | null) ||
-          Deno.env.get("FACTURAPI_LIVE_KEY"))
-        : ((secrets?.facturapi_test_key as string | null) ||
-          Deno.env.get("FACTURAPI_TEST_KEY"));
+      const apiKey = resolveKey(company, secrets);
       if (!apiKey) {
         return new Response(
           JSON.stringify({ error: "Facturapi key not configured" }),
           { status: 500, headers: jsonHeaders },
         );
       }
-      const res = await fetch(
-        `${FACTURAPI_BASE}/invoices/${payment.rep_facturapi_id}/${format}`,
-        {
-          headers: { "Authorization": `Bearer ${apiKey}` },
-        },
+      const res = await fetchFromFacturapi(
+        apiKey,
+        payment.rep_facturapi_id as string,
+        format,
       );
       if (!res.ok) {
         return new Response(
-          JSON.stringify({ error: `Facturapi error: ${res.status}` }),
+          JSON.stringify({
+            error: `Facturapi error: ${res.status}`,
+            detail: res.detail,
+          }),
           { status: 502, headers: jsonHeaders },
         );
       }
-      const bytes = new Uint8Array(await res.arrayBuffer());
+      const bytes = res.bytes;
+
       const newPath =
         `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${format}`;
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(
