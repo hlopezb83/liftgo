@@ -102,12 +102,22 @@ export async function handleRefreshCancellation(
     const client = createFacturapiClient(apiKey);
     let facturApiInv: Record<string, unknown> = {};
     try {
-      // updateStatus refresca el estatus en Facturapi y devuelve la factura actualizada.
+      // updateStatus pide a Facturapi que refresque el estatus en el SAT.
+      // La respuesta puede ser vacía, así que después hacemos retrieve para
+      // obtener la factura con el `cancellation_status` actualizado.
       // deno-lint-ignore no-explicit-any
-      const c = client.invoices as any;
-      if (typeof c.updateStatus === "function") {
-        facturApiInv = await c.updateStatus(fid);
-      } else {
+      const inv = client.invoices as any;
+      if (typeof inv.updateStatus === "function") {
+        try {
+          const updated = await inv.updateStatus(fid);
+          if (updated && typeof updated === "object") {
+            facturApiInv = updated as Record<string, unknown>;
+          }
+        } catch (_e) {
+          // Si updateStatus falla (404 SAT, etc.) seguimos con retrieve.
+        }
+      }
+      if (!facturApiInv.cancellation_status) {
         facturApiInv = await client.invoices.retrieve(fid) as Record<
           string,
           unknown
