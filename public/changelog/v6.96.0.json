@@ -1,0 +1,14 @@
+{
+  "version": "6.96.0",
+  "date": "2026-06-24",
+  "type": "minor",
+  "title": "Migración a SDK oficial de Facturapi",
+  "category": "improvement",
+  "changes": [
+    "Las Edge Functions de timbrado, cancelación y descarga (stamp-cfdi, stamp-credit-note, stamp-payment-complement, cancel-cfdi, cancel-credit-note, cancel-payment-complement, refresh-cancellation-status, download-cfdi) ahora usan el SDK oficial npm:facturapi@4.18.0 en lugar de fetch manual.",
+    "Nuevo wrapper compartido supabase/functions/_shared/facturapi/client.ts con resolveFacturapiKey, createFacturapiClient, describeFacturapiError y helpers binaryToBytes/binaryToText.",
+    "Errores tipados con FacturapiError: las respuestas al frontend ahora propagan código y mensaje original del SAT (CFDI40148, etc.) con más fidelidad.",
+    "Mock de tests (supabaseClientMock.ts) extendido con .in() y .is() para soportar el flujo atómico de claim agregado en v6.93.0.",
+    "Refresh de estatus de cancelación ahora hace updateStatus + retrieve para garantizar que el cancellation_status actualizado se persiste correctamente."
+  ]
+}
