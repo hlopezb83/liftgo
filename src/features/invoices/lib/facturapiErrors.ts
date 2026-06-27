@@ -20,7 +20,7 @@ const PATTERNS: Pattern[] = [
   {
     test: /CFDI40148|CFDI40149|DomicilioFiscalReceptor|debe pertenecer al nombre asociado al RFC/i,
     message:
-      "El código postal fiscal del cliente no coincide con el RFC registrado en el SAT. Verifica la Constancia de Situación Fiscal (CSF) del cliente y corrige el CP fiscal, RFC o razón social.",
+      "Los datos fiscales del cliente no coinciden con los que tiene registrados el SAT. Revisa que el RFC, la razón social y el código postal del domicilio fiscal coincidan exactamente con la Constancia de Situación Fiscal (CSF) más reciente del cliente.",
     kind: "receptor_data",
   },
   {
