@@ -1,32 +1,40 @@
-## Mejorar redacción del error CFDI40148
+# Plan: actualización segura de dependencias
 
-El diálogo actual muestra el mensaje técnico tal cual viene de Facturapi/SAT, que es críptico para el usuario administrativo. Voy a reescribirlo en lenguaje claro y accionable.
+## Resultado de `bun outdated`
 
-### Cambio
+De los 25 paquetes desactualizados, **solo 1** tiene una nueva versión minor/patch dentro de la columna "Update" (semver-safe). El resto son saltos **major** que requieren refactor o están explícitamente vetados.
 
-En `src/features/invoices/lib/facturapiErrors.ts`, reemplazar el `message` del patrón `CFDI40148/40149`:
+## Acción propuesta (segura)
 
-**Antes:**
-> "El código postal fiscal del cliente no coincide con el RFC registrado en el SAT. Verifica la Constancia de Situación Fiscal (CSF) del cliente y corrige el CP fiscal, RFC o razón social."
+Actualizar un único paquete dev:
 
-**Después:**
-> "Los datos fiscales del cliente no coinciden con los que tiene registrados el SAT. Revisa que el RFC, la razón social y el código postal del domicilio fiscal coincidan exactamente con la Constancia de Situación Fiscal (CSF) más reciente del cliente."
+```text
+knip  6.21.0  →  6.22.0   (patch, dev-only)
+```
 
-El diálogo (`StampErrorDialog`) ya tiene:
-- Título: "Datos fiscales del receptor incorrectos"
-- Hint adicional con tip operativo
-- CTA: "Editar cliente"
+Pasos:
+1. `bun update knip` (respeta el caret y no toca otros paquetes).
+2. `bun run build` + `bunx knip` para verificar que la herramienta sigue corriendo limpia.
+3. Entrada de changelog **v6.97.12** (patch, fix): "Actualización de knip 6.21.0 → 6.22.0".
 
-Para reforzar la acción, también ajusto el `hint` en `StampErrorDialog.tsx` (kind `receptor_data`) a algo más directo:
+## Paquetes major — NO incluidos (requieren proyecto aparte)
 
-> "Pide al cliente su CSF actualizada y verifica RFC, razón social, régimen fiscal y código postal. Un solo carácter diferente provoca este rechazo."
+Estos saltos son breaking y los dejo fuera de este plan. Si quieres alguno, lo abordamos en un plan dedicado:
 
-### Changelog
+- **React 18 → 19** + `react-dom`, `@types/react*`: cambios de tipos, `forwardRef` deprecado, posibles incompatibilidades con Radix/Recharts.
+- **react-router-dom 6 → 7**: nueva API de data routers y loaders.
+- **Vite 5 → 8** + `@vitejs/plugin-react-swc 3 → 4`: revisar config, plugins, Node mínimo.
+- **Tailwind 3 → 4**: nuevo engine (Oxide), config en CSS, breaking en plugins/tokens.
+- **Zod 3 → 4**: cambios en `z.string()`, `errorMap`, `safeParse`.
+- **date-fns 3 → 4**: timezone API rediseñada (impacta `nowMty` y formateadores).
+- **react-day-picker 8 → 10**: nueva API de props.
+- **sonner 1 → 2**: cambios de API de toasts (impacta wrapper global).
+- **lucide-react 0.462 → 1.x**: rename masivo de íconos.
+- **@hookform/resolvers 3 → 5**: requiere Zod 4.
+- **tailwind-merge 2 → 3**: requiere Tailwind 4.
+- **ESLint 9 → 10**, **typescript 5 → 6**, **jsdom 20 → 29**, **@types/node 22 → 26**, **globals 15 → 17**, **eslint-plugin-react-hooks 5 → 7**, **@vitest/coverage-v8 4.0 → 4.1** (minor pero acoplado a vitest core), **@eslint/js 9 → 10**: dev-deps, postergables.
 
-Publicar `v6.97.11` (patch) con título "Mejor redacción del error CFDI40148".
+## Notas
 
-### Archivos a modificar
-
-- `src/features/invoices/lib/facturapiErrors.ts` — texto del patrón receptor_data principal
-- `src/features/invoices/components/StampErrorDialog.tsx` — hint del kind receptor_data
-- `public/changelog.json` + `public/changelog/v6.97.11.json`
+- `jspdf` y `jspdf-autotable` siguen bloqueados por política del proyecto (ya documentado en `dependabot.yml`).
+- No hay CVEs altos/críticos pendientes (`bun audit` limpio tras v6.97.6–v6.97.9).
