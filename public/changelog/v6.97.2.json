@@ -1,0 +1,14 @@
+{
+  "version": "6.97.2",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Dropdown de claves prod/serv muestra descripción",
+  "description": "El selector de Clave de Producto/Servicio en las partidas de factura ahora muestra el código junto con su descripción (ej. '78181500 - Alquiler de equipo de manejo de materiales') en lugar de solo el número.",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "improved",
+      "description": "El dropdown de clave de producto/servicio en el formulario de factura ahora renderiza la etiqueta completa (código + descripción) para facilitar la identificación de cada clave SAT."
+    }
+  ]
+}
