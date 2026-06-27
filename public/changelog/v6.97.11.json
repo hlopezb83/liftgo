@@ -1,0 +1,8 @@
+{
+  "version": "6.97.11",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Mejor redacción del error CFDI40148",
+  "description": "Se reescribió el mensaje y el hint que se muestra cuando el SAT rechaza el timbrado por discrepancia en los datos fiscales del receptor (CFDI40148/40149). El texto ahora es claro, accionable y enfocado en pedir la CSF actualizada del cliente y verificar RFC, razón social, régimen fiscal y código postal.",
+  "category": "improvement"
+}

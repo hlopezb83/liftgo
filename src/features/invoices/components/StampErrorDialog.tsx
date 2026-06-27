@@ -31,7 +31,7 @@ function getCopy(kind: FacturapiErrorKind, customerId?: string | null): KindCopy
       return {
         title: "Datos fiscales del receptor incorrectos",
         hint:
-          "Revisa contra la Constancia de Situación Fiscal (CSF) del cliente: RFC, razón social, régimen fiscal y código postal del domicilio fiscal.",
+          "Pide al cliente su CSF actualizada y verifica RFC, razón social, régimen fiscal y código postal. Un solo carácter diferente provoca este rechazo.",
         cta: customerId
           ? { label: "Editar cliente", to: `/customers/${customerId}` }
           : undefined,
