@@ -67,7 +67,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
       )}
 
       {soldWithoutCost.length > 0 && (
-        <Alert variant="destructive" className="border-amber-500/50 text-amber-700 dark:text-amber-400 [&>svg]:text-amber-600">
+        <Alert variant="warning">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Equipos vendidos sin costo de adquisición</AlertTitle>
           <AlertDescription>
