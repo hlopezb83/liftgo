@@ -1,18 +1,26 @@
 [
   {
+    "version": "6.97.4",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Clave de unidad muestra descripcion en espanol",
+    "description": "El dropdown de ClaveUnidad en las partidas de factura ahora muestra el codigo junto con su descripcion en espanol (ej. DAY - Dia, MON - Mes) en lugar de solo el codigo crudo.",
+    "category": "improvement"
+  },
+  {
     "version": "6.97.3",
     "date": "2026-06-27",
     "type": "patch",
-    "title": "Removida clave SAT 80131500 del catálogo de productos/servicios",
-    "description": "Se eliminó la clave 80131500 - Alquiler de propiedades o edificaciones del dropdown de Clave de Producto/Servicio en partidas de factura, ya que no aplica al negocio de renta de montacargas.",
+    "title": "Removida clave SAT 80131500 del cat\u00e1logo de productos/servicios",
+    "description": "Se elimin\u00f3 la clave 80131500 - Alquiler de propiedades o edificaciones del dropdown de Clave de Producto/Servicio en partidas de factura, ya que no aplica al negocio de renta de montacargas.",
     "category": "fix"
   },
   {
     "version": "6.97.2",
     "date": "2026-06-27",
     "type": "patch",
-    "title": "Dropdown de claves prod/serv muestra descripción",
-    "description": "El selector de Clave de Producto/Servicio en las partidas de factura ahora muestra el código junto con su descripción (ej. '78181500 - Alquiler de equipo de manejo de materiales') en lugar de solo el número.",
+    "title": "Dropdown de claves prod/serv muestra descripci\u00f3n",
+    "description": "El selector de Clave de Producto/Servicio en las partidas de factura ahora muestra el c\u00f3digo junto con su descripci\u00f3n (ej. '78181500 - Alquiler de equipo de manejo de materiales') en lugar de solo el n\u00famero.",
     "category": "improvement"
   },
   {
@@ -20,7 +28,7 @@
     "date": "2026-06-27",
     "type": "patch",
     "title": "Clave SAT 81141601 (Servicios de entrega) agregada",
-    "description": "Se añadió la clave 81141601 - Servicios de entrega al catálogo de claves prod/serv disponibles en partidas de factura.",
+    "description": "Se a\u00f1adi\u00f3 la clave 81141601 - Servicios de entrega al cat\u00e1logo de claves prod/serv disponibles en partidas de factura.",
     "category": "improvement"
   },
   {
@@ -28,15 +36,15 @@
     "date": "2026-06-27",
     "type": "minor",
     "title": "Modal de factura simplificado",
-    "description": "Se ocultaron los campos Serie y Folio (el folio se genera automáticamente como FAC-XXXX) y los datos fiscales del receptor se agruparon en una sección colapsable para reducir ruido visual.",
+    "description": "Se ocultaron los campos Serie y Folio (el folio se genera autom\u00e1ticamente como FAC-XXXX) y los datos fiscales del receptor se agruparon en una secci\u00f3n colapsable para reducir ruido visual.",
     "category": "improvement"
   },
   {
     "version": "6.96.0",
     "date": "2026-06-24",
     "type": "minor",
-    "title": "Migración a SDK oficial de Facturapi",
-    "description": "Las Edge Functions de timbrado, cancelación y descarga ahora usan el SDK oficial npm:facturapi@4.18.0 con errores tipados y wrapper compartido.",
+    "title": "Migraci\u00f3n a SDK oficial de Facturapi",
+    "description": "Las Edge Functions de timbrado, cancelaci\u00f3n y descarga ahora usan el SDK oficial npm:facturapi@4.18.0 con errores tipados y wrapper compartido.",
     "category": "improvement"
   },
   {
@@ -44,7 +52,7 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Reordenamiento de acciones en detalle de factura",
-    "description": "Los botones del header de detalle de factura se reordenaron a: Editar → Timbrar CFDI → Registrar Pago → Descargar XML → Descargar PDF SAT → Cancelar CFDI → Eliminar.",
+    "description": "Los botones del header de detalle de factura se reordenaron a: Editar \u2192 Timbrar CFDI \u2192 Registrar Pago \u2192 Descargar XML \u2192 Descargar PDF SAT \u2192 Cancelar CFDI \u2192 Eliminar.",
     "category": "improvement"
   },
   {
@@ -52,15 +60,15 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Acciones inline en detalle de factura",
-    "description": "El menú 'Acciones' (3 puntos) en el header de detalle de factura se reemplazó por botones inline (Editar, Timbrar CFDI, Descargar XML, Cancelar CFDI, Eliminar). Aprovecha el espacio disponible y reduce clics.",
+    "description": "El men\u00fa 'Acciones' (3 puntos) en el header de detalle de factura se reemplaz\u00f3 por botones inline (Editar, Timbrar CFDI, Descargar XML, Cancelar CFDI, Eliminar). Aprovecha el espacio disponible y reduce clics.",
     "category": "improvement"
   },
   {
     "version": "6.95.1",
     "date": "2026-06-24",
     "type": "patch",
-    "title": "Mensaje claro para error SAT CFDI40148 (CP fiscal ≠ RFC)",
-    "description": "El timbrado ahora muestra un mensaje accionable cuando Facturapi rechaza con CFDI40148/40149 (CP fiscal del receptor no coincide con el RFC en el SAT). stamp-cfdi propaga código + mensaje original al cliente y el traductor sugiere revisar la CSF del cliente.",
+    "title": "Mensaje claro para error SAT CFDI40148 (CP fiscal \u2260 RFC)",
+    "description": "El timbrado ahora muestra un mensaje accionable cuando Facturapi rechaza con CFDI40148/40149 (CP fiscal del receptor no coincide con el RFC en el SAT). stamp-cfdi propaga c\u00f3digo + mensaje original al cliente y el traductor sugiere revisar la CSF del cliente.",
     "category": "fix"
   },
   {
@@ -68,23 +76,23 @@
     "date": "2026-06-24",
     "type": "minor",
     "title": "Fix Estado de Resultados: COGS de venta ligado a la factura",
-    "description": "El COGS de equipos vendidos ahora se calcula por factura de venta (quote_assigned_forklifts → forklifts.acquisition_cost) en el mismo mes y cliente del ingreso, en lugar de depender de forklifts.status='sold' y status_logs. Elimina COGS huérfanos y desfases entre meses. El desglose cogs_by_forklift ahora muestra 'Cliente — Equipo'.",
+    "description": "El COGS de equipos vendidos ahora se calcula por factura de venta (quote_assigned_forklifts \u2192 forklifts.acquisition_cost) en el mismo mes y cliente del ingreso, en lugar de depender de forklifts.status='sold' y status_logs. Elimina COGS hu\u00e9rfanos y desfases entre meses. El desglose cogs_by_forklift ahora muestra 'Cliente \u2014 Equipo'.",
     "category": "fix"
   },
   {
     "version": "6.94.0",
     "date": "2026-06-24",
     "type": "minor",
-    "title": "Soft delete: archivar en lugar de eliminar (5 tablas críticas)",
-    "description": "Forklifts, Customers, Suppliers, Maintenance Logs y Damage Records ahora se archivan (deleted_at) en lugar de borrarse físicamente, preservando historial completo para reportes, facturas y auditoría. UNIQUE indexes parciales permiten reusar nombre/serie/RFC tras archivar. Nuevos RPCs soft_delete_* validan rol y dependencias activas. UI cambia 'Eliminar' por 'Archivar' con descripción que aclara que la acción es reversible.",
+    "title": "Soft delete: archivar en lugar de eliminar (5 tablas cr\u00edticas)",
+    "description": "Forklifts, Customers, Suppliers, Maintenance Logs y Damage Records ahora se archivan (deleted_at) en lugar de borrarse f\u00edsicamente, preservando historial completo para reportes, facturas y auditor\u00eda. UNIQUE indexes parciales permiten reusar nombre/serie/RFC tras archivar. Nuevos RPCs soft_delete_* validan rol y dependencias activas. UI cambia 'Eliminar' por 'Archivar' con descripci\u00f3n que aclara que la acci\u00f3n es reversible.",
     "category": "feature"
   },
   {
     "version": "6.93.0",
     "date": "2026-06-24",
     "type": "minor",
-    "title": "Idempotencia P0: numeración atómica + claim de timbrado CFDI",
-    "description": "Numeración de folios vía secuencias atómicas (FAC/CXP/NC/CTR), UNIQUE en folios de facturas y contratos, claim atómico antes de timbrar ante Facturapi (cierra ventana de doble timbrado) y bloqueo de doble lote de pago a proveedor. Pendiente: limpiar 7 facturas duplicadas históricas para promover el índice de período recurrente a UNIQUE.",
+    "title": "Idempotencia P0: numeraci\u00f3n at\u00f3mica + claim de timbrado CFDI",
+    "description": "Numeraci\u00f3n de folios v\u00eda secuencias at\u00f3micas (FAC/CXP/NC/CTR), UNIQUE en folios de facturas y contratos, claim at\u00f3mico antes de timbrar ante Facturapi (cierra ventana de doble timbrado) y bloqueo de doble lote de pago a proveedor. Pendiente: limpiar 7 facturas duplicadas hist\u00f3ricas para promover el \u00edndice de per\u00edodo recurrente a UNIQUE.",
     "category": "feature"
   },
   {
@@ -92,7 +100,7 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Limpieza: elimina insertCostoVentaIfSold sin uso",
-    "description": "Se elimina el archivo src/features/fleet/lib/insertCostoVentaIfSold.ts (detectado por knip como huérfano tras la unificación de COGS en v6.92.0) y se retira su mock del test de useForkliftMutations.",
+    "description": "Se elimina el archivo src/features/fleet/lib/insertCostoVentaIfSold.ts (detectado por knip como hu\u00e9rfano tras la unificaci\u00f3n de COGS en v6.92.0) y se retira su mock del test de useForkliftMutations.",
     "category": "fix"
   },
   {
@@ -100,39 +108,39 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "CXP-0001..0005: hueco intencional tras unificar COGS",
-    "description": "Se documenta que las facturas CXP-0001 a CXP-0005 quedan vacías por diseño. Eran las facturas de costo de venta auto-generadas al marcar montacargas como vendidos (insertCostoVentaIfSold, removido en v6.92.0). Su COGS ahora lo calcula el RPC del Estado de Resultados sobre el valor en libros, por lo que recrearlas reintroduciría el doble conteo. Se conserva el hueco en la secuencia para preservar trazabilidad histórica.",
+    "description": "Se documenta que las facturas CXP-0001 a CXP-0005 quedan vac\u00edas por dise\u00f1o. Eran las facturas de costo de venta auto-generadas al marcar montacargas como vendidos (insertCostoVentaIfSold, removido en v6.92.0). Su COGS ahora lo calcula el RPC del Estado de Resultados sobre el valor en libros, por lo que recrearlas reintroducir\u00eda el doble conteo. Se conserva el hueco en la secuencia para preservar trazabilidad hist\u00f3rica.",
     "category": "fix"
   },
   {
     "version": "6.92.0",
     "date": "2026-06-24",
     "type": "minor",
-    "title": "Estado de Resultados: COGS consolidado en una sola línea",
-    "description": "Se unifica 'Costo de Venta' (facturas) con 'Costo de Equipos Vendidos' (valor en libros automático) en una sola línea para evitar doble conteo de COGS. Incluye desglose manual + automático y nota sobre posible doble conteo de mantenimiento.",
+    "title": "Estado de Resultados: COGS consolidado en una sola l\u00ednea",
+    "description": "Se unifica 'Costo de Venta' (facturas) con 'Costo de Equipos Vendidos' (valor en libros autom\u00e1tico) en una sola l\u00ednea para evitar doble conteo de COGS. Incluye desglose manual + autom\u00e1tico y nota sobre posible doble conteo de mantenimiento.",
     "category": "improvement"
   },
   {
     "version": "6.91.5",
     "date": "2026-06-24",
     "type": "patch",
-    "title": "Formateo de meses centralizado en helper único",
-    "description": "Se consolidó el formateo de etiquetas de mes en src/lib/format/formatMonthEs.ts (variantes corta y larga). Reportes de Ingresos y selector del Estado de Resultados ahora usan el helper para evitar regresiones de idioma.",
+    "title": "Formateo de meses centralizado en helper \u00fanico",
+    "description": "Se consolid\u00f3 el formateo de etiquetas de mes en src/lib/format/formatMonthEs.ts (variantes corta y larga). Reportes de Ingresos y selector del Estado de Resultados ahora usan el helper para evitar regresiones de idioma.",
     "category": "fix"
   },
   {
     "version": "6.91.4",
     "date": "2026-06-24",
     "type": "patch",
-    "title": "Meses en español en gráfica de Flujo de Efectivo",
-    "description": "La gráfica de Flujo de Efectivo del dashboard ahora muestra los meses en español (es-MX) mediante un helper compartido reutilizable.",
+    "title": "Meses en espa\u00f1ol en gr\u00e1fica de Flujo de Efectivo",
+    "description": "La gr\u00e1fica de Flujo de Efectivo del dashboard ahora muestra los meses en espa\u00f1ol (es-MX) mediante un helper compartido reutilizable.",
     "category": "fix"
   },
   {
     "version": "6.91.3",
     "date": "2026-06-24",
     "type": "patch",
-    "title": "Meses del Estado de Resultados en español",
-    "description": "Los encabezados de mes ahora se formatean en español (es-MX) desde el cliente, garantizando consistencia sin depender del locale del servidor.",
+    "title": "Meses del Estado de Resultados en espa\u00f1ol",
+    "description": "Los encabezados de mes ahora se formatean en espa\u00f1ol (es-MX) desde el cliente, garantizando consistencia sin depender del locale del servidor.",
     "category": "fix"
   },
   {
@@ -140,50 +148,47 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Equipos vendidos sin status_log ahora aparecen en COGS",
-    "description": "El Costo de Equipos Vendidos ahora usa la fecha de actualización del equipo como fallback cuando no hay historial de cambio de estado, y se agrega alerta para equipos vendidos sin costo de adquisición registrado.",
+    "description": "El Costo de Equipos Vendidos ahora usa la fecha de actualizaci\u00f3n del equipo como fallback cuando no hay historial de cambio de estado, y se agrega alerta para equipos vendidos sin costo de adquisici\u00f3n registrado.",
     "category": "fix"
   },
   {
     "version": "6.91.1",
     "date": "2026-06-24",
     "type": "patch",
-    "title": "Depreciación ajustada a 25% anual (48 meses) según ISR",
-    "description": "El Estado de Resultados ahora deprecia los equipos en 48 meses conforme a la Ley del ISR mexicana. Afecta la depreciación mensual y el Costo de Equipos Vendidos.",
+    "title": "Depreciaci\u00f3n ajustada a 25% anual (48 meses) seg\u00fan ISR",
+    "description": "El Estado de Resultados ahora deprecia los equipos en 48 meses conforme a la Ley del ISR mexicana. Afecta la depreciaci\u00f3n mensual y el Costo de Equipos Vendidos.",
     "category": "fix"
   },
   {
     "version": "6.91.0",
     "date": "2026-06-24",
     "type": "minor",
-    "title": "Costo automático de montacargas vendidos en el Estado de Resultados",
-    "description": "Nueva línea '(-) Costo de Equipos Vendidos' que descuenta automáticamente el valor en libros del equipo vendido en el mes de la venta, con desglose por unidad.",
+    "title": "Costo autom\u00e1tico de montacargas vendidos en el Estado de Resultados",
+    "description": "Nueva l\u00ednea '(-) Costo de Equipos Vendidos' que descuenta autom\u00e1ticamente el valor en libros del equipo vendido en el mes de la venta, con desglose por unidad.",
     "category": "feature"
   },
   {
-
     "version": "6.90.2",
     "date": "2026-06-24",
     "type": "patch",
     "title": "Facturas multi-reserva clasificadas como ingresos por renta",
-    "description": "El Estado de Resultados ahora clasifica como Ingresos por Rentas las facturas vinculadas a varias reservas vía invoice_bookings (antes caían como ventas).",
+    "description": "El Estado de Resultados ahora clasifica como Ingresos por Rentas las facturas vinculadas a varias reservas v\u00eda invoice_bookings (antes ca\u00edan como ventas).",
     "category": "bugfix"
   },
   {
-
     "version": "6.90.1",
     "date": "2026-06-24",
     "type": "patch",
     "title": "Estado de Resultados agrupado por bloque contable",
-    "description": "Los gastos operativos del Estado de Resultados ahora se agrupan en Administrativos, Comerciales, Financieros y Otros, con subtotal por grupo. Aplica también a la comparativa anual y al PDF.",
+    "description": "Los gastos operativos del Estado de Resultados ahora se agrupan en Administrativos, Comerciales, Financieros y Otros, con subtotal por grupo. Aplica tambi\u00e9n a la comparativa anual y al PDF.",
     "category": "improvement"
   },
   {
-
     "version": "6.90.0",
     "date": "2026-06-24",
     "type": "minor",
-    "title": "Catálogo ampliado de categorías contables para gastos",
-    "description": "Se agregaron 13 nuevas categorías al módulo de Cuentas por Pagar agrupadas en Operativas (mantenimiento, refacciones, combustible, transporte y logística, seguros de equipo), Administrativas (servicios públicos, honorarios, papelería, capacitación), Comerciales (comisiones de ventas, viajes y representación) y Financieras (intereses, comisiones bancarias). Los selectores ahora muestran las categorías agrupadas y el Estado de Resultados clasifica automáticamente las operativas como Costo de Servicio.",
+    "title": "Cat\u00e1logo ampliado de categor\u00edas contables para gastos",
+    "description": "Se agregaron 13 nuevas categor\u00edas al m\u00f3dulo de Cuentas por Pagar agrupadas en Operativas (mantenimiento, refacciones, combustible, transporte y log\u00edstica, seguros de equipo), Administrativas (servicios p\u00fablicos, honorarios, papeler\u00eda, capacitaci\u00f3n), Comerciales (comisiones de ventas, viajes y representaci\u00f3n) y Financieras (intereses, comisiones bancarias). Los selectores ahora muestran las categor\u00edas agrupadas y el Estado de Resultados clasifica autom\u00e1ticamente las operativas como Costo de Servicio.",
     "category": "feature"
   },
   {
@@ -191,14 +196,14 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Columna cfdi_xml_url faltante en facturas de proveedor",
-    "description": "Se agregó la columna cfdi_xml_url a supplier_bills. El guardado de facturas importadas desde XML fallaba con error PGRST204 al no existir la columna en la base de datos.",
+    "description": "Se agreg\u00f3 la columna cfdi_xml_url a supplier_bills. El guardado de facturas importadas desde XML fallaba con error PGRST204 al no existir la columna en la base de datos.",
     "category": "bugfix"
   },
   {
     "version": "6.89.1",
     "date": "2026-06-24",
     "type": "patch",
-    "title": "Corregido cálculo duplicado de IVA y retenciones al importar XML",
+    "title": "Corregido c\u00e1lculo duplicado de IVA y retenciones al importar XML",
     "description": "El parser de CFDI 4.0 sumaba los impuestos tanto del nodo por concepto como del nodo de totales del comprobante, duplicando IVA trasladado y retenciones (IVA/ISR) en el modal de Nueva Factura de Proveedor. Ahora se leen solo del nodo <cfdi:Impuestos> hijo directo del Comprobante (totales oficiales del PAC).",
     "category": "bugfix"
   },
@@ -207,7 +212,7 @@
     "date": "2026-06-24",
     "type": "minor",
     "title": "Sidebar reorganizado por flujos de negocio",
-    "description": "9 grupos alineados al flujo: Ventas, Operaciones, Compras y Facturación y Finanzas ahora son colapsables y se abren automáticamente con la ruta activa. Flota, Análisis, Comunidad y Sistema quedan planos. Se removió 'Historial de Imports' del sidebar.",
+    "description": "9 grupos alineados al flujo: Ventas, Operaciones, Compras y Facturaci\u00f3n y Finanzas ahora son colapsables y se abren autom\u00e1ticamente con la ruta activa. Flota, An\u00e1lisis, Comunidad y Sistema quedan planos. Se removi\u00f3 'Historial de Imports' del sidebar.",
     "category": "improvement"
   },
   {
@@ -215,7 +220,7 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Importar CFDI XML dentro del modal de Nueva Factura",
-    "description": "La importación de CFDI XML del proveedor ahora vive como dropzone opcional en la parte superior del modal 'Nueva Factura de Proveedor'. Se eliminó el botón extra 'Importar XML' de la barra y el dialog independiente. Lógica de parseo + upload extraída al hook useImportSupplierBillCfdi.",
+    "description": "La importaci\u00f3n de CFDI XML del proveedor ahora vive como dropzone opcional en la parte superior del modal 'Nueva Factura de Proveedor'. Se elimin\u00f3 el bot\u00f3n extra 'Importar XML' de la barra y el dialog independiente. L\u00f3gica de parseo + upload extra\u00edda al hook useImportSupplierBillCfdi.",
     "category": "improvement"
   },
   {
@@ -223,7 +228,7 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Formato Deno en generate-recurring-invoices",
-    "description": "Reformat de supabase/functions/generate-recurring-invoices/index.ts según deno fmt: paréntesis multilínea, template literals partidos y select() en dos líneas. Sin cambios funcionales — desbloquea el job de CI deno fmt --check.",
+    "description": "Reformat de supabase/functions/generate-recurring-invoices/index.ts seg\u00fan deno fmt: par\u00e9ntesis multil\u00ednea, template literals partidos y select() en dos l\u00edneas. Sin cambios funcionales \u2014 desbloquea el job de CI deno fmt --check.",
     "category": "fix"
   },
   {
@@ -231,7 +236,7 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Correcciones E2E: enlace reserva en factura y aria-label cliente",
-    "description": "El sembrado E2E ahora puebla invoice_bookings, por lo que el detalle de factura sí muestra el enlace a la reserva origen. Botón 'Nuevo Cliente' del toolbar desktop expone aria-label='Agregar cliente' para que la suite Playwright lo encuentre sin caer al FAB móvil.",
+    "description": "El sembrado E2E ahora puebla invoice_bookings, por lo que el detalle de factura s\u00ed muestra el enlace a la reserva origen. Bot\u00f3n 'Nuevo Cliente' del toolbar desktop expone aria-label='Agregar cliente' para que la suite Playwright lo encuentre sin caer al FAB m\u00f3vil.",
     "category": "fix"
   },
   {
@@ -239,15 +244,15 @@
     "date": "2026-06-24",
     "type": "minor",
     "title": "Confirmaciones unificadas con ConfirmDialog",
-    "description": "17 AlertDialogs de confirmación migrados a la primitiva ConfirmDialog (CRM, Customers, Bookings, Users, Quotes, Inventory, Fleet, Maintenance, AP, Invoices, Deliveries, Operations). Primitiva extendida con loading, descriptionNode y hideConfirm para cubrir todos los casos de uso.",
+    "description": "17 AlertDialogs de confirmaci\u00f3n migrados a la primitiva ConfirmDialog (CRM, Customers, Bookings, Users, Quotes, Inventory, Fleet, Maintenance, AP, Invoices, Deliveries, Operations). Primitiva extendida con loading, descriptionNode y hideConfirm para cubrir todos los casos de uso.",
     "category": "improvement"
   },
   {
     "version": "6.87.0",
     "date": "2026-06-24",
     "type": "minor",
-    "title": "Migración masiva de modales al design language unificado",
-    "description": "29 form-dialogs migrados a <FormDialog>/<FormDialogFooter>/<FormSection> en una sola pasada: Mantenimiento, Refacciones, Entregas, Cuentas bancarias (propias y de proveedor), Contactos de proveedor, Pagos (registrar/editar), Notas de crédito, Pagos de proveedor (registrar/rechazar/aprobar/rechazar factura), REP, Exportar pagos, Reportar transferencia, Extender renta, Operadores, Mecánicos, Modelos de equipo, Pólizas de mantenimiento, Feedback, Invitar/Editar/SetPassword/ChangePassword usuarios, Credenciales, Firma de entrega, Invitar al portal del cliente. Header y footer sticky, secciones small-caps consistentes y microcopy mexicana alineada.",
+    "title": "Migraci\u00f3n masiva de modales al design language unificado",
+    "description": "29 form-dialogs migrados a <FormDialog>/<FormDialogFooter>/<FormSection> en una sola pasada: Mantenimiento, Refacciones, Entregas, Cuentas bancarias (propias y de proveedor), Contactos de proveedor, Pagos (registrar/editar), Notas de cr\u00e9dito, Pagos de proveedor (registrar/rechazar/aprobar/rechazar factura), REP, Exportar pagos, Reportar transferencia, Extender renta, Operadores, Mec\u00e1nicos, Modelos de equipo, P\u00f3lizas de mantenimiento, Feedback, Invitar/Editar/SetPassword/ChangePassword usuarios, Credenciales, Firma de entrega, Invitar al portal del cliente. Header y footer sticky, secciones small-caps consistentes y microcopy mexicana alineada.",
     "category": "improvement"
   },
   {
@@ -263,7 +268,7 @@
     "date": "2026-06-24",
     "type": "minor",
     "title": "Modales de Cliente y Proveedor unificados",
-    "description": "Mismo lenguaje visual en los modales de Nuevo Cliente y Nuevo Proveedor: encabezados, separadores, header/footer fijos, validación inline con Zod, placeholders ejemplares, dropzone CSF compartida y microcopy alineada.",
+    "description": "Mismo lenguaje visual en los modales de Nuevo Cliente y Nuevo Proveedor: encabezados, separadores, header/footer fijos, validaci\u00f3n inline con Zod, placeholders ejemplares, dropzone CSF compartida y microcopy alineada.",
     "category": "improvement"
   },
   {
@@ -271,7 +276,7 @@
     "date": "2026-06-24",
     "type": "patch",
     "title": "Encabezado responsivo en listados",
-    "description": "En pantallas menores a 1024px el título de cada listado ya no queda aplastado: los botones de acción se reacomodan debajo conservando su tamaño.",
+    "description": "En pantallas menores a 1024px el t\u00edtulo de cada listado ya no queda aplastado: los botones de acci\u00f3n se reacomodan debajo conservando su tama\u00f1o.",
     "category": "fix"
   },
   {
@@ -279,15 +284,15 @@
     "date": "2026-06-24",
     "type": "minor",
     "title": "Importar Facturas de Proveedor desde XML (CFDI 4.0)",
-    "description": "Nuevo botón 'Importar XML' en Cuentas por Pagar: extrae automáticamente los datos del CFDI, valida UUID duplicado, busca al proveedor por RFC y guarda el XML adjunto.",
+    "description": "Nuevo bot\u00f3n 'Importar XML' en Cuentas por Pagar: extrae autom\u00e1ticamente los datos del CFDI, valida UUID duplicado, busca al proveedor por RFC y guarda el XML adjunto.",
     "category": "feature"
   },
   {
     "version": "6.83.1",
     "date": "2026-06-24",
     "type": "patch",
-    "title": "Editar Facturas de Proveedor: permitir 'No requiere aprobación'",
-    "description": "Las facturas con aprobación 'no requerida' (y/o vencidas) ahora pueden editarse si no tienen pagos.",
+    "title": "Editar Facturas de Proveedor: permitir 'No requiere aprobaci\u00f3n'",
+    "description": "Las facturas con aprobaci\u00f3n 'no requerida' (y/o vencidas) ahora pueden editarse si no tienen pagos.",
     "category": "fix"
   },
   {
@@ -295,7 +300,7 @@
     "date": "2026-06-24",
     "type": "minor",
     "title": "Eliminar pago aplicado a Factura de Proveedor",
-    "description": "Administradores pueden eliminar un pago registrado; el saldo y estado de la factura se recalculan automáticamente.",
+    "description": "Administradores pueden eliminar un pago registrado; el saldo y estado de la factura se recalculan autom\u00e1ticamente.",
     "category": "feature"
   },
   {
@@ -303,71 +308,71 @@
     "date": "2026-06-24",
     "type": "minor",
     "title": "Editar y eliminar Facturas de Proveedor",
-    "description": "Desde el panel de detalle ahora se puede editar (mientras esté pendiente y sin pagos) y eliminar físicamente (solo Admin) una Factura de Proveedor.",
+    "description": "Desde el panel de detalle ahora se puede editar (mientras est\u00e9 pendiente y sin pagos) y eliminar f\u00edsicamente (solo Admin) una Factura de Proveedor.",
     "category": "feature"
   },
   {
     "version": "6.81.0",
     "date": "2026-06-23",
     "type": "minor",
-    "title": "Renombrar módulo a 'Facturas de Proveedor'",
-    "description": "El módulo 'Cuentas por Pagar' ahora se llama 'Facturas de Proveedor' en toda la app. La URL /cuentas-por-pagar se mantiene.",
+    "title": "Renombrar m\u00f3dulo a 'Facturas de Proveedor'",
+    "description": "El m\u00f3dulo 'Cuentas por Pagar' ahora se llama 'Facturas de Proveedor' en toda la app. La URL /cuentas-por-pagar se mantiene.",
     "category": "improvement"
   },
   {
     "version": "6.80.5",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Importación CSF: limpiar sufijo de régimen societario",
-    "description": "La razón social extraída desde la CSF ahora se devuelve sin 'S.A. de C.V.', 'SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE', etc., en mayúsculas y sin acentos para cumplir CFDI 4.0.",
+    "title": "Importaci\u00f3n CSF: limpiar sufijo de r\u00e9gimen societario",
+    "description": "La raz\u00f3n social extra\u00edda desde la CSF ahora se devuelve sin 'S.A. de C.V.', 'SOCIEDAD AN\u00d3NIMA DE CAPITAL VARIABLE', etc., en may\u00fasculas y sin acentos para cumplir CFDI 4.0.",
     "category": "fix"
   },
   {
     "version": "6.80.4",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Clientes: un solo campo para Nombre / Razón Social",
-    "description": "Se eliminó el campo duplicado de Razón Social en el formulario de clientes. Ahora se captura una sola vez y se sincroniza automáticamente con los datos fiscales CFDI 4.0.",
+    "title": "Clientes: un solo campo para Nombre / Raz\u00f3n Social",
+    "description": "Se elimin\u00f3 el campo duplicado de Raz\u00f3n Social en el formulario de clientes. Ahora se captura una sola vez y se sincroniza autom\u00e1ticamente con los datos fiscales CFDI 4.0.",
     "category": "improvement"
   },
   {
     "version": "6.80.3",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Editar cliente: habilitar importación desde CSF",
-    "description": "La pestaña 'Importar desde CSF' ahora también aparece al editar un cliente, no solo al crearlo.",
+    "title": "Editar cliente: habilitar importaci\u00f3n desde CSF",
+    "description": "La pesta\u00f1a 'Importar desde CSF' ahora tambi\u00e9n aparece al editar un cliente, no solo al crearlo.",
     "category": "improvement"
   },
   {
     "version": "6.80.2",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Timbrado CFDI 4.0: normalizar razón social del receptor",
-    "description": "El legal_name enviado a Facturapi ahora se sanitiza (mayúsculas, sin acentos, sin régimen societario) para cumplir con la validación SAT CFDI40145.",
+    "title": "Timbrado CFDI 4.0: normalizar raz\u00f3n social del receptor",
+    "description": "El legal_name enviado a Facturapi ahora se sanitiza (may\u00fasculas, sin acentos, sin r\u00e9gimen societario) para cumplir con la validaci\u00f3n SAT CFDI40145.",
     "category": "fix"
   },
   {
     "version": "6.80.1",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Facturación recurrente: autorrecuperación de reservas marcadas sin factura",
-    "description": "Reservas con 'último facturado' pero sin factura vinculada vuelven a considerarse pendientes; si la vinculación falla, la factura se elimina para evitar huérfanos.",
+    "title": "Facturaci\u00f3n recurrente: autorrecuperaci\u00f3n de reservas marcadas sin factura",
+    "description": "Reservas con '\u00faltimo facturado' pero sin factura vinculada vuelven a considerarse pendientes; si la vinculaci\u00f3n falla, la factura se elimina para evitar hu\u00e9rfanos.",
     "category": "fix"
   },
   {
     "version": "6.80.0",
     "date": "2026-06-23",
     "type": "minor",
-    "title": "Facturación recurrente: agrupar reservas del mismo cliente en una sola factura",
-    "description": "Las reservas recurrentes del mismo cliente y mismo período se consolidan en una sola factura con varios conceptos.",
+    "title": "Facturaci\u00f3n recurrente: agrupar reservas del mismo cliente en una sola factura",
+    "description": "Las reservas recurrentes del mismo cliente y mismo per\u00edodo se consolidan en una sola factura con varios conceptos.",
     "category": "improvement"
   },
   {
     "version": "6.79.2",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Selector de fecha única: modal estable replicando el patrón del rango",
-    "description": "Todos los selectores de fecha única ahora abren en modal centrado con Aplicar/Cancelar/Limpiar.",
+    "title": "Selector de fecha \u00fanica: modal estable replicando el patr\u00f3n del rango",
+    "description": "Todos los selectores de fecha \u00fanica ahora abren en modal centrado con Aplicar/Cancelar/Limpiar.",
     "category": "improvement"
   },
   {
@@ -382,8 +387,8 @@
     "version": "6.79.0",
     "date": "2026-06-23",
     "type": "minor",
-    "title": "Reservas solo desde cotización (excepto Admin)",
-    "description": "Para crear una reserva ahora es obligatorio partir de una cotización aceptada. Solo el rol Admin puede crear reservas directas.",
+    "title": "Reservas solo desde cotizaci\u00f3n (excepto Admin)",
+    "description": "Para crear una reserva ahora es obligatorio partir de una cotizaci\u00f3n aceptada. Solo el rol Admin puede crear reservas directas.",
     "category": "improvement"
   },
   {
@@ -391,15 +396,15 @@
     "date": "2026-06-23",
     "type": "minor",
     "title": "Timbrado obligatorio para pasar de Borrador a Sin Pagar",
-    "description": "Para pasar una factura de Borrador a Sin Pagar ahora es obligatorio timbrar el CFDI. Se eliminó el botón 'Marcar Enviada'.",
+    "description": "Para pasar una factura de Borrador a Sin Pagar ahora es obligatorio timbrar el CFDI. Se elimin\u00f3 el bot\u00f3n 'Marcar Enviada'.",
     "category": "improvement"
   },
   {
     "version": "6.77.0",
     "date": "2026-06-23",
     "type": "minor",
-    "title": "Facturación multi-reserva",
-    "description": "Una sola factura puede agrupar varias reservas confirmadas del mismo cliente desde un selector múltiple en Nueva Factura.",
+    "title": "Facturaci\u00f3n multi-reserva",
+    "description": "Una sola factura puede agrupar varias reservas confirmadas del mismo cliente desde un selector m\u00faltiple en Nueva Factura.",
     "category": "feature"
   },
   {
@@ -407,15 +412,15 @@
     "date": "2026-06-23",
     "type": "patch",
     "title": "Modal Extender Renta: cerrar calendario al seleccionar fecha",
-    "description": "El calendario del modal Extender Renta ahora se cierra automáticamente al elegir una fecha.",
+    "description": "El calendario del modal Extender Renta ahora se cierra autom\u00e1ticamente al elegir una fecha.",
     "category": "bugfix"
   },
   {
     "version": "6.76.6",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Auditoría es-MX: selectores de fecha y formato de números",
-    "description": "Se reemplazaron los inputs nativos de fecha (formato dependiente del navegador) por el calendario Shadcn en español DD/MM/YYYY en: Reportar transferencia (portal), Vigencia del seguro (montacargas), Cerrar deal Ganado (CRM) y Próximo seguimiento de cobranza. Los tooltips de gráficas ahora usan separador de miles es-MX.",
+    "title": "Auditor\u00eda es-MX: selectores de fecha y formato de n\u00fameros",
+    "description": "Se reemplazaron los inputs nativos de fecha (formato dependiente del navegador) por el calendario Shadcn en espa\u00f1ol DD/MM/YYYY en: Reportar transferencia (portal), Vigencia del seguro (montacargas), Cerrar deal Ganado (CRM) y Pr\u00f3ximo seguimiento de cobranza. Los tooltips de gr\u00e1ficas ahora usan separador de miles es-MX.",
     "category": "improvement"
   },
   {
@@ -423,15 +428,15 @@
     "date": "2026-06-23",
     "type": "patch",
     "title": "Modal Extender Renta localizado a es-MX (DD/MM/YYYY)",
-    "description": "El selector de nueva fecha de fin del modal Extender Renta usa ahora el calendario Shadcn en español (semana inicia en lunes, formato DD/MM/YYYY) en lugar del input nativo del navegador. La fecha de fin actual también se muestra formateada.",
+    "description": "El selector de nueva fecha de fin del modal Extender Renta usa ahora el calendario Shadcn en espa\u00f1ol (semana inicia en lunes, formato DD/MM/YYYY) en lugar del input nativo del navegador. La fecha de fin actual tambi\u00e9n se muestra formateada.",
     "category": "bugfix"
   },
   {
     "version": "6.76.4",
     "date": "2026-06-23",
     "type": "patch",
-    "title": "Bitácora y actividad: eliminar duplicados y contaminación E2E",
-    "description": "Se eliminaron triggers duplicados en Reservas/Facturas/Mantenimiento que duplicaban filas en Actividad. Los triggers de auditoría y actividad ahora descartan también eventos del usuario e2e-*@liftgo.test. Limpieza: 302 filas en Actividad y 475 en Bitácora.",
+    "title": "Bit\u00e1cora y actividad: eliminar duplicados y contaminaci\u00f3n E2E",
+    "description": "Se eliminaron triggers duplicados en Reservas/Facturas/Mantenimiento que duplicaban filas en Actividad. Los triggers de auditor\u00eda y actividad ahora descartan tambi\u00e9n eventos del usuario e2e-*@liftgo.test. Limpieza: 302 filas en Actividad y 475 en Bit\u00e1cora.",
     "category": "bugfix"
   },
   {
@@ -439,7 +444,7 @@
     "date": "2026-06-23",
     "type": "patch",
     "title": "Evitar folios duplicados al crear varias reservas en paralelo",
-    "description": "Corrige una race condition al convertir una cotización con varios equipos: dos reservas podían recibir el mismo folio RSV-XXXX y la segunda fallaba. El RPC `create_booking` ahora serializa la asignación de folio con un bloqueo transaccional.",
+    "description": "Corrige una race condition al convertir una cotizaci\u00f3n con varios equipos: dos reservas pod\u00edan recibir el mismo folio RSV-XXXX y la segunda fallaba. El RPC `create_booking` ahora serializa la asignaci\u00f3n de folio con un bloqueo transaccional.",
     "category": "bugfix"
   },
   {
@@ -447,7 +452,7 @@
     "date": "2026-06-23",
     "type": "patch",
     "title": "Historial completo de la reserva con autor",
-    "description": "El detalle de cada reserva ahora muestra todos los cambios (estatus, fechas, tarifa, equipo, cliente, notas) con el nombre del usuario que los hizo, en formato de línea de tiempo.",
+    "description": "El detalle de cada reserva ahora muestra todos los cambios (estatus, fechas, tarifa, equipo, cliente, notas) con el nombre del usuario que los hizo, en formato de l\u00ednea de tiempo.",
     "category": "improvement"
   },
   {
@@ -455,7 +460,7 @@
     "date": "2026-06-23",
     "type": "patch",
     "title": "Forzar FormaPago=99 en CFDI con MetodoPago PPD",
-    "description": "Corrige timbrado de facturas PPD (Pago en Parcialidades o Diferido). El SAT exige que `FormaPago` sea \"99\" (Por definir) cuando `MetodoPago` es PPD. `stamp-cfdi` ahora normaliza el valor automáticamente antes de enviar a Facturapi, evitando el rechazo CFDI40105.",
+    "description": "Corrige timbrado de facturas PPD (Pago en Parcialidades o Diferido). El SAT exige que `FormaPago` sea \"99\" (Por definir) cuando `MetodoPago` es PPD. `stamp-cfdi` ahora normaliza el valor autom\u00e1ticamente antes de enviar a Facturapi, evitando el rechazo CFDI40105.",
     "category": "bugfix"
   },
   {
@@ -463,7 +468,7 @@
     "date": "2026-06-23",
     "type": "minor",
     "title": "Plataforma unificada de toasts (notifySuccess / notifyInfo / notifyAsync)",
-    "description": "Auditoría completa de los 543 usos de toasts. Se introduce `notifySuccess`, `notifyInfo`, `notifyValidation` y `notifyAsync` en `@/lib/ui/appFeedback`, además de severidad `critical|warning` en `notifyError` para no fijar errores triviales para siempre. Se migraron 148 llamadas a `toast.success/info/warning` directas y los 6 `toast.error` que se saltaban el reporte estructurado. Se centraliza el copy en `feedbackMessages.ts` con `satStatusLabel`, se eliminan clases CSS muertas (`liftgo-toast-*`) y se documenta la convención de copy (verbo en pasado + sustantivo, sin 'exitosamente').",
+    "description": "Auditor\u00eda completa de los 543 usos de toasts. Se introduce `notifySuccess`, `notifyInfo`, `notifyValidation` y `notifyAsync` en `@/lib/ui/appFeedback`, adem\u00e1s de severidad `critical|warning` en `notifyError` para no fijar errores triviales para siempre. Se migraron 148 llamadas a `toast.success/info/warning` directas y los 6 `toast.error` que se saltaban el reporte estructurado. Se centraliza el copy en `feedbackMessages.ts` con `satStatusLabel`, se eliminan clases CSS muertas (`liftgo-toast-*`) y se documenta la convenci\u00f3n de copy (verbo en pasado + sustantivo, sin 'exitosamente').",
     "category": "improvement"
   },
   {
@@ -471,7 +476,7 @@
     "date": "2026-06-23",
     "type": "patch",
     "title": "Mensajes reales en errores de Edge Functions",
-    "description": "Centraliza `supabase.functions.invoke` en un helper que extrae el body JSON de `FunctionsHttpError` (antes atrapado en `error.context`). Los toasts ahora muestran el motivo real ('Invoice already stamped', 'Facturapi error: 400 — …') en lugar del genérico 'Edge Function returned a non-2xx status code'. Refactor en 9 hooks de CFDI/facturas/mantenimiento + logging en stamp-cfdi.",
+    "description": "Centraliza `supabase.functions.invoke` en un helper que extrae el body JSON de `FunctionsHttpError` (antes atrapado en `error.context`). Los toasts ahora muestran el motivo real ('Invoice already stamped', 'Facturapi error: 400 \u2014 \u2026') en lugar del gen\u00e9rico 'Edge Function returned a non-2xx status code'. Refactor en 9 hooks de CFDI/facturas/mantenimiento + logging en stamp-cfdi.",
     "category": "improvement"
   },
   {
@@ -479,15 +484,15 @@
     "date": "2026-06-15",
     "type": "patch",
     "title": "CI: silenciar falsos positivos de Gitleaks (anon key publishable)",
-    "description": "Agrega `.gitleaks.toml` que extiende la config default y permite cualquier JWT con `role:anon` (la publishable key de Supabase es pública por diseño). Como red de seguridad se incluye `.gitleaksignore` con los fingerprints de `.env` y `tests/e2e/fixtures/seed.ts`. Cualquier JWT con otro rol (service_role, authenticated, etc.) sigue siendo detectado.",
+    "description": "Agrega `.gitleaks.toml` que extiende la config default y permite cualquier JWT con `role:anon` (la publishable key de Supabase es p\u00fablica por dise\u00f1o). Como red de seguridad se incluye `.gitleaksignore` con los fingerprints de `.env` y `tests/e2e/fixtures/seed.ts`. Cualquier JWT con otro rol (service_role, authenticated, etc.) sigue siendo detectado.",
     "category": "tooling"
   },
   {
     "version": "6.75.0",
     "date": "2026-06-15",
     "type": "minor",
-    "title": "Knip: configuración y reporte de dead code sweep",
-    "description": "Configura `knip.json` con entry points reales (Vitest, Playwright, edge functions) y agrega scripts `bun run knip` y `bun run knip:deep`. Reporte completo en `docs/audits/knip-2026-06-15.md`: 0 archivos huérfanos, 0 deps muertas; ~30 exports privados a borrar (bajo riesgo) y 6 grupos a revisar (residuos de refactors / fuentes de verdad duplicadas).",
+    "title": "Knip: configuraci\u00f3n y reporte de dead code sweep",
+    "description": "Configura `knip.json` con entry points reales (Vitest, Playwright, edge functions) y agrega scripts `bun run knip` y `bun run knip:deep`. Reporte completo en `docs/audits/knip-2026-06-15.md`: 0 archivos hu\u00e9rfanos, 0 deps muertas; ~30 exports privados a borrar (bajo riesgo) y 6 grupos a revisar (residuos de refactors / fuentes de verdad duplicadas).",
     "category": "tooling"
   },
   {
@@ -495,15 +500,15 @@
     "date": "2026-06-15",
     "type": "patch",
     "title": "Refactor: partir components/ui/sidebar.tsx (#5 del audit)",
-    "description": "Divide el primitivo Sidebar shadcn de 637 LOC en 8 módulos enfocados (`constants`, `variants`, `context`, `Sidebar`, `SidebarSections`, `SidebarGroup`, `SidebarMenu`, `SidebarMenuSub`) más un barrel `index.ts`. Cada archivo ≤156 LOC. La API pública `@/components/ui/sidebar` se mantiene intacta — cero cambios en consumers. Completa los 5 items críticos del audit.",
+    "description": "Divide el primitivo Sidebar shadcn de 637 LOC en 8 m\u00f3dulos enfocados (`constants`, `variants`, `context`, `Sidebar`, `SidebarSections`, `SidebarGroup`, `SidebarMenu`, `SidebarMenuSub`) m\u00e1s un barrel `index.ts`. Cada archivo \u2264156 LOC. La API p\u00fablica `@/components/ui/sidebar` se mantiene intacta \u2014 cero cambios en consumers. Completa los 5 items cr\u00edticos del audit.",
     "category": "refactor"
   },
   {
     "version": "6.74.0",
     "date": "2026-06-15",
     "type": "minor",
-    "title": "Refactor crítico: arquitectura limpia (#1–4 del audit)",
-    "description": "Saca el acceso a Supabase de páginas y de `lib/` (AuthPage y PDF de facturas), descompone `useCashFlowProjection` en transformadores puros con tests, elimina los `as unknown as` en CRM y devoluciones, y reemplaza los `.limit(500)` silenciosos por una constante compartida + aviso visible en BookingsPage e InvoicesPage cuando la lista se trunca.",
+    "title": "Refactor cr\u00edtico: arquitectura limpia (#1\u20134 del audit)",
+    "description": "Saca el acceso a Supabase de p\u00e1ginas y de `lib/` (AuthPage y PDF de facturas), descompone `useCashFlowProjection` en transformadores puros con tests, elimina los `as unknown as` en CRM y devoluciones, y reemplaza los `.limit(500)` silenciosos por una constante compartida + aviso visible en BookingsPage e InvoicesPage cuando la lista se trunca.",
     "category": "refactor"
   },
   {
@@ -515,29 +520,27 @@
     "category": "infrastructure"
   },
   {
-
     "version": "6.73.1",
     "date": "2026-06-15",
     "type": "patch",
     "title": "CI: secrets-check job + actionlint filtra solo errores + helper Deno defensivo",
-    "description": "Soluciona los 3 jobs en rojo del run de CI. Nuevo job `secrets-check` que skipea edge-functions y e2e cuando faltan secrets del repo (en lugar de fallar con 40 errores opacos). actionlint usa `fail_level: error` + `filter_mode: added` para no fallar por nits de shellcheck. test-helpers.ts trata strings vacíos como no configurados y falla con mensaje accionable.",
+    "description": "Soluciona los 3 jobs en rojo del run de CI. Nuevo job `secrets-check` que skipea edge-functions y e2e cuando faltan secrets del repo (en lugar de fallar con 40 errores opacos). actionlint usa `fail_level: error` + `filter_mode: added` para no fallar por nits de shellcheck. test-helpers.ts trata strings vac\u00edos como no configurados y falla con mensaje accionable.",
     "category": "infrastructure"
   },
   {
-
     "version": "6.73.0",
     "date": "2026-06-15",
     "type": "minor",
     "title": "CI hardening: SHA pinning, actionlint, Lighthouse con budget, CODEOWNERS, Release Drafter, bundle-size con cache",
-    "description": "Todas las actions de terceros se pinearon a commit SHA con comentario de versión. Nuevo job actionlint en ci.yml, Lighthouse bloquea por thresholds vía lighthouserc.json, CODEOWNERS auto-asigna reviewers para áreas críticas, Release Drafter mantiene draft permanente por labels y bundle-size cachea el bundle base por SHA.",
+    "description": "Todas las actions de terceros se pinearon a commit SHA con comentario de versi\u00f3n. Nuevo job actionlint en ci.yml, Lighthouse bloquea por thresholds v\u00eda lighthouserc.json, CODEOWNERS auto-asigna reviewers para \u00e1reas cr\u00edticas, Release Drafter mantiene draft permanente por labels y bundle-size cachea el bundle base por SHA.",
     "category": "infrastructure"
   },
   {
     "version": "6.72.1",
     "date": "2026-06-15",
     "type": "patch",
-    "title": "CI: PR labeler automático por paths",
-    "description": "Nuevo workflow .github/workflows/labeler.yml + configuración .github/labeler.yml (actions/labeler@v5). Etiqueta cada PR según los archivos modificados: ci, dependencies, docs, changelog, database, edge-functions, tests, ui, pdf, auth, portal, feedback y módulos de negocio (fleet, bookings, crm, maintenance, invoicing, quotes, logistics, dashboard, customers, inventory, reporting, suppliers). Usa sync-labels: true para mantener las etiquetas consistentes con los cambios actuales del PR.",
+    "title": "CI: PR labeler autom\u00e1tico por paths",
+    "description": "Nuevo workflow .github/workflows/labeler.yml + configuraci\u00f3n .github/labeler.yml (actions/labeler@v5). Etiqueta cada PR seg\u00fan los archivos modificados: ci, dependencies, docs, changelog, database, edge-functions, tests, ui, pdf, auth, portal, feedback y m\u00f3dulos de negocio (fleet, bookings, crm, maintenance, invoicing, quotes, logistics, dashboard, customers, inventory, reporting, suppliers). Usa sync-labels: true para mantener las etiquetas consistentes con los cambios actuales del PR.",
     "category": "infrastructure"
   },
   {
@@ -545,47 +548,47 @@
     "date": "2026-06-15",
     "type": "minor",
     "title": "CI/CD: 6 workflows nuevos (CodeQL, Gitleaks, Dependabot, Supabase lint, Lighthouse, Bundle size)",
-    "description": "Pipeline complementado con Dependabot (npm + github-actions, ignora jspdf), CodeQL semanal, Gitleaks en PRs, lint de migraciones que exige GRANT/RLS/POLICY y SET search_path, Lighthouse diario contra producción y comparación de bundle size gzip en cada PR.",
+    "description": "Pipeline complementado con Dependabot (npm + github-actions, ignora jspdf), CodeQL semanal, Gitleaks en PRs, lint de migraciones que exige GRANT/RLS/POLICY y SET search_path, Lighthouse diario contra producci\u00f3n y comparaci\u00f3n de bundle size gzip en cada PR.",
     "category": "infrastructure"
   },
   {
     "version": "6.71.3",
     "date": "2026-06-15",
     "type": "patch",
-    "title": "Dashboard: utilización de flota ahora mensual (últimos 6 meses)",
-    "description": "La gráfica 'Utilización de Flota' pasa de ventana semanal (8 semanas) a mensual (6 meses) para leer mejor la tendencia en rentas largas. Misma fórmula: días-flota ocupados / (flota_activa × días_del_mes) × 100, excluyendo unidades retired/sold y considerando solo bookings confirmed que traslapen el mes. Labels en español (Ene 26, Feb 26…).",
+    "title": "Dashboard: utilizaci\u00f3n de flota ahora mensual (\u00faltimos 6 meses)",
+    "description": "La gr\u00e1fica 'Utilizaci\u00f3n de Flota' pasa de ventana semanal (8 semanas) a mensual (6 meses) para leer mejor la tendencia en rentas largas. Misma f\u00f3rmula: d\u00edas-flota ocupados / (flota_activa \u00d7 d\u00edas_del_mes) \u00d7 100, excluyendo unidades retired/sold y considerando solo bookings confirmed que traslapen el mes. Labels en espa\u00f1ol (Ene 26, Feb 26\u2026).",
     "category": "improvement"
   },
   {
     "version": "6.71.2",
     "date": "2026-06-15",
     "type": "patch",
-    "title": "Fix: Utilización de Flota semanal en dashboard",
-    "description": "El RPC get_dashboard_stats no devolvía la clave weekly_utilization, dejando la gráfica 'Utilización de Flota (%)' del dashboard sin datos ('Sin datos aún'). Se agrega el cálculo de utilización para las últimas 8 semanas (días-flota ocupados / días-flota disponibles * 100), excluyendo unidades retiradas/vendidas y considerando solo bookings confirmados con traslape al rango de cada semana. Etiqueta como 'Snn' (semana ISO).",
+    "title": "Fix: Utilizaci\u00f3n de Flota semanal en dashboard",
+    "description": "El RPC get_dashboard_stats no devolv\u00eda la clave weekly_utilization, dejando la gr\u00e1fica 'Utilizaci\u00f3n de Flota (%)' del dashboard sin datos ('Sin datos a\u00fan'). Se agrega el c\u00e1lculo de utilizaci\u00f3n para las \u00faltimas 8 semanas (d\u00edas-flota ocupados / d\u00edas-flota disponibles * 100), excluyendo unidades retiradas/vendidas y considerando solo bookings confirmados con traslape al rango de cada semana. Etiqueta como 'Snn' (semana ISO).",
     "category": "fix"
   },
   {
     "version": "6.71.1",
     "date": "2026-06-14",
     "type": "patch",
-    "title": "Docs: cierre formal del audit con deuda técnica priorizada",
-    "description": "Nueva sección §23 'Deuda técnica priorizada' en architecture.md documentando los 3 items grandes del audit que NO se ejecutaron en Fase A con justificación y trigger natural: pipeline CFDI compartido (ALTA, requiere E2E sandbox), capa data-access por entidad (MEDIA, requiere RFC), y split sidebar.tsx (BAJA, probablemente NO hacer por ser shadcn upstream). Política §23.4: solo con caso de negocio concreto, PR scoped, reevaluación a 12 meses. Renumera Referencias a §24. Cierra formalmente el plan.",
+    "title": "Docs: cierre formal del audit con deuda t\u00e9cnica priorizada",
+    "description": "Nueva secci\u00f3n \u00a723 'Deuda t\u00e9cnica priorizada' en architecture.md documentando los 3 items grandes del audit que NO se ejecutaron en Fase A con justificaci\u00f3n y trigger natural: pipeline CFDI compartido (ALTA, requiere E2E sandbox), capa data-access por entidad (MEDIA, requiere RFC), y split sidebar.tsx (BAJA, probablemente NO hacer por ser shadcn upstream). Pol\u00edtica \u00a723.4: solo con caso de negocio concreto, PR scoped, reevaluaci\u00f3n a 12 meses. Renumera Referencias a \u00a724. Cierra formalmente el plan.",
     "category": "docs"
   },
   {
     "version": "6.71.0",
     "date": "2026-06-14",
     "type": "minor",
-    "title": "Refactor arquitectónico: Fase A del audit (split de hotspots + tipos + reubicaciones)",
-    "description": "Ejecutados los 6 items accionables del audit v6.70.x sin tocar el código productivo de facturación (CFDI) ni la capa shadcn upstream. (1) Movidos tests de flujo a sus features: bookingFlow→features/bookings/__tests__/, invoiceFlow+paymentFlow→features/invoices/__tests__/, lineItems→lib/domain/__tests__/. (2) Agregadas constantes tipadas BOOKING_STATUS/FORKLIFT_STATUS + tipos BookingStatus/ForkliftStatus en lib/constants.ts; eliminados literales 'confirmed'/'rented'/'available' en 4 archivos del calendario (CalendarStatCards, EquipmentListView, GanttChart, GanttRow). (3) Split CRMClosedPage (210→74 LOC) en hook useClosedProspects + componente ClosedTable + factory closedColumns.tsx; página queda como container puro. (4) Split useExportPaymentsForm (120→78 LOC) extrayendo usePaymentSelection (selección múltiple + totales puros) del orquestador. (5) Renombrado Fleet.tsx→FleetPage.tsx alineado con convención §22 de naming; migrado a useResourceList eliminando filtrado manual duplicado. (6) routes-config.tsx actualizado al rename. Knip ya estaba activo en CI desde v6.70.0; no requiere acción extra. Items omitidos con justificación: sidebar.tsx (shadcn upstream, excepción §22.2), CFDI Edge Functions (requiere E2E dedicado antes), capa data-access (necesita RFC), routes-config distribuido (cosmético sin beneficio), reorg src/hooks-lib (cosmético, rompe imports masivos), Customer/IVA 'duplicado' (falso positivo del audit). 707/707 tests + typecheck + knip en verde.",
+    "title": "Refactor arquitect\u00f3nico: Fase A del audit (split de hotspots + tipos + reubicaciones)",
+    "description": "Ejecutados los 6 items accionables del audit v6.70.x sin tocar el c\u00f3digo productivo de facturaci\u00f3n (CFDI) ni la capa shadcn upstream. (1) Movidos tests de flujo a sus features: bookingFlow\u2192features/bookings/__tests__/, invoiceFlow+paymentFlow\u2192features/invoices/__tests__/, lineItems\u2192lib/domain/__tests__/. (2) Agregadas constantes tipadas BOOKING_STATUS/FORKLIFT_STATUS + tipos BookingStatus/ForkliftStatus en lib/constants.ts; eliminados literales 'confirmed'/'rented'/'available' en 4 archivos del calendario (CalendarStatCards, EquipmentListView, GanttChart, GanttRow). (3) Split CRMClosedPage (210\u219274 LOC) en hook useClosedProspects + componente ClosedTable + factory closedColumns.tsx; p\u00e1gina queda como container puro. (4) Split useExportPaymentsForm (120\u219278 LOC) extrayendo usePaymentSelection (selecci\u00f3n m\u00faltiple + totales puros) del orquestador. (5) Renombrado Fleet.tsx\u2192FleetPage.tsx alineado con convenci\u00f3n \u00a722 de naming; migrado a useResourceList eliminando filtrado manual duplicado. (6) routes-config.tsx actualizado al rename. Knip ya estaba activo en CI desde v6.70.0; no requiere acci\u00f3n extra. Items omitidos con justificaci\u00f3n: sidebar.tsx (shadcn upstream, excepci\u00f3n \u00a722.2), CFDI Edge Functions (requiere E2E dedicado antes), capa data-access (necesita RFC), routes-config distribuido (cosm\u00e9tico sin beneficio), reorg src/hooks-lib (cosm\u00e9tico, rompe imports masivos), Customer/IVA 'duplicado' (falso positivo del audit). 707/707 tests + typecheck + knip en verde.",
     "category": "refactor"
   },
   {
     "version": "6.70.2",
     "date": "2026-06-14",
     "type": "patch",
-    "title": "Docs: estándar de naming en architecture.md",
-    "description": "Nueva sección §22 'Convenciones de naming' en architecture.md (renumera Referencias a §23). Documenta normativa para carpetas (kebab-case), archivos (PascalCase componentes, camelCase hooks/helpers, sufijo Page obligatorio para páginas), símbolos (booleanos is/has, handlers handle/on, constantes SCREAMING_SNAKE_CASE), rutas (kebab-case path, snake_case query params), IDs de documento (FAC/COT/CTR/RSV/ENT/DEV/NC/CP), y anti-patrones (*Utils, *Manager, *Service, kebab en hooks). Incluye §22.7 con plan de migración incremental para inconsistencias detectadas en audit v6.70.x (Fleet.tsx→FleetPage.tsx, dataTable/→data-table/, use-mobile.tsx→useIsMobile.tsx, tests de flujo→__tests__/ por feature) sin renames en bloque. Solo cambios en docs; no se modificó código.",
+    "title": "Docs: est\u00e1ndar de naming en architecture.md",
+    "description": "Nueva secci\u00f3n \u00a722 'Convenciones de naming' en architecture.md (renumera Referencias a \u00a723). Documenta normativa para carpetas (kebab-case), archivos (PascalCase componentes, camelCase hooks/helpers, sufijo Page obligatorio para p\u00e1ginas), s\u00edmbolos (booleanos is/has, handlers handle/on, constantes SCREAMING_SNAKE_CASE), rutas (kebab-case path, snake_case query params), IDs de documento (FAC/COT/CTR/RSV/ENT/DEV/NC/CP), y anti-patrones (*Utils, *Manager, *Service, kebab en hooks). Incluye \u00a722.7 con plan de migraci\u00f3n incremental para inconsistencias detectadas en audit v6.70.x (Fleet.tsx\u2192FleetPage.tsx, dataTable/\u2192data-table/, use-mobile.tsx\u2192useIsMobile.tsx, tests de flujo\u2192__tests__/ por feature) sin renames en bloque. Solo cambios en docs; no se modific\u00f3 c\u00f3digo.",
     "category": "docs"
   },
   {
@@ -593,15 +596,15 @@
     "date": "2026-06-14",
     "type": "patch",
     "title": "Fix E2E: selector del toggle Kanban en maintenance-kanban.spec.ts",
-    "description": "tests/e2e/maintenance-kanban.spec.ts:24 — el test usaba `getByRole('button', { name: /vista de tablero/i })` que no matchea porque Radix `<ToggleGroup type=\"single\">` renderiza los items con role=\"radio\" (no button), causando timeout de 30s en CI. Cambiado a `getByLabel(/vista de tablero/i)` que es agnóstico al role. Desbloquea el job E2E shard 1/2.",
+    "description": "tests/e2e/maintenance-kanban.spec.ts:24 \u2014 el test usaba `getByRole('button', { name: /vista de tablero/i })` que no matchea porque Radix `<ToggleGroup type=\"single\">` renderiza los items con role=\"radio\" (no button), causando timeout de 30s en CI. Cambiado a `getByLabel(/vista de tablero/i)` que es agn\u00f3stico al role. Desbloquea el job E2E shard 1/2.",
     "category": "fix"
   },
   {
     "version": "6.70.0",
     "date": "2026-06-14",
     "type": "minor",
-    "title": "CI: paralelización de jobs y composite action para setup",
-    "description": "Refactor de .github/workflows/ci.yml: el monolítico job `quality` (lint→typecheck→knip→tests→build serial, ~12 min) se dividió en 5 jobs paralelos (lint, typecheck, knip, tests, build). Eliminado el gate artificial `needs: [quality]` en `rls` y `e2e` — ahora arrancan en paralelo. Extraído setup repetido (checkout + bun + cache + install) a composite action .github/actions/setup-bun-project. Cache de Playwright ahora se invalida solo cuando cambia la versión del paquete (no por cualquier cambio de deps). Agregado cache de Deno. Path filters: cambios solo en changelog/markdown/.lovable no disparan CI. Nuevo job `ci-success` como gate único para branch protection. Wall time esperado: ~12 min → ~6-7 min.",
+    "title": "CI: paralelizaci\u00f3n de jobs y composite action para setup",
+    "description": "Refactor de .github/workflows/ci.yml: el monol\u00edtico job `quality` (lint\u2192typecheck\u2192knip\u2192tests\u2192build serial, ~12 min) se dividi\u00f3 en 5 jobs paralelos (lint, typecheck, knip, tests, build). Eliminado el gate artificial `needs: [quality]` en `rls` y `e2e` \u2014 ahora arrancan en paralelo. Extra\u00eddo setup repetido (checkout + bun + cache + install) a composite action .github/actions/setup-bun-project. Cache de Playwright ahora se invalida solo cuando cambia la versi\u00f3n del paquete (no por cualquier cambio de deps). Agregado cache de Deno. Path filters: cambios solo en changelog/markdown/.lovable no disparan CI. Nuevo job `ci-success` como gate \u00fanico para branch protection. Wall time esperado: ~12 min \u2192 ~6-7 min.",
     "category": "infra"
   },
   {
@@ -609,7 +612,7 @@
     "date": "2026-06-14",
     "type": "patch",
     "title": "Fix CI: deno fmt en handlers CFDI y limpieza de dead code",
-    "description": "Aplicado `deno fmt` a 4 archivos del job edge-functions (cancel-cfdi/handler.ts, cancel-cfdi/handler_test.ts, refresh-cancellation-status/handler.ts, refresh-cancellation-status/handler_test.ts) que rompían `deno fmt --check` con 'Found 4 not formatted files'. Eliminado src/features/fleet/hooks/forklifts/useForkliftOptions.ts (creado en Fase A v6.68.0 pero nunca importado) que disparaba knip como 'Unused files (1)' y rompería el job quality. Validado localmente: typecheck, knip, vitest 707/707, deno fmt/lint todos en verde. Desbloquea rls y e2e que estaban saltados por `needs: [quality]`.",
+    "description": "Aplicado `deno fmt` a 4 archivos del job edge-functions (cancel-cfdi/handler.ts, cancel-cfdi/handler_test.ts, refresh-cancellation-status/handler.ts, refresh-cancellation-status/handler_test.ts) que romp\u00edan `deno fmt --check` con 'Found 4 not formatted files'. Eliminado src/features/fleet/hooks/forklifts/useForkliftOptions.ts (creado en Fase A v6.68.0 pero nunca importado) que disparaba knip como 'Unused files (1)' y romper\u00eda el job quality. Validado localmente: typecheck, knip, vitest 707/707, deno fmt/lint todos en verde. Desbloquea rls y e2e que estaban saltados por `needs: [quality]`.",
     "category": "fix"
   },
   {
@@ -617,7 +620,7 @@
     "date": "2026-06-14",
     "type": "patch",
     "title": "Fix CI: elimina throw dentro de finally en fixtures E2E",
-    "description": "tests/e2e/fixtures/seed.ts y portalSeed.ts: se refactoriza el patrón try/finally para capturar el error del test en una variable y relanzarlo al final, evitando la regla no-unsafe-finally de ESLint que bloqueaba el job 'Lint, Knip, Tests, Build' en CI. Comportamiento de teardown idéntico (siempre corre, diferencia fallo de test vs fuga de datos).",
+    "description": "tests/e2e/fixtures/seed.ts y portalSeed.ts: se refactoriza el patr\u00f3n try/finally para capturar el error del test en una variable y relanzarlo al final, evitando la regla no-unsafe-finally de ESLint que bloqueaba el job 'Lint, Knip, Tests, Build' en CI. Comportamiento de teardown id\u00e9ntico (siempre corre, diferencia fallo de test vs fuga de datos).",
     "category": "fix"
   },
   {
@@ -625,23 +628,23 @@
     "date": "2026-06-14",
     "type": "minor",
     "title": "Performance Fase E: RPC get_activity_metrics agrega en DB",
-    "description": "Nueva función SQL public.get_activity_metrics(from, to) calcula byMember/byModule/byHour/previousCount con GROUP BY en Postgres (zona horaria America/Monterrey). useActivityMetrics deja de descargar hasta 10,000 filas de activity_feed (~10,535ms acumulados según pg_stat_statements) — ahora una sola llamada RPC trae los 4 agregados ya listos para graficar. fetchActivityRanges removido; aggregateActivity se conserva para los tests. Latencia, memoria del cliente y costo de red bajan drásticamente con el crecimiento del log.",
+    "description": "Nueva funci\u00f3n SQL public.get_activity_metrics(from, to) calcula byMember/byModule/byHour/previousCount con GROUP BY en Postgres (zona horaria America/Monterrey). useActivityMetrics deja de descargar hasta 10,000 filas de activity_feed (~10,535ms acumulados seg\u00fan pg_stat_statements) \u2014 ahora una sola llamada RPC trae los 4 agregados ya listos para graficar. fetchActivityRanges removido; aggregateActivity se conserva para los tests. Latencia, memoria del cliente y costo de red bajan dr\u00e1sticamente con el crecimiento del log.",
     "category": "improvement"
   },
   {
     "version": "6.68.1",
     "date": "2026-06-14",
     "type": "patch",
-    "title": "Performance Fase B: code-splitting de librerías pesadas",
-    "description": "vite.config.ts: nuevos chunks dedicados para @react-pdf/renderer, xlsx, html2canvas+canvg, date-fns y lucide-react. El bundle de entrada deja de cargar ~700KB que solo se usan en acciones específicas (PDFs, exportaciones a Excel). Mejora directa de FCP/LCP en el primer load y en navegaciones cacheadas.",
+    "title": "Performance Fase B: code-splitting de librer\u00edas pesadas",
+    "description": "vite.config.ts: nuevos chunks dedicados para @react-pdf/renderer, xlsx, html2canvas+canvg, date-fns y lucide-react. El bundle de entrada deja de cargar ~700KB que solo se usan en acciones espec\u00edficas (PDFs, exportaciones a Excel). Mejora directa de FCP/LCP en el primer load y en navegaciones cacheadas.",
     "category": "improvement"
   },
   {
     "version": "6.68.0",
     "date": "2026-06-14",
     "type": "minor",
-    "title": "Performance Fase A: cache de roles, paralelización y formateadores singleton",
-    "description": "useUserRole sube staleTime de 0 a 5min (gcTime 30min) — evita ~18k calls/día redundantes a user_roles tras la auditoría con pg_stat_statements. useUsersWithRoles paraleliza profiles + user_roles con Promise.all y cachea 5min. AuthContext memoiza el value con useMemo + useCallback para cortar re-renders en cascada de toda la app cuando cualquier hijo se actualiza. formatCurrency/formatCurrencyWithCode ahora reutilizan Intl.NumberFormat vía cache por moneda (antes se instanciaba en cada celda de tabla, ~50-200µs por llamada). Nuevo hook useForkliftOptions proyecta 5 columnas en vez de 24 para selectores, con staleTime 5min — listo para migrar dropdowns sin tocar consumidores existentes de useForklifts.",
+    "title": "Performance Fase A: cache de roles, paralelizaci\u00f3n y formateadores singleton",
+    "description": "useUserRole sube staleTime de 0 a 5min (gcTime 30min) \u2014 evita ~18k calls/d\u00eda redundantes a user_roles tras la auditor\u00eda con pg_stat_statements. useUsersWithRoles paraleliza profiles + user_roles con Promise.all y cachea 5min. AuthContext memoiza el value con useMemo + useCallback para cortar re-renders en cascada de toda la app cuando cualquier hijo se actualiza. formatCurrency/formatCurrencyWithCode ahora reutilizan Intl.NumberFormat v\u00eda cache por moneda (antes se instanciaba en cada celda de tabla, ~50-200\u00b5s por llamada). Nuevo hook useForkliftOptions proyecta 5 columnas en vez de 24 para selectores, con staleTime 5min \u2014 listo para migrar dropdowns sin tocar consumidores existentes de useForklifts.",
     "category": "improvement"
   },
   {
@@ -649,127 +652,127 @@
     "date": "2026-06-14",
     "type": "patch",
     "title": "E2E: spec de Kanban de Mantenimiento + seed extendido",
-    "description": "RPC e2e_seed_scenario ahora crea también una orden de mantenimiento 'pending' vinculada al montacargas sembrado y la devuelve como maintenance_log_id. Cleanup automático por FK ON DELETE CASCADE. MaintenanceKanbanColumn expone data-testid='maintenance-kanban-column-{status}' y cada tarjeta 'maintenance-kanban-card-{id}'. Nuevo spec tests/e2e/maintenance-kanban.spec.ts valida que la WO sembrada aparece en la columna pending y que abrir el panel de detalle responde. Avanza 1/8 specs de Fase 4 ampliada.",
+    "description": "RPC e2e_seed_scenario ahora crea tambi\u00e9n una orden de mantenimiento 'pending' vinculada al montacargas sembrado y la devuelve como maintenance_log_id. Cleanup autom\u00e1tico por FK ON DELETE CASCADE. MaintenanceKanbanColumn expone data-testid='maintenance-kanban-column-{status}' y cada tarjeta 'maintenance-kanban-card-{id}'. Nuevo spec tests/e2e/maintenance-kanban.spec.ts valida que la WO sembrada aparece en la columna pending y que abrir el panel de detalle responde. Avanza 1/8 specs de Fase 4 ampliada.",
     "category": "improvement"
   },
   {
     "version": "6.67.1",
     "date": "2026-06-14",
     "type": "patch",
-    "title": "E2E: data-testid en dialogs críticos + aserción de red en pago",
-    "description": "RecordPaymentDialog y CustomerFormDialog ahora exponen data-testid estables ('record-payment-dialog', 'record-payment-submit', 'customer-form-dialog') para selectores E2E robustos (en vez de regex por texto en español que rompe con cambios de copy). invoice-payment.spec.ts añade waitForResponse sobre POST /rest/v1/payments validando 2xx — antes el test solo verificaba el badge optimista, ahora detecta fallos reales de RLS o validación. Vitest 707/707 verde.",
+    "title": "E2E: data-testid en dialogs cr\u00edticos + aserci\u00f3n de red en pago",
+    "description": "RecordPaymentDialog y CustomerFormDialog ahora exponen data-testid estables ('record-payment-dialog', 'record-payment-submit', 'customer-form-dialog') para selectores E2E robustos (en vez de regex por texto en espa\u00f1ol que rompe con cambios de copy). invoice-payment.spec.ts a\u00f1ade waitForResponse sobre POST /rest/v1/payments validando 2xx \u2014 antes el test solo verificaba el badge optimista, ahora detecta fallos reales de RLS o validaci\u00f3n. Vitest 707/707 verde.",
     "category": "improvement"
   },
   {
     "version": "6.67.0",
     "date": "2026-06-14",
     "type": "minor",
-    "title": "Auditoría de tests Fases 2-4 — cobertura CFDI, mutaciones y RLS",
-    "description": "Refactor de cancel-cfdi y refresh-cancellation-status a handlers puros inyectables + 19 nuevos handler_tests Deno (de 3 a 5 funciones con tests reales). 8 suites Vitest nuevas: hooks CFDI (useStampCfdi, useCancelCfdi, useRefreshCancellationStatus, syncInvoiceStatus), mutaciones (useBookingMutations, useBookingExtensions, useAssignForklift, useCreatePaymentBatch), y RLS (usePayments, useContracts, useCreditNotesForInvoice, useAuditLogs, useQuoteAssignments). useInvoices.rls.test.ts corregido a tableResolvers. Helper E2E getAuthToken/expectNoToastError extraído. Totales: Vitest 707/707 (+23 tests nuevos), Deno 54/54 (+19 nuevos).",
+    "title": "Auditor\u00eda de tests Fases 2-4 \u2014 cobertura CFDI, mutaciones y RLS",
+    "description": "Refactor de cancel-cfdi y refresh-cancellation-status a handlers puros inyectables + 19 nuevos handler_tests Deno (de 3 a 5 funciones con tests reales). 8 suites Vitest nuevas: hooks CFDI (useStampCfdi, useCancelCfdi, useRefreshCancellationStatus, syncInvoiceStatus), mutaciones (useBookingMutations, useBookingExtensions, useAssignForklift, useCreatePaymentBatch), y RLS (usePayments, useContracts, useCreditNotesForInvoice, useAuditLogs, useQuoteAssignments). useInvoices.rls.test.ts corregido a tableResolvers. Helper E2E getAuthToken/expectNoToastError extra\u00eddo. Totales: Vitest 707/707 (+23 tests nuevos), Deno 54/54 (+19 nuevos).",
     "category": "improvement"
   },
   {
     "version": "6.66.19",
     "date": "2026-06-14",
     "type": "minor",
-    "title": "Auditoría de tests Fase 1 — bugs activos cerrados",
-    "description": "3 bugs activos cerrados: guard 409 en stamp-cfdi (doble timbrado), auth check robusto en generate-recurring-invoices, teardown E2E diferenciado por estado del test. Tipos compartidos extraídos a _shared/types.ts. Plan completo en .lovable/plan.md.",
+    "title": "Auditor\u00eda de tests Fase 1 \u2014 bugs activos cerrados",
+    "description": "3 bugs activos cerrados: guard 409 en stamp-cfdi (doble timbrado), auth check robusto en generate-recurring-invoices, teardown E2E diferenciado por estado del test. Tipos compartidos extra\u00eddos a _shared/types.ts. Plan completo en .lovable/plan.md.",
     "category": "improvement"
   },
   {
     "version": "6.66.18",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Fix smoke test Deno — generate-invoice-pdf usa query param",
-    "description": "El test 'rejects without Authorization (401)' devolvía 400 porque enviaba invoice_id en el body POST, pero la Edge Function lee invoiceId desde query param. Ahora el test envía ?invoiceId=... en la URL, alineándose con la interfaz real. Sin cambios en producción.",
+    "title": "Fix smoke test Deno \u2014 generate-invoice-pdf usa query param",
+    "description": "El test 'rejects without Authorization (401)' devolv\u00eda 400 porque enviaba invoice_id en el body POST, pero la Edge Function lee invoiceId desde query param. Ahora el test env\u00eda ?invoiceId=... en la URL, aline\u00e1ndose con la interfaz real. Sin cambios en producci\u00f3n.",
     "category": "testing"
   },
   {
     "version": "6.66.17",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Teardown E2E — limpia pagos creados por flujos reales",
-    "description": "Fix en RPC e2e_teardown: ahora elimina pagos creados vía useCreatePayment (sin bandera is_e2e) cuando referencian facturas sembradas. Antes esos pagos huérfanos disparaban FK payments_invoice_id_fkey al borrar invoices, ensuciando la BD demo (el error solo se logueaba, no tumbaba CI).",
+    "title": "Teardown E2E \u2014 limpia pagos creados por flujos reales",
+    "description": "Fix en RPC e2e_teardown: ahora elimina pagos creados v\u00eda useCreatePayment (sin bandera is_e2e) cuando referencian facturas sembradas. Antes esos pagos hu\u00e9rfanos disparaban FK payments_invoice_id_fkey al borrar invoices, ensuciando la BD demo (el error solo se logueaba, no tumbaba CI).",
     "category": "infra"
   },
   {
     "version": "6.66.16",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 10 (entregas e inventario de refacciones)",
-    "description": "10 tests Vitest nuevos: useDeliveries (5 — create devuelve delivery_number generado por DB, update excluye id del patch, delete por id, errores con títulos localizados) y usePartInventoryMutations (5 — createPart, updatePart excluye id del patch, deletePart, errores de SKU duplicado y FK de maintenance_parts con títulos localizados).",
+    "title": "Auditor\u00eda de tests \u2014 Lote 10 (entregas e inventario de refacciones)",
+    "description": "10 tests Vitest nuevos: useDeliveries (5 \u2014 create devuelve delivery_number generado por DB, update excluye id del patch, delete por id, errores con t\u00edtulos localizados) y usePartInventoryMutations (5 \u2014 createPart, updatePart excluye id del patch, deletePart, errores de SKU duplicado y FK de maintenance_parts con t\u00edtulos localizados).",
     "category": "testing"
   },
   {
     "version": "6.66.15",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 9 (flota e inventario de refacciones)",
-    "description": "10 tests Vitest nuevos: useForkliftMutations (6 — create dispara status_log 'Registro inicial', default 'available', NO crea log si insert falla, deleteForklift usa RPC delete_forklift, updateStatus inserta from/to/note, assertRowsAffected) y useAddMaintenancePart (4 — costo = currentLogCost + qty*cost, defaults a 0, currentLogCost NO se persiste en maintenance_parts, error de insert no toca maintenance_logs, assertRowsAffected en log fantasma).",
+    "title": "Auditor\u00eda de tests \u2014 Lote 9 (flota e inventario de refacciones)",
+    "description": "10 tests Vitest nuevos: useForkliftMutations (6 \u2014 create dispara status_log 'Registro inicial', default 'available', NO crea log si insert falla, deleteForklift usa RPC delete_forklift, updateStatus inserta from/to/note, assertRowsAffected) y useAddMaintenancePart (4 \u2014 costo = currentLogCost + qty*cost, defaults a 0, currentLogCost NO se persiste en maintenance_parts, error de insert no toca maintenance_logs, assertRowsAffected en log fantasma).",
     "category": "testing"
   },
   {
     "version": "6.66.14",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 8 (mantenimiento y contratos)",
-    "description": "9 tests Vitest nuevos: useMaintenanceLogs (5 — create/update/delete, patch excluye id, mensajes de error localizados) y useContracts (4 — contract_number generado vía RPC next_contract_number, NO inserta si la numeración falla, propagación de duplicate, patch excluye id). Cubre riesgos críticos de bitácora de mantenimiento incompleta y contratos sin folio legal.",
+    "title": "Auditor\u00eda de tests \u2014 Lote 8 (mantenimiento y contratos)",
+    "description": "9 tests Vitest nuevos: useMaintenanceLogs (5 \u2014 create/update/delete, patch excluye id, mensajes de error localizados) y useContracts (4 \u2014 contract_number generado v\u00eda RPC next_contract_number, NO inserta si la numeraci\u00f3n falla, propagaci\u00f3n de duplicate, patch excluye id). Cubre riesgos cr\u00edticos de bit\u00e1cora de mantenimiento incompleta y contratos sin folio legal.",
     "category": "testing"
   },
   {
     "version": "6.66.13",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 7 (mutaciones CRM y daños)",
-    "description": "11 tests Vitest nuevos: useProspectMutations (7 — stage_order = max+1, vacío→0, propagación de errores en create/update/delete) y useDamageRecords (4 — insert tal cual, update excluye id del patch, títulos localizados en errores). Cubre el riesgo crítico de stage_order mal calculado (tarjetas kanban duplicadas) y daños registrados silenciosamente sin facturar al cliente.",
+    "title": "Auditor\u00eda de tests \u2014 Lote 7 (mutaciones CRM y da\u00f1os)",
+    "description": "11 tests Vitest nuevos: useProspectMutations (7 \u2014 stage_order = max+1, vac\u00edo\u21920, propagaci\u00f3n de errores en create/update/delete) y useDamageRecords (4 \u2014 insert tal cual, update excluye id del patch, t\u00edtulos localizados en errores). Cubre el riesgo cr\u00edtico de stage_order mal calculado (tarjetas kanban duplicadas) y da\u00f1os registrados silenciosamente sin facturar al cliente.",
     "category": "testing"
   },
   {
     "version": "6.66.12",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Auditoría de tests — Lote 6 (Playwright smoke endurecido + mobile viewport)",
-    "description": "smoke-nav.spec.ts ahora exige landmark visible (main/h1/h2) por ruta — cierra bug latente donde un body vacío pasaba como verde. Nuevo describe 'mobile viewport' con 5 tests a 375x812 sobre /, /customers, /bookings, /invoices, /fleet, validando ausencia de overflow horizontal (síntoma de tabla sin MobileCardList). Total: 31 rutas con landmark + 5 rutas mobile.",
+    "title": "Auditor\u00eda de tests \u2014 Lote 6 (Playwright smoke endurecido + mobile viewport)",
+    "description": "smoke-nav.spec.ts ahora exige landmark visible (main/h1/h2) por ruta \u2014 cierra bug latente donde un body vac\u00edo pasaba como verde. Nuevo describe 'mobile viewport' con 5 tests a 375x812 sobre /, /customers, /bookings, /invoices, /fleet, validando ausencia de overflow horizontal (s\u00edntoma de tabla sin MobileCardList). Total: 31 rutas con landmark + 5 rutas mobile.",
     "category": "testing"
   },
   {
     "version": "6.66.11",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 5 (schemas Zod + conciliación bancaria)",
-    "description": "22 tests Vitest nuevos: customerFormSchema (6 — name requerido, email opcional pero validado, campos CFDI 4.0), invoiceFormSchema/cfdiSchema/lineItemSchema (10 — partida válida, trim de description, quantity≥1, unit_price≥0, tipoCambio≥0, lineItems no vacíos), useBankLineActions (6 — confirm_bank_match con payment vs supplier, unmatch_bank_line, ignored con reason, propagación de errores RPC/RLS sin toast de éxito). Suite total: 634 tests verde (103 archivos).",
+    "title": "Auditor\u00eda de tests \u2014 Lote 5 (schemas Zod + conciliaci\u00f3n bancaria)",
+    "description": "22 tests Vitest nuevos: customerFormSchema (6 \u2014 name requerido, email opcional pero validado, campos CFDI 4.0), invoiceFormSchema/cfdiSchema/lineItemSchema (10 \u2014 partida v\u00e1lida, trim de description, quantity\u22651, unit_price\u22650, tipoCambio\u22650, lineItems no vac\u00edos), useBankLineActions (6 \u2014 confirm_bank_match con payment vs supplier, unmatch_bank_line, ignored con reason, propagaci\u00f3n de errores RPC/RLS sin toast de \u00e9xito). Suite total: 634 tests verde (103 archivos).",
     "category": "testing"
   },
   {
     "version": "6.66.10",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 4 (cobertura avanzada)",
-    "description": "14 tests Vitest nuevos: useCreateSupplierBill / useCancelSupplierBill (folio vía RPC, propagación de errores, reason→notes) y parseBankCsv casos negativos (archivo vacío, monto cero, paréntesis negativo, separador ';', $ y comas de miles, DD/MM/YY, mezcla válidas/inválidas conservando válidas). Smoke tests Deno para 2 Edge Functions previamente sin cobertura: generate-invoice-pdf y classify-feedback-report. Suite total: 618 tests verde.",
+    "title": "Auditor\u00eda de tests \u2014 Lote 4 (cobertura avanzada)",
+    "description": "14 tests Vitest nuevos: useCreateSupplierBill / useCancelSupplierBill (folio v\u00eda RPC, propagaci\u00f3n de errores, reason\u2192notes) y parseBankCsv casos negativos (archivo vac\u00edo, monto cero, par\u00e9ntesis negativo, separador ';', $ y comas de miles, DD/MM/YY, mezcla v\u00e1lidas/inv\u00e1lidas conservando v\u00e1lidas). Smoke tests Deno para 2 Edge Functions previamente sin cobertura: generate-invoice-pdf y classify-feedback-report. Suite total: 618 tests verde.",
     "category": "testing"
   },
   {
     "version": "6.66.9",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 3 (ciclo de vida + KPIs)",
-    "description": "17 tests Vitest nuevos: useMrrDetail (source of truth del KPI MRR, normaliza respuesta nula y redondea), useAccountsPayableKpis (buckets vencido/por vencer/USD→MXN/cancelled), useAgingReport (5 buckets 0-30-60-90-90+, agregación por proveedor, orden), rentalCalculation (febrero bisiesto 2024 vs 2025, cruce de año). Smoke tests Deno para 3 Edge Functions previamente sin cobertura: stamp-payment-complement (REP), cancel-credit-note y generate-recurring-maintenance. Suite total: 604 tests verde.",
+    "title": "Auditor\u00eda de tests \u2014 Lote 3 (ciclo de vida + KPIs)",
+    "description": "17 tests Vitest nuevos: useMrrDetail (source of truth del KPI MRR, normaliza respuesta nula y redondea), useAccountsPayableKpis (buckets vencido/por vencer/USD\u2192MXN/cancelled), useAgingReport (5 buckets 0-30-60-90-90+, agregaci\u00f3n por proveedor, orden), rentalCalculation (febrero bisiesto 2024 vs 2025, cruce de a\u00f1o). Smoke tests Deno para 3 Edge Functions previamente sin cobertura: stamp-payment-complement (REP), cancel-credit-note y generate-recurring-maintenance. Suite total: 604 tests verde.",
     "category": "testing"
   },
   {
     "version": "6.66.8",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de tests — Lote 2 (dinero/CFDI crítico)",
-    "description": "24 tests Vitest nuevos en hooks que mueven dinero o son irreversibles: useGenerateRecurringInvoices (motor MRR), useCreateCreditNote (nota de crédito + timbrado, incluye rollback cuando RPC/insert/stamp falla), useCreditNoteForm (regla exceedsMax con bordes de tolerancia 0.01), useRevertAuditLog (admin-only) y useBillApprovalMutations (approve/reject/reapprove). Mock de supabase extendido con functions.invoke. Suite total: 587 tests verde.",
+    "title": "Auditor\u00eda de tests \u2014 Lote 2 (dinero/CFDI cr\u00edtico)",
+    "description": "24 tests Vitest nuevos en hooks que mueven dinero o son irreversibles: useGenerateRecurringInvoices (motor MRR), useCreateCreditNote (nota de cr\u00e9dito + timbrado, incluye rollback cuando RPC/insert/stamp falla), useCreditNoteForm (regla exceedsMax con bordes de tolerancia 0.01), useRevertAuditLog (admin-only) y useBillApprovalMutations (approve/reject/reapprove). Mock de supabase extendido con functions.invoke. Suite total: 587 tests verde.",
     "category": "testing"
   },
   {
     "version": "6.66.7",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Auditoría de tests — Lote 1 (estabilización)",
-    "description": "Auditoría paralela (Vitest + Playwright + Edge Functions) con roadmap completo. Lote 1 ejecutado: fix de portalSeed que abortaba toda la suite, guard de SHARD_TOTAL en sharding (purgaba datos de hermanos vivos), landmark assertion en smoke-nav (páginas en blanco pasaban), waitForURL en global.setup, mocks completos de hooks de pago, tableResolvers en useBookings.rls, helper useFakeTimeMty y limpieza de duplicado.",
+    "title": "Auditor\u00eda de tests \u2014 Lote 1 (estabilizaci\u00f3n)",
+    "description": "Auditor\u00eda paralela (Vitest + Playwright + Edge Functions) con roadmap completo. Lote 1 ejecutado: fix de portalSeed que abortaba toda la suite, guard de SHARD_TOTAL en sharding (purgaba datos de hermanos vivos), landmark assertion en smoke-nav (p\u00e1ginas en blanco pasaban), waitForURL en global.setup, mocks completos de hooks de pago, tableResolvers en useBookings.rls, helper useFakeTimeMty y limpieza de duplicado.",
     "category": "testing"
   },
   {
@@ -777,7 +780,7 @@
     "date": "2026-06-13",
     "type": "patch",
     "title": "E2E portal: espera estable y seed idempotente",
-    "description": "Corregida la carrera del test del portal: ya no espera una URL que también matchea /portal/login, sino el shell real del portal antes de navegar a facturas. La RPC de seed limpia clientes E2E previos del mismo usuario para retries paralelos.",
+    "description": "Corregida la carrera del test del portal: ya no espera una URL que tambi\u00e9n matchea /portal/login, sino el shell real del portal antes de navegar a facturas. La RPC de seed limpia clientes E2E previos del mismo usuario para retries paralelos.",
     "category": "testing"
   },
   {
@@ -808,8 +811,8 @@
     "version": "6.66.2",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "CI: actualización de versiones de GitHub Actions",
-    "description": "Actualizadas todas las actions del workflow CI a sus versiones más recientes: actions/checkout@v4→@v6, actions/cache@v4→@v5, actions/upload-artifact@v4→@v7, mikepenz/action-junit-report@v5→@v6. oven-sh/setup-bun@v2 y denoland/setup-deno@v2 ya estaban en su última versión mayor.",
+    "title": "CI: actualizaci\u00f3n de versiones de GitHub Actions",
+    "description": "Actualizadas todas las actions del workflow CI a sus versiones m\u00e1s recientes: actions/checkout@v4\u2192@v6, actions/cache@v4\u2192@v5, actions/upload-artifact@v4\u2192@v7, mikepenz/action-junit-report@v5\u2192@v6. oven-sh/setup-bun@v2 y denoland/setup-deno@v2 ya estaban en su \u00faltima versi\u00f3n mayor.",
     "category": "infra"
   },
   {
@@ -824,65 +827,63 @@
     "version": "6.66.0",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Auditoría — Lote 7: cierre, limpieza de exports muertos y knip",
-    "description": "Cierre de la auditoría de calidad (7 lotes). Removido el export no usado PaymentMethodValue. Ajustado knip.json (removidos @playwright/test de ignoreDependencies y los entries redundantes src/main.tsx + playwright.config.ts). bunx knip = 0 hallazgos. Resumen final: 0 archivos de aplicación >300 LOC, 0 god components, +20 tests, 1 bugfix crítico (exchangeRate USD), scan de seguridad WARN intencional por arquitectura SECURITY DEFINER+has_role().",
+    "title": "Auditor\u00eda \u2014 Lote 7: cierre, limpieza de exports muertos y knip",
+    "description": "Cierre de la auditor\u00eda de calidad (7 lotes). Removido el export no usado PaymentMethodValue. Ajustado knip.json (removidos @playwright/test de ignoreDependencies y los entries redundantes src/main.tsx + playwright.config.ts). bunx knip = 0 hallazgos. Resumen final: 0 archivos de aplicaci\u00f3n >300 LOC, 0 god components, +20 tests, 1 bugfix cr\u00edtico (exchangeRate USD), scan de seguridad WARN intencional por arquitectura SECURITY DEFINER+has_role().",
     "category": "infra"
   },
   {
     "version": "6.65.0",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Auditoría — Lote 6: bugfix validación de tipo de cambio en pagos",
-    "description": "useRecordPaymentForm: corregido bug donde un exchangeRate de '0' o vacío con moneda USD pasaba la validación porque `Number(exchangeRate) || 1` lo coercionaba a 1 antes del check. Ahora la validación lee el valor crudo: si currency≠MXN y el parseo no es finito o ≤0, dispara notifyError('Tipo de cambio inválido') y aborta el submit. 2 tests nuevos cubren los casos exchangeRate='0' y exchangeRate='' con USD (8 tests totales en el hook, todos verdes). Sin cambios a esquema de DB ni a las 53 funciones SECURITY DEFINER del scan previo — confirmado por arquitectura RLS+has_role() documentada en security memory.",
+    "title": "Auditor\u00eda \u2014 Lote 6: bugfix validaci\u00f3n de tipo de cambio en pagos",
+    "description": "useRecordPaymentForm: corregido bug donde un exchangeRate de '0' o vac\u00edo con moneda USD pasaba la validaci\u00f3n porque `Number(exchangeRate) || 1` lo coercionaba a 1 antes del check. Ahora la validaci\u00f3n lee el valor crudo: si currency\u2260MXN y el parseo no es finito o \u22640, dispara notifyError('Tipo de cambio inv\u00e1lido') y aborta el submit. 2 tests nuevos cubren los casos exchangeRate='0' y exchangeRate='' con USD (8 tests totales en el hook, todos verdes). Sin cambios a esquema de DB ni a las 53 funciones SECURITY DEFINER del scan previo \u2014 confirmado por arquitectura RLS+has_role() documentada en security memory.",
     "category": "bugfix"
   },
   {
     "version": "6.64.0",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Auditoría — Lote 5: refactor RecordPaymentDialog y scan de seguridad",
-    "description": "RecordPaymentDialog.tsx (213→129 LOC) descompuesto: el hook useRecordPaymentForm vive ahora en src/features/invoices/hooks/invoices/useRecordPaymentForm.ts (84 LOC, cumple regla ≤80 con tolerancia), y la constante METHODS migró a src/features/invoices/lib/paymentMethods.ts como PAYMENT_METHODS (typed `as const`) + helper satCodeForMethod. 6 tests nuevos en useRecordPaymentForm.test.ts (estado inicial, reset por balance, sincronía method→SAT con 3 casos, validación monto≤0, payload USD). Scan de seguridad Supabase: 83 findings, todos WARN (53 SECURITY DEFINER ejecutables por usuarios autenticados, 29 ejecutables anónimamente, 1 extensión en schema public) — esperado por la arquitectura RLS con has_role(). 580 tests verdes, tsc limpio.",
+    "title": "Auditor\u00eda \u2014 Lote 5: refactor RecordPaymentDialog y scan de seguridad",
+    "description": "RecordPaymentDialog.tsx (213\u2192129 LOC) descompuesto: el hook useRecordPaymentForm vive ahora en src/features/invoices/hooks/invoices/useRecordPaymentForm.ts (84 LOC, cumple regla \u226480 con tolerancia), y la constante METHODS migr\u00f3 a src/features/invoices/lib/paymentMethods.ts como PAYMENT_METHODS (typed `as const`) + helper satCodeForMethod. 6 tests nuevos en useRecordPaymentForm.test.ts (estado inicial, reset por balance, sincron\u00eda method\u2192SAT con 3 casos, validaci\u00f3n monto\u22640, payload USD). Scan de seguridad Supabase: 83 findings, todos WARN (53 SECURITY DEFINER ejecutables por usuarios autenticados, 29 ejecutables an\u00f3nimamente, 1 extensi\u00f3n en schema public) \u2014 esperado por la arquitectura RLS con has_role(). 580 tests verdes, tsc limpio.",
     "category": "infra"
   },
   {
     "version": "6.63.0",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Auditoría — Lote 4: tipado del breadcrumb y magic numbers",
-    "description": "useBreadcrumbEntityLabel refactorizado: 9 `as string` eliminados (sustituidos por helper tipado pickString), `as never` reemplazado por boundary aislado con maybeSingle<Record<string, unknown>>() y comentario explicando el límite de tipos de Supabase. 4 tests nuevos (404 sin resolver, segmento no-UUID, factura existente, fleet con manufacturer+model). Magic numbers de rentalCalculation extraídos: DAYS_PER_WEEK=7 y DAYS_PER_MONTH_FALLBACK=30 con JSDoc. Baseline de coverage post-Lote-4: 14.14/13.17/10.19/14.55 (lines/branches/functions/statements); thresholds se mantienen en 13/12/9/13 — bumpearlos dejaría <0.5pp de margen, frágil para CI. 574 tests verdes.",
+    "title": "Auditor\u00eda \u2014 Lote 4: tipado del breadcrumb y magic numbers",
+    "description": "useBreadcrumbEntityLabel refactorizado: 9 `as string` eliminados (sustituidos por helper tipado pickString), `as never` reemplazado por boundary aislado con maybeSingle<Record<string, unknown>>() y comentario explicando el l\u00edmite de tipos de Supabase. 4 tests nuevos (404 sin resolver, segmento no-UUID, factura existente, fleet con manufacturer+model). Magic numbers de rentalCalculation extra\u00eddos: DAYS_PER_WEEK=7 y DAYS_PER_MONTH_FALLBACK=30 con JSDoc. Baseline de coverage post-Lote-4: 14.14/13.17/10.19/14.55 (lines/branches/functions/statements); thresholds se mantienen en 13/12/9/13 \u2014 bumpearlos dejar\u00eda <0.5pp de margen, fr\u00e1gil para CI. 574 tests verdes.",
     "category": "infra"
   },
   {
     "version": "6.62.0",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Auditoría — Lote 3: higiene mecánica",
-    "description": "Tipado estricto: 8 catch (e|err) ahora son catch (_: unknown) cumpliendo regla global. Dead code: removidos export type CreditNoteMotive, DeliveryFormSchemaValues, const insuranceAlertKeys y el barrel src/features/reports/index.ts (no consumido). Formato de moneda: DeliveryInfoCards ahora usa formatCurrency() en lugar de toLocaleString hardcoded (unifica con APP_CONFIG.LOCALE/CURRENCY). Fix crítico .gitignore: regla 'reports/' rompía ripgrep/knip al excluir src/features/reports/ — anclada a '/reports/'. 570 tests verdes, tsc limpio.",
+    "title": "Auditor\u00eda \u2014 Lote 3: higiene mec\u00e1nica",
+    "description": "Tipado estricto: 8 catch (e|err) ahora son catch (_: unknown) cumpliendo regla global. Dead code: removidos export type CreditNoteMotive, DeliveryFormSchemaValues, const insuranceAlertKeys y el barrel src/features/reports/index.ts (no consumido). Formato de moneda: DeliveryInfoCards ahora usa formatCurrency() en lugar de toLocaleString hardcoded (unifica con APP_CONFIG.LOCALE/CURRENCY). Fix cr\u00edtico .gitignore: regla 'reports/' romp\u00eda ripgrep/knip al excluir src/features/reports/ \u2014 anclada a '/reports/'. 570 tests verdes, tsc limpio.",
     "category": "infra"
   },
   {
     "version": "6.61.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría — Lote 2: cobertura real de dominio puro",
-    "description": "44 tests nuevos sobre lógica de máxima criticidad: rentalCalculation (cálculos día/semana/mes con currency.js, 11 escenarios), invoiceTotals (descuentos %/$, NaN, IVA 16/8/0%, 19 escenarios), syncInvoiceStatus (paid/partial/sent/idempotencia, 7 escenarios) y smoke de los 5 Documents PDF (Quote, Invoice ±CFDI, CustomerStatement, IncomeStatement ±comparativo, Contract full) vía mock de @react-pdf/renderer. Suite total 526 → 570 tests. Coverage 11.6/10.4/8.2/11.8 → 13.98/12.92/10.08/14.36. Thresholds Vitest suben +2pp en cada métrica (lines/statements 11→13, branches 10→12, functions 8→9).",
+    "title": "Auditor\u00eda \u2014 Lote 2: cobertura real de dominio puro",
+    "description": "44 tests nuevos sobre l\u00f3gica de m\u00e1xima criticidad: rentalCalculation (c\u00e1lculos d\u00eda/semana/mes con currency.js, 11 escenarios), invoiceTotals (descuentos %/$, NaN, IVA 16/8/0%, 19 escenarios), syncInvoiceStatus (paid/partial/sent/idempotencia, 7 escenarios) y smoke de los 5 Documents PDF (Quote, Invoice \u00b1CFDI, CustomerStatement, IncomeStatement \u00b1comparativo, Contract full) v\u00eda mock de @react-pdf/renderer. Suite total 526 \u2192 570 tests. Coverage 11.6/10.4/8.2/11.8 \u2192 13.98/12.92/10.08/14.36. Thresholds Vitest suben +2pp en cada m\u00e9trica (lines/statements 11\u219213, branches 10\u219212, functions 8\u21929).",
     "category": "infra"
   },
   {
-
     "version": "6.60.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría CI — Lote 1: versiones de actions y endurecimiento de cron",
-    "description": "Pin de versiones estables en .github/workflows/ci.yml: actions/checkout@v6→@v4, actions/upload-artifact@v7→@v4, mikepenz/action-junit-report@v6→@v5 (las versiones previas no existen y rompían el pipeline con exit 1 silencioso). Añadido FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true a nivel workflow para silenciar warnings de deprecación de Node 20. Endurecida la edge function generate-recurring-maintenance: reemplazado authHeader.includes(serviceKey) por comparación estricta de bearer === CRON_SECRET (o serviceKey como fallback), eliminando el riesgo de bypass por substring. Acompaña al plan de auditoría consolidado (.lovable/plan.md).",
+    "title": "Auditor\u00eda CI \u2014 Lote 1: versiones de actions y endurecimiento de cron",
+    "description": "Pin de versiones estables en .github/workflows/ci.yml: actions/checkout@v6\u2192@v4, actions/upload-artifact@v7\u2192@v4, mikepenz/action-junit-report@v6\u2192@v5 (las versiones previas no existen y romp\u00edan el pipeline con exit 1 silencioso). A\u00f1adido FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true a nivel workflow para silenciar warnings de deprecaci\u00f3n de Node 20. Endurecida la edge function generate-recurring-maintenance: reemplazado authHeader.includes(serviceKey) por comparaci\u00f3n estricta de bearer === CRON_SECRET (o serviceKey como fallback), eliminando el riesgo de bypass por substring. Acompa\u00f1a al plan de auditor\u00eda consolidado (.lovable/plan.md).",
     "category": "infra"
   },
   {
-
     "version": "6.59.2",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Fix CI — imports del PDF de estado de resultados",
+    "title": "Fix CI \u2014 imports del PDF de estado de resultados",
     "description": "Corregidos los imports de tipos en el generador PDF de Estado de Resultados para apuntar al hook real de reportes y evitar el TS2307/TS7006 en CI.",
     "category": "infra"
   },
@@ -890,112 +891,112 @@
     "version": "6.59.1",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Cero warnings — refactor final de complejidad",
-    "description": "Eliminados los 3 warnings residuales de complexity. SupplierPaymentRow: extraídos SupplierPaymentRepSection, SupplierPaymentRepReceived y SupplierPaymentRejectDialog. BankLineDetailSheet: extraído BankLineActions con sub-bloques por estado. InvoiceDetail: extraído InvoiceDetailBadges. Lint baja a 0 warnings totales. tsc limpio, 526 tests pasan.",
+    "title": "Cero warnings \u2014 refactor final de complejidad",
+    "description": "Eliminados los 3 warnings residuales de complexity. SupplierPaymentRow: extra\u00eddos SupplierPaymentRepSection, SupplierPaymentRepReceived y SupplierPaymentRejectDialog. BankLineDetailSheet: extra\u00eddo BankLineActions con sub-bloques por estado. InvoiceDetail: extra\u00eddo InvoiceDetailBadges. Lint baja a 0 warnings totales. tsc limpio, 526 tests pasan.",
     "category": "infra"
   },
   {
     "version": "6.59.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de warnings — react-refresh, max-lines y complexity",
-    "description": "Lint baja de 31 a 3 warnings. Ola 1 (react-refresh): separados PageActionsContext y RepBadge en archivos propios. Ola 2 (max-lines): extraídos sub-componentes en RegisterSupplierPaymentDialog y RecordPaymentDialog. Ola 3 (complexity): refactor de 22 funciones con helpers puros (parseBankCsv, deriveErrorCode, useSupplierBills, useAccountsPayableKpis, useAgingReport, useExportablePayables, useCashFlowProjection, syncInvoiceStatus, backfillStampSnapshot, InvoiceDetailActions, QuoteDetailActions, InvoiceDetail, ContractDetail, CalendarPage, BillApprovalSection, SupplierBillDetailSheet, BankAccountFormDialog, BankLineDetailSheet, SupplierFormDialog, useHotkeys). tsc limpio, 526 tests pasan. Quedan 3 warnings de complexity en SupplierPaymentRow, BankLineDetailSheet e InvoiceDetail, marcados como deuda técnica.",
+    "title": "Auditor\u00eda de warnings \u2014 react-refresh, max-lines y complexity",
+    "description": "Lint baja de 31 a 3 warnings. Ola 1 (react-refresh): separados PageActionsContext y RepBadge en archivos propios. Ola 2 (max-lines): extra\u00eddos sub-componentes en RegisterSupplierPaymentDialog y RecordPaymentDialog. Ola 3 (complexity): refactor de 22 funciones con helpers puros (parseBankCsv, deriveErrorCode, useSupplierBills, useAccountsPayableKpis, useAgingReport, useExportablePayables, useCashFlowProjection, syncInvoiceStatus, backfillStampSnapshot, InvoiceDetailActions, QuoteDetailActions, InvoiceDetail, ContractDetail, CalendarPage, BillApprovalSection, SupplierBillDetailSheet, BankAccountFormDialog, BankLineDetailSheet, SupplierFormDialog, useHotkeys). tsc limpio, 526 tests pasan. Quedan 3 warnings de complexity en SupplierPaymentRow, BankLineDetailSheet e InvoiceDetail, marcados como deuda t\u00e9cnica.",
     "category": "infra"
   },
   {
     "version": "6.58.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor cross-feature — barrels públicos por feature",
-    "description": "Creados barrels `src/features/<feature>/index.ts` en 23 features que ahora exponen su API pública. Migrados 128 archivos consumidores a importar desde el barrel en lugar de rutas profundas. Convertidos 287 imports intra-feature de alias absoluto `@/features/X/...` a rutas relativas. 164 warnings de `no-restricted-imports` resueltos (0 restantes). tsc limpio, 526 tests pasan.",
+    "title": "Refactor cross-feature \u2014 barrels p\u00fablicos por feature",
+    "description": "Creados barrels `src/features/<feature>/index.ts` en 23 features que ahora exponen su API p\u00fablica. Migrados 128 archivos consumidores a importar desde el barrel en lugar de rutas profundas. Convertidos 287 imports intra-feature de alias absoluto `@/features/X/...` a rutas relativas. 164 warnings de `no-restricted-imports` resueltos (0 restantes). tsc limpio, 526 tests pasan.",
     "category": "infra"
   },
   {
     "version": "6.57.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de CI — MEDIUM y LOW resueltos",
-    "description": "Coverage de Vitest activada en CI con upload artifact (umbrales del config ahora son gate real). Eliminado src/test/example.test.ts. actions/checkout@v5 → @v6. noUnusedLocals y noUnusedParameters activados en tsconfig.app.json; corregidos 24 errores de imports/params muertos en 20 archivos. knip.json ahora incluye src/main.tsx como entry productivo.",
+    "title": "Auditor\u00eda de CI \u2014 MEDIUM y LOW resueltos",
+    "description": "Coverage de Vitest activada en CI con upload artifact (umbrales del config ahora son gate real). Eliminado src/test/example.test.ts. actions/checkout@v5 \u2192 @v6. noUnusedLocals y noUnusedParameters activados en tsconfig.app.json; corregidos 24 errores de imports/params muertos en 20 archivos. knip.json ahora incluye src/main.tsx como entry productivo.",
     "category": "infra"
   },
   {
     "version": "6.56.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Auditoría de CI — críticos y altos resueltos",
-    "description": "Pre-crea reports/ antes de vitest (quality y rls), condiciona globalTeardown de Playwright al último shard (elimina race de purge_e2e_data), test:rls ahora emite JUnit y se publica como check 'RLS results', cache de bun y browsers de Playwright, needs:[quality] en rls y e2e, bun pineado 1.2.x, Deno v2.x, permisos por job, workflow_dispatch, knip informativo con continue-on-error.",
+    "title": "Auditor\u00eda de CI \u2014 cr\u00edticos y altos resueltos",
+    "description": "Pre-crea reports/ antes de vitest (quality y rls), condiciona globalTeardown de Playwright al \u00faltimo shard (elimina race de purge_e2e_data), test:rls ahora emite JUnit y se publica como check 'RLS results', cache de bun y browsers de Playwright, needs:[quality] en rls y e2e, bun pineado 1.2.x, Deno v2.x, permisos por job, workflow_dispatch, knip informativo con continue-on-error.",
     "category": "infra"
   },
   {
     "version": "6.55.1",
     "date": "2026-06-13",
     "type": "patch",
-    "title": "Limpieza de archivos huérfanos detectados por Knip",
-    "description": "Se eliminaron 7 archivos sin consumidores detectados por el análisis estático de Knip: src/features/{bookings,crm,customers,fleet,invoices}/index.ts (barrels no adoptados), src/features/crm/lib/queryKeys.ts (query keys sin referencias), src/lib/domain/sharedTypes.ts (tipos compartidos sin consumidores). Directorio src/features/crm/lib/ vacío también eliminado. Esto desbloquea el job de CI de Knip sin agregar excepciones al linter.",
+    "title": "Limpieza de archivos hu\u00e9rfanos detectados por Knip",
+    "description": "Se eliminaron 7 archivos sin consumidores detectados por el an\u00e1lisis est\u00e1tico de Knip: src/features/{bookings,crm,customers,fleet,invoices}/index.ts (barrels no adoptados), src/features/crm/lib/queryKeys.ts (query keys sin referencias), src/lib/domain/sharedTypes.ts (tipos compartidos sin consumidores). Directorio src/features/crm/lib/ vac\u00edo tambi\u00e9n eliminado. Esto desbloquea el job de CI de Knip sin agregar excepciones al linter.",
     "category": "cleanup"
   },
   {
     "version": "6.55.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor arquitectónico — paso 10: cobertura de tests para quotes",
-    "description": "Cierra el plan de auditoría. Se añadieron 23 tests unitarios al feature quotes (el más complejo de los críticos): quoteFormBuilders (buildSaleItems/buildRentalItems, 6 tests), quoteFormValidation (validateQuoteForm con notifyError mockeado, 6 tests), quoteFormPrefillHelpers (applyBaseFields, applyLogistics, applySaleLines, applyRentalLines, defaultValidUntil — 11 tests). Fleet y maintenance ya contaban con cobertura existente. Sin cambios de UI ni de runtime.",
+    "title": "Refactor arquitect\u00f3nico \u2014 paso 10: cobertura de tests para quotes",
+    "description": "Cierra el plan de auditor\u00eda. Se a\u00f1adieron 23 tests unitarios al feature quotes (el m\u00e1s complejo de los cr\u00edticos): quoteFormBuilders (buildSaleItems/buildRentalItems, 6 tests), quoteFormValidation (validateQuoteForm con notifyError mockeado, 6 tests), quoteFormPrefillHelpers (applyBaseFields, applyLogistics, applySaleLines, applyRentalLines, defaultValidUntil \u2014 11 tests). Fleet y maintenance ya contaban con cobertura existente. Sin cambios de UI ni de runtime.",
     "category": "refactor"
   },
   {
     "version": "6.54.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor arquitectónico — paso 9: estilos PDF divididos por familia de documento",
-    "description": "src/lib/pdf/theme/styles.ts (360 LOC, el archivo de aplicación más grande) se dividió en carpeta styles/ con dos archivos enfocados: shared.ts (sharedStyles usados por invoice, quote, statement e income) y contract.ts (contractStyles exclusivos de contrato, checklist y pagaré). Barrel index.ts mantiene el import @/lib/pdf/theme/styles intacto: cero cambios en los 14 consumidores. Sin cambios visuales.",
+    "title": "Refactor arquitect\u00f3nico \u2014 paso 9: estilos PDF divididos por familia de documento",
+    "description": "src/lib/pdf/theme/styles.ts (360 LOC, el archivo de aplicaci\u00f3n m\u00e1s grande) se dividi\u00f3 en carpeta styles/ con dos archivos enfocados: shared.ts (sharedStyles usados por invoice, quote, statement e income) y contract.ts (contractStyles exclusivos de contrato, checklist y pagar\u00e9). Barrel index.ts mantiene el import @/lib/pdf/theme/styles intacto: cero cambios en los 14 consumidores. Sin cambios visuales.",
     "category": "refactor"
   },
   {
     "version": "6.53.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor arquitectónico — paso 8: src/lib/ raíz reorganizado",
-    "description": "Se separaron utilidades sueltas por dominio: formatCurrency → src/lib/format/, money → src/lib/money/ (index.ts, @/lib/money sigue resolviendo), routes y routes-config → nueva top-level src/routes/. 102 archivos consumidores actualizados con rewrite automatizado, tests reubicados a sus nuevas carpetas. Sin cambios de UI ni de API.",
+    "title": "Refactor arquitect\u00f3nico \u2014 paso 8: src/lib/ ra\u00edz reorganizado",
+    "description": "Se separaron utilidades sueltas por dominio: formatCurrency \u2192 src/lib/format/, money \u2192 src/lib/money/ (index.ts, @/lib/money sigue resolviendo), routes y routes-config \u2192 nueva top-level src/routes/. 102 archivos consumidores actualizados con rewrite automatizado, tests reubicados a sus nuevas carpetas. Sin cambios de UI ni de API.",
     "category": "refactor"
   },
   {
     "version": "6.52.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor arquitectónico — paso 7: src/components/ reorganizado en 4 subcarpetas",
-    "description": "Los 22 archivos sueltos en src/components/ se agruparon por responsabilidad: layout/ (ListPageLayout, PageHeader, DetailPageHeader, FormPageHeader, PageTransition, MobileCardList), forms/ (SearchBar, DatePickerField, DateRangePickerField, DragDropImageUploader, FormActions, InfoRow), feedback/ (EmptyState, EmptyRow, TableSkeleton, StatusBadge, TablePagination, KeyboardShortcutsDialog, SwipeableCard), domain/ (ReadOnlyLineItemsTable, TotalsSummary, NotesCard). 103 archivos consumidores actualizados automáticamente. Sin cambios de UI ni de API.",
+    "title": "Refactor arquitect\u00f3nico \u2014 paso 7: src/components/ reorganizado en 4 subcarpetas",
+    "description": "Los 22 archivos sueltos en src/components/ se agruparon por responsabilidad: layout/ (ListPageLayout, PageHeader, DetailPageHeader, FormPageHeader, PageTransition, MobileCardList), forms/ (SearchBar, DatePickerField, DateRangePickerField, DragDropImageUploader, FormActions, InfoRow), feedback/ (EmptyState, EmptyRow, TableSkeleton, StatusBadge, TablePagination, KeyboardShortcutsDialog, SwipeableCard), domain/ (ReadOnlyLineItemsTable, TotalsSummary, NotesCard). 103 archivos consumidores actualizados autom\u00e1ticamente. Sin cambios de UI ni de API.",
     "category": "refactor"
   },
   {
     "version": "6.51.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor arquitectónico — paso 6: separación de hooks *Logic",
-    "description": "useBookingActionsLogic se descompuso en tres hooks atómicos (useBookingDialogsState para estado de UI, useBookingActions para mutaciones + side-effects, useExtendBookingPreview para cálculo derivado); el orquestador delgado mantiene compatibilidad con BookingActions/BookingActionDialogs y baja de 102 a 49 líneas. useInvoiceFormLogic ya estaba descompuesto en 4 sub-hooks; useForkliftFormLogic y useContractFormPrefill están dentro del límite ≤80 LOC. Sin cambios de UI ni de lógica.",
+    "title": "Refactor arquitect\u00f3nico \u2014 paso 6: separaci\u00f3n de hooks *Logic",
+    "description": "useBookingActionsLogic se descompuso en tres hooks at\u00f3micos (useBookingDialogsState para estado de UI, useBookingActions para mutaciones + side-effects, useExtendBookingPreview para c\u00e1lculo derivado); el orquestador delgado mantiene compatibilidad con BookingActions/BookingActionDialogs y baja de 102 a 49 l\u00edneas. useInvoiceFormLogic ya estaba descompuesto en 4 sub-hooks; useForkliftFormLogic y useContractFormPrefill est\u00e1n dentro del l\u00edmite \u226480 LOC. Sin cambios de UI ni de l\u00f3gica.",
     "category": "refactor"
   },
   {
     "version": "6.50.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor arquitectónico — paso 5: hook useResourceList",
-    "description": "Nuevo useResourceList<T> que combina useListFilters + useLiftgoTable y elimina el boilerplate repetido en cada página de listado. Migradas como piloto BookingsPage (modo interno) e InvoicesPage (modo externalFiltered para preservar useInvoicesFilters con rango de fechas). Sin cambios de UI ni de lógica; patrón listo para extenderse al resto de páginas.",
+    "title": "Refactor arquitect\u00f3nico \u2014 paso 5: hook useResourceList",
+    "description": "Nuevo useResourceList<T> que combina useListFilters + useLiftgoTable y elimina el boilerplate repetido en cada p\u00e1gina de listado. Migradas como piloto BookingsPage (modo interno) e InvoicesPage (modo externalFiltered para preservar useInvoicesFilters con rango de fechas). Sin cambios de UI ni de l\u00f3gica; patr\u00f3n listo para extenderse al resto de p\u00e1ginas.",
     "category": "refactor"
   },
   {
     "version": "6.49.0",
     "date": "2026-06-13",
     "type": "minor",
-    "title": "Refactor arquitectónico — paso 4: reagrupación de hooks de invoices",
-    "description": "features/invoices/hooks/invoices/ se dividió por dominio funcional: cfdi/ (useCancelCfdi, useStampCfdi, useRefreshCancellationStatus, usePaymentComplement), recurring/ (useGenerateRecurringInvoices), pdf/ (useInvoicePdfDownload) y collections/ (useCollectionNotes). 9 archivos consumidores actualizados a las nuevas rutas. Sin cambios de UI ni de lógica; sólo reorganización para reducir el ruido cognitivo de una carpeta plana con 13 hooks mezclando 4 dominios distintos.",
+    "title": "Refactor arquitect\u00f3nico \u2014 paso 4: reagrupaci\u00f3n de hooks de invoices",
+    "description": "features/invoices/hooks/invoices/ se dividi\u00f3 por dominio funcional: cfdi/ (useCancelCfdi, useStampCfdi, useRefreshCancellationStatus, usePaymentComplement), recurring/ (useGenerateRecurringInvoices), pdf/ (useInvoicePdfDownload) y collections/ (useCollectionNotes). 9 archivos consumidores actualizados a las nuevas rutas. Sin cambios de UI ni de l\u00f3gica; s\u00f3lo reorganizaci\u00f3n para reducir el ruido cognitivo de una carpeta plana con 13 hooks mezclando 4 dominios distintos.",
     "category": "refactor"
   },
   {
     "version": "6.48.0",
     "date": "2026-06-12",
     "type": "minor",
-    "title": "Refactor arquitectónico — pasos 1 a 3 del plan de auditoría",
-    "description": "Paso 1: migración de hooks a las factories de query keys creadas en v6.47.0. 18 hooks de invoices/bookings/fleet/customers ahora usan invoiceKeys/bookingKeys/forkliftKeys/customerKeys/paymentKeys/creditNoteKeys/collectionNoteKeys en lugar de literales sueltos, corrigiendo el bug latente donde useInvoice(id) usaba ['invoices', id] y colisionaba con la lista. Paso 2: 5 esquemas Zod sacados de componentes de UI a sus respectivos features/*/lib/*Schema.ts (DeliveryFormDialog, FiscalDataTab, CompanyLogoTab, RegisterSupplierPaymentDialog, useReturnInspectionDialog). Paso 3: barrels públicos src/features/{invoices,bookings,fleet,customers,crm}/index.ts para que consumidores cross-feature importen sólo la API pública. Sin cambios de UI ni de lógica.",
+    "title": "Refactor arquitect\u00f3nico \u2014 pasos 1 a 3 del plan de auditor\u00eda",
+    "description": "Paso 1: migraci\u00f3n de hooks a las factories de query keys creadas en v6.47.0. 18 hooks de invoices/bookings/fleet/customers ahora usan invoiceKeys/bookingKeys/forkliftKeys/customerKeys/paymentKeys/creditNoteKeys/collectionNoteKeys en lugar de literales sueltos, corrigiendo el bug latente donde useInvoice(id) usaba ['invoices', id] y colisionaba con la lista. Paso 2: 5 esquemas Zod sacados de componentes de UI a sus respectivos features/*/lib/*Schema.ts (DeliveryFormDialog, FiscalDataTab, CompanyLogoTab, RegisterSupplierPaymentDialog, useReturnInspectionDialog). Paso 3: barrels p\u00fablicos src/features/{invoices,bookings,fleet,customers,crm}/index.ts para que consumidores cross-feature importen s\u00f3lo la API p\u00fablica. Sin cambios de UI ni de l\u00f3gica.",
     "category": "refactor"
   },
   {
@@ -1003,15 +1004,15 @@
     "date": "2026-06-12",
     "type": "patch",
     "title": "Estado de Resultados blindado contra datos de pruebas",
-    "description": "El reporte mostraba 'Equipos sin costo de adquisición' apuntando a montacargas E2E (E2E-FL-...) que sobrevivieron al teardown de Playwright. Tres capas de defensa: (1) get_income_statement ahora ignora facturas, reservas, cotizaciones y montacargas marcados como is_e2e=true; (2) el fixture de seed envuelve el teardown en try/finally para que corra aunque el test falle o el worker muera; (3) playwright.config registra un globalTeardown que ejecuta purge_e2e_data al terminar la suite como red final. Además se borraron de la BD los 4 equipos + cadena (bookings/invoices/quotes/customers/models) y 28 eventos del feed que estaban contaminando el P&L.",
+    "description": "El reporte mostraba 'Equipos sin costo de adquisici\u00f3n' apuntando a montacargas E2E (E2E-FL-...) que sobrevivieron al teardown de Playwright. Tres capas de defensa: (1) get_income_statement ahora ignora facturas, reservas, cotizaciones y montacargas marcados como is_e2e=true; (2) el fixture de seed envuelve el teardown en try/finally para que corra aunque el test falle o el worker muera; (3) playwright.config registra un globalTeardown que ejecuta purge_e2e_data al terminar la suite como red final. Adem\u00e1s se borraron de la BD los 4 equipos + cadena (bookings/invoices/quotes/customers/models) y 28 eventos del feed que estaban contaminando el P&L.",
     "category": "fix"
   },
   {
     "version": "6.47.0",
     "date": "2026-06-12",
     "type": "minor",
-    "title": "Auditoría de arquitectura — fundamentos del refactor",
-    "description": "Auditoría completa del código base entregada en .lovable/plan.md (sin hallazgos críticos). Como paso 1 del plan se introducen factories de query keys tipadas por feature (invoices, bookings, fleet, customers, crm) para eliminar inconsistencias detectadas como ['invoice', id] vs ['invoices', id]. Como paso 2 se agrega regla ESLint (warning) que desincentiva imports profundos cross-feature en hooks/lib, preparando barrels públicos. Sin cambios de UI ni de lógica de negocio; la migración hook-por-hook y la reorganización de invoices/hooks/invoices/ son pasos incrementales agendados.",
+    "title": "Auditor\u00eda de arquitectura \u2014 fundamentos del refactor",
+    "description": "Auditor\u00eda completa del c\u00f3digo base entregada en .lovable/plan.md (sin hallazgos cr\u00edticos). Como paso 1 del plan se introducen factories de query keys tipadas por feature (invoices, bookings, fleet, customers, crm) para eliminar inconsistencias detectadas como ['invoice', id] vs ['invoices', id]. Como paso 2 se agrega regla ESLint (warning) que desincentiva imports profundos cross-feature en hooks/lib, preparando barrels p\u00fablicos. Sin cambios de UI ni de l\u00f3gica de negocio; la migraci\u00f3n hook-por-hook y la reorganizaci\u00f3n de invoices/hooks/invoices/ son pasos incrementales agendados.",
     "category": "refactor"
   },
   {
@@ -1019,15 +1020,15 @@
     "date": "2026-06-12",
     "type": "patch",
     "title": "Clientes E2E ocultos y aislados desde UI",
-    "description": "Se eliminó la contaminación visible en Clientes y se reforzó el test customer-create: ahora activa una marca local de Playwright para que las altas hechas desde la UI nazcan con is_e2e=true y e2e_scope, verifica esa bandera contra la BD y las borra por id. Además, la consulta de clientes oculta residuos legacy con prefijo E2E o correo e2e-ui@test.local aunque no estén marcados correctamente.",
+    "description": "Se elimin\u00f3 la contaminaci\u00f3n visible en Clientes y se reforz\u00f3 el test customer-create: ahora activa una marca local de Playwright para que las altas hechas desde la UI nazcan con is_e2e=true y e2e_scope, verifica esa bandera contra la BD y las borra por id. Adem\u00e1s, la consulta de clientes oculta residuos legacy con prefijo E2E o correo e2e-ui@test.local aunque no est\u00e9n marcados correctamente.",
     "category": "fix"
   },
   {
     "version": "6.46.7",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Tests E2E: prevenir contaminación de datos",
-    "description": "Se corrigieron las causas raíz que dejaban registros de pruebas end-to-end en la BD demo. (1) La función e2e_teardown ahora también borra eventos relacionados en activity_feed dentro del scope del escenario, evitando que queden 1,400+ eventos fantasma por corrida. (2) El fixture de Playwright dejó de tragarse errores de teardown con try/catch: ahora cualquier fallo en la limpieza hace fallar el test para detectar la contaminación en CI antes de propagarla a producción. (3) El test customer-create marca la fila como is_e2e=true antes de borrarla, como red de seguridad para que purge_e2e_data() pueda recogerla en caso de un teardown parcial.",
+    "title": "Tests E2E: prevenir contaminaci\u00f3n de datos",
+    "description": "Se corrigieron las causas ra\u00edz que dejaban registros de pruebas end-to-end en la BD demo. (1) La funci\u00f3n e2e_teardown ahora tambi\u00e9n borra eventos relacionados en activity_feed dentro del scope del escenario, evitando que queden 1,400+ eventos fantasma por corrida. (2) El fixture de Playwright dej\u00f3 de tragarse errores de teardown con try/catch: ahora cualquier fallo en la limpieza hace fallar el test para detectar la contaminaci\u00f3n en CI antes de propagarla a producci\u00f3n. (3) El test customer-create marca la fila como is_e2e=true antes de borrarla, como red de seguridad para que purge_e2e_data() pueda recogerla en caso de un teardown parcial.",
     "category": "fix"
   },
   {
@@ -1035,46 +1036,46 @@
     "date": "2026-06-12",
     "type": "patch",
     "title": "Purga de datos E2E contaminados",
-    "description": "Se eliminaron 1,533 registros marcados con la bandera is_e2e (1,462 en activity_feed, 11 pagos, 12 facturas, 12 reservas, 12 cotizaciones, 12 montacargas, 12 modelos de equipo y 12 clientes) que provenían de corridas de pruebas end-to-end y habían quedado en la base de datos. Se añadió la función RPC purge_e2e_data() (restringida a rol admin vía has_role) que ejecuta la limpieza de forma atómica respetando el orden de llaves foráneas y devuelve un JSON con el conteo borrado por tabla para futuras corridas seguras.",
+    "description": "Se eliminaron 1,533 registros marcados con la bandera is_e2e (1,462 en activity_feed, 11 pagos, 12 facturas, 12 reservas, 12 cotizaciones, 12 montacargas, 12 modelos de equipo y 12 clientes) que proven\u00edan de corridas de pruebas end-to-end y hab\u00edan quedado en la base de datos. Se a\u00f1adi\u00f3 la funci\u00f3n RPC purge_e2e_data() (restringida a rol admin v\u00eda has_role) que ejecuta la limpieza de forma at\u00f3mica respetando el orden de llaves for\u00e1neas y devuelve un JSON con el conteo borrado por tabla para futuras corridas seguras.",
     "category": "fix"
   },
   {
     "version": "6.46.5",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Guardrail ESLint: no Supabase en componentes (paso 8 auditoría)",
-    "description": "Se añadió una regla no-restricted-imports que prohíbe importar @/integrations/supabase/client desde src/features/**/pages/**, src/features/**/components/** y src/components/**. Toda I/O debe pasar por un hook bajo features/*/hooks. Única excepción documentada: AuthPage (flujo de login pre-sesión). Paso 6 (DRY de RPCs) ya quedó cubierto por la vista v_invoices_with_balance del paso 1, y Paso 9 (TODOs) ya estaba resuelto (0 TODO/FIXME en el código).",
+    "title": "Guardrail ESLint: no Supabase en componentes (paso 8 auditor\u00eda)",
+    "description": "Se a\u00f1adi\u00f3 una regla no-restricted-imports que proh\u00edbe importar @/integrations/supabase/client desde src/features/**/pages/**, src/features/**/components/** y src/components/**. Toda I/O debe pasar por un hook bajo features/*/hooks. \u00danica excepci\u00f3n documentada: AuthPage (flujo de login pre-sesi\u00f3n). Paso 6 (DRY de RPCs) ya qued\u00f3 cubierto por la vista v_invoices_with_balance del paso 1, y Paso 9 (TODOs) ya estaba resuelto (0 TODO/FIXME en el c\u00f3digo).",
     "category": "improvement"
   },
   {
     "version": "6.46.4",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Contratos cross-feature (paso 2 auditoría)",
-    "description": "Se creó src/lib/domain/sharedTypes.ts como barril único de tipos de dominio compartidos entre features (Customer, Forklift, Booking, BookingWithForklift, EquipmentModel, Supplier). Documentado en architecture.md §22: una feature no debe importar hooks internos de otra sólo para obtener un tipo; debe importarlo desde sharedTypes. Sin cambios en consumidores existentes (migración gradual).",
+    "title": "Contratos cross-feature (paso 2 auditor\u00eda)",
+    "description": "Se cre\u00f3 src/lib/domain/sharedTypes.ts como barril \u00fanico de tipos de dominio compartidos entre features (Customer, Forklift, Booking, BookingWithForklift, EquipmentModel, Supplier). Documentado en architecture.md \u00a722: una feature no debe importar hooks internos de otra s\u00f3lo para obtener un tipo; debe importarlo desde sharedTypes. Sin cambios en consumidores existentes (migraci\u00f3n gradual).",
     "category": "improvement"
   },
   {
     "version": "6.46.3",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Documentación arquitectónica (paso 7 auditoría)",
-    "description": "Se actualizó architecture.md §19 con los nuevos módulos de dominio (invoiceTotals, rentalCalculation, useInvoicesWithBalance) y se reforzó el guardrail ESLint que prohíbe aritmética monetaria fuera de invoiceTotals.ts. Documenta el patrón de barril de re-export usado en los pasos 4 y 5.",
+    "title": "Documentaci\u00f3n arquitect\u00f3nica (paso 7 auditor\u00eda)",
+    "description": "Se actualiz\u00f3 architecture.md \u00a719 con los nuevos m\u00f3dulos de dominio (invoiceTotals, rentalCalculation, useInvoicesWithBalance) y se reforz\u00f3 el guardrail ESLint que proh\u00edbe aritm\u00e9tica monetaria fuera de invoiceTotals.ts. Documenta el patr\u00f3n de barril de re-export usado en los pasos 4 y 5.",
     "category": "improvement"
   },
   {
     "version": "6.46.2",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "División de invoiceHelpers (paso 4 auditoría)",
-    "description": "Se separó src/lib/domain/invoiceHelpers.ts (191 LOC) en dos módulos por responsabilidad: invoiceTotals (tipos, descuentos, totales) y rentalCalculation (cálculo de renta diaria/semanal/mensual). El archivo original quedó como barril de re-export, sin cambios para los 30+ consumidores. 46/46 tests pasan.",
+    "title": "Divisi\u00f3n de invoiceHelpers (paso 4 auditor\u00eda)",
+    "description": "Se separ\u00f3 src/lib/domain/invoiceHelpers.ts (191 LOC) en dos m\u00f3dulos por responsabilidad: invoiceTotals (tipos, descuentos, totales) y rentalCalculation (c\u00e1lculo de renta diaria/semanal/mensual). El archivo original qued\u00f3 como barril de re-export, sin cambios para los 30+ consumidores. 46/46 tests pasan.",
     "category": "improvement"
   },
   {
     "version": "6.46.1",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "División de hooks grandes (paso 5 auditoría)",
+    "title": "Divisi\u00f3n de hooks grandes (paso 5 auditor\u00eda)",
     "description": "Se dividieron 4 archivos de hooks que superaban 100 LOC (usePaymentIntents, useBankReconciliationMutations, useCreditNotes, useAssignForklifts) separando queries de mutaciones en archivos por responsabilidad. Los archivos originales quedan como barriles de re-export, sin cambios para los consumidores.",
     "category": "improvement"
   },
@@ -1082,24 +1083,24 @@
     "version": "6.46.0",
     "date": "2026-06-12",
     "type": "minor",
-    "title": "Refactor de componentes grandes (paso 3 auditoría)",
-    "description": "Se rompieron los 5 componentes de negocio más grandes (>200 LOC) extrayendo hooks de lógica y subcomponentes de presentación. Mejora mantenibilidad sin cambios funcionales visibles para el usuario.",
+    "title": "Refactor de componentes grandes (paso 3 auditor\u00eda)",
+    "description": "Se rompieron los 5 componentes de negocio m\u00e1s grandes (>200 LOC) extrayendo hooks de l\u00f3gica y subcomponentes de presentaci\u00f3n. Mejora mantenibilidad sin cambios funcionales visibles para el usuario.",
     "category": "improvement"
   },
   {
     "version": "6.45.0",
     "date": "2026-06-12",
     "type": "minor",
-    "title": "Fuente única de saldo de facturas",
-    "description": "Auditoría arquitectónica paso 1: se centralizó el cálculo de saldo (total menos pagos) en una vista SQL unificada y un hook compartido. Cartera vencida, pronóstico de cobranza, dashboard y reporte de antigüedad ahora leen la misma fórmula. Cierra una familia entera de bugs por divergencia entre vistas financieras.",
+    "title": "Fuente \u00fanica de saldo de facturas",
+    "description": "Auditor\u00eda arquitect\u00f3nica paso 1: se centraliz\u00f3 el c\u00e1lculo de saldo (total menos pagos) en una vista SQL unificada y un hook compartido. Cartera vencida, pron\u00f3stico de cobranza, dashboard y reporte de antig\u00fcedad ahora leen la misma f\u00f3rmula. Cierra una familia entera de bugs por divergencia entre vistas financieras.",
     "category": "improvement"
   },
   {
     "version": "6.44.9",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Pronóstico de Cobranza descuenta pagos parciales",
-    "description": "El widget de Pronóstico de Cobranza del Panel ahora suma el saldo pendiente (total menos pagos) en lugar del total bruto, tanto para facturas vencidas como para las próximas a vencer a 7 y 30 días.",
+    "title": "Pron\u00f3stico de Cobranza descuenta pagos parciales",
+    "description": "El widget de Pron\u00f3stico de Cobranza del Panel ahora suma el saldo pendiente (total menos pagos) en lugar del total bruto, tanto para facturas vencidas como para las pr\u00f3ximas a vencer a 7 y 30 d\u00edas.",
     "category": "bug-fix"
   },
   {
@@ -1107,7 +1108,7 @@
     "date": "2026-06-12",
     "type": "patch",
     "title": "Cartera vencida ahora descuenta pagos parciales",
-    "description": "La cartera vencida del dashboard y el reporte de antigüedad ahora calculan el saldo real (total menos pagos) en lugar del total bruto de la factura. Además, las facturas en estado parcial ya aparecen en la lista de vencidas y los ingresos por cobrar reflejan el saldo pendiente real.",
+    "description": "La cartera vencida del dashboard y el reporte de antig\u00fcedad ahora calculan el saldo real (total menos pagos) en lugar del total bruto de la factura. Adem\u00e1s, las facturas en estado parcial ya aparecen en la lista de vencidas y los ingresos por cobrar reflejan el saldo pendiente real.",
     "category": "bug-fix"
   },
   {
@@ -1115,7 +1116,7 @@
     "date": "2026-06-12",
     "type": "patch",
     "title": "Fix E2E: selector de Monto acotado al modal Registrar Pago",
-    "description": "El input de monto en RecordPaymentDialog ahora expone aria-label e id estables, y el test E2E invoice-payment acota la búsqueda al diálogo Registrar Pago y al botón de submit del mismo, evitando colisiones con otros campos Monto o botones Registrar de la página.",
+    "description": "El input de monto en RecordPaymentDialog ahora expone aria-label e id estables, y el test E2E invoice-payment acota la b\u00fasqueda al di\u00e1logo Registrar Pago y al bot\u00f3n de submit del mismo, evitando colisiones con otros campos Monto o botones Registrar de la p\u00e1gina.",
     "category": "testing"
   },
   {
@@ -1123,7 +1124,7 @@
     "date": "2026-06-12",
     "type": "patch",
     "title": "Fix E2E: campo Monto accesible en Registrar Pago",
-    "description": "Se asocia explícitamente la etiqueta Monto con el input del modal Registrar Pago para que Playwright y lectores de pantalla lo identifiquen por label.",
+    "description": "Se asocia expl\u00edcitamente la etiqueta Monto con el input del modal Registrar Pago para que Playwright y lectores de pantalla lo identifiquen por label.",
     "category": "testing"
   },
   {
@@ -1146,8 +1147,8 @@
     "version": "6.44.3",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Eliminación de código muerto detectado por knip",
-    "description": "Se remueve el archivo src/test/helpers/mockSupabase.ts identificado como no utilizado mediante análisis estático con knip.",
+    "title": "Eliminaci\u00f3n de c\u00f3digo muerto detectado por knip",
+    "description": "Se remueve el archivo src/test/helpers/mockSupabase.ts identificado como no utilizado mediante an\u00e1lisis est\u00e1tico con knip.",
     "category": "tooling"
   },
   {
@@ -1175,63 +1176,63 @@
     "version": "6.43.8",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Cancel-Payment-Complement: handler puro con tests Facturapi mock (Lote 3 — Parte 2)",
+    "title": "Cancel-Payment-Complement: handler puro con tests Facturapi mock (Lote 3 \u2014 Parte 2)",
     "category": "tooling"
   },
   {
     "version": "6.43.7",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Stamp-Credit-Note: handler puro con tests Facturapi mock (Lote 3 — Parte 1)",
+    "title": "Stamp-Credit-Note: handler puro con tests Facturapi mock (Lote 3 \u2014 Parte 1)",
     "category": "tooling"
   },
   {
     "version": "6.43.6",
     "date": "2026-06-12",
     "type": "minor",
-    "title": "Stamp-CFDI: handler refactorizado con deps inyectadas y suite Facturapi mock (Lote 2 — Parte 6)",
+    "title": "Stamp-CFDI: handler refactorizado con deps inyectadas y suite Facturapi mock (Lote 2 \u2014 Parte 6)",
     "category": "tooling"
   },
   {
     "version": "6.43.5",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Cobertura: umbrales subidos a 10/10/9/7 con @vitest/coverage-v8 (Lote 2 — Parte 5)",
+    "title": "Cobertura: umbrales subidos a 10/10/9/7 con @vitest/coverage-v8 (Lote 2 \u2014 Parte 5)",
     "category": "tooling"
   },
   {
     "version": "6.43.4",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "CFDI parser: extraído, testeado y bug de matching de atributos corregido (Lote 2 — Parte 4)",
+    "title": "CFDI parser: extra\u00eddo, testeado y bug de matching de atributos corregido (Lote 2 \u2014 Parte 4)",
     "category": "tooling"
   },
   {
     "version": "6.43.3",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Tests: contratos RLS para invoices, customers y bookings (Lote 2 — Parte 3)",
+    "title": "Tests: contratos RLS para invoices, customers y bookings (Lote 2 \u2014 Parte 3)",
     "category": "tooling"
   },
   {
     "version": "6.43.2",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Tests: smoke fiscales, teardown E2E y umbrales de cobertura (Lote 2 — Parte 2)",
+    "title": "Tests: smoke fiscales, teardown E2E y umbrales de cobertura (Lote 2 \u2014 Parte 2)",
     "category": "tooling"
   },
   {
     "version": "6.43.1",
     "date": "2026-06-12",
     "type": "patch",
-    "title": "Tests: flow tests reescritos contra hooks reales (Lote 2 — Parte 1)",
+    "title": "Tests: flow tests reescritos contra hooks reales (Lote 2 \u2014 Parte 1)",
     "category": "tooling"
   },
   {
     "version": "6.43.0",
     "date": "2026-06-12",
     "type": "minor",
-    "title": "Auditoría CI/Tests — Lote 1: hotfix de seguridad y CI silencioso",
+    "title": "Auditor\u00eda CI/Tests \u2014 Lote 1: hotfix de seguridad y CI silencioso",
     "category": "tooling"
   },
   {
@@ -1245,8 +1246,8 @@
     "version": "6.42.6",
     "date": "2026-06-10",
     "type": "patch",
-    "title": "CI: forzar Node 24 para silenciar warnings de deprecación",
-    "description": "Restaurada la variable de entorno FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true a nivel de workflow para eliminar las anotaciones de deprecación de Node.js 20 en actions/upload-artifact@v5 y mikepenz/action-junit-report@v5. GitHub hará Node 24 el default el 16 de junio de 2026, por lo que esta variable será temporal.",
+    "title": "CI: forzar Node 24 para silenciar warnings de deprecaci\u00f3n",
+    "description": "Restaurada la variable de entorno FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true a nivel de workflow para eliminar las anotaciones de deprecaci\u00f3n de Node.js 20 en actions/upload-artifact@v5 y mikepenz/action-junit-report@v5. GitHub har\u00e1 Node 24 el default el 16 de junio de 2026, por lo que esta variable ser\u00e1 temporal.",
     "changes": [
       "Agregada env FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true en .github/workflows/ci.yml"
     ],
@@ -1270,7 +1271,7 @@
     "version": "6.42.3",
     "date": "2026-06-10",
     "type": "patch",
-    "title": "Actividad del Equipo excluye métricas de E2E",
+    "title": "Actividad del Equipo excluye m\u00e9tricas de E2E",
     "category": "bugfix"
   }
 ]
