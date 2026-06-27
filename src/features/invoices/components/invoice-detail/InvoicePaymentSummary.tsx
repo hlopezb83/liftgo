@@ -44,21 +44,21 @@ export function InvoicePaymentSummary({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Pagado</p>
-                <p className="text-lg font-mono font-bold text-green-600">{formatCurrency(totalPaid)}</p>
+                <p className="text-lg font-mono font-bold text-success">{formatCurrency(totalPaid)}</p>
               </div>
               {creditedAmount > 0 && (
                 <div>
                   <p className="text-sm text-muted-foreground">Notas de Crédito</p>
-                  <p className="text-lg font-mono font-bold text-blue-600">−{formatCurrency(creditedAmount)}</p>
+                  <p className="text-lg font-mono font-bold text-info">−{formatCurrency(creditedAmount)}</p>
                 </div>
               )}
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
-                <p className={`text-lg font-mono font-bold ${balance <= 0 ? "text-green-600" : "text-destructive"}`}>{formatCurrency(balance)}</p>
+                <p className={`text-lg font-mono font-bold ${balance <= 0 ? "text-success" : "text-destructive"}`}>{formatCurrency(balance)}</p>
               </div>
             </div>
             {pendingReps > 0 && (
-              <div className="mt-3 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-2 text-xs text-amber-800 dark:text-amber-200">
+              <div className="mt-3 rounded-md bg-warning/10 border border-warning/30 p-2 text-xs text-warning">
                 ⚠️ {pendingReps} {pendingReps === 1 ? "pago" : "pagos"} sin Complemento de Pago (REP) timbrado.
               </div>
             )}

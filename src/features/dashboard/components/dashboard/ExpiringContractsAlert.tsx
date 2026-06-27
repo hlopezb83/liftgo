@@ -23,9 +23,9 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
   if (contracts.length === 0) return null;
 
   return (
-    <Card className="border-amber-500/30 bg-amber-500/5">
+    <Card className="border-warning/30 bg-warning/5">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2 text-amber-600">
+        <CardTitle className="text-base flex items-center gap-2 text-warning">
           <FileText className="h-4 w-4" /> Contratos por Vencer ({contracts.length})
         </CardTitle>
       </CardHeader>
@@ -45,7 +45,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
             </div>
             <div className="flex items-center gap-2">
               <div className="text-right">
-                <span className={`font-mono font-semibold ${c.days_remaining <= 7 ? "text-destructive" : "text-amber-600"}`}>
+                <span className={`font-mono font-semibold ${c.days_remaining <= 7 ? "text-destructive" : "text-warning"}`}>
                   {c.days_remaining} días
                 </span>
                 <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(c.end_date)}</p>
@@ -57,7 +57,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
                 onClick={(e) => { e.stopPropagation(); navigate(`/contracts/${c.id}`); }}
                 title="Ver Contrato"
               >
-                <RefreshCw className="h-4 w-4 text-amber-600" />
+                <RefreshCw className="h-4 w-4 text-warning" />
               </Button>
             </div>
           </div>
