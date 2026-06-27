@@ -44,9 +44,14 @@ export function buildDeliveryInfos(
  * Aplica tarifas a equipos asignados. Devuelve el conteo de equipos actualizados.
  */
 export async function applyRatesToForklifts(assignments: Assignment[]): Promise<number> {
+  type RatePayload = {
+    daily_rate?: number;
+    weekly_rate?: number;
+    monthly_rate?: number;
+  };
   const updates = assignments
     .map((a) => {
-      const u: Record<string, number> = {};
+      const u: RatePayload = {};
       if (a.dailyRate > 0) u.daily_rate = a.dailyRate;
       if (a.weeklyRate > 0) u.weekly_rate = a.weeklyRate;
       if (a.monthlyRate > 0) u.monthly_rate = a.monthlyRate;
