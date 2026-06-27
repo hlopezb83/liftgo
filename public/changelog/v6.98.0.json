@@ -1,0 +1,23 @@
+{
+  "version": "6.98.0",
+  "date": "2026-06-27",
+  "type": "minor",
+  "title": "Auditoría UI/UX: cohesión visual y bugs de navegación",
+  "category": "improvement",
+  "summary": "Cierre de hallazgos críticos y de armonía visual detectados en la auditoría UI/UX 1920x1080.",
+  "changes": {
+    "fixes": [
+      "ROUTES.companySettings y operationsSetup ahora apuntan a /settings/company y /settings/operations (antes 404).",
+      "StampErrorDialog: los CTAs de CSD, créditos y API key navegan a /settings/company.",
+      "TopbarBreadcrumbs: removida entrada huérfana company-settings; segmento company → \"Datos Fiscales\".",
+      "FleetPage: título \"Equipos\" (alineado al sidebar y breadcrumbs).",
+      "MaintenancePageActions: ícono Plus en lugar de PlusCircle para coincidir con el resto del UI Kit."
+    ],
+    "ui": [
+      "SidebarBranding: razón social usa line-clamp-2 break-words para evitar truncamiento en nombres largos; logo a 9x9; padding p-3.",
+      "SidebarUserFooter: email en su propia fila full-width; acciones (tema, contraseña, logout) y versión en una fila secundaria.",
+      "Alert: nueva variante semántica warning basada en tokens (--warning) que reemplaza overrides hardcoded amber-500/amber-700.",
+      "IncomeStatementReport: alerts de equipos sin costo migradas a variant=\"warning\"; KPI Utilidad Neta alterna ícono TrendingUp/TrendingDown según signo."
+    ]
+  }
+}

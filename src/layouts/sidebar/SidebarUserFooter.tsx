@@ -20,17 +20,17 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
   const [pwDialogOpen, setPwDialogOpen] = useState(false);
 
   return (
-    <SidebarFooter className="p-4 border-t border-sidebar-border space-y-2">
-      <div className="flex items-center justify-between gap-2 min-w-0">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-sidebar-foreground/80 truncate" title={email ?? ""}>{email}</p>
-          {role && (
-            <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wide font-medium">
-              {ROLE_LABELS[role] ?? role}
-            </p>
-          )}
-        </div>
-        <div className="flex gap-1 shrink-0">
+    <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">
+      <div className="min-w-0">
+        <p className="text-xs text-sidebar-foreground/80 truncate" title={email ?? ""}>{email}</p>
+        {role && (
+          <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wide font-medium">
+            {ROLE_LABELS[role] ?? role}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center justify-between gap-1">
+        <div className="flex items-center gap-0.5">
           <ThemeToggle />
           <Tooltip>
             <TooltipTrigger asChild>
@@ -49,12 +49,12 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
             <TooltipContent>Cerrar sesión</TooltipContent>
           </Tooltip>
         </div>
+        {currentVersion && (
+          <NavLink to="/changelog" className="text-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono shrink-0">
+            v{currentVersion}
+          </NavLink>
+        )}
       </div>
-      {currentVersion && (
-        <NavLink to="/changelog" className="text-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono">
-          v{currentVersion}
-        </NavLink>
-      )}
       <ChangePasswordDialog open={pwDialogOpen} onOpenChange={setPwDialogOpen} />
     </SidebarFooter>
   );

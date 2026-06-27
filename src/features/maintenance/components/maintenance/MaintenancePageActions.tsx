@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { PlusCircle, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
+import { Plus, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
 
 type Props = {
   viewMode: "list" | "board";
@@ -45,7 +45,7 @@ export function MaintenancePageActions({
         </Button>
       </RoleGuard>
       <Button onClick={onCreate} size="sm">
-        <PlusCircle className="h-4 w-4 mr-1" /> Registrar Servicio
+        <Plus className="h-4 w-4 mr-1" /> Registrar Servicio
       </Button>
     </div>
   );

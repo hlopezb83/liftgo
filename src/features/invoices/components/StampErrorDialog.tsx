@@ -40,19 +40,19 @@ function getCopy(kind: FacturapiErrorKind, customerId?: string | null): KindCopy
       return {
         title: "Certificado de sello digital vencido",
         hint: "Renueva el CSD ante el SAT y vuelve a cargarlo en Datos Fiscales → PAC.",
-        cta: { label: "Ir a Datos Fiscales", to: "/company-settings" },
+        cta: { label: "Ir a Datos Fiscales", to: "/settings/company" },
       };
     case "credits":
       return {
         title: "Sin folios disponibles",
         hint: "Recarga tu plan de timbres en Facturapi e intenta de nuevo.",
-        cta: { label: "Ir a Datos Fiscales", to: "/company-settings" },
+        cta: { label: "Ir a Datos Fiscales", to: "/settings/company" },
       };
     case "auth":
       return {
         title: "API key de Facturapi inválida",
         hint: "Verifica la API key configurada para el modo actual (test/live).",
-        cta: { label: "Ir a Datos Fiscales", to: "/company-settings" },
+        cta: { label: "Ir a Datos Fiscales", to: "/settings/company" },
       };
     case "folio":
       return {

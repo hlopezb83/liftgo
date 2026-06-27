@@ -77,8 +77,8 @@ export const ROUTES = {
   audit: "/audit",
   users: "/users",
   rolePermissions: "/role-permissions",
-  companySettings: "/company-settings",
-  operationsSetup: "/operations-setup",
+  companySettings: "/settings/company",
+  operationsSetup: "/settings/operations",
 
   // Portal cliente
   portal: {
