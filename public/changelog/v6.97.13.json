@@ -1,0 +1,30 @@
+{
+  "version": "6.97.13",
+  "date": "2026-06-27",
+  "type": "patch",
+  "category": "fix",
+  "title": "Cleanup E2E: fugas y código muerto en fixtures",
+  "description": "Auditoría completa del cleanup E2E. Corregidas dos fugas confirmadas y un chequeo inútil de status.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "customer-create.spec.ts: try/finally + e2e_teardown",
+      "description": "El select de verificación y los expect corrían en secuencia plana con el delete; si cualquier expect fallaba, el cliente quedaba en BD. Ahora el delete + e2e_teardown(p_scope) se ejecutan en finally."
+    },
+    {
+      "type": "fix",
+      "title": "seed.ts y portalSeed.ts: eliminado chequeo de testInfo.status",
+      "description": "Playwright finaliza testInfo.status DESPUÉS de los fixtures de teardown, así que dentro del fixture siempre vale 'running'. La heurística era código muerto. Se conservan testError y testInfo.errors.length que sí son confiables."
+    },
+    {
+      "type": "audit",
+      "title": "Validado que maintenance_logs se limpia vía CASCADE",
+      "description": "El FK maintenance_logs_forklift_id_fkey es ON DELETE CASCADE, así que al borrar el forklift sembrado la orden de mantenimiento se elimina automáticamente. No requiere migración."
+    },
+    {
+      "type": "audit",
+      "title": "purge_e2e_data cubre las 9 tablas con bandera is_e2e",
+      "description": "Verificado por information_schema: activity_feed, payments, invoices, bookings, quote_assigned_forklifts, quotes, forklifts, equipment_models, customers. Sin tablas pendientes."
+    }
+  ]
+}
