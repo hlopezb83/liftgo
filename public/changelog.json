@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.8",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Reemplazo de xlsx por @e965/xlsx para eliminar vulnerabilidades de SheetJS",
+    "description": "El paquete xlsx (SheetJS) 0.18.5 no ha recibido actualizaciones que parcheen las vulnerabilidades de Prototype Pollution y ReDoS (alta severidad). Se migro a @e965/xlsx 0.20.3, un fork comunidad mantenido que corrige dichos problemas. Se actualizaron las importaciones en buildPaymentsXlsx.ts y su test. Build verificado sin errores.",
+    "category": "fix"
+  },
+  {
     "version": "6.97.7",
     "date": "2026-06-27",
     "type": "patch",
