@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.1",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Clave SAT 81141601 (Servicios de entrega) agregada",
+    "description": "Se añadió la clave 81141601 - Servicios de entrega al catálogo de claves prod/serv disponibles en partidas de factura.",
+    "category": "improvement"
+  },
+  {
     "version": "6.97.0",
     "date": "2026-06-27",
     "type": "minor",
