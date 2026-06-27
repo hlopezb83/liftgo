@@ -1,0 +1,11 @@
+{
+  "version": "6.97.14",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Lint: eliminar non-null assertion en StampErrorDialog",
+  "description": "Reemplazado copy.cta!.to por guarda local con const target para cumplir @typescript-eslint/no-non-null-assertion. bun run lint pasa sin errores.",
+  "category": "fix",
+  "changes": [
+    "src/features/invoices/components/StampErrorDialog.tsx: extraer copy.cta?.to a variable local antes de navigate."
+  ]
+}
