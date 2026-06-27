@@ -1,0 +1,18 @@
+{
+  "version": "6.97.5",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Folio de factura ya no brinca al cerrar el modal sin guardar",
+  "description": "El folio mostrado en el modal de Nueva Factura ahora es tentativo (solo lectura) y se asigna definitivamente al guardar. Antes, abrir el modal consumia un folio de la secuencia aunque la factura no se creara, provocando saltos en la numeracion.",
+  "category": "fix",
+  "changes": [
+    {
+      "scope": "facturacion",
+      "description": "Nuevo RPC peek_next_invoice_number que muestra el folio tentativo sin consumir la secuencia. El folio definitivo se asigna atomicamente al insertar via next_invoice_number, manteniendo la idempotencia."
+    },
+    {
+      "scope": "facturacion",
+      "description": "El badge de folio en el modal ahora indica 'Tentativo - se asigna al guardar' para alinear las expectativas del usuario."
+    }
+  ]
+}
