@@ -88,8 +88,9 @@ export function StampErrorDialog({ open, onOpenChange, message, kind, customerId
           {copy.cta && (
             <Button
               onClick={() => {
+                const target = copy.cta?.to;
                 onOpenChange(false);
-                navigate(copy.cta!.to);
+                if (target) navigate(target);
               }}
             >
               {copy.cta.label}
