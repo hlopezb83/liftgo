@@ -51,8 +51,8 @@ export function useSupplierBillColumns() {
         const s = row.original.approval_status;
         if (s === "not_required") return <span className="text-xs text-muted-foreground">—</span>;
         const tone =
-          s === "pending" ? "text-amber-600 dark:text-amber-400" :
-          s === "approved" ? "text-emerald-600 dark:text-emerald-400" :
+          s === "pending" ? "text-warning" :
+          s === "approved" ? "text-success" :
           "text-destructive";
         return <span className={`text-xs font-medium ${tone}`}>{APPROVAL_STATUS_LABELS[s]}</span>;
       },

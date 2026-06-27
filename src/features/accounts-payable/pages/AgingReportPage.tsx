@@ -65,7 +65,7 @@ export default function AgingReportPage() {
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Corriente</p>
-          <p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">{formatCurrency(totals.current)}</p>
+          <p className="text-xl font-bold font-mono text-success">{formatCurrency(totals.current)}</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Vencido</p>

@@ -18,9 +18,9 @@ export function SupplierBillCfdiDropzone({ busy, error, result, onFile, onClear 
 
   if (result) {
     return (
-      <div className="rounded-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-3 py-2 flex items-center justify-between gap-3">
+      <div className="rounded-md border border-success/30 bg-success/10 dark:border-emerald-900 px-3 py-2 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">CFDI cargado</p>
             <p className="text-xs text-muted-foreground font-mono truncate">

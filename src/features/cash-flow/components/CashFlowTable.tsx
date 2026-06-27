@@ -10,8 +10,8 @@ interface Props {
 
 function lightClass(light: LightColor): string {
   if (light === "red") return "bg-destructive";
-  if (light === "amber") return "bg-amber-500";
-  return "bg-emerald-500";
+  if (light === "amber") return "bg-warning/100";
+  return "bg-success/100";
 }
 
 export function CashFlowTable({ buckets, onSelect }: Props) {

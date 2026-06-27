@@ -62,7 +62,7 @@ export function RentalFinancialSummary({
               <DollarSign className="h-3.5 w-3.5" />
               Balance Restante
             </div>
-            <p className={`text-lg font-bold ${remaining <= 0 ? "text-green-600" : "text-amber-600"}`}>
+            <p className={`text-lg font-bold ${remaining <= 0 ? "text-success" : "text-warning"}`}>
               {formatCurrency(remaining)}
             </p>
             <p className="text-xs text-muted-foreground">

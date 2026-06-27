@@ -68,7 +68,7 @@ export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, on
                   {isReverting ? "Revirtiendo…" : "Revertir acción original"}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
-                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-amber-500" />
+                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-warning" />
                   {revertHint(log)}
                 </p>
               </div>

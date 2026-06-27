@@ -59,7 +59,7 @@ export function CompanyLogoTab() {
               <ImageIcon className="h-4 w-4" /> Logo de la Empresa
             </CardTitle>
             {hasSaved ? (
-              <Badge variant="outline" className="gap-1 text-green-600 border-green-600/30">
+              <Badge variant="outline" className="gap-1 text-success border-success/30">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Logo guardado
               </Badge>
             ) : (
@@ -82,8 +82,8 @@ export function CompanyLogoTab() {
             />
 
             {hasPendingChange && (
-              <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 space-y-2">
-                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-500 text-sm font-medium">
+              <div className="rounded-md border border-warning/300/40 bg-warning/100/5 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-warning dark:text-warning text-sm font-medium">
                   <AlertCircle className="h-4 w-4" />
                   Cambios sin guardar — vista previa
                 </div>
@@ -100,7 +100,7 @@ export function CompanyLogoTab() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Nuevo</p>
-                    <div className="h-24 rounded-md border border-amber-500/40 bg-background flex items-center justify-center overflow-hidden">
+                    <div className="h-24 rounded-md border border-warning/300/40 bg-background flex items-center justify-center overflow-hidden">
                       {pendingUrl ? (
                         <img src={pendingUrl} alt="Nuevo logo" className="h-full w-full object-contain p-2" />
                       ) : (

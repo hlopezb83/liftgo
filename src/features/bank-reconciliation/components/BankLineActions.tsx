@@ -40,7 +40,7 @@ export function BankLineActions({
   return (
     <>
       {showSuggested && (
-        <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3">
+        <div className="rounded-md border border-amber-300 bg-warning/10 p-3">
           <p className="text-sm font-medium mb-2">Pago sugerido</p>
           <p className="text-xs text-muted-foreground mb-2">Score: {line.match_score ?? "—"}</p>
           <div className="flex gap-2">

@@ -94,7 +94,7 @@ export function AssignForkliftsLineRow({
       )}
 
       {noStock && (
-        <p className="text-xs text-amber-600 flex items-center gap-1">
+        <p className="text-xs text-warning flex items-center gap-1">
           <AlertTriangle className="h-3 w-3" />
           No hay equipos disponibles de este modelo en inventario
         </p>

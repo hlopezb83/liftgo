@@ -134,9 +134,9 @@ export function BillApprovalSection({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {approvalStatus === "approved" ? (
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <ShieldCheck className="h-4 w-4 text-success" />
             ) : (
-              <ShieldAlert className="h-4 w-4 text-amber-600" />
+              <ShieldAlert className="h-4 w-4 text-warning" />
             )}
             <span className="text-sm font-semibold">Aprobación</span>
           </div>

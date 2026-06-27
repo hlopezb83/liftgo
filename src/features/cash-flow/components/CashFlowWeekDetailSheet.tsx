@@ -18,7 +18,7 @@ function Section({ title, items, kind, onClick }: { title: string; items: CashFl
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <h3 className={cn("text-sm font-semibold flex items-center gap-1", kind === "in" ? "text-emerald-600 dark:text-emerald-400" : "text-destructive")}>
+        <h3 className={cn("text-sm font-semibold flex items-center gap-1", kind === "in" ? "text-success" : "text-destructive")}>
           <Icon className="h-4 w-4" />{title} ({items.length})
         </h3>
         <span className="font-mono text-sm font-bold">{formatCurrency(total)}</span>

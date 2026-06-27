@@ -35,8 +35,8 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
       <Label className="flex items-center gap-1.5">
         {label}
         {(isConfigured || value)
-          ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-          : <AlertTriangle className="h-3.5 w-3.5 text-yellow-500" />}
+          ? <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+          : <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
         {isConfigured && !value && (
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
             configurada

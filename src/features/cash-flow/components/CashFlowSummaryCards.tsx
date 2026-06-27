@@ -29,7 +29,7 @@ export function CashFlowSummaryCards({ buckets, initialBalance }: Props) {
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{c.label}</p>
             <p
               className={`text-lg font-bold font-mono mt-1 ${
-                c.tone === "bad" ? "text-destructive" : c.tone === "good" ? "text-emerald-600 dark:text-emerald-400" : ""
+                c.tone === "bad" ? "text-destructive" : c.tone === "good" ? "text-success" : ""
               }`}
             >
               {formatCurrency(c.value)}

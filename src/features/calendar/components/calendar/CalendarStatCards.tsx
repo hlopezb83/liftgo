@@ -48,9 +48,9 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
   }, [forklifts, bookings]);
 
   const cards = [
-    { label: "Disponibles", value: stats.available, icon: CheckCircle, color: "text-emerald-600" },
-    { label: "Rentados", value: stats.rented, icon: Truck, color: "text-blue-600" },
-    { label: "Mantenimiento", value: stats.maintenance, icon: Wrench, color: "text-amber-600" },
+    { label: "Disponibles", value: stats.available, icon: CheckCircle, color: "text-success" },
+    { label: "Rentados", value: stats.rented, icon: Truck, color: "text-info" },
+    { label: "Mantenimiento", value: stats.maintenance, icon: Wrench, color: "text-warning" },
     { label: "Utilización", value: stats.utilization, icon: BarChart3, color: "text-violet-600" },
   ];
 
