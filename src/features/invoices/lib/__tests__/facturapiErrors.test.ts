@@ -67,7 +67,7 @@ describe("translateFacturapiError", () => {
       translateFacturapiError(
         "CFDI40148: El campo DomicilioFiscalReceptor del receptor, debe pertenecer al nombre asociado al RFC registrado en el campo Rfc del Receptor.",
       ),
-    ).toMatch(/c[oó]digo postal fiscal del cliente no coincide/i);
+    ).toMatch(/datos fiscales del cliente no coinciden/i);
   });
 
   it("mensaje SAT sin código → match por texto DomicilioFiscalReceptor", () => {
