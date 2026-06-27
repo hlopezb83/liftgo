@@ -1,0 +1,14 @@
+{
+  "version": "6.97.4",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Clave de unidad muestra descripcion en espanol",
+  "description": "El dropdown de ClaveUnidad en las partidas de factura ahora muestra el codigo junto con su descripcion en espanol (ej. DAY - Dia, MON - Mes) en lugar de solo el codigo crudo.",
+  "category": "improvement",
+  "changes": [
+    {
+      "scope": "facturacion",
+      "description": "El dropdown de ClaveUnidad en las partidas de factura ahora muestra el codigo junto con su descripcion en espanol (ej. DAY - Dia, MON - Mes) en lugar de solo el codigo crudo."
+    }
+  ]
+}
