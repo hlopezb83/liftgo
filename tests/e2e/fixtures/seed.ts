@@ -110,9 +110,11 @@ export const test = base.extend<{ seed: SeedIds }>({
     }
     // El teardown SIEMPRE corre (equivalente a finally) para no contaminar
     // reportes financieros con datos E2E. Ver v6.47.1.
-    const testFailed = testError !== undefined ||
-      testInfo.errors.length > 0 ||
-      testInfo.status === "failed" || testInfo.status === "timedOut";
+    // No revisamos `testInfo.status`: Playwright lo finaliza DESPUÉS de que
+    // corren todos los fixtures de teardown, así que aquí siempre vale
+    // "running". Usamos `testError` (lo que capturamos arriba) + el array de
+    // errores acumulados hasta este punto.
+    const testFailed = testError !== undefined || testInfo.errors.length > 0;
     let teardownError: unknown;
     try {
       await teardownScenario(page, scope);
