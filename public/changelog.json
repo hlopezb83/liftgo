@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.13",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Cleanup E2E: fugas y código muerto en fixtures",
+    "description": "Auditoría de teardown E2E. customer-create.spec ahora usa try/finally + e2e_teardown por scope como red. Eliminado el chequeo de testInfo.status (siempre 'running' dentro del fixture) en seed.ts y portalSeed.ts.",
+    "category": "fix"
+  },
+  {
     "version": "6.97.12",
     "date": "2026-06-27",
     "type": "patch",

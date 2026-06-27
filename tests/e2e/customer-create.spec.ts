@@ -52,8 +52,7 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
 
   // Teardown obligatorio: el cliente nace marcado is_e2e=true desde la UI, por lo
   // que no aparece en la lista productiva y purge_e2e_data puede capturarlo.
-  // Después verificamos por BD y borramos por id. Si falla,
-  // el test DEBE fallar para que la contaminación se detecte en CI, no en producción.
+  // Si falla, el test DEBE fallar para que la contaminación se detecte en CI.
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error("VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY requeridos para teardown");
   }
@@ -77,15 +76,27 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
-  const { data: created, error: selectErr } = await client
-    .from("customers")
-    .select("id,is_e2e,e2e_scope")
-    .eq("name", customerName)
-    .single();
-  if (selectErr) throw new Error(`Verificación E2E falló: ${selectErr.message}`);
-  expect(created.is_e2e).toBe(true);
-  expect(created.e2e_scope).toBe(e2eScope);
 
-  const { error: delErr } = await client.from("customers").delete().eq("id", created.id);
-  if (delErr) throw new Error(`Teardown falló: ${delErr.message}`);
+  // try/finally: cualquier expect que falle aquí abajo NO debe impedir el
+  // cleanup. Antes la verificación y el delete corrían en secuencia plana
+  // y un expect fallido dejaba el cliente colgado en BD.
+  let createdId: string | null = null;
+  try {
+    const { data: created, error: selectErr } = await client
+      .from("customers")
+      .select("id,is_e2e,e2e_scope")
+      .eq("name", customerName)
+      .single();
+    if (selectErr) throw new Error(`Verificación E2E falló: ${selectErr.message}`);
+    createdId = created.id;
+    expect(created.is_e2e).toBe(true);
+    expect(created.e2e_scope).toBe(e2eScope);
+  } finally {
+    // Borrado directo por id (rápido) + e2e_teardown por scope como red por
+    // si la UI marcó filas colaterales con el mismo scope.
+    if (createdId) {
+      await client.from("customers").delete().eq("id", createdId);
+    }
+    await client.rpc("e2e_teardown", { p_scope: e2eScope });
+  }
 });

@@ -106,9 +106,9 @@ export const test = base.extend<PortalFixtures>({
     } catch (e) {
       testError = e;
     }
-    const testFailed = testError !== undefined ||
-      testInfo.errors.length > 0 ||
-      testInfo.status === "failed" || testInfo.status === "timedOut";
+    // No revisamos `testInfo.status`: Playwright lo finaliza DESPUÉS de los
+    // fixtures de teardown. Aquí siempre vale "running". Ver fixtures/seed.ts.
+    const testFailed = testError !== undefined || testInfo.errors.length > 0;
     const { error: teardownError } = await admin.rpc("e2e_teardown", { p_scope: scope });
     await admin.auth.signOut().catch(() => {});
     if (teardownError) {
