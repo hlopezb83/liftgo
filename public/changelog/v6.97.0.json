@@ -1,0 +1,10 @@
+{
+  "description": "Auditoría del modal de nueva factura: revisión de qué campos CFDI 4.0 deben mantenerse y cuáles los inserta Facturapi o el backend automáticamente.",
+  "changes": [
+    "CfdiFieldsCard: removidos los inputs Serie y Folio. El folio se genera en el backend como FAC-XXXX mediante secuencia atómica y la serie casi nunca se usa.",
+    "CfdiFieldsCard: los 4 campos del receptor (RFC, Razón Social, Régimen Fiscal, CP) se agruparon en una sección colapsable cerrada por default con un resumen visible.",
+    "CfdiFieldsCard: la card pasó de 10 inputs visibles a 5 (Forma de pago, Método de pago, Uso CFDI, Moneda y Tipo de cambio cuando aplica).",
+    "CfdiFieldsCard: renombrada a 'Datos de timbrado CFDI' para reflejar que son decisiones del negocio, no metadata.",
+    "Sin cambios en el schema ni en el payload: serie/folio siguen aceptándose para compatibilidad con facturas legacy en modo edición."
+  ]
+}
