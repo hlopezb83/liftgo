@@ -1,23 +1,9 @@
-## Cambio visual: Dropdown de claveProdServ
+Fix unit key (ClaveUnidad) dropdown labels in invoice line items.
 
-### Objetivo
-En el modal de nueva factura, el dropdown de **Clave de Producto/Servicio** (columna de partidas) debe mostrar **"código - descripción"** en lugar de solo el código numérico.
+Problem
+-------
+In `EditableLineItemsTable.tsx`, the `clave_unidad` `<Select>` renders only the raw code (`c.code`) instead of the descriptive label (`c.label`). The `satCatalogs.ts` already contains Spanish descriptions (e.g., "DAY - Día", "MON - Mes"), but they are not displayed.
 
-### Alcance
-- Únicamente el componente `EditableLineItemsTable.tsx` en la fila de partidas del formulario de factura.
-- El array `CLAVE_PROD_SERV` en `satCatalogs.ts` ya contiene las etiquetas en el formato correcto (ej. `"78181500 - Alquiler de equipo de manejo de materiales"`), por lo que solo hay que cambiar qué propiedad se renderiza dentro del `SelectItem`.
-
-### Cambio técnico
-En `src/features/invoices/components/invoice-form/EditableLineItemsTable.tsx`, línea 92:
-
-```tsx
-// Antes:
-{CLAVE_PROD_SERV.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
-
-// Después:
-{CLAVE_PROD_SERV.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
-```
-
-### Notas
-- El `value` del `SelectItem` permanece como `c.code` para no alterar el dato guardado.
-- No hay impacto en esquemas, backend ni otros flujos.
+Change
+------
+Update the `SelectItem` mapping for `CLAVE_UNIDAD` in `src/features/invoices/components/invoice-form/EditableLineItemsTable.tsx` to render `c.label` instead of `c.code`, matching the `CLAVE_PROD_SERV` dropdown pattern.
