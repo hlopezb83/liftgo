@@ -15,7 +15,7 @@ export function ProfitabilityChart({ chartRows }: { chartRows: ModelRow[] }) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis type="number" tickFormatter={(v: number) => formatCurrency(v)} />
         <YAxis type="category" dataKey="model" width={160} tick={{ fontSize: 12 }} />
-        <ChartTooltip content={<ChartTooltipContent />} formatter={(value: number) => formatCurrency(value)} />
+        <ChartTooltip content={<ChartTooltipContent />} formatter={(value) => formatCurrency(Number(value))} />
         <Bar dataKey="profit" name="Ganancia Neta" radius={[0, 4, 4, 0]}>
           {chartRows.map((r, i) => (
             <Cell key={i} fill={r.profit >= 0 ? "hsl(var(--chart-2))" : "hsl(var(--destructive))"} />

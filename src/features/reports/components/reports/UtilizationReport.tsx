@@ -64,7 +64,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
               <BarChart data={data}>
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis unit="%" />
-                <Tooltip formatter={(val: number) => `${val}%`} />
+                <Tooltip formatter={(val) => `${Number(val)}%`} />
                 <Bar dataKey="utilization" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

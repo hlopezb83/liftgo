@@ -68,7 +68,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
               <BarChart data={chartData}>
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis />
-                <Tooltip formatter={(val: number) => formatCurrency(val)} />
+                <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
