@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.1",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Tokens semánticos: migración masiva de colores hardcoded",
+    "description": "Nuevo token --info y variantes success/info en Alert. Migrados ~30 componentes (dashboard, AP, invoices, fleet, cash-flow, calendar, bookings) de clases text/bg/border-{red,amber,green,blue,emerald,yellow,rose}-* a tokens semánticos text/bg/border-{destructive,warning,success,info}. Soporte dark/light automático.",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.0",
     "date": "2026-06-27",
     "type": "minor",
