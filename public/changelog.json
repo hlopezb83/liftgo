@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.0",
+    "date": "2026-06-27",
+    "type": "minor",
+    "title": "Modal de factura simplificado",
+    "description": "Se ocultaron los campos Serie y Folio (el folio se genera automáticamente como FAC-XXXX) y los datos fiscales del receptor se agruparon en una sección colapsable para reducir ruido visual.",
+    "category": "improvement"
+  },
+  {
     "version": "6.96.0",
     "date": "2026-06-24",
     "type": "minor",
