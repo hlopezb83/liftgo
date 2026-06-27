@@ -1,5 +1,29 @@
 import { describe, it, expect } from "vitest";
-import { translateFacturapiError } from "../facturapiErrors";
+import { translateFacturapiError, classifyFacturapiError } from "../facturapiErrors";
+
+describe("classifyFacturapiError", () => {
+  it("CFDI40148 → kind receptor_data", () => {
+    expect(classifyFacturapiError("CFDI40148: DomicilioFiscalReceptor…").kind).toBe("receptor_data");
+  });
+  it("CSD expired → kind csd", () => {
+    expect(classifyFacturapiError("certificate expired").kind).toBe("csd");
+  });
+  it("sin timbres → kind credits", () => {
+    expect(classifyFacturapiError("insufficient credits").kind).toBe("credits");
+  });
+  it("invalid api key → kind auth", () => {
+    expect(classifyFacturapiError("invalid api key").kind).toBe("auth");
+  });
+  it("folio duplicate → kind folio", () => {
+    expect(classifyFacturapiError("folio duplicate").kind).toBe("folio");
+  });
+  it("desconocido → kind unknown", () => {
+    expect(classifyFacturapiError("xyz unrelated").kind).toBe("unknown");
+  });
+  it("null → kind unknown", () => {
+    expect(classifyFacturapiError(null).kind).toBe("unknown");
+  });
+});
 
 describe("translateFacturapiError", () => {
   it("null → 'Error desconocido al timbrar.'", () => {
