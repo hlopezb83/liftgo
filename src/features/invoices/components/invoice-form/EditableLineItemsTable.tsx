@@ -89,7 +89,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
             <Select value={field.value || ""} onValueChange={field.onChange}>
               <FormControl><SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Código" /></SelectTrigger></FormControl>
               <SelectContent>
-                {CLAVE_PROD_SERV.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
+                {CLAVE_PROD_SERV.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
             <FormMessage />

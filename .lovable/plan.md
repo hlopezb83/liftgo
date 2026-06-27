@@ -1,5 +1,23 @@
-Agregar la clave SAT `81141601 - Servicios de entrega` al catálogo `CLAVE_PROD_SERV` en `src/lib/domain/satCatalogs.ts` para que aparezca en el dropdown de partidas del modal de factura.
+## Cambio visual: Dropdown de claveProdServ
 
-Adicionalmente, publicar entrada de changelog v6.97.1 (patch) documentando la adición.
+### Objetivo
+En el modal de nueva factura, el dropdown de **Clave de Producto/Servicio** (columna de partidas) debe mostrar **"código - descripción"** en lugar de solo el código numérico.
 
-Sin cambios de lógica ni de UI más allá de una opción nueva en el selector.
+### Alcance
+- Únicamente el componente `EditableLineItemsTable.tsx` en la fila de partidas del formulario de factura.
+- El array `CLAVE_PROD_SERV` en `satCatalogs.ts` ya contiene las etiquetas en el formato correcto (ej. `"78181500 - Alquiler de equipo de manejo de materiales"`), por lo que solo hay que cambiar qué propiedad se renderiza dentro del `SelectItem`.
+
+### Cambio técnico
+En `src/features/invoices/components/invoice-form/EditableLineItemsTable.tsx`, línea 92:
+
+```tsx
+// Antes:
+{CLAVE_PROD_SERV.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
+
+// Después:
+{CLAVE_PROD_SERV.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
+```
+
+### Notas
+- El `value` del `SelectItem` permanece como `c.code` para no alterar el dato guardado.
+- No hay impacto en esquemas, backend ni otros flujos.
