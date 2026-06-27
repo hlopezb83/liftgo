@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.2",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Dropdown de claves prod/serv muestra descripción",
+    "description": "El selector de Clave de Producto/Servicio en las partidas de factura ahora muestra el código junto con su descripción (ej. '78181500 - Alquiler de equipo de manejo de materiales') en lugar de solo el número.",
+    "category": "improvement"
+  },
+  {
     "version": "6.97.1",
     "date": "2026-06-27",
     "type": "patch",
