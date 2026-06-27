@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.0",
+    "date": "2026-06-27",
+    "type": "minor",
+    "title": "Auditoría UI/UX: cohesión visual y bugs de navegación",
+    "description": "Corregida ruta /company-settings (404) → /settings/company en ROUTES y StampErrorDialog. Sidebar: branding usa line-clamp-2 para razón social larga y footer reorganizado (email en su propia fila). Título de Equipos consistente con sidebar. Botón Registrar Servicio usa ícono Plus. Alert gana variant=\"warning\" con tokens semánticos y se aplica al Estado de Resultados. KPI Utilidad Neta usa TrendingDown cuando es negativa.",
+    "category": "improvement"
+  },
+  {
     "version": "6.97.14",
     "date": "2026-06-27",
     "type": "patch",
