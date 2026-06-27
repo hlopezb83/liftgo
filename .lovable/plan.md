@@ -1,55 +1,52 @@
-# Compatibilidad de upgrades major con Lovable
+# Auditoría de cleanup E2E
 
-## Restricción dura del stack Lovable
+Revisé `tests/e2e/**`, los fixtures (`seed.ts`, `portalSeed.ts`), `global.teardown.ts`, `playwright.config.ts` y las RPCs `e2e_teardown(p_scope)` + `purge_e2e_data()`. El diseño general (scope por test + purge global como red) es sólido, pero encontré varias fugas concretas y un bug de orden.
 
-Lovable está fijado a **React 18 · Vite 5 · Tailwind v3 · TypeScript 5**. Cualquier upgrade fuera de ese rango rompe el preview/tagger/HMR de la plataforma aunque el build local pase.
+## Hallazgos
 
-## Veredicto por paquete
+### 1. CRÍTICO — `maintenance_logs` no se borra en ningún teardown
+`e2e_seed_scenario` crea una orden de mantenimiento (`seed.maintenance_log_id`, usado por `maintenance-kanban.spec.ts`), pero ni `e2e_teardown(p_scope)` ni `purge_e2e_data()` tienen `DELETE FROM public.maintenance_logs`. Cada corrida de la suite deja una orden huérfana ligada a un forklift sembrado; al borrar el forklift sin cascade, o bien falla el delete (si hay FK), o bien la fila queda perpetuamente. Confirmado por `grep`: cero referencias a `DELETE … maintenance_logs` en migraciones.
 
-### NO actualizar — incompatibles con la plataforma
+### 2. CRÍTICO — `customer-create.spec.ts` no usa `try/finally`
+Líneas 80–90: el `select`, los `expect(...).toBe(...)` y el `delete` corren en secuencia plana. Si cualquier `expect` o el `select` falla, el `delete` nunca se ejecuta y el cliente queda en BD (marcado `is_e2e=true`, pero `purge_e2e_data()` solo corre en el último shard del global teardown — ver hallazgo 5). Además no llama `e2e_teardown` por scope, solo `delete by id`.
 
-| Paquete | Salto | Razón |
-|---|---|---|
-| `react`, `react-dom`, `@types/react`, `@types/react-dom` | 18 → 19 | Lovable corre React 18; `lovable-tagger` y muchos Radix aún no soportan 19 estable aquí. |
-| `vite` | 5 → 8 | Lovable fija Vite 5; plugin `lovable-tagger` y `@vitejs/plugin-react-swc 3` están atados. |
-| `@vitejs/plugin-react-swc` | 3 → 4 | Requiere Vite 6+. |
-| `tailwindcss` | 3 → 4 | Nuevo engine Oxide, config en CSS; Lovable usa Tailwind v3 + `tailwind.config.ts`. |
-| `tailwind-merge` | 2 → 3 | Requiere Tailwind v4. |
-| `typescript` | 5 → 6 | Lovable fija TS 5; cambios en lib types pueden romper tipos generados de Supabase. |
-| `react-router-dom` | 6 → 7 | Cambia a data-router por default; impacta `MainLayout`, `Suspense` por ruta, AuthGuard y customer portal. Riesgo alto, sin beneficio inmediato. |
+### 3. ALTO — `seed.ts` revisa `testInfo.status` antes de tiempo
+En `fixtures/seed.ts` (líneas 109–115) el fixture lee `testInfo.status` para decidir si propaga el error de teardown o solo lo loguea. Playwright finaliza `testInfo.status` **después** de que terminan todos los fixtures de teardown, por lo que dentro del fixture casi siempre es `undefined`/`"running"`. La heurística cae al fallback de `testError`/`testInfo.errors.length`, lo cual funciona la mayoría de las veces, pero el chequeo de `status` es código muerto/engañoso. Mismo patrón en `portalSeed.ts`.
 
-### NO actualizar — breaking de dominio (alto costo, sin beneficio)
+### 4. ALTO — `purge_e2e_data()` desactualizado vs. tablas con bandera `is_e2e`
+La RPC global solo limpia 9 tablas: `activity_feed`, `payments`, `invoices`, `bookings`, `quote_assigned_forklifts`, `quotes`, `forklifts`, `equipment_models`, `customers`. Faltan:
+- `maintenance_logs` (hallazgo 1)
+- Cualquier otra tabla nueva con `is_e2e` añadida después de v6.37.3 (revisar `supplier_bills`, `damage_records`, `contracts` si se les agregó la columna)
+Si el último shard llama esta RPC esperando "red final", esas tablas siguen acumulando filas.
 
-| Paquete | Salto | Razón |
-|---|---|---|
-| `zod` | 3 → 4 | API de errores y `z.string()` cambia; rompe `nn()`, `RequiredMark`, todos los schemas. |
-| `@hookform/resolvers` | 3 → 5 | Solo tiene sentido tras migrar a Zod 4. |
-| `date-fns` | 3 → 4 | Nueva API de timezones; impacta `nowMty`, `formatMonthEs`, PDFs y reportes. Regresión de localización casi garantizada. |
-| `sonner` | 1 → 2 | Cambia API de toasts; rompe el wrapper global de feedback (`notifyError`, etc.). |
-| `react-day-picker` | 8 → 10 | Nueva API de props; shadcn `calendar.tsx` quedaría desalineado. |
-| `lucide-react` | 0.462 → 1.x | Rename masivo de íconos; cientos de imports a tocar sin valor funcional. |
+### 5. MEDIO — Global teardown sólo corre en el último shard
+`playwright.config.ts` desactiva `globalTeardown` cuando `SHARD_INDEX !== SHARD_TOTAL`. Si el último shard cae (OOM, timeout, build error), la purga nunca se ejecuta y la BD demo queda contaminada hasta la siguiente corrida exitosa. Falta una alerta o job dedicado de purga post-suite en CI.
 
-### Dev-deps postergables (sin riesgo de seguridad, sin valor inmediato)
+### 6. MEDIO — `customer-create.spec.ts` inyecta `liftgo:e2e=true` vía `addInitScript`
+Activa el flag para *toda* navegación del test, incluyendo páginas que podrían disparar otras escrituras (analytics, telemetry, prefetch de hooks). Hoy `getE2ECustomerMetadata` solo se usa en `buildCustomerPayload`, pero si mañana otro hook lee `liftgo:e2e_scope`, podría marcar filas con un scope que nadie limpia (porque el spec borra `customers` directo por id, no por scope).
 
-`eslint 9→10`, `@eslint/js 9→10`, `eslint-plugin-react-hooks 5→7`, `eslint-plugin-react-refresh 0.4→0.5`, `globals 15→17`, `@types/node 22→26`, `jsdom 20→29`, `@vitest/coverage-v8 4.0→4.1`.
+### 7. BAJO — Fixture `seed.ts`: `teardownScenario` no incluye `maintenance_log_id` ni `payments` creados por la UI con bandera apagada
+El comentario del RPC dice "borra pagos del scope o pagos que apuntan a facturas sembradas" — bien. Pero si un test futuro toca otras tablas (ej. `damage_records`, `contracts`), no quedan cubiertas. Sin tests automatizados que verifiquen "después del teardown, el scope no debe tener filas", la regresión es silenciosa.
 
-Recomendación: dejar tal cual. Los toolings ya funcionan; subirlos suele forzar cascadas (p.ej. ESLint 10 obliga a actualizar plugins/configs).
+## Plan de remediación propuesto (a aplicar tras tu aprobación)
 
-## Conclusión
+1. **Migración SQL**:
+   - Añadir `DELETE FROM public.maintenance_logs WHERE is_e2e = true AND (e2e_scope = p_scope OR p_scope IS NULL)` a `e2e_teardown(p_scope)` (antes de borrar `forklifts`).
+   - Añadir el bloque equivalente a `purge_e2e_data()` (antes de `forklifts`).
+   - Verificar columnas `is_e2e`/`e2e_scope` en `maintenance_logs`; si faltan, agregarlas con default y constraint de scope obligatorio (como las otras 7 tablas).
 
-**No hay ningún upgrade major recomendable hoy.** Todo lo crítico ya quedó parchado en v6.97.6–v6.97.12. Mantener el lockfile como está y dejar que Dependabot proponga minors/patches semanalmente.
+2. **`customer-create.spec.ts`**: envolver verificación + delete en `try/finally`; agregar fallback `await client.rpc("e2e_teardown", { p_scope: e2eScope })` en el `finally` para cubrir cualquier fila colateral.
 
-## Si más adelante quieres mover alguno
+3. **`seed.ts` y `portalSeed.ts`**: eliminar el chequeo de `testInfo.status` y dejar solo `testError`/`testInfo.errors.length`. Documentar por qué.
 
-Lo abordaría en plan dedicado y aislado, en este orden de menor a mayor riesgo:
+4. **CI**: agregar un job programado (cron diario) o un step de "post-suite hard purge" que ejecute `purge_e2e_data()` aunque el último shard haya fallado. Alternativa: emitir warning si la RPC devuelve totales > 0 en una corrida limpia.
 
-1. `eslint` + plugins (dev-only, contenido).
-2. `@types/node`, `jsdom`, `globals` (dev-only).
-3. `sonner` 2 (wrapper centralizado → cambio focalizado).
-4. `react-router-dom` 7 (alto impacto en rutas/guards).
-5. `tailwindcss` 4 + `tailwind-merge` 3 (cambio de design system completo).
-6. `react` 19 + `vite` 6+ (solo si Lovable libera soporte).
-7. `zod` 4 + `@hookform/resolvers` 5 (schemas en todo el proyecto).
-8. `date-fns` 4 (timezone — alto riesgo de regresión en MXN/Monterrey).
+5. **Test de regresión**: un spec rápido `tests/e2e/_meta/teardown.spec.ts` que siembre un scope, lo destruya y consulte `SELECT count(*) FROM public.<cada tabla> WHERE e2e_scope = $scope` esperando 0 en todas. Detecta automáticamente si una tabla nueva queda fuera del teardown.
 
-¿Quieres que prepare un plan detallado para alguno específico o lo dejamos como está?
+## Detalles técnicos
+
+- Las RPCs viven en `supabase/migrations/2026061222391…` (purge) y la última versión de `e2e_teardown` en `20260624163200_…`. Hay que crear una nueva migración (no editar las existentes).
+- `e2e_seed_scenario` ya marca `maintenance_logs` con `is_e2e/e2e_scope` (asumido, a confirmar leyendo la versión vigente de la función antes de migrar).
+- El job actual de CI usa sharding 2× con `fullyParallel: true`, `workers: 2`; el plan no cambia el modelo de paralelismo.
+
+¿Aplico estas correcciones (1–3 son las urgentes) o quieres que primero confirme alguna asunción (por ejemplo, si `maintenance_logs` ya tiene `e2e_scope`)?
