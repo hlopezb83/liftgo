@@ -53,12 +53,15 @@ export function useUpdateContractTemplate() {
   return useMutation({
     mutationFn: async (template: Partial<ContractTemplate> & { id: string }) => {
       const { id, ...rest } = template;
+      const updatePayload = {
+        ...rest,
+        updated_at: nowMty().toISOString(),
+      } as unknown as Parameters<
+        ReturnType<typeof supabase.from<"contract_templates">>["update"]
+      >[0];
       const { data, error } = await supabase
         .from("contract_templates")
-        .update({
-          ...rest,
-          updated_at: nowMty().toISOString(),
-        })
+        .update(updatePayload)
         .eq("id", id)
         .select("id");
       if (error) throw error;
