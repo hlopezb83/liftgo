@@ -1,52 +1,157 @@
-# Auditoría de cleanup E2E
+# Auditoría UI/UX a 1920×1080 — LiftGo
 
-Revisé `tests/e2e/**`, los fixtures (`seed.ts`, `portalSeed.ts`), `global.teardown.ts`, `playwright.config.ts` y las RPCs `e2e_teardown(p_scope)` + `purge_e2e_data()`. El diseño general (scope por test + purge global como red) es sólido, pero encontré varias fugas concretas y un bug de orden.
+Revisé 13 vistas en escritorio Full HD. Las clasificaciones: **CRÍTICO** (rompe percepción de sistema o función), **ALTO** (incoherencia visible inmediata), **MEDIO** (pulido), **OK** (sin acción). Solo listo lo accionable.
 
-## Hallazgos
+---
 
-### 1. CRÍTICO — `maintenance_logs` no se borra en ningún teardown
-`e2e_seed_scenario` crea una orden de mantenimiento (`seed.maintenance_log_id`, usado por `maintenance-kanban.spec.ts`), pero ni `e2e_teardown(p_scope)` ni `purge_e2e_data()` tienen `DELETE FROM public.maintenance_logs`. Cada corrida de la suite deja una orden huérfana ligada a un forklift sembrado; al borrar el forklift sin cascade, o bien falla el delete (si hay FK), o bien la fila queda perpetuamente. Confirmado por `grep`: cero referencias a `DELETE … maintenance_logs` en migraciones.
+## 1) Bugs visuales y de acomodo
 
-### 2. CRÍTICO — `customer-create.spec.ts` no usa `try/finally`
-Líneas 80–90: el `select`, los `expect(...).toBe(...)` y el `delete` corren en secuencia plana. Si cualquier `expect` o el `select` falla, el `delete` nunca se ejecuta y el cliente queda en BD (marcado `is_e2e=true`, pero `purge_e2e_data()` solo corre en el último shard del global teardown — ver hallazgo 5). Además no llama `e2e_teardown` por scope, solo `delete by id`.
+### CRÍTICO — `/company-settings` renderiza 404 con breadcrumb "Datos Fiscales"
+La ruta sigue activa en sidebar pero el lazy route devuelve `NotFound`. Probable mismatch entre `ROUTES.companySettings` y el `path` registrado en `App.tsx`/routing. Reproducible en cualquier sesión.
+**Fix:** validar `path="/company-settings"` en la definición de rutas; si la ruta correcta es otra (`/configuracion`, etc.), redirigir.
 
-### 3. ALTO — `seed.ts` revisa `testInfo.status` antes de tiempo
-En `fixtures/seed.ts` (líneas 109–115) el fixture lee `testInfo.status` para decidir si propaga el error de teardown o solo lo loguea. Playwright finaliza `testInfo.status` **después** de que terminan todos los fixtures de teardown, por lo que dentro del fixture casi siempre es `undefined`/`"running"`. La heurística cae al fallback de `testError`/`testInfo.errors.length`, lo cual funciona la mayoría de las veces, pero el chequeo de `status` es código muerto/engañoso. Mismo patrón en `portalSeed.ts`.
+### ALTO — Inventario de flota: nombre de página no coincide con sidebar
+Sidebar dice **"Equipos"** → la página dice **"Inventario de Flota"** y breadcrumb dice **"Equipos"**. Tres etiquetas para el mismo módulo confunden la jerarquía.
+**Fix:** unificar a "Equipos" en `<PageHeader title="Equipos" subtitle="58 unidades en flota" />`.
 
-### 4. ALTO — `purge_e2e_data()` desactualizado vs. tablas con bandera `is_e2e`
-La RPC global solo limpia 9 tablas: `activity_feed`, `payments`, `invoices`, `bookings`, `quote_assigned_forklifts`, `quotes`, `forklifts`, `equipment_models`, `customers`. Faltan:
-- `maintenance_logs` (hallazgo 1)
-- Cualquier otra tabla nueva con `is_e2e` añadida después de v6.37.3 (revisar `supplier_bills`, `damage_records`, `contracts` si se les agregó la columna)
-Si el último shard llama esta RPC esperando "red final", esas tablas siguen acumulando filas.
+### ALTO — Sidebar: marca recortada agresivamente
+"HERREN ENERGY SA D..." y email "hlopezb@gm..." quedan cortados aun teniendo el sidebar expandido a su ancho normal en 1920px. Se siente apretado vs el espacio disponible (~210px).
+**Fix:** subir el ancho del sidebar a `--sidebar-width: 16rem` (256px) o agregar `title` tooltip + `min-w-0 truncate` con dos líneas permitidas para la razón social.
 
-### 5. MEDIO — Global teardown sólo corre en el último shard
-`playwright.config.ts` desactiva `globalTeardown` cuando `SHARD_INDEX !== SHARD_TOTAL`. Si el último shard cae (OOM, timeout, build error), la purga nunca se ejecuta y la BD demo queda contaminada hasta la siguiente corrida exitosa. Falta una alerta o job dedicado de purga post-suite en CI.
+### ALTO — Estado de Resultados: ícono de Utilidad Neta no cambia con valor negativo
+La KPI muestra `-$445,534.77` con ícono de tendencia neutra azul. Otras vistas (Cartera Vencida) sí refuerzan con color destructivo.
+**Fix:** condicionar `iconBg`/`iconColor` según signo; mantener semáforo (positivo `success`, negativo `destructive`).
 
-### 6. MEDIO — `customer-create.spec.ts` inyecta `liftgo:e2e=true` vía `addInitScript`
-Activa el flag para *toda* navegación del test, incluyendo páginas que podrían disparar otras escrituras (analytics, telemetry, prefetch de hooks). Hoy `getE2ECustomerMetadata` solo se usa en `buildCustomerPayload`, pero si mañana otro hook lee `liftgo:e2e_scope`, podría marcar filas con un scope que nadie limpia (porque el spec borra `customers` directo por id, no por scope).
+### MEDIO — Header columna "Vencido $44,225.00" en CXP repite el mismo número que "Pendiente total"
+Visualmente parece duplicado. Aunque el dato es real, falta separación o subtítulo aclarando que vencido es subconjunto del pendiente.
+**Fix:** badge debajo del valor: `de los $44,225.00 pendientes` o usar texto secundario.
 
-### 7. BAJO — Fixture `seed.ts`: `teardownScenario` no incluye `maintenance_log_id` ni `payments` creados por la UI con bandera apagada
-El comentario del RPC dice "borra pagos del scope o pagos que apuntan a facturas sembradas" — bien. Pero si un test futuro toca otras tablas (ej. `damage_records`, `contracts`), no quedan cubiertas. Sin tests automatizados que verifiquen "después del teardown, el scope no debe tener filas", la regresión es silenciosa.
+### MEDIO — Card "Facturas Vencidas (5)" en Panel desborda colores
+El fondo rojo claro y la línea de íconos verdes a la derecha (estado check) compiten visualmente; el check verde junto a una factura vencida sugiere "pagada".
+**Fix:** cambiar el ícono de acción a `ChevronRight` o `Eye` (neutral) en lugar de check verde.
 
-## Plan de remediación propuesto (a aplicar tras tu aprobación)
+---
 
-1. **Migración SQL**:
-   - Añadir `DELETE FROM public.maintenance_logs WHERE is_e2e = true AND (e2e_scope = p_scope OR p_scope IS NULL)` a `e2e_teardown(p_scope)` (antes de borrar `forklifts`).
-   - Añadir el bloque equivalente a `purge_e2e_data()` (antes de `forklifts`).
-   - Verificar columnas `is_e2e`/`e2e_scope` en `maintenance_logs`; si faltan, agregarlas con default y constraint de scope obligatorio (como las otras 7 tablas).
+## 2) Sistema de espaciado
 
-2. **`customer-create.spec.ts`**: envolver verificación + delete en `try/finally`; agregar fallback `await client.rpc("e2e_teardown", { p_scope: e2eScope })` en el `finally` para cubrir cualquier fila colateral.
+### ALTO — Padding horizontal de página inconsistente
+- Panel, Facturas, Reservas, Clientes, Equipos: `px-6` (~24px) desde el header al borde.
+- Mantenimiento, Datos Fiscales (404), Estado de Resultados, CRM: arrancan pegados al borde izquierdo del área de contenido (`px-0` o `px-4`).
+**Fix:** envolver toda página en `<PageLayout>` con `px-6 py-6` fijo. O introducir clase utilitaria `.page-container` en `index.css`.
 
-3. **`seed.ts` y `portalSeed.ts`**: eliminar el chequeo de `testInfo.status` y dejar solo `testError`/`testInfo.errors.length`. Documentar por qué.
+### MEDIO — Gap entre KPI cards varía
+Panel usa `gap-4` (16px) en su grid de 5 cards. Estado de Resultados usa `gap-6` (24px). Calendario usa `gap-4`. Definir un único valor.
+**Fix:** estandarizar `gap-4` para grids de KPIs.
 
-4. **CI**: agregar un job programado (cron diario) o un step de "post-suite hard purge" que ejecute `purge_e2e_data()` aunque el último shard haya fallado. Alternativa: emitir warning si la RPC devuelve totales > 0 en una corrida limpia.
+### MEDIO — Subtítulo bajo el título: separación distinta
+- Panel: `"Vista general de la flota"` con `mt-1`.
+- Facturas: `"Administrar facturación y pagos"` con `mt-2`.
+- CRM: subtítulo es realmente un meta `"18 prospectos · $6,182,099.36"` sin descripción.
+**Fix:** componente `<PageHeader title subtitle meta?>` que separe descripción (frase) de meta (contador).
 
-5. **Test de regresión**: un spec rápido `tests/e2e/_meta/teardown.spec.ts` que siembre un scope, lo destruya y consulte `SELECT count(*) FROM public.<cada tabla> WHERE e2e_scope = $scope` esperando 0 en todas. Detecta automáticamente si una tabla nueva queda fuera del teardown.
+### MEDIO — Filtros: posición y composición distintas
+| Página | Patrón |
+|---|---|
+| Facturas | tabs izq + buscador der + date filter der |
+| Cotizaciones | buscador izq + dropdown der |
+| Reservas | tabs izq + buscador der |
+| Clientes | buscador centrado solo |
+| CXP | buscador + 6 dropdowns en una sola fila |
+| Equipos | buscador izq + dropdown der |
 
-## Detalles técnicos
+**Fix:** definir un `<ListToolbar>` con slots `tabs / search / filters / actions`. Toda lista usa el mismo componente.
 
-- Las RPCs viven en `supabase/migrations/2026061222391…` (purge) y la última versión de `e2e_teardown` en `20260624163200_…`. Hay que crear una nueva migración (no editar las existentes).
-- `e2e_seed_scenario` ya marca `maintenance_logs` con `is_e2e/e2e_scope` (asumido, a confirmar leyendo la versión vigente de la función antes de migrar).
-- El job actual de CI usa sharding 2× con `fullyParallel: true`, `workers: 2`; el plan no cambia el modelo de paralelismo.
+---
 
-¿Aplico estas correcciones (1–3 son las urgentes) o quieres que primero confirme alguna asunción (por ejemplo, si `maintenance_logs` ya tiene `e2e_scope`)?
+## 3) Armonía tipográfica y color
+
+### ALTO — Tres tamaños distintos para el título de página
+- Panel/Facturas/Cotizaciones/Reservas/Clientes: `text-3xl font-bold` (30px).
+- CRM: `text-2xl font-bold` (24px) — más chico.
+- Mantenimiento: `text-3xl` pero con `font-semibold` (no bold).
+
+**Fix:** clase utilitaria `.page-title` = `text-3xl font-bold tracking-tight` aplicada vía `<PageHeader>`.
+
+### ALTO — Color del subtítulo varía
+Algunos usan `text-muted-foreground`, otros `text-gray-500`, otros `text-sm text-slate-600`. Todos deben ser `text-muted-foreground text-sm`.
+**Fix:** búsqueda + reemplazo: `text-(slate|gray|zinc)-(400|500|600)` → `text-muted-foreground`.
+
+### MEDIO — Iconos de KPI cards: paleta inconsistente
+- Panel: pasteles armonizados (`bg-emerald-50` + `text-emerald-600`, etc.).
+- Estado de Resultados: usa `bg-emerald-500`, `bg-rose-500`, `bg-blue-500` saturados (mismas tonalidades que badges de estado).
+- Calendario: usa íconos sin contenedor circular.
+
+**Fix:** sistema de "KpiCard" único con `tone: success|warning|danger|info|neutral` que mapee a tokens semánticos (`--success`, etc.) con opacidad 10% para fondo y 100% para foreground.
+
+### MEDIO — Mezcla de tokens y Tailwind hardcoded
+`grep -rn "text-(red|green|blue|emerald|rose|amber|slate|gray|zinc)-(50|100|...|900)"` en `src/features/**/components/` arroja decenas de matches. Cada uno viola la convención de tokens semánticos del proyecto.
+**Fix:** issue dedicado para migrar `bg-red-50/text-red-700` → `bg-destructive/10 text-destructive`, etc. Hacer barrido por carpeta.
+
+---
+
+## 4) Consistencia de componentes (UI Kit)
+
+### ALTO — Botón primario: 3 anchos distintos en el mismo viewport
+- `Nueva Factura` (Facturas): compacto, ícono `+` lucide pequeño.
+- `Agregar Montacargas` (Equipos): más ancho, texto más largo, mismo estilo.
+- `Nueva Cotización` (Cotizaciones): ancho intermedio.
+- `Registrar Servicio` (Mantenimiento): ícono `PlusCircle` (relleno) en vez de `Plus` (delgado). Inconsistente.
+
+**Fix:** unificar ícono leading a `<Plus className="h-4 w-4" />` y dejar el ancho fluido por contenido (sin `min-w`). Estandarizar verbo "Nuevo X" en lugar de mezclar "Agregar/Registrar/Crear/Nuevo".
+
+### ALTO — Botón secundario: 2 variantes
+- Facturas: `Generar Recurrentes` y `Exportar CSV` con borde + fondo blanco.
+- CXP: `Antigüedad` y `Exportar pagos` mismo estilo.
+- Calendario: toggles `Gantt/Lista/Semana/Mes` usan tabs con fondo activo claro pero los botones secundarios de otras vistas son outline.
+
+**Fix:** auditar `<Button variant>`; cualquier botón con `border + bg-white` debe usar `variant="outline"`.
+
+### MEDIO — Cards de KPI: dos diseños activos
+Patrón A (Panel): ícono circular pastel + label + valor grande, `rounded-xl`, sombra suave.
+Patrón B (Estado de Resultados): ícono cuadrado saturado + label + valor, `rounded-lg`, sin sombra.
+
+**Fix:** consolidar en un único `<KpiCard>` (probablemente extender `src/components/feedback/StatusBadge` siblings).
+
+### MEDIO — Badges de estado: misma intención, dos estilos
+- Reservas: `Cancelado` filled rojo intenso; `Completado` filled gris oscuro.
+- Facturas: `Vencido` filled rojo; `Pagado` filled verde; `Borrador` outline gris.
+- CXP: `Vencida` filled rojo claro/oscuro; `Pagada` filled verde.
+
+**Fix:** revisar `StatusBadge.tsx` para que todos los estados terminales (cancelado/completado/pagado/vencido) usen un mismo tratamiento (filled) y los borradores siempre outline.
+
+### MEDIO — Tablas: anchos de columna fijos vs flex
+Algunas tablas (Equipos, Facturas) recortan `Ubicación` con `truncate` invisible. Otras (Clientes) dejan crecer la columna y desperdician espacio derecho.
+**Fix:** convención en `<DataTableV2>`: columnas de texto largo siempre `truncate` con tooltip; columnas de moneda `tabular-nums text-right`.
+
+### MEDIO — Search input: dos altos
+- `Ctrl+K` global en topbar: `h-8` (~32px).
+- Search en listados: `h-10` (~40px).
+**Fix:** topbar también `h-10` o ambos `h-9`.
+
+---
+
+## 5) Cohesión global
+
+### Recomendación arquitectónica (ALTA prioridad)
+La causa raíz de la mayoría de incoherencias es que **cada página construye su header y toolbar manualmente** en vez de consumir un componente compartido. El proyecto ya tiene `PageHeader.tsx`, `DetailPageHeader.tsx`, `FormPageHeader.tsx` pero solo algunas vistas los usan.
+
+**Acción:** auditar páginas no migradas y forzar uso de:
+- `<PageHeader title subtitle meta actions />` para listados.
+- `<ListToolbar tabs search filters />` para barras de filtros.
+- `<KpiCard tone label value icon />` para KPIs.
+
+---
+
+## Plan de implementación sugerido (cuando pase a build mode)
+
+1. **Fix crítico routing** (`/company-settings` 404): 15 min.
+2. **Unificar `PageHeader` + título** en las 13 vistas auditadas: ~1h.
+3. **Eliminar colores Tailwind hardcoded** (`red-*`, `green-*`, etc.) → tokens semánticos: ~2h, requiere PR aparte.
+4. **Consolidar `KpiCard`** y migrar Estado de Resultados + Calendario: ~45min.
+5. **Estandarizar botones primarios/secundarios** + íconos `Plus`: ~30min.
+6. **`ListToolbar` componente** + migración de 6 listados: ~1.5h.
+7. **Subir `--sidebar-width` a 16rem** y agregar tooltip a marca: 10min.
+
+Total estimado: ~6 horas de pulido para alcanzar cohesión visual completa.
+
+¿Apruebas que ejecute todo el plan, o prefieres que arranque solo con los CRÍTICOS y ALTOS (puntos 1, 2, 4, 5, 7) y dejemos la migración masiva de tokens y `ListToolbar` para iteraciones posteriores?
