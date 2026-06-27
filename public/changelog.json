@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.7",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Actualizacion de recharts a v3.9.0 para eliminar vulnerabilidades de lodash",
+    "description": "Se actualizo recharts de 2.15.4 a 3.9.0. La version 2.x dependia de lodash 4.17.21 con vulnerabilidades de Prototype Pollution (CVE-2025-13465) e inyeccion de codigo (alta/media). recharts 3.x reemplazo lodash por metodos nativos y es-toolkit, eliminando la superficie de ataque. Build verificado sin errores.",
+    "category": "fix"
+  },
+  {
     "version": "6.97.6",
     "date": "2026-06-27",
     "type": "patch",
