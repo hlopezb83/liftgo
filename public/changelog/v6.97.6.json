@@ -1,0 +1,8 @@
+{
+  "version": "6.97.6",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Parches de seguridad en dependencias",
+  "description": "Actualizacion de @supabase/supabase-js (2.108.2), react-router-dom (6.30.4) y dompurify (3.4.11) a versiones sin vulnerabilidades conocidas de alta y media severidad. Build verificado sin errores.",
+  "category": "fix"
+}
