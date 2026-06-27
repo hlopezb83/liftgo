@@ -93,7 +93,10 @@ export default function InvoiceForm() {
             <CardContent className="space-y-4">
               {!f.isEdit && (
                 <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2">
-                  <span className="text-sm text-muted-foreground">Folio próximo</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-muted-foreground">Folio próximo</span>
+                    <span className="text-[11px] text-muted-foreground/80">Tentativo · se asigna al guardar</span>
+                  </div>
                   <span className="font-semibold text-primary">
                     {loadingNext ? "Calculando…" : (nextNumber ?? "—")}
                   </span>

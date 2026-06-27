@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.5",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Folio de factura ya no brinca al cerrar el modal sin guardar",
+    "description": "El folio mostrado en el modal de Nueva Factura ahora es tentativo y se asigna definitivamente al guardar. Antes, abrir el modal consumia un folio de la secuencia aunque la factura no se creara.",
+    "category": "fix"
+  },
+  {
     "version": "6.97.4",
     "date": "2026-06-27",
     "type": "patch",
