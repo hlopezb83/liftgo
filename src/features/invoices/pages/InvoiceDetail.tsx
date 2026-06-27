@@ -18,6 +18,7 @@ import { InvoiceDetailActions } from "../components/invoice-detail/InvoiceDetail
 import { InvoiceSourceLinks } from "../components/invoice-detail/InvoiceSourceLinks";
 import { InvoiceSummaryCards } from "../components/invoice-detail/InvoiceSummaryCards";
 import { InvoiceDetailDialogs } from "../components/invoice-detail/InvoiceDetailDialogs";
+import { StampErrorDialog } from "../components/StampErrorDialog";
 import { InvoiceCreditNotesCard } from "../components/invoice-detail/InvoiceCreditNotesCard";
 import { useCreditNotesForInvoice } from "../hooks/creditNotes/useCreditNotes";
 import { InvoiceDetailBadges } from "../components/invoice-detail/InvoiceDetailBadges";
@@ -150,6 +151,13 @@ export default function InvoiceDetail() {
         onCancelSuccess={refetch}
         onDelete={actions.handleDelete}
         ppdStamped={ppdStamped}
+      />
+      <StampErrorDialog
+        open={!!actions.stampError}
+        onOpenChange={(o) => { if (!o) actions.clearStampError(); }}
+        message={actions.stampError?.message ?? ""}
+        kind={actions.stampError?.kind ?? "unknown"}
+        customerId={actions.stampError?.customerId ?? null}
       />
 
     </div>
