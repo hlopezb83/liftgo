@@ -62,7 +62,7 @@ export const CLAVE_PROD_SERV = [
   { code: "78181501", label: "78181501 - Alquiler de montacargas" },
   { code: "78181600", label: "78181600 - Alquiler de equipo de transporte" },
   { code: "81141601", label: "81141601 - Servicios de entrega" },
-  { code: "80131500", label: "80131500 - Alquiler de propiedades o edificaciones" },
+  
   { code: "81112100", label: "81112100 - Servicios de mantenimiento de equipo" },
 ] as const;
 

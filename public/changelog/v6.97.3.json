@@ -1,0 +1,8 @@
+{
+  "version": "6.97.3",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Removida clave SAT 80131500 del catálogo de productos/servicios",
+  "description": "Se eliminó la clave 80131500 - Alquiler de propiedades o edificaciones del dropdown de Clave de Producto/Servicio en partidas de factura, ya que no aplica al negocio de renta de montacargas.",
+  "category": "fix"
+}
