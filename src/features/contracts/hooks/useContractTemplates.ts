@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
@@ -56,9 +57,7 @@ export function useUpdateContractTemplate() {
       const updatePayload = {
         ...rest,
         updated_at: nowMty().toISOString(),
-      } as unknown as Parameters<
-        ReturnType<typeof supabase.from<"contract_templates">>["update"]
-      >[0];
+      } as unknown as TablesUpdate<"contract_templates">;
       const { data, error } = await supabase
         .from("contract_templates")
         .update(updatePayload)
