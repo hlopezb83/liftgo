@@ -17,7 +17,7 @@ export function FleetMobileCard({ forklift: f, hasActivePolicy, onClick }: CardP
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono font-semibold text-sm flex items-center gap-1.5">
             {f.name}
-            {hasActivePolicy && <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+            {hasActivePolicy && <ShieldCheck className="h-3.5 w-3.5 text-success shrink-0" />}
           </span>
           <StatusBadge status={f.status} />
         </div>

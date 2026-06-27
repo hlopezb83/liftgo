@@ -105,8 +105,8 @@ export default function MrrDetailPage() {
 
       <Card>
         <CardContent className="p-5 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-            <DollarSign className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+          <div className="p-3 rounded-xl bg-success/10">
+            <DollarSign className="h-6 w-6 text-success" />
           </div>
           <div>
             <p className="text-xs text-muted-foreground">MRR Total</p>

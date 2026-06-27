@@ -9,7 +9,7 @@ interface Props {
   kpis: AccountsPayableKpis;
 }
 
-type Tone = "text-foreground" | "text-destructive" | "text-amber-600 dark:text-amber-400" | "text-emerald-600 dark:text-emerald-400";
+type Tone = "text-foreground" | "text-destructive" | "text-warning" | "text-success";
 
 interface KpiItem {
   key: keyof AccountsPayableKpis;
@@ -22,10 +22,10 @@ interface KpiItem {
 const ITEMS: readonly KpiItem[] = [
   { key: "totalPendiente", label: "Pendiente total", icon: Clock, tone: "text-foreground" },
   { key: "totalVencido", label: "Vencido", icon: AlertTriangle, tone: "text-destructive" },
-  { key: "totalPorVencer", label: "Por vencer (7 días)", icon: CalendarClock, tone: "text-amber-600 dark:text-amber-400" },
-  { key: "totalPorAprobar", label: "Por aprobar", icon: ShieldAlert, tone: "text-amber-600 dark:text-amber-400" },
-  { key: "repPendientes", label: "REP pendientes", icon: FileWarning, tone: "text-amber-600 dark:text-amber-400", asCount: true },
-  { key: "pagadoMesActual", label: "Pagado este mes", icon: CheckCircle2, tone: "text-emerald-600 dark:text-emerald-400" },
+  { key: "totalPorVencer", label: "Por vencer (7 días)", icon: CalendarClock, tone: "text-warning" },
+  { key: "totalPorAprobar", label: "Por aprobar", icon: ShieldAlert, tone: "text-warning" },
+  { key: "repPendientes", label: "REP pendientes", icon: FileWarning, tone: "text-warning", asCount: true },
+  { key: "pagadoMesActual", label: "Pagado este mes", icon: CheckCircle2, tone: "text-success" },
 ] as const;
 
 export function AccountsPayableKpiCards({ kpis }: Props) {

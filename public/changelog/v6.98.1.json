@@ -1,0 +1,16 @@
+{
+  "version": "6.98.1",
+  "date": "2026-06-27",
+  "type": "patch",
+  "title": "Tokens semánticos: migración masiva de colores hardcoded",
+  "category": "improvement",
+  "summary": "Fase 2 de la auditoría UI/UX: centralización de colores de estado (success, warning, destructive, info) en tokens semánticos.",
+  "changes": {
+    "ui": [
+      "Nuevo token --info (217 91% 60%) y mapeo Tailwind info/info-foreground; cubre indicadores neutros/informativos.",
+      "Alert: nuevas variantes success e info (además de warning ya introducida) usando tokens semánticos.",
+      "Migrados ~30 archivos en dashboard, accounts-payable, invoices, fleet, cash-flow, calendar, bookings y otros: text-{red,amber,green,blue,emerald,yellow,rose}-* → text-{destructive,warning,success,info}; bg-* y border-* equivalentes a tokens con opacidad estándar (/10, /30).",
+      "AccountsPayableKpiCards, ExpiringContractsAlert, InsuranceAlert, CollectionForecast, ForkliftFinancialCard, InvoicePaymentSummary: ahora respetan el theme dark/light automáticamente vía tokens."
+    ]
+  }
+}

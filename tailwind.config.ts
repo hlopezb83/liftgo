@@ -74,6 +74,10 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
         status: {
           available: "hsl(var(--status-available))",
           rented: "hsl(var(--status-rented))",

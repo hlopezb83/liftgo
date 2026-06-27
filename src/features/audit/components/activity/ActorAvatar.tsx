@@ -3,7 +3,7 @@ import type { AppRole } from "@/features/users";
 import { cn } from "@/lib/utils";
 
 const PALETTE = [
-  "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500",
+  "bg-info/100", "bg-success/100", "bg-warning/100", "bg-rose-500",
   "bg-purple-500", "bg-teal-500", "bg-indigo-500", "bg-orange-500",
 ];
 

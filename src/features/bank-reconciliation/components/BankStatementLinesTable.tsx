@@ -12,8 +12,8 @@ interface Props {
 
 const STATUS_TONE: Record<string, string> = {
   unmatched: "bg-muted text-muted-foreground",
-  suggested: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
-  matched: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100",
+  suggested: "bg-warning/10 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
+  matched: "bg-success/10 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100",
   ignored: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
 };
 
@@ -52,7 +52,7 @@ export function BankStatementLinesTable({ lines, onSelect }: Props) {
                 <td className="px-3 py-2 whitespace-nowrap">{formatDateDisplay(l.posted_date)}</td>
                 <td className="px-3 py-2 max-w-md truncate">{l.description || "—"}</td>
                 <td className="px-3 py-2 font-mono text-xs">{l.reference ?? "—"}</td>
-                <td className={cn("px-3 py-2 text-right font-mono tabular-nums", l.signed_amount < 0 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400")}>
+                <td className={cn("px-3 py-2 text-right font-mono tabular-nums", l.signed_amount < 0 ? "text-destructive" : "text-success")}>
                   {formatCurrency(l.signed_amount)}
                 </td>
                 <td className="px-3 py-2">

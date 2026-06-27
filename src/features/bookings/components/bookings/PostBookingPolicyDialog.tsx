@@ -54,7 +54,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-amber-500" />
+            <ShieldCheck className="h-5 w-5 text-warning" />
             Póliza de Mantenimiento
           </DialogTitle>
           <DialogDescription>

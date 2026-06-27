@@ -11,8 +11,8 @@ import type { AppRole } from "../hooks/useUserRole";
 import { cn } from "@/lib/utils";
 
 const accessConfig = {
-  full: { icon: Check, color: "text-emerald-500", label: "Acceso completo" },
-  read: { icon: Eye, color: "text-blue-500", label: "Solo lectura" },
+  full: { icon: Check, color: "text-success", label: "Acceso completo" },
+  read: { icon: Eye, color: "text-info", label: "Solo lectura" },
   none: { icon: Minus, color: "text-muted-foreground/40", label: "Sin acceso" },
 };
 

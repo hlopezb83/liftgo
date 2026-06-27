@@ -14,12 +14,12 @@ export function ForkliftFinancialCard({ financials, isLoading }: ForkliftFinanci
   if (!financials) return null;
 
   const metrics = [
-    { label: "Ingresos Totales", value: formatCurrency(financials.revenue), color: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Costos de Mantenimiento", value: formatCurrency(financials.maintenance_cost), color: "text-amber-600 dark:text-amber-400" },
-    { label: "Margen Bruto", value: formatCurrency(financials.gross_margin), color: financials.gross_margin >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive" },
-    { label: "ROI", value: `${financials.roi_percent}%`, color: financials.roi_percent >= 0 ? "text-blue-600 dark:text-blue-400" : "text-destructive" },
+    { label: "Ingresos Totales", value: formatCurrency(financials.revenue), color: "text-success" },
+    { label: "Costos de Mantenimiento", value: formatCurrency(financials.maintenance_cost), color: "text-warning" },
+    { label: "Margen Bruto", value: formatCurrency(financials.gross_margin), color: financials.gross_margin >= 0 ? "text-success" : "text-destructive" },
+    { label: "ROI", value: `${financials.roi_percent}%`, color: financials.roi_percent >= 0 ? "text-info" : "text-destructive" },
     { label: "Días Rentado", value: `${financials.days_rented}`, color: "text-foreground" },
-    { label: "Utilización", value: `${financials.utilization_percent}%`, color: "text-blue-600 dark:text-blue-400" },
+    { label: "Utilización", value: `${financials.utilization_percent}%`, color: "text-info" },
   ];
 
   return (

@@ -78,8 +78,8 @@ export const CollectionForecast = memo(function CollectionForecast({
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-              <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <div className="p-2 rounded-lg bg-success/10">
+              <TrendingUp className="h-4 w-4 text-success" />
             </div>
             <h3 className="text-sm font-semibold">Pronóstico de Cobranza</h3>
           </div>
@@ -114,7 +114,7 @@ export const CollectionForecast = memo(function CollectionForecast({
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
               <Calendar className="h-3 w-3" /> Próximos 30 días
             </p>
-            <p className="text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400">
+            <p className="text-lg font-bold font-mono text-success">
               {formatCurrency(forecast.expected30)}
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5">Cobranza esperada total</p>

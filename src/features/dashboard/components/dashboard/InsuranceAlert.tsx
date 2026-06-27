@@ -17,9 +17,9 @@ export const InsuranceAlert = memo(function InsuranceAlert({ data }: InsuranceAl
   if (expiring.length === 0 && noInsuranceCount === 0) return null;
 
   return (
-    <Card className="border-amber-500/30 bg-amber-500/5">
+    <Card className="border-warning/30 bg-warning/5">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2 text-amber-600">
+        <CardTitle className="text-base flex items-center gap-2 text-warning">
           <ShieldAlert className="h-4 w-4" /> Seguros ({expiring.length + noInsuranceCount})
         </CardTitle>
       </CardHeader>
@@ -32,7 +32,7 @@ export const InsuranceAlert = memo(function InsuranceAlert({ data }: InsuranceAl
           >
             <span className="font-medium">{f.name}</span>
             <div className="text-right">
-              <span className={`font-mono font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-amber-600"}`}>
+              <span className={`font-mono font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-warning"}`}>
                 {f.days_left <= 0 ? "Vencida" : `${f.days_left} días`}
               </span>
               <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(f.insurance_expiry)}</p>

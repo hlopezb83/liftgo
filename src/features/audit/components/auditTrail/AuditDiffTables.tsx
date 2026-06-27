@@ -30,7 +30,7 @@ export function AuditUpdateDiffTable({
               <TableCell className="text-sm text-destructive line-through max-w-[220px] truncate">
                 {formatAuditValue(field, oldData?.[field])}
               </TableCell>
-              <TableCell className="text-sm font-medium text-emerald-600 max-w-[220px] truncate">
+              <TableCell className="text-sm font-medium text-success max-w-[220px] truncate">
                 {formatAuditValue(field, newData?.[field])}
               </TableCell>
             </TableRow>

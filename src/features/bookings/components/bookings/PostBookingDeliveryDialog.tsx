@@ -39,7 +39,7 @@ export function PostBookingDeliveryDialog({ open, onOpenChange, bookingId, forkl
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            <CheckCircle2 className="h-5 w-5 text-success" />
             {totalCount > 1 ? `Entrega ${currentIndex + 1} de ${totalCount}` : "Reserva Creada"}
           </DialogTitle>
           <DialogDescription>¿Deseas programar la entrega de {forkliftName}?</DialogDescription>
