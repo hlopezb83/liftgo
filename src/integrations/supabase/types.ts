@@ -3514,6 +3514,7 @@ export type Database = {
         }
         Returns: number
       }
+      peek_next_invoice_number: { Args: never; Returns: string }
       purge_e2e_data: { Args: never; Returns: Json }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
       register_supplier_payment: {
