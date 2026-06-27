@@ -1,11 +1,20 @@
+import { useState } from "react";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { backfillStampSnapshot } from "../../lib/backfillStampSnapshot";
 import { getMissingStampFields } from "../../lib/cfdiPrechecks";
+import { classifyFacturapiError, type FacturapiErrorKind } from "../../lib/facturapiErrors";
 import { useStampCfdi } from "../invoices/cfdi/useStampCfdi";
 import type { Tables } from "@/integrations/supabase/types";
 
+export interface StampErrorState {
+  message: string;
+  kind: FacturapiErrorKind;
+  customerId: string | null;
+}
+
 export function useStampInvoiceFlow(refetch: () => void) {
   const stampCfdi = useStampCfdi();
+  const [stampError, setStampError] = useState<StampErrorState | null>(null);
 
   const run = async (invoice: Tables<"invoices"> | undefined) => {
     if (!invoice) return;
@@ -20,8 +29,24 @@ export function useStampInvoiceFlow(refetch: () => void) {
       return;
     }
     if (hydrated !== invoice) refetch();
-    stampCfdi.mutate(invoice.id, { onSuccess: () => refetch() });
+    stampCfdi.mutate(invoice.id, {
+      onSuccess: () => refetch(),
+      onError: (err) => {
+        const raw = err instanceof Error ? err.message : String(err);
+        const classified = classifyFacturapiError(raw);
+        setStampError({
+          message: classified.message,
+          kind: classified.kind,
+          customerId: invoice.customer_id ?? null,
+        });
+      },
+    });
   };
 
-  return { stampCfdi, run };
+  return {
+    stampCfdi,
+    run,
+    stampError,
+    clearStampError: () => setStampError(null),
+  };
 }

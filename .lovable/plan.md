@@ -1,34 +1,40 @@
-## Bug
-Al abrir el modal de **Nueva factura**, `useNextInvoiceNumber` llama al RPC `next_invoice_number()`, que ejecuta `nextval('invoice_number_seq')` y **consume** un folio de la secuencia. Al guardar la factura, `useCreateInvoice` vuelve a llamar `next_invoice_number()` y consume otro. Si el usuario cierra el modal sin guardar, el folio queda perdido para siempre → la siguiente vez la numeración "brinca".
+## Mejorar UX del error CFDI40148 (CP fiscal ≠ RFC)
 
-## Solución
-Separar **preview** (no consume) de **asignación real** (consume y es atómica), y asegurar que el folio se asigna una sola vez al guardar.
+Hoy este error solo aparece como toast traducido. La meta: cuando Facturapi rechace con CFDI40148/40149 (o similares de datos de receptor), mostrar un diálogo accionable con link directo a editar al cliente correcto.
 
-### 1. Nuevo RPC `peek_next_invoice_number()` (migración)
-- Lee `last_value` + `is_called` de `public.invoice_number_seq` (vía `pg_sequences` / `pg_sequence_last_value`) y devuelve `'FAC-' || lpad(next, 4, '0')` **sin** llamar `nextval`.
-- `SECURITY DEFINER`, `SET search_path = public`, `GRANT EXECUTE` a `authenticated`.
-- Marcar en el comentario que el folio es **tentativo** y puede cambiar si otro usuario guarda primero.
+### Cambios
 
-### 2. Frontend
-- `useNextInvoiceNumber` apunta a `peek_next_invoice_number`.
-- En `InvoiceForm.tsx` / componente del header del modal, mostrar el folio con etiqueta **"Folio tentativo · se asigna al guardar"** (sutil, debajo o al lado del número).
-- `useCreateInvoice` sigue llamando `next_invoice_number()` (el que sí consume) en el insert — sin cambios funcionales.
+1. **`src/features/invoices/lib/facturapiErrors.ts`**
+   - Convertir el catálogo `PATTERNS` para que cada entrada devuelva `{ message, kind?: "receptor_data" | "csd" | "credits" | "auth" | "folio" }` además del mensaje.
+   - Nueva función `classifyFacturapiError(raw)` que retorna `{ message, kind }`. Mantener `translateFacturapiError` como wrapper para no romper callers.
 
-### 3. Garantizar atomicidad en guardado
-- Ya está: `next_invoice_number` usa `nextval` (atómico) y `invoices.invoice_number` tiene UNIQUE index. No se requiere cambio.
+2. **Nuevo `src/features/invoices/components/StampErrorDialog.tsx`**
+   - Dialog (shadcn) que recibe `{ open, onOpenChange, message, kind, customerId? }`.
+   - Para `kind === "receptor_data"`: título "Datos fiscales del receptor incorrectos", explica que el CP/RFC/razón social no coincide con la CSF del cliente, lista los 3 campos a revisar, y muestra dos botones:
+     - **"Editar cliente"** → navega a `/customers/{customerId}/edit` (si hay `customerId`) — abre en nueva ruta dentro del mismo tab.
+     - **"Cerrar"**.
+   - Para otros `kind` (CSD vencido, sin folios, API key inválida, folio duplicado): título y CTA específicos (link a Configuración → Datos Fiscales para CSD/API key, link a la factura para folio).
+   - Para `kind` desconocido: muestra solo el mensaje + botón Cerrar.
 
-### 4. Tests
-- Unit test del hook: mock del RPC `peek_next_invoice_number`.
-- Test SQL/integración: llamar `peek_next_invoice_number()` dos veces seguidas debe devolver el **mismo** valor; después de un insert real, el peek debe avanzar en 1.
+3. **`src/features/invoices/hooks/invoiceDetail/useStampInvoiceFlow.ts`**
+   - Añadir estado local `stampError: { message, kind, customerId } | null` y setter.
+   - En vez de depender solo del toast, capturar el error del mutate (`stampCfdi.mutate(..., { onError })`), clasificarlo con `classifyFacturapiError`, y exponer el estado más `clearStampError()`.
+   - Seguir notificando con toast (corto) pero también abrir el diálogo cuando `kind` sea accionable.
 
-### 5. Changelog
-- `v6.97.5` (patch) — "Fix: el folio de factura ya no se consume al abrir el modal de nueva factura".
+4. **`src/features/invoices/hooks/invoiceDetail/useInvoiceDetailActions.ts`**
+   - Re-exportar `stampError` y `clearStampError` desde `useStampInvoiceFlow`.
 
-## Archivos afectados
-- `supabase/migrations/<timestamp>_peek_invoice_number.sql` (nuevo)
-- `src/features/invoices/hooks/invoices/useNextInvoiceNumber.ts`
-- `src/features/invoices/pages/InvoiceForm.tsx` (microcopy "tentativo")
-- `public/changelog.json` + `public/changelog/v6.97.5.json`
+5. **Página de detalle de factura** (donde se monta `useInvoiceDetailActions`, probablemente `src/features/invoices/pages/InvoiceDetail.tsx`)
+   - Montar `<StampErrorDialog open={!!stampError} ... customerId={invoice.customer_id} />`.
 
-## Notas
-- Mismo bug aplica a **CXP- (supplier_bills)**, **NC- (credit_notes)** y **CTR- (contracts)** si abren modales que llaman a `next_*`. ¿Aplico el mismo patrón (peek) también a esos tres en este mismo cambio, o solo facturas por ahora?
+6. **Tests**
+   - Extender `facturapiErrors.test.ts` para verificar que `classifyFacturapiError` devuelve el `kind` correcto en cada patrón.
+   - Test mínimo del `StampErrorDialog` (render + botón "Editar cliente" navega).
+
+7. **Changelog**
+   - Nueva entrada `v6.97.10` en `public/changelog.json` + `public/changelog/v6.97.10.json` tipo `minor`: "Diálogo accionable para errores de timbrado CFDI".
+
+### Out of scope
+- No tocar la edge function `stamp-cfdi` (ya propaga el código correctamente).
+- No cambiar el patrón de traducción para callers existentes (`translateFacturapiError` sigue funcionando).
+- No tocar lógica de negocio del timbrado.

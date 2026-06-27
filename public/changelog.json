@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.10",
+    "date": "2026-06-27",
+    "type": "minor",
+    "title": "Diálogo accionable para errores de timbrado CFDI",
+    "description": "Cuando Facturapi rechaza una factura por datos del receptor (CFDI40148/40149), CSD vencido, sin folios, API key inválida o folio duplicado, ahora se muestra un diálogo claro con CTA directo (Editar cliente / Ir a Datos Fiscales) en lugar de solo un toast. Nuevo classifyFacturapiError clasifica el error en kinds reutilizando el catálogo existente.",
+    "category": "feature"
+  },
+  {
     "version": "6.97.9",
     "date": "2026-06-27",
     "type": "patch",

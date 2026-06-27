@@ -1,0 +1,8 @@
+{
+  "version": "6.97.10",
+  "date": "2026-06-27",
+  "type": "minor",
+  "title": "Diálogo accionable para errores de timbrado CFDI",
+  "description": "Cuando Facturapi rechaza una factura por datos del receptor (CFDI40148/40149: CP fiscal o razón social no coinciden con el RFC en el SAT), CSD vencido, sin folios, API key inválida o folio duplicado, ahora se muestra un diálogo claro con la explicación del problema y un botón de acción directo (Editar cliente / Ir a Datos Fiscales) en lugar de solo el toast. Nuevo classifyFacturapiError clasifica el error en kinds (receptor_data, csd, credits, auth, folio, unknown) reutilizando el catálogo existente; translateFacturapiError sigue funcionando para callers actuales.",
+  "category": "feature"
+}

@@ -18,7 +18,7 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
   const updateBooking = useUpdateBooking();
-  const { stampCfdi, run: runStamp } = useStampInvoiceFlow(refetch);
+  const { stampCfdi, run: runStamp, stampError, clearStampError } = useStampInvoiceFlow(refetch);
   const downloadXml = useDownloadInvoiceXml();
 
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -50,6 +50,7 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
     paymentDialogOpen, setPaymentDialogOpen,
     deleteDialogOpen, setDeleteDialogOpen,
     stampCfdi,
+    stampError, clearStampError,
     setStatus,
     handleStamp: () => runStamp(invoice),
     handleDownloadXml: () => downloadXml(invoice),
