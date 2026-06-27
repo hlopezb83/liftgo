@@ -39,7 +39,11 @@ export function useUpsertBillingSecrets() {
     }) => {
       // Solo se incluyen las llaves que el usuario realmente capturó (no vacías),
       // para no sobrescribir el valor existente con null cuando solo se rota una.
-      const payload: Record<string, unknown> = {
+      const payload: {
+        updated_at: string;
+        facturapi_test_key?: string;
+        facturapi_live_key?: string;
+      } = {
         updated_at: new Date().toISOString(),
       };
       if (input.facturapi_test_key && input.facturapi_test_key.length > 0) {

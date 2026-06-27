@@ -20,20 +20,6 @@ export function useDamageRecords() {
   });
 }
 
-export function useDeleteDamageRecord() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("soft_delete_damage_record", { p_damage_id: id });
-      if (error) throw error;
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al archivar registro de daño", error: err });
-    },
-  });
-}
-
 export function useCreateDamageRecord() {
   const queryClient = useQueryClient();
   return useMutation({

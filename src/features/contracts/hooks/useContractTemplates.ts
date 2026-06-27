@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
@@ -53,12 +54,13 @@ export function useUpdateContractTemplate() {
   return useMutation({
     mutationFn: async (template: Partial<ContractTemplate> & { id: string }) => {
       const { id, ...rest } = template;
+      const updatePayload = {
+        ...rest,
+        updated_at: nowMty().toISOString(),
+      } as unknown as TablesUpdate<"contract_templates">;
       const { data, error } = await supabase
         .from("contract_templates")
-        .update({
-          ...rest,
-          updated_at: nowMty().toISOString(),
-        } as Record<string, unknown>)
+        .update(updatePayload)
         .eq("id", id)
         .select("id");
       if (error) throw error;

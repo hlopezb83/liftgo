@@ -65,7 +65,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
               <BarChart data={data}>
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis />
-                <Tooltip formatter={(val: number) => formatCurrency(val)} />
+                <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Pagado" radius={[4, 4, 0, 0]} />
               </BarChart>

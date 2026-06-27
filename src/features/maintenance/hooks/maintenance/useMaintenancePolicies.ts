@@ -66,9 +66,13 @@ export function useUpdateMaintenancePolicy() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenancePolicy>) => {
+      // Excluir campos sintéticos (joins) que no son columnas reales.
+      const { forklift_name: _fn, forklift_status: _fs, ...dbUpdates } = updates;
+      void _fn;
+      void _fs;
       const { data, error } = await supabase
         .from("maintenance_policies")
-        .update(updates)
+        .update(dbUpdates)
         .eq("id", id)
         .select()
         .single();

@@ -8,7 +8,7 @@ export function UtilizationChart({ chartData }: { chartData: ModelRow[] }) {
         <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
           <XAxis type="number" unit="%" domain={[0, 100]} />
           <YAxis type="category" dataKey="model" width={160} tick={{ fontSize: 11 }} />
-          <Tooltip formatter={(val: number) => `${val}%`} />
+          <Tooltip formatter={(val) => `${Number(val)}%`} />
           <Bar dataKey="utilization" radius={[0, 4, 4, 0]}>
             {chartData.map((entry) => (
               <Cell key={entry.model} fill={getUtilColor(entry.utilization)} />

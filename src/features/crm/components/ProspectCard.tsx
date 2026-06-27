@@ -21,8 +21,8 @@ export function ProspectCard({ prospect, index, quoteNumber, density, onClick }:
       {(prov, snap) => (
         <Card
           ref={prov.innerRef}
-          {...prov.draggableProps}
-          {...prov.dragHandleProps}
+          {...(prov.draggableProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
+          {...(prov.dragHandleProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
           className={`relative mb-2 ${isCompact ? "p-2" : "p-3"} cursor-grab active:cursor-grabbing border hover:shadow-md transition-shadow ${snap.isDragging ? "shadow-lg rotate-1" : ""}`}
           onClick={onClick}
         >

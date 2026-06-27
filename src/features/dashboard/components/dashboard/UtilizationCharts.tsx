@@ -74,7 +74,7 @@ export const UtilizationCharts = memo(function UtilizationCharts({ monthlyUtiliz
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis dataKey="month_label" tick={{ fontSize: 11 }} />
               <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
-              <Tooltip formatter={(v: number) => `${v}%`} />
+              <Tooltip formatter={(v) => `${Number(v)}%`} />
               <Bar dataKey="utilization" name="Utilización" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
               <Line type="monotone" dataKey="trend" name="Tendencia" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
             </ComposedChart>

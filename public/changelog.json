@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.97.9",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Compatibilidad de tipos con Recharts v3, Supabase strict update y limpieza de exports",
+    "description": "Se corrigen los errores de typecheck y knip generados tras los upgrades recientes. Chart UI: ChartTooltipContent y ChartLegendContent ahora declaran props locales permisivas compatibles con Recharts v3 (los formatter params destipados se castean a Number). Tooltips de los reportes (Ventas, Mantenimiento, Utilizacion, Rentabilidad, Dashboard) cambian las firmas `(val: number)` por `(val) => Number(val)` para conformar al nuevo Formatter. Supabase strict updates: useBillingSecrets, useContractTemplates, useMaintenancePolicies y quoteBookingBuilders ahora usan payloads tipados (o TablesUpdate) en lugar de Record<string, unknown>. Compatibilidad de react-beautiful-dnd: ProspectCard y MaintenanceKanbanColumn castean draggableProps/dragHandleProps a HTMLAttributes para evitar choque con el index signature `--radix-*`. Knip: se retiran los exports sin uso useDeleteDamageRecord, useDeleteSupplier y successMessages.",
+    "category": "fix"
+  },
+  {
     "version": "6.97.8",
     "date": "2026-06-27",
     "type": "patch",

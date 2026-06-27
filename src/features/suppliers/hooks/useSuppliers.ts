@@ -43,20 +43,9 @@ export function useSuppliers() {
   });
 }
 
-export function useDeleteSupplier() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("soft_delete_supplier", { p_supplier_id: id });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      notifySuccess("Proveedor archivado");
-    },
-    onError: (err: Error) => notifyError({ error: err, message: `Error al archivar proveedor: ${err.message}` }),
-  });
-}
+// Nota: `useDeleteSupplier` se retiró por estar sin uso. La eliminación se
+// invoca directamente desde la página de proveedores vía el RPC soft delete.
+
 
 function translateSupplierError(err: Error): string {
   const msg = err.message || "";
