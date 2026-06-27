@@ -1,48 +1,51 @@
 
-# Migrar Edge Functions al SDK oficial de Facturapi
+## Auditoría: ¿qué pone Facturapi y qué debemos capturar?
 
-Actualmente todas las Edge Functions de CFDI usan `fetch` directo contra `https://www.facturapi.io/v2` con `Basic auth` manual. Migraremos al SDK oficial (`npm:facturapi`) que ya está mantenido por Facturapi, maneja auth, serialización, paginación y errores de forma idiomática.
+Revisé `CfdiFieldsCard.tsx`, el schema (`invoiceFormSchema.ts`), el payload (`useInvoiceFormSubmit.ts`) y cómo `stamp-cfdi` arma la petición. Esta es la realidad de cada campo según la API de Facturapi v2:
 
-## Alcance
+### Campos que Facturapi resuelve solo — los podemos quitar del modal
 
-Funciones afectadas (8):
-- `stamp-cfdi/handler.ts` — crear, obtener XML y PDF
-- `stamp-credit-note/handler.ts` — crear nota de crédito
-- `stamp-payment-complement/index.ts` — crear complemento de pago
-- `cancel-cfdi/handler.ts` — cancelación con motivo
-- `cancel-credit-note/index.ts`
-- `cancel-payment-complement/handler.ts`
-- `refresh-cancellation-status/handler.ts`
-- `download-cfdi/index.ts` — XML/PDF de factura, NC y complemento
+| Campo actual | Quién lo pone realmente |
+|---|---|
+| **Serie** | Casi nadie la usa. Facturapi acepta omitirla y nuestra numeración interna ya es `FAC-XXXX` en `folio`. Saturar el formulario sin utilidad. |
+| **Folio** | Ya lo genera el backend al crear la factura (secuencia `FAC-`). Mostrarlo editable invita a errores. Debería ser read-only o no aparecer. |
+| **Tipo de cambio** (cuando moneda = MXN) | Facturapi lo fija a 1 automáticamente. Ya lo ocultamos — ✅ correcto. |
 
-## Plan técnico
+### Campos que SÍ son obligatorios y debemos mantener
 
-1. **Helper compartido** `supabase/functions/_shared/facturapi/client.ts`:
-   - Import: `import Facturapi from "npm:facturapi@^5";`
-   - Exporta `getFacturapiClient(env: "test" | "live", deps)` que resuelve la API key (igual que hoy: primero `tenant_facturapi_keys` desde BD, luego env `FACTURAPI_TEST_KEY`/`FACTURAPI_LIVE_KEY`) y devuelve `new Facturapi(key)`.
-   - Exporta `translateSdkError(err)` que extrae `err.message` y código (`err.response?.data?.code`) preservando el mapeo actual de `translateFacturapiError.ts`.
+| Campo | Por qué no se puede auto |
+|---|---|
+| **Forma de pago** | Lo elige el negocio según cómo cobre (01 efectivo, 03 transferencia, 99 por definir…). Facturapi no infiere. |
+| **Método de pago** | PUE vs PPD cambia el flujo de complementos. Decisión de negocio. |
+| **Uso CFDI** | Lo define el receptor; no se infiere. Prefilleado desde el cliente, pero editable. |
+| **Moneda** | Si es USD/EUR cambia todo. |
+| **Tipo de cambio** (cuando ≠ MXN) | Facturapi lo puede tomar del DOF, pero la práctica común es mandarlo explícito para auditoría. Mantener. |
 
-2. **Refactor por función** — reemplazar llamadas:
-   - `fetch(${BASE}/invoices, POST)` → `client.invoices.create(payload)`
-   - `fetch(${BASE}/invoices/:id/xml)` → `client.invoices.downloadXml(id)` (devuelve `ReadableStream`; convertir a `string`/`Uint8Array`)
-   - `fetch(${BASE}/invoices/:id/pdf)` → `client.invoices.downloadPdf(id)`
-   - `fetch(${BASE}/invoices/:id?motive=...)` DELETE → `client.invoices.cancel(id, { motive, substitution })`
-   - Status refresh → `client.invoices.retrieve(id)` y leer `status`/`cancellation_status`.
+### Datos del receptor — auto-completados pero requeridos por Facturapi
 
-3. **Inyección de dependencias**: hoy las funciones reciben `deps.fetchImpl`. Cambiar el contrato a `deps.getClient(env)` para que los tests puedan inyectar un cliente mock. Mantener `deps.env` y `deps.now` igual.
+`receptor_rfc`, `receptor_razon_social`, `receptor_regimen_fiscal`, `receptor_domicilio_fiscal_cp` son **obligatorios** en el payload de Facturapi (CFDI40147/148/149 si faltan). Ya se prefilean desde el cliente vía `cfdiFromCustomer`. Recomendación: **colapsarlos en un acordeón "Datos fiscales del receptor"** cerrado por default, mostrando un resumen ("EPR010101AAA · Régimen 601 · CP 06600"). El 95% de las veces no se editan.
 
-4. **Tests**:
-   - Reemplazar `supabase/functions/_shared/test/facturapiMock.ts` (interceptor de `fetch`) por `supabase/functions/_shared/test/facturapiClientMock.ts` que devuelve un objeto con `invoices.create/retrieve/cancel/downloadXml/downloadPdf` configurables.
-   - Actualizar los 8 `*_test.ts` para pasar `getClient` en vez de `fetchImpl`.
-   - Conservar fixtures de respuestas (mismos shapes que devuelve el SDK).
+### Campos que Facturapi/PAC siempre pone (nunca capturamos, ✅ ya es así)
 
-5. **Manejo de errores**: el SDK lanza `FacturapiError` con `.message`, `.code`, `.statusCode`. Adaptar `translateFacturapiError.ts` para aceptar tanto el shape actual como el del SDK; conservar mapeos `CFDI40148/40149` añadidos en v6.95.1.
+- Fecha de timbrado, UUID, sello, certificado, número de certificado
+- Versión CFDI (4.0), TipoComprobante (I)
+- Emisor completo (RFC, razón social, régimen, lugar de expedición) — viene de la organización Facturapi
+- Cadena original, sello del SAT
 
-6. **Sin cambios de API pública**: contratos HTTP de las Edge Functions, payloads del frontend y columnas de BD se mantienen idénticos. Es una refactorización interna.
+## Cambios propuestos al modal
 
-7. **Changelog**: nueva entrada `v6.96.0` (minor — refactor interno significativo, sin cambios de comportamiento).
+1. **Quitar** los inputs `Serie` y `Folio` de `CfdiFieldsCard`. El folio se genera en backend al guardar; mostrarlo como badge informativo en modo edición si ya existe.
+2. **Colapsar** el bloque "Receptor" (RFC, razón social, régimen, CP) en un `Collapsible` cerrado por default con un summary del receptor seleccionado y un botón "Editar datos fiscales".
+3. **Mantener** Forma de pago, Método de pago, Uso CFDI, Moneda y Tipo de cambio (solo cuando ≠ MXN).
+4. **Renombrar** la card a "Datos de timbrado CFDI" para reflejar mejor que son decisiones, no metadata.
 
-## Riesgos
+Resultado visual: la card pasa de 10 inputs a 4 visibles + 1 sección colapsable. Menos ruido, menos errores, mismo poder al timbrar.
 
-- El SDK oficial está en JavaScript; tipos pueden requerir `// @ts-ignore` o `as any` puntual al importar desde Deno con `npm:`. Lo encapsularemos en el helper para no contaminar el resto.
-- Si el SDK no expone algún endpoint exacto que usamos (p. ej. parámetro `motive` específico), mantendremos `fetch` directo solo para ese caso aislado.
+## Detalles técnicos
+
+- `invoiceFormSchema.ts`: quitar `serie` y `folio` del `cfdiSchema` (o dejarlos opcionales por compatibilidad y enviarlos `null`).
+- `useInvoiceFormSubmit.ts → buildCfdiPayload`: enviar `serie: null, folio: null` para no romper el contrato con la columna `invoices.invoice_number` (que ya se llena por RPC de secuencia).
+- `EMPTY_CFDI`: limpiar las claves removidas.
+- `CfdiFieldsCard`: usar `Collapsible` de `@/components/ui/collapsible` para el bloque receptor; render summary con los valores actuales.
+- Modo edición: si la factura ya tiene `serie`/`folio` (legacy), mostrarlos como texto plano, no input.
+- Changelog: nueva entrada `v6.97.0` minor — "Simplificación del modal de factura: ocultados folio/serie autogestionados y agrupados datos fiscales del receptor".
