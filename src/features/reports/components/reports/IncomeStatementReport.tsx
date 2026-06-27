@@ -28,11 +28,13 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  const netPositive = totals.netProfit >= 0;
+  const marginPositive = totals.margin >= 0;
   const kpis = [
     { label: "Ingresos", value: formatCurrency(totals.revenue), icon: DollarSign, color: "text-chart-2" },
     { label: "Total Egresos", value: formatCurrency(totals.totalExpenses), icon: TrendingDown, color: "text-destructive" },
-    { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: TrendingUp, color: totals.netProfit >= 0 ? "text-chart-2" : "text-destructive" },
-    { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: totals.margin >= 0 ? "text-chart-2" : "text-destructive" },
+    { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: netPositive ? TrendingUp : TrendingDown, color: netPositive ? "text-chart-2" : "text-destructive" },
+    { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: marginPositive ? "text-chart-2" : "text-destructive" },
   ];
 
   const handleExportPdf = async () => {
@@ -53,7 +55,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
   return (
     <>
       {rentedWithoutCost.length > 0 && (
-        <Alert variant="destructive" className="border-amber-500/50 text-amber-700 dark:text-amber-400 [&>svg]:text-amber-600">
+        <Alert variant="warning">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Equipos sin costo de adquisición</AlertTitle>
           <AlertDescription>

@@ -85,7 +85,7 @@ export default function FleetPage() {
 
   return (
     <ListPageLayout
-      title="Inventario de Flota"
+      title="Equipos"
       subtitle={`${forklifts?.length || 0} montacargas en la flota`}
       actions={actions}
       filters={filters}
