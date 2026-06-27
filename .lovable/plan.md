@@ -1,40 +1,55 @@
-# Plan: actualización segura de dependencias
+# Compatibilidad de upgrades major con Lovable
 
-## Resultado de `bun outdated`
+## Restricción dura del stack Lovable
 
-De los 25 paquetes desactualizados, **solo 1** tiene una nueva versión minor/patch dentro de la columna "Update" (semver-safe). El resto son saltos **major** que requieren refactor o están explícitamente vetados.
+Lovable está fijado a **React 18 · Vite 5 · Tailwind v3 · TypeScript 5**. Cualquier upgrade fuera de ese rango rompe el preview/tagger/HMR de la plataforma aunque el build local pase.
 
-## Acción propuesta (segura)
+## Veredicto por paquete
 
-Actualizar un único paquete dev:
+### NO actualizar — incompatibles con la plataforma
 
-```text
-knip  6.21.0  →  6.22.0   (patch, dev-only)
-```
+| Paquete | Salto | Razón |
+|---|---|---|
+| `react`, `react-dom`, `@types/react`, `@types/react-dom` | 18 → 19 | Lovable corre React 18; `lovable-tagger` y muchos Radix aún no soportan 19 estable aquí. |
+| `vite` | 5 → 8 | Lovable fija Vite 5; plugin `lovable-tagger` y `@vitejs/plugin-react-swc 3` están atados. |
+| `@vitejs/plugin-react-swc` | 3 → 4 | Requiere Vite 6+. |
+| `tailwindcss` | 3 → 4 | Nuevo engine Oxide, config en CSS; Lovable usa Tailwind v3 + `tailwind.config.ts`. |
+| `tailwind-merge` | 2 → 3 | Requiere Tailwind v4. |
+| `typescript` | 5 → 6 | Lovable fija TS 5; cambios en lib types pueden romper tipos generados de Supabase. |
+| `react-router-dom` | 6 → 7 | Cambia a data-router por default; impacta `MainLayout`, `Suspense` por ruta, AuthGuard y customer portal. Riesgo alto, sin beneficio inmediato. |
 
-Pasos:
-1. `bun update knip` (respeta el caret y no toca otros paquetes).
-2. `bun run build` + `bunx knip` para verificar que la herramienta sigue corriendo limpia.
-3. Entrada de changelog **v6.97.12** (patch, fix): "Actualización de knip 6.21.0 → 6.22.0".
+### NO actualizar — breaking de dominio (alto costo, sin beneficio)
 
-## Paquetes major — NO incluidos (requieren proyecto aparte)
+| Paquete | Salto | Razón |
+|---|---|---|
+| `zod` | 3 → 4 | API de errores y `z.string()` cambia; rompe `nn()`, `RequiredMark`, todos los schemas. |
+| `@hookform/resolvers` | 3 → 5 | Solo tiene sentido tras migrar a Zod 4. |
+| `date-fns` | 3 → 4 | Nueva API de timezones; impacta `nowMty`, `formatMonthEs`, PDFs y reportes. Regresión de localización casi garantizada. |
+| `sonner` | 1 → 2 | Cambia API de toasts; rompe el wrapper global de feedback (`notifyError`, etc.). |
+| `react-day-picker` | 8 → 10 | Nueva API de props; shadcn `calendar.tsx` quedaría desalineado. |
+| `lucide-react` | 0.462 → 1.x | Rename masivo de íconos; cientos de imports a tocar sin valor funcional. |
 
-Estos saltos son breaking y los dejo fuera de este plan. Si quieres alguno, lo abordamos en un plan dedicado:
+### Dev-deps postergables (sin riesgo de seguridad, sin valor inmediato)
 
-- **React 18 → 19** + `react-dom`, `@types/react*`: cambios de tipos, `forwardRef` deprecado, posibles incompatibilidades con Radix/Recharts.
-- **react-router-dom 6 → 7**: nueva API de data routers y loaders.
-- **Vite 5 → 8** + `@vitejs/plugin-react-swc 3 → 4`: revisar config, plugins, Node mínimo.
-- **Tailwind 3 → 4**: nuevo engine (Oxide), config en CSS, breaking en plugins/tokens.
-- **Zod 3 → 4**: cambios en `z.string()`, `errorMap`, `safeParse`.
-- **date-fns 3 → 4**: timezone API rediseñada (impacta `nowMty` y formateadores).
-- **react-day-picker 8 → 10**: nueva API de props.
-- **sonner 1 → 2**: cambios de API de toasts (impacta wrapper global).
-- **lucide-react 0.462 → 1.x**: rename masivo de íconos.
-- **@hookform/resolvers 3 → 5**: requiere Zod 4.
-- **tailwind-merge 2 → 3**: requiere Tailwind 4.
-- **ESLint 9 → 10**, **typescript 5 → 6**, **jsdom 20 → 29**, **@types/node 22 → 26**, **globals 15 → 17**, **eslint-plugin-react-hooks 5 → 7**, **@vitest/coverage-v8 4.0 → 4.1** (minor pero acoplado a vitest core), **@eslint/js 9 → 10**: dev-deps, postergables.
+`eslint 9→10`, `@eslint/js 9→10`, `eslint-plugin-react-hooks 5→7`, `eslint-plugin-react-refresh 0.4→0.5`, `globals 15→17`, `@types/node 22→26`, `jsdom 20→29`, `@vitest/coverage-v8 4.0→4.1`.
 
-## Notas
+Recomendación: dejar tal cual. Los toolings ya funcionan; subirlos suele forzar cascadas (p.ej. ESLint 10 obliga a actualizar plugins/configs).
 
-- `jspdf` y `jspdf-autotable` siguen bloqueados por política del proyecto (ya documentado en `dependabot.yml`).
-- No hay CVEs altos/críticos pendientes (`bun audit` limpio tras v6.97.6–v6.97.9).
+## Conclusión
+
+**No hay ningún upgrade major recomendable hoy.** Todo lo crítico ya quedó parchado en v6.97.6–v6.97.12. Mantener el lockfile como está y dejar que Dependabot proponga minors/patches semanalmente.
+
+## Si más adelante quieres mover alguno
+
+Lo abordaría en plan dedicado y aislado, en este orden de menor a mayor riesgo:
+
+1. `eslint` + plugins (dev-only, contenido).
+2. `@types/node`, `jsdom`, `globals` (dev-only).
+3. `sonner` 2 (wrapper centralizado → cambio focalizado).
+4. `react-router-dom` 7 (alto impacto en rutas/guards).
+5. `tailwindcss` 4 + `tailwind-merge` 3 (cambio de design system completo).
+6. `react` 19 + `vite` 6+ (solo si Lovable libera soporte).
+7. `zod` 4 + `@hookform/resolvers` 5 (schemas en todo el proyecto).
+8. `date-fns` 4 (timezone — alto riesgo de regresión en MXN/Monterrey).
+
+¿Quieres que prepare un plan detallado para alguno específico o lo dejamos como está?
