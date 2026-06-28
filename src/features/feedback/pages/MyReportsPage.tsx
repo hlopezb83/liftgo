@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useMyFeedbackReports } from "../hooks/useFeedbackReports";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
 import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
@@ -103,6 +105,6 @@ export default function MyReportsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
