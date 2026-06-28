@@ -143,6 +143,6 @@ export default function PortalInvoiceDetail() {
           <DataTableV2 table={paymentsTable} emptyMessage="Sin pagos registrados" />
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
