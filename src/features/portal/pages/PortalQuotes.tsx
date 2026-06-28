@@ -38,8 +38,8 @@ export default function PortalQuotes() {
   if (isLoading) return <Skeleton className="h-96" />;
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-bold">Mis Cotizaciones</h1>
+    <PageContainer maxWidth="wide">
+      <PageHeader title="Mis Cotizaciones" />
       <Card>
         <CardHeader><CardTitle className="text-base">Todas las cotizaciones</CardTitle></CardHeader>
         <CardContent className="p-0">
@@ -50,6 +50,6 @@ export default function PortalQuotes() {
           />
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
