@@ -87,7 +87,7 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
         {isLoading ? (
           <div className="p-4 space-y-2">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12" />)}</div>
         ) : !data || data.length === 0 ? (
-          <p className="p-8 text-center text-sm text-muted-foreground">Sin actividad con estos filtros</p>
+          <p className="py-12 text-center text-sm text-muted-foreground">Sin actividad con estos filtros</p>
         ) : (
           <div className="divide-y">
             {data.map((a, idx) => {

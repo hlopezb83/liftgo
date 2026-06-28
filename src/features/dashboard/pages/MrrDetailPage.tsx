@@ -121,7 +121,7 @@ export default function MrrDetailPage() {
         </CardHeader>
         <CardContent className="p-0">
           {!isLoading && !data?.items.length ? (
-            <div className="p-8">
+            <div className="py-12">
               <EmptyState icon={DollarSign} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
             </div>
           ) : (

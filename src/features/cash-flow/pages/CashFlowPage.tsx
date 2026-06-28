@@ -38,7 +38,7 @@ export default function CashFlowPage() {
           <CashFlowSettingsBar weeks={weeks} onChangeWeeks={setWeeks} />
 
           {isLoading || !buckets ? (
-            <Card><CardContent className="py-16 flex items-center justify-center text-muted-foreground">
+            <Card><CardContent className="py-12 flex items-center justify-center text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin mr-2" /> Calculando proyección…
             </CardContent></Card>
           ) : (
@@ -47,7 +47,7 @@ export default function CashFlowPage() {
               <Card>
                 <CardContent className="p-0">
                   {buckets.every((b) => b.items.length === 0) ? (
-                    <div className="py-16 flex flex-col items-center justify-center text-muted-foreground gap-2">
+                    <div className="py-12 flex flex-col items-center justify-center text-muted-foreground gap-2">
                       <TrendingUp className="h-8 w-8" />
                       <p className="text-sm">No hay facturas ni cuentas por pagar en el horizonte seleccionado.</p>
                     </div>
