@@ -9,6 +9,8 @@ import {
   useLiftgoTable,
   type ColumnDef,
 } from "@/components/dataTable/v2";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
 
@@ -65,8 +67,8 @@ export default function PortalContracts() {
   if (isLoading) return <Skeleton className="h-96" />;
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-bold">Mis Contratos</h1>
+    <PageContainer maxWidth="wide">
+      <PageHeader title="Mis Contratos" />
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Todos los Contratos</CardTitle>
@@ -81,6 +83,6 @@ export default function PortalContracts() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

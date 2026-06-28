@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   usePortalQuote,
   useAcceptPortalQuote,
@@ -24,7 +26,6 @@ interface LineItem {
 
 export default function PortalQuoteDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { data: quote, isLoading } = usePortalQuote(id);
   const accept = useAcceptPortalQuote();
   const reject = useRejectPortalQuote();
@@ -39,27 +40,22 @@ export default function PortalQuoteDetail() {
   const canAct = quote.status === "sent";
   const wasAccepted = quote.status === "accepted" || !!quote.accepted_at;
 
+  const subtitle = (
+    <span className="inline-flex items-center gap-2">
+      <StatusBadge status={quote.status} />
+      <span>Emitida {formatDateDisplay(quote.created_at)}</span>
+      {quote.valid_until && <span>· Válida hasta {formatDateDisplay(quote.valid_until)}</span>}
+    </span>
+  );
+
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/portal/quotes")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{quote.quote_number}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <StatusBadge status={quote.status} />
-            <span className="text-sm text-muted-foreground">
-              Emitida {formatDateDisplay(quote.created_at)}
-            </span>
-            {quote.valid_until && (
-              <span className="text-sm text-muted-foreground">
-                · Válida hasta {formatDateDisplay(quote.valid_until)}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+    <PageContainer maxWidth="wide">
+      <PageHeader
+        title={quote.quote_number}
+        backHref="/portal/quotes"
+        backLabel="Cotizaciones"
+      />
+      <div className="text-sm text-muted-foreground -mt-2">{subtitle}</div>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Partidas</CardTitle></CardHeader>
@@ -159,6 +155,6 @@ export default function PortalQuoteDetail() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   );
 }

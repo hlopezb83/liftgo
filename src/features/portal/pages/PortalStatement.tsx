@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +15,6 @@ import { notifyError } from "@/lib/ui/appFeedback";
 type Payment = { id: string; invoice_id: string | null; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
 export default function PortalStatement() {
-  const navigate = useNavigate();
   const { data: customer, isLoading: cl } = usePortalCustomer();
   const { data: invoices, isLoading: il } = usePortalInvoices();
   const { data: payments, isLoading: pl } = usePortalPayments();
@@ -57,13 +57,15 @@ export default function PortalStatement() {
   if (cl || il || pl) return <Skeleton className="h-96" />;
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Estado de Cuenta</h1>
-        <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer}>
-          <Download className="h-4 w-4 mr-2" /> Descargar PDF
-        </Button>
-      </div>
+    <PageContainer maxWidth="wide">
+      <PageHeader
+        title="Estado de Cuenta"
+        actions={
+          <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer}>
+            <Download className="h-4 w-4 mr-2" /> Descargar PDF
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardContent className="pt-4">
@@ -130,8 +132,8 @@ export default function PortalStatement() {
                       <td className="px-3 py-2"><StatusBadge status={r.inv.status} /></td>
                       <td className="px-3 py-2 text-right">
                         {r.balance > 0 && (
-                          <Button size="sm" variant="outline" onClick={() => navigate(`/portal/invoices/${r.inv.id}/pago`)}>
-                            Pagar
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={`/portal/invoices/${r.inv.id}/pago`}>Pagar</a>
                           </Button>
                         )}
                       </td>
@@ -169,6 +171,6 @@ export default function PortalStatement() {
           </table>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

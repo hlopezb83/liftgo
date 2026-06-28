@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.3",
+    "date": "2026-06-27",
+    "type": "patch",
+    "title": "Portal del cliente migrado a PageHeader + PageContainer",
+    "description": "Fase 3 continuación: PortalDashboard, PortalQuotes, PortalQuoteDetail, PortalRentals, PortalInvoices, PortalInvoiceDetail, PortalInvoicePayment, PortalContracts y PortalStatement migrados al layout estándar. Se eliminaron headers manuales con h1 y botones de back ad-hoc (ArrowLeft+navigate) en favor de PageHeader con backHref/backLabel/actions. Espaciado y anchos unificados vía PageContainer maxWidth=\"wide\".",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.2",
     "date": "2026-06-27",
     "type": "minor",

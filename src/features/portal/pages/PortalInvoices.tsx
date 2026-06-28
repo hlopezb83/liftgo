@@ -7,6 +7,8 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
 
@@ -62,8 +64,8 @@ export default function PortalInvoices() {
   if (isLoading) return <Skeleton className="h-96" />;
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-bold">Mis Facturas</h1>
+    <PageContainer maxWidth="wide">
+      <PageHeader title="Mis Facturas" />
       <Card>
         <CardHeader><CardTitle className="text-base">Todas las Facturas</CardTitle></CardHeader>
         <CardContent className="p-0">
@@ -74,6 +76,6 @@ export default function PortalInvoices() {
           />
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
