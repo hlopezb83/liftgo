@@ -4,6 +4,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Trophy, Medal } from "lucide-react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const PODIUM_COLORS = ["text-warning", "text-muted-foreground", "text-[hsl(var(--chart-2))]"];
 
