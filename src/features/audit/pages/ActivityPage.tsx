@@ -74,7 +74,7 @@ export default function ActivityPage() {
           onReset={resetFilters}
           members={m.byMember}
         />
-      </div>
+      </PageContainer>
     </PageTransition>
   );
 }
