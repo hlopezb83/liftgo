@@ -104,7 +104,7 @@ export default function SupplierDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <PageContainer>
       <DetailPageHeader
         title={supplier.name}
         backTo="/suppliers"
