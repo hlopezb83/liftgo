@@ -9,6 +9,8 @@ import {
   useLiftgoTable,
   type ColumnDef,
 } from "@/components/dataTable/v2";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
 
