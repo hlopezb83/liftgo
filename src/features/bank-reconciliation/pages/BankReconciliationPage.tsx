@@ -46,7 +46,7 @@ export default function BankReconciliationPage() {
   return (
     <RoleGuard module="Facturas de Proveedor" minAccess="read">
       <PageTransition>
-        <div className="p-4 sm:p-6 space-y-4">
+        <PageContainer>
           <PageHeader
             title="Conciliación bancaria"
             subtitle="Sube tu estado de cuenta y empareja con los pagos del sistema"
