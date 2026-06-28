@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
