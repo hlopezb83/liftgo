@@ -171,6 +171,6 @@ export default function PortalStatement() {
           </table>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
