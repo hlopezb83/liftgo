@@ -17,7 +17,7 @@ export default function ContractForm() {
   } = useContractFormLogic();
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <PageContainer maxWidth="form">
       <FormPageHeader title={isEdit ? "Editar Contrato" : "Nuevo Contrato"} onBack={() => navigate("/contracts")} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
