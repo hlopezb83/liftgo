@@ -7,6 +7,8 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { usePortalQuotes } from "../hooks/usePortalExtras";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type Quote = NonNullable<ReturnType<typeof usePortalQuotes>["data"]>[number];
 
