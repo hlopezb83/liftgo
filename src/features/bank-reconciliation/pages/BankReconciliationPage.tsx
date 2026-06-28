@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,7 +46,7 @@ export default function BankReconciliationPage() {
   return (
     <RoleGuard module="Facturas de Proveedor" minAccess="read">
       <PageTransition>
-        <div className="p-4 sm:p-6 space-y-4">
+        <PageContainer>
           <PageHeader
             title="Conciliación bancaria"
             subtitle="Sube tu estado de cuenta y empareja con los pagos del sistema"
@@ -103,7 +104,7 @@ export default function BankReconciliationPage() {
             open={!!selected}
             onOpenChange={(o) => { if (!o) setSelected(null); }}
           />
-        </div>
+        </PageContainer>
       </PageTransition>
     </RoleGuard>
   );

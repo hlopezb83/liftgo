@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +20,7 @@ export default function BankStatementImportsHistoryPage() {
   const canDelete = role === "admin";
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <PageContainer>
       <div className="flex items-center justify-between gap-3">
         <PageHeader
           title="Historial de imports bancarios"
@@ -102,6 +103,6 @@ export default function BankStatementImportsHistoryPage() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

@@ -1,0 +1,8 @@
+{
+  "version": "6.98.6",
+  "date": "2026-06-28",
+  "type": "patch",
+  "title": "Fase 3 cierre total: Cash Flow y Conciliación bancaria a PageContainer",
+  "description": "Migradas las 4 páginas restantes al layout estándar: CashFlowPage, BankReconciliationPage, BankAccountsPage y BankStatementImportsHistoryPage. Reemplazados los wrappers manuales (p-4 sm:p-6 / space-y-4) por PageContainer, manteniendo PageTransition y RoleGuard como envolturas externas. Con esto, el 100% de las páginas del ERP usan el mismo lenguaje de layout (PageContainer + PageHeader/FormPageHeader/DetailPageHeader).",
+  "category": "improvement"
+}

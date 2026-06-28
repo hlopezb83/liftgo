@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, TrendingUp } from "lucide-react";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { CashFlowSettingsBar } from "../components/CashFlowSettingsBar";
@@ -29,7 +30,7 @@ export default function CashFlowPage() {
   return (
     <RoleGuard module="Facturas de Proveedor" minAccess="read">
       <PageTransition>
-        <div className="p-4 sm:p-6 space-y-4">
+        <PageContainer>
           <PageHeader
             title="Flujo de caja proyectado"
             subtitle="Entradas esperadas vs salidas por semana, con semáforo de liquidez"
@@ -66,7 +67,7 @@ export default function CashFlowPage() {
             open={!!selected}
             onOpenChange={(o) => { if (!o) setSelected(null); }}
           />
-        </div>
+        </PageContainer>
       </PageTransition>
     </RoleGuard>
   );

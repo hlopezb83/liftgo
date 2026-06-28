@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +23,7 @@ export default function BankAccountsPage() {
   return (
     <RoleGuard module="Facturas de Proveedor" minAccess="read">
       <PageTransition>
-        <div className="p-4 sm:p-6 space-y-4">
+        <PageContainer>
           <PageHeader
             title="Cuentas bancarias"
             subtitle="Catálogo de cuentas para conciliación bancaria"
@@ -66,7 +67,7 @@ export default function BankAccountsPage() {
             </table>
           </CardContent></Card>
           <BankAccountFormDialog open={open} onOpenChange={setOpen} initial={editing} />
-        </div>
+        </PageContainer>
       </PageTransition>
     </RoleGuard>
   );
