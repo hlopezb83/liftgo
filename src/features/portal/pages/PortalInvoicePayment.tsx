@@ -19,7 +19,6 @@ import { ReportTransferDialog } from "../components/ReportTransferDialog";
 
 export default function PortalInvoicePayment() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { data: invoices, isLoading: il } = usePortalInvoices();
   const { data: payments, isLoading: pl } = usePortalPayments();
   const { data: customer } = usePortalCustomer();
@@ -46,20 +45,15 @@ export default function PortalInvoicePayment() {
     s === "pending_review" ? "En revisión" : s === "approved" ? "Aprobado" : "Rechazado";
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate(`/portal/invoices/${invoice.id}`)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Pagar {invoice.invoice_number}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <StatusBadge status={invoice.status} />
-            <span className="text-sm text-muted-foreground">
-              Saldo: <span className="font-mono">{formatCurrency(balance)}</span>
-            </span>
-          </div>
-        </div>
+    <PageContainer maxWidth="wide">
+      <PageHeader
+        title={`Pagar ${invoice.invoice_number}`}
+        backHref={`/portal/invoices/${invoice.id}`}
+        backLabel="Factura"
+      />
+      <div className="-mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+        <StatusBadge status={invoice.status} />
+        <span>Saldo: <span className="font-mono">{formatCurrency(balance)}</span></span>
       </div>
 
       {balance <= 0 ? (
