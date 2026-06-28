@@ -9,14 +9,14 @@ import { PageHeader } from "@/components/layout/PageHeader";
 
 function PortalDashboardSkeleton() {
   return (
-    <div className="space-y-6 max-w-5xl">
+    <PageContainer maxWidth="wide">
       <Skeleton className="h-8 w-48" />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Skeleton className="h-40" />
         <Skeleton className="h-40" />
         <Skeleton className="h-40" />
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
