@@ -116,6 +116,6 @@ export default function PortalInvoicePayment() {
           balance={balance}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
