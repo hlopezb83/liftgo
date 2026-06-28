@@ -1,45 +1,33 @@
-## Auditoría UI/UX — Segunda pasada (post v6.98.7)
+## Auditoría tercera pasada — Cohesión 1080p
 
-Tras la armonización inicial, todavía quedan **3 focos** que rompen la cohesión visual entre páginas de lista y páginas de detalle/secundarias. Todo lo demás (paleta, tokens, gaps, anchos de formulario, dialogs) ya está alineado.
+Hallazgos restantes tras los fixes previos:
 
-## Hallazgos
+**1. Grids de KPIs con gap inconsistente**
+- `FinancialKpiCards.tsx` y `StatCards.tsx` usan `gap-3 sm:gap-4`. La norma documentada en `mem://arch/ui/component-library` dicta `gap-4` para filas de KPIs.
 
-### 1. `DetailPageHeader` usa tipografía distinta a `PageHeader`
+**2. Paddings de Card no estándar**
+- `MrrDetailPage.tsx` usa `CardContent p-5` (no está en la escala Tailwind del sistema; debe ser `p-4` o `p-6`).
 
-`PageHeader` (listas) → `text-xl sm:text-2xl font-semibold tracking-tight`
-`DetailPageHeader` (detalles) → `text-xl sm:text-2xl font-bold` (sin `tracking-tight`)
+**3. H1 manual y `font-bold` en títulos no-numéricos**
+- `NotFound.tsx`: usa `<h1 text-4xl font-bold>` para "404". Es una página de error y el numeral grande es aceptable, pero el subtítulo y CTA pueden alinearse al sistema usando `PageContainer`.
 
-Impacto: cada vista de detalle (Invoice, Customer, Supplier, Forklift, Booking, Contract, Quote, Delivery, Return, Payment Intent, Maintenance, Damage, etc. — ~15 páginas) renderiza el título más grueso que su listado padre. En 1080p es la inconsistencia más visible al navegar listado → detalle.
+**4. PortalStatCard**
+- `text-3xl font-bold` para valores numéricos — esto es correcto bajo la regla "font-bold reservado para cifras de KPI". Sin cambios.
 
-**Fix:** en `src/components/layout/DetailPageHeader.tsx` línea 37, cambiar `font-bold` → `font-semibold tracking-tight`. Cero cambios de API.
+### Cambios a aplicar
 
-### 2. `HelpPageHeader` duplica un h1 manual
+| Archivo | Cambio |
+|---|---|
+| `src/features/dashboard/components/dashboard/FinancialKpiCards.tsx` | `gap-3 sm:gap-4` → `gap-4` |
+| `src/features/dashboard/components/dashboard/StatCards.tsx` | `gap-3 sm:gap-4` → `gap-4` |
+| `src/features/dashboard/pages/MrrDetailPage.tsx` | `CardContent p-5` → `CardContent p-4` (línea 107) |
+| `public/changelog.json` + `public/changelog/v6.98.9.json` | Nueva entrada patch |
 
-`src/features/help/components/HelpPageHeader.tsx` arma su propio `<h1 class="text-2xl font-bold tracking-tight">` con ícono dentro. Rompe con el resto del ERP que ya migró a `PageHeader`.
+### Por qué se omiten otros hallazgos
 
-**Fix:** refactor a `PageHeader` con `actions` (Select de versiones + botón Generar) y el ícono integrado en `title` opcionalmente como elemento aparte arriba (o simplemente quitar el ícono). Manteniendo todos los props actuales del componente.
+- `CashFlowSummaryCards p-3`: válido para tarjetas densas de resumen semanal.
+- `ContractsPage`, `SuppliersPage`, `BookingsPage` con `CardContent p-4`: dentro de la escala estándar para filtros compactos.
+- Padding `p-0` en cards que envuelven tablas: patrón intencional para que la tabla toque los bordes.
 
-### 3. `CRMToolbar` también renderiza un h1 manual
-
-`src/features/crm/components/CRMToolbar.tsx` línea 35: `<h1 class="text-2xl font-bold tracking-tight">Pipeline CRM</h1>` con su propia barra de acciones. Es la única página principal que evita `PageHeader`.
-
-**Fix:** reemplazar el bloque `flex items-center justify-between` (líneas 33–65) por `<PageHeader title="Pipeline CRM" subtitle={...} actions={<>...</>} />`. La toolbar de filtros (línea 67 en adelante) se queda intacta.
-
-## Lo que NO se cambia
-
-- **Números en KPIs (`text-2xl font-bold font-mono` en StatCards, FinancialKpiCards, AgingReport, etc.):** intencional. `font-bold` da peso visual a cifras tabulares; el sistema usa `font-semibold` solo para títulos/encabezados, no para datos numéricos. Mantener.
-- **`SupplierBillFormDialog` con `max-w-2xl`:** ese es el tamaño correcto del dialog para formularios densos; el token `form` (`max-w-3xl`) aplica a páginas, no a dialogs.
-- **`AuditLogDetailDialog` `sm:max-w-2xl`:** mismo criterio, sigue las variantes de shadcn Dialog.
-- **Tokens, colores, paleta, dark mode:** ya 100% semánticos.
-
-## Plan
-
-1. `DetailPageHeader.tsx`: `font-bold` → `font-semibold tracking-tight`.
-2. `HelpPageHeader.tsx`: refactor para envolver con `PageHeader` (mantener Select de versiones + botón Generar como `actions`).
-3. `CRMToolbar.tsx`: reemplazar h1 manual por `PageHeader` (mantener filtros y KPIs debajo).
-4. Agregar entrada `v6.98.8` al changelog (patch — armonización de headers de detalle y páginas secundarias).
-5. Sin cambios de tests, RPCs ni lógica.
-
-## Riesgo
-
-Mínimo. Solo cambios tipográficos y de wrapper. Cero impacto en queries, navegación o estado.
+### Resultado esperado
+Las 3 filas de KPIs del Dashboard (`StatCards`, `FinancialKpiCards`, MrrDetailPage) compartirán exactamente el mismo ritmo de espaciado a 1080p, eliminando el último salto visual entre módulos financieros.

@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.9",
+    "date": "2026-06-28",
+    "type": "patch",
+    "title": "Ritmo de espaciado unificado en KPIs del Dashboard",
+    "description": "Cuarta pasada de auditoría UI/UX: (1) StatCards y FinancialKpiCards ahora usan gap-4 fijo (antes gap-3 sm:gap-4), alineando el ritmo horizontal de las filas de KPIs con PortalDashboard y el resto de módulos a 1080p; (2) CardContent en MrrDetailPage normalizado de p-5 a p-4 (escala estándar de Tailwind).",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.8",
     "date": "2026-06-28",
     "type": "patch",

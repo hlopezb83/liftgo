@@ -1,0 +1,20 @@
+{
+  "version": "6.98.9",
+  "date": "2026-06-28",
+  "type": "patch",
+  "title": "Ritmo de espaciado unificado en KPIs del Dashboard",
+  "category": "improvement",
+  "summary": "Cuarta pasada de auditoría UI/UX @ 1080p: estandarización del gap en filas de KPIs y normalización de padding fuera de escala.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "gap-4 fijo en KPIs del Dashboard",
+      "description": "StatCards y FinancialKpiCards reemplazan 'gap-3 sm:gap-4' por 'gap-4' para coincidir con PortalDashboard y la regla documentada en mem://arch/ui/component-library."
+    },
+    {
+      "type": "improvement",
+      "title": "Padding p-5 normalizado a p-4 en MrrDetailPage",
+      "description": "CardContent de los KPIs del detalle de MRR ahora usa la escala estándar de Tailwind (p-4), eliminando el único uso de p-5 en el ERP."
+    }
+  ]
+}
