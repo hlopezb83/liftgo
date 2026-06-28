@@ -15,7 +15,6 @@ import { notifyError } from "@/lib/ui/appFeedback";
 type Payment = { id: string; invoice_id: string | null; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
 export default function PortalStatement() {
-  const navigate = useNavigate();
   const { data: customer, isLoading: cl } = usePortalCustomer();
   const { data: invoices, isLoading: il } = usePortalInvoices();
   const { data: payments, isLoading: pl } = usePortalPayments();
