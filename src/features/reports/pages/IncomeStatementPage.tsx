@@ -94,7 +94,7 @@ export default function IncomeStatementPage() {
           para el mismo trabajo, ambos importes se restarán por separado. Use un solo canal por evento
           para evitar duplicar el gasto.
         </p>
-      </div>
+      </PageContainer>
     </PageTransition>
   );
 }
