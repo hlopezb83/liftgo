@@ -26,8 +26,8 @@ export default function QuoteDetail() {
 
   const assignmentStatus = useQuoteSaleAssignmentStatus(quote?.id, lineItems);
 
-  if (isLoading) return <div className="p-6"><Skeleton className="h-64" /></div>;
-  if (!quote) return <div className="p-6 text-muted-foreground">Cotización no encontrada</div>;
+  if (isLoading) return <PageContainer><Skeleton className="h-64" /></PageContainer>;
+  if (!quote) return <PageContainer><p className="text-muted-foreground">Cotización no encontrada</p></PageContainer>;
 
   const currency = (quote as unknown as { currency?: string }).currency;
   const showAssignCard = isSale && quote.status === "accepted";
@@ -37,7 +37,7 @@ export default function QuoteDetail() {
     : `Asigna los equipos del inventario antes de facturar (${assignmentStatus.totalAssigned}/${assignmentStatus.totalRequired} asignados)`;
 
   return (
-    <div className="p-6 max-w-4xl space-y-6">
+    <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={quote.quote_number}
         backTo="/quotes"
