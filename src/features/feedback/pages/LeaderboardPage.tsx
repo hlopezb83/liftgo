@@ -5,7 +5,7 @@ import { Trophy, Medal } from "lucide-react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
 
-const PODIUM_COLORS = ["text-warning", "text-slate-400", "text-orange-700"];
+const PODIUM_COLORS = ["text-warning", "text-muted-foreground", "text-[hsl(var(--chart-2))]"];
 
 function PositionCell({ pos }: { pos: number }) {
   if (pos <= 3) {

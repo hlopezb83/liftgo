@@ -15,13 +15,13 @@ export const ROLE_LABELS: Record<AppRole, string> = {
 };
 
 export const ROLE_COLORS: Record<AppRole, string> = {
-  admin: "bg-red-600 text-white",
-  administrativo: "bg-blue-600 text-white",
-  dispatcher: "bg-warning/100 text-white",
-  mechanic: "bg-emerald-600 text-white",
-  auditor: "bg-purple-600 text-white",
-  ventas: "bg-teal-600 text-white",
-  customer: "bg-gray-500 text-white",
+  admin: "bg-destructive text-destructive-foreground",
+  administrativo: "bg-info text-info-foreground",
+  dispatcher: "bg-warning text-warning-foreground",
+  mechanic: "bg-success text-success-foreground",
+  auditor: "bg-[hsl(var(--chart-5))] text-white",
+  ventas: "bg-[hsl(var(--chart-2))] text-white",
+  customer: "bg-muted text-muted-foreground",
 };
 
 export const FORKLIFT_STATUSES = ["available", "rented", "maintenance", "retired", "sold"] as const;

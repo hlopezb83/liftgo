@@ -1,8 +1,8 @@
 import { useMemo } from "react";
+import { DollarSign, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { DollarSign, ArrowLeft, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -10,6 +10,8 @@ import { useMrrDetail } from "../hooks/useMrrDetail";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { es } from "date-fns/locale";
 import { formatMtyDate } from "@/lib/utils";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type MrrItem = NonNullable<ReturnType<typeof useMrrDetail>["data"]>["items"][number];
 
@@ -92,16 +94,14 @@ export default function MrrDetailPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Ingreso Mensual Recurrente</h1>
-          <p className="text-muted-foreground text-sm">Detalle de montacargas actualmente rentados</p>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Ingreso Mensual Recurrente"
+        subtitle="Detalle de montacargas actualmente rentados"
+        backHref="/"
+        backLabel="Panel"
+      />
+
 
       <Card>
         <CardContent className="p-5 flex items-center gap-4">
@@ -143,6 +143,6 @@ export default function MrrDetailPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

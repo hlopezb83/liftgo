@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useAllFeedbackReports, type FeedbackReport } from "../hooks/useFeedbackReports";
 import { FeedbackDetailSheet } from "../components/FeedbackDetailSheet";
 import {
@@ -24,11 +26,12 @@ export default function FeedbackManagementPage() {
   }, [reports]);
 
   return (
-    <div className="p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Gestión de Feedback</h1>
-        <p className="text-sm text-muted-foreground">Reportes de bugs y mejoras enviados por los usuarios.</p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Gestión de Feedback"
+        subtitle="Reportes de bugs y mejoras enviados por los usuarios."
+      />
+
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando…</p>
@@ -74,6 +77,6 @@ export default function FeedbackManagementPage() {
       )}
 
       <FeedbackDetailSheet report={selected} onClose={() => setSelected(null)} />
-    </div>
+    </PageContainer>
   );
 }

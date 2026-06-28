@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.2",
+    "date": "2026-06-27",
+    "type": "minor",
+    "title": "Cohesión visual Fase 3: PageHeader + PageContainer + cleanup de colores",
+    "description": "Auditoría UI/UX 1080p ejecutada. (1) Nuevo PageContainer estandariza ancho (full/wide/form/narrow) y space-y-6. (2) PageHeader extendido con backHref/backLabel/actions y tipografía semibold tracking-tight. (3) Migrados Dashboard, AgingReport, MrrDetail, CRMClosed, MyReports y FeedbackManagement al nuevo layout, eliminando inline h1 y paddings redundantes. (4) Residuos de color (RepBadge, InvoiceCreditNotes, AlertCard, AlertsRow, MaintenanceKanban, ProspectCard, BankReconciliation, CalendarStatCards, FeedbackStatusBadge, Leaderboard, ActorAvatar, ROLE_COLORS) migrados a tokens semánticos/chart. (5) Utility .section-label en index.css. (6) Repair de clases malformadas (bg-info/100/10).",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.1",
     "date": "2026-06-27",
     "type": "patch",

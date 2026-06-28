@@ -29,7 +29,7 @@ export function ProspectCard({ prospect, index, quoteNumber, density, onClick }:
           {prospect.isStale && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="absolute top-2 right-2 inline-flex items-center justify-center h-2 w-2 rounded-full bg-orange-500" />
+                <span className="absolute top-2 right-2 inline-flex items-center justify-center h-2 w-2 rounded-full bg-warning" />
               </TooltipTrigger>
               <TooltipContent side="left">
                 <span className="flex items-center gap-1.5 text-xs">

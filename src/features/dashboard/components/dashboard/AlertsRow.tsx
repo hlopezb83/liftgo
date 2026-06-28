@@ -108,13 +108,13 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               primary={ob.forklift_name}
               secondary={ob.customer_name}
               onClick={() => navigate(`/returns?booking_id=${ob.booking_id}`)}
-              rightTop={<span className="font-mono font-semibold text-orange-600">{ob.days_overdue} días</span>}
+              rightTop={<span className="font-mono font-semibold text-warning">{ob.days_overdue} días</span>}
               rightBottom={`Venció: ${formatDateDisplay(ob.end_date)}`}
               action={{
                 icon: ClipboardList,
                 title: "Registrar Devolución",
                 onClick: (e) => { e.stopPropagation(); navigate(`/returns?booking_id=${ob.booking_id}`); },
-                className: "text-orange-600",
+                className: "text-warning",
               }}
             />
           ))}
