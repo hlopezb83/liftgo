@@ -32,8 +32,19 @@ export function CashFlowTable({ buckets, onSelect }: Props) {
         {buckets.map((b) => (
           <TableRow
             key={b.index}
-            className={cn("cursor-pointer odd:bg-muted/30 hover:bg-muted/60", b.items.length === 0 && "text-muted-foreground")}
+            className={cn(
+              "cursor-pointer odd:bg-muted/30 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+              b.items.length === 0 && "text-muted-foreground",
+            )}
             onClick={() => onSelect(b)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(b);
+              }
+            }}
+            tabIndex={0}
+            role="button"
           >
             <TableCell className="font-medium">{b.label}</TableCell>
             <TableCell className="text-xs">{b.rangeLabel}</TableCell>

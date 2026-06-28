@@ -19,14 +19,12 @@ function SortIcon({ dir }: { dir: false | "asc" | "desc" }): ReactNode {
 
 function buildHeaderClass(
   meta: { align?: "left" | "right" | "center"; hideOnMobile?: boolean; headClassName?: string } | undefined,
-  canSort: boolean,
   sorted: false | "asc" | "desc",
 ): string {
   return cn(
     alignClass[meta?.align ?? "left"],
     meta?.hideOnMobile && "hidden md:table-cell",
     meta?.headClassName,
-    canSort && "cursor-pointer select-none hover:text-foreground transition-colors",
     sorted && "text-foreground",
   );
 }
@@ -35,16 +33,37 @@ function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
   const meta = header.column.columnDef.meta;
   const canSort = header.column.getCanSort();
   const sortDir = header.column.getIsSorted();
-  const className = buildHeaderClass(meta, canSort, sortDir);
+  const className = buildHeaderClass(meta, sortDir);
   if (header.isPlaceholder) return <TableHead key={header.id} className={className} />;
-  const onClick = canSort ? header.column.getToggleSortingHandler() : undefined;
-  const innerClass = cn("flex items-center gap-1", meta?.align === "right" && "justify-end");
+  const innerClass = cn(
+    "flex items-center gap-1 w-full",
+    meta?.align === "right" && "justify-end",
+    meta?.align === "center" && "justify-center",
+  );
+  const content = (
+    <>
+      {flexRender(header.column.columnDef.header, header.getContext())}
+      {canSort && <SortIcon dir={sortDir} />}
+    </>
+  );
   return (
-    <TableHead className={className} onClick={onClick}>
-      <div className={innerClass}>
-        {flexRender(header.column.columnDef.header, header.getContext())}
-        {canSort && <SortIcon dir={sortDir} />}
-      </div>
+    <TableHead className={className}>
+      {canSort ? (
+        <button
+          type="button"
+          className={cn(
+            innerClass,
+            "cursor-pointer select-none hover:text-foreground transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm",
+          )}
+          onClick={header.column.getToggleSortingHandler()}
+          aria-sort={sortDir === "asc" ? "ascending" : sortDir === "desc" ? "descending" : "none"}
+        >
+          {content}
+        </button>
+      ) : (
+        <div className={innerClass}>{content}</div>
+      )}
     </TableHead>
   );
 }

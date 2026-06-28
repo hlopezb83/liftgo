@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.100.0",
+    "date": "2026-06-28",
+    "type": "minor",
+    "title": "Auditoría de navegación por teclado y accesibilidad",
+    "description": "Cierre del flanco de accesibilidad por teclado tras auditoría exhaustiva: (1) DataTableBodyV2 — filas clickeables de TODOS los listados v2 (Flotilla, Reservas, Facturas, Clientes, Proveedores, Cotizaciones, Contratos, Devoluciones, Inventario) ahora son focusables con Tab y activables con Enter/Espacio, con focus-visible:ring consistente. (2) BankStatementLinesTable, StatementTableRow (con aria-expanded) y CashFlowTable reciben el mismo patrón. (3) DataTableHeaderV2 envuelve los headers sortables en <button type='button'> con aria-sort. (4) MainLayout añade skip link 'Saltar al contenido' + id='main-content' en <main>. (5) AlertRow del Dashboard, FleetMobileCard y MaintenanceMobileCard navegables por teclado. (6) 13 botones icon-only ganan aria-label: DetailPageHeader (Volver, presente en ~15 detalles), UserMobileCard, StpTransferCard, usePaymentHistoryColumns, ImageGalleryLightbox (zoom, cerrar, prev/next, miniaturas) y editores de contrato.",
+    "category": "improvement"
+  },
+  {
     "version": "6.99.0",
     "date": "2026-06-28",
     "type": "minor",

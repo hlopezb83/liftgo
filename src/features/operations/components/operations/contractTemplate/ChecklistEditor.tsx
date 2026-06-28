@@ -29,7 +29,7 @@ export function ChecklistEditor({ sections, onChange }: Props) {
                 placeholder="Título de sección"
                 className="font-semibold"
               />
-              <Button variant="ghost" size="icon" onClick={() => onChange(sections.filter((_, j) => j !== si))}>
+              <Button variant="ghost" size="icon" onClick={() => onChange(sections.filter((_, j) => j !== si))} aria-label="Eliminar sección">
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             </div>

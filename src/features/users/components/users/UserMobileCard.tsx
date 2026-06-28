@@ -33,14 +33,14 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
             {!u.is_active && <Badge variant="destructive" className="text-[10px] px-1.5">Inactivo</Badge>}
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => actions.onEdit(u)}>
+            <Button variant="ghost" size="icon" onClick={() => actions.onEdit(u)} aria-label="Editar usuario">
               <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => actions.onSetPassword(u)}>
+            <Button variant="ghost" size="icon" onClick={() => actions.onSetPassword(u)} aria-label="Asignar contraseña">
               <KeyRound className="h-4 w-4" />
             </Button>
             {!isSelf && (
-              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => actions.onDelete(u)}>
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => actions.onDelete(u)} aria-label="Eliminar usuario">
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}

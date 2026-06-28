@@ -60,8 +60,14 @@ export default function MainLayout() {
     <SidebarProvider>
       <PageActionsProvider>
         <div className="min-h-[100dvh] flex w-full">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Saltar al contenido
+          </a>
           <AppSidebar />
-          <main className="flex-1 overflow-auto pb-[env(safe-area-inset-bottom)]">
+          <main id="main-content" className="flex-1 overflow-auto pb-[env(safe-area-inset-bottom)]">
             <header className="sticky top-0 z-30 h-12 flex items-center gap-3 border-b px-4 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[env(safe-area-inset-top)] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
               <SidebarTrigger className="touch:h-11 touch:w-11" />
               <div className="flex-1 min-w-0">

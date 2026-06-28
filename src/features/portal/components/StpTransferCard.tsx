@@ -55,7 +55,7 @@ export function StpTransferCard({ amount, concept }: Props) {
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm">{r.value}</span>
                 {r.copyable && (
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copy(r.value, r.label)}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copy(r.value, r.label)} aria-label={`Copiar ${r.label}`}>
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
                 )}

@@ -18,8 +18,17 @@ export function StatementTableRow({ row, breakdownRows, isExpandable, isOpen, to
   return (
     <Fragment>
       <TableRow
-        className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""} ${isExpandable ? "cursor-pointer hover:bg-muted/30" : ""}`}
+        className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""} ${isExpandable ? "cursor-pointer hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset" : ""}`}
         onClick={isExpandable ? toggle : undefined}
+        onKeyDown={isExpandable ? (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          }
+        } : undefined}
+        tabIndex={isExpandable ? 0 : undefined}
+        role={isExpandable ? "button" : undefined}
+        aria-expanded={isExpandable ? isOpen : undefined}
       >
         <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
           <span className="flex items-center gap-1">

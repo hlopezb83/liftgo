@@ -1,0 +1,53 @@
+{
+  "version": "6.100.0",
+  "date": "2026-06-28",
+  "type": "minor",
+  "title": "Auditoría de navegación por teclado y accesibilidad",
+  "category": "improvement",
+  "summary": "Cierre del flanco de accesibilidad por teclado: todas las filas, cards y sort headers interactivos ahora son activables con Tab + Enter/Espacio, con focus rings consistentes. 13 botones icon-only ganan aria-label.",
+  "sections": [
+    {
+      "title": "Filas y celdas drill-down navegables (Crítico)",
+      "items": [
+        "DataTableBodyV2: filas con onRowClick reciben tabIndex, role='button', onKeyDown y focus-visible:ring. Arregla automáticamente Flotilla, Reservas, Facturas, Clientes, Proveedores, Cotizaciones, Contratos, Devoluciones, Inventario y cualquier listado v2.",
+        "BankStatementLinesTable: <tr> de conciliación bancaria ahora seleccionable por teclado.",
+        "StatementTableRow del Estado de Resultados: filas expandibles con aria-expanded + activación por teclado.",
+        "CashFlowTable: buckets semanales drill-down navegables por teclado."
+      ]
+    },
+    {
+      "title": "Headers de tabla sortables como buttons reales",
+      "items": [
+        "DataTableHeaderV2: encabezados sortables envueltos en <button type='button'> con aria-sort. Tab + Enter/Espacio para ordenar columnas en todos los listados v2."
+      ]
+    },
+    {
+      "title": "Skip link + landmark único",
+      "items": [
+        "MainLayout: añadido enlace 'Saltar al contenido' (visible solo con focus) y id='main-content' en el <main>. Usuarios de teclado evitan tabular toda la barra lateral y el header en cada ruta."
+      ]
+    },
+    {
+      "title": "Cards navegables por teclado",
+      "items": [
+        "AlertRow del Dashboard, FleetMobileCard y MaintenanceMobileCard reciben tabIndex, role, onKeyDown y focus-visible:ring."
+      ]
+    },
+    {
+      "title": "Botones icon-only con aria-label (13 fixes)",
+      "items": [
+        "DetailPageHeader (botón Volver, presente en ~15 páginas de detalle).",
+        "UserMobileCard (Editar, Asignar contraseña, Eliminar).",
+        "StpTransferCard del portal (copiar CLABE / Cuenta / Concepto).",
+        "usePaymentHistoryColumns (editar pago).",
+        "ImageGalleryLightbox (zoom, cerrar, anterior, siguiente, miniaturas con aria-current).",
+        "EditableList, ClausesEditor y ChecklistEditor de plantillas de contrato (eliminar elemento/cláusula/sección)."
+      ]
+    }
+  ],
+  "validated": [
+    "Hotkey system (useHotkeys): Mod+Shift+N, Mod+Shift+F, /, ?, secuencias g+d/c/...) ya estaba completo.",
+    "Todos los Dialog/Sheet usan Radix → focus trap, Escape y aria-modal de origen.",
+    "Sin tabIndex > 0 ni outline-none huérfanos en src/."
+  ]
+}

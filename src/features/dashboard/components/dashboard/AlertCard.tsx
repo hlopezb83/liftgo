@@ -48,8 +48,16 @@ export function AlertRow({ primary, secondary, rightTop, rightBottom, onClick, a
   const ActionIcon = action?.icon;
   return (
     <div
-      className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background"
+      className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
     >
       <div>
         <span className="font-medium">{primary}</span>
@@ -61,7 +69,7 @@ export function AlertRow({ primary, secondary, rightTop, rightBottom, onClick, a
           {rightBottom && <p className="text-xs text-muted-foreground">{rightBottom}</p>}
         </div>
         {action && ActionIcon && (
-          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={action.onClick} title={action.title}>
+          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={action.onClick} title={action.title} aria-label={action.title}>
             <ActionIcon className={cn("h-4 w-4", action.className)} />
           </Button>
         )}

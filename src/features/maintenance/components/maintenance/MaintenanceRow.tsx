@@ -12,7 +12,18 @@ export function MaintenanceMobileCard({
   log, forkliftMap, onClick,
 }: { log: MaintenanceLog; forkliftMap: ForkliftMap; onClick: () => void }) {
   return (
-    <Card className="cursor-pointer" onClick={onClick}>
+    <Card
+      className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-1">
           <span className="text-sm font-semibold">{log.service_type}</span>
