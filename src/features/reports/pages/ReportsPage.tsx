@@ -76,7 +76,7 @@ export default function ReportsPage() {
         const Comp = REPORT_COMPONENTS[reportType];
         return Comp ? <Comp startDate={startDate} endDate={endDate} /> : null;
       })()}
-    </div>
+    </PageContainer>
     </PageTransition>
   );
 }
