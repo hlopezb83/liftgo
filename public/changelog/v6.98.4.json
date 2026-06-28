@@ -1,0 +1,8 @@
+{
+  "version": "6.98.4",
+  "date": "2026-06-28",
+  "type": "patch",
+  "title": "Fase 3 cierre: páginas internas migradas a PageHeader + PageContainer",
+  "description": "ChangelogPage, HelpPage, OperationsSetupPage y LeaderboardPage migradas al layout estándar. Se eliminaron contenedores manuales (p-6 max-w-* mx-auto) y headers ad-hoc (h1+p) en favor de PageContainer (maxWidth form/wide) y PageHeader. Cierra la auditoría visual de Fase 3 unificando todas las páginas de listado, detalle y portal del cliente bajo el mismo lenguaje de layout.",
+  "category": "improvement"
+}

@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Truck, Wrench, FileText, ShieldCheck, Building2, Image as ImageIcon, ShieldAlert } from "lucide-react";
 import { EquipmentModelsTab } from "../components/operations/EquipmentModelsTab";
@@ -13,7 +14,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 
 export default function OperationsSetupPage() {
   return (
-    <div className="p-6 max-w-5xl">
+    <PageContainer maxWidth="wide">
       <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales, logo y aprobaciones" />
       <Tabs defaultValue="equipment" className="mt-6">
         <TabsList className="flex-wrap h-auto">
@@ -55,6 +56,6 @@ export default function OperationsSetupPage() {
           </RoleGuard>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

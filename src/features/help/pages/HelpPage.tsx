@@ -5,6 +5,7 @@ import { useUserRole } from "@/features/users";
 import { HelpPageHeader } from "../components/HelpPageHeader";
 import { ManualEmptyCard, ManualGeneratingCard } from "../components/ManualStateCards";
 import { ManualSections } from "../components/ManualSections";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default function HelpPage() {
   const { manual, isLoading, generate, isGenerating, versions, selectedVersion, setSelectedVersion } = useUserManual();
@@ -20,18 +21,18 @@ export default function HelpPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <PageContainer maxWidth="wide">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-10 w-full" />
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-14 w-full" />
         ))}
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <PageContainer maxWidth="wide">
       <HelpPageHeader
         manualVersion={manual?.version}
         generatedAt={manual?.generated_at}
@@ -49,6 +50,6 @@ export default function HelpPage() {
       {manual && !isGenerating && (
         <ManualSections search={search} onSearchChange={setSearch} sections={filteredSections} />
       )}
-    </div>
+    </PageContainer>
   );
 }

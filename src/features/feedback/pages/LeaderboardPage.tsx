@@ -4,6 +4,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Trophy, Medal } from "lucide-react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 const PODIUM_COLORS = ["text-warning", "text-muted-foreground", "text-[hsl(var(--chart-2))]"];
 
@@ -90,11 +92,11 @@ function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
 export default function LeaderboardPage() {
   const [period, setPeriod] = useState<LeaderboardPeriod>("month");
   return (
-    <div className="p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Tabla de honor</h1>
-        <p className="text-sm text-muted-foreground">Reconocimiento a quienes ayudan a mejorar LiftGo reportando bugs y proponiendo mejoras.</p>
-      </div>
+    <PageContainer maxWidth="wide">
+      <PageHeader
+        title="Tabla de honor"
+        subtitle="Reconocimiento a quienes ayudan a mejorar LiftGo reportando bugs y proponiendo mejoras."
+      />
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Top contribuyentes</CardTitle>
@@ -112,6 +114,6 @@ export default function LeaderboardPage() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

@@ -1,38 +1,26 @@
-# Fase 3 — Parte 2: Unificación de layout en páginas restantes
+# Fase 3 — Parte 3: Páginas internas con headers manuales
 
-Continuamos la migración iniciada en v6.98.2. El objetivo es eliminar `h1` inline, paddings redundantes (`p-6`) y headers manuales en las páginas que aún no se estandarizaron, usando los componentes `PageHeader` y `PageContainer` ya creados.
+Cerramos la unificación de layout migrando las páginas internas que aún construyen su header a mano o usan paddings/anchos redundantes. Las páginas de formularios (`*Form.tsx`) y detalle (`*Detail.tsx`) ya usan `FormPageHeader` / `DetailPageHeader` y quedan fuera de alcance.
 
-## Alcance
+## Páginas a migrar
 
-### 1. Portal de clientes (9 páginas)
-Layout actualmente inconsistente entre páginas del portal. Migrar a `PageContainer` + `PageHeader` (con `backHref` cuando aplique):
+| Página | Cambio |
+|---|---|
+| `ChangelogPage.tsx` | Quitar `p-6 max-w-3xl mx-auto`, usar `PageContainer maxWidth="form"` + `PageHeader` |
+| `OperationsSetupPage.tsx` | Quitar `p-6 max-w-5xl`, usar `PageContainer maxWidth="wide"` (ya usa `PageHeader`) |
+| `HelpPage.tsx` | Reemplazar contenedor manual `p-6 max-w-*` por `PageContainer` |
+| `InventoryPage.tsx` | Reemplazar `h1 text-2xl` manual por `PageHeader` |
+| `MrrDetailPage.tsx` | Auditar — si aún tiene `text-2xl font-bold` residual, migrar a `PageHeader` |
+| `LeaderboardPage.tsx` | Reemplazar `<h1>` manual por `PageHeader` |
 
-- `PortalDashboard.tsx`
-- `PortalQuotes.tsx` / `PortalQuoteDetail.tsx`
-- `PortalRentals.tsx`
-- `PortalInvoices.tsx` / `PortalInvoiceDetail.tsx` / `PortalInvoicePayment.tsx`
-- `PortalContracts.tsx`
-- `PortalStatement.tsx`
+## Reglas
 
-### 2. Páginas internas con headers manuales
-Detectadas con `h1` inline o `div p-6` redundante:
+- `PageContainer` sin padding propio (lo da `MainLayout`).
+- Mantener `max-w-*` específicos vía prop `maxWidth` (`form`=3xl, `wide`=5xl).
+- No tocar `FormPageHeader`/`DetailPageHeader` ni vistas ya migradas.
+- No tocar lógica de negocio ni tokens de color.
+- `NotFound.tsx` y `CRMToolbar.tsx`: fuera de alcance (no son páginas estándar de listado).
 
-- `ChangelogPage.tsx` — usa `p-6 max-w-3xl mx-auto`, pasar a `PageContainer maxWidth="form"`.
-- Auditar y migrar otras páginas en `features/*/pages/` que todavía construyen su header a mano (barrido con `rg "text-2xl font-bold|text-3xl font-bold" src/features/*/pages`).
+## Entrega
 
-### 3. Limpieza
-- Quitar `<ArrowLeft>` + `<Link>` manuales en favor de `backHref`.
-- Reemplazar `<div className="flex justify-between"><h1>…</h1><Button>…</Button></div>` por `<PageHeader title actions />`.
-- No tocar `DetailPageHeader` (ya unificado para vistas de detalle con badges).
-
-## Detalles técnicos
-
-- `PageContainer` no aplica padding (lo da `MainLayout`); en el portal verificar que `CustomerPortalLayout` provea padding equivalente; si no, mantener `p-6` solo a nivel layout, no por página.
-- Mantener `max-w-*` específicos vía `maxWidth` prop (`form` = 3xl, `wide` = 5xl).
-- Versionar como **v6.98.3** (patch) + entrada en changelog.
-
-## Fuera de alcance
-
-- No se introducen nuevos tokens de color ni cambios de tipografía.
-- No se refactoriza `DetailPageHeader` ni vistas de detalle ya migradas.
-- No se cambia lógica de negocio.
+- Versión **v6.98.4** (patch) + entrada en `public/changelog.json` y `public/changelog/v6.98.4.json`.
