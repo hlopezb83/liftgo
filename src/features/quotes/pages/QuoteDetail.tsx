@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AssignForkliftsCard } from "../components/quotes/AssignForkliftsCard";
