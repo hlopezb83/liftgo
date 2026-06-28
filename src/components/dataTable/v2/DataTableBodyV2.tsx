@@ -40,8 +40,19 @@ export function DataTableBodyV2<T>({
           <TableRow
             key={row.id}
             data-state={isSelected ? "selected" : undefined}
-            className={cn(onRowClick && "cursor-pointer", rowClassName?.(item))}
+            className={cn(
+              onRowClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+              rowClassName?.(item),
+            )}
             onClick={onRowClick ? () => onRowClick(item) : undefined}
+            onKeyDown={onRowClick ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onRowClick(item);
+              }
+            } : undefined}
+            tabIndex={onRowClick ? 0 : undefined}
+            role={onRowClick ? "button" : undefined}
           >
             {showSelection && (
               <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>

@@ -12,7 +12,18 @@ interface CardProps {
 
 export function FleetMobileCard({ forklift: f, hasActivePolicy, onClick }: CardProps) {
   return (
-    <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onClick}>
+    <Card
+      className="cursor-pointer active:scale-[0.98] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono font-semibold text-sm flex items-center gap-1.5">

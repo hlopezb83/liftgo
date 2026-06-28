@@ -106,7 +106,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean) {
     base.push({
       id: "actions", header: "", enableSorting: false,
       cell: ({ row }) => (
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(row.original)}>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(row.original)} aria-label="Editar pago" title="Editar pago">
           <Pencil className="h-3.5 w-3.5" />
         </Button>
       ),

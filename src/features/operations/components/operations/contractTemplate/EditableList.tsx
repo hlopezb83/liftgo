@@ -17,7 +17,7 @@ export function EditableList({ items, onChange }: { items: string[]; onChange: (
             rows={2}
             className="min-h-[40px]"
           />
-          <Button variant="ghost" size="icon" className="mt-1 shrink-0" onClick={() => onChange(items.filter((_, j) => j !== i))}>
+          <Button variant="ghost" size="icon" className="mt-1 shrink-0" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label="Eliminar elemento">
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
         </div>

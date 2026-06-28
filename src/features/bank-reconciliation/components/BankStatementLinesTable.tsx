@@ -44,8 +44,16 @@ export function BankStatementLinesTable({ lines, onSelect }: Props) {
               <tr
                 key={l.id}
                 onClick={() => onSelect(l)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelect(l);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
                 className={cn(
-                  "cursor-pointer hover:bg-muted/40 border-t",
+                  "cursor-pointer hover:bg-muted/40 border-t focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                   i % 2 === 1 && "bg-muted/20",
                 )}
               >

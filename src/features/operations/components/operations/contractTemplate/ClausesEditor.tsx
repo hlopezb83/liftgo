@@ -29,7 +29,7 @@ export function ClausesEditor({ clauses, onChange }: Props) {
                 placeholder="Título de la cláusula"
                 className="font-semibold"
               />
-              <Button variant="ghost" size="icon" onClick={() => onChange(clauses.filter((_, j) => j !== i))}>
+              <Button variant="ghost" size="icon" onClick={() => onChange(clauses.filter((_, j) => j !== i))} aria-label="Eliminar cláusula">
                 <Trash2 className="h-4 w-4 text-destructive" />
               </Button>
             </div>
