@@ -178,6 +178,6 @@ export default function InvoiceForm() {
           <FormActions submitLabel={f.isEdit ? "Actualizar Factura" : "Crear Factura"} isPending={f.isPending} onCancel={() => navigate(-1)} />
         </form>
       </Form>
-    </div>
+    </PageContainer>
   );
 }
