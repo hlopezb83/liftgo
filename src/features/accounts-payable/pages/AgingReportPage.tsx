@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download, FileClock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Download, FileClock } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { useAgingReport } from "../hooks/useAgingReport";
 
 const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: string }[] = [
@@ -40,23 +41,19 @@ export default function AgingReportPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <Link to="/cuentas-por-pagar">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-1" />Volver
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold">Antigüedad de Saldos</h1>
-            <p className="text-sm text-muted-foreground">Saldos pendientes agrupados por proveedor y días de vencimiento</p>
-          </div>
-        </div>
-        <Button variant="outline" onClick={handleExport} disabled={rows.length === 0}>
-          <Download className="h-4 w-4 mr-1" />Exportar CSV
-        </Button>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Antigüedad de Saldos"
+        subtitle="Saldos pendientes agrupados por proveedor y días de vencimiento"
+        backHref="/cuentas-por-pagar"
+        backLabel="Cuentas por pagar"
+        actions={
+          <Button variant="outline" onClick={handleExport} disabled={rows.length === 0}>
+            <Download className="h-4 w-4 mr-1" />Exportar CSV
+          </Button>
+        }
+      />
+
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card><CardContent className="p-4">

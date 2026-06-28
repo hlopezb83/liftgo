@@ -53,7 +53,7 @@ export default function Dashboard() {
           revenuePerUnit={revenuePerUnit}
           cashFlowData={cashFlowData}
         />
-      </div>
+      </PageContainer>
     </PageTransition>
   );
 }
