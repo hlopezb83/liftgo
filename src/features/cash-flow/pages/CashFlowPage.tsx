@@ -67,7 +67,7 @@ export default function CashFlowPage() {
             open={!!selected}
             onOpenChange={(o) => { if (!o) setSelected(null); }}
           />
-        </div>
+        </PageContainer>
       </PageTransition>
     </RoleGuard>
   );
