@@ -4,6 +4,7 @@ import { CustomerSelector } from "@/features/customers";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { ForkliftSelector } from "@/features/fleet";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { differenceInDays } from "date-fns";
