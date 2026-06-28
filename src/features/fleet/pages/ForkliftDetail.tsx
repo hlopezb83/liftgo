@@ -6,6 +6,7 @@ import { useMaintenanceLogs } from "@/features/maintenance";
 import { useForkliftFinancials } from "../hooks/forklifts/useForkliftFinancials";
 import { useForkliftLocation } from "../hooks/forklifts/useForkliftLocation";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
