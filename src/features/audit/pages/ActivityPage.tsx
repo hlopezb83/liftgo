@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ActivityKPIs } from "../components/activity/ActivityKPIs";
 import { ActivityByMember } from "../components/activity/ActivityByMember";
@@ -37,7 +38,7 @@ export default function ActivityPage() {
 
   return (
     <PageTransition>
-      <div className="p-6 space-y-4">
+      <PageContainer className="space-y-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <PageHeader
             title="Actividad del Equipo"
@@ -73,7 +74,7 @@ export default function ActivityPage() {
           onReset={resetFilters}
           members={m.byMember}
         />
-      </div>
+      </PageContainer>
     </PageTransition>
   );
 }

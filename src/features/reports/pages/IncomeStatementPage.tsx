@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -36,7 +37,7 @@ export default function IncomeStatementPage() {
 
   return (
     <PageTransition>
-      <div className="p-6 space-y-6">
+      <PageContainer>
         <PageHeader title="Estado de Resultados" subtitle="Análisis financiero detallado con depreciación de equipos" />
 
         <Card>
@@ -93,7 +94,7 @@ export default function IncomeStatementPage() {
           para el mismo trabajo, ambos importes se restarán por separado. Use un solo canal por evento
           para evitar duplicar el gasto.
         </p>
-      </div>
+      </PageContainer>
     </PageTransition>
   );
 }

@@ -1,5 +1,6 @@
 import { useContractFormLogic } from "../hooks/useContractFormLogic";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { FormActions } from "@/components/forms/FormActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ export default function ContractForm() {
   } = useContractFormLogic();
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <PageContainer maxWidth="form">
       <FormPageHeader title={isEdit ? "Editar Contrato" : "Nuevo Contrato"} onBack={() => navigate("/contracts")} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -138,6 +139,6 @@ export default function ContractForm() {
 
       <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Crear Contrato"} isPending={isPending} onCancel={() => navigate("/contracts")} />
       </form>
-    </div>
+    </PageContainer>
   );
 }

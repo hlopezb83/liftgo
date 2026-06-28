@@ -4,6 +4,7 @@ import { CustomerSelector } from "@/features/customers";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { ForkliftSelector } from "@/features/fleet";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { differenceInDays } from "date-fns";
@@ -36,7 +37,7 @@ export default function BookingForm() {
   };
 
   return (
-    <div className="p-6 max-w-3xl">
+    <PageContainer maxWidth="form">
       <FormPageHeader title="Nueva Reserva" />
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
@@ -86,6 +87,6 @@ export default function BookingForm() {
         onDeliveryDone={handleDeliveryDone}
         onPolicyDone={handlePolicyDone}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -1,4 +1,5 @@
 import { PageTransition } from "@/components/layout/PageTransition";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -59,19 +60,19 @@ export default function RolePermissionsPage() {
   if (isLoading) {
     return (
       <PageTransition>
-        <div className="p-6 space-y-6">
+        <PageContainer>
           {header}
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        </div>
+        </PageContainer>
       </PageTransition>
     );
   }
 
   return (
     <PageTransition>
-      <div className="p-6 space-y-6">
+      <PageContainer>
         {header}
 
         <div className="rounded-lg border bg-card overflow-auto">
@@ -128,7 +129,7 @@ export default function RolePermissionsPage() {
             </span>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </PageTransition>
   );
 }

@@ -1,4 +1,5 @@
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,19 +18,19 @@ export default function ContractDetail() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <PageContainer className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64" />
-      </div>
+      </PageContainer>
     );
   }
-  if (!contract || !id) return <div className="p-6 text-muted-foreground">Contrato no encontrado</div>;
+  if (!contract || !id) return <PageContainer><p className="text-muted-foreground">Contrato no encontrado</p></PageContainer>;
 
   const { start, end } = contractDates(contract);
   const showFinancials = Boolean(contract.booking_id && start && end);
 
   return (
-    <div className="p-6 max-w-4xl space-y-6">
+    <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={contract.contract_number}
         backTo="/contracts"
@@ -90,6 +91,6 @@ export default function ContractDetail() {
           <CardContent><p className="text-sm text-muted-foreground">{contract.notes}</p></CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   );
 }

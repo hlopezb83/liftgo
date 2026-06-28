@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
@@ -56,7 +57,7 @@ export default function InvoiceForm() {
   if (f.saleAssignmentGuard.shouldBlock) {
     const { totalAssigned, totalRequired, missingByLine } = f.saleAssignmentGuard;
     return (
-      <div className="p-6 max-w-4xl">
+      <PageContainer maxWidth="wide">
         <FormPageHeader title="Nueva Factura" />
         <Alert variant="destructive" className="mt-6">
           <AlertTriangle className="h-5 w-5" />
@@ -78,12 +79,12 @@ export default function InvoiceForm() {
           <Button onClick={() => navigate(`/quotes/${f.fromQuoteId}`)}>Ir a la cotización</Button>
           <Button variant="outline" onClick={() => navigate(-1)}>Volver</Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl">
+    <PageContainer maxWidth="wide">
       <FormPageHeader title={f.isEdit ? "Editar Factura" : "Nueva Factura"} />
 
       <Form {...f.form}>
@@ -177,6 +178,6 @@ export default function InvoiceForm() {
           <FormActions submitLabel={f.isEdit ? "Actualizar Factura" : "Crear Factura"} isPending={f.isPending} onCancel={() => navigate(-1)} />
         </form>
       </Form>
-    </div>
+    </PageContainer>
   );
 }

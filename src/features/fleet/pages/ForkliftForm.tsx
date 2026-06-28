@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { AlertTriangle } from "lucide-react";
 import { useForkliftFormLogic } from "../hooks/useForkliftFormLogic";
 import { EquipmentDetailsSection } from "../components/forklift-form/EquipmentDetailsSection";
@@ -20,7 +21,7 @@ export default function ForkliftForm() {
 
   if (!isEdit && !hasModels) {
     return (
-      <div className="p-6 max-w-3xl">
+      <PageContainer maxWidth="form">
         <FormPageHeader title="Agregar Montacargas" />
         <Alert className="mt-6">
           <AlertTriangle className="h-5 w-5" />
@@ -33,12 +34,12 @@ export default function ForkliftForm() {
           <Button onClick={() => navigate("/settings/operations")}>Ir a Configuración</Button>
           <Button variant="outline" onClick={() => navigate(-1)}>Volver</Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="p-6 max-w-3xl">
+    <PageContainer maxWidth="form">
       <FormPageHeader title={isEdit ? "Editar Montacargas" : "Agregar Montacargas"} />
 
       <Form {...form}>
@@ -76,6 +77,6 @@ export default function ForkliftForm() {
           />
         </form>
       </Form>
-    </div>
+    </PageContainer>
   );
 }

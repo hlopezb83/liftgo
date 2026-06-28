@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
@@ -52,7 +53,7 @@ export default function ReportsPage() {
 
   return (
     <PageTransition>
-    <div className="p-6 space-y-6">
+    <PageContainer>
       <PageHeader title="Reportes y Análisis" subtitle="Genera reportes filtrados con exportación" />
 
       <Card>
@@ -75,7 +76,7 @@ export default function ReportsPage() {
         const Comp = REPORT_COMPONENTS[reportType];
         return Comp ? <Comp startDate={startDate} endDate={endDate} /> : null;
       })()}
-    </div>
+    </PageContainer>
     </PageTransition>
   );
 }

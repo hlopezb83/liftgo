@@ -10,6 +10,7 @@ import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetail
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { InvoiceFiscalDataCard } from "../components/invoice-detail/InvoiceFiscalDataCard";
 import { InvoicePaymentSummary } from "../components/invoice-detail/InvoicePaymentSummary";
 import { PaymentIntentsSection } from "../components/invoice-detail/PaymentIntentsSection";
@@ -72,15 +73,15 @@ export default function InvoiceDetail() {
 
   const actions = useInvoiceDetailActions(invoice, refetch);
 
-  if (isLoading) return <div className="p-6 space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></div>;
-  if (!invoice || !id) return <div className="p-6 text-muted-foreground">Factura no encontrada</div>;
+  if (isLoading) return <PageContainer className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></PageContainer>;
+  if (!invoice || !id) return <PageContainer><p className="text-muted-foreground">Factura no encontrada</p></PageContainer>;
 
   const d = deriveInvoiceData(invoice, payments, creditNotes, company);
   const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance, showCfdiError, showCollectionNotes, isLive, showPacBadge, ppdStamped } = d;
   const notes = invoice.notes;
 
   return (
-    <div className="p-6 max-w-4xl space-y-6">
+    <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={invoice.invoice_number}
         backTo="/invoices"
@@ -160,6 +161,6 @@ export default function InvoiceDetail() {
         customerId={actions.stampError?.customerId ?? null}
       />
 
-    </div>
+    </PageContainer>
   );
 }

@@ -10,6 +10,7 @@ import { DatePickerField } from "@/components/forms/DatePickerField";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { SaleLineItems } from "../components/quotes/SaleLineItems";
 import { RentalLineItems } from "../components/quotes/RentalLineItems";
 import { CostSummaryCard } from "../components/quotes/CostSummaryCard";
@@ -29,7 +30,7 @@ export default function QuoteForm() {
   } = useQuoteFormLogic();
 
   return (
-    <div className="p-6 max-w-3xl">
+    <PageContainer maxWidth="form">
       <FormPageHeader title={id ? "Editar Cotización" : "Nueva Cotización"} />
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
@@ -136,6 +137,6 @@ export default function QuoteForm() {
         <NotesCard value={notes} onChange={setNotes} />
         <FormActions submitLabel={id ? "Actualizar Cotización" : "Crear Cotización"} isPending={isPending} onCancel={() => navigate(-1)} />
       </form>
-    </div>
+    </PageContainer>
   );
 }

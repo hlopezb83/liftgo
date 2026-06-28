@@ -4,6 +4,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,13 +57,13 @@ export default function CalendarPage() {
 
 
   if (bLoading || fLoading) {
-    return <div className="p-6"><Skeleton className="h-96" /></div>;
+    return <PageContainer><Skeleton className="h-96" /></PageContainer>;
   }
 
   return (
     <PageTransition>
     <TooltipProvider>
-    <div className="p-6 space-y-6">
+    <PageContainer>
       <PageHeader
         title="Calendario de Disponibilidad"
         subtitle="Ver reservas de toda la flota"
@@ -163,7 +164,7 @@ export default function CalendarPage() {
         </Card>
       )}
 
-    </div>
+    </PageContainer>
     </TooltipProvider>
     </PageTransition>
   );

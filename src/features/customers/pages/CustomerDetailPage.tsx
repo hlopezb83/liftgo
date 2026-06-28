@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotesCard } from "@/components/domain/NotesCard";
@@ -31,11 +32,11 @@ export default function CustomerDetailPage() {
     }
   };
 
-  if (s.isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
-  if (!s.customer) return <div className="p-6 text-muted-foreground">Cliente no encontrado</div>;
+  if (s.isLoading) return <PageContainer><Skeleton className="h-96" /></PageContainer>;
+  if (!s.customer) return <PageContainer><p className="text-muted-foreground">Cliente no encontrado</p></PageContainer>;
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl">
+    <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={s.customer.name}
         subtitle={s.customer.company || undefined}
@@ -112,6 +113,6 @@ export default function CustomerDetailPage() {
         isPending={s.inviteCustomer.isPending}
         onInvite={s.handleInvite}
       />
-    </div>
+    </PageContainer>
   );
 }
