@@ -30,7 +30,7 @@ export default function QuoteForm() {
   } = useQuoteFormLogic();
 
   return (
-    <div className="p-6 max-w-3xl">
+    <PageContainer maxWidth="form">
       <FormPageHeader title={id ? "Editar Cotización" : "Nueva Cotización"} />
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
