@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { DollarSign, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
