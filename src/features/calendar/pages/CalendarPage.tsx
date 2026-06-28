@@ -57,13 +57,13 @@ export default function CalendarPage() {
 
 
   if (bLoading || fLoading) {
-    return <div className="p-6"><Skeleton className="h-96" /></div>;
+    return <PageContainer><Skeleton className="h-96" /></PageContainer>;
   }
 
   return (
     <PageTransition>
     <TooltipProvider>
-    <div className="p-6 space-y-6">
+    <PageContainer>
       <PageHeader
         title="Calendario de Disponibilidad"
         subtitle="Ver reservas de toda la flota"
