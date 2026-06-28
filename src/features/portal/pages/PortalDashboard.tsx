@@ -4,6 +4,8 @@ import { CalendarDays, Receipt, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PortalStatCard } from "../components/PortalStatCard";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 function PortalDashboardSkeleton() {
   return (
