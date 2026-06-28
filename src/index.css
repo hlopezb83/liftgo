@@ -171,6 +171,16 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
+}
+
+@layer components {
+  /** Small-caps de sección — usar en cards y secciones de detalle. */
+  .section-label {
+    @apply text-xs uppercase tracking-wide text-muted-foreground font-medium;
+  }
+}
+
+@layer base {
 
   /* Global scrollbar */
   * {
