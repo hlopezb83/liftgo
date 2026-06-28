@@ -31,7 +31,7 @@ async function downloadCreditNote(creditNoteId: string, format: CfdiFormat, numb
 function CnBadge({ cn }: { cn: CreditNote }) {
   if (cn.cfdi_status === "stamped") {
     if (cn.cancellation_status === "pending") {
-      return <Badge variant="outline" className="border-warning/300 text-warning">Cancel. pendiente</Badge>;
+      return <Badge variant="outline" className="border-warning/30 text-warning">Cancel. pendiente</Badge>;
     }
     return <Badge className="bg-green-600 hover:bg-green-700">Timbrada</Badge>;
   }

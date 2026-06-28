@@ -82,7 +82,7 @@ export function CompanyLogoTab() {
             />
 
             {hasPendingChange && (
-              <div className="rounded-md border border-warning/300/40 bg-warning/100/5 p-3 space-y-2">
+              <div className="rounded-md border border-warning/30 bg-warning/5 p-3 space-y-2">
                 <div className="flex items-center gap-2 text-warning dark:text-warning text-sm font-medium">
                   <AlertCircle className="h-4 w-4" />
                   Cambios sin guardar — vista previa
@@ -100,7 +100,7 @@ export function CompanyLogoTab() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Nuevo</p>
-                    <div className="h-24 rounded-md border border-warning/300/40 bg-background flex items-center justify-center overflow-hidden">
+                    <div className="h-24 rounded-md border border-warning/30 bg-background flex items-center justify-center overflow-hidden">
                       {pendingUrl ? (
                         <img src={pendingUrl} alt="Nuevo logo" className="h-full w-full object-contain p-2" />
                       ) : (

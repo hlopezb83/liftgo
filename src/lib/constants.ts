@@ -17,7 +17,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
 export const ROLE_COLORS: Record<AppRole, string> = {
   admin: "bg-red-600 text-white",
   administrativo: "bg-blue-600 text-white",
-  dispatcher: "bg-warning/100 text-white",
+  dispatcher: "bg-warning text-white",
   mechanic: "bg-emerald-600 text-white",
   auditor: "bg-purple-600 text-white",
   ventas: "bg-teal-600 text-white",
