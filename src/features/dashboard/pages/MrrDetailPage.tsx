@@ -143,6 +143,6 @@ export default function MrrDetailPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -14,33 +14,24 @@ export default function CRMClosedPage() {
 
   return (
     <PageTransition>
-      <div className="px-6 py-4 space-y-4">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/crm">
-                <ArrowLeft className="h-4 w-4 mr-1" /> Pipeline
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Histórico de Deals Cerrados</h1>
-              <p className="text-xs text-muted-foreground">
-                Win rate 30d: <span className="font-semibold">{s.metrics.winRate30d}%</span> ·
-                Ganados mes: <span className="font-semibold">{s.metrics.wonCountMTD} · {formatCurrency(s.metrics.wonTotalMTD)}</span> ·
-                Perdidos mes: <span className="font-semibold">{s.metrics.lostCountMTD}</span>
-              </p>
+      <PageContainer>
+        <PageHeader
+          title="Histórico de Deals Cerrados"
+          subtitle={`Win rate 30d: ${s.metrics.winRate30d}% · Ganados mes: ${s.metrics.wonCountMTD} (${formatCurrency(s.metrics.wonTotalMTD)}) · Perdidos mes: ${s.metrics.lostCountMTD}`}
+          backHref="/crm"
+          backLabel="Pipeline"
+          actions={
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                value={s.search}
+                onChange={(e) => s.setSearch(e.target.value)}
+                placeholder="Buscar empresa o contacto…"
+                className="h-8 pl-8 text-sm"
+              />
             </div>
-          </div>
-          <div className="relative w-64">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              value={s.search}
-              onChange={(e) => s.setSearch(e.target.value)}
-              placeholder="Buscar empresa o contacto…"
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-        </div>
+          }
+        />
 
         <Tabs defaultValue="won">
           <TabsList>
@@ -54,7 +45,8 @@ export default function CRMClosedPage() {
             <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} onReopen={s.handleReopen} />
           </TabsContent>
         </Tabs>
-      </div>
+      </PageContainer>
+
 
       <ConfirmDialog
         open={s.reopenTarget !== null}

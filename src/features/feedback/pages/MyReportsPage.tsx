@@ -74,16 +74,17 @@ export default function MyReportsPage() {
   });
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mis reportes</h1>
-          <p className="text-sm text-muted-foreground">Tus bugs reportados y mejoras propuestas.</p>
-        </div>
-        <Badge variant="secondary" className="text-base px-3 py-1.5">
-          {totalPoints} puntos
-        </Badge>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Mis reportes"
+        subtitle="Tus bugs reportados y mejoras propuestas."
+        actions={
+          <Badge variant="secondary" className="text-base px-3 py-1.5">
+            {totalPoints} puntos
+          </Badge>
+        }
+      />
+
 
       <Card>
         <CardHeader className="pb-3">
