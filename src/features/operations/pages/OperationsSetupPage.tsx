@@ -56,6 +56,6 @@ export default function OperationsSetupPage() {
           </RoleGuard>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }
