@@ -51,7 +51,7 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
     { label: "Disponibles", value: stats.available, icon: CheckCircle, color: "text-success" },
     { label: "Rentados", value: stats.rented, icon: Truck, color: "text-info" },
     { label: "Mantenimiento", value: stats.maintenance, icon: Wrench, color: "text-warning" },
-    { label: "Utilización", value: stats.utilization, icon: BarChart3, color: "text-violet-600" },
+    { label: "Utilización", value: stats.utilization, icon: BarChart3, color: "text-[hsl(var(--chart-5))]" },
   ];
 
   return <StatCards cards={cards} />;

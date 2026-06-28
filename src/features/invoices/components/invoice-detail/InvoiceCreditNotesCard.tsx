@@ -33,7 +33,7 @@ function CnBadge({ cn }: { cn: CreditNote }) {
     if (cn.cancellation_status === "pending") {
       return <Badge variant="outline" className="border-warning/30 text-warning">Cancel. pendiente</Badge>;
     }
-    return <Badge className="bg-green-600 hover:bg-green-700">Timbrada</Badge>;
+    return <Badge className="bg-success text-success-foreground hover:bg-success/90">Timbrada</Badge>;
   }
   if (cn.cfdi_status === "cancelled") return <Badge variant="destructive">Cancelada</Badge>;
   if (cn.cfdi_status === "error") return <Badge variant="destructive">Error</Badge>;

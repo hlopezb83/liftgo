@@ -14,7 +14,7 @@ interface AlertCardProps {
 
 const TONE: Record<AlertCardProps["tone"], { card: string; title: string }> = {
   destructive: { card: "border-destructive/30 bg-destructive/5", title: "text-destructive" },
-  warning: { card: "border-orange-500/30 bg-orange-500/5", title: "text-orange-600" },
+  warning: { card: "border-warning/30 bg-warning/5", title: "text-warning" },
   maintenance: { card: "border-status-maintenance/30 bg-status-maintenance/5", title: "text-status-maintenance" },
 };
 

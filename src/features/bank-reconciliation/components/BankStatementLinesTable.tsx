@@ -12,9 +12,9 @@ interface Props {
 
 const STATUS_TONE: Record<string, string> = {
   unmatched: "bg-muted text-muted-foreground",
-  suggested: "bg-warning/10 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100",
-  matched: "bg-success/10 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100",
-  ignored: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+  suggested: "bg-warning/10 text-warning",
+  matched: "bg-success/10 text-success",
+  ignored: "bg-muted text-muted-foreground",
 };
 
 export function BankStatementLinesTable({ lines, onSelect }: Props) {

@@ -10,7 +10,7 @@ import { MaintenanceDetailSheet } from "./kanban/MaintenanceDetailSheet";
 const COLUMN_CONFIG: Record<string, { icon: typeof Wrench; color: string; bg: string; border: string }> = {
   pending: { icon: Clock, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },
   in_progress: { icon: Wrench, color: "text-info", bg: "bg-info/10", border: "border-info/30" },
-  waiting_parts: { icon: Package, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30", border: "border-orange-200 dark:border-orange-800" },
+  waiting_parts: { icon: Package, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },
   completed: { icon: CheckCircle2, color: "text-success", bg: "bg-success/10", border: "border-success/30" },
 };
 
