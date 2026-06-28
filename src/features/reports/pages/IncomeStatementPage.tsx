@@ -37,7 +37,7 @@ export default function IncomeStatementPage() {
 
   return (
     <PageTransition>
-      <div className="p-6 space-y-6">
+      <PageContainer>
         <PageHeader title="Estado de Resultados" subtitle="Análisis financiero detallado con depreciación de equipos" />
 
         <Card>
