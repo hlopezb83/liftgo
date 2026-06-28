@@ -103,6 +103,6 @@ export default function BankStatementImportsHistoryPage() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
