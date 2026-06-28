@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
