@@ -1,5 +1,6 @@
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCards } from "../components/dashboard/StatCards";
 import { FinancialKpiCards } from "../components/dashboard/FinancialKpiCards";
@@ -19,18 +20,18 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Panel</h1>
+      <PageContainer>
+        <PageHeader title="Panel" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
     <PageTransition>
-      <div className="p-6 space-y-6">
+      <PageContainer>
         <PageHeader title="Panel" subtitle="Vista general de la flota" />
         <StatCards cards={statCards} />
         <FinancialKpiCards
