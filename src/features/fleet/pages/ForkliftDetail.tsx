@@ -38,8 +38,8 @@ export default function ForkliftDetail() {
   const deleteForklift = useDeleteForklift();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  if (isLoading) return <div className="p-6"><Skeleton className="h-96" /></div>;
-  if (!forklift) return <div className="p-6 text-muted-foreground">Montacargas no encontrado</div>;
+  if (isLoading) return <PageContainer><Skeleton className="h-96" /></PageContainer>;
+  if (!forklift) return <PageContainer><p className="text-muted-foreground">Montacargas no encontrado</p></PageContainer>;
 
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {
@@ -49,7 +49,7 @@ export default function ForkliftDetail() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl">
+    <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={forklift.name}
         subtitle={`${forklift.model} — ${forklift.manufacturer}`}
