@@ -104,7 +104,7 @@ export default function BankReconciliationPage() {
             open={!!selected}
             onOpenChange={(o) => { if (!o) setSelected(null); }}
           />
-        </div>
+        </PageContainer>
       </PageTransition>
     </RoleGuard>
   );
