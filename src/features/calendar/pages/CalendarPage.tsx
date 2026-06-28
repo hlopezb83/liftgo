@@ -164,7 +164,7 @@ export default function CalendarPage() {
         </Card>
       )}
 
-    </div>
+    </PageContainer>
     </TooltipProvider>
     </PageTransition>
   );
