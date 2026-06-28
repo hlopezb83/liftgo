@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { AlertTriangle } from "lucide-react";
 import { useForkliftFormLogic } from "../hooks/useForkliftFormLogic";
 import { EquipmentDetailsSection } from "../components/forklift-form/EquipmentDetailsSection";
