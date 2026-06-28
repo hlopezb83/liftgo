@@ -92,14 +92,14 @@ export default function SupplierDetailPage() {
   });
 
   if (isLoading) {
-    return <div className="p-6 space-y-4"><Skeleton className="h-10 w-64" /><Skeleton className="h-48 w-full" /></div>;
+    return <PageContainer className="space-y-4"><Skeleton className="h-10 w-64" /><Skeleton className="h-48 w-full" /></PageContainer>;
   }
 
   if (!supplier) {
     return (
-      <div className="p-6">
+      <PageContainer>
         <DetailPageHeader title="Proveedor no encontrado" backTo="/suppliers" />
-      </div>
+      </PageContainer>
     );
   }
 
