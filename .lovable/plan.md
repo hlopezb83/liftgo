@@ -1,56 +1,76 @@
-## Auditoría UI Kit @ 1080p — Modals, Dropdowns, Inputs, Buttons, Cards, Toasts
+# Auditoría de Navegación por Teclado
 
-### Hallazgos en primitivas (`src/components/ui/*`)
+## Resultado
 
-**🔴 1. `Card` con hover global (alto impacto)**
-`Card` define `hover:shadow-md transition-shadow` por defecto. Esto hace que **toda** Card del ERP "flote" al pasar el cursor, incluso las que son contenedores estáticos (KPIs del Dashboard, secciones del Estado de Resultados, wrappers de tablas). Solo las cards interactivas (KPI clicables de `FinancialKpiCards`, cards de drag-and-drop del CRM) deberían levantarse. Es la mayor fuente de "ruido visual" entre módulos.
+**Lo que ya está bien ✅**
 
-**🔴 2. `DialogOverlay` y `SheetOverlay` con color hardcoded**
-Ambos usan `bg-black/80`. Rompen el sistema de tokens y se ven idénticos en light/dark cuando deberían adaptarse. Reemplazar por `bg-background/80 backdrop-blur-sm` (patrón shadcn moderno).
+- Sistema de hotkeys completo (`useHotkeys.ts`): `Ctrl+K`, `?`, `g+d/c/...`, `Mod+Shift+N`, con guardas para inputs y diálogo de ayuda.
+- Todos los Dialogs/Sheets usan Radix/shadcn → focus trap, Escape, `aria-modal` gratis.
+- Sin `tabIndex > 0`, sin `outline-none` huérfanos.
 
-**🟡 3. `CardTitle` con tipografía sobredimensionada**
-Default = `text-2xl font-semibold`. La realidad: ~95% de las Cards lo sobrescriben a `text-base` o `text-sm`. Bajar el default a `text-base font-semibold tracking-tight` para que las pocas Cards sin override queden alineadas al resto del ERP (las tipografías grandes ya las gestiona `PageHeader`).
+**Lo que falla ❌** — Resumen por severidad:
 
-### Hallazgos en consumo
 
-**🟡 4. Empty/Loading states con paddings inconsistentes**
-`p-8`, `py-12`, `py-16` mezclados en `CashFlowPage`, `BankReconciliationPage`, `MrrDetailPage`, `BankStatementLinesTable`, `ManualStateCards`, `ActivityTimeline`. Estandarizar a `py-12` (escala Tailwind, match con shadcn `EmptyState`).
+| #   | Severidad  | Archivo                                           | Problema                                                     |
+| --- | ---------- | ------------------------------------------------- | ------------------------------------------------------------ |
+| C-1 | 🔴 Crítico | `dataTable/v2/DataTableBodyV2.tsx`                | Filas clickeables de TODAS las tablas sin acceso por teclado |
+| C-2 | 🔴 Crítico | `bank-reconciliation/BankStatementLinesTable.tsx` | `<tr onClick>` raw sin teclado                               |
+| C-3 | 🔴 Crítico | `incomeStatement/StatementTableRow.tsx`           | Filas expandibles sin teclado                                |
+| C-4 | 🔴 Crítico | `cash-flow/CashFlowTable.tsx`                     | Filas drill-down sin teclado                                 |
+| W-1 | 🟠 Warning | `layouts/MainLayout.tsx`                          | Sin skip-to-content link                                     |
+| W-2 | 🟠 Warning | 7 archivos                                        | Botones icon-only sin `aria-label`                           |
+| W-3 | 🟠 Warning | `layout/DetailPageHeader.tsx`                     | Botón "Volver" sin `aria-label`                              |
+| W-4 | 🟠 Warning | `dataTable/v2/DataTableHeaderV2.tsx`              | Headers sortables no activables por teclado                  |
+| W-5 | 🟠 Warning | `dashboard/AlertsRow.tsx`                         | Cards de alertas no alcanzables por teclado                  |
+| W-6 | 🟠 Warning | `FleetRowAndCard.tsx`, `MaintenanceRow.tsx`       | Cards móviles sin teclado                                    |
 
-**🟢 5. Cosmético — doble línea en blanco**
-`MrrDetailPage.tsx` líneas 104-105.
 
-### Lo que ya está bien (no se toca)
+## Plan de implementación
 
-- `Button` cva: 6 variantes coherentes (default/destructive/outline/secondary/ghost/link), focus-ring uniforme.
-- `Input` / `Textarea` / `SelectTrigger`: misma altura `h-10`, mismo borde, mismo focus-ring.
-- `Label` y `FormLabel`: `text-sm font-medium`, consistentes.
-- `Toaster` (sonner): tokens semánticos, border-l por variante (success/warning/error), posición responsive (top-center móvil, bottom-right desktop).
-- `DropdownMenu`: usa `bg-popover` con border y shadow uniforme.
+### Fase 1 — Críticos (máxima cobertura, 1 archivo arregla casi toda la app)
 
-### Cambios a aplicar
+1. `**DataTableBodyV2.tsx**` — agregar `tabIndex={0}`, `role="button"`, `onKeyDown` (Enter/Space) y `focus-visible:ring-2` cuando hay `onRowClick`. *Esto arregla automáticamente Flotilla, Reservas, Facturas, Clientes, etc.*
+2. `**BankStatementLinesTable.tsx**` — mismo patrón en `<tr onClick>`.
+3. `**StatementTableRow.tsx**` — agregar `aria-expanded` además del patrón anterior.
+4. `**CashFlowTable.tsx**` — mismo patrón.
 
-| Archivo | Cambio |
-|---|---|
-| `src/components/ui/card.tsx` | Quitar `hover:shadow-md transition-shadow duration-200` del default. Cambiar `CardTitle` default a `text-base font-semibold tracking-tight`. |
-| `src/components/ui/dialog.tsx` | Overlay: `bg-black/80` → `bg-background/80 backdrop-blur-sm`. |
-| `src/components/ui/sheet.tsx` | Overlay: `bg-black/80` → `bg-background/80 backdrop-blur-sm`. |
-| `src/features/cash-flow/pages/CashFlowPage.tsx` | `py-16` → `py-12` (2 ocurrencias). |
-| `src/features/dashboard/pages/MrrDetailPage.tsx` | `p-8` → `py-12` + eliminar línea en blanco duplicada. |
-| `src/features/audit/components/activity/ActivityTimeline.tsx` | `p-8` → `py-12` en empty state. |
-| `public/changelog.json` + `public/changelog/v6.99.0.json` | Entrada **minor** (cambios a primitivas del UI Kit). |
+### Fase 2 — Warnings de alta visibilidad
 
-### Verificación posterior
+5. `**MainLayout.tsx**` — skip link "Saltar al contenido" + `id="main-content"` en `<main>`.
+6. `**DetailPageHeader.tsx**` — `aria-label="Volver"` (afecta todas las páginas de detalle).
+7. `**DataTableHeaderV2.tsx**` — envolver header sortable en `<button>` real.
 
-Las Cards que **sí** deben mantener el hover (interactivas) ya lo declaran explícitamente en su `className`:
-- `FinancialKpiCards` → `hover:shadow-lg hover:-translate-y-0.5`
-- `StatCards` → `hover:shadow-lg hover:-translate-y-0.5`
-- `ProspectCard` (CRM) → `hover:shadow-md`
-- `MaintenanceKanbanCard` → shadow al draggear
+### Fase 3 — Warnings de microcomponentes
 
-Por lo tanto, retirar el hover del primitivo es seguro y elimina el efecto fantasma en todas las Cards estáticas.
+8. `**aria-label` en botones icon-only** (7 archivos): UserMobileCard, StpTransferCard, usePaymentHistoryColumns, ImageGalleryLightbox, EditableList, ClausesEditor, ChecklistEditor.
+9. **Cards navegables**: AlertsRow, FleetRowAndCard, MaintenanceRow — patrón tabIndex/role/onKeyDown.
 
-### Resultado esperado
-- Dashboard, Estado de Resultados, Cash Flow y reportes dejan de tener Cards que "respiran" al pasar el mouse — solo los KPIs clicables responden.
-- Overlays de modales y sheets se integran al tema (más profesional en dark mode).
-- Empty/loading states con la misma altura visual en todos los módulos.
-- Cards sin `CardTitle` override dejan de mostrar un `text-2xl` desproporcionado.
+### Fase 4 — Cierre
+
+10. Actualizar `changelog.json` + `public/changelog/vX.Y.Z.json` (minor → v6.100.0, "Auditoría completa de navegación por teclado y accesibilidad").
+
+## Patrón estándar a aplicar
+
+```tsx
+// Para fila/card clickeable:
+<TableRow
+  className={cn("cursor-pointer", "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1")}
+  onClick={() => onRowClick(item)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onRowClick(item);
+    }
+  }}
+  tabIndex={0}
+  role="button"
+>
+```
+
+## Alcance
+
+- Solo cambios de presentación/A11y, cero lógica de negocio.
+- ~12 archivos modificados, 1 changelog.
+- Sin migraciones de DB ni Edge Functions.
+
+¿Procedo con las 4 fases completas, o prefieres que ejecute solo Fase 1 (críticos) primero? todas las fases. 
