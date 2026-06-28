@@ -10,6 +10,7 @@ import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetail
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { InvoiceFiscalDataCard } from "../components/invoice-detail/InvoiceFiscalDataCard";
 import { InvoicePaymentSummary } from "../components/invoice-detail/InvoicePaymentSummary";
 import { PaymentIntentsSection } from "../components/invoice-detail/PaymentIntentsSection";
