@@ -161,6 +161,6 @@ export default function InvoiceDetail() {
         customerId={actions.stampError?.customerId ?? null}
       />
 
-    </div>
+    </PageContainer>
   );
 }
