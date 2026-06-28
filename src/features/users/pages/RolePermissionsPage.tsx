@@ -129,7 +129,7 @@ export default function RolePermissionsPage() {
             </span>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </PageTransition>
   );
 }
