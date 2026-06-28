@@ -57,13 +57,15 @@ export default function PortalStatement() {
   if (cl || il || pl) return <Skeleton className="h-96" />;
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Estado de Cuenta</h1>
-        <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer}>
-          <Download className="h-4 w-4 mr-2" /> Descargar PDF
-        </Button>
-      </div>
+    <PageContainer maxWidth="wide">
+      <PageHeader
+        title="Estado de Cuenta"
+        actions={
+          <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer}>
+            <Download className="h-4 w-4 mr-2" /> Descargar PDF
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardContent className="pt-4">
