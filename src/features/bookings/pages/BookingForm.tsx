@@ -37,7 +37,7 @@ export default function BookingForm() {
   };
 
   return (
-    <div className="p-6 max-w-3xl">
+    <PageContainer maxWidth="form">
       <FormPageHeader title="Nueva Reserva" />
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
