@@ -170,6 +170,6 @@ export default function SupplierDetailPage() {
       </Card>
 
       <SupplierFormDialog open={editOpen} onOpenChange={setEditOpen} supplier={supplier} />
-    </div>
+    </PageContainer>
   );
 }
