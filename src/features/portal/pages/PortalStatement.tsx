@@ -130,8 +130,8 @@ export default function PortalStatement() {
                       <td className="px-3 py-2"><StatusBadge status={r.inv.status} /></td>
                       <td className="px-3 py-2 text-right">
                         {r.balance > 0 && (
-                          <Button size="sm" variant="outline" onClick={() => navigate(`/portal/invoices/${r.inv.id}/pago`)}>
-                            Pagar
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={`/portal/invoices/${r.inv.id}/pago`}>Pagar</a>
                           </Button>
                         )}
                       </td>
