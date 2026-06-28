@@ -53,7 +53,7 @@ export default function ReportsPage() {
 
   return (
     <PageTransition>
-    <div className="p-6 space-y-6">
+    <PageContainer>
       <PageHeader title="Reportes y Análisis" subtitle="Genera reportes filtrados con exportación" />
 
       <Card>
