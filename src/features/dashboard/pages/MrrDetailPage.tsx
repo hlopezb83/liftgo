@@ -1,6 +1,6 @@
 import { useMemo } from "react";
+import { DollarSign, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { DollarSign, ArrowLeft, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
@@ -10,6 +10,8 @@ import { useMrrDetail } from "../hooks/useMrrDetail";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { es } from "date-fns/locale";
 import { formatMtyDate } from "@/lib/utils";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type MrrItem = NonNullable<ReturnType<typeof useMrrDetail>["data"]>["items"][number];
 
