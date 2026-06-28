@@ -20,7 +20,7 @@ export default function BankStatementImportsHistoryPage() {
   const canDelete = role === "admin";
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <PageContainer>
       <div className="flex items-center justify-between gap-3">
         <PageHeader
           title="Historial de imports bancarios"
