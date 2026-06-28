@@ -102,7 +102,6 @@ export default function MrrDetailPage() {
         backLabel="Panel"
       />
 
-
       <Card>
         <CardContent className="p-4 flex items-center gap-4">
           <div className="p-3 rounded-xl bg-success/10">
@@ -121,7 +120,7 @@ export default function MrrDetailPage() {
         </CardHeader>
         <CardContent className="p-0">
           {!isLoading && !data?.items.length ? (
-            <div className="p-8">
+            <div className="py-12">
               <EmptyState icon={DollarSign} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
             </div>
           ) : (
