@@ -3,8 +3,9 @@ import type { AppRole } from "@/features/users";
 import { cn } from "@/lib/utils";
 
 const PALETTE = [
-  "bg-info", "bg-success", "bg-warning", "bg-rose-500",
-  "bg-purple-500", "bg-teal-500", "bg-indigo-500", "bg-orange-500",
+  "bg-[hsl(var(--chart-1))]", "bg-[hsl(var(--chart-2))]", "bg-[hsl(var(--chart-3))]",
+  "bg-[hsl(var(--chart-4))]", "bg-[hsl(var(--chart-5))]",
+  "bg-info", "bg-success", "bg-warning",
 ];
 
 function actorInitials(name: string): string {
