@@ -1,0 +1,32 @@
+{
+  "version": "6.98.7",
+  "date": "2026-06-28",
+  "type": "patch",
+  "title": "Armonización visual @ 1080p: headers, gaps y anchos de formulario",
+  "category": "improvement",
+  "summary": "Cinco fixes de cohesión visual detectados en auditoría UI/UX a resolución 1920x1080. Sin cambios de lógica.",
+  "changes": [
+    {
+      "area": "Layout",
+      "items": [
+        "FormPageHeader reescrito para delegar en PageHeader: misma tipografía (text-xl sm:text-2xl font-semibold tracking-tight) y botón 'Volver' estándar en todos los formularios.",
+        "BookingDetail.tsx envuelto en PageContainer maxWidth='wide' (incluye loading y empty state).",
+        "ReturnInspectionDetail.tsx envuelto en PageContainer maxWidth='wide' (incluye loading y empty state)."
+      ]
+    },
+    {
+      "area": "Espaciado",
+      "items": [
+        "PortalDashboard alineado a la convención: gap-4 para filas de KPI (antes gap-6).",
+        "ChangelogPage: removido p-6 duplicado en CardContent (shadcn ya aporta p-6 por defecto)."
+      ]
+    },
+    {
+      "area": "Anchos",
+      "items": [
+        "CompanyLogoTab y FiscalDataTab: max-w-2xl → max-w-3xl para alinearse al token 'form' del resto del ERP."
+      ]
+    }
+  ],
+  "regla_documentada": "KPI rows usan gap-4 · detail grids usan gap-6"
+}
