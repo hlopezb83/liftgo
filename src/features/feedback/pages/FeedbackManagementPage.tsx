@@ -77,6 +77,6 @@ export default function FeedbackManagementPage() {
       )}
 
       <FeedbackDetailSheet report={selected} onClose={() => setSelected(null)} />
-    </div>
+    </PageContainer>
   );
 }
