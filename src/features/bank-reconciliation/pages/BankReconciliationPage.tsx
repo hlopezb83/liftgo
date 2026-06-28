@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { Card, CardContent } from "@/components/ui/card";
