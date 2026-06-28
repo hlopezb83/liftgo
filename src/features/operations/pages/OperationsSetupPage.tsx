@@ -14,7 +14,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 
 export default function OperationsSetupPage() {
   return (
-    <div className="p-6 max-w-5xl">
+    <PageContainer maxWidth="wide">
       <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales, logo y aprobaciones" />
       <Tabs defaultValue="equipment" className="mt-6">
         <TabsList className="flex-wrap h-auto">
