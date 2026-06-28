@@ -5,6 +5,7 @@ import { useSupplierBills } from "@/features/accounts-payable";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
