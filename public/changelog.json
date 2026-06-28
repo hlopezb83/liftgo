@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.7",
+    "date": "2026-06-28",
+    "type": "patch",
+    "title": "Armonización visual @ 1080p: headers, gaps y anchos de formulario",
+    "description": "Auditoría UI/UX dirigida a 1920x1080: (1) FormPageHeader ahora delega en PageHeader para usar la misma tipografía (text-xl sm:text-2xl semibold) en todos los formularios; (2) BookingDetail y ReturnInspectionDetail envueltos en PageContainer maxWidth='wide'; (3) PortalDashboard alineado a la regla gap-4 para filas de KPI; (4) eliminado padding p-6 redundante en CardContent de ChangelogPage; (5) tabs de Configuración (Logo y Datos Fiscales) ahora usan max-w-3xl alineado al token 'form'.",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.6",
     "date": "2026-06-28",
     "type": "patch",

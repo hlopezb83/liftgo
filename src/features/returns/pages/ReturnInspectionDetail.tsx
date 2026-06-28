@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 
 import { useReturnInspection } from "../hooks/useReturnInspections";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EquipmentCard } from "../components/return-inspection/EquipmentCard";
@@ -16,33 +17,34 @@ export default function ReturnInspectionDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <PageContainer maxWidth="wide">
         <Skeleton className="h-10 w-64" />
         <div className="grid gap-6 md:grid-cols-2">
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (!ins) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh]">
-        <p className="text-muted-foreground">Devolución no encontrada</p>
-      </div>
+      <PageContainer maxWidth="wide">
+        <div className="flex flex-col items-center justify-center h-[60vh]">
+          <p className="text-muted-foreground">Devolución no encontrada</p>
+        </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={ins.inspection_number}
         subtitle={`${ins.forklifts?.name || "Equipo"} · ${ins.bookings?.customer_name || "Sin cliente"}`}
         badges={<StatusBadge status={ins.condition} />}
         backTo="/returns"
       />
-
 
       <div className="grid gap-6 md:grid-cols-2">
         <EquipmentCard ins={ins} />
@@ -51,6 +53,6 @@ export default function ReturnInspectionDetail() {
         <UsageFuelCard ins={ins} />
         <DamagesCard ins={ins} />
       </div>
-    </div>
+    </PageContainer>
   );
 }

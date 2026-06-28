@@ -50,7 +50,7 @@ export default function ChangelogPage() {
     return (
       <PageContainer maxWidth="form">
         <Card>
-          <CardContent className="p-6 text-center space-y-2">
+          <CardContent className="text-center space-y-2">
             <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
             <p className="font-semibold">No se pudo cargar el historial de cambios</p>
             <p className="text-sm text-muted-foreground">{error.message}</p>
@@ -87,7 +87,7 @@ export default function ChangelogPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <Card><CardContent className="p-6 text-center text-muted-foreground">Sin resultados</CardContent></Card>
+        <Card><CardContent className="text-center text-muted-foreground">Sin resultados</CardContent></Card>
       ) : (
         <div className="relative">
           <div className="absolute left-4 top-0 bottom-0 w-px bg-border" aria-hidden />

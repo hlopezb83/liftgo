@@ -52,7 +52,7 @@ export function CompanyLogoTab() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-2">
             <CardTitle className="text-base flex items-center gap-2">
