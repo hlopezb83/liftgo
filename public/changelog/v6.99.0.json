@@ -1,0 +1,44 @@
+{
+  "version": "6.99.0",
+  "date": "2026-06-28",
+  "type": "minor",
+  "title": "Cohesión del UI Kit: Card, overlays y empty states",
+  "category": "improvement",
+  "summary": "Refactor de primitivas del sistema de diseño tras auditoría UI/UX a 1080p, enfocada en Modals, Dropdowns, Inputs, Buttons, Cards y Toasts.",
+  "sections": [
+    {
+      "title": "Cards estáticas dejan de 'flotar'",
+      "items": [
+        "Card primitivo pierde el hover:shadow-md transition-shadow del default.",
+        "Solo las Cards explícitamente interactivas mantienen lift (FinancialKpiCards, StatCards, ProspectCard del CRM, MaintenanceKanbanCard).",
+        "Dashboard, Estado de Resultados, Cash Flow y reportes ya no muestran cards 'respirando' al pasar el mouse."
+      ]
+    },
+    {
+      "title": "Tipografía del CardTitle alineada",
+      "items": [
+        "Default cambia de text-2xl font-semibold a text-base font-semibold tracking-tight.",
+        "Refleja el uso real (~95% de consumidores ya lo sobrescribían).",
+        "Los títulos grandes los maneja PageHeader de forma centralizada."
+      ]
+    },
+    {
+      "title": "Overlays con tokens semánticos",
+      "items": [
+        "DialogOverlay y SheetOverlay reemplazan bg-black/80 por bg-background/80 backdrop-blur-sm.",
+        "Mejor integración con dark mode y consistencia con el patrón shadcn moderno."
+      ]
+    },
+    {
+      "title": "Empty/loading states normalizados",
+      "items": [
+        "CashFlowPage: py-16 → py-12 (2 ocurrencias).",
+        "MrrDetailPage: p-8 → py-12 y limpieza de línea en blanco duplicada.",
+        "ActivityTimeline: p-8 → py-12 en estado vacío."
+      ]
+    }
+  ],
+  "validated": [
+    "Button, Input, Textarea, SelectTrigger, Label, FormLabel, Toaster (sonner) y DropdownMenu ya seguían tokens semánticos y escala estándar de Tailwind — sin cambios necesarios."
+  ]
+}
