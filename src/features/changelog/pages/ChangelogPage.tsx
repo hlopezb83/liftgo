@@ -61,7 +61,7 @@ export default function ChangelogPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl mx-auto">
+    <PageContainer maxWidth="form">
       <PageHeader
         title="Historial de Cambios"
         subtitle={`Versión actual: v${getCurrentVersion(changelog)} · ${changelog.length} entradas`}
@@ -106,6 +106,6 @@ export default function ChangelogPage() {
       )}
 
       <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
-    </div>
+    </PageContainer>
   );
 }
