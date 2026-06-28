@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotesCard } from "@/components/domain/NotesCard";
