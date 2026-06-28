@@ -94,6 +94,6 @@ export default function ForkliftDetail() {
       {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" />}
       {id && <DocumentAttachments entityType="forklift" entityId={id} />}
       <ForkliftStatusHistory logs={logs || []} />
-    </div>
+    </PageContainer>
   );
 }
