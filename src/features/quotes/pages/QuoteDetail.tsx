@@ -96,6 +96,6 @@ export default function QuoteDetail() {
       )}
 
       <QuoteConversionDialogs logic={logic} />
-    </div>
+    </PageContainer>
   );
 }
