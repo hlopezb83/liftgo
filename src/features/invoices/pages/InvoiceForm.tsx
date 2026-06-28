@@ -57,7 +57,7 @@ export default function InvoiceForm() {
   if (f.saleAssignmentGuard.shouldBlock) {
     const { totalAssigned, totalRequired, missingByLine } = f.saleAssignmentGuard;
     return (
-      <div className="p-6 max-w-4xl">
+      <PageContainer maxWidth="wide">
         <FormPageHeader title="Nueva Factura" />
         <Alert variant="destructive" className="mt-6">
           <AlertTriangle className="h-5 w-5" />
@@ -79,12 +79,12 @@ export default function InvoiceForm() {
           <Button onClick={() => navigate(`/quotes/${f.fromQuoteId}`)}>Ir a la cotización</Button>
           <Button variant="outline" onClick={() => navigate(-1)}>Volver</Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl">
+    <PageContainer maxWidth="wide">
       <FormPageHeader title={f.isEdit ? "Editar Factura" : "Nueva Factura"} />
 
       <Form {...f.form}>
