@@ -113,6 +113,6 @@ export default function CustomerDetailPage() {
         isPending={s.inviteCustomer.isPending}
         onInvite={s.handleInvite}
       />
-    </div>
+    </PageContainer>
   );
 }
