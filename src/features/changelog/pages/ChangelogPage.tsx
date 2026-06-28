@@ -38,17 +38,17 @@ export default function ChangelogPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 max-w-3xl mx-auto space-y-4">
+      <PageContainer maxWidth="form">
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-8 w-full" />
         {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
-      </div>
+      </PageContainer>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 max-w-3xl mx-auto">
+      <PageContainer maxWidth="form">
         <Card>
           <CardContent className="p-6 text-center space-y-2">
             <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
@@ -56,7 +56,7 @@ export default function ChangelogPage() {
             <p className="text-sm text-muted-foreground">{error.message}</p>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     );
   }
 
