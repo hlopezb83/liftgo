@@ -38,8 +38,8 @@ export default function PortalDashboard() {
   const balanceClass = `font-mono ${outstanding > 0 ? "text-destructive" : ""}`;
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <h1 className="text-2xl font-bold">{welcome}</h1>
+    <PageContainer maxWidth="wide">
+      <PageHeader title={welcome} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <PortalStatCard
@@ -62,6 +62,6 @@ export default function PortalDashboard() {
 
       {activeBookings.length > 0 && <PortalBookingsCard bookings={activeBookings} />}
       {recentInvoices.length > 0 && <PortalRecentInvoicesCard invoices={recentInvoices} />}
-    </div>
+    </PageContainer>
   );
 }
