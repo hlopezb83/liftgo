@@ -155,6 +155,6 @@ export default function PortalQuoteDetail() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   );
 }
