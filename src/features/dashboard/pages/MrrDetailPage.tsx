@@ -102,7 +102,6 @@ export default function MrrDetailPage() {
         backLabel="Panel"
       />
 
-
       <Card>
         <CardContent className="p-4 flex items-center gap-4">
           <div className="p-3 rounded-xl bg-success/10">
