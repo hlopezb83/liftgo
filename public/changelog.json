@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.99.0",
+    "date": "2026-06-28",
+    "type": "minor",
+    "title": "Cohesión del UI Kit: Card, overlays y empty states",
+    "description": "Refactor de primitivas del sistema de diseño tras auditoría 1080p: (1) Card pierde el hover:shadow-md global que hacía 'flotar' toda Card estática del ERP; ahora solo las Cards interactivas (KPIs clicables, CRM, Maintenance kanban) tienen lift, eliminando ruido visual en Dashboard, Estado de Resultados, Cash Flow y reportes. (2) CardTitle baja de text-2xl a text-base font-semibold tracking-tight como default, alineado con la realidad de uso (~95% ya lo sobrescribían). (3) DialogOverlay y SheetOverlay reemplazan bg-black/80 hardcoded por bg-background/80 backdrop-blur-sm para integrarse al tema. (4) Empty/loading states normalizados a py-12 en CashFlowPage, MrrDetailPage y ActivityTimeline.",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.9",
     "date": "2026-06-28",
     "type": "patch",
