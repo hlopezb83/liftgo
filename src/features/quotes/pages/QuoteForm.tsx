@@ -137,6 +137,6 @@ export default function QuoteForm() {
         <NotesCard value={notes} onChange={setNotes} />
         <FormActions submitLabel={id ? "Actualizar Cotización" : "Crear Cotización"} isPending={isPending} onCancel={() => navigate(-1)} />
       </form>
-    </div>
+    </PageContainer>
   );
 }
