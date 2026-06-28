@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { CRMHeaderKPIs } from "./CRMHeaderKPIs";
 import { VALUE_RANGE_OPTIONS, AGE_RANGE_OPTIONS } from "../lib/constants";
 import type { CRMFilters, ValueRange, AgeRange } from "../hooks/useCRMFilters";
@@ -30,39 +31,38 @@ export function CRMToolbar({
 }: CRMToolbarProps) {
   return (
     <div className="px-6 py-3 border-b bg-card space-y-3">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Pipeline CRM</h1>
-          <p className="text-xs text-muted-foreground">
-            {filteredCount} prospecto{filteredCount === 1 ? "" : "s"} · {pipelineTotalLabel}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ToggleGroup
-            type="single"
-            value={density}
-            onValueChange={(v) => v && setDensity(v as "comfortable" | "compact")}
-            size="sm"
-            variant="outline"
-          >
-            <ToggleGroupItem value="comfortable" aria-label="Cómodo" className="h-9 px-2">
-              <Tooltip>
-                <TooltipTrigger asChild><LayoutGrid className="h-4 w-4" /></TooltipTrigger>
-                <TooltipContent>Vista cómoda</TooltipContent>
-              </Tooltip>
-            </ToggleGroupItem>
-            <ToggleGroupItem value="compact" aria-label="Compacto" className="h-9 px-2">
-              <Tooltip>
-                <TooltipTrigger asChild><Rows3 className="h-4 w-4" /></TooltipTrigger>
-                <TooltipContent>Vista compacta</TooltipContent>
-              </Tooltip>
-            </ToggleGroupItem>
-          </ToggleGroup>
-          <Button onClick={onCreate} size="sm" className="h-9">
-            <Plus className="h-4 w-4 mr-1" /> Nuevo Prospecto
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Pipeline CRM"
+        subtitle={`${filteredCount} prospecto${filteredCount === 1 ? "" : "s"} · ${pipelineTotalLabel}`}
+        actions={
+          <>
+            <ToggleGroup
+              type="single"
+              value={density}
+              onValueChange={(v) => v && setDensity(v as "comfortable" | "compact")}
+              size="sm"
+              variant="outline"
+            >
+              <ToggleGroupItem value="comfortable" aria-label="Cómodo" className="h-9 px-2">
+                <Tooltip>
+                  <TooltipTrigger asChild><LayoutGrid className="h-4 w-4" /></TooltipTrigger>
+                  <TooltipContent>Vista cómoda</TooltipContent>
+                </Tooltip>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="compact" aria-label="Compacto" className="h-9 px-2">
+                <Tooltip>
+                  <TooltipTrigger asChild><Rows3 className="h-4 w-4" /></TooltipTrigger>
+                  <TooltipContent>Vista compacta</TooltipContent>
+                </Tooltip>
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Button onClick={onCreate} size="sm" className="h-9">
+              <Plus className="h-4 w-4 mr-1" /> Nuevo Prospecto
+            </Button>
+          </>
+        }
+      />
+
 
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative w-64">
