@@ -5,6 +5,8 @@ import { usePortalBookings } from "@/features/customers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type Booking = NonNullable<ReturnType<typeof usePortalBookings>["data"]>[number];
 
