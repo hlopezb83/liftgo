@@ -23,9 +23,9 @@ const WIDTHS: Record<MaxWidth, string> = {
 };
 
 /**
- * Envoltorio estándar de página: `space-y-6` y opcional `max-w-*`.
- * No aplica padding — eso lo provee `MainLayout`.
+ * Envoltorio estándar de página: padding consistente (`p-4 sm:p-6`), `space-y-6` y opcional `max-w-*`.
+ * Usar en todas las páginas para uniformar espaciado y ancho máximo.
  */
 export function PageContainer({ children, maxWidth = "full", className }: PageContainerProps) {
-  return <div className={cn("space-y-6", WIDTHS[maxWidth], className)}>{children}</div>;
+  return <div className={cn("p-4 sm:p-6 space-y-6", WIDTHS[maxWidth], className)}>{children}</div>;
 }
