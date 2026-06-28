@@ -1,0 +1,24 @@
+{
+  "version": "6.98.8",
+  "date": "2026-06-28",
+  "type": "patch",
+  "title": "Cohesión final de headers: detalles y páginas secundarias",
+  "category": "improvement",
+  "summary": "Tres fixes finales de cohesión visual detectados en segunda pasada de auditoría UI/UX @ 1080p. Sin cambios de lógica.",
+  "changes": [
+    {
+      "area": "Tipografía",
+      "items": [
+        "DetailPageHeader: font-bold → font-semibold tracking-tight para igualar PageHeader. Impacta ~15 páginas de detalle (Invoice, Customer, Supplier, Forklift, Booking, Contract, Quote, Delivery, Return, Payment Intent, Maintenance, Damage)."
+      ]
+    },
+    {
+      "area": "Headers manuales eliminados",
+      "items": [
+        "HelpPageHeader refactorizado para usar PageHeader (Select de versiones + botón Generar como actions).",
+        "CRMToolbar reemplaza h1 manual por PageHeader, manteniendo la barra de filtros intacta."
+      ]
+    }
+  ],
+  "regla_documentada": "Todos los títulos de página usan PageHeader/DetailPageHeader/FormPageHeader. font-bold reservado solo para cifras numéricas en KPIs."
+}

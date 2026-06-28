@@ -1,61 +1,45 @@
-# Auditoría UI/UX — Cohesión visual @ 1920×1080
+## Auditoría UI/UX — Segunda pasada (post v6.98.7)
 
-Tras revisar `PageContainer`, `PageHeader`, `FormPageHeader`, `DetailPageHeader` y ~40 páginas de `src/features`, detecto que el 90% del sistema ya está unificado (v6.98.x), pero quedan **5 focos concretos** que rompen la sensación de "una sola app". Propongo corregirlos en un solo pase, sin tocar lógica de negocio.
+Tras la armonización inicial, todavía quedan **3 focos** que rompen la cohesión visual entre páginas de lista y páginas de detalle/secundarias. Todo lo demás (paleta, tokens, gaps, anchos de formulario, dialogs) ya está alineado.
 
-## Hallazgos y fix por foco
+## Hallazgos
 
-### 1. Dos tipografías distintas para el título de página
+### 1. `DetailPageHeader` usa tipografía distinta a `PageHeader`
 
-`PageHeader` usa `text-xl sm:text-2xl font-semibold tracking-tight` (estándar).
-`FormPageHeader` usa `text-2xl font-bold` sin `tracking` ni `truncate`. Resultado: los formularios (Quote, Invoice, Forklift, Booking) se ven "más gordos" que el resto del ERP.
+`PageHeader` (listas) → `text-xl sm:text-2xl font-semibold tracking-tight`
+`DetailPageHeader` (detalles) → `text-xl sm:text-2xl font-bold` (sin `tracking-tight`)
 
-**Fix:** reescribir `FormPageHeader.tsx` para que renderice internamente `<PageHeader title={title} backHref="…"/>` reusando el botón "Volver" estándar, eliminando la variante `font-bold`. Mantener la API (`title`, `onBack`) por compatibilidad.
+Impacto: cada vista de detalle (Invoice, Customer, Supplier, Forklift, Booking, Contract, Quote, Delivery, Return, Payment Intent, Maintenance, Damage, etc. — ~15 páginas) renderiza el título más grueso que su listado padre. En 1080p es la inconsistencia más visible al navegar listado → detalle.
 
-### 2. Páginas de detalle sin `PageContainer`
+**Fix:** en `src/components/layout/DetailPageHeader.tsx` línea 37, cambiar `font-bold` → `font-semibold tracking-tight`. Cero cambios de API.
 
-`ReturnInspectionDetail.tsx` y `BookingDetail.tsx` aún devuelven `<div className="space-y-6">` directo (sin `p-4 sm:p-6` ni `max-w-*`). En 1080p el contenido pega contra el sidebar y no respeta el `maxWidth="wide"` del resto de detalles (Customer, Supplier, Forklift, Invoice).
+### 2. `HelpPageHeader` duplica un h1 manual
 
-**Fix:** envolver ambos `return` en `<PageContainer maxWidth="wide">`, incluido el estado `isLoading`/`not found`.
+`src/features/help/components/HelpPageHeader.tsx` arma su propio `<h1 class="text-2xl font-bold tracking-tight">` con ícono dentro. Rompe con el resto del ERP que ya migró a `PageHeader`.
 
-### 3. Inconsistencia de `gap` en grids de tarjetas
+**Fix:** refactor a `PageHeader` con `actions` (Select de versiones + botón Generar) y el ícono integrado en `title` opcionalmente como elemento aparte arriba (o simplemente quitar el ícono). Manteniendo todos los props actuales del componente.
 
-Estándar dominante para grids de detalle = `gap-6`. Estándar para filas de KPIs/StatCards = `gap-4`. Pero hay mezclas:
-- `PortalDashboard`: stat cards con `gap-6` (debería ser `gap-4` como Dashboard interno).
-- `ReturnInspectionDetail` y `BookingDetail`: ya en `gap-6` ✓.
-- `Dashboard` skeleton: `gap-4` ✓.
+### 3. `CRMToolbar` también renderiza un h1 manual
 
-**Fix:** cambiar `gap-6` → `gap-4` en los dos `grid` de `PortalDashboard.tsx` (stat cards). Documentar la regla en `mem://arch/ui/component-library`: **KPI rows = gap-4, detail grids = gap-6**.
+`src/features/crm/components/CRMToolbar.tsx` línea 35: `<h1 class="text-2xl font-bold tracking-tight">Pipeline CRM</h1>` con su propia barra de acciones. Es la única página principal que evita `PageHeader`.
 
-### 4. `CardContent` con padding manual `p-6` rompe densidad
+**Fix:** reemplazar el bloque `flex items-center justify-between` (líneas 33–65) por `<PageHeader title="Pipeline CRM" subtitle={...} actions={<>...</>} />`. La toolbar de filtros (línea 67 en adelante) se queda intacta.
 
-`ChangelogPage.tsx` usa `<CardContent className="p-6 …">` en dos lugares para empty/zero states; el `Card` shadcn ya aporta `p-6` por defecto. Genera doble padding visible en 1080p.
+## Lo que NO se cambia
 
-**Fix:** quitar `p-6` redundante en `ChangelogPage.tsx` líneas 53 y 90 (dejar solo `text-center space-y-2` y `text-center text-muted-foreground`).
+- **Números en KPIs (`text-2xl font-bold font-mono` en StatCards, FinancialKpiCards, AgingReport, etc.):** intencional. `font-bold` da peso visual a cifras tabulares; el sistema usa `font-semibold` solo para títulos/encabezados, no para datos numéricos. Mantener.
+- **`SupplierBillFormDialog` con `max-w-2xl`:** ese es el tamaño correcto del dialog para formularios densos; el token `form` (`max-w-3xl`) aplica a páginas, no a dialogs.
+- **`AuditLogDetailDialog` `sm:max-w-2xl`:** mismo criterio, sigue las variantes de shadcn Dialog.
+- **Tokens, colores, paleta, dark mode:** ya 100% semánticos.
 
-### 5. Anchos de formularios "sueltos" (`max-w-2xl`)
+## Plan
 
-`CompanyLogoTab.tsx` y `FiscalDataTab.tsx` usan `max-w-2xl` hardcodeado. El resto del ERP ya migró a `PageContainer maxWidth="form"` (= `max-w-3xl`). Resultado: dentro de Configuración hay dos anchos de formulario distintos.
-
-**Fix:** quitar `max-w-2xl` de ambos `<form>` y dejar que el contenedor padre (`PageContainer maxWidth="form"` en `SettingsPage`) controle el ancho. Si la página padre aún no lo aplica, envolver el contenido con `<div className="max-w-3xl">` para alinear con el token `form`.
-
-## Tipografía y color — sin cambios
-
-La escala (`text-xs/sm/base`, `font-semibold` para títulos, `text-muted-foreground` para subtítulos) y los tokens semánticos (`bg-warning/10 text-warning`, `text-success`, `text-destructive`) son consistentes a lo largo de tablas, sheets y kanban. No hay colores hardcodeados (`bg-[#…]`) ni `text-white/text-black` fuera de los wrappers permitidos.
-
-## Componentes — sin cambios
-
-`Card`, `Dialog`, `Sheet`, `Button`, `Badge`, `StatusBadge` se usan vía shadcn variants. Los `max-w-md/lg/xl` dentro de `DialogContent`/`SheetContent` corresponden al sistema (`sm:max-w-md` para confirms, `sm:max-w-lg` para forms simples, `sm:max-w-xl` para sheets de detalle) — coherente.
-
-## Plan de cambio
-
-1. Reescribir `src/components/layout/FormPageHeader.tsx` para delegar en `PageHeader`.
-2. Envolver `ReturnInspectionDetail.tsx` y `BookingDetail.tsx` con `PageContainer maxWidth="wide"` (incluye loading/empty).
-3. Cambiar `gap-6` → `gap-4` en los dos grids de KPI de `PortalDashboard.tsx`.
-4. Eliminar `p-6` redundante de `ChangelogPage.tsx` (2 ocurrencias).
-5. Quitar `max-w-2xl` de `CompanyLogoTab.tsx` y `FiscalDataTab.tsx`, asegurar `maxWidth="form"` en la página padre de Configuración.
-6. Actualizar memoria `mem://arch/ui/component-library` con la regla **gap-4 KPI / gap-6 detail**.
-7. Agregar entrada al changelog como `v6.98.7` (patch — armonización visual, sin lógica).
+1. `DetailPageHeader.tsx`: `font-bold` → `font-semibold tracking-tight`.
+2. `HelpPageHeader.tsx`: refactor para envolver con `PageHeader` (mantener Select de versiones + botón Generar como `actions`).
+3. `CRMToolbar.tsx`: reemplazar h1 manual por `PageHeader` (mantener filtros y KPIs debajo).
+4. Agregar entrada `v6.98.8` al changelog (patch — armonización de headers de detalle y páginas secundarias).
+5. Sin cambios de tests, RPCs ni lógica.
 
 ## Riesgo
 
-Mínimo. Solo cambios de wrappers y tokens; sin tocar queries, RPCs, formularios ni navegación.
+Mínimo. Solo cambios tipográficos y de wrapper. Cero impacto en queries, navegación o estado.

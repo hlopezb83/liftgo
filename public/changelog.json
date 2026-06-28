@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.8",
+    "date": "2026-06-28",
+    "type": "patch",
+    "title": "Cohesión final de headers: detalles y páginas secundarias",
+    "description": "Tercera pasada de auditoría UI/UX: (1) DetailPageHeader ahora usa font-semibold tracking-tight igual que PageHeader, eliminando la diferencia visible al navegar de listado a detalle en ~15 páginas (Invoice, Customer, Supplier, Forklift, Booking, Contract, Quote, etc.); (2) HelpPageHeader refactorizado para delegar en PageHeader manteniendo Select de versiones y botón Generar como actions; (3) CRMToolbar reemplaza su h1 manual por PageHeader, unificando el Pipeline CRM con el resto del ERP.",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.7",
     "date": "2026-06-28",
     "type": "patch",
