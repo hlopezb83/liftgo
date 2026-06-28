@@ -91,6 +91,6 @@ export default function ContractDetail() {
           <CardContent><p className="text-sm text-muted-foreground">{contract.notes}</p></CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   );
 }
