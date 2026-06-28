@@ -5,6 +5,7 @@ import { useUserRole } from "@/features/users";
 import { HelpPageHeader } from "../components/HelpPageHeader";
 import { ManualEmptyCard, ManualGeneratingCard } from "../components/ManualStateCards";
 import { ManualSections } from "../components/ManualSections";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default function HelpPage() {
   const { manual, isLoading, generate, isGenerating, versions, selectedVersion, setSelectedVersion } = useUserManual();
