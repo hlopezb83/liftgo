@@ -21,7 +21,7 @@ export default function ForkliftForm() {
 
   if (!isEdit && !hasModels) {
     return (
-      <div className="p-6 max-w-3xl">
+      <PageContainer maxWidth="form">
         <FormPageHeader title="Agregar Montacargas" />
         <Alert className="mt-6">
           <AlertTriangle className="h-5 w-5" />
@@ -34,12 +34,12 @@ export default function ForkliftForm() {
           <Button onClick={() => navigate("/settings/operations")}>Ir a Configuración</Button>
           <Button variant="outline" onClick={() => navigate(-1)}>Volver</Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="p-6 max-w-3xl">
+    <PageContainer maxWidth="form">
       <FormPageHeader title={isEdit ? "Editar Montacargas" : "Agregar Montacargas"} />
 
       <Form {...form}>
