@@ -87,6 +87,6 @@ export default function BookingForm() {
         onDeliveryDone={handleDeliveryDone}
         onPolicyDone={handlePolicyDone}
       />
-    </div>
+    </PageContainer>
   );
 }
