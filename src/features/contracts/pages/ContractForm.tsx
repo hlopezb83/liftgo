@@ -139,6 +139,6 @@ export default function ContractForm() {
 
       <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Crear Contrato"} isPending={isPending} onCancel={() => navigate("/contracts")} />
       </form>
-    </div>
+    </PageContainer>
   );
 }
