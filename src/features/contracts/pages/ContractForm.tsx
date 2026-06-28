@@ -1,5 +1,6 @@
 import { useContractFormLogic } from "../hooks/useContractFormLogic";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { FormActions } from "@/components/forms/FormActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
