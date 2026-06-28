@@ -11,7 +11,7 @@ function PortalDashboardSkeleton() {
   return (
     <PageContainer maxWidth="wide">
       <Skeleton className="h-8 w-48" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Skeleton className="h-40" />
         <Skeleton className="h-40" />
         <Skeleton className="h-40" />
@@ -41,7 +41,7 @@ export default function PortalDashboard() {
     <PageContainer maxWidth="wide">
       <PageHeader title={welcome} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <PortalStatCard
           title="Rentas Activas"
           value={activeBookings.length}

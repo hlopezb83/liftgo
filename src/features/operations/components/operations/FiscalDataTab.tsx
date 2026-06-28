@@ -75,7 +75,7 @@ export function FiscalDataTab() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl space-y-6">
         <CompanyFiscalForm isPending={isPending} />
         <PacConfigForm
           isPending={isPending}

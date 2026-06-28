@@ -7,6 +7,7 @@ import { useBookingExtensions } from "../hooks/useBookingExtensions";
 import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
 
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { BookingActions } from "../components/bookings/BookingActions";
 import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
 import { ExtendBookingDialog } from "../components/bookings/ExtendBookingDialog";
@@ -32,21 +33,23 @@ export default function BookingDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <PageContainer maxWidth="wide">
         <Skeleton className="h-10 w-64" />
         <div className="grid gap-6 md:grid-cols-2">
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (!booking) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <p className="text-muted-foreground">Reserva no encontrada</p>
-      </div>
+      <PageContainer maxWidth="wide">
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <p className="text-muted-foreground">Reserva no encontrada</p>
+        </div>
+      </PageContainer>
     );
   }
 
@@ -59,7 +62,7 @@ export default function BookingDetail() {
   const extensionsList = extensions ?? [];
 
   return (
-    <div className="space-y-6">
+    <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={booking.booking_number}
         subtitle={subtitle}
@@ -102,6 +105,6 @@ export default function BookingDetail() {
           currentEndDate={booking.end_date}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
