@@ -77,6 +77,6 @@ export default function ForkliftForm() {
           />
         </form>
       </Form>
-    </div>
+    </PageContainer>
   );
 }
