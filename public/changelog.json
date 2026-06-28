@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.98.5",
+    "date": "2026-06-28",
+    "type": "patch",
+    "title": "Fase 3 final: páginas de formulario/detalle migradas a PageContainer",
+    "description": "Migradas a PageContainer + PageHeader/FormPageHeader/DetailPageHeader las páginas restantes: IncomeStatementPage, ActivityPage, SupplierDetailPage, CalendarPage, CustomerDetailPage, ContractForm, ContractDetail, InvoiceForm, InvoiceDetail, QuoteForm, QuoteDetail, ForkliftForm, ForkliftDetail, RolePermissionsPage, BookingForm y ReportsPage. Además PageContainer ahora aporta padding responsivo por defecto (p-4 sm:p-6) y CustomerPortalLayout deja de duplicar padding. Cierra la auditoría unificando espaciado y ancho en todo el ERP.",
+    "category": "improvement"
+  },
+  {
     "version": "6.98.4",
     "date": "2026-06-28",
     "type": "patch",
