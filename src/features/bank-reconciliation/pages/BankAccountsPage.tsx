@@ -67,7 +67,7 @@ export default function BankAccountsPage() {
             </table>
           </CardContent></Card>
           <BankAccountFormDialog open={open} onOpenChange={setOpen} initial={editing} />
-        </div>
+        </PageContainer>
       </PageTransition>
     </RoleGuard>
   );
