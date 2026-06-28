@@ -92,16 +92,14 @@ export default function MrrDetailPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Ingreso Mensual Recurrente</h1>
-          <p className="text-muted-foreground text-sm">Detalle de montacargas actualmente rentados</p>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Ingreso Mensual Recurrente"
+        subtitle="Detalle de montacargas actualmente rentados"
+        backHref="/"
+        backLabel="Panel"
+      />
+
 
       <Card>
         <CardContent className="p-5 flex items-center gap-4">

@@ -117,6 +117,6 @@ export default function AgingReportPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
