@@ -1,26 +1,21 @@
-# Fase 3 — Parte 3: Páginas internas con headers manuales
+## Fase 3 — Cierre final: páginas de Cash Flow y Bank Reconciliation
 
-Cerramos la unificación de layout migrando las páginas internas que aún construyen su header a mano o usan paddings/anchos redundantes. Las páginas de formularios (`*Form.tsx`) y detalle (`*Detail.tsx`) ya usan `FormPageHeader` / `DetailPageHeader` y quedan fuera de alcance.
+Quedan 4 páginas con layout manual (`p-4 sm:p-6` + `PageTransition` + `<div>` envoltorios) que aún no usan `PageContainer`. Las migro para cerrar al 100% la auditoría visual.
 
-## Páginas a migrar
+### Páginas a migrar
 
-| Página | Cambio |
-|---|---|
-| `ChangelogPage.tsx` | Quitar `p-6 max-w-3xl mx-auto`, usar `PageContainer maxWidth="form"` + `PageHeader` |
-| `OperationsSetupPage.tsx` | Quitar `p-6 max-w-5xl`, usar `PageContainer maxWidth="wide"` (ya usa `PageHeader`) |
-| `HelpPage.tsx` | Reemplazar contenedor manual `p-6 max-w-*` por `PageContainer` |
-| `InventoryPage.tsx` | Reemplazar `h1 text-2xl` manual por `PageHeader` |
-| `MrrDetailPage.tsx` | Auditar — si aún tiene `text-2xl font-bold` residual, migrar a `PageHeader` |
-| `LeaderboardPage.tsx` | Reemplazar `<h1>` manual por `PageHeader` |
+1. **`src/features/cash-flow/pages/CashFlowPage.tsx`** — reemplazar `<div className="p-4 sm:p-6 space-y-4">` por `<PageContainer>`.
+2. **`src/features/bank-reconciliation/pages/BankReconciliationPage.tsx`** — mismo cambio.
+3. **`src/features/bank-reconciliation/pages/BankStatementImportsHistoryPage.tsx`** — mismo cambio.
+4. **`src/features/bank-reconciliation/pages/BankAccountsPage.tsx`** — mismo cambio.
 
-## Reglas
+`PageTransition` y `RoleGuard` se mantienen como wrappers externos; `PageContainer` sustituye sólo al `<div>` con padding/spacing.
 
-- `PageContainer` sin padding propio (lo da `MainLayout`).
-- Mantener `max-w-*` específicos vía prop `maxWidth` (`form`=3xl, `wide`=5xl).
-- No tocar `FormPageHeader`/`DetailPageHeader` ni vistas ya migradas.
-- No tocar lógica de negocio ni tokens de color.
-- `NotFound.tsx` y `CRMToolbar.tsx`: fuera de alcance (no son páginas estándar de listado).
+### Excluidos (correctos como están)
+- `ChangelogPage.tsx` — ya usa `PageContainer`; el `p-6` restante es de un `Card` interno (intencional).
+- `ListPageLayout.tsx` y `TableSkeleton.tsx` — primitivas de layout, no páginas.
+- `NotFound.tsx` — pantalla full-screen centrada (no aplica `PageContainer`).
 
-## Entrega
-
-- Versión **v6.98.4** (patch) + entrada en `public/changelog.json` y `public/changelog/v6.98.4.json`.
+### Entregables
+- 4 archivos editados.
+- Entrada en `public/changelog.json` + `public/changelog/v6.98.6.json` (patch) describiendo el cierre de Fase 3.
