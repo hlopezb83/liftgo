@@ -30,7 +30,7 @@ export default function CashFlowPage() {
   return (
     <RoleGuard module="Facturas de Proveedor" minAccess="read">
       <PageTransition>
-        <div className="p-4 sm:p-6 space-y-4">
+        <PageContainer>
           <PageHeader
             title="Flujo de caja proyectado"
             subtitle="Entradas esperadas vs salidas por semana, con semáforo de liquidez"
