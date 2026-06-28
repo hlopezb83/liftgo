@@ -26,7 +26,6 @@ interface LineItem {
 
 export default function PortalQuoteDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { data: quote, isLoading } = usePortalQuote(id);
   const accept = useAcceptPortalQuote();
   const reject = useRejectPortalQuote();
@@ -41,27 +40,22 @@ export default function PortalQuoteDetail() {
   const canAct = quote.status === "sent";
   const wasAccepted = quote.status === "accepted" || !!quote.accepted_at;
 
+  const subtitle = (
+    <span className="inline-flex items-center gap-2">
+      <StatusBadge status={quote.status} />
+      <span>Emitida {formatDateDisplay(quote.created_at)}</span>
+      {quote.valid_until && <span>· Válida hasta {formatDateDisplay(quote.valid_until)}</span>}
+    </span>
+  );
+
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/portal/quotes")}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">{quote.quote_number}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <StatusBadge status={quote.status} />
-            <span className="text-sm text-muted-foreground">
-              Emitida {formatDateDisplay(quote.created_at)}
-            </span>
-            {quote.valid_until && (
-              <span className="text-sm text-muted-foreground">
-                · Válida hasta {formatDateDisplay(quote.valid_until)}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+    <PageContainer maxWidth="wide">
+      <PageHeader
+        title={quote.quote_number}
+        backHref="/portal/quotes"
+        backLabel="Cotizaciones"
+      />
+      <div className="text-sm text-muted-foreground -mt-2">{subtitle}</div>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Partidas</CardTitle></CardHeader>
