@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.100.2",
+    "date": "2026-06-30",
+    "type": "patch",
+    "title": "CI: eliminar bun.lockb desincronizado",
+    "description": "El job de CI fallaba con `lockfile had changes, but lockfile is frozen` porque convivían `bun.lock` (texto, v1) y `bun.lockb` (binario heredado) y bun 1.2.x prefería el binario stale frente al `package.json` actual. Se elimina `bun.lockb` y se mantiene solo `bun.lock` como única fuente de verdad para `bun install --frozen-lockfile`.",
+    "category": "fix"
+  },
+  {
     "version": "6.100.1",
     "date": "2026-06-30",
     "type": "patch",
