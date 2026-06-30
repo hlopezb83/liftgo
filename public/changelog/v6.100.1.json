@@ -1,0 +1,11 @@
+{
+  "version": "6.100.1",
+  "date": "2026-06-30",
+  "type": "patch",
+  "title": "CI: fix del paso Secrets check",
+  "category": "fix",
+  "description": "Las anotaciones `::warning::` del job `secrets-check` se estaban escribiendo dentro de la redirección a `$GITHUB_OUTPUT`, generando 'Invalid format' y 'Unable to process file command output successfully' y tumbando CI.",
+  "changes": [
+    ".github/workflows/ci.yml: separar los `echo ::warning::` (a stdout) de los `echo clave=valor` (a $GITHUB_OUTPUT) en el paso `check` del job `secrets-check`."
+  ]
+}
