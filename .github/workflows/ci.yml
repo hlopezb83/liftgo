@@ -48,19 +48,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          has_supabase=false
+          has_e2e=false
+          if [[ -n "${SUPA_URL:-}" && -n "${SUPA_KEY:-}" ]]; then
+            has_supabase=true
+          else
+            echo "::warning::Faltan secrets VITE_SUPABASE_URL/VITE_SUPABASE_PUBLISHABLE_KEY — edge-functions y e2e se saltarán."
+          fi
+          if [[ -n "${E2E_EMAIL:-}" && -n "${E2E_PASS:-}" ]]; then
+            has_e2e=true
+          else
+            echo "::warning::Faltan secrets E2E_TEST_EMAIL/E2E_TEST_PASSWORD — e2e se saltará."
+          fi
           {
-            if [[ -n "${SUPA_URL:-}" && -n "${SUPA_KEY:-}" ]]; then
-              echo "has_supabase=true"
-            else
-              echo "has_supabase=false"
-              echo "::warning::Faltan secrets VITE_SUPABASE_URL/VITE_SUPABASE_PUBLISHABLE_KEY — edge-functions y e2e se saltarán."
-            fi
-            if [[ -n "${E2E_EMAIL:-}" && -n "${E2E_PASS:-}" ]]; then
-              echo "has_e2e=true"
-            else
-              echo "has_e2e=false"
-              echo "::warning::Faltan secrets E2E_TEST_EMAIL/E2E_TEST_PASSWORD — e2e se saltará."
-            fi
+            echo "has_supabase=${has_supabase}"
+            echo "has_e2e=${has_e2e}"
           } >> "$GITHUB_OUTPUT"
 
   # ---------------------------------------------------------------------------
