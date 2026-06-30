@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.100.1",
+    "date": "2026-06-30",
+    "type": "patch",
+    "title": "CI: fix del paso Secrets check",
+    "description": "El paso `secrets-check` de `.github/workflows/ci.yml` escribía las anotaciones `::warning::` dentro del bloque redirigido a `$GITHUB_OUTPUT`, lo que provocaba `Invalid format` y `Unable to process file command 'output' successfully`, tumbando todo el pipeline. Se separan los warnings (a stdout) de los pares clave=valor (a $GITHUB_OUTPUT).",
+    "category": "fix"
+  },
+  {
     "version": "6.100.0",
     "date": "2026-06-28",
     "type": "minor",
