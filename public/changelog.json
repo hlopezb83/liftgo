@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.2",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "CFDI: fix boot error por identificador duplicado en Edge Functions",
+    "description": "Las Edge Functions stamp-cfdi/download-cfdi caían con 'Identifier binaryToText has already been declared' porque _shared/facturapi/client.ts tenía la función declarada dos veces tras el refactor anterior. El cliente veía 'Failed to send a request to the Edge Function' al intentar timbrar o descargar. Se eliminó la declaración duplicada.",
+    "category": "fix"
+  },
+  {
     "version": "6.104.1",
     "date": "2026-07-01",
     "type": "patch",
