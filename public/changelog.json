@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.4",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "CFDI: cancelación visible y sin degradarse a 'none'",
+    "description": "FAC-0076 se envió a cancelar y no aparecía ninguna señal en la UI. Causa: refresh-cancellation-status tenía una variable en shadow y aceptaba 'none' como estado válido, así que si Facturapi/SAT respondía 'none' mientras procesaba el acuse, el sistema borraba el estado pendiente. Además el detalle solo mostraba el badge cuando el status era exactamente 'pending'. Ahora nunca se degrada un pending, el badge 'Cancelación solicitada · esperando SAT' se muestra en cuanto hay motivo de cancelación, y se ocultó el botón 'Cancelar CFDI' mientras haya una en curso. Se restauró el estado pendiente de FAC-0076.",
+    "category": "fix"
+  },
+  {
     "version": "6.104.3",
     "date": "2026-07-01",
     "type": "patch",
