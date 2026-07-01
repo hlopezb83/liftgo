@@ -107,10 +107,10 @@ export async function handleRefreshCancellation(
       // La respuesta puede ser vacía, así que después hacemos retrieve para
       // obtener la factura con el `cancellation_status` actualizado.
       // deno-lint-ignore no-explicit-any
-      const inv = client.invoices as any;
-      if (typeof inv.updateStatus === "function") {
+      const invClient = client.invoices as any;
+      if (typeof invClient.updateStatus === "function") {
         try {
-          const updated = await inv.updateStatus(fid);
+          const updated = await invClient.updateStatus(fid);
           if (updated && typeof updated === "object") {
             facturApiInv = updated as Record<string, unknown>;
           }
@@ -119,7 +119,7 @@ export async function handleRefreshCancellation(
         }
       }
       if (!facturApiInv.cancellation_status) {
-        facturApiInv = await client.invoices.retrieve(fid) as Record<
+        facturApiInv = await invClient.retrieve(fid) as Record<
           string,
           unknown
         >;
@@ -134,12 +134,21 @@ export async function handleRefreshCancellation(
         502,
       );
     }
-    const rawStatus =
-      (facturApiInv?.cancellation_status as string | undefined) ??
-        (inv.cancellation_status as string | undefined) ?? "pending";
-    const satStatus = VALID_SAT_STATUSES.includes(rawStatus)
-      ? rawStatus
-      : "pending";
+    const rawStatus = facturApiInv?.cancellation_status as string | undefined;
+    const prior = (inv.cancellation_status as string | undefined) ?? "none";
+    // Solo aceptar transiciones válidas y no degradar un `pending` existente
+    // cuando Facturapi/SAT reporta `none` o algo no reconocido (SAT sigue
+    // procesando el acuse).
+    let satStatus = prior;
+    if (rawStatus && VALID_SAT_STATUSES.includes(rawStatus)) {
+      // Nunca bajar de un estado terminal a pending.
+      if (!(TERMINAL_STATUSES.has(prior) && rawStatus === "pending")) {
+        satStatus = rawStatus;
+      }
+    } else if (prior === "none") {
+      // Sin estado previo y respuesta indeterminada → pending por defecto.
+      satStatus = "pending";
+    }
 
     const update: Record<string, unknown> = { cancellation_status: satStatus };
     if (satStatus === "accepted") {
@@ -151,6 +160,7 @@ export async function handleRefreshCancellation(
       "id",
       invoice_id as string,
     );
+
 
     return json({ success: true, cancellation_status: satStatus }, 200);
   } catch (_err) {
