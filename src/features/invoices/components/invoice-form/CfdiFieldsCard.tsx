@@ -10,11 +10,33 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { FORMA_PAGO, METODO_PAGO, USO_CFDI, MONEDA } from "@/lib/domain/satCatalogs";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
+const PERIODICITY_OPTIONS = [
+  { code: "01", label: "01 · Diaria" },
+  { code: "02", label: "02 · Semanal" },
+  { code: "03", label: "03 · Quincenal" },
+  { code: "04", label: "04 · Mensual" },
+  { code: "05", label: "05 · Bimestral" },
+];
+
+const MONTH_OPTIONS = [
+  { code: "01", label: "01 · Enero" }, { code: "02", label: "02 · Febrero" },
+  { code: "03", label: "03 · Marzo" }, { code: "04", label: "04 · Abril" },
+  { code: "05", label: "05 · Mayo" }, { code: "06", label: "06 · Junio" },
+  { code: "07", label: "07 · Julio" }, { code: "08", label: "08 · Agosto" },
+  { code: "09", label: "09 · Septiembre" }, { code: "10", label: "10 · Octubre" },
+  { code: "11", label: "11 · Noviembre" }, { code: "12", label: "12 · Diciembre" },
+  { code: "13", label: "13 · Ene-Feb" }, { code: "14", label: "14 · Mar-Abr" },
+  { code: "15", label: "15 · May-Jun" }, { code: "16", label: "16 · Jul-Ago" },
+  { code: "17", label: "17 · Sep-Oct" }, { code: "18", label: "18 · Nov-Dic" },
+];
+
 export function CfdiFieldsCard() {
   const { control, setValue } = useFormContext<InvoiceFormValues>();
   const moneda = useWatch({ control, name: "cfdi.moneda" });
   const receptor = useWatch({ control, name: "cfdi" });
   const [receptorOpen, setReceptorOpen] = useState(false);
+  const isGlobal = (receptor?.receptorRfc || "").toUpperCase() === "XAXX010101000";
+
 
   const receptorSummary = [
     receptor?.receptorRfc || "Sin RFC",
