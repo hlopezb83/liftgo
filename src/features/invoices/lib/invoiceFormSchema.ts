@@ -26,20 +26,38 @@ export const cfdiSchema = z.object({
   receptorRazonSocial: z.string(),
   receptorRegimenFiscal: z.string(),
   receptorDomicilioFiscalCp: z.string(),
+  globalPeriodicity: z.string().default(""),
+  globalMonths: z.string().default(""),
+  globalYear: z.number().int().optional(),
 });
 
-export const invoiceFormSchema = z.object({
-  bookingId: z.string(),
-  bookingIds: z.array(z.string()).default([]),
-  customerId: z.string().nullable(),
-  customerName: z.string(),
-  lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
-  taxRate: z.number().min(0),
-  issueDate: z.date(),
-  dueDate: z.date().optional(),
-  notes: z.string(),
-  cfdi: cfdiSchema,
-});
+export const invoiceFormSchema = z
+  .object({
+    bookingId: z.string(),
+    bookingIds: z.array(z.string()).default([]),
+    customerId: z.string().nullable(),
+    customerName: z.string(),
+    lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
+    taxRate: z.number().min(0),
+    issueDate: z.date(),
+    dueDate: z.date().optional(),
+    notes: z.string(),
+    cfdi: cfdiSchema,
+  })
+  .superRefine((values, ctx) => {
+    const rfc = (values.cfdi.receptorRfc || "").toUpperCase();
+    if (rfc === "XAXX010101000") {
+      if (!values.cfdi.globalPeriodicity) {
+        ctx.addIssue({ code: "custom", path: ["cfdi", "globalPeriodicity"], message: "Requerido para Público en General" });
+      }
+      if (!values.cfdi.globalMonths) {
+        ctx.addIssue({ code: "custom", path: ["cfdi", "globalMonths"], message: "Requerido para Público en General" });
+      }
+      if (!values.cfdi.globalYear) {
+        ctx.addIssue({ code: "custom", path: ["cfdi", "globalYear"], message: "Requerido para Público en General" });
+      }
+    }
+  });
 
 export type LineItemValues = z.infer<typeof lineItemSchema>;
 export type CfdiFormValues = z.infer<typeof cfdiSchema>;
@@ -49,6 +67,7 @@ export const EMPTY_CFDI: CfdiFormValues = {
   serie: "", folio: "", formaPago: "03", metodoPago: "PUE", usoCfdi: "G03",
   moneda: "MXN", tipoCambio: 1,
   receptorRfc: "", receptorRazonSocial: "", receptorRegimenFiscal: "", receptorDomicilioFiscalCp: "",
+  globalPeriodicity: "", globalMonths: "", globalYear: undefined,
 };
 
 export const EMPTY_LINE: LineItemValues = {
