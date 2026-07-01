@@ -1,0 +1,46 @@
+{
+  "version": "6.101.0",
+  "date": "2026-07-01",
+  "type": "minor",
+  "title": "Auditoría de GitHub Actions — 4 bloques aplicados",
+  "category": "infra",
+  "summary": "Auditoría exhaustiva de los 8 workflows en .github/workflows/. Se aplican los 4 bloques del plan: seguridad, estabilidad, calidad de gates y nice-to-have.",
+  "changes": [
+    {
+      "area": "Seguridad",
+      "detail": ".github/workflows/labeler.yml — actions/labeler pineado por SHA (8558fd7… v5.0.0). El workflow usa pull_request_target, así que un tag mutable era el vector real."
+    },
+    {
+      "area": "Seguridad",
+      "detail": ".github/workflows/release-drafter.yml — eliminado trigger `pull_request` (fallaba desde forks porque el token es read-only); ahora corre solo en push:main + workflow_dispatch. Removido `permissions.pull-requests: write` innecesario."
+    },
+    {
+      "area": "Seguridad",
+      "detail": ".github/workflows/bundle-size.yml — step de `gh pr comment` gated a PRs internos con `github.event.pull_request.head.repo.full_name == github.repository` para no fallar en PRs de fork."
+    },
+    {
+      "area": "Estabilidad",
+      "detail": ".github/workflows/{ci,codeql,release-drafter}.yml — `concurrency.cancel-in-progress` ahora es `${{ github.event_name == 'pull_request' }}`: en PRs cancela runs anteriores, en push:main preserva histórico de CI/seguridad por SHA."
+    },
+    {
+      "area": "Estabilidad",
+      "detail": ".github/actions/setup-bun-project/action.yml — `bun-version` pineado a `1.2.23` exacto (antes `1.2.x`, causaba lockfile drift entre runners)."
+    },
+    {
+      "area": "Calidad de gates",
+      "detail": "scripts/lint-migrations.ts (nuevo) — reemplaza el grep textual de supabase-lint. Ignora comentarios (--, /* */), matchea GRANT/RLS/POLICY por tabla específica creada, acepta `SET search_path TO 'public'` y `= public`. .github/workflows/supabase-lint.yml simplificado a `bun scripts/lint-migrations.ts <files>`."
+    },
+    {
+      "area": "Calidad de gates",
+      "detail": ".github/workflows/changelog-check.yml (nuevo) + scripts/validate-changelog.ts (nuevo) — valida por PR: semver X.Y.Z estricto, orden descendente, sin duplicados, y archivo detalle `public/changelog/v<X.Y.Z>.json` presente para la versión más reciente (histórico solo warning)."
+    },
+    {
+      "area": "Nice-to-have",
+      "detail": ".github/workflows/ci.yml (job e2e) — cache key de Playwright deriva de `node_modules/@playwright/test/package.json` tras `bun install` (versión efectiva) en lugar del rango `^1.x` del `package.json`, que podía dejar el cache stale."
+    },
+    {
+      "area": "Nice-to-have",
+      "detail": ".github/workflows/bundle-size.yml — `::warning::` (no bloqueante) si el bundle crece más de 5% respecto a main."
+    }
+  ]
+}
