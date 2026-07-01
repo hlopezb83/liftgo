@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.103.1",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "Fix Dependabot: registry público explícito en .npmrc",
+    "description": "Dependabot abortaba con 'private_registry_config_not_found — Registry: npm.pkg.github.com' porque el experimento automatic-github-packages-auth inyecta credenciales de GitHub Packages a nivel organización aunque el repo no lo use. Se agrega .npmrc en la raíz fijando registry=https://registry.npmjs.org/ para satisfacer el check del updater sin cambiar el comportamiento de bun install. Desbloquea los PRs #6–#10.",
+    "category": "infra"
+  },
+  {
     "version": "6.103.0",
     "date": "2026-07-01",
     "type": "minor",
