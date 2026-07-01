@@ -1,0 +1,14 @@
+{
+  "version": "6.104.5",
+  "date": "2026-07-01",
+  "type": "patch",
+  "title": "CFDI: reconocer cancelación aceptada desde Facturapi",
+  "category": "fix",
+  "description": "FAC-0076 aparecía cancelada en el portal de Facturapi pero LiftGo seguía mostrando 'Cancelación solicitada · esperando SAT'. El refresh sólo miraba `cancellation_status` y Facturapi marca la cancelación aceptada bajando el `status` raíz a 'canceled'.",
+  "changes": [
+    "refresh-cancellation-status: reconocer `status='canceled'` (o 'cancelled') como cancelación aceptada",
+    "refresh-cancellation-status: soportar payload anidado `cancellation.status='accepted'`",
+    "Al aceptar la cancelación se sigue marcando la factura como cancelled, cfdi_status=cancelled y se guarda cancelled_at",
+    "Datos: FAC-0076 sincronizada a cancelada"
+  ]
+}
