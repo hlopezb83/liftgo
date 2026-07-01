@@ -80,6 +80,34 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
   );
 }
 
+function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string; invoiceNumber?: string | null }) {
+  const [loading, setLoading] = useState<"pdf" | "xml" | null>(null);
+  const handle = async (fmt: "acuse_pdf" | "acuse_xml") => {
+    setLoading(fmt === "acuse_pdf" ? "pdf" : "xml");
+    try {
+      const ext = fmt === "acuse_pdf" ? "pdf" : "xml";
+      await downloadCfdiBlob({ invoice_id: invoiceId }, fmt, `Acuse-${invoiceNumber || invoiceId}.${ext}`);
+    } catch (err) {
+      notifyError({ error: err, message: "Error al descargar acuse" });
+    } finally {
+      setLoading(null);
+    }
+  };
+  return (
+    <>
+      <Button size="sm" variant="outline" onClick={() => handle("acuse_pdf")} disabled={loading !== null}>
+        <FileCheck className="h-4 w-4 mr-1" />
+        {loading === "pdf" ? "Descargando..." : "Acuse PDF"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={() => handle("acuse_xml")} disabled={loading !== null}>
+        <FileCheck className="h-4 w-4 mr-1" />
+        {loading === "xml" ? "Descargando..." : "Acuse XML"}
+      </Button>
+    </>
+  );
+}
+
+
 
 export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole,
