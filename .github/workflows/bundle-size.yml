@@ -110,7 +110,10 @@ jobs:
 
 
       - name: Comparar y comentar PR
-        if: steps.base.outputs.base_bytes != ''
+        # Skip cuando el PR viene de un fork: el GITHUB_TOKEN es read-only y `gh pr comment` falla.
+        if: >
+          steps.base.outputs.base_bytes != '' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
