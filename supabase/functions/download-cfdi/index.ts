@@ -305,11 +305,12 @@ Deno.serve(async (req) => {
           headers: jsonHeaders,
         });
       }
-      const repFilename = `REP-${payment.rep_cfdi_uuid}.${format}`;
+      const repFilename = `REP-${payment.rep_cfdi_uuid}.${baseFormat}`;
       const repPath =
-        (format === "pdf" ? payment.rep_pdf_url : payment.rep_xml_url) as
+        (baseFormat === "pdf" ? payment.rep_pdf_url : payment.rep_xml_url) as
           | string
           | null;
+
       if (repPath) {
         const { data: file } = await supabase.storage.from(BUCKET).download(
           repPath,
