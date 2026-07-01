@@ -6,6 +6,7 @@ import {
   createFacturapiClient,
   describeFacturapiError,
   resolveFacturapiKey,
+  retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
 const BUCKET = "cfdi-files";
@@ -23,15 +24,24 @@ async function fetchFromFacturapi(
 > {
   const client = createFacturapiClient(apiKey);
   try {
-    const bin = format === "pdf"
-      ? await client.invoices.downloadPdf(facturapiId)
-      : await client.invoices.downloadXml(facturapiId);
+    const bin = await retryOnFacturapi5xx(() =>
+      format === "pdf"
+        ? client.invoices.downloadPdf(facturapiId)
+        : client.invoices.downloadXml(facturapiId)
+    );
     return { ok: true, bytes: await binaryToBytes(bin) };
   } catch (err) {
     const desc = describeFacturapiError(err);
+    console.error("[download-cfdi] Facturapi failed after retries", {
+      facturapiId,
+      format,
+      status: desc.status,
+      code: desc.code,
+    });
     return { ok: false, status: desc.status, detail: desc.detail };
   }
 }
+
 
 function resolveKey(
   company: { facturapi_mode?: string | null } | null | undefined,
