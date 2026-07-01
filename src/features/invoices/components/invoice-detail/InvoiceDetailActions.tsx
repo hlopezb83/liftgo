@@ -34,7 +34,15 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?
   const status = invoice.status;
   const isDraft = status === "draft";
   const isPayable = status === "sent" || status === "overdue";
-  const cancellationStatus = (invoice as unknown as { cancellation_status?: string }).cancellation_status ?? "none";
+  const raw = invoice as unknown as { cancellation_status?: string; cancellation_motive?: string | null };
+  const cancellationStatus = raw.cancellation_status ?? "none";
+  const hasMotive = Boolean(raw.cancellation_motive);
+  // "Solicitada" = se disparó cancelación y la factura sigue viva. Cubre
+  // pending, rejected y también estados intermedios donde el SAT aún no
+  // regresa un veredicto y el status quedó en `none` por race conditions.
+  const isPendingCancel =
+    cancellationStatus === "pending" ||
+    (hasMotive && status !== "cancelled" && cfdiStatus !== "cancelled" && cancellationStatus !== "rejected");
   return {
     isDraft,
     isPayable,
@@ -42,7 +50,7 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?
     canEdit: isDraft || userRole === "admin",
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
     isStamped: cfdiStatus === "stamped",
-    isPendingCancel: cancellationStatus === "pending",
+    isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
   };
 }
@@ -54,7 +62,7 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
     <>
       {flags.isPendingCancel && (
         <Badge variant="outline" className="border-warning/30 text-warning">
-          Cancelación pendiente SAT
+          Cancelación solicitada · esperando SAT
         </Badge>
       )}
       {flags.isRejectedCancel && <Badge variant="destructive">Cancelación rechazada</Badge>}
@@ -65,6 +73,7 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
     </>
   );
 }
+
 
 export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole,
