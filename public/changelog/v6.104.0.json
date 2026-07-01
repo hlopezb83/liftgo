@@ -1,0 +1,8 @@
+{
+  "version": "6.104.0",
+  "date": "2026-07-01",
+  "type": "minor",
+  "title": "CFDI: soporte de Factura Global (Público en General)",
+  "description": "Cuando el receptor es Público en General (RFC XAXX010101000), el SAT exige el nodo Información Global con Periodicidad, Meses y Año, además de UsoCFDI=S01, MetodoPago=PUE y FormaPago=01. Antes el timbrado fallaba con CFDI40130. Ahora el formulario de factura muestra automáticamente una sección amarilla 'Factura Global' con selects nativos para esos tres campos cuando detecta el RFC genérico; los overrides fiscales se aplican tanto al guardar como al enviar a Facturapi, y la Edge Function stamp-cfdi valida los campos antes de consumir un intento. Se agregaron las columnas global_periodicity, global_months y global_year a invoices, y las precondiciones getMissingStampFields ahora advierten si faltan.",
+  "category": "feature"
+}
