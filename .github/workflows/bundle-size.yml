@@ -110,7 +110,10 @@ jobs:
 
 
       - name: Comparar y comentar PR
-        if: steps.base.outputs.base_bytes != ''
+        # Skip cuando el PR viene de un fork: el GITHUB_TOKEN es read-only y `gh pr comment` falla.
+        if: >
+          steps.base.outputs.base_bytes != '' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -128,5 +131,11 @@ jobs:
           printf "%b" "$BODY" >> "$GITHUB_STEP_SUMMARY"
           if [[ -n "${PR_NUMBER:-}" ]]; then
             printf "%b" "$BODY" | gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file -
+          fi
+          # Warning (no bloqueante) si el bundle crece más de 5%.
+          THRESHOLD_PCT=5
+          IS_REGRESSION=$(awk "BEGIN {print ($PCT > $THRESHOLD_PCT) ? 1 : 0}")
+          if [[ "$IS_REGRESSION" == "1" ]]; then
+            echo "::warning::Bundle creció ${PCT}% (> ${THRESHOLD_PCT}%). Revisar imports y code-splitting."
           fi
 

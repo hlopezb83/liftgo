@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.101.0",
+    "date": "2026-07-01",
+    "type": "minor",
+    "title": "Auditoría de GitHub Actions — 4 bloques aplicados",
+    "description": "Auditoría completa de los 8 workflows: (1) Seguridad — pineo SHA de actions/labeler v5 en el workflow con pull_request_target, release-drafter reducido a push:main (sin trigger pull_request que fallaba desde forks), comentario de bundle-size gated a PRs internos. (2) Estabilidad — concurrency.cancel-in-progress condicional a pull_request en ci.yml/codeql.yml/release-drafter.yml para preservar histórico en main; bun-version pineado a 1.2.23 exacto en el composite. (3) Calidad de gates — supabase-lint reescrito en scripts/lint-migrations.ts con parser que ignora comentarios, matchea GRANT/RLS/POLICY por tabla específica y acepta search_path TO/=; nuevo changelog-check.yml + scripts/validate-changelog.ts (semver, orden descendente, duplicados, detalle presente). (4) Nice-to-have — cache key de Playwright deriva de node_modules/@playwright/test/package.json (versión efectiva, no rango) y bundle-size añade ::warning:: si crece >5%.",
+    "category": "infra"
+  },
+  {
     "version": "6.100.2",
     "date": "2026-06-30",
     "type": "patch",

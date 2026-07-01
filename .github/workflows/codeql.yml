@@ -22,7 +22,9 @@ on:
 
 concurrency:
   group: codeql-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # `paths-ignore` en push/PR sí filtra; en `schedule` NO aplica y siempre corre CodeQL completo.
+  # En `push: main` preservamos runs (no cancelamos) para mantener histórico de seguridad por SHA.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   analyze:
