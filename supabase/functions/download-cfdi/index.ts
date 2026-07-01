@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
       if (!res.ok) {
         return new Response(
           JSON.stringify({
-            error: `Facturapi error: ${res.status}`,
+            error: res.status >= 500 ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos." : `Facturapi error: ${res.status}`,
             detail: res.detail,
           }),
           { status: 502, headers: jsonHeaders },
@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
       if (!res.ok) {
         return new Response(
           JSON.stringify({
-            error: `Facturapi error: ${res.status}`,
+            error: res.status >= 500 ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos." : `Facturapi error: ${res.status}`,
             detail: res.detail,
           }),
           { status: 502, headers: jsonHeaders },
@@ -409,7 +409,7 @@ Deno.serve(async (req) => {
     if (!res.ok) {
       return new Response(
         JSON.stringify({
-          error: `Facturapi error: ${res.status}`,
+          error: res.status >= 500 ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos." : `Facturapi error: ${res.status}`,
           detail: res.detail.slice(0, 500),
         }),
         { status: 502, headers: jsonHeaders },
