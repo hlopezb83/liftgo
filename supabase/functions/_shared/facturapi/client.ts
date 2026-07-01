@@ -108,3 +108,32 @@ export async function binaryToText(bin: unknown): Promise<string> {
   const bytes = await binaryToBytes(bin);
   return new TextDecoder().decode(bytes);
 }
+
+/**
+ * Reintenta `fn` con backoff exponencial cuando Facturapi devuelve 5xx o
+ * cuando la llamada falla por red (status=0). Los 4xx (validaciones)
+ * salen inmediatamente sin reintentar.
+ */
+export async function retryOnFacturapi5xx<T>(
+  fn: () => Promise<T>,
+  opts: { attempts?: number; baseDelayMs?: number } = {},
+): Promise<T> {
+  const attempts = opts.attempts ?? 3;
+  const baseDelayMs = opts.baseDelayMs ?? 400;
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const desc = describeFacturapiError(err);
+      const retriable = desc.status === 0 ||
+        (desc.status >= 500 && desc.status <= 599);
+      if (!retriable || i === attempts - 1) throw err;
+      const delay = baseDelayMs * Math.pow(3, i);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastErr;
+}
+
