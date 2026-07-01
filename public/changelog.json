@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.103.4",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "CFDI: reintentos ante 5xx de Facturapi al descargar y timbrar",
+    "description": "Cuando Facturapi devolvía 502/503 (fallo transitorio de su infraestructura), la descarga de XML/PDF fallaba de inmediato con un mensaje críptico. Además, al timbrar se intentaba archivar el XML/PDF en Storage pero cualquier error se tragaba en silencio, dejando la factura timbrada sin respaldo local y forzando a depender de Facturapi para cada descarga futura. Ahora ambas rutas reintentan con backoff exponencial ante 5xx (3 intentos), se registra en logs cualquier fallo de archivado, y el toast muestra un mensaje claro cuando Facturapi está caído.",
+    "category": "fix"
+  },
+  {
     "version": "6.103.3",
     "date": "2026-07-01",
     "type": "patch",
