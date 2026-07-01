@@ -46,7 +46,7 @@ jobs:
       # solo el primero hace el build doble; el resto reutiliza el size.
       - name: Cache bundle size de base
         id: base-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .bundle-size-base
           key: bundle-size-base-${{ steps.base-sha.outputs.sha }}
