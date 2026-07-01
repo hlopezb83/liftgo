@@ -90,6 +90,9 @@ function main(): void {
         );
       }
     }
+  }
+
+
 
   // Orden descendente: parsed[0] > parsed[1] > ...
   for (let i = 1; i < parsed.length; i++) {
