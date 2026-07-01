@@ -1,0 +1,13 @@
+{
+  "version": "6.103.4",
+  "date": "2026-07-01",
+  "type": "patch",
+  "title": "CFDI: reintentos ante 5xx de Facturapi al descargar y timbrar",
+  "category": "fix",
+  "description": "Facturapi devolvió 502 en producción al descargar el XML/PDF de FAC-0076. Auditoría: la factura estaba timbrada correctamente pero cfdi_xml_url, cfdi_pdf_url y cfdi_xml eran NULL porque el archivado post-timbrado en Storage silenciaba cualquier error de Facturapi. Sin respaldo local, cada descarga dependía 100% de que Facturapi estuviera sano.",
+  "changes": [
+    "_shared/facturapi/client.ts: nuevo helper retryOnFacturapi5xx (3 intentos, backoff 400ms/1200ms) que reintenta solo ante 5xx o fallos de red; los 4xx siguen fallando inmediatamente.",
+    "download-cfdi/index.ts: descarga XML/PDF con reintentos; mensaje amigable 'Facturapi está experimentando problemas. Intenta de nuevo en unos segundos.' cuando el status final es 5xx; log estructurado tras agotar reintentos.",
+    "stamp-cfdi/handler.ts: archivado XML/PDF en Storage con reintentos y console.error real (antes: catch mudo). Si Facturapi está flaky al timbrar, la próxima descarga sí encontrará el archivo en Storage."
+  ]
+}
