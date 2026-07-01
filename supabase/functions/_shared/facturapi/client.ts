@@ -129,11 +129,6 @@ export async function binaryToText(bin: unknown): Promise<string> {
 }
 
 
-export async function binaryToText(bin: unknown): Promise<string> {
-  if (bin instanceof Blob) return await bin.text();
-  const bytes = await binaryToBytes(bin);
-  return new TextDecoder().decode(bytes);
-}
 
 /**
  * Reintenta `fn` con backoff exponencial cuando Facturapi devuelve 5xx o
