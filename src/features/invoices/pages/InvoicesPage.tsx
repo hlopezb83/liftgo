@@ -1,7 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useInvoices } from "../hooks/invoices/useInvoices";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
+import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
+import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -30,10 +34,39 @@ export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();
   const navigate = useNavigate();
   const generateRecurring = useGenerateRecurringInvoices();
+  const previewRecurring = usePreviewRecurringInvoices();
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [resultOpen, setResultOpen] = useState(false);
   usePageActions({ onNew: () => navigate("/invoices/new"), newLabel: "Nueva factura" });
+
+  const openPreview = () => {
+    setPreviewOpen(true);
+    previewRecurring.mutate();
+  };
+
+  const handleConfirm = (bookingIds: string[]) => {
+    generateRecurring.mutate(bookingIds, {
+      onSuccess: (data) => {
+        setPreviewOpen(false);
+        setResultOpen(true);
+        const count = data?.invoicesCreated ?? 0;
+        const failedCount = data?.failed?.length ?? 0;
+        if (count > 0) {
+          notifySuccess(`${count} factura${count === 1 ? "" : "s"} generada${count === 1 ? "" : "s"}`, {
+            description: failedCount > 0 ? `${failedCount} fallida${failedCount === 1 ? "" : "s"}.` : "Borradores creados.",
+          });
+        }
+      },
+    });
+  };
+
+  const handleRetry = (bookingIds: string[]) => {
+    generateRecurring.mutate(bookingIds);
+  };
 
   const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, filtered } =
     useInvoicesFilters(invoices);
+
 
   const columns = useMemo<ColumnDef<Invoice>[]>(
     () => [
@@ -94,14 +127,15 @@ export default function InvoicesPage() {
   });
 
   return (
+    <>
     <ListPageLayout
       title="Facturas"
       subtitle="Administrar facturación y pagos"
       actions={
         <div className="flex gap-2">
           <RoleGuard module="Facturas" minAccess="full">
-            <Button variant="outline" size="sm" onClick={() => generateRecurring.mutate()} disabled={generateRecurring.isPending}>
-              <RefreshCw className={`h-4 w-4 mr-1 ${generateRecurring.isPending ? "animate-spin" : ""}`} />
+            <Button variant="outline" size="sm" onClick={openPreview} disabled={previewRecurring.isPending}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${previewRecurring.isPending ? "animate-spin" : ""}`} />
               Generar Recurrentes
             </Button>
           </RoleGuard>
@@ -178,5 +212,22 @@ export default function InvoicesPage() {
         </Card>
       )}
     />
+    <RecurringInvoicesPreviewDialog
+      open={previewOpen}
+      onOpenChange={setPreviewOpen}
+      data={previewRecurring.data}
+      isLoading={previewRecurring.isPending}
+      isGenerating={generateRecurring.isPending}
+      onConfirm={handleConfirm}
+    />
+    <RecurringInvoicesResultDialog
+      open={resultOpen}
+      onOpenChange={setResultOpen}
+      result={generateRecurring.data}
+      onRetry={handleRetry}
+      isRetrying={generateRecurring.isPending}
+    />
+    </>
   );
 }
+

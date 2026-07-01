@@ -1,60 +1,85 @@
-## Auditoría GitHub Actions — segunda pasada (post v6.101.0)
+# Vista Previa de Facturas Recurrentes
 
-La auditoría anterior (v6.101.0) cerró 4 bloques (seguridad, estabilidad, gates, nice-to-have). Esta segunda pasada revisa lo que quedó fuera y encuentra **5 hallazgos** — todos de bajo riesgo, cero cambios de comportamiento en el happy path.
+Convertir el botón "Generar Recurrente" de un-click a un flujo **Preview → Select → Confirm → Results**, siguiendo el patrón estándar de SAP/NetSuite/Odoo (dry-run + confirm).
 
-### Estado actual (resumen)
+## Flujo UX
 
-| Workflow | Trigger | Concurrencia PR/main | Notas |
-|---|---|---|---|
-| `ci.yml` | PR + push:main | cancel en PR, preservar main | ✅ |
-| `codeql.yml` | PR + push:main + cron | cancel en PR, preservar main | ✅ |
-| `release-drafter.yml` | push:main + dispatch | `cancel-in-progress: false` fijo | ⚠️ comentario obsoleto |
-| `gitleaks.yml` | PR + push:main + cron | `cancel-in-progress: true` fijo | ⚠️ inconsistente |
-| `bundle-size.yml` | PR | cancel siempre | ✅ |
-| `labeler.yml` | pull_request_target | SHA pineado | ✅ |
-| `lighthouse.yml` | cron + dispatch | cancel siempre | ⚠️ sin notificación de fallo |
-| `supabase-lint.yml` | PR (paths) | — | ✅ |
-| `changelog-check.yml` | PR (paths) | — | ✅ |
+```text
+[Botón "Generar Recurrentes"]
+        ↓
+Modal "Vista previa – Julio 2026"
+  Header:  12 elegibles · 11 seleccionadas · $443,000 MXN
+  Tabla agrupada por cliente:
+     ☑ Cliente A  RSV-0012  Jul 2026  $15,000
+     ☑ Cliente A  RSV-0018  Jul 2026  $22,000
+     ⊘ Cliente B  RSV-0021  Ya facturada FAC-073  (deshabilitada)
+     ☑ Cliente C  RSV-0033  Jul 2026  $18,500
+  [Cancelar]   [Generar 11 facturas · $443,000]
+        ↓
+Toast "Generando..."  →  Modal de resultados
+     ✓ 10 creadas (con links FAC-074 … FAC-083)
+     ✗ 1 fallida (motivo + retry individual)
+```
 
-### Hallazgos
+## Cambios técnicos
 
-**H1 — Cache key de bun referencia archivo eliminado**  
-`setup-bun-project/action.yml:23` sigue haciendo `hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json')`. `bun.lockb` se eliminó en v6.100.2; el patrón no rompe (glob sin match devuelve empty), pero contamina la key. Simplificar a `hashFiles('**/bun.lock', '**/package.json')`.
+### 1. Edge Function `generate-recurring-invoices`
 
-**H2 — `gitleaks.yml` con concurrencia inconsistente**  
-Usa `cancel-in-progress: true` sin distinguir PR vs push:main. Alinear con la política de `ci.yml`/`codeql.yml`: cancelar solo en PRs para preservar histórico de escaneos de seguridad por SHA en `main`.
+Añadir parámetro `{ preview: boolean, bookingIds?: string[] }`:
 
-**H3 — Comentario obsoleto en `release-drafter.yml`**  
-Línea 13: `# Solo cancelamos en PRs; en main preservamos histórico de runs.` — pero el trigger `pull_request` fue removido en v6.101.0. Reemplazar por `# Solo push:main y dispatch; nunca cancelamos porque cada release-note es acumulativa.`.
+- **`preview: true`** → calcula el plan (mismas queries y reglas de idempotencia que el flujo actual) y devuelve `PreviewLine[]` sin escribir nada. Single source of truth: la misma función de cálculo se usa para preview y ejecución.
+- **`preview: false, bookingIds`** → genera solo las reservas indicadas (respetando idempotencia server-side por si se duplicó el click).
+- Respuesta preview:
+  ```ts
+  {
+    period: "2026-07",
+    lines: [{
+      bookingId, bookingCode, customerId, customerName,
+      periodStart, periodEnd, amount, currency,
+      eligible: boolean,
+      reason?: "already_invoiced" | "not_recurring" | "ended",
+      existingInvoiceId?: string, existingInvoiceNumber?: string
+    }]
+  }
+  ```
+- Respuesta execute:
+  ```ts
+  { created: [{bookingId, invoiceId, invoiceNumber}], failed: [{bookingId, error}] }
+  ```
 
-**H4 — `lighthouse.yml` sin señal de fallo**  
-Corre diario 05:00 America/Monterrey contra `https://liftgo.lovable.app`. Si un threshold del `lighthouserc.json` falla, el job queda rojo en Actions pero nadie se entera (no hay PR asociado, no hay email, no hay issue). Agregar step final con `if: failure()` que abra/actualice un issue `[Lighthouse] Regresión de performance` usando `actions/github-script@v7` — patrón estándar, sin dependencias nuevas.
+### 2. Frontend nuevo
 
-**H5 — Dependabot sin `reviewers`**  
-`dependabot.yml` no asigna reviewer, así que los PRs de bumps semanales se acumulan sin que nadie sea notificado explícitamente. Agregar `reviewers: [<github-username>]` en ambos ecosystems (npm + github-actions). Requiere confirmar el username a asignar.
+- `src/features/invoices/hooks/invoices/recurring/usePreviewRecurringInvoices.ts` — `useMutation` que llama con `preview: true`.
+- Refactor `useGenerateRecurringInvoices.ts` — acepta `bookingIds` opcional.
+- `src/features/invoices/components/recurring/RecurringInvoicesPreviewDialog.tsx`
+  - Header con periodo (mes en español vía `formatMonthEs`) y KPIs (elegibles / seleccionadas / total MXN).
+  - Tabla agrupada por cliente con checkbox por línea; filas no elegibles se muestran deshabilitadas con badge "Ya facturada FAC-XXX" enlazado.
+  - Master-checkbox por grupo de cliente.
+  - Footer: botón primario dinámico `Generar N facturas · $Total`.
+  - Empty state cuando `eligible.length === 0`.
+- `src/features/invoices/components/recurring/RecurringInvoicesResultDialog.tsx`
+  - Sección "Creadas" con links a `/invoices/:id`.
+  - Sección "Fallidas" con motivo y botón "Reintentar" (llama execute solo con ese `bookingId`).
+  - Toast paralelo con conteo (`Ambos` según respuesta del usuario).
 
-### Plan de aplicación (v6.102.0)
+### 3. Integración
 
-1. **H1** — `.github/actions/setup-bun-project/action.yml` cache key sin `bun.lockb`.
-2. **H2** — `.github/workflows/gitleaks.yml` concurrencia condicional.
-3. **H3** — `.github/workflows/release-drafter.yml` fix comentario.
-4. **H4** — `.github/workflows/lighthouse.yml` step de auto-issue on failure con `actions/github-script` pineado a SHA.
-5. **H5** — `.github/dependabot.yml` agregar `reviewers` (necesito username de GitHub para asignar).
-6. Entrada `public/changelog.json` + `public/changelog/v6.102.0.json` describiendo cada hallazgo.
+Reemplazar el handler actual del botón "Generar Recurrente" en `MaintenancePageActions.tsx` **y** en `InvoicesPage` (donde exista) para abrir el preview dialog en lugar de disparar la mutación directamente. Mantener `RoleGuard module="Facturación" minAccess="full"`.
 
-### Verificación post-cambio
+### 4. Tests
 
-- `bun scripts/validate-changelog.ts` → OK.
-- Revisar `actionlint` local: `bunx --bun @rhysd/actionlint` sobre los 3 workflows modificados.
-- No requiere restart del dev server (no toca código de la app).
+- `generate-recurring-invoices/index_test.ts`: agregar casos `preview: true` (no escribe), `preview: false + bookingIds subset` (solo genera esas), respuesta con `eligible/reason`.
+- Vitest para el dialog: render con líneas mixtas, toggle checkboxes, cálculo de total, botón deshabilitado cuando 0 seleccionadas.
 
-### Fuera de alcance (revisado y sin acción)
+### 5. Changelog
 
-- CodeQL: `github/codeql-action/init@v3` sin SHA — es acción oficial de GitHub, tag flotante es la recomendación de GH.
-- `bundle-size.yml`: `fetch-depth: 0` ya está (línea 30), `git worktree add` funciona.
-- `ci.yml` `ci-success` gate: cuenta `skipped` como pass a propósito (edge-functions/e2e se saltan sin secrets en forks).
-- `actionlint` con `filter_mode: added`: intencional para evitar ruido histórico.
+`v6.103.0` (minor) — nueva funcionalidad de preview.
 
-### ¿Confirmas H5?
+## Fuera de alcance
 
-Para aplicar el bloque completo necesito el **GitHub username** que debe recibir las asignaciones de Dependabot y del issue de Lighthouse (H4). Si prefieres saltar H5 y dejar H4 solo creando el issue sin asignar, también funciona.
+- Guardar preferencias de exclusión persistentes (ej. "pausar cliente X 3 meses"): se puede evaluar en v2.
+- Scheduling automático (cron para generar sin intervención): fuera de alcance; requiere decisión de negocio.
+
+## Referencias
+
+Memoria relevante: `mem://logic/recurring-billing-cycle`, `mem://logic/recurring-billing-pricing`, `mem://design/form-dialogs`.

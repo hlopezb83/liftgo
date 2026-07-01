@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.103.0",
+    "date": "2026-07-01",
+    "type": "minor",
+    "title": "Vista previa de facturas recurrentes (dry-run + confirm)",
+    "description": "El botón 'Generar Recurrentes' pasa de un-click a flujo de 2 pasos estilo SAP/NetSuite/Odoo: preview modal con dry-run del Edge Function (parámetro preview:true), tabla agrupada por cliente con checkboxes para excluir, badge 'Ya facturada FAC-XXX' enlazado en no-elegibles, KPIs de elegibles/seleccionadas/total con IVA, botón dinámico 'Generar N facturas · $X'. Post-generación abre modal de resultados con creadas (links) y fallidas (motivo + reintentar por reserva) + toast con conteo. Elimina la incertidumbre del un-click y previene duplicados visualmente.",
+    "category": "feature"
+  },
+  {
     "version": "6.102.0",
     "date": "2026-07-01",
     "type": "minor",
