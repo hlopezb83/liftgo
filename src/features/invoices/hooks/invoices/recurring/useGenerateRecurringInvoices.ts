@@ -1,37 +1,45 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
-interface GenerateRecurringResponse {
+
+export interface GenerateRecurringResponse {
   invoicesCreated?: number;
+  bookingsBilled?: number;
+  created?: Array<{
+    bookingIds: string[];
+    invoiceId: string;
+    invoiceNumber: string | null;
+  }>;
+  failed?: Array<{ bookingIds: string[]; error: string }>;
 }
 
 /**
- * Disparador del Edge Function `generate-recurring-invoices`.
- * Genera borradores de facturas para reservas con `recurring_billing` habilitado.
+ * Ejecuta la generación real de facturas recurrentes.
+ * Si se pasan `bookingIds`, genera SOLO esas; si no, todas las elegibles.
  */
 export function useGenerateRecurringInvoices() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (): Promise<GenerateRecurringResponse> => {
+    mutationFn: async (
+      bookingIds?: string[],
+    ): Promise<GenerateRecurringResponse> => {
       return await invokeEdgeFunction<GenerateRecurringResponse>(
         "generate-recurring-invoices",
+        { body: { preview: false, bookingIds } },
       );
     },
-    onSuccess: (data) => {
-      const count = data?.invoicesCreated ?? 0;
-      notifySuccess(count > 0 ? `${count} factura(s) generada(s)` : "Sin facturas pendientes", {
-        description:
-          count > 0
-            ? "Se crearon borradores de facturas recurrentes."
-            : "No hay reservas con facturación recurrente pendiente.",
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
     onError: (err: unknown) => {
-      notifyError({ error: err, title: "Error al generar facturas", description: err instanceof Error ? err.message : "Intenta de nuevo.", });
+      notifyError({
+        error: err,
+        title: "Error al generar facturas",
+        description: err instanceof Error ? err.message : "Intenta de nuevo.",
+      });
     },
   });
 }
