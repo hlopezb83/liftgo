@@ -1,45 +1,17 @@
-## Problema
+## Fix `deno fmt` en `generate-recurring-invoices/index.ts`
 
-Dependabot está inyectando automáticamente credenciales de `npm.pkg.github.com` (GitHub Packages) vía el experimento `automatic-github-packages-auth` a nivel organización/enterprise. Como el repo **no usa GitHub Packages** (no hay `.npmrc`, ni scopes `@owner/*`), el updater aborta con:
+El CI corre `deno fmt --check` y detecta que `supabase/functions/generate-recurring-invoices/index.ts` no está formateado según las reglas de Deno (líneas largas que deben partirse). Son puramente cambios de whitespace/wrapping — no hay cambios de lógica.
 
-```
-private_registry_config_not_found — Private npm registries require either a
-.npmrc file in your repository, or explicit `scope`/`replaces-base`
-configuration in dependabot.yml. Registry: npm.pkg.github.com
-```
+### Cambio único
 
-Esto bloquea todos los PRs de Dependabot npm (React types, recharts, globals, react-day-picker, grupos dev-minor-patch y prod-patch).
+Aplicar el formato que `deno fmt` propone en el diff del error, en las 8 secciones señaladas (líneas ~178, 240, 257, 262, 293, 311, 359, 413). Equivalente a correr localmente:
 
-## Solución
-
-Crear un `.npmrc` mínimo en la raíz del repo que fije explícitamente el registry público. Eso satisface el check de Dependabot ("hay .npmrc") sin cambiar el comportamiento de `bun install` (bun ya usa `registry.npmjs.org` por defecto y respeta `.npmrc`).
-
-### Archivo a crear
-
-**`.npmrc`**
-```
-registry=https://registry.npmjs.org/
+```bash
+cd supabase/functions && deno fmt generate-recurring-invoices/index.ts
 ```
 
-Notas técnicas:
-- No agregamos ningún token — el registry es público.
-- No agregamos scopes `@owner:registry=...` porque no consumimos paquetes de GitHub Packages.
-- Bun 1.2.x lee `.npmrc` para resolver el registry; no rompe el lockfile ni la CI (`bun install --frozen-lockfile` sigue igual).
-- No tocamos `dependabot.yml`: el problema no es la config del repo sino la auto-inyección a nivel org. El `.npmrc` es la vía recomendada por el propio mensaje de error.
+### Verificación
 
-### Verificación posterior (post-merge)
-
-1. Esperar el próximo run de Dependabot (lunes 06:00 America/Monterrey) o dispararlo manualmente desde Insights → Dependency graph → Dependabot → "Check for updates".
-2. Confirmar que los PRs #6–#10 se refrescan sin el error `private_registry_config_not_found`.
-
-### Changelog
-
-Agregar entrada patch **v6.103.1** en `public/changelog.json` + `public/changelog/v6.103.1.json`:
-- title: "Fix Dependabot: registry público explícito en `.npmrc`"
-- description breve del problema y la solución.
-
-## Archivos
-
-- **Crear** `.npmrc` (1 línea)
-- **Crear** `public/changelog/v6.103.1.json`
-- **Editar** `public/changelog.json` (nueva entrada al inicio)
+- `cd supabase/functions && deno fmt --check` pasa sin errores.
+- Tests existentes de la función siguen pasando (`generate-recurring-invoices/index_test.ts`) — no hay cambios de comportamiento.
+- Bump patch en changelog: v6.103.2 con nota "chore: aplicar formato deno fmt en generate-recurring-invoices".

@@ -175,7 +175,9 @@ async function buildPlan(supabase: any): Promise<{
     // Already invoiced check
     const { data: existing } = await supabase
       .from("invoice_bookings")
-      .select("invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)")
+      .select(
+        "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)",
+      )
       .eq("booking_id", booking.id)
       .eq("invoices.billing_period_start", startStr)
       .eq("invoices.billing_period_end", endStr)
@@ -237,7 +239,9 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       // Re-check idempotencia (por si otro run corrió en paralelo)
       const { data: existingLink } = await supabase
         .from("invoice_bookings")
-        .select("invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)")
+        .select(
+          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)",
+        )
         .in("booking_id", bookingIds)
         .eq("invoices.billing_period_start", first.startStr)
         .eq("invoices.billing_period_end", first.endStr)
@@ -254,12 +258,16 @@ async function executePlan(supabase: any, items: PlanItem[]) {
 
       const { data: customer } = await supabase
         .from("customers")
-        .select("rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi")
+        .select(
+          "rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi",
+        )
         .eq("id", first.customerId)
         .maybeSingle();
 
       const lineItems = group.map((i) => ({
-        description: `${i.forkliftName || "Montacargas"} — Renta mensual (${fmtMx(i.billingStart)} al ${fmtMx(i.billingEnd)})`,
+        description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
+          fmtMx(i.billingStart)
+        } al ${fmtMx(i.billingEnd)})`,
         quantity: 1,
         unit_price: i.monthlyRate,
         total: i.monthlyRate,
@@ -290,7 +298,8 @@ async function executePlan(supabase: any, items: PlanItem[]) {
           billing_period_start: first.startStr,
           billing_period_end: first.endStr,
           receptor_rfc: customer?.rfc ?? null,
-          receptor_razon_social: customer?.razon_social || customer?.name || null,
+          receptor_razon_social: customer?.razon_social || customer?.name ||
+            null,
           receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
           receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
           uso_cfdi: customer?.uso_cfdi ?? "G03",
@@ -308,7 +317,9 @@ async function executePlan(supabase: any, items: PlanItem[]) {
 
       const { error: pivotErr } = await supabase
         .from("invoice_bookings")
-        .insert(bookingIds.map((bId) => ({ invoice_id: invoiceId, booking_id: bId })));
+        .insert(
+          bookingIds.map((bId) => ({ invoice_id: invoiceId, booking_id: bId })),
+        );
 
       if (pivotErr) {
         await supabase.from("invoices").delete().eq("id", invoiceId);
@@ -356,7 +367,8 @@ Deno.serve(async (req) => {
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
+    const { data: claimsData, error: claimsError } = await callerClient.auth
+      .getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -410,7 +422,10 @@ Deno.serve(async (req) => {
 
     const { created, failed } = await executePlan(supabase, targetItems);
     const invoicesCreated = created.length;
-    const bookingsBilled = created.reduce((acc, c) => acc + c.bookingIds.length, 0);
+    const bookingsBilled = created.reduce(
+      (acc, c) => acc + c.bookingIds.length,
+      0,
+    );
 
     return new Response(
       JSON.stringify({
