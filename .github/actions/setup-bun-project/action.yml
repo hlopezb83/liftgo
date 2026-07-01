@@ -20,7 +20,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.bun/install/cache
-        key: ${{ runner.os }}-bun-${{ inputs.bun-version }}-${{ hashFiles('**/bun.lockb', '**/bun.lock', '**/package.json') }}
+        key: ${{ runner.os }}-bun-${{ inputs.bun-version }}-${{ hashFiles('**/bun.lock', '**/package.json') }}
         restore-keys: |
           ${{ runner.os }}-bun-${{ inputs.bun-version }}-
 

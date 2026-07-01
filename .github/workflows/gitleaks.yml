@@ -16,7 +16,8 @@ permissions:
 
 concurrency:
   group: gitleaks-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancelar solo en PRs; en push:main y schedule preservamos histórico de escaneos por SHA.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   scan:
