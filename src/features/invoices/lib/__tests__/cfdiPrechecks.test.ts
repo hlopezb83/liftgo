@@ -58,9 +58,13 @@ describe("getMissingStampFields", () => {
       uso_cfdi: "S01",
       forma_pago: "99",
       metodo_pago: "PUE",
-    });
+      global_periodicity: "04",
+      global_months: "07",
+      global_year: 2026,
+    } as Partial<Invoice>);
     expect(getMissingStampFields(invoice)).toEqual([]);
   });
+
 
   it("todos los campos null → reporta los 7 labels", () => {
     const invoice = makeInvoice({});
