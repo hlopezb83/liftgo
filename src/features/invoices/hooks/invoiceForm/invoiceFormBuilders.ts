@@ -22,7 +22,9 @@ export type ExistingInvoice = {
   tipo_cambio?: number | string | null; receptor_rfc?: string | null;
   receptor_razon_social?: string | null; receptor_regimen_fiscal?: string | null;
   receptor_domicilio_fiscal_cp?: string | null;
+  global_periodicity?: string | null; global_months?: string | null; global_year?: number | null;
 };
+
 
 export type SourceQuote = {
   customer_name?: string | null; customer_id: string | null;
