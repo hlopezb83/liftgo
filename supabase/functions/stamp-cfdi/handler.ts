@@ -319,7 +319,6 @@ export async function handleStampCfdi(
       };
     }
 
-
     let facturApiInvoice: { id: string; uuid: string };
     try {
       facturApiInvoice = await client.invoices.create(payload) as {

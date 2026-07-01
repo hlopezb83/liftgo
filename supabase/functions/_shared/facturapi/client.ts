@@ -101,10 +101,15 @@ export async function binaryToBytes(bin: unknown): Promise<Uint8Array> {
   }
   if (typeof bin === "string") return new TextEncoder().encode(bin);
   // Axios-like: { data: <Buffer|ArrayBuffer|string|Blob> }
-  const maybe = bin as { data?: unknown; arrayBuffer?: unknown; buffer?: unknown };
+  const maybe = bin as {
+    data?: unknown;
+    arrayBuffer?: unknown;
+    buffer?: unknown;
+  };
   if (maybe.data !== undefined) return await binaryToBytes(maybe.data);
   if (typeof maybe.arrayBuffer === "function") {
-    const ab = await (maybe as { arrayBuffer: () => Promise<ArrayBuffer> }).arrayBuffer();
+    const ab = await (maybe as { arrayBuffer: () => Promise<ArrayBuffer> })
+      .arrayBuffer();
     return new Uint8Array(ab);
   }
   // Node Buffer serializado como { type: 'Buffer', data: number[] }
@@ -127,8 +132,6 @@ export async function binaryToText(bin: unknown): Promise<string> {
   const bytes = await binaryToBytes(bin);
   return new TextDecoder().decode(bytes);
 }
-
-
 
 /**
  * Reintenta `fn` con backoff exponencial cuando Facturapi devuelve 5xx o
@@ -157,4 +160,3 @@ export async function retryOnFacturapi5xx<T>(
   }
   throw lastErr;
 }
-

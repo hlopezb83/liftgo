@@ -17,7 +17,6 @@ const VALID_SAT_STATUSES = [
   "expired",
 ];
 
-
 export interface CancelCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;

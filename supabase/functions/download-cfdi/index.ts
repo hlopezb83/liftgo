@@ -50,9 +50,14 @@ async function fetchAcuseFromFacturapi(
   facturapiId: string,
   format: "xml" | "pdf",
 ): Promise<
-  { ok: true; bytes: Uint8Array } | { ok: false; status: number; detail: string }
+  { ok: true; bytes: Uint8Array } | {
+    ok: false;
+    status: number;
+    detail: string;
+  }
 > {
-  const url = `${FACTURAPI_BASE}/invoices/${facturapiId}/cancellation_receipt/${format}`;
+  const url =
+    `${FACTURAPI_BASE}/invoices/${facturapiId}/cancellation_receipt/${format}`;
   try {
     const res = await retryOnFacturapi5xx(async () => {
       const r = await fetch(url, {
@@ -85,8 +90,6 @@ async function fetchAcuseFromFacturapi(
     };
   }
 }
-
-
 
 function resolveKey(
   company: { facturapi_mode?: string | null } | null | undefined,
@@ -183,7 +186,6 @@ Deno.serve(async (req) => {
       ? "application/pdf"
       : "application/xml";
 
-
     if (isAcuse && !isUUID(invoice_id)) {
       return new Response(
         JSON.stringify({ error: "Acuse download requires invoice_id" }),
@@ -206,10 +208,13 @@ Deno.serve(async (req) => {
           { status: 409, headers: jsonHeaders },
         );
       }
-      const cnFilename = `${cn.credit_note_number || cn.cfdi_uuid}.${baseFormat}`;
-      const cnPath = (baseFormat === "pdf" ? cn.cfdi_pdf_url : cn.cfdi_xml_url) as
-        | string
-        | null;
+      const cnFilename = `${
+        cn.credit_note_number || cn.cfdi_uuid
+      }.${baseFormat}`;
+      const cnPath =
+        (baseFormat === "pdf" ? cn.cfdi_pdf_url : cn.cfdi_xml_url) as
+          | string
+          | null;
 
       if (cnPath) {
         const { data: file } = await supabase.storage.from(BUCKET).download(
@@ -253,7 +258,9 @@ Deno.serve(async (req) => {
       if (!res.ok) {
         return new Response(
           JSON.stringify({
-            error: res.status >= 500 ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos." : `Facturapi error: ${res.status}`,
+            error: res.status >= 500
+              ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos."
+              : `Facturapi error: ${res.status}`,
             detail: res.detail,
           }),
           { status: 502, headers: jsonHeaders },
@@ -354,7 +361,9 @@ Deno.serve(async (req) => {
       if (!res.ok) {
         return new Response(
           JSON.stringify({
-            error: res.status >= 500 ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos." : `Facturapi error: ${res.status}`,
+            error: res.status >= 500
+              ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos."
+              : `Facturapi error: ${res.status}`,
             detail: res.detail,
           }),
           { status: 502, headers: jsonHeaders },
@@ -436,8 +445,7 @@ Deno.serve(async (req) => {
             headers: {
               ...corsHeaders,
               "Content-Type": contentType,
-              "Content-Disposition":
-                `attachment; filename="${acuseFilename}"`,
+              "Content-Disposition": `attachment; filename="${acuseFilename}"`,
             },
           });
         }
@@ -481,8 +489,7 @@ Deno.serve(async (req) => {
         );
       }
       const bytesA = resA.bytes;
-      const newPathA =
-        `${invoice_id}/acuse-${invoice.cfdi_uuid}.${baseFormat}`;
+      const newPathA = `${invoice_id}/acuse-${invoice.cfdi_uuid}.${baseFormat}`;
       const { error: upErrA } = await supabase.storage
         .from(BUCKET)
         .upload(newPathA, bytesA, { contentType, upsert: true });
@@ -601,7 +608,6 @@ Deno.serve(async (req) => {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
-
   } catch (err) {
     console.error("download-cfdi error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {

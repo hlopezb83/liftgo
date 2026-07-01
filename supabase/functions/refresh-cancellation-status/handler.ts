@@ -17,7 +17,6 @@ const VALID_SAT_STATUSES = [
 ];
 const TERMINAL_STATUSES = new Set(["accepted", "rejected", "expired"]);
 
-
 export interface RefreshCancellationDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;
@@ -134,8 +133,10 @@ export async function handleRefreshCancellation(
         502,
       );
     }
-    const rawCancel = (facturApiInv?.cancellation_status as string | undefined) ??
-      ((facturApiInv?.cancellation as Record<string, unknown> | undefined)?.status as string | undefined);
+    const rawCancel =
+      (facturApiInv?.cancellation_status as string | undefined) ??
+        ((facturApiInv?.cancellation as Record<string, unknown> | undefined)
+          ?.status as string | undefined);
     const rootStatus = facturApiInv?.status as string | undefined;
     const prior = (inv.cancellation_status as string | undefined) ?? "none";
     // Facturapi marca la cancelación aceptada bajando el `status` raíz a
@@ -155,7 +156,6 @@ export async function handleRefreshCancellation(
       satStatus = "pending";
     }
 
-
     const update: Record<string, unknown> = { cancellation_status: satStatus };
     if (satStatus === "accepted") {
       update.cfdi_status = "cancelled";
@@ -166,7 +166,6 @@ export async function handleRefreshCancellation(
       "id",
       invoice_id as string,
     );
-
 
     return json({ success: true, cancellation_status: satStatus }, 200);
   } catch (_err) {
