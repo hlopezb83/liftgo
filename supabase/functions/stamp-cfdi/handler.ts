@@ -290,12 +290,35 @@ export async function handleStampCfdi(
     };
 
     if (isGlobal) {
+      const PERIODICITY_MAP: Record<string, string> = {
+        "01": "day",
+        "02": "week",
+        "03": "fortnight",
+        "04": "month",
+        "05": "two_months",
+      };
+      const FACTURAPI_ENUM = new Set([
+        "day",
+        "week",
+        "fortnight",
+        "month",
+        "two_months",
+      ]);
+      const raw = String(inv.global_periodicity);
+      const periodicity = PERIODICITY_MAP[raw] ??
+        (FACTURAPI_ENUM.has(raw) ? raw : null);
+      if (!periodicity) {
+        throw new Error(
+          `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`,
+        );
+      }
       payload.global = {
-        periodicity: String(inv.global_periodicity),
+        periodicity,
         months: String(inv.global_months),
         year: Number(inv.global_year),
       };
     }
+
 
     let facturApiInvoice: { id: string; uuid: string };
     try {

@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.3",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "CFDI Factura Global: mapear periodicidad SAT al enum de Facturapi",
+    "description": "El timbrado de Factura Global fallaba con '\"global.periodicity\" must be one of [day, week, fortnight, month, two_months]' porque guardamos el código SAT (01-05) pero Facturapi espera el enum en inglés. stamp-cfdi ahora mapea 01→day, 02→week, 03→fortnight, 04→month, 05→two_months antes de enviar el payload.",
+    "category": "fix"
+  },
+  {
     "version": "6.104.2",
     "date": "2026-07-01",
     "type": "patch",
