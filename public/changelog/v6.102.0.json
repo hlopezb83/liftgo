@@ -1,0 +1,26 @@
+{
+  "version": "6.102.0",
+  "date": "2026-07-01",
+  "type": "minor",
+  "title": "Auditoría de GitHub Actions — segunda pasada",
+  "category": "infra",
+  "summary": "Segunda pasada sobre los workflows tras la auditoría v6.101.0. Cuatro hallazgos de bajo riesgo aplicados; H5 (reviewers en dependabot) queda pendiente de confirmar username.",
+  "changes": [
+    {
+      "area": "H1 — Cache accuracy",
+      "detail": ".github/actions/setup-bun-project/action.yml — cache key ya no hashea `bun.lockb` (eliminado en v6.100.2). Ahora solo `bun.lock` + `package.json`."
+    },
+    {
+      "area": "H2 — Concurrency consistente",
+      "detail": ".github/workflows/gitleaks.yml — `cancel-in-progress` pasa a `${{ github.event_name == 'pull_request' }}`. En push:main y schedule se preservan runs para no perder histórico de escaneos por SHA. Política idéntica a ci.yml y codeql.yml."
+    },
+    {
+      "area": "H3 — Documentación",
+      "detail": ".github/workflows/release-drafter.yml — comentario de concurrency actualizado. Ya no menciona un trigger `pull_request` que fue removido en v6.101.0."
+    },
+    {
+      "area": "H4 — Observabilidad de Lighthouse",
+      "detail": ".github/workflows/lighthouse.yml — permission `issues: write` y nuevo step (con `actions/github-script@60a0d83…` v7.0.1 pineado por SHA) que corre en `failure()`: si ya existe un issue abierto con label `lighthouse-regression`, agrega comentario; si no, crea uno con labels `lighthouse-regression` + `performance`. El body incluye URL del run, SHA y target. Sin dependencias nuevas ni asignee (pendiente H5)."
+    }
+  ]
+}
