@@ -87,9 +87,9 @@ function lintFile(path: string): Finding[] {
   }
 
   // 2. SECURITY DEFINER sin search_path explícito.
-  const secDefRegex = /security\s+definer/gi;
-  if (secDefRegex.test(sql)) {
-    if (!/set\s+search_path\s*=/i.test(sql)) {
+  //    Postgres acepta `SET search_path = public` y `SET search_path TO 'public'`.
+  if (/security\s+definer/i.test(sql)) {
+    if (!/set\s+search_path\s*(=|to)\s+/i.test(sql)) {
       findings.push({
         file: path,
         message:
