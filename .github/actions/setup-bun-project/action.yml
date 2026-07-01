@@ -3,9 +3,9 @@ description: Checkout, instalar Bun, restaurar cache e instalar deps con frozen 
 
 inputs:
   bun-version:
-    description: Versión de Bun
+    description: Versión exacta de Bun (pineada para reproducibilidad; dependabot actualiza vía github-actions).
     required: false
-    default: "1.2.x"
+    default: "1.2.23"
 
 runs:
   using: composite
