@@ -206,10 +206,11 @@ Deno.serve(async (req) => {
           { status: 409, headers: jsonHeaders },
         );
       }
-      const cnFilename = `${cn.credit_note_number || cn.cfdi_uuid}.${format}`;
-      const cnPath = (format === "pdf" ? cn.cfdi_pdf_url : cn.cfdi_xml_url) as
+      const cnFilename = `${cn.credit_note_number || cn.cfdi_uuid}.${baseFormat}`;
+      const cnPath = (baseFormat === "pdf" ? cn.cfdi_pdf_url : cn.cfdi_xml_url) as
         | string
         | null;
+
       if (cnPath) {
         const { data: file } = await supabase.storage.from(BUCKET).download(
           cnPath,
