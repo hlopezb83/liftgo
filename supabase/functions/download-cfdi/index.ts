@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
       }
       const bytes = res.bytes;
 
-      const newPath = `credit-notes/${cn.id}/${cn.cfdi_uuid}.${format}`;
+      const newPath = `credit-notes/${cn.id}/${cn.cfdi_uuid}.${baseFormat}`;
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(
         newPath,
         bytes,
@@ -271,12 +271,13 @@ Deno.serve(async (req) => {
         await supabase
           .from("credit_notes")
           .update(
-            format === "pdf"
+            baseFormat === "pdf"
               ? { cfdi_pdf_url: newPath }
               : { cfdi_xml_url: newPath },
           )
           .eq("id", credit_note_id);
       }
+
       return new Response(bytes, {
         headers: {
           ...corsHeaders,
