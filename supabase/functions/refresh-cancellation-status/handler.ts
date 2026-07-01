@@ -134,21 +134,27 @@ export async function handleRefreshCancellation(
         502,
       );
     }
-    const rawStatus = facturApiInv?.cancellation_status as string | undefined;
+    const rawCancel = (facturApiInv?.cancellation_status as string | undefined) ??
+      ((facturApiInv?.cancellation as Record<string, unknown> | undefined)?.status as string | undefined);
+    const rootStatus = facturApiInv?.status as string | undefined;
     const prior = (inv.cancellation_status as string | undefined) ?? "none";
-    // Solo aceptar transiciones válidas y no degradar un `pending` existente
-    // cuando Facturapi/SAT reporta `none` o algo no reconocido (SAT sigue
-    // procesando el acuse).
+    // Facturapi marca la cancelación aceptada bajando el `status` raíz a
+    // "canceled" (a veces "cancelled") y no siempre poblando cancellation_status.
     let satStatus = prior;
-    if (rawStatus && VALID_SAT_STATUSES.includes(rawStatus)) {
-      // Nunca bajar de un estado terminal a pending.
-      if (!(TERMINAL_STATUSES.has(prior) && rawStatus === "pending")) {
-        satStatus = rawStatus;
+    if (
+      rootStatus === "canceled" || rootStatus === "cancelled" ||
+      rawCancel === "accepted"
+    ) {
+      satStatus = "accepted";
+    } else if (rawCancel && VALID_SAT_STATUSES.includes(rawCancel)) {
+      // Nunca degradar un estado terminal a pending.
+      if (!(TERMINAL_STATUSES.has(prior) && rawCancel === "pending")) {
+        satStatus = rawCancel;
       }
     } else if (prior === "none") {
-      // Sin estado previo y respuesta indeterminada → pending por defecto.
       satStatus = "pending";
     }
+
 
     const update: Record<string, unknown> = { cancellation_status: satStatus };
     if (satStatus === "accepted") {
