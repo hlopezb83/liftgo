@@ -1,0 +1,19 @@
+{
+  "version": "6.103.1",
+  "date": "2026-07-01",
+  "type": "patch",
+  "title": "Fix Dependabot: registry público explícito en .npmrc",
+  "description": "Dependabot abortaba con 'private_registry_config_not_found — Registry: npm.pkg.github.com' porque el experimento automatic-github-packages-auth inyecta credenciales de GitHub Packages a nivel organización aunque el repo no lo use. Se agrega .npmrc en la raíz fijando registry=https://registry.npmjs.org/ para satisfacer el check del updater sin cambiar el comportamiento de bun install (bun ya usa el registry público y respeta .npmrc). Desbloquea los PRs #6–#10 (react-day-picker, recharts, @types/react, globals, grupos dev-minor-patch y prod-patch).",
+  "category": "infra",
+  "details": {
+    "problem": "El experimento automatic-github-packages-auth de Dependabot inyecta credentials-metadata para npm.pkg.github.com aunque el repositorio no consuma paquetes de GitHub Packages. Sin .npmrc ni scopes @owner/* declarados, el updater falla con private_registry_config_not_found y no puede refrescar ningún PR de npm.",
+    "solution": "Crear .npmrc mínimo con registry=https://registry.npmjs.org/. No requiere tokens (registry público), no agrega scopes de GitHub Packages, y bun 1.2.x lo respeta sin romper bun install --frozen-lockfile ni la CI.",
+    "files_changed": [
+      ".npmrc (nuevo)"
+    ],
+    "verification": [
+      "Disparar Dependabot manualmente desde Insights → Dependency graph → Dependabot → Check for updates.",
+      "Confirmar que PRs #6–#10 se refrescan sin el error private_registry_config_not_found."
+    ]
+  }
+}
