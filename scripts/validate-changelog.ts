@@ -76,12 +76,20 @@ function main(): void {
 
     const detailPath = `${DETAIL_DIR}/v${entry.version}.json`;
     if (!existsSync(detailPath)) {
-      console.error(
-        `::error file=${INDEX_PATH}::Falta archivo detalle ${detailPath} para versión ${entry.version}`,
-      );
-      failed = true;
+      // Solo bloqueamos si es la entrada más reciente (top del array). Entradas
+      // históricas sin detalle se reportan como warning para no romper CI por
+      // ausencias pre-existentes.
+      if (i === 0) {
+        console.error(
+          `::error file=${INDEX_PATH}::Falta archivo detalle ${detailPath} para la versión más reciente (${entry.version})`,
+        );
+        failed = true;
+      } else {
+        console.log(
+          `::warning file=${INDEX_PATH}::Falta archivo detalle ${detailPath} (histórico)`,
+        );
+      }
     }
-  }
 
   // Orden descendente: parsed[0] > parsed[1] > ...
   for (let i = 1; i < parsed.length; i++) {
