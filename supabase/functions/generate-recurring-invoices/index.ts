@@ -148,7 +148,7 @@ async function buildPlan(supabase: any): Promise<{
 
     const baseLine: PreviewLine = {
       bookingId: booking.id,
-      bookingCode: booking.booking_code ?? null,
+      bookingCode: booking.booking_number ?? null,
       customerId: booking.customer_id ?? null,
       customerName: booking.customer_name ?? null,
       forkliftName: forklift?.name ?? null,
