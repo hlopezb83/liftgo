@@ -239,31 +239,63 @@ export async function handleStampCfdi(
       }))
       : [];
 
-    const paymentMethod = inv.metodo_pago || "PUE";
+    const receptorRfc = (inv.receptor_rfc || "XAXX010101000").toUpperCase();
+    const isGlobal = receptorRfc === "XAXX010101000";
+
+    // Overrides fiscales obligatorios para Público en General (CFDI 4.0)
+    const paymentMethod = isGlobal ? "PUE" : (inv.metodo_pago || "PUE");
     // SAT CFDI 4.0: cuando metodo_pago = PPD, forma_pago DEBE ser "99" (Por definir)
-    const paymentForm = paymentMethod === "PPD"
-      ? "99"
-      : (inv.forma_pago || "99");
+    const paymentForm = isGlobal
+      ? "01"
+      : (paymentMethod === "PPD" ? "99" : (inv.forma_pago || "99"));
+    const usoCfdi = isGlobal ? "S01" : (inv.uso_cfdi || "G03");
+    const legalName = isGlobal
+      ? "PUBLICO EN GENERAL"
+      : sanitizeLegalName(inv.receptor_razon_social || inv.customer_name || "Público General");
+    const taxSystem = isGlobal ? "616" : (inv.receptor_regimen_fiscal || "616");
+
+    if (isGlobal) {
+      const missing: string[] = [];
+      if (!inv.global_periodicity) missing.push("periodicidad");
+      if (!inv.global_months) missing.push("meses");
+      if (!inv.global_year) missing.push("año");
+      if (missing.length > 0) {
+        return json(
+          {
+            error: `Faltan datos de Información Global (Público en General): ${missing.join(", ")}. Captúralos en el formulario de la factura antes de timbrar.`,
+          },
+          400,
+          jsonHeaders,
+        );
+      }
+    }
 
     const payload: Record<string, unknown> = {
       type: "I",
       customer: {
-        legal_name: sanitizeLegalName(
-          inv.receptor_razon_social || inv.customer_name || "Público General",
-        ),
-        tax_id: (inv.receptor_rfc || "XAXX010101000").toUpperCase(),
-        tax_system: inv.receptor_regimen_fiscal || "616",
+        legal_name: legalName,
+        tax_id: receptorRfc,
+        tax_system: taxSystem,
         address: { zip: inv.receptor_domicilio_fiscal_cp || "06600" },
       },
       items,
       payment_form: paymentForm,
       payment_method: paymentMethod,
-      use: inv.uso_cfdi || "G03",
+      use: usoCfdi,
       currency: inv.moneda || "MXN",
       exchange: inv.tipo_cambio || 1,
       series: inv.serie || undefined,
       folio_number: inv.folio ? Number(inv.folio) : undefined,
     };
+
+    if (isGlobal) {
+      payload.global = {
+        periodicity: String(inv.global_periodicity),
+        months: String(inv.global_months),
+        year: Number(inv.global_year),
+      };
+    }
+
 
     let facturApiInvoice: { id: string; uuid: string };
     try {
