@@ -363,7 +363,7 @@ Deno.serve(async (req) => {
       const bytes = res.bytes;
 
       const newPath =
-        `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${format}`;
+        `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${baseFormat}`;
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(
         newPath,
         bytes,
@@ -373,12 +373,13 @@ Deno.serve(async (req) => {
         await supabase
           .from("payments")
           .update(
-            format === "pdf"
+            baseFormat === "pdf"
               ? { rep_pdf_url: newPath }
               : { rep_xml_url: newPath },
           )
           .eq("id", payment_id);
       }
+
       return new Response(bytes, {
         headers: {
           ...corsHeaders,
