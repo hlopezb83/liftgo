@@ -22,58 +22,28 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Necesario para el diff contra base_ref.
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun-project
 
-      # Verificación textual: por cada migración que crea una tabla en public.*,
-      # debe existir GRANT y ENABLE ROW LEVEL SECURITY en el mismo archivo.
-      # Alineado con la regla core del proyecto.
-      - name: Verificar GRANTs y RLS en cada migración nueva
+      - name: Resolver migraciones nuevas/modificadas
+        id: files
         shell: bash
         run: |
           set -euo pipefail
-          FAIL=0
-          # Sólo migraciones modificadas/agregadas en el PR.
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             git fetch origin "${{ github.base_ref }}" --depth=1
-            FILES=$(git diff --name-only --diff-filter=AM "origin/${{ github.base_ref }}"...HEAD -- 'supabase/migrations/*.sql' || true)
+            FILES=$(git diff --name-only --diff-filter=AM "origin/${{ github.base_ref }}"...HEAD -- 'supabase/migrations/*.sql' | tr '\n' ' ')
           else
-            FILES=$(ls supabase/migrations/*.sql 2>/dev/null || true)
+            FILES=$(ls supabase/migrations/*.sql 2>/dev/null | tr '\n' ' ' || true)
           fi
+          echo "list=${FILES}" >> "$GITHUB_OUTPUT"
+          echo "Archivos: ${FILES:-<ninguno>}"
 
-          if [[ -z "$FILES" ]]; then
-            echo "Sin migraciones SQL nuevas a validar."
-            exit 0
-          fi
-
-          for f in $FILES; do
-            [[ -f "$f" ]] || continue
-            if grep -qiE 'create[[:space:]]+table[[:space:]]+(if[[:space:]]+not[[:space:]]+exists[[:space:]]+)?public\.' "$f"; then
-              echo "::group::Validando $f"
-              MISSING=()
-              grep -qiE 'grant[[:space:]]+' "$f" || MISSING+=("GRANT")
-              grep -qiE 'enable[[:space:]]+row[[:space:]]+level[[:space:]]+security' "$f" || MISSING+=("ENABLE ROW LEVEL SECURITY")
-              grep -qiE 'create[[:space:]]+policy' "$f" || MISSING+=("CREATE POLICY")
-              if [[ ${#MISSING[@]} -gt 0 ]]; then
-                echo "::error file=$f::Migración crea tabla en public.* pero faltan: ${MISSING[*]}"
-                FAIL=1
-              else
-                echo "OK"
-              fi
-              echo "::endgroup::"
-            fi
-          done
-
-          # Bloqueo extra: search_path explícito en funciones SECURITY DEFINER.
-          for f in $FILES; do
-            [[ -f "$f" ]] || continue
-            if grep -qiE 'security[[:space:]]+definer' "$f"; then
-              if ! grep -qiE 'set[[:space:]]+search_path[[:space:]]*=' "$f"; then
-                echo "::error file=$f::Función SECURITY DEFINER sin 'SET search_path = public'"
-                FAIL=1
-              fi
-            fi
-          done
-
-          exit $FAIL
+      - name: Validar GRANT / RLS / POLICY / search_path
+        if: steps.files.outputs.list != ''
+        run: bun scripts/lint-migrations.ts ${{ steps.files.outputs.list }}
 
   cli-lint:
     name: supabase db lint
