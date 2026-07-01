@@ -14,7 +14,7 @@ interface InvoicePDFButtonProps {
 export function InvoicePDFButton({ invoiceId, cfdiStatus, invoiceNumber }: InvoicePDFButtonProps) {
   const { download, loading } = useInvoicePdfDownload();
   const [satLoading, setSatLoading] = useState(false);
-  const isStamped = cfdiStatus === "stamped";
+  const isStamped = cfdiStatus === "stamped" || cfdiStatus === "cancelled";
 
   const handleClick = async () => {
     if (!isStamped) {

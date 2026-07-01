@@ -1,0 +1,15 @@
+{
+  "version": "6.104.6",
+  "date": "2026-07-01",
+  "type": "minor",
+  "title": "CFDI cancelado: descargar PDF/XML y acuse de cancelación",
+  "description": "Antes, una factura cancelada bloqueaba la descarga del PDF y XML, y no había forma de obtener el acuse. Ahora download-cfdi acepta facturas con cfdi_status stamped o cancelled, y se añadieron formatos acuse_pdf/acuse_xml que traen el acta de cancelación desde /invoices/{id}/cancellation_receipt de Facturapi (y la archivan en Storage). En el detalle de la factura aparecen botones 'Acuse PDF' y 'Acuse XML' cuando la cancelación fue aceptada, y los botones de descarga siguen visibles tras cancelar. Se agregaron columnas acuse_pdf_url/acuse_xml_url a invoices.",
+  "category": "feature",
+  "changes": [
+    "download-cfdi: cfdi_status permitido stamped y cancelled",
+    "download-cfdi: formatos acuse_pdf/acuse_xml vía /cancellation_receipt",
+    "invoices: columnas acuse_pdf_url y acuse_xml_url",
+    "UI: botones 'Acuse PDF' y 'Acuse XML' cuando cancellation_status=accepted",
+    "UI: PDF/XML descargables tras cancelación"
+  ]
+}

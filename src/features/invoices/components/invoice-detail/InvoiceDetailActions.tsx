@@ -2,9 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { Edit, Stamp, XCircle, Download, DollarSign, Trash2, RefreshCw } from "lucide-react";
+import { Edit, Stamp, XCircle, Download, DollarSign, Trash2, RefreshCw, FileCheck } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
+import { useState } from "react";
+import { downloadCfdiBlob } from "../../lib/downloadCfdiBlob";
+import { notifyError } from "@/lib/ui/appFeedback";
+
 
 interface Props {
   invoice: Tables<"invoices">;
@@ -28,7 +32,9 @@ interface Flags {
   isStamped: boolean;
   isPendingCancel: boolean;
   isRejectedCancel: boolean;
+  isAcuseAvailable: boolean;
 }
+
 
 function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?: string): Flags {
   const status = invoice.status;
@@ -37,23 +43,23 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?
   const raw = invoice as unknown as { cancellation_status?: string; cancellation_motive?: string | null };
   const cancellationStatus = raw.cancellation_status ?? "none";
   const hasMotive = Boolean(raw.cancellation_motive);
-  // "Solicitada" = se disparó cancelación y la factura sigue viva. Cubre
-  // pending, rejected y también estados intermedios donde el SAT aún no
-  // regresa un veredicto y el status quedó en `none` por race conditions.
   const isPendingCancel =
     cancellationStatus === "pending" ||
     (hasMotive && status !== "cancelled" && cfdiStatus !== "cancelled" && cancellationStatus !== "rejected");
+  const isCancelled = cfdiStatus === "cancelled" || status === "cancelled";
   return {
     isDraft,
     isPayable,
     showPaymentBtn: isPayable || status === "partial",
     canEdit: isDraft || userRole === "admin",
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
-    isStamped: cfdiStatus === "stamped",
+    isStamped: cfdiStatus === "stamped" || isCancelled,
     isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
+    isAcuseAvailable: cancellationStatus === "accepted",
   };
 }
+
 
 function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: string }) {
   const refresh = useRefreshCancellationStatus();
@@ -73,6 +79,34 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
     </>
   );
 }
+
+function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string; invoiceNumber?: string | null }) {
+  const [loading, setLoading] = useState<"pdf" | "xml" | null>(null);
+  const handle = async (fmt: "acuse_pdf" | "acuse_xml") => {
+    setLoading(fmt === "acuse_pdf" ? "pdf" : "xml");
+    try {
+      const ext = fmt === "acuse_pdf" ? "pdf" : "xml";
+      await downloadCfdiBlob({ invoice_id: invoiceId }, fmt, `Acuse-${invoiceNumber || invoiceId}.${ext}`);
+    } catch (err) {
+      notifyError({ error: err, message: "Error al descargar acuse" });
+    } finally {
+      setLoading(null);
+    }
+  };
+  return (
+    <>
+      <Button size="sm" variant="outline" onClick={() => handle("acuse_pdf")} disabled={loading !== null}>
+        <FileCheck className="h-4 w-4 mr-1" />
+        {loading === "pdf" ? "Descargando..." : "Acuse PDF"}
+      </Button>
+      <Button size="sm" variant="outline" onClick={() => handle("acuse_xml")} disabled={loading !== null}>
+        <FileCheck className="h-4 w-4 mr-1" />
+        {loading === "xml" ? "Descargando..." : "Acuse XML"}
+      </Button>
+    </>
+  );
+}
+
 
 
 export function InvoiceDetailActions({
@@ -110,7 +144,10 @@ export function InvoiceDetailActions({
         </Button>
       )}
       <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
-      {flags.isStamped && !flags.isPendingCancel && (
+      {flags.isAcuseAvailable && (
+        <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
+      )}
+      {cfdiStatus === "stamped" && !flags.isPendingCancel && (
         <Button
           size="sm"
           variant="outline"
@@ -120,6 +157,7 @@ export function InvoiceDetailActions({
           <XCircle className="h-4 w-4 mr-1" /> Cancelar CFDI
         </Button>
       )}
+
       <RoleGuard module="Facturas" minAccess="full">
         <Button
           size="sm"

@@ -1,6 +1,6 @@
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 
-export type CfdiFormat = "pdf" | "xml";
+export type CfdiFormat = "pdf" | "xml" | "acuse_pdf" | "acuse_xml";
 
 export type CfdiTarget =
   | { invoice_id: string }
@@ -10,7 +10,10 @@ export type CfdiTarget =
 const MIME_BY_FORMAT: Record<CfdiFormat, string> = {
   pdf: "application/pdf",
   xml: "application/xml",
+  acuse_pdf: "application/pdf",
+  acuse_xml: "application/xml",
 };
+
 
 /**
  * Invokes the `download-cfdi` edge function and returns the resulting Blob.
