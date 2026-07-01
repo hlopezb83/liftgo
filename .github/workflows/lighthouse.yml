@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: lighthouse-${{ github.workflow }}-${{ github.ref }}
@@ -27,6 +28,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Run Lighthouse CI
+        id: lhci
         # Pin a SHA (action de terceros). v12.6.2.
         uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # v12.6.2
         with:
@@ -34,3 +36,39 @@ jobs:
           configPath: ./lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
+
+      # Si falla algún threshold, abre o actualiza un issue para que no pase inadvertido
+      # (el job corre en cron y no tiene PR asociado). Solo un issue abierto a la vez.
+      - name: Abrir issue de regresión (on failure)
+        if: failure()
+        # Pin a SHA (action de terceros). v7.0.1.
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TARGET_URL: ${{ github.event.inputs.target_url || 'https://liftgo.lovable.app' }}
+        with:
+          script: |
+            const title = "[Lighthouse] Regresión de performance detectada";
+            const body = [
+              `El workflow de Lighthouse falló en \`${process.env.TARGET_URL}\`.`,
+              ``,
+              `- Run: ${process.env.RUN_URL}`,
+              `- Fecha: ${new Date().toISOString()}`,
+              `- SHA: \`${context.sha}\``,
+              ``,
+              `Revisar los artifacts del run para el reporte HTML de Lighthouse y la URL pública temporal.`,
+            ].join("\n");
+            const { owner, repo } = context.repo;
+            const existing = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", labels: "lighthouse-regression", per_page: 5,
+            });
+            if (existing.data.length > 0) {
+              const number = existing.data[0].number;
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body });
+              core.info(`Comentario agregado al issue #${number}.`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner, repo, title, body, labels: ["lighthouse-regression", "performance"],
+              });
+              core.info(`Issue creado: #${created.data.number}.`);
+            }
