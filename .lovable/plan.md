@@ -1,35 +1,47 @@
-## Causa raíz
+## Diagnóstico
 
-Las políticas RLS de `company_settings` y `billing_secrets` solo permiten `UPDATE/INSERT` al rol `admin`. Tu usuario es `administrativo`, así que el UPDATE se ejecuta pero afecta 0 filas y `.select().single()` devuelve `PGRST116` → se muestran los dos toasts ("Error" + "Cannot coerce…").
+La factura FAC-0076 fue timbrada correctamente hace unos minutos (`cfdi_status='stamped'`, UUID válido, modo `live`), pero al descargar XML/PDF sale `Facturapi error: 502`.
 
-El UI actualmente pinta el formulario a cualquier rol con acceso a `/settings/operations`, dando la falsa expectativa de que puede guardar.
+Auditando la BD y el código:
 
-## Solución (solo frontend)
+- `invoices.cfdi_xml_url` = NULL, `cfdi_pdf_url` = NULL, `cfdi_xml` = NULL. **Nada quedó archivado en Storage al timbrar.**
+- `supabase/functions/stamp-cfdi/handler.ts` (líneas 308-334) intenta descargar el XML y el PDF desde Facturapi y subirlos a Storage justo después del timbrado, pero envuelve cada intento en `try { ... } catch (_e) { /* keep null */ }`. Si Facturapi contesta 5xx en ese momento (como pasó hoy), **se traga el error en silencio** y la factura queda timbrada sin respaldo local.
+- `supabase/functions/download-cfdi/index.ts` (líneas 394-406) llama a Facturapi una sola vez y, si contesta 5xx, devuelve el 502 tal cual. No hay reintento.
 
-Restringir la pestaña **Datos Fiscales** (que incluye la carta "Configuración PAC") a `admin`. Para el resto de roles con acceso a Configuración, mostrar un aviso claro en lugar del formulario.
+Resultado: cada descarga posterior depende 100% de que Facturapi esté sano en ese instante. Un 502 transitorio de Facturapi rompe la descarga hasta que ellos se recuperen.
 
-### Cambios
+## Cambios propuestos
 
-1. **`src/features/operations/components/operations/FiscalDataTab.tsx`**
-   - Leer el rol efectivo con `useAuth()` (mismo hook usado en el resto de guards del proyecto).
-   - Si el rol no es `admin`:
-     - No montar el `<Form>` ni disparar queries de `useBillingSecrets` / `useCompanySettings` innecesariamente para escritura.
-     - Renderizar un `Alert` (variante informativa, con `<Lock />` icon) que diga:
-       > "Solo un administrador puede editar los datos fiscales y las llaves del PAC. Pide a un usuario con rol Admin que realice estos cambios."
-   - Si el rol es `admin`, comportamiento actual sin cambios.
+**1. `supabase/functions/_shared/facturapi/client.ts`**
+- Añadir helper `retryOnFacturapi5xx(fn, { attempts = 3, baseDelayMs = 400 })` que reintenta con backoff exponencial (400ms, 1200ms) solo cuando `describeFacturapiError(err).status` esté entre 500 y 599 o sea `0` (timeout de red). No reintenta 4xx (validaciones).
 
-2. **`src/layouts/sidebar/navConfig.ts` (verificación)**
-   - Confirmar que el link a Configuración sigue visible para `administrativo` (no lo ocultamos; solo bloqueamos esta pestaña puntual). Sin cambios si ya está así.
+**2. `supabase/functions/download-cfdi/index.ts`**
+- Envolver `client.invoices.downloadXml/downloadPdf` con `retryOnFacturapi5xx`.
+- Si tras los reintentos sigue siendo 5xx, devolver `502` con mensaje más útil: `"Facturapi no está disponible temporalmente. Reintenta en unos segundos."` (mantener `detail` para debug).
 
-3. **Mejora colateral de robustez en `useUpsertCompanySettings` / `useUpsertBillingSecrets`** (opcional, chico):
-   - Cambiar `.select().single()` a `.select('id')` + `assertRowsAffected(data, "Actualizar datos fiscales")` para que, si en el futuro RLS bloquea otra vez, el mensaje sea claro ("no se modificó ningún registro. Verifica tus permisos…") en vez del críptico `PGRST116`.
-   - Sin cambios de comportamiento para el flujo admin normal.
+**3. `supabase/functions/stamp-cfdi/handler.ts`**
+- Reintentar la descarga del XML y del PDF con `retryOnFacturapi5xx` antes de rendirse.
+- Reemplazar los `catch (_e) { }` mudos por `console.error("[stamp-cfdi] archive xml failed", { invoice_id, err })` para que quede rastro en logs.
+- Aplicar el mismo patrón en `stamp-credit-note/index.ts` y `stamp-payment-complement/index.ts` si comparten el mismo flujo (verificar en implementación; si no lo comparten, dejarlos fuera de este cambio).
 
-### Changelog
+**4. UI — `InvoiceDetail` (hooks de descarga)**
+- Detectar `error.message?.includes("Facturapi")` o status 502 en la respuesta y mostrar toast:
+  `"Facturapi está experimentando problemas. Intenta de nuevo en unos segundos."` en vez del mensaje crudo `"Facturapi error: 502"`.
 
-- `public/changelog.json` + `public/changelog/v6.103.3.json` (patch): "Datos Fiscales y Configuración PAC ahora se muestran como solo lectura para roles distintos de admin, con aviso claro en lugar del formulario. Se mejora el mensaje de error cuando RLS bloquea una escritura."
+**5. Backfill puntual (una sola vez, vía SQL/consola)**
+- No modificamos la BD en este plan; una vez desplegados los cambios, el usuario reintenta la descarga y `download-cfdi` archivará el XML/PDF en Storage para futuras descargas. No requiere script de backfill.
+
+**6. Changelog**
+- Nueva entrada `v6.103.4` (patch, `fix`) en `public/changelog.json` + `public/changelog/v6.103.4.json` describiendo: reintentos ante 5xx de Facturapi al descargar y timbrar, y mejora de mensaje al usuario.
 
 ## Fuera de alcance
 
-- No se tocan las políticas RLS (mantienen admin-only, coherente con la sensibilidad de las llaves de Facturapi).
-- No se toca el edge de timbrado ni la lógica del toggle test/producción.
+- No cambiar el diseño del modal de descarga ni la lógica de facturación.
+- No tocar `facturapi_mode` ni claves PAC.
+- No agregar un job de reconciliación programada (se puede considerar en un plan aparte si vuelve a ocurrir).
+
+## Verificación
+
+- Deploy de las 2 (o 4) edge functions afectadas.
+- El usuario reintenta descarga de FAC-0076: debe funcionar y quedar respaldada en Storage (`cfdi_xml_url` y `cfdi_pdf_url` no nulos después).
+- Correr los tests existentes de `stamp-cfdi/handler_test.ts` para no romper el flujo de timbrado.
