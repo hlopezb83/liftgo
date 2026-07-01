@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.5",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "CFDI: reconocer cancelación aceptada desde Facturapi",
+    "description": "refresh-cancellation-status ignoraba el campo raíz `status: \"canceled\"` que devuelve Facturapi cuando el SAT acepta la cancelación, así que FAC-0076 quedaba pegada en 'esperando SAT' aun después de estar cancelada en el portal. Ahora el handler acepta status raíz canceled/cancelled, cancellation.status y cancellation_status='accepted' como cancelación aceptada, y actualiza la factura a cancelled con cancelled_at. Se sincronizó FAC-0076.",
+    "category": "fix"
+  },
+  {
     "version": "6.104.4",
     "date": "2026-07-01",
     "type": "patch",
