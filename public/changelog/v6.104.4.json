@@ -1,0 +1,16 @@
+{
+  "version": "6.104.4",
+  "date": "2026-07-01",
+  "type": "patch",
+  "title": "CFDI: cancelación visible y sin degradarse a 'none'",
+  "category": "fix",
+  "description": "Al cancelar FAC-0076 no aparecía ninguna señal en la UI y el sistema pisaba el estado pendiente. El audit_log mostraba pending → none 16 s después de solicitar la cancelación. Se corrigieron el edge function y la UI.",
+  "changes": [
+    "refresh-cancellation-status: quitado shadow de la variable `inv` que hacía irrelevante el status previo",
+    "refresh-cancellation-status: se removió 'none' de VALID_SAT_STATUSES y se prohibió degradar un estado terminal o un pending existente",
+    "cancel-cfdi: 'none' ya no es un status válido en la respuesta de cancelación",
+    "InvoiceDetailActions: el badge 'Cancelación solicitada · esperando SAT' ahora se muestra en cuanto existe cancellation_motive y la factura no está cancelada",
+    "InvoiceDetailActions: se oculta el botón 'Cancelar CFDI' mientras hay cancelación en curso",
+    "Datos: FAC-0076 restaurada a cancellation_status='pending'"
+  ]
+}

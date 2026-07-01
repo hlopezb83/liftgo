@@ -15,8 +15,8 @@ const VALID_SAT_STATUSES = [
   "pending",
   "rejected",
   "expired",
-  "none",
 ];
+
 
 export interface CancelCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
