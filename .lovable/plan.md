@@ -1,17 +1,32 @@
-## Fix `deno fmt` en `generate-recurring-invoices/index.ts`
+## Contexto
 
-El CI corre `deno fmt --check` y detecta que `supabase/functions/generate-recurring-invoices/index.ts` no está formateado según las reglas de Deno (líneas largas que deben partirse). Son puramente cambios de whitespace/wrapping — no hay cambios de lógica.
+Verifiqué el estado actual en la base:
 
-### Cambio único
+- `FAC-0073` → no existe (hueco en la numeración)
+- `FAC-0074` → existe (draft, 27/jun)
+- `FAC-0075` → existe (draft, 30/jun, id `ffee4a4b…`, la que estás viendo)
 
-Aplicar el formato que `deno fmt` propone en el diff del error, en las 8 secciones señaladas (líneas ~178, 240, 257, 262, 293, 311, 359, 413). Equivalente a correr localmente:
+Como `FAC-0073` está libre, el renombrado es seguro respecto al UNIQUE index de `invoice_number`.
 
-```bash
-cd supabase/functions && deno fmt generate-recurring-invoices/index.ts
+## Cambio a ejecutar
+
+Un solo UPDATE en `public.invoices`:
+
+```sql
+UPDATE public.invoices
+SET invoice_number = 'FAC-0073',
+    updated_at = now()
+WHERE id = 'ffee4a4b-c987-4020-b27c-c36c86b06788'
+  AND invoice_number = 'FAC-0075';
 ```
 
-### Verificación
+## Consideraciones
 
-- `cd supabase/functions && deno fmt --check` pasa sin errores.
-- Tests existentes de la función siguen pasando (`generate-recurring-invoices/index_test.ts`) — no hay cambios de comportamiento.
-- Bump patch en changelog: v6.103.2 con nota "chore: aplicar formato deno fmt en generate-recurring-invoices".
+- **Solo cambia el folio visible**, no toca CFDI (la factura está en `draft`, no timbrada, así que no hay UUID SAT que preservar).
+- **Queda hueco en FAC-0075**: la próxima factura nueva tomará FAC-0076 desde `invoice_number_seq` (que ya está en 75). Si quieres que la siguiente sea FAC-0075 y cerrar el hueco, avísame y agrego un `setval('invoice_number_seq', 74, true)` al mismo cambio.
+- **Auditoría**: el trigger de audit_logs registrará el cambio automáticamente.
+- No hay changelog entry porque es un ajuste puntual de datos, no de código.
+
+## Confirmación que necesito
+
+¿Ejecuto solo el rename, o también reseteo la secuencia a 74 para que la próxima factura sea FAC-0075 y no quede hueco?
