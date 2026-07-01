@@ -3,8 +3,6 @@ name: Release Drafter
 on:
   push:
     branches: [main]
-  pull_request:
-    types: [opened, reopened, synchronize]
   workflow_dispatch:
 
 permissions:
@@ -12,7 +10,8 @@ permissions:
 
 concurrency:
   group: release-drafter-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Solo cancelamos en PRs; en main preservamos histórico de runs.
+  cancel-in-progress: false
 
 jobs:
   update_release_draft:
@@ -21,7 +20,6 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - name: Release drafter
         # Pin a SHA (action de terceros). v7.3.1.
