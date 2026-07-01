@@ -5,6 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CompanyFiscalForm, PacConfigForm, useBillingSecrets, useCompanySettings, useUpsertBillingSecrets, useUpsertCompanySettings } from "@/features/company-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form } from "@/components/ui/form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Lock } from "lucide-react";
+import { useUserRole } from "@/features/users";
 
 import { fiscalSchema, type FiscalDataValues } from "../../lib/operationsSchemas";
 
@@ -14,6 +17,9 @@ const defaultValues: FiscalDataValues = {
 };
 
 export function FiscalDataTab() {
+  const { data: role, isLoading: isLoadingRole } = useUserRole();
+  const isAdmin = role === "admin";
+
   const { data: settings, isLoading } = useCompanySettings();
   const { data: secrets, isLoading: isLoadingSecrets } = useBillingSecrets();
   const upsert = useUpsertCompanySettings();
@@ -69,7 +75,20 @@ export function FiscalDataTab() {
     }
   };
 
-  if (isLoading || isLoadingSecrets) return <Skeleton className="h-64" />;
+  if (isLoadingRole || isLoading || isLoadingSecrets) return <Skeleton className="h-64" />;
+
+  if (!isAdmin) {
+    return (
+      <Alert className="max-w-3xl">
+        <Lock className="h-4 w-4" />
+        <AlertTitle>Acceso restringido</AlertTitle>
+        <AlertDescription>
+          Solo un usuario con rol Admin puede editar los datos fiscales y las llaves del PAC.
+          Pide a un administrador que realice estos cambios.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   const isPending = upsert.isPending || upsertSecrets.isPending;
 
