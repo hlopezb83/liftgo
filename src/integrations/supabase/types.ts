@@ -1560,6 +1560,8 @@ export type Database = {
       }
       invoices: {
         Row: {
+          acuse_pdf_url: string | null
+          acuse_xml_url: string | null
           billing_period_end: string | null
           billing_period_start: string | null
           booking_id: string | null
@@ -1610,6 +1612,8 @@ export type Database = {
           uso_cfdi: string | null
         }
         Insert: {
+          acuse_pdf_url?: string | null
+          acuse_xml_url?: string | null
           billing_period_end?: string | null
           billing_period_start?: string | null
           booking_id?: string | null
@@ -1660,6 +1664,8 @@ export type Database = {
           uso_cfdi?: string | null
         }
         Update: {
+          acuse_pdf_url?: string | null
+          acuse_xml_url?: string | null
           billing_period_end?: string | null
           billing_period_start?: string | null
           booking_id?: string | null
