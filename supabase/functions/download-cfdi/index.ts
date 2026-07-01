@@ -10,6 +10,9 @@ import {
 } from "../_shared/facturapi/client.ts";
 
 const BUCKET = "cfdi-files";
+const FACTURAPI_BASE = "https://www.facturapi.io/v2";
+
+type DlFormat = "xml" | "pdf" | "acuse_xml" | "acuse_pdf";
 
 async function fetchFromFacturapi(
   apiKey: string,
@@ -41,6 +44,48 @@ async function fetchFromFacturapi(
     return { ok: false, status: desc.status, detail: desc.detail };
   }
 }
+
+async function fetchAcuseFromFacturapi(
+  apiKey: string,
+  facturapiId: string,
+  format: "xml" | "pdf",
+): Promise<
+  { ok: true; bytes: Uint8Array } | { ok: false; status: number; detail: string }
+> {
+  const url = `${FACTURAPI_BASE}/invoices/${facturapiId}/cancellation_receipt/${format}`;
+  try {
+    const res = await retryOnFacturapi5xx(async () => {
+      const r = await fetch(url, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!r.ok) {
+        const text = await r.text().catch(() => "");
+        const err = new Error(`Facturapi ${r.status}`) as Error & {
+          status?: number;
+          detail?: string;
+        };
+        err.status = r.status;
+        err.detail = text;
+        throw err;
+      }
+      return new Uint8Array(await r.arrayBuffer());
+    });
+    return { ok: true, bytes: res };
+  } catch (err) {
+    const e = err as { status?: number; detail?: string; message?: string };
+    console.error("[download-cfdi] Facturapi acuse failed", {
+      facturapiId,
+      format,
+      status: e.status,
+    });
+    return {
+      ok: false,
+      status: e.status ?? 500,
+      detail: e.detail ?? e.message ?? "unknown",
+    };
+  }
+}
+
 
 
 function resolveKey(
