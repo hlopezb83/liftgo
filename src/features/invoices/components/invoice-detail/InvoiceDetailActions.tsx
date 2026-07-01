@@ -41,23 +41,23 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?
   const raw = invoice as unknown as { cancellation_status?: string; cancellation_motive?: string | null };
   const cancellationStatus = raw.cancellation_status ?? "none";
   const hasMotive = Boolean(raw.cancellation_motive);
-  // "Solicitada" = se disparó cancelación y la factura sigue viva. Cubre
-  // pending, rejected y también estados intermedios donde el SAT aún no
-  // regresa un veredicto y el status quedó en `none` por race conditions.
   const isPendingCancel =
     cancellationStatus === "pending" ||
     (hasMotive && status !== "cancelled" && cfdiStatus !== "cancelled" && cancellationStatus !== "rejected");
+  const isCancelled = cfdiStatus === "cancelled" || status === "cancelled";
   return {
     isDraft,
     isPayable,
     showPaymentBtn: isPayable || status === "partial",
     canEdit: isDraft || userRole === "admin",
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
-    isStamped: cfdiStatus === "stamped",
+    isStamped: cfdiStatus === "stamped" || isCancelled,
     isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
+    isAcuseAvailable: cancellationStatus === "accepted",
   };
 }
+
 
 function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: string }) {
   const refresh = useRefreshCancellationStatus();
