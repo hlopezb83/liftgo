@@ -162,9 +162,11 @@ Deno.serve(async (req) => {
     const invoice_id = body?.invoice_id;
     const payment_id = body?.payment_id;
     const credit_note_id = body?.credit_note_id;
-    const format = body?.format;
+    const format = body?.format as DlFormat | undefined;
+    const validFormat = format === "xml" || format === "pdf" ||
+      format === "acuse_xml" || format === "acuse_pdf";
     if (
-      (format !== "xml" && format !== "pdf") ||
+      !validFormat ||
       (!isUUID(invoice_id) && !isUUID(payment_id) && !isUUID(credit_note_id))
     ) {
       return new Response(JSON.stringify({ error: "Invalid payload" }), {
@@ -173,9 +175,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    const contentType = format === "pdf"
+    const isAcuse = format === "acuse_pdf" || format === "acuse_xml";
+    const baseFormat: "pdf" | "xml" = format === "pdf" || format === "acuse_pdf"
+      ? "pdf"
+      : "xml";
+    const contentType = baseFormat === "pdf"
       ? "application/pdf"
       : "application/xml";
+
 
     // --- Credit Note download branch ---
     if (isUUID(credit_note_id)) {
