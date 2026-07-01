@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: release-drafter-${{ github.workflow }}-${{ github.ref }}
-  # Solo cancelamos en PRs; en main preservamos histórico de runs.
+  # Solo push:main y workflow_dispatch; nunca cancelamos porque cada run actualiza el draft acumulativo.
   cancel-in-progress: false
 
 jobs:
