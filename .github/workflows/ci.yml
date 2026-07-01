@@ -21,9 +21,10 @@ permissions:
   contents: read
 
 # Concurrencia por workflow+ref: un push nuevo cancela el run anterior del mismo branch.
+# En `push: main` NO cancelamos para preservar histórico de CI por SHA.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # ---------------------------------------------------------------------------
