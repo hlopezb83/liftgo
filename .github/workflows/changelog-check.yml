@@ -1,0 +1,28 @@
+name: Changelog check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "public/changelog.json"
+      - "public/changelog/**"
+      - "scripts/validate-changelog.ts"
+      - ".github/workflows/changelog-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    name: Validar semver / orden / detalle
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-bun-project
+      - run: bun scripts/validate-changelog.ts
