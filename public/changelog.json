@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.102.0",
+    "date": "2026-07-01",
+    "type": "minor",
+    "title": "Auditoría de GitHub Actions — segunda pasada",
+    "description": "Cuatro hallazgos residuales de la auditoría v6.101.0. (H1) setup-bun-project: cache key deja de hashear bun.lockb (eliminado en v6.100.2), evita contaminación del key. (H2) gitleaks.yml: concurrency.cancel-in-progress ahora condicional a pull_request para preservar histórico de escaneos por SHA en main y schedule, alineado con ci.yml/codeql.yml. (H3) release-drafter.yml: comentario de concurrency actualizado tras remover el trigger pull_request. (H4) lighthouse.yml: nuevo step con actions/github-script (pineado a SHA v7.0.1) que abre o comenta un issue etiquetado 'lighthouse-regression' cuando el cron falla, dejando trazabilidad al no haber PR asociado. H5 (reviewers en dependabot) pendiente de confirmar username.",
+    "category": "infra"
+  },
+  {
     "version": "6.101.0",
     "date": "2026-07-01",
     "type": "minor",
