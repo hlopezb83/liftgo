@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.103.2",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "Chore: deno fmt en generate-recurring-invoices",
+    "description": "Aplicado el formato de Deno al edge function generate-recurring-invoices/index.ts para pasar el check de CI (deno fmt --check). Solo cambios de whitespace/wrapping; sin cambios de lógica ni comportamiento.",
+    "category": "infra"
+  },
+  {
     "version": "6.103.1",
     "date": "2026-07-01",
     "type": "patch",
