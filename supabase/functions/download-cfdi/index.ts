@@ -392,7 +392,7 @@ Deno.serve(async (req) => {
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, cfdi_uuid, cfdi_status, cfdi_xml, cfdi_xml_url, cfdi_pdf_url, facturapi_invoice_id",
+        "id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
       )
       .eq("id", invoice_id)
       .single();
@@ -402,20 +402,117 @@ Deno.serve(async (req) => {
         headers: jsonHeaders,
       });
     }
-    if (invoice.cfdi_status !== "stamped" || !invoice.cfdi_uuid) {
+    const cfdiOk = invoice.cfdi_status === "stamped" ||
+      invoice.cfdi_status === "cancelled";
+    if (!cfdiOk || !invoice.cfdi_uuid) {
       return new Response(JSON.stringify({ error: "Invoice not stamped" }), {
         status: 409,
         headers: jsonHeaders,
       });
     }
 
-    const filename = `${invoice.invoice_number || invoice.cfdi_uuid}.${format}`;
+    if (isAcuse) {
+      if (invoice.cancellation_status !== "accepted") {
+        return new Response(
+          JSON.stringify({
+            error:
+              "El acuse aún no está disponible. Actualiza el estado SAT hasta que la cancelación esté aceptada.",
+          }),
+          { status: 409, headers: jsonHeaders },
+        );
+      }
+      const acuseFilename = `Acuse-${
+        invoice.invoice_number || invoice.cfdi_uuid
+      }.${baseFormat}`;
+      const acusePath = (baseFormat === "pdf"
+        ? invoice.acuse_pdf_url
+        : invoice.acuse_xml_url) as string | null;
+      if (acusePath) {
+        const { data: file } = await supabase.storage.from(BUCKET).download(
+          acusePath,
+        );
+        if (file) {
+          return new Response(file, {
+            headers: {
+              ...corsHeaders,
+              "Content-Type": contentType,
+              "Content-Disposition":
+                `attachment; filename="${acuseFilename}"`,
+            },
+          });
+        }
+      }
+      if (!invoice.facturapi_invoice_id) {
+        return new Response(
+          JSON.stringify({ error: "Missing facturapi reference" }),
+          { status: 404, headers: jsonHeaders },
+        );
+      }
+      const { data: companyA } = await supabase
+        .from("company_settings").select("facturapi_mode").limit(1)
+        .maybeSingle();
+      const { data: secretsA } = await supabase
+        .from("billing_secrets")
+        .select("facturapi_test_key, facturapi_live_key").limit(1)
+        .maybeSingle();
+      const apiKeyA = resolveKey(companyA, secretsA);
+      if (!apiKeyA) {
+        return new Response(
+          JSON.stringify({ error: "Facturapi key not configured" }),
+          { status: 500, headers: jsonHeaders },
+        );
+      }
+      const resA = await fetchAcuseFromFacturapi(
+        apiKeyA,
+        invoice.facturapi_invoice_id as string,
+        baseFormat,
+      );
+      if (!resA.ok) {
+        return new Response(
+          JSON.stringify({
+            error: resA.status >= 500
+              ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos."
+              : resA.status === 404
+              ? "El acuse aún no está disponible en Facturapi."
+              : `Facturapi error: ${resA.status}`,
+            detail: resA.detail.slice(0, 500),
+          }),
+          { status: 502, headers: jsonHeaders },
+        );
+      }
+      const bytesA = resA.bytes;
+      const newPathA =
+        `${invoice_id}/acuse-${invoice.cfdi_uuid}.${baseFormat}`;
+      const { error: upErrA } = await supabase.storage
+        .from(BUCKET)
+        .upload(newPathA, bytesA, { contentType, upsert: true });
+      if (!upErrA) {
+        await supabase
+          .from("invoices")
+          .update(
+            baseFormat === "pdf"
+              ? { acuse_pdf_url: newPathA }
+              : { acuse_xml_url: newPathA },
+          )
+          .eq("id", invoice_id);
+      }
+      return new Response(bytesA, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": contentType,
+          "Content-Disposition": `attachment; filename="${acuseFilename}"`,
+        },
+      });
+    }
+
+    const filename = `${
+      invoice.invoice_number || invoice.cfdi_uuid
+    }.${baseFormat}`;
     const storagePath =
-      (format === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as
+      (baseFormat === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as
         | string
         | null;
 
-    // 1) Try Storage
     if (storagePath) {
       const { data: file } = await supabase.storage.from(BUCKET).download(
         storagePath,
@@ -431,8 +528,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 2) Fallback: XML respaldado en columna
-    if (format === "xml" && invoice.cfdi_xml) {
+    if (baseFormat === "xml" && invoice.cfdi_xml) {
       return new Response(invoice.cfdi_xml, {
         headers: {
           ...corsHeaders,
@@ -442,14 +538,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3) Fallback: descargar desde Facturapi y archivar
     if (!invoice.facturapi_invoice_id) {
       return new Response(
         JSON.stringify({ error: "Missing facturapi reference" }),
-        {
-          status: 404,
-          headers: jsonHeaders,
-        },
+        { status: 404, headers: jsonHeaders },
       );
     }
 
@@ -469,12 +561,14 @@ Deno.serve(async (req) => {
     const res = await fetchFromFacturapi(
       apiKey,
       invoice.facturapi_invoice_id as string,
-      format,
+      baseFormat,
     );
     if (!res.ok) {
       return new Response(
         JSON.stringify({
-          error: res.status >= 500 ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos." : `Facturapi error: ${res.status}`,
+          error: res.status >= 500
+            ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos."
+            : `Facturapi error: ${res.status}`,
           detail: res.detail.slice(0, 500),
         }),
         { status: 502, headers: jsonHeaders },
@@ -483,7 +577,7 @@ Deno.serve(async (req) => {
 
     const bytes = res.bytes;
 
-    const newPath = `${invoice_id}/${invoice.cfdi_uuid}.${format}`;
+    const newPath = `${invoice_id}/${invoice.cfdi_uuid}.${baseFormat}`;
     const { error: upErr } = await supabase.storage
       .from(BUCKET)
       .upload(newPath, bytes, { contentType, upsert: true });
@@ -491,7 +585,7 @@ Deno.serve(async (req) => {
       await supabase
         .from("invoices")
         .update(
-          format === "pdf"
+          baseFormat === "pdf"
             ? { cfdi_pdf_url: newPath }
             : { cfdi_xml_url: newPath },
         )
@@ -507,6 +601,7 @@ Deno.serve(async (req) => {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
+
   } catch (err) {
     console.error("download-cfdi error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
