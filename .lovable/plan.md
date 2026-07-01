@@ -1,32 +1,35 @@
-## Contexto
+## Causa raíz
 
-Verifiqué el estado actual en la base:
+Las políticas RLS de `company_settings` y `billing_secrets` solo permiten `UPDATE/INSERT` al rol `admin`. Tu usuario es `administrativo`, así que el UPDATE se ejecuta pero afecta 0 filas y `.select().single()` devuelve `PGRST116` → se muestran los dos toasts ("Error" + "Cannot coerce…").
 
-- `FAC-0073` → no existe (hueco en la numeración)
-- `FAC-0074` → existe (draft, 27/jun)
-- `FAC-0075` → existe (draft, 30/jun, id `ffee4a4b…`, la que estás viendo)
+El UI actualmente pinta el formulario a cualquier rol con acceso a `/settings/operations`, dando la falsa expectativa de que puede guardar.
 
-Como `FAC-0073` está libre, el renombrado es seguro respecto al UNIQUE index de `invoice_number`.
+## Solución (solo frontend)
 
-## Cambio a ejecutar
+Restringir la pestaña **Datos Fiscales** (que incluye la carta "Configuración PAC") a `admin`. Para el resto de roles con acceso a Configuración, mostrar un aviso claro en lugar del formulario.
 
-Un solo UPDATE en `public.invoices`:
+### Cambios
 
-```sql
-UPDATE public.invoices
-SET invoice_number = 'FAC-0073',
-    updated_at = now()
-WHERE id = 'ffee4a4b-c987-4020-b27c-c36c86b06788'
-  AND invoice_number = 'FAC-0075';
-```
+1. **`src/features/operations/components/operations/FiscalDataTab.tsx`**
+   - Leer el rol efectivo con `useAuth()` (mismo hook usado en el resto de guards del proyecto).
+   - Si el rol no es `admin`:
+     - No montar el `<Form>` ni disparar queries de `useBillingSecrets` / `useCompanySettings` innecesariamente para escritura.
+     - Renderizar un `Alert` (variante informativa, con `<Lock />` icon) que diga:
+       > "Solo un administrador puede editar los datos fiscales y las llaves del PAC. Pide a un usuario con rol Admin que realice estos cambios."
+   - Si el rol es `admin`, comportamiento actual sin cambios.
 
-## Consideraciones
+2. **`src/layouts/sidebar/navConfig.ts` (verificación)**
+   - Confirmar que el link a Configuración sigue visible para `administrativo` (no lo ocultamos; solo bloqueamos esta pestaña puntual). Sin cambios si ya está así.
 
-- **Solo cambia el folio visible**, no toca CFDI (la factura está en `draft`, no timbrada, así que no hay UUID SAT que preservar).
-- **Queda hueco en FAC-0075**: la próxima factura nueva tomará FAC-0076 desde `invoice_number_seq` (que ya está en 75). Si quieres que la siguiente sea FAC-0075 y cerrar el hueco, avísame y agrego un `setval('invoice_number_seq', 74, true)` al mismo cambio.
-- **Auditoría**: el trigger de audit_logs registrará el cambio automáticamente.
-- No hay changelog entry porque es un ajuste puntual de datos, no de código.
+3. **Mejora colateral de robustez en `useUpsertCompanySettings` / `useUpsertBillingSecrets`** (opcional, chico):
+   - Cambiar `.select().single()` a `.select('id')` + `assertRowsAffected(data, "Actualizar datos fiscales")` para que, si en el futuro RLS bloquea otra vez, el mensaje sea claro ("no se modificó ningún registro. Verifica tus permisos…") en vez del críptico `PGRST116`.
+   - Sin cambios de comportamiento para el flujo admin normal.
 
-## Confirmación que necesito
+### Changelog
 
-¿Ejecuto solo el rename, o también reseteo la secuencia a 74 para que la próxima factura sea FAC-0075 y no quede hueco?
+- `public/changelog.json` + `public/changelog/v6.103.3.json` (patch): "Datos Fiscales y Configuración PAC ahora se muestran como solo lectura para roles distintos de admin, con aviso claro en lugar del formulario. Se mejora el mensaje de error cuando RLS bloquea una escritura."
+
+## Fuera de alcance
+
+- No se tocan las políticas RLS (mantienen admin-only, coherente con la sensibilidad de las llaves de Facturapi).
+- No se toca el edge de timbrado ni la lógica del toggle test/producción.
