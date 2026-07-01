@@ -36,7 +36,7 @@ function periodTitle(period: string | null): string {
 }
 
 export function RecurringInvoicesPreviewDialog({ open, onOpenChange, data, isLoading, isGenerating, onConfirm }: Props) {
-  const lines = data?.lines ?? [];
+  const lines = useMemo(() => data?.lines ?? [], [data?.lines]);
   const eligibleIds = useMemo(() => lines.filter((l) => l.eligible).map((l) => l.bookingId), [lines]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
