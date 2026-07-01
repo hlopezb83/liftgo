@@ -59,6 +59,9 @@ function cfdiFromInvoice(inv: ExistingInvoice): CfdiFormValues {
     receptorRazonSocial: toStr(inv.receptor_razon_social),
     receptorRegimenFiscal: toStr(inv.receptor_regimen_fiscal),
     receptorDomicilioFiscalCp: toStr(inv.receptor_domicilio_fiscal_cp),
+    globalPeriodicity: toStr(inv.global_periodicity),
+    globalMonths: toStr(inv.global_months),
+    globalYear: inv.global_year ?? undefined,
   };
 }
 
