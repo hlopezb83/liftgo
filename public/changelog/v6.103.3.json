@@ -1,0 +1,12 @@
+{
+  "version": "6.103.3",
+  "date": "2026-07-01",
+  "type": "patch",
+  "title": "Datos Fiscales y PAC: aviso claro para roles distintos de admin",
+  "category": "fix",
+  "description": "Las políticas RLS de company_settings y billing_secrets solo permiten escritura al rol admin. Antes, la pestaña Datos Fiscales mostraba el formulario a cualquier rol con acceso a Configuración y al guardar salía un error críptico (PGRST116: 'Cannot coerce the result to a single JSON object') porque el UPDATE afectaba 0 filas. Ahora, si el usuario no es admin, se muestra un Alert de acceso restringido en lugar del formulario, evitando el error y aclarando quién puede realizar el cambio.",
+  "changes": [
+    "FiscalDataTab.tsx: gate por rol usando useUserRole; para no-admin se renderiza Alert con icono Lock en vez del formulario de Información Fiscal y Configuración PAC.",
+    "Sin cambios en políticas RLS: se mantiene admin-only por la sensibilidad de las llaves de Facturapi."
+  ]
+}
