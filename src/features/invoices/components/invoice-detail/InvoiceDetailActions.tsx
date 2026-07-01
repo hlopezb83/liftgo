@@ -116,7 +116,10 @@ export function InvoiceDetailActions({
         </Button>
       )}
       <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
-      {flags.isStamped && !flags.isPendingCancel && (
+      {flags.isAcuseAvailable && (
+        <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
+      )}
+      {cfdiStatus === "stamped" && !flags.isPendingCancel && (
         <Button
           size="sm"
           variant="outline"
@@ -126,6 +129,7 @@ export function InvoiceDetailActions({
           <XCircle className="h-4 w-4 mr-1" /> Cancelar CFDI
         </Button>
       )}
+
       <RoleGuard module="Facturas" minAccess="full">
         <Button
           size="sm"
