@@ -84,24 +84,50 @@ export function describeFacturapiError(err: unknown): {
 
 /**
  * Convierte el resultado de `client.invoices.downloadXml/Pdf` a Uint8Array.
- * En Deno el SDK siempre devuelve un Blob.
+ * El SDK puede devolver Blob (fetch), Uint8Array/Buffer (Node), ArrayBuffer,
+ * un ReadableStream, una Response, un string, o un objeto axios-like con
+ * `.data`. Normalizamos todos los casos.
  */
 export async function binaryToBytes(bin: unknown): Promise<Uint8Array> {
-  if (bin instanceof Blob) {
-    return new Uint8Array(await bin.arrayBuffer());
-  }
+  if (bin == null) throw new Error("Empty binary response from Facturapi SDK");
   if (bin instanceof Uint8Array) return bin;
   if (bin instanceof ArrayBuffer) return new Uint8Array(bin);
-  // Stream tipo Node (defensivo, no debería ocurrir en Deno).
-  if (
-    bin && typeof (bin as { arrayBuffer?: unknown }).arrayBuffer === "function"
-  ) {
-    const ab = await (bin as { arrayBuffer: () => Promise<ArrayBuffer> })
-      .arrayBuffer();
+  if (bin instanceof Blob) return new Uint8Array(await bin.arrayBuffer());
+  if (typeof Response !== "undefined" && bin instanceof Response) {
+    return new Uint8Array(await bin.arrayBuffer());
+  }
+  if (typeof ReadableStream !== "undefined" && bin instanceof ReadableStream) {
+    return new Uint8Array(await new Response(bin).arrayBuffer());
+  }
+  if (typeof bin === "string") return new TextEncoder().encode(bin);
+  // Axios-like: { data: <Buffer|ArrayBuffer|string|Blob> }
+  const maybe = bin as { data?: unknown; arrayBuffer?: unknown; buffer?: unknown };
+  if (maybe.data !== undefined) return await binaryToBytes(maybe.data);
+  if (typeof maybe.arrayBuffer === "function") {
+    const ab = await (maybe as { arrayBuffer: () => Promise<ArrayBuffer> }).arrayBuffer();
     return new Uint8Array(ab);
   }
-  throw new Error("Unsupported binary download type from Facturapi SDK");
+  // Node Buffer serializado como { type: 'Buffer', data: number[] }
+  if (Array.isArray((bin as { data?: unknown[] }).data)) {
+    return new Uint8Array((bin as { data: number[] }).data);
+  }
+  if (ArrayBuffer.isView(bin as ArrayBufferView)) {
+    const v = bin as ArrayBufferView;
+    return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+  }
+  throw new Error(
+    `Unsupported binary download type from Facturapi SDK: ${
+      Object.prototype.toString.call(bin)
+    }`,
+  );
 }
+
+export async function binaryToText(bin: unknown): Promise<string> {
+  if (bin instanceof Blob) return await bin.text();
+  const bytes = await binaryToBytes(bin);
+  return new TextDecoder().decode(bytes);
+}
+
 
 export async function binaryToText(bin: unknown): Promise<string> {
   if (bin instanceof Blob) return await bin.text();

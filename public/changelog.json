@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.1",
+    "date": "2026-07-01",
+    "type": "patch",
+    "title": "CFDI: descarga XML/PDF robusta ante distintas formas del SDK",
+    "description": "El helper binaryToBytes solo aceptaba Blob/Uint8Array/ArrayBuffer. Cuando el SDK de Facturapi devolvía un Buffer de Node, un axios-like { data }, un ReadableStream o una Response, la descarga fallaba con 'Unsupported binary download type' aunque Facturapi ya había respondido bien. Ahora se cubren todos los casos.",
+    "category": "fix"
+  },
+  {
     "version": "6.104.0",
     "date": "2026-07-01",
     "type": "minor",
