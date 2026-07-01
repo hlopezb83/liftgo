@@ -309,7 +309,7 @@ export async function handleStampCfdi(
 
     try {
       cfdiXml = await binaryToText(
-        await client.invoices.downloadXml(facturApiId),
+        await retryOnFacturapi5xx(() => client.invoices.downloadXml(facturApiId)),
       );
       const path = `${invoice_id}/${cfdiUuid}.xml`;
       const { error: upErr } = await supabase.storage.from("cfdi-files")
@@ -319,11 +319,14 @@ export async function handleStampCfdi(
           { contentType: "application/xml", upsert: true },
         );
       if (!upErr) xmlStoragePath = path;
-    } catch (_e) { /* keep null */ }
+      else console.error("[stamp-cfdi] archive xml upload failed", { invoice_id, err: upErr });
+    } catch (err) {
+      console.error("[stamp-cfdi] archive xml failed", { invoice_id, err: describeFacturapiError(err) });
+    }
 
     try {
       const pdfBytes = await binaryToBytes(
-        await client.invoices.downloadPdf(facturApiId),
+        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(facturApiId)),
       );
       const path = `${invoice_id}/${cfdiUuid}.pdf`;
       const { error: upErr } = await supabase.storage.from("cfdi-files")
@@ -333,7 +336,11 @@ export async function handleStampCfdi(
           { contentType: "application/pdf", upsert: true },
         );
       if (!upErr) pdfStoragePath = path;
-    } catch (_e) { /* keep null */ }
+      else console.error("[stamp-cfdi] archive pdf upload failed", { invoice_id, err: upErr });
+    } catch (err) {
+      console.error("[stamp-cfdi] archive pdf failed", { invoice_id, err: describeFacturapiError(err) });
+    }
+
 
     const updRes = await supabase.from("invoices").update({
       cfdi_uuid: cfdiUuid,
