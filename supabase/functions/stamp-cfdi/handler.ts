@@ -12,7 +12,6 @@ import {
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
-
 // Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
@@ -249,9 +248,9 @@ export async function handleStampCfdi(
       ? "01"
       : (paymentMethod === "PPD" ? "99" : (inv.forma_pago || "99"));
     const usoCfdi = isGlobal ? "S01" : (inv.uso_cfdi || "G03");
-    const legalName = isGlobal
-      ? "PUBLICO EN GENERAL"
-      : sanitizeLegalName(inv.receptor_razon_social || inv.customer_name || "Público General");
+    const legalName = isGlobal ? "PUBLICO EN GENERAL" : sanitizeLegalName(
+      inv.receptor_razon_social || inv.customer_name || "Público General",
+    );
     const taxSystem = isGlobal ? "616" : (inv.receptor_regimen_fiscal || "616");
 
     if (isGlobal) {
@@ -262,7 +261,9 @@ export async function handleStampCfdi(
       if (missing.length > 0) {
         return json(
           {
-            error: `Faltan datos de Información Global (Público en General): ${missing.join(", ")}. Captúralos en el formulario de la factura antes de timbrar.`,
+            error: `Faltan datos de Información Global (Público en General): ${
+              missing.join(", ")
+            }. Captúralos en el formulario de la factura antes de timbrar.`,
           },
           400,
           jsonHeaders,
@@ -295,7 +296,6 @@ export async function handleStampCfdi(
         year: Number(inv.global_year),
       };
     }
-
 
     let facturApiInvoice: { id: string; uuid: string };
     try {
@@ -341,7 +341,9 @@ export async function handleStampCfdi(
 
     try {
       cfdiXml = await binaryToText(
-        await retryOnFacturapi5xx(() => client.invoices.downloadXml(facturApiId)),
+        await retryOnFacturapi5xx(() =>
+          client.invoices.downloadXml(facturApiId)
+        ),
       );
       const path = `${invoice_id}/${cfdiUuid}.xml`;
       const { error: upErr } = await supabase.storage.from("cfdi-files")
@@ -351,14 +353,22 @@ export async function handleStampCfdi(
           { contentType: "application/xml", upsert: true },
         );
       if (!upErr) xmlStoragePath = path;
-      else console.error("[stamp-cfdi] archive xml upload failed", { invoice_id, err: upErr });
+      else {console.error("[stamp-cfdi] archive xml upload failed", {
+          invoice_id,
+          err: upErr,
+        });}
     } catch (err) {
-      console.error("[stamp-cfdi] archive xml failed", { invoice_id, err: describeFacturapiError(err) });
+      console.error("[stamp-cfdi] archive xml failed", {
+        invoice_id,
+        err: describeFacturapiError(err),
+      });
     }
 
     try {
       const pdfBytes = await binaryToBytes(
-        await retryOnFacturapi5xx(() => client.invoices.downloadPdf(facturApiId)),
+        await retryOnFacturapi5xx(() =>
+          client.invoices.downloadPdf(facturApiId)
+        ),
       );
       const path = `${invoice_id}/${cfdiUuid}.pdf`;
       const { error: upErr } = await supabase.storage.from("cfdi-files")
@@ -368,11 +378,16 @@ export async function handleStampCfdi(
           { contentType: "application/pdf", upsert: true },
         );
       if (!upErr) pdfStoragePath = path;
-      else console.error("[stamp-cfdi] archive pdf upload failed", { invoice_id, err: upErr });
+      else {console.error("[stamp-cfdi] archive pdf upload failed", {
+          invoice_id,
+          err: upErr,
+        });}
     } catch (err) {
-      console.error("[stamp-cfdi] archive pdf failed", { invoice_id, err: describeFacturapiError(err) });
+      console.error("[stamp-cfdi] archive pdf failed", {
+        invoice_id,
+        err: describeFacturapiError(err),
+      });
     }
-
 
     const updRes = await supabase.from("invoices").update({
       cfdi_uuid: cfdiUuid,
