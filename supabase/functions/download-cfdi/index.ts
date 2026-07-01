@@ -184,6 +184,13 @@ Deno.serve(async (req) => {
       : "application/xml";
 
 
+    if (isAcuse && !isUUID(invoice_id)) {
+      return new Response(
+        JSON.stringify({ error: "Acuse download requires invoice_id" }),
+        { status: 400, headers: jsonHeaders },
+      );
+    }
+
     // --- Credit Note download branch ---
     if (isUUID(credit_note_id)) {
       const { data: cn } = await supabase
