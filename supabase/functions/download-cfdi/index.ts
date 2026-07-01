@@ -348,8 +348,9 @@ Deno.serve(async (req) => {
       const res = await fetchFromFacturapi(
         apiKey,
         payment.rep_facturapi_id as string,
-        format,
+        baseFormat,
       );
+
       if (!res.ok) {
         return new Response(
           JSON.stringify({
