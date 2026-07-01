@@ -32,7 +32,9 @@ interface Flags {
   isStamped: boolean;
   isPendingCancel: boolean;
   isRejectedCancel: boolean;
+  isAcuseAvailable: boolean;
 }
+
 
 function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?: string): Flags {
   const status = invoice.status;
