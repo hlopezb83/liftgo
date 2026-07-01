@@ -26,5 +26,13 @@ export function getMissingStampFields(invoice: Tables<"invoices">): string[] {
       missing.push(f.label);
     }
   }
+  // Reglas adicionales para Público en General (CFDI 4.0 — Información Global)
+  const rfc = (invoice.receptor_rfc || "").toUpperCase();
+  if (rfc === "XAXX010101000") {
+    if (!invoice.global_periodicity) missing.push("Periodicidad (Info. Global)");
+    if (!invoice.global_months) missing.push("Meses (Info. Global)");
+    if (!invoice.global_year) missing.push("Año (Info. Global)");
+  }
   return missing;
 }
+

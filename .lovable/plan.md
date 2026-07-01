@@ -1,47 +1,69 @@
-## Diagnóstico
+# Soporte de Factura Global (Público en General)
 
-La factura FAC-0076 fue timbrada correctamente hace unos minutos (`cfdi_status='stamped'`, UUID válido, modo `live`), pero al descargar XML/PDF sale `Facturapi error: 502`.
+## Problema
+El SAT rechaza con `CFDI40130`: cuando el receptor es `XAXX010101000` / "PÚBLICO EN GENERAL", el CFDI debe incluir el nodo **Información Global** (Periodicidad, Meses, Año) y usar `UsoCFDI = S01`, `MétodoPago = PUE`, `FormaPago = 01`. Hoy `stamp-cfdi` no envía nada de esto.
 
-Auditando la BD y el código:
+## Alcance
+Detectar automáticamente el escenario "Público en General" (RFC receptor = `XAXX010101000`) y:
+1. Capturar Periodicidad / Mes / Año en el formulario de factura.
+2. Forzar overrides fiscales al timbrar.
+3. Enviar `global` en el payload a Facturapi.
 
-- `invoices.cfdi_xml_url` = NULL, `cfdi_pdf_url` = NULL, `cfdi_xml` = NULL. **Nada quedó archivado en Storage al timbrar.**
-- `supabase/functions/stamp-cfdi/handler.ts` (líneas 308-334) intenta descargar el XML y el PDF desde Facturapi y subirlos a Storage justo después del timbrado, pero envuelve cada intento en `try { ... } catch (_e) { /* keep null */ }`. Si Facturapi contesta 5xx en ese momento (como pasó hoy), **se traga el error en silencio** y la factura queda timbrada sin respaldo local.
-- `supabase/functions/download-cfdi/index.ts` (líneas 394-406) llama a Facturapi una sola vez y, si contesta 5xx, devuelve el 502 tal cual. No hay reintento.
+---
 
-Resultado: cada descarga posterior depende 100% de que Facturapi esté sano en ese instante. Un 502 transitorio de Facturapi rompe la descarga hasta que ellos se recuperen.
+## 1. Base de datos (migración)
 
-## Cambios propuestos
+Agregar a `public.invoices`:
+- `global_periodicity text` — `'01'`(Diaria), `'02'`(Semanal), `'03'`(Quincenal), `'04'`(Mensual), `'05'`(Bimestral).
+- `global_months text` — `'01'..'12'` (mensual) o `'13'..'18'` (bimestral).
+- `global_year int`.
 
-**1. `supabase/functions/_shared/facturapi/client.ts`**
-- Añadir helper `retryOnFacturapi5xx(fn, { attempts = 3, baseDelayMs = 400 })` que reintenta con backoff exponencial (400ms, 1200ms) solo cuando `describeFacturapiError(err).status` esté entre 500 y 599 o sea `0` (timeout de red). No reintenta 4xx (validaciones).
+Sin default. Solo se llenan cuando aplica.
 
-**2. `supabase/functions/download-cfdi/index.ts`**
-- Envolver `client.invoices.downloadXml/downloadPdf` con `retryOnFacturapi5xx`.
-- Si tras los reintentos sigue siendo 5xx, devolver `502` con mensaje más útil: `"Facturapi no está disponible temporalmente. Reintenta en unos segundos."` (mantener `detail` para debug).
+## 2. Formulario de nueva/editar factura
 
-**3. `supabase/functions/stamp-cfdi/handler.ts`**
-- Reintentar la descarga del XML y del PDF con `retryOnFacturapi5xx` antes de rendirse.
-- Reemplazar los `catch (_e) { }` mudos por `console.error("[stamp-cfdi] archive xml failed", { invoice_id, err })` para que quede rastro en logs.
-- Aplicar el mismo patrón en `stamp-credit-note/index.ts` y `stamp-payment-complement/index.ts` si comparten el mismo flujo (verificar en implementación; si no lo comparten, dejarlos fuera de este cambio).
+En `invoiceFormBuilders.ts` y schema Zod:
+- Agregar campos `globalPeriodicity`, `globalMonths`, `globalYear` (opcionales).
+- Precargar con: Mensual (`'04'`), mes anterior (o mes actual si es día 1), año en curso.
 
-**4. UI — `InvoiceDetail` (hooks de descarga)**
-- Detectar `error.message?.includes("Facturapi")` o status 502 en la respuesta y mostrar toast:
-  `"Facturapi está experimentando problemas. Intenta de nuevo en unos segundos."` en vez del mensaje crudo `"Facturapi error: 502"`.
+En el componente del formulario (sección Datos Fiscales):
+- Mostrar bloque **"Factura Global"** solo cuando `receptorRfc === 'XAXX010101000'`.
+- Tres selects: Periodicidad, Mes/Bimestre (opciones dependen de periodicidad), Año (rango últimos 3 años).
+- Cuando el bloque es visible: forzar en UI (disabled + valor fijo + tooltip explicativo) `usoCfdi='S01'`, `metodoPago='PUE'`, `formaPago='01'`. Validación Zod refuerza los tres.
 
-**5. Backfill puntual (una sola vez, vía SQL/consola)**
-- No modificamos la BD en este plan; una vez desplegados los cambios, el usuario reintenta la descarga y `download-cfdi` archivará el XML/PDF en Storage para futuras descargas. No requiere script de backfill.
+En `useInvoiceFormSubmit.ts`: mapear los tres campos nuevos al insert/update.
 
-**6. Changelog**
-- Nueva entrada `v6.103.4` (patch, `fix`) en `public/changelog.json` + `public/changelog/v6.103.4.json` describiendo: reintentos ante 5xx de Facturapi al descargar y timbrar, y mejora de mensaje al usuario.
+## 3. Edge Function `stamp-cfdi/handler.ts`
+
+En el bloque que arma `payload` (líneas ~248-266):
+- Detectar `isGlobal = (inv.receptor_rfc || '').toUpperCase() === 'XAXX010101000'`.
+- Si `isGlobal`:
+  - Validar que `global_periodicity`, `global_months`, `global_year` existan; si no, responder 400 con mensaje claro ("Configura Periodicidad/Mes/Año para factura global").
+  - Sobrescribir en payload: `use: 'S01'`, `payment_method: 'PUE'`, `payment_form: '01'`.
+  - Agregar:
+    ```ts
+    payload.global = {
+      periodicity: inv.global_periodicity,
+      months: inv.global_months,
+      year: inv.global_year,
+    };
+    ```
+  - Forzar `customer.legal_name = 'PUBLICO EN GENERAL'` y `customer.tax_system = '616'`.
+
+## 4. Prechecks
+
+En `src/features/invoices/lib/cfdiPrechecks.ts`: agregar regla que bloquea el timbrado si RFC es genérico y falta cualquiera de los tres campos globales, con mensaje accionable ("Abre la factura → Datos Fiscales → Factura Global").
+
+## 5. Tests
+
+- `handler_test.ts`: caso nuevo — receptor XAXX010101000 con campos globales → payload incluye `global` y overrides.
+- `handler_test.ts`: caso — receptor XAXX010101000 sin campos globales → responde 400 sin llamar Facturapi.
+- `cfdiPrechecks.test.ts`: cubre las nuevas validaciones.
+
+## 6. Changelog
+
+Nueva entrada `v6.104.0` (minor: nueva funcionalidad fiscal) en `public/changelog.json` + `public/changelog/v6.104.0.json`.
 
 ## Fuera de alcance
-
-- No cambiar el diseño del modal de descarga ni la lógica de facturación.
-- No tocar `facturapi_mode` ni claves PAC.
-- No agregar un job de reconciliación programada (se puede considerar en un plan aparte si vuelve a ocurrir).
-
-## Verificación
-
-- Deploy de las 2 (o 4) edge functions afectadas.
-- El usuario reintenta descarga de FAC-0076: debe funcionar y quedar respaldada en Storage (`cfdi_xml_url` y `cfdi_pdf_url` no nulos después).
-- Correr los tests existentes de `stamp-cfdi/handler_test.ts` para no romper el flujo de timbrado.
+- UI para consolidar múltiples tickets en una sola factura global (hoy sigue siendo una factura por documento).
+- Migración retroactiva de la factura ya en error `8195de65…`: se re-timbrará manualmente después del deploy.

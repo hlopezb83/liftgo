@@ -1581,6 +1581,9 @@ export type Database = {
           facturapi_invoice_id: string | null
           folio: string | null
           forma_pago: string | null
+          global_months: string | null
+          global_periodicity: string | null
+          global_year: number | null
           id: string
           invoice_number: string
           is_e2e: boolean
@@ -1628,6 +1631,9 @@ export type Database = {
           facturapi_invoice_id?: string | null
           folio?: string | null
           forma_pago?: string | null
+          global_months?: string | null
+          global_periodicity?: string | null
+          global_year?: number | null
           id?: string
           invoice_number: string
           is_e2e?: boolean
@@ -1675,6 +1681,9 @@ export type Database = {
           facturapi_invoice_id?: string | null
           folio?: string | null
           forma_pago?: string | null
+          global_months?: string | null
+          global_periodicity?: string | null
+          global_year?: number | null
           id?: string
           invoice_number?: string
           is_e2e?: boolean

@@ -22,7 +22,9 @@ export type ExistingInvoice = {
   tipo_cambio?: number | string | null; receptor_rfc?: string | null;
   receptor_razon_social?: string | null; receptor_regimen_fiscal?: string | null;
   receptor_domicilio_fiscal_cp?: string | null;
+  global_periodicity?: string | null; global_months?: string | null; global_year?: number | null;
 };
+
 
 export type SourceQuote = {
   customer_name?: string | null; customer_id: string | null;
@@ -57,6 +59,9 @@ function cfdiFromInvoice(inv: ExistingInvoice): CfdiFormValues {
     receptorRazonSocial: toStr(inv.receptor_razon_social),
     receptorRegimenFiscal: toStr(inv.receptor_regimen_fiscal),
     receptorDomicilioFiscalCp: toStr(inv.receptor_domicilio_fiscal_cp),
+    globalPeriodicity: toStr(inv.global_periodicity),
+    globalMonths: toStr(inv.global_months),
+    globalYear: inv.global_year ?? undefined,
   };
 }
 

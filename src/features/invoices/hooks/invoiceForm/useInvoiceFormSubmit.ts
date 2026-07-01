@@ -34,20 +34,25 @@ interface BuildPayloadArgs {
 const nn = (s: string | null | undefined): string | null => (s ? s : null);
 
 function buildCfdiPayload(cfdi: CfdiFormValues) {
+  const isGlobal = (cfdi.receptorRfc || "").toUpperCase() === "XAXX010101000";
   return {
     serie: nn(cfdi.serie),
     folio: nn(cfdi.folio),
-    forma_pago: nn(cfdi.formaPago),
-    metodo_pago: nn(cfdi.metodoPago),
-    uso_cfdi: nn(cfdi.usoCfdi),
+    forma_pago: isGlobal ? "01" : nn(cfdi.formaPago),
+    metodo_pago: isGlobal ? "PUE" : nn(cfdi.metodoPago),
+    uso_cfdi: isGlobal ? "S01" : nn(cfdi.usoCfdi),
     moneda: nn(cfdi.moneda),
     tipo_cambio: cfdi.tipoCambio,
     receptor_rfc: nn(cfdi.receptorRfc),
-    receptor_razon_social: nn(cfdi.receptorRazonSocial),
-    receptor_regimen_fiscal: nn(cfdi.receptorRegimenFiscal),
+    receptor_razon_social: isGlobal ? "PUBLICO EN GENERAL" : nn(cfdi.receptorRazonSocial),
+    receptor_regimen_fiscal: isGlobal ? "616" : nn(cfdi.receptorRegimenFiscal),
     receptor_domicilio_fiscal_cp: nn(cfdi.receptorDomicilioFiscalCp),
+    global_periodicity: isGlobal ? nn(cfdi.globalPeriodicity) : null,
+    global_months: isGlobal ? nn(cfdi.globalMonths) : null,
+    global_year: isGlobal ? (cfdi.globalYear ?? null) : null,
   };
 }
+
 
 export function useInvoiceFormSubmit() {
   const createInvoice = useCreateInvoice();
