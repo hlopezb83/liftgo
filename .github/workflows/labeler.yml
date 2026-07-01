@@ -19,7 +19,8 @@ jobs:
     timeout-minutes: 3
     steps:
       - name: Etiquetar por archivos cambiados
-        uses: actions/labeler@v5
+        # Pin a SHA por seguridad (pull_request_target expone el token del repo base).
+        uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           configuration-path: .github/labeler.yml
