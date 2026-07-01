@@ -287,14 +287,15 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-bun-project
 
-      # Cache de browsers (~130MB). Key basada solo en la versión de Playwright del lockfile
-      # para no invalidar al cambiar otras deps.
+      # Cache de browsers (~130MB). Key basada en la versión EFECTIVA de Playwright resuelta
+      # tras `bun install` (no el rango `^1.x` del package.json, que puede resolver distinto).
       - name: Get Playwright version
         id: pw-version
         shell: bash
         run: |
-          VERSION=$(node -p "require('./package.json').devDependencies['@playwright/test'] || require('./package.json').dependencies['@playwright/test']")
+          VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').version")
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Playwright resuelto: ${VERSION}"
 
 
       - name: Cache Playwright browsers
