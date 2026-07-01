@@ -14,8 +14,9 @@ const VALID_SAT_STATUSES = [
   "pending",
   "rejected",
   "expired",
-  "none",
 ];
+const TERMINAL_STATUSES = new Set(["accepted", "rejected", "expired"]);
+
 
 export interface RefreshCancellationDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
