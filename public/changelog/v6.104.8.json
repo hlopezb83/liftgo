@@ -1,0 +1,23 @@
+{
+  "version": "6.104.8",
+  "date": "2026-07-02",
+  "type": "patch",
+  "title": "Facturas timbradas: ocultar Editar y Eliminar",
+  "category": "fix",
+  "summary": "Los botones Editar y Eliminar sólo aparecen en facturas en estado borrador; una vez timbrada o cancelada, la factura es inmutable ante el SAT y sólo se ofrece la acción Cancelar CFDI.",
+  "changes": [
+    {
+      "type": "fix",
+      "area": "Facturas / Detalle",
+      "description": "computeFlags ahora deriva canEdit y canDelete estrictamente de isDraft && cfdiStatus !== 'stamped' && !isCancelled, eliminando el bypass previo por rol admin."
+    },
+    {
+      "type": "fix",
+      "area": "Facturas / Detalle",
+      "description": "El botón Eliminar se envuelve además del RoleGuard 'Facturas:full' en {flags.canDelete && …}, quedando oculto para facturas enviadas, pagadas, timbradas o canceladas."
+    }
+  ],
+  "files": [
+    "src/features/invoices/components/invoice-detail/InvoiceDetailActions.tsx"
+  ]
+}
