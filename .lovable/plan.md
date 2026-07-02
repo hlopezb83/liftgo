@@ -1,35 +1,34 @@
 ## Problema
 
-Al cancelar FAC-0076 dejamos `cfdi_status = 'cancelled'`, y tanto la Edge Function `download-cfdi` como los botones de la UI bloquean todo lo que no sea `'stamped'`. Además nunca implementamos la descarga del **acuse de cancelación** (constancia SAT en PDF/XML) que Facturapi expone en `/v2/invoices/{id}/cancellation_receipt/{pdf|xml}`.
+Al eliminar una factura desde `/invoices/:id`, aparece un toast de error:
+`Cannot coerce the result to a single JSON object (PGRST116) · The result contains 0 rows` justo después del toast "Factura eliminada".
 
-## Solución
+## Causa raíz
 
-### 1. `supabase/functions/download-cfdi/index.ts`
-- Aceptar `cfdi_status IN ('stamped','cancelled')` en el guard de facturas y de complementos de pago (mismo cambio para `rep_cfdi_status`).
-- Ampliar el `format` permitido a `'pdf' | 'xml' | 'acuse_pdf' | 'acuse_xml'`.
-- Cuando `format` empieza con `acuse_`:
-  - Exigir `cancellation_status === 'accepted'`; si no, 409 con mensaje "El acuse aún no está disponible".
-  - Descargar de Facturapi vía `GET /v2/invoices/{facturapi_id}/cancellation_receipt/{pdf|xml}` con el mismo retry 5xx que ya usamos.
-  - Guardar en Storage bajo `{invoice_id}/acuse-{uuid}.{pdf|xml}` y persistir en dos columnas nuevas.
-- Nombre de archivo: `Acuse-{invoice_number}.{ext}`.
+`useDeleteInvoice.onSuccess` hace `invalidateQueries({ queryKey: invoiceKeys.all })`. Esto invalida **todas** las queries del árbol `invoices`, incluida `invoiceKeys.detail(id)` que sigue montada durante el ciclo de navegación de regreso a `/invoices`. `useInvoice(id)` refetchea con `.single()` sobre una fila que ya no existe → PGRST116 → el handler global de `QueryCache` en `AppProviders` dispara el toast.
 
-### 2. Migración: columnas para archivar el acuse
-`invoices.acuse_pdf_url text`, `invoices.acuse_xml_url text` (nullable). Sin cambios de RLS.
+Este patrón es idéntico al que motivó la memoria `single-query-errors`: usar `.single()` en lecturas donde la ausencia de fila es un estado válido.
 
-### 3. UI — `InvoiceDetailActions.tsx` + `InvoicePDFButton.tsx`
-- Renombrar el flag `isStamped` a algo como `hasCfdi = cfdiStatus === 'stamped' || cfdiStatus === 'cancelled'` para habilitar los botones de PDF y XML también cuando la factura está cancelada.
-- Añadir botón/menú **"Descargar acuse"** visible sólo cuando `cancellation_status === 'accepted'`, con dos acciones (PDF y XML) que llaman `download-cfdi` con los formatos nuevos.
-- El botón "Cancelar CFDI" sigue oculto para facturas ya canceladas (ya lo hace `isPendingCancel`/`cfdi_status`).
+## Cambios
 
-### 4. Hook de descarga
-`useDownloadInvoiceXml` y el flujo de PDF ya invocan `download-cfdi` con `{ invoice_id, format }`. Se agrega un hook chico `useDownloadCancellationReceipt(format)` que reutiliza `downloadCfdiBlob` con los nuevos formatos.
+### 1. `src/features/invoices/hooks/invoices/useInvoices.ts`
+- `useInvoice`: cambiar `.single()` por `.maybeSingle()` y devolver `data` (puede ser `null`). Esto elimina PGRST116 para cualquier detalle que quede huérfano (borrado desde otra pestaña, RLS, id inválido en URL, etc.).
+- Marcar la query con `meta: { silent: true }` para que un fallo puntual del detalle no dispare el toast global; el componente ya maneja el caso `!invoice` con "Factura no encontrada".
 
-### 5. Changelog `v6.105.0` (minor: feature de acuse)
-Entrada nueva en `public/changelog.json` + `public/changelog/v6.105.0.json` describiendo:
-- Se puede volver a descargar XML y PDF de facturas ya canceladas.
-- Nueva opción "Descargar acuse de cancelación" (PDF/XML) desde Facturapi.
+### 2. `useDeleteInvoice` (mismo archivo)
+- Antes de invalidar, remover la query de detalle específica del cache: `queryClient.removeQueries({ queryKey: invoiceKeys.detail(id), exact: true })` para que no se refetchee.
+- Mantener el `invalidateQueries` sobre `invoiceKeys.lists()` (más acotado que `all`) para refrescar la lista sin tocar detalles de otras facturas.
+
+### 3. `src/features/invoices/pages/InvoiceDetail.tsx`
+- Ajustar la guarda: si `!isLoading && !invoice`, seguir mostrando "Factura no encontrada" (ya lo hace) — no requiere cambio funcional, sólo confirmar que sigue funcionando con `maybeSingle` que devuelve `null`.
+
+### 4. Test
+- Añadir caso en `useInvoices.rls.test.ts` (o nuevo archivo) que verifique: `useInvoice("id-inexistente")` con respuesta `{ data: null, error: null }` resuelve a `data: null` sin lanzar error.
+
+### 5. Changelog
+- `public/changelog/v6.104.7.json` (patch) + entrada en `public/changelog.json`:
+  > Corrige toast de error PGRST116 al eliminar una factura desde su vista de detalle. `useInvoice` ahora tolera fila ausente y el delete limpia el cache del detalle antes de invalidar la lista.
 
 ## Fuera de alcance
-- No se toca la lógica de cancelación en sí ni `refresh-cancellation-status`.
-- No se agrega el acuse a complementos de pago (payments) — sólo facturas, como pide el usuario.
-- No se genera el acuse local; se descarga siempre de Facturapi y se cachea en Storage.
+
+- Auditar otros `.single()` del feature (`fetchInvoicePdfData`, `syncInvoiceStatus`, `backfillStampSnapshot`, `usePayments`, `useCollectionNotes`, `useCreditNoteMutations`): son escrituras o lecturas que garantizan existencia. Se dejan igual salvo que aparezca un reporte similar.
