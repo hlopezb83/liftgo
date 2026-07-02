@@ -486,6 +486,7 @@ export async function handleStampCfdi(
         success: true,
         cfdi_uuid: cfdiUuid,
         facturapi_invoice_id: facturApiId,
+        invoice_number: finalInvoiceNumber ?? currentInvNum,
         stub: false,
       },
       200,
