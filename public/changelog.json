@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.10",
+    "date": "2026-07-02",
+    "type": "patch",
+    "title": "Detalle de factura: badges consolidados y sin ruido",
+    "description": "Los 3 chips del header (estado interno, CFDI y entorno PAC) se consolidan en un chip fiscal único; el chip PAC solo aparece cuando estás en Sandbox.",
+    "category": "improvement"
+  },
+  {
     "version": "6.104.9",
     "date": "2026-07-02",
     "type": "patch",

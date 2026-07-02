@@ -89,6 +89,7 @@ export default function InvoiceDetail() {
           <InvoiceDetailBadges
             invoiceStatus={invoice.status}
             cfdiStatus={cfdiStatus}
+            cancellationStatus={(invoice as unknown as { cancellation_status?: string | null }).cancellation_status ?? null}
             showPacBadge={showPacBadge}
             isLive={isLive}
           />
