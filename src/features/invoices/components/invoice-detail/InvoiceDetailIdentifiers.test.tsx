@@ -82,7 +82,9 @@ describe("InvoiceDetailIdentifiers", () => {
     );
 
     const copyBtn = screen.getByLabelText("Copiar Folio interno");
-    fireEvent.click(copyBtn);
+    await act(async () => {
+      fireEvent.click(copyBtn);
+    });
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("FAC-0073");
   });
