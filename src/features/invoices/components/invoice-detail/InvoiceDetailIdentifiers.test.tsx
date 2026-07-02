@@ -6,6 +6,13 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifySuccess: vi.fn(),
 }));
 
+vi.mock("@/components/ui/tooltip", () => ({
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 describe("InvoiceDetailIdentifiers", () => {
   beforeEach(() => {
     Object.assign(navigator, {
@@ -51,7 +58,7 @@ describe("InvoiceDetailIdentifiers", () => {
     expect(screen.getByText("Serie A · Folio 145")).toBeInTheDocument();
   });
 
-  it("muestra placeholder cuando serie o folio faltan", () => {
+  it("muestra placeholder en filas sin valor", () => {
     render(
       <InvoiceDetailIdentifiers
         invoiceNumber="FAC-0073"
@@ -60,9 +67,8 @@ describe("InvoiceDetailIdentifiers", () => {
         folio={null}
       />,
     );
-    expect(
-      screen.getByText("— pendiente de timbrado —"),
-    ).toBeInTheDocument();
+    const placeholders = screen.getAllByText("— pendiente de timbrado —");
+    expect(placeholders).toHaveLength(2);
   });
 
   it("copia el folio interno al portapapeles", async () => {
@@ -91,20 +97,11 @@ describe("InvoiceDetailIdentifiers", () => {
       />,
     );
 
-    const infoIcon = screen
-      .getByText("Folio interno")
-      .closest("div")
-      ?.querySelector("svg");
-    expect(infoIcon).toBeTruthy();
-
-    if (infoIcon) {
-      fireEvent.mouseEnter(infoIcon);
-      expect(
-        screen.getByText(
-          /Control administrativo LiftGo\. Se asigna al crear el borrador y nunca cambia/,
-        ),
-      ).toBeInTheDocument();
-    }
+    expect(
+      screen.getByText(
+        "Control administrativo LiftGo. Se asigna al crear el borrador y nunca cambia, incluso si timbras días después o fuera de orden.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("muestra el tooltip de Serie y Folio con la explicación correcta", () => {
@@ -117,19 +114,27 @@ describe("InvoiceDetailIdentifiers", () => {
       />,
     );
 
-    const infoIcon = screen
-      .getByText("Serie y Folio")
-      .closest("div")
-      ?.querySelector("svg");
-    expect(infoIcon).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Serie y número fiscal asignados por el PAC (Facturapi) al timbrar. Útil para cruzar contra su portal. Son distintos del folio interno y del UUID.",
+      ),
+    ).toBeInTheDocument();
+  });
 
-    if (infoIcon) {
-      fireEvent.mouseEnter(infoIcon);
-      expect(
-        screen.getByText(
-          /Serie y número fiscal asignados por el PAC \(Facturapi\) al timbrar/,
-        ),
-      ).toBeInTheDocument();
-    }
+  it("muestra el tooltip de Folio fiscal SAT con la explicación correcta", () => {
+    render(
+      <InvoiceDetailIdentifiers
+        invoiceNumber="FAC-0073"
+        cfdiUuid="sat-uuid-123"
+        serie={null}
+        folio={null}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Identificador oficial ante el SAT (36 caracteres). Se asigna al timbrar y es distinto del folio interno.",
+      ),
+    ).toBeInTheDocument();
   });
 });
