@@ -25,23 +25,37 @@ async function fetchFromFacturapi(
     detail: string;
   }
 > {
-  const client = createFacturapiClient(apiKey);
+  const url = `${FACTURAPI_BASE}/invoices/${facturapiId}/${format}`;
   try {
-    const bin = await retryOnFacturapi5xx(() =>
-      format === "pdf"
-        ? client.invoices.downloadPdf(facturapiId)
-        : client.invoices.downloadXml(facturapiId)
-    );
-    return { ok: true, bytes: await binaryToBytes(bin) };
+    const bytes = await retryOnFacturapi5xx(async () => {
+      const r = await fetch(url, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!r.ok) {
+        const text = await r.text().catch(() => "");
+        const err = new Error(`Facturapi ${r.status}`) as Error & {
+          status?: number;
+          detail?: string;
+        };
+        err.status = r.status;
+        err.detail = text;
+        throw err;
+      }
+      return new Uint8Array(await r.arrayBuffer());
+    });
+    return { ok: true, bytes };
   } catch (err) {
-    const desc = describeFacturapiError(err);
+    const e = err as { status?: number; detail?: string; message?: string };
     console.error("[download-cfdi] Facturapi failed after retries", {
       facturapiId,
       format,
-      status: desc.status,
-      code: desc.code,
+      status: e.status ?? 500,
     });
-    return { ok: false, status: desc.status, detail: desc.detail };
+    return {
+      ok: false,
+      status: e.status ?? 500,
+      detail: e.detail ?? e.message ?? "unknown",
+    };
   }
 }
 
