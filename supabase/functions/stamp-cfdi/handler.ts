@@ -430,6 +430,8 @@ export async function handleStampCfdi(
       cfdi_error_message: null,
       facturapi_invoice_id: facturApiId,
       facturapi_env: mode === "live" ? "live" : "test",
+      ...(facturApiSeries ? { serie: facturApiSeries } : {}),
+      ...(facturApiFolio ? { folio: facturApiFolio } : {}),
       ...(inv.status === "draft" ? { status: "sent" } : {}),
     }).eq("id", invoice_id);
 
