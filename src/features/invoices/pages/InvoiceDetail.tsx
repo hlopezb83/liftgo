@@ -120,6 +120,7 @@ export default function InvoiceDetail() {
         cfdiUuid={invoice.cfdi_uuid}
         serie={invoice.serie}
         folio={invoice.folio}
+        isStamped={Boolean(invoice.cfdi_uuid) || invoice.cfdi_status === "stamped"}
       />
 
       <InvoiceSummaryCards
