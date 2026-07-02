@@ -26,7 +26,7 @@ async function downloadRep(paymentId: string, format: CfdiFormat) {
  * Construye columnas de la tabla de pagos + estado de edición.
  * Aísla la lógica de las acciones REP (timbrar/cancelar/descargar).
  */
-export function usePaymentHistoryColumns(ppdStamped: boolean) {
+export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations: boolean = ppdStamped) {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const stampRep = useStampPaymentComplement();
   const cancelRep = useCancelPaymentComplement();
