@@ -10,6 +10,7 @@ interface StampCfdiResponse {
   cfdi_uuid: string;
   stub?: boolean;
   error?: string;
+  invoice_number?: string | null;
 }
 
 /**
@@ -25,9 +26,12 @@ export function useStampCfdi() {
       });
     },
     onSuccess: (data, invoiceId) => {
-      notifySuccess(
-        `CFDI timbrado${data.stub ? " (modo prueba)" : " exitosamente"} — UUID: ${data.cfdi_uuid}`,
-      );
+      const suffix = data.stub
+        ? " (modo prueba)"
+        : data.invoice_number && data.invoice_number.startsWith("FAC-")
+        ? ` — folio asignado: ${data.invoice_number}`
+        : " exitosamente";
+      notifySuccess(`CFDI timbrado${suffix} — UUID: ${data.cfdi_uuid}`);
       queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
       queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
     },
