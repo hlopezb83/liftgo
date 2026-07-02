@@ -14,8 +14,7 @@ interface Props {
   invoiceStatus: string;
   cfdiStatus: string;
   cancellationStatus?: string | null;
-  showPacBadge: boolean;
-  isLive: boolean;
+  showSandboxChip: boolean;
 }
 
 function resolveFiscalBadge(
@@ -43,16 +42,13 @@ export function InvoiceDetailBadges({
   invoiceStatus,
   cfdiStatus,
   cancellationStatus,
-  showPacBadge,
-  isLive,
+  showSandboxChip,
 }: Props) {
   const fiscal = resolveFiscalBadge(invoiceStatus, cfdiStatus, cancellationStatus);
   return (
     <>
       <Badge className={toneClass[fiscal.tone]}>{fiscal.label}</Badge>
-      {showPacBadge && !isLive && (
-        <Badge className={toneClass.warning}>Sandbox</Badge>
-      )}
+      {showSandboxChip && <Badge className={toneClass.warning}>Sandbox</Badge>}
     </>
   );
 }
