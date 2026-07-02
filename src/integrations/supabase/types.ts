@@ -1580,6 +1580,7 @@ export type Database = {
           customer_name: string | null
           due_date: string | null
           e2e_scope: string | null
+          facturapi_env: string | null
           facturapi_invoice_id: string | null
           folio: string | null
           forma_pago: string | null
@@ -1632,6 +1633,7 @@ export type Database = {
           customer_name?: string | null
           due_date?: string | null
           e2e_scope?: string | null
+          facturapi_env?: string | null
           facturapi_invoice_id?: string | null
           folio?: string | null
           forma_pago?: string | null
@@ -1684,6 +1686,7 @@ export type Database = {
           customer_name?: string | null
           due_date?: string | null
           e2e_scope?: string | null
+          facturapi_env?: string | null
           facturapi_invoice_id?: string | null
           folio?: string | null
           forma_pago?: string | null
