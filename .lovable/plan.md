@@ -1,89 +1,104 @@
-# Validación de visibilidad: PAC, CFDI, Acuse y REP
+## Contexto
 
-## Diagnóstico
+Hoy en LiftGo conviven **tres numeraciones** en una factura, y no las estamos exponiendo con claridad:
 
-Hoy la visibilidad de estos bloques es inconsistente:
+| Numeración | Origen | Cuándo se asigna | Campo BD |
+|---|---|---|---|
+| **Folio interno** `FAC-0082` | Nuestra secuencia Postgres | Al crear borrador | `invoice_number` |
+| **Folio Facturapi** (serie + número) | Facturapi | Al timbrar | `facturapi_series` / `facturapi_folio_number` |
+| **UUID fiscal SAT** | SAT vía Facturapi | Al timbrar | `cfdi_uuid` |
 
-- **PAC (Sandbox)**: sólo se pinta si la factura NO está timbrada (`cfdiStatus !== "stamped"`) y el ambiente actual es test. Consecuencia: una factura timbrada en Sandbox se ve idéntica a una de Producción → riesgo de confundir un CFDI de pruebas con uno real.
-- **CFDI PDF/XML**: el botón PDF siempre se renderiza (draft = "PDF borrador"); el XML sólo si `isStamped`. Correcto, pero no explícito.
-- **Acuse PDF/XML**: sólo aparece con `cancellation_status === "accepted"`. Correcto, pero no cubre el caso en el que la factura llega cancelada sin acuse aún sincronizado.
-- **REP**: la columna aparece sólo si la factura padre es PPD timbrada. Por pago, se muestran descargas si `rep_cfdi_status === "stamped"` y "Timbrar REP" si `none/error`. Falta ocultar la columna cuando la factura está cancelada (los REP dejan de tener sentido operativo) y evitar mostrar acciones REP en pagos sin conciliación real.
+**Los tres son independientes.** El folio interno NO se reasigna al timbrar; el borrador `FAC-0082` sigue siendo `FAC-0082` aunque Facturapi le asigne otro número interno y otro UUID. El orden en que timbres los borradores tampoco altera la numeración interna.
 
-Además, no hay una regla única documentada; cada bloque decide por su cuenta.
+El usuario percibe incertidumbre porque la UI no distingue visualmente estos tres conceptos ni ofrece una vista de conciliación mensual.
 
-## Objetivo
+---
 
-Definir una **matriz de visibilidad** basada en el estado fiscal de la factura y aplicarla de forma consistente en `InvoiceDetail`, `InvoiceDetailActions`, `InvoiceDetailBadges` y `usePaymentHistoryColumns`.
+## Alcance del plan
 
-## Matriz de visibilidad
+Tres entregables:
 
-Ejes:
-- **Estado interno**: `draft | sent | partial | paid | overdue | cancelled`
-- **CFDI**: `pending | stamped | cancelled | error`
-- **Cancelación**: `none | pending | accepted | rejected`
-- **Ambiente del CFDI** (por factura): `test | live` — se lee desde la propia factura al momento del timbrado, no del toggle actual de la empresa.
+1. **Educar en la UI del detalle de factura** — dejar claro qué folio es cuál.
+2. **Reporte de conciliación mensual** — cruzar folios internos vs Facturapi vs SAT.
+3. **Tooltips explicativos** — que el usuario aprenda sin salir del flujo.
 
-| Situación                         | PDF borrador | CFDI PDF | CFDI XML | Acuse PDF/XML | REP col./acciones | Chip Sandbox    |
-| --------------------------------- | :----------: | :------: | :------: | :-----------: | :---------------: | :-------------: |
-| Borrador (pending, no error)      |      ✅       |    ❌     |    ❌     |       ❌       |         ❌         | sólo si test¹   |
-| Timbrado en error                 |      ✅       |    ❌     |    ❌     |       ❌       |         ❌         | sólo si test¹   |
-| Timbrada (PUE)                    |      ❌       |    ✅     |    ✅     |       ❌       |         ❌         | si env=test     |
-| Timbrada (PPD)                    |      ❌       |    ✅     |    ✅     |       ❌       |         ✅         | si env=test     |
-| Cancelación en proceso (pending)  |      ❌       |    ✅     |    ✅     |       ❌       |     ✅ solo lectura²      | si env=test     |
-| Cancelada + acuse aceptado        |      ❌       |    ✅     |    ✅     |       ✅       |     ✅ solo lectura²      | si env=test     |
-| Cancelada sin acuse (edge)        |      ❌       |    ✅     |    ✅     | ❌ + hint sync |     ✅ solo lectura²      | si env=test     |
-| Cancelación rechazada             |      ❌       |    ✅     |    ✅     |       ❌       |         ✅         | si env=test     |
+---
 
-¹ En borrador el ambiente del CFDI aún no existe; el chip Sandbox se calcula con el toggle actual de la empresa como heads-up.
-² "Solo lectura" en REP = ocultar botones "Timbrar REP" y "Cancelar REP"; mantener descargas de REPs ya timbrados (los complementos ya sellados siguen siendo documentos fiscales válidos).
+## 1. UI del detalle de factura
 
-## Cambios técnicos
+En `InvoiceDetail.tsx` / `InvoiceDetailBadges.tsx`, crear una nueva sección compacta **"Identificadores"** que muestre siempre:
 
-### 1. Estado fiscal persistido por factura
-
-Necesitamos saber en qué ambiente se timbró cada factura, no depender del toggle actual:
-
-- Migración: `ALTER TABLE public.invoices ADD COLUMN facturapi_env text CHECK (facturapi_env IN ('test','live'))`.
-- `stamp-cfdi`: al timbrar, escribir `facturapi_env` con el modo actual del PAC.
-- Backfill: `UPDATE invoices SET facturapi_env = 'live' WHERE cfdi_status IN ('stamped','cancelled') AND facturapi_env IS NULL` (o `'test'` según lo que tenga sentido para el histórico; validar con el usuario si hay dudas).
-
-### 2. Helper único de visibilidad
-
-Crear `src/features/invoices/lib/invoiceVisibility.ts`:
-
-```ts
-export type InvoiceVisibility = {
-  showDraftPdf: boolean;
-  showCfdiPdf: boolean;
-  showCfdiXml: boolean;
-  showAcuseButtons: boolean;
-  showAcuseSyncHint: boolean;   // cancelada sin acuse aún
-  showRepColumn: boolean;
-  allowRepMutations: boolean;   // habilita Timbrar/Cancelar REP
-  showSandboxChip: boolean;
-};
-
-export function computeInvoiceVisibility(invoice, company): InvoiceVisibility { … }
+```text
+Folio interno       FAC-0082          [tooltip: "Control administrativo LiftGo. Nunca cambia."]
+Folio fiscal SAT    A1B2C3D4-...      [tooltip: "UUID asignado por el SAT al timbrar."]  (solo si timbrada)
+Folio Facturapi     Serie A · 145     [tooltip: "Numeración interna del PAC."]           (solo si timbrada)
 ```
 
-Consume esta función `InvoiceDetail` una sola vez y la pasa a hijos por props.
+- Los tres con ícono `Copy` para copiar al portapapeles.
+- Placeholder "— pendiente de timbrado —" para los dos fiscales cuando la factura está en borrador.
+- Layout tipo `InfoRow` con `label` a la izquierda y valor monoespaciado a la derecha.
 
-### 3. Aplicación en UI
+**Archivos a tocar:**
+- `src/features/invoices/components/invoice-detail/InvoiceDetailIdentifiers.tsx` (nuevo)
+- `src/features/invoices/pages/InvoiceDetail.tsx` (montarlo antes de acciones)
+- Reutilizar `InfoRow` existente
 
-- `InvoiceDetailBadges`: reemplaza el par `showPacBadge/isLive` por `showSandboxChip`.
-- `InvoicePDFButton`: recibe `mode: "draft" | "cfdi" | "hidden"` en vez de decidir con `cfdiStatus`.
-- `InvoiceDetailActions`: usa `showCfdiXml`, `showAcuseButtons`, `showAcuseSyncHint` para renderizar bloques (el hint es un `Badge` outline "Cancelada · sincronizando acuse" + botón "Actualizar estado SAT" que ya existe).
-- `InvoicePaymentSummary` / `usePaymentHistoryColumns`: recibe `showRepColumn` y `allowRepMutations`. Cuando `allowRepMutations` es false, ocultar botones "Timbrar REP" y "Cancelar REP" pero mantener descargas.
+---
 
-### 4. Changelog
+## 2. Reporte de conciliación
 
-Nueva entrada `v6.104.11` (patch, improvement):
-- Reglas unificadas de visibilidad de PAC/CFDI/Acuse/REP.
-- Nuevo campo `facturapi_env` por factura; el chip Sandbox ahora es fiel al ambiente en que se emitió el CFDI.
-- REP en facturas canceladas: se conservan descargas de REPs ya timbrados; se ocultan acciones de timbrado/cancelación.
+Nueva página en `/invoices/reconciliation` (link en sidebar sección Facturación, solo admin/administrativo).
+
+**Vista tabla:**
+
+| Folio interno | Fecha | Cliente | Estado fiscal | Serie Facturapi | Folio Facturapi | UUID SAT | Ambiente | Total |
+|---|---|---|---|---|---|---|---|---|
+
+**Filtros:**
+- Rango de fechas (default: mes en curso)
+- Estado fiscal (Timbrada / Cancelada / Borrador / Todas)
+- Ambiente (Sandbox / Producción / Todos)
+
+**Acciones:**
+- Exportar a XLSX (para conciliar contra el portal Facturapi y contra contabilidad)
+- Click en fila → abre detalle de factura
+
+**KPIs arriba:**
+- Total facturado (timbradas en vivo)
+- # facturas timbradas
+- # canceladas
+- # borradores pendientes
+- Gaps de folio interno (ej. si falta `FAC-0079` en el rango)
+
+**Archivos:**
+- `src/features/invoices/pages/InvoicesReconciliation.tsx` (nuevo)
+- `src/features/invoices/hooks/reconciliation/useReconciliationData.ts` (nuevo)
+- `src/features/invoices/lib/reconciliationExport.ts` (nuevo)
+- `src/routes/routes.ts` (registrar ruta)
+- `src/layouts/sidebar/navConfig.ts` (item bajo Facturación)
+
+---
+
+## 3. Tooltips y microcopy
+
+- En el modal de "Generar Recurrentes" y en el resultado, agregar nota:
+  > "Los folios `FAC-XXXX` son de LiftGo. El folio fiscal SAT se genera al timbrar y puede ser distinto."
+- En `RecurringInvoicesResultDialog.tsx` y `RecurringInvoicesPreviewDialog.tsx`.
+
+---
+
+## Consideraciones técnicas
+
+- **BD:** ya tenemos `facturapi_series`, `facturapi_folio_number`, `cfdi_uuid`, `facturapi_env`. No requiere migración.
+- **Detección de gaps:** query SQL que compare la serie de folios internos contra la secuencia esperada en el rango.
+- **Export XLSX:** reutilizar patrón existente (skill xlsx / `xlsxwriter` en cliente vía dynamic import).
+- **RLS:** la vista de conciliación filtra por `has_role('admin')` o `has_role('administrativo')`.
+- **Changelog:** v6.106.0 (minor — nueva vista + mejora UI).
+
+---
 
 ## Fuera de alcance
 
-- Rediseño de los botones (ya se hizo en v6.104.9).
-- Cambios en Edge Functions de descarga (`get-cfdi-file` sigue igual; sólo `stamp-cfdi` escribe `facturapi_env`).
-- Cambios de lógica de negocio de cancelación o de timbrado.
+- Renombrar folios ya timbrados.
+- Sincronización bidireccional con Facturapi (solo lectura de lo que ya tenemos en BD).
+- Cambiar la lógica de asignación de folios internos (ya es idempotente vía `peek_next_invoice_number`).
