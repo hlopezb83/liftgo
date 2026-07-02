@@ -103,6 +103,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/maintenance", component: MaintenancePage, module: "Mantenimiento" },
   { path: "/invoices", component: InvoicesPage, module: "Facturas" },
   { path: "/invoices/new", component: InvoiceForm, module: "Facturas" },
+  { path: "/invoices/reconciliation", component: InvoicesReconciliation, module: "Facturas" },
   { path: "/invoices/:id", component: InvoiceDetail, module: "Facturas" },
   { path: "/invoices/:id/edit", component: InvoiceForm, module: "Facturas" },
   { path: "/returns", component: ReturnInspectionPage, module: "Entregas" },
