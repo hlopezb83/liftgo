@@ -17,7 +17,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useInvoices } from "../useInvoices";
+import { useInvoice, useInvoices } from "../useInvoices";
 
 describe("useInvoices — RLS contract", () => {
   beforeEach(() => {
