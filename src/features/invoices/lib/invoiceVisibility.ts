@@ -46,7 +46,7 @@ export function computeInvoiceVisibility(
   const status = invoice.status;
   const cancellationStatus = invoice.cancellation_status ?? "none";
 
-  const isDraft = status === "draft";
+  const isPpd = invoice.metodo_pago === "PPD";
   const isStamped = cfdiStatus === "stamped";
   const isCancelled = cfdiStatus === "cancelled" || status === "cancelled";
   const hasCfdiDoc = isStamped || isCancelled; // hay CFDI válido descargable
