@@ -118,7 +118,8 @@ export default function InvoiceDetail() {
       <InvoiceDetailIdentifiers
         invoiceNumber={invoice.invoice_number}
         cfdiUuid={invoice.cfdi_uuid}
-        facturapiInvoiceId={(invoice as unknown as { facturapi_invoice_id?: string | null }).facturapi_invoice_id ?? null}
+        serie={invoice.serie}
+        folio={invoice.folio}
       />
 
       <InvoiceSummaryCards
