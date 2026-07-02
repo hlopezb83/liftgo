@@ -17,7 +17,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useInvoices } from "../useInvoices";
+import { useInvoice, useInvoices } from "../useInvoices";
 
 describe("useInvoices — RLS contract", () => {
   beforeEach(() => {
@@ -53,4 +53,17 @@ describe("useInvoices — RLS contract", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.[0]).toMatchObject({ id: "inv-1" });
   });
+
+  it("useInvoice(id) tolera fila ausente sin lanzar (maybeSingle)", async () => {
+
+    resp = { data: null, error: null };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useInvoice("id-inexistente"), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBeNull();
+    expect(result.current.error).toBeNull();
+  });
 });
+

@@ -71,7 +71,7 @@ export default function InvoiceDetail() {
     .filter((b): b is BookingWithForklift => !!b);
 
 
-  const actions = useInvoiceDetailActions(invoice, refetch);
+  const actions = useInvoiceDetailActions(invoice ?? undefined, refetch);
 
   if (isLoading) return <PageContainer className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64" /></PageContainer>;
   if (!invoice || !id) return <PageContainer><p className="text-muted-foreground">Factura no encontrada</p></PageContainer>;

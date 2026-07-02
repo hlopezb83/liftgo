@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.104.7",
+    "date": "2026-07-02",
+    "type": "patch",
+    "title": "Facturas: eliminar deja de disparar toast PGRST116",
+    "description": "Al eliminar una factura desde su vista de detalle, useInvoice refetcheaba con .single() sobre una fila ya borrada y disparaba un toast 'Cannot coerce the result to a single JSON object'. Ahora useInvoice usa .maybeSingle() y el delete limpia el cache del detalle antes de invalidar la lista.",
+    "category": "fix"
+  },
+  {
+
     "version": "6.104.6",
     "date": "2026-07-01",
     "type": "minor",

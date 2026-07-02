@@ -27,14 +27,19 @@ export function useInvoice(id: string | undefined) {
   return useQuery({
     queryKey: id ? invoiceKeys.detail(id) : invoiceKeys.details(),
     enabled: !!id,
+    // El detalle puede quedar huérfano (borrado en otra pestaña, RLS, id inválido
+    // en URL). El componente ya maneja `!invoice` → "Factura no encontrada",
+    // así que silenciamos el toast global para este caso benigno.
+    meta: { silent: true },
     queryFn: async () => {
       if (!id) throw new Error("Invoice ID is required");
-      const { data, error } = await supabase.from("invoices").select("*").eq("id", id).single();
+      const { data, error } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
     },
   });
 }
+
 
 export function useCreateInvoice() {
   const queryClient = useQueryClient();
@@ -81,11 +86,16 @@ export function useDeleteInvoice() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("invoices").delete().eq("id", id);
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
+    onSuccess: (id) => {
+      // Removemos el detalle del cache ANTES de invalidar para que
+      // `useInvoice(id)` no refetchee una fila borrada (PGRST116).
+      queryClient.removeQueries({ queryKey: invoiceKeys.detail(id), exact: true });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       notifySuccess("Factura eliminada");
     },
+
     onError: (err: Error) => {
       notifyError({ title: "Error al eliminar factura", error: err });
     },

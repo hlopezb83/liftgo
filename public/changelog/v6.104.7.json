@@ -1,0 +1,13 @@
+{
+  "version": "6.104.7",
+  "date": "2026-07-02",
+  "type": "patch",
+  "title": "Facturas: eliminar deja de disparar toast PGRST116",
+  "description": "Al eliminar una factura desde su vista de detalle, el detalle seguía montado durante la navegación de regreso a /invoices y useInvoice refetcheaba con .single() sobre una fila ya borrada → PGRST116 → toast de error justo después del 'Factura eliminada'. Ahora useInvoice usa .maybeSingle() (tolera null y silencia el toast global; el componente ya renderiza 'Factura no encontrada') y useDeleteInvoice hace removeQueries del detalle específico antes de invalidar solo invoiceKeys.lists().",
+  "category": "fix",
+  "changes": [
+    "useInvoice: .single() → .maybeSingle() + meta.silent",
+    "useDeleteInvoice: removeQueries(detail) antes de invalidar lists",
+    "InvoiceDetail: acepta invoice null como 'no encontrada'"
+  ]
+}
