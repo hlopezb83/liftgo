@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.105.0",
+    "date": "2026-07-02",
+    "type": "minor",
+    "title": "Detalle de factura: visibilidad unificada de PAC, CFDI, Acuse y REP",
+    "description": "Nueva regla única (`computeInvoiceVisibility`) que decide cuándo mostrar el chip Sandbox, el PDF borrador vs. CFDI, los botones de XML/Acuse y las acciones REP. En borradores solo verás el PDF interno; en timbradas aparecen CFDI PDF/XML; en canceladas se habilitan los acuses y se bloquean mutaciones REP. El ambiente Sandbox se calcula a partir del entorno persistido en la factura (`facturapi_env`), no del toggle actual.",
+    "category": "improvement"
+  },
+  {
     "version": "6.104.10",
     "date": "2026-07-02",
     "type": "patch",
