@@ -60,13 +60,18 @@ Deno.serve(async (req) => {
 
     const { data: rows, error } = await supabase
       .from("invoices")
-      .select("id, invoice_number, facturapi_invoice_id, facturapi_env, serie, folio")
+      .select(
+        "id, invoice_number, facturapi_invoice_id, facturapi_env, serie, folio",
+      )
       .not("facturapi_invoice_id", "is", null)
       .or("serie.is.null,folio.is.null");
 
     if (error) {
       return new Response(
-        JSON.stringify({ error: "Failed to query invoices", detail: error.message }),
+        JSON.stringify({
+          error: "Failed to query invoices",
+          detail: error.message,
+        }),
         { status: 500, headers: jsonHeaders },
       );
     }
@@ -77,11 +82,17 @@ Deno.serve(async (req) => {
     let failed = 0;
 
     for (const inv of invoices) {
-      const mode = inv.facturapi_env === "live" ? "live" : (inv.facturapi_env === "test" ? "test" : defaultMode);
+      const mode = inv.facturapi_env === "live"
+        ? "live"
+        : (inv.facturapi_env === "test" ? "test" : defaultMode);
       const apiKey = mode === "live" ? liveKey : testKey;
       if (!apiKey) {
         failed++;
-        results.push({ invoice_number: inv.invoice_number, ok: false, reason: `no ${mode} api key` });
+        results.push({
+          invoice_number: inv.invoice_number,
+          ok: false,
+          reason: `no ${mode} api key`,
+        });
         continue;
       }
       try {
@@ -91,14 +102,20 @@ Deno.serve(async (req) => {
         ) as { series?: string | null; folio_number?: number | string | null };
         const series = remote.series ?? null;
         const folioRaw = remote.folio_number ?? null;
-        const folio = folioRaw !== null && folioRaw !== undefined ? String(folioRaw) : null;
+        const folio = folioRaw !== null && folioRaw !== undefined
+          ? String(folioRaw)
+          : null;
 
         const patch: Record<string, string> = {};
         if (series && !inv.serie) patch.serie = series;
         if (folio && !inv.folio) patch.folio = folio;
 
         if (Object.keys(patch).length === 0) {
-          results.push({ invoice_number: inv.invoice_number, ok: true, skipped: true });
+          results.push({
+            invoice_number: inv.invoice_number,
+            ok: true,
+            skipped: true,
+          });
           continue;
         }
 
@@ -106,20 +123,38 @@ Deno.serve(async (req) => {
           .from("invoices").update(patch).eq("id", inv.id);
         if (upErr) {
           failed++;
-          results.push({ invoice_number: inv.invoice_number, ok: false, reason: upErr.message });
+          results.push({
+            invoice_number: inv.invoice_number,
+            ok: false,
+            reason: upErr.message,
+          });
         } else {
           updated++;
-          results.push({ invoice_number: inv.invoice_number, ok: true, ...patch });
+          results.push({
+            invoice_number: inv.invoice_number,
+            ok: true,
+            ...patch,
+          });
         }
       } catch (err) {
         failed++;
         const desc = describeFacturapiError(err);
-        results.push({ invoice_number: inv.invoice_number, ok: false, reason: desc.message });
+        results.push({
+          invoice_number: inv.invoice_number,
+          ok: false,
+          reason: desc.message,
+        });
       }
     }
 
     return new Response(
-      JSON.stringify({ success: true, scanned: invoices.length, updated, failed, results }),
+      JSON.stringify({
+        success: true,
+        scanned: invoices.length,
+        updated,
+        failed,
+        results,
+      }),
       { status: 200, headers: jsonHeaders },
     );
   } catch (err) {
