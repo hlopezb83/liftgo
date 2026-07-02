@@ -1,34 +1,30 @@
 ## Problema
 
-Al eliminar una factura desde `/invoices/:id`, aparece un toast de error:
-`Cannot coerce the result to a single JSON object (PGRST116) · The result contains 0 rows` justo después del toast "Factura eliminada".
+En el detalle de FAC-0076 (timbrada y en proceso de cancelación) aparecen los botones **Editar** y **Eliminar**, que no deberían existir sobre una factura ya timbrada — una vez que el CFDI existe ante el SAT, la factura es inmutable y sólo puede cancelarse.
 
-## Causa raíz
+## Causa
 
-`useDeleteInvoice.onSuccess` hace `invalidateQueries({ queryKey: invoiceKeys.all })`. Esto invalida **todas** las queries del árbol `invoices`, incluida `invoiceKeys.detail(id)` que sigue montada durante el ciclo de navegación de regreso a `/invoices`. `useInvoice(id)` refetchea con `.single()` sobre una fila que ya no existe → PGRST116 → el handler global de `QueryCache` en `AppProviders` dispara el toast.
+En `src/features/invoices/components/invoice-detail/InvoiceDetailActions.tsx`:
 
-Este patrón es idéntico al que motivó la memoria `single-query-errors`: usar `.single()` en lecturas donde la ausencia de fila es un estado válido.
+- `canEdit = isDraft || userRole === "admin"` → permite editar aun timbrada/cancelada si el usuario es admin.
+- El botón **Eliminar** está envuelto sólo por `RoleGuard` (acceso a "Facturas"), sin considerar el estatus fiscal. Por eso se muestra sobre facturas timbradas y canceladas.
 
 ## Cambios
 
-### 1. `src/features/invoices/hooks/invoices/useInvoices.ts`
-- `useInvoice`: cambiar `.single()` por `.maybeSingle()` y devolver `data` (puede ser `null`). Esto elimina PGRST116 para cualquier detalle que quede huérfano (borrado desde otra pestaña, RLS, id inválido en URL, etc.).
-- Marcar la query con `meta: { silent: true }` para que un fallo puntual del detalle no dispare el toast global; el componente ya maneja el caso `!invoice` con "Factura no encontrada".
+Archivo único: `src/features/invoices/components/invoice-detail/InvoiceDetailActions.tsx`
 
-### 2. `useDeleteInvoice` (mismo archivo)
-- Antes de invalidar, remover la query de detalle específica del cache: `queryClient.removeQueries({ queryKey: invoiceKeys.detail(id), exact: true })` para que no se refetchee.
-- Mantener el `invalidateQueries` sobre `invoiceKeys.lists()` (más acotado que `all`) para refrescar la lista sin tocar detalles de otras facturas.
+1. **Editar** — restringir estrictamente a borradores:
+   - `canEdit: isDraft` (quitar el bypass de admin).
+2. **Eliminar** — sólo permitir sobre borradores:
+   - Añadir flag `canDelete: isDraft` en `computeFlags`.
+   - Envolver el botón Eliminar en `{flags.canDelete && (<RoleGuard …>…</RoleGuard>)}` para que desaparezca en cuanto la factura pase a `sent`, `stamped`, `partial`, `paid`, `cancelled`, etc.
 
-### 3. `src/features/invoices/pages/InvoiceDetail.tsx`
-- Ajustar la guarda: si `!isLoading && !invoice`, seguir mostrando "Factura no encontrada" (ya lo hace) — no requiere cambio funcional, sólo confirmar que sigue funcionando con `maybeSingle` que devuelve `null`.
+## Notas de negocio
 
-### 4. Test
-- Añadir caso en `useInvoices.rls.test.ts` (o nuevo archivo) que verifique: `useInvoice("id-inexistente")` con respuesta `{ data: null, error: null }` resuelve a `data: null` sin lanzar error.
+- Una factura timbrada no se elimina; se cancela vía CFDI (botón "Cancelar CFDI" ya existente).
+- Los borradores sí pueden borrarse porque nunca fueron enviados al SAT.
+- No se toca la lógica del hook `useDeleteInvoice` ni RLS; la restricción es de UI (la RPC de borrado ya valida en backend).
 
-### 5. Changelog
-- `public/changelog/v6.104.7.json` (patch) + entrada en `public/changelog.json`:
-  > Corrige toast de error PGRST116 al eliminar una factura desde su vista de detalle. `useInvoice` ahora tolera fila ausente y el delete limpia el cache del detalle antes de invalidar la lista.
+## Changelog
 
-## Fuera de alcance
-
-- Auditar otros `.single()` del feature (`fetchInvoicePdfData`, `syncInvoiceStatus`, `backfillStampSnapshot`, `usePayments`, `useCollectionNotes`, `useCreditNoteMutations`): son escrituras o lecturas que garantizan existencia. Se dejan igual salvo que aparezca un reporte similar.
+Agregar entrada `patch` v6.104.8 en `public/changelog.json` + `public/changelog/v6.104.8.json` describiendo el fix.

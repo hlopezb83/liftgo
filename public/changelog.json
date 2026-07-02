@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.8",
+    "date": "2026-07-02",
+    "type": "patch",
+    "title": "Facturas timbradas: ocultar Editar y Eliminar",
+    "description": "En el detalle de una factura ya timbrada o cancelada aparecían los botones Editar y Eliminar. Ahora ambos sólo se muestran en borradores; una factura con CFDI vigente sólo puede cancelarse.",
+    "category": "fix"
+  },
+  {
     "version": "6.104.7",
     "date": "2026-07-02",
     "type": "patch",
