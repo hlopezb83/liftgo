@@ -75,20 +75,22 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" onClick={() => downloadRep(p.id, "xml")}>
                     <FileCode2 className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
-                    variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                    title="Cancelar REP" disabled={cancelRep.isPending}
-                    onClick={() => {
-                      if (confirm("¿Cancelar el Complemento de Pago ante el SAT?")) {
-                        cancelRep.mutate({ paymentId: p.id, motive: "02" });
-                      }
-                    }}
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                  </Button>
+                  {allowRepMutations && (
+                    <Button
+                      variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                      title="Cancelar REP" disabled={cancelRep.isPending}
+                      onClick={() => {
+                        if (confirm("¿Cancelar el Complemento de Pago ante el SAT?")) {
+                          cancelRep.mutate({ paymentId: p.id, motive: "02" });
+                        }
+                      }}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </>
               )}
-              {(status === "none" || status === "error") && (
+              {allowRepMutations && (status === "none" || status === "error") && (
                 <Button
                   variant="outline" size="sm" className="h-7 text-xs"
                   disabled={stampRep.isPending}
