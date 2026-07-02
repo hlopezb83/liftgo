@@ -102,6 +102,7 @@ export default function InvoiceDetail() {
             invoice={invoice}
             cfdiStatus={cfdiStatus}
             userRole={userRole ?? undefined}
+            visibility={visibility}
             isStamping={actions.stampCfdi.isPending}
             onOpenPayment={() => actions.setPaymentDialogOpen(true)}
             onEdit={actions.handleEdit}
