@@ -81,7 +81,7 @@ export default function InvoiceDetail() {
   if (!invoice || !id) return <PageContainer><p className="text-muted-foreground">Factura no encontrada</p></PageContainer>;
 
   const d = deriveInvoiceData(invoice, payments, creditNotes, company);
-  const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance, showCfdiError, showCollectionNotes, isLive, showPacBadge, ppdStamped } = d;
+  const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance, showCfdiError, showCollectionNotes, visibility, ppdStamped } = d;
   const notes = invoice.notes;
 
   return (
@@ -94,8 +94,7 @@ export default function InvoiceDetail() {
             invoiceStatus={invoice.status}
             cfdiStatus={cfdiStatus}
             cancellationStatus={(invoice as unknown as { cancellation_status?: string | null }).cancellation_status ?? null}
-            showPacBadge={showPacBadge}
-            isLive={isLive}
+            showSandboxChip={visibility.showSandboxChip}
           />
         }
         actions={
