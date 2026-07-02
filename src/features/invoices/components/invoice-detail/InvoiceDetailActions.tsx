@@ -10,10 +10,13 @@ import { downloadCfdiBlob } from "../../lib/downloadCfdiBlob";
 import { notifyError } from "@/lib/ui/appFeedback";
 
 
+import type { InvoiceVisibility } from "../../lib/invoiceVisibility";
+
 interface Props {
   invoice: Tables<"invoices">;
   cfdiStatus: string;
   userRole: string | undefined;
+  visibility: InvoiceVisibility;
   isStamping: boolean;
   onOpenPayment: () => void;
   onEdit: () => void;
@@ -30,10 +33,8 @@ interface Flags {
   canEdit: boolean;
   canDelete: boolean;
   canStamp: boolean;
-  isStamped: boolean;
   isPendingCancel: boolean;
   isRejectedCancel: boolean;
-  isAcuseAvailable: boolean;
 }
 
 
@@ -55,10 +56,8 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, _userRole
     canEdit: isDraft && cfdiStatus !== "stamped" && !isCancelled,
     canDelete: isDraft && cfdiStatus !== "stamped" && !isCancelled,
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
-    isStamped: cfdiStatus === "stamped" || isCancelled,
     isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
-    isAcuseAvailable: cancellationStatus === "accepted",
   };
 }
 
