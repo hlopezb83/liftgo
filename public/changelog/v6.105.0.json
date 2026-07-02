@@ -1,0 +1,16 @@
+{
+  "version": "6.105.0",
+  "date": "2026-07-02",
+  "type": "minor",
+  "title": "Detalle de factura: visibilidad unificada de PAC, CFDI, Acuse y REP",
+  "summary": "Se centralizan las reglas de qué mostrar en el detalle de factura en un único helper `computeInvoiceVisibility`, evitando botones y chips que no aportan valor al estado real del CFDI.",
+  "highlights": [
+    "Nueva columna `invoices.facturapi_env` ('test' | 'live') que persiste dónde se timbró cada factura y alimenta el chip Sandbox del header.",
+    "PDF: en borradores se muestra `PDF borrador` (interno); en timbradas/canceladas se muestra `CFDI PDF` (Facturapi). Nunca ambos.",
+    "CFDI XML solo aparece cuando existe un CFDI descargable (timbrada o cancelada).",
+    "Acuse PDF/XML solo aparece cuando la cancelación fue aceptada por el SAT.",
+    "REP: la columna aparece si la factura es PPD con CFDI; las acciones de Timbrar/Cancelar REP se desactivan si la factura padre está cancelada.",
+    "Chip Sandbox: para facturas con CFDI usa el ambiente persistido; para borradores usa el toggle actual del PAC como aviso previo."
+  ],
+  "category": "improvement"
+}
