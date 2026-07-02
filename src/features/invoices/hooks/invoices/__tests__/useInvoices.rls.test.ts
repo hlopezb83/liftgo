@@ -52,8 +52,10 @@ describe("useInvoices — RLS contract", () => {
     const { result } = renderHook(() => useInvoices(), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.[0]).toMatchObject({ id: "inv-1" });
+  });
 
   it("useInvoice(id) tolera fila ausente sin lanzar (maybeSingle)", async () => {
+
     resp = { data: null, error: null };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useInvoice("id-inexistente"), {
