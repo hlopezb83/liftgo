@@ -1,37 +1,27 @@
 ## Diagnóstico
 
-La factura FAC-0076 sí está timbrada (tiene `cfdi_uuid` y `facturapi_invoice_id`), pero las columnas `serie` y `folio` están en `NULL` en la base de datos. Por eso el card "Identificadores" muestra "— pendiente de timbrado —" en la fila de Serie y Folio.
+Este reporte (`requestId: 42c2055d…`, timestamp `2026-07-02T16:34:15.073Z`) es la causa raíz del toast "No se pudo cargar el historial de cambios" que revisamos hace unos minutos: un `SyntaxError` de `JSON.parse` en `public/changelog.json`, línea 31, columna 55.
 
-Causa raíz: la Edge Function `stamp-cfdi` no persiste los campos `series` y `folio_number` que devuelve Facturapi al timbrar; solo guarda `cfdi_uuid` y `facturapi_invoice_id`.
+El origen era una comilla sin escapar dentro de la descripción de la entrada v6.106.0:
 
-## Cambios
+```json
+"description": "Nueva sección \nIdentificadores" en el detalle (…)"
+```
 
-### 1. `supabase/functions/stamp-cfdi/index.ts`
-Al recibir la respuesta de Facturapi, incluir `series` y `folio_number` en el `UPDATE` de `invoices`, mapeándolos a las columnas `serie` y `folio`.
+La `"` después de `Identificadores` cerraba el string prematuramente y rompía todo el archivo, por eso `fetchChangelogIndex` fallaba en `res.json()` desde cualquier ruta (incluyendo `/invoices/:id`).
 
-### 2. Backfill de facturas ya timbradas
-Nueva Edge Function puntual (o RPC administrativa) `backfill-facturapi-serie-folio` que:
-- Selecciona todas las `invoices` con `facturapi_invoice_id IS NOT NULL` y (`serie IS NULL` OR `folio IS NULL`).
-- Consulta cada factura vía `GET /invoices/:id` a Facturapi.
-- Actualiza `serie` y `folio` en Postgres.
-- Se ejecuta una vez y se puede volver a llamar de forma idempotente.
+## Estado
 
-Se ejecutará contra el ambiente activo para reparar FAC-0076 y cualquier otra factura afectada.
+Ya se corrigió en la versión anterior:
 
-### 3. `InvoiceDetailIdentifiers.tsx`
-Ajustar el placeholder de la fila "Serie y Folio" para que sea semántico según el estado:
-- Si la factura está timbrada (`cfdi_uuid` presente) pero no hay serie/folio: mostrar "— no informado por el PAC —" en lugar de "— pendiente de timbrado —".
-- Si no está timbrada: mantener "— pendiente de timbrado —".
+- `public/changelog.json` → línea 31 escapada (v6.106.0 ahora usa comillas simples internas).
+- Entrada de changelog `v6.106.4` publicada documentando el fix.
+- Validado con `json.load`: 209 entradas parsean correctamente.
 
-Para lograrlo, el componente recibirá `isStamped: boolean` y pasará un `placeholder` dinámico a la fila de Serie/Folio.
+Ambos reportes (`63554943…` que ya trabajamos y `42c2055d…` de este mensaje) comparten el mismo timestamp `16:34:15` y son la misma sesión del error — se emitieron antes del deploy del fix.
 
-### 4. Tests
-Actualizar `InvoiceDetailIdentifiers.test.tsx` para cubrir los dos placeholders (timbrada sin serie/folio vs. borrador).
+## Plan
 
-### 5. Changelog
-Entrada `v6.106.3` — "Persistir Serie y Folio de Facturapi al timbrar + backfill retroactivo".
+**No se requieren cambios adicionales.** Basta con que recargues la página (Ctrl+F5 para forzar el bypass del cache del `changelog.json`) y el toast dejará de aparecer.
 
-## Notas técnicas
-
-- La respuesta de Facturapi expone `series` (string) y `folio_number` (number). Guardamos `folio` como texto para consistencia con el tipo actual de la columna.
-- El backfill usa `fetch` directo a `https://www.facturapi.io/v2/invoices/:id` con el API key del ambiente correspondiente (`facturapi_env` de la factura) para evitar mezclar sandbox/producción.
+Si al recargar sigue apareciendo el error, avísame con un nuevo `requestId` posterior a esta hora y lo investigo como un caso distinto (posible cache del CDN o una entrada nueva que rompa el JSON).
