@@ -1,0 +1,8 @@
+{
+  "version": "6.106.5",
+  "date": "2026-07-02",
+  "type": "patch",
+  "title": "Detalle de factura: eliminar Folio interno del card de Identificadores",
+  "description": "El número interno (ej. FAC-0076) aparece duplicado: ya está como título principal del detalle y se repetía dentro del card de Identificadores. Se elimina la fila 'Folio interno' del card para evitar redundancia visual, dejando únicamente los identificadores fiscales que no se ven en otra parte: UUID del SAT y Serie/Folio del PAC.",
+  "category": "improvement"
+}
