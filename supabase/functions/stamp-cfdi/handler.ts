@@ -480,7 +480,6 @@ export async function handleStampCfdi(
       }
     }
 
-
     return json(
       {
         success: true,
