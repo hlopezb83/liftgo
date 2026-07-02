@@ -8,7 +8,7 @@ export function useNextInvoiceNumber(enabled = true) {
     enabled,
     staleTime: 0,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("peek_next_invoice_number");
+      const { data, error } = await supabase.rpc("peek_next_draft_invoice_number");
       if (error) throw error;
       return data as string;
     },
