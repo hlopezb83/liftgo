@@ -10,6 +10,7 @@ interface Props {
   cfdiUuid: string | null;
   serie: string | null;
   folio: string | null;
+  isStamped?: boolean;
 }
 
 interface RowProps {
@@ -69,8 +70,12 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
  * - Folio fiscal SAT (UUID)
  * - Serie y Folio del PAC (Facturapi)
  */
-export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, serie, folio }: Props) {
+export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, serie, folio, isStamped }: Props) {
+  const stamped = isStamped ?? Boolean(cfdiUuid);
   const serieFolio = serie && folio ? `Serie ${serie} · Folio ${folio}` : null;
+  const serieFolioPlaceholder = stamped
+    ? "— no informado por el PAC —"
+    : "— pendiente de timbrado —";
 
   return (
     <Card>
@@ -92,6 +97,7 @@ export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, serie, folio
           label="Serie y Folio"
           tooltip="Serie y número fiscal asignados por el PAC (Facturapi) al timbrar. Útil para cruzar contra su portal. Son distintos del folio interno y del UUID."
           value={serieFolio}
+          placeholder={serieFolioPlaceholder}
         />
       </CardContent>
     </Card>

@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.106.3",
+    "date": "2026-07-02",
+    "type": "patch",
+    "title": "Persistencia de Serie y Folio del PAC al timbrar + backfill",
+    "description": "El proceso de timbrado ahora guarda automáticamente la Serie y el Folio devueltos por Facturapi en la factura, para que la tarjeta 'Identificadores' los muestre correctamente. Se agregó una función administrativa 'backfill-facturapi-serie-folio' que consulta al PAC y rellena Serie/Folio para facturas timbradas anteriormente (como FAC-0076). El card ahora distingue entre 'pendiente de timbrado' y 'no informado por el PAC'.",
+    "category": "fix"
+  },
+  {
     "version": "6.106.2",
     "date": "2026-07-02",
     "type": "patch",

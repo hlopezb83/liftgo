@@ -139,4 +139,31 @@ describe("InvoiceDetailIdentifiers", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("muestra '— pendiente de timbrado —' cuando no está timbrada", () => {
+    render(
+      <InvoiceDetailIdentifiers
+        invoiceNumber="FAC-0073"
+        cfdiUuid={null}
+        serie={null}
+        folio={null}
+      />,
+    );
+    expect(screen.getAllByText("— pendiente de timbrado —")).toHaveLength(2);
+  });
+
+  it("muestra '— no informado por el PAC —' en Serie/Folio cuando ya está timbrada sin serie", () => {
+    render(
+      <InvoiceDetailIdentifiers
+        invoiceNumber="FAC-0076"
+        cfdiUuid="sat-uuid-123"
+        serie={null}
+        folio={null}
+        isStamped
+      />,
+    );
+    expect(screen.getByText("— no informado por el PAC —")).toBeInTheDocument();
+    // El UUID sí se muestra, no debe aparecer "pendiente" en esa fila
+    expect(screen.queryByText("— pendiente de timbrado —")).not.toBeInTheDocument();
+  });
 });
