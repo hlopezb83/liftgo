@@ -115,7 +115,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
     });
 
     return base;
-  }, [ppdStamped, stampRep, cancelRep]);
+  }, [ppdStamped, allowRepMutations, stampRep, cancelRep]);
 
   return { columns, editingPayment, setEditingPayment };
 }
