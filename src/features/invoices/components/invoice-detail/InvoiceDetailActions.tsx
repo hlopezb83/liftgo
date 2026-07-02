@@ -141,12 +141,12 @@ export function InvoiceDetailActions({
           <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
         </Button>
       )}
+      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
       {flags.isStamped && (
         <Button size="sm" variant="outline" onClick={onDownloadXml}>
-          <Download className="h-4 w-4 mr-1" /> Descargar XML
+          <FileCode2 className="h-4 w-4 mr-1" /> CFDI XML
         </Button>
       )}
-      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
       {flags.isAcuseAvailable && (
         <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
       )}
