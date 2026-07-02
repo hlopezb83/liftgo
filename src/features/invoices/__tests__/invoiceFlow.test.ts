@@ -7,9 +7,9 @@ import {
 } from "@/test/helpers/supabaseChain";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 
-let nextNumberResp: SupabaseMockResponse = { data: "FAC-0042", error: null };
+let nextNumberResp: SupabaseMockResponse = { data: "BORRADOR-0042", error: null };
 let invoiceInsertResp: SupabaseMockResponse = {
-  data: { id: "inv-1", invoice_number: "FAC-0042", total: 1000 },
+  data: { id: "inv-1", invoice_number: "BORRADOR-0042", total: 1000 },
   error: null,
 };
 const invoicesCalls: ChainCall[] = [];
@@ -17,7 +17,7 @@ const invoicesCalls: ChainCall[] = [];
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
     rpcResolvers: {
-      next_invoice_number: () => nextNumberResp,
+      next_draft_invoice_number: () => nextNumberResp,
     },
     tableResolvers: {
       invoices: (calls) => {
@@ -42,16 +42,16 @@ import { useCreateInvoice } from "@/features/invoices";
 
 describe("useCreateInvoice — hook real", () => {
   beforeEach(() => {
-    nextNumberResp = { data: "FAC-0042", error: null };
+    nextNumberResp = { data: "BORRADOR-0042", error: null };
     invoiceInsertResp = {
-      data: { id: "inv-1", invoice_number: "FAC-0042", total: 1000 },
+      data: { id: "inv-1", invoice_number: "BORRADOR-0042", total: 1000 },
       error: null,
     };
     invoicesCalls.length = 0;
     notifyErrorMock.mockClear();
   });
 
-  it("genera numero via next_invoice_number y luego inserta con ese numero", async () => {
+  it("genera numero via next_draft_invoice_number y luego inserta con ese numero", async () => {
     const { Wrapper, queryClient } = createQueryWrapper();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
     const { result } = renderHook(() => useCreateInvoice(), { wrapper: Wrapper });
@@ -65,12 +65,12 @@ describe("useCreateInvoice — hook real", () => {
       line_items: [],
     } as unknown as Parameters<typeof result.current.mutateAsync>[0]);
 
-    expect(created).toMatchObject({ id: "inv-1", invoice_number: "FAC-0042" });
+    expect(created).toMatchObject({ id: "inv-1", invoice_number: "BORRADOR-0042" });
 
     const insertCall = invoicesCalls.find((c) => c.method === "insert");
     expect(insertCall).toBeDefined();
     expect(insertCall?.args[0]).toMatchObject({
-      invoice_number: "FAC-0042",
+      invoice_number: "BORRADOR-0042",
       customer_name: "Cliente Test",
       subtotal: 862.07,
       tax_amount: 137.93,
@@ -83,7 +83,7 @@ describe("useCreateInvoice — hook real", () => {
     expect(notifyErrorMock).not.toHaveBeenCalled();
   });
 
-  it("si next_invoice_number falla, NO ejecuta el insert", async () => {
+  it("si next_draft_invoice_number falla, NO ejecuta el insert", async () => {
     nextNumberResp = { data: null, error: { message: "sequence error" } };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateInvoice(), { wrapper: Wrapper });
