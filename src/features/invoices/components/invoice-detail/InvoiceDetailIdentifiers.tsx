@@ -8,7 +8,8 @@ import { notifySuccess } from "@/lib/ui/appFeedback";
 interface Props {
   invoiceNumber: string;
   cfdiUuid: string | null;
-  facturapiInvoiceId: string | null;
+  serie: string | null;
+  folio: string | null;
 }
 
 interface RowProps {
@@ -66,9 +67,11 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
  * Muestra los tres identificadores independientes de una factura:
  * - Folio interno LiftGo (FAC-XXXX)
  * - Folio fiscal SAT (UUID)
- * - ID de factura en Facturapi
+ * - Serie y Folio del PAC (Facturapi)
  */
-export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, facturapiInvoiceId }: Props) {
+export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, serie, folio }: Props) {
+  const serieFolio = serie && folio ? `Serie ${serie} · Folio ${folio}` : null;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -86,9 +89,9 @@ export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, facturapiInv
           value={cfdiUuid}
         />
         <IdRow
-          label="ID Facturapi"
-          tooltip="Identificador interno del PAC (Facturapi). Útil para cruzar contra su portal. Es distinto del folio interno y del UUID."
-          value={facturapiInvoiceId}
+          label="Serie y Folio"
+          tooltip="Serie y número fiscal asignados por el PAC (Facturapi) al timbrar. Útil para cruzar contra su portal. Son distintos del folio interno y del UUID."
+          value={serieFolio}
         />
       </CardContent>
     </Card>
