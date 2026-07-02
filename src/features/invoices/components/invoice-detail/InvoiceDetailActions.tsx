@@ -161,16 +161,18 @@ export function InvoiceDetailActions({
         </Button>
       )}
 
-      <RoleGuard module="Facturas" minAccess="full">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onDelete}
-          className="text-destructive hover:text-destructive"
-        >
-          <Trash2 className="h-4 w-4 mr-1" /> Eliminar
-        </Button>
-      </RoleGuard>
+      {flags.canDelete && (
+        <RoleGuard module="Facturas" minAccess="full">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onDelete}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+          </Button>
+        </RoleGuard>
+      )}
     </>
   );
 }
