@@ -24,14 +24,8 @@ export function InvoiceSummaryCards({
 }: Props) {
   return (
     <>
-      {cfdiUuid && (
-        <Card>
-          <CardContent className="py-3">
-            <p className="text-xs text-muted-foreground">UUID CFDI</p>
-            <p className="font-mono text-sm">{cfdiUuid}</p>
-          </CardContent>
-        </Card>
-      )}
+      {cfdiUuid ? null : null}
+
 
       {showCfdiError && (
         <Card className="border-destructive/50 bg-destructive/5">
