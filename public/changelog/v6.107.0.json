@@ -1,0 +1,11 @@
+{
+  "description": "Los borradores de factura ya no consumen folio fiscal al crearse: se identifican con prefijo BORRADOR-XXXX. Al timbrar, el sistema toma el folio devuelto por Facturapi y asigna el número interno definitivo (FAC-XXXX), garantizando que folio interno y folio del PAC estén siempre alineados 1:1 sin importar el orden en que se timbren los borradores.",
+  "changes": [
+    "Nueva secuencia draft_invoice_seq y RPCs next_draft_invoice_number / peek_next_draft_invoice_number para numerar borradores con prefijo BORRADOR-XXXX",
+    "Nuevo RPC assign_stamped_invoice_number que promueve el borrador a folio fiscal usando el folio devuelto por Facturapi, con detección de colisiones",
+    "Edge Function stamp-cfdi actualizada: tras un timbrado exitoso, promueve BORRADOR-XXXX → FAC-<folio Facturapi>",
+    "Toast de timbrado ahora incluye el folio asignado: 'CFDI timbrado — folio asignado: FAC-0087'",
+    "Edge Function generate-recurring-invoices genera borradores con prefijo BORRADOR-XXXX",
+    "Migración retroactiva: los 6 borradores existentes (FAC-0078 a FAC-0083) se renombraron a BORRADOR-XXXX para liberar esos folios fiscales"
+  ]
+}
