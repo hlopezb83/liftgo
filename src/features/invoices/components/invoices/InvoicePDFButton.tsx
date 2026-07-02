@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useInvoicePdfDownload } from "../../hooks/invoices/pdf/useInvoicePdfDownload";
@@ -34,8 +34,8 @@ export function InvoicePDFButton({ invoiceId, cfdiStatus, invoiceNumber }: Invoi
   const busy = loading || satLoading;
   return (
     <Button variant="outline" size="sm" onClick={handleClick} disabled={busy}>
-      <FileDown className="h-4 w-4 mr-1" />
-      {busy ? "Generando..." : isStamped ? "Descargar PDF SAT" : "Descargar PDF"}
+      <FileText className="h-4 w-4 mr-1" />
+      {busy ? "Generando…" : isStamped ? "CFDI PDF" : "PDF borrador"}
     </Button>
   );
 }

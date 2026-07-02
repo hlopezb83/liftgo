@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.104.9",
+    "date": "2026-07-02",
+    "type": "patch",
+    "title": "Descargas CFDI/Acuse/REP: iconos y nombres unificados",
+    "description": "Los botones de descarga ahora siguen una regla única: icono por formato (PDF → FileText, XML → FileCode2) y etiqueta por documento (CFDI PDF/XML, Acuse PDF/XML, REP PDF/XML). Aplica en detalle de factura y en la tabla de pagos.",
+    "category": "improvement"
+  },
+  {
     "version": "6.104.8",
     "date": "2026-07-02",
     "type": "patch",

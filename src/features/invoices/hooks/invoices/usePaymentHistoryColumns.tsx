@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-import { Pencil, Stamp, FileText, Download, XCircle } from "lucide-react";
+import { Pencil, Stamp, FileText, FileCode2, XCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
@@ -69,11 +69,11 @@ export function usePaymentHistoryColumns(ppdStamped: boolean) {
               <RepBadge status={status} />
               {status === "stamped" && (
                 <>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Descargar PDF" onClick={() => downloadRep(p.id, "pdf")}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" title="REP PDF" onClick={() => downloadRep(p.id, "pdf")}>
                     <FileText className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Descargar XML" onClick={() => downloadRep(p.id, "xml")}>
-                    <Download className="h-3.5 w-3.5" />
+                  <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" onClick={() => downloadRep(p.id, "xml")}>
+                    <FileCode2 className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     variant="ghost" size="icon" className="h-7 w-7 text-destructive"

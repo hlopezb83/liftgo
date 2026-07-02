@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { Edit, Stamp, XCircle, Download, DollarSign, Trash2, RefreshCw, FileCheck } from "lucide-react";
+import { Edit, Stamp, XCircle, DollarSign, Trash2, RefreshCw, FileText, FileCode2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { useState } from "react";
@@ -99,12 +99,12 @@ function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string;
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => handle("acuse_pdf")} disabled={loading !== null}>
-        <FileCheck className="h-4 w-4 mr-1" />
-        {loading === "pdf" ? "Descargando..." : "Acuse PDF"}
+        <FileText className="h-4 w-4 mr-1" />
+        {loading === "pdf" ? "Descargando…" : "Acuse PDF"}
       </Button>
       <Button size="sm" variant="outline" onClick={() => handle("acuse_xml")} disabled={loading !== null}>
-        <FileCheck className="h-4 w-4 mr-1" />
-        {loading === "xml" ? "Descargando..." : "Acuse XML"}
+        <FileCode2 className="h-4 w-4 mr-1" />
+        {loading === "xml" ? "Descargando…" : "Acuse XML"}
       </Button>
     </>
   );
@@ -141,12 +141,12 @@ export function InvoiceDetailActions({
           <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
         </Button>
       )}
+      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
       {flags.isStamped && (
         <Button size="sm" variant="outline" onClick={onDownloadXml}>
-          <Download className="h-4 w-4 mr-1" /> Descargar XML
+          <FileCode2 className="h-4 w-4 mr-1" /> CFDI XML
         </Button>
       )}
-      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
       {flags.isAcuseAvailable && (
         <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
       )}
