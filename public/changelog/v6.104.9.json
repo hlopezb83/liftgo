@@ -1,0 +1,35 @@
+{
+  "version": "6.104.9",
+  "date": "2026-07-02",
+  "type": "patch",
+  "title": "Descargas CFDI/Acuse/REP: iconos y nombres unificados",
+  "category": "improvement",
+  "summary": "Se estandarizó el lenguaje visual de todos los botones de descarga de documentos fiscales para eliminar incoherencias entre PDF, XML, CFDI, Acuse de cancelación y Complemento de Pago (REP).",
+  "rules": [
+    "Icono según formato del archivo: PDF → FileText, XML → FileCode2.",
+    "Etiqueta según documento en 2 palabras, sin la muletilla 'Descargar': CFDI PDF/XML, Acuse PDF/XML, REP PDF/XML.",
+    "Orden consistente: PDF antes que XML; CFDI antes que Acuse."
+  ],
+  "changes": [
+    {
+      "type": "ui",
+      "area": "Facturas / Detalle",
+      "description": "InvoicePDFButton usa FileText y muestra 'CFDI PDF' (timbrada/cancelada) o 'PDF borrador' (draft). El botón de XML pasa de Download+'Descargar XML' a FileCode2+'CFDI XML'."
+    },
+    {
+      "type": "ui",
+      "area": "Facturas / Acuse de cancelación",
+      "description": "AcuseDownloadButtons diferencia formato: FileText para 'Acuse PDF', FileCode2 para 'Acuse XML' (antes ambos usaban FileCheck)."
+    },
+    {
+      "type": "ui",
+      "area": "Facturas / Historial de pagos (REP)",
+      "description": "Botones de descarga del Complemento de Pago alineados: FileText para 'REP PDF', FileCode2 para 'REP XML'."
+    }
+  ],
+  "files": [
+    "src/features/invoices/components/invoices/InvoicePDFButton.tsx",
+    "src/features/invoices/components/invoice-detail/InvoiceDetailActions.tsx",
+    "src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx"
+  ]
+}
