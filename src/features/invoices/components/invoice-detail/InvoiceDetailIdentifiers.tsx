@@ -10,6 +10,7 @@ interface Props {
   cfdiUuid: string | null;
   serie: string | null;
   folio: string | null;
+  isStamped?: boolean;
 }
 
 interface RowProps {
