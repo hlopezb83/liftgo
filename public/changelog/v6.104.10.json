@@ -1,0 +1,25 @@
+{
+  "version": "6.104.10",
+  "date": "2026-07-02",
+  "type": "patch",
+  "title": "Detalle de factura: badges consolidados y sin ruido",
+  "category": "improvement",
+  "summary": "Los 3 chips del header (estado interno, estado CFDI y entorno PAC) se consolidan en un único chip fiscal claro; el chip de PAC solo aparece cuando estás en Sandbox.",
+  "sections": [
+    {
+      "title": "Un solo chip fiscal",
+      "items": [
+        "Reemplaza los antiguos 'Cancelado' + 'CFDI Cancelado' por un único chip: Borrador, Timbrada, Parcial, Pagada, Vencida, Cancelación en proceso o Cancelada.",
+        "Se elimina la duplicidad entre el estado interno y el estado ante el SAT.",
+        "El limbo 'Cancelación solicitada · esperando SAT' ahora es visible en el header como 'Cancelación en proceso'."
+      ]
+    },
+    {
+      "title": "PAC solo cuando importa",
+      "items": [
+        "El chip 'PAC: Producción' se retira: no aporta información accionable en cada factura.",
+        "En entorno de pruebas se muestra un chip 'Sandbox' en ámbar para alertar que la factura no es real."
+      ]
+    }
+  ]
+}
