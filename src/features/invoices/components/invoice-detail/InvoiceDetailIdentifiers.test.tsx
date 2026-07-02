@@ -33,7 +33,7 @@ describe("InvoiceDetailIdentifiers", () => {
         invoiceNumber="FAC-0073"
         cfdiUuid={null}
         serie={null}
-        folio={host}
+        folio={null}
       />,
     );
     expect(screen.getByText("FAC-0073")).toBeInTheDocument();
