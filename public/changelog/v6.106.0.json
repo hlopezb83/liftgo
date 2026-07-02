@@ -1,0 +1,8 @@
+{
+  "version": "6.106.0",
+  "date": "2026-07-02",
+  "type": "minor",
+  "title": "Conciliación de facturas y visibilidad de identificadores fiscales",
+  "description": "Nueva sección \"Identificadores\" en el detalle de factura que muestra por separado el folio interno LiftGo (control administrativo, estable), el folio fiscal SAT (UUID, se asigna al timbrar) y el ID Facturapi (referencia PAC), con tooltips y copy-to-clipboard. Nueva página /invoices/reconciliation (Facturación → Conciliación) con filtros por rango, estado fiscal y ambiente PAC, KPIs de timbrado, detección automática de folios internos faltantes en el rango y exportación XLSX. Al generar recurrentes se explica que UUID/ID Facturapi se asignan al timbrar y pueden no seguir el orden del folio interno.",
+  "category": "feature"
+}

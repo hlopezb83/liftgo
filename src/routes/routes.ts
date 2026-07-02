@@ -61,6 +61,7 @@ export const ROUTES = {
   invoices: {
     list: "/invoices",
     new: "/invoices/new",
+    reconciliation: "/invoices/reconciliation",
     detail: (id: string) => `/invoices/${id}`,
   },
   expenses: "/expenses",

@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Truck, CalendarDays, BookOpen, Users, Wrench, Receipt, Settings,
   ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, ShieldCheck,
   ScrollText, History, HelpCircle, Package, Target, DollarSign, Handshake,
-  MessageSquare, Trophy, Megaphone, FileClock, TrendingUp, Landmark, ArrowLeftRight,
+  MessageSquare, Trophy, Megaphone, FileClock, TrendingUp, Landmark, ArrowLeftRight, GitCompareArrows,
 } from "lucide-react";
 
 export type NavItem = { title: string; url: string; icon: React.ElementType };
@@ -48,6 +48,7 @@ export const NAV_GROUPS: NavGroup[] = [
     collapsible: true,
     items: [
       { title: "Facturas", url: "/invoices", icon: Receipt },
+      { title: "Conciliación", url: "/invoices/reconciliation", icon: GitCompareArrows },
       { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
       { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: Landmark },
       { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },

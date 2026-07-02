@@ -16,6 +16,7 @@ const MaintenancePage = lazy(() => import("@/features/maintenance/pages/Maintena
 const InvoicesPage = lazy(() => import("@/features/invoices/pages/InvoicesPage"));
 const InvoiceForm = lazy(() => import("@/features/invoices/pages/InvoiceForm"));
 const InvoiceDetail = lazy(() => import("@/features/invoices/pages/InvoiceDetail"));
+const InvoicesReconciliation = lazy(() => import("@/features/invoices/pages/InvoicesReconciliation"));
 const OperationsSetupPage = lazy(() => import("@/features/operations/pages/OperationsSetupPage"));
 const ReturnInspectionPage = lazy(() => import("@/features/returns/pages/ReturnInspectionPage"));
 const DeliveriesPage = lazy(() => import("@/features/deliveries/pages/DeliveriesPage"));
@@ -102,6 +103,7 @@ export const appRoutes: RouteConfig[] = [
   { path: "/maintenance", component: MaintenancePage, module: "Mantenimiento" },
   { path: "/invoices", component: InvoicesPage, module: "Facturas" },
   { path: "/invoices/new", component: InvoiceForm, module: "Facturas" },
+  { path: "/invoices/reconciliation", component: InvoicesReconciliation, module: "Facturas" },
   { path: "/invoices/:id", component: InvoiceDetail, module: "Facturas" },
   { path: "/invoices/:id/edit", component: InvoiceForm, module: "Facturas" },
   { path: "/returns", component: ReturnInspectionPage, module: "Entregas" },

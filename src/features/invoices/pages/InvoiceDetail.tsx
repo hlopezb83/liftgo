@@ -18,6 +18,7 @@ import { InvoiceHistoryCard } from "../components/invoice-detail/InvoiceHistoryC
 import { InvoiceDetailActions } from "../components/invoice-detail/InvoiceDetailActions";
 import { InvoiceSourceLinks } from "../components/invoice-detail/InvoiceSourceLinks";
 import { InvoiceSummaryCards } from "../components/invoice-detail/InvoiceSummaryCards";
+import { InvoiceDetailIdentifiers } from "../components/invoice-detail/InvoiceDetailIdentifiers";
 import { InvoiceDetailDialogs } from "../components/invoice-detail/InvoiceDetailDialogs";
 import { StampErrorDialog } from "../components/StampErrorDialog";
 import { InvoiceCreditNotesCard } from "../components/invoice-detail/InvoiceCreditNotesCard";
@@ -114,6 +115,12 @@ export default function InvoiceDetail() {
         }
       />
 
+      <InvoiceDetailIdentifiers
+        invoiceNumber={invoice.invoice_number}
+        cfdiUuid={invoice.cfdi_uuid}
+        facturapiInvoiceId={(invoice as unknown as { facturapi_invoice_id?: string | null }).facturapi_invoice_id ?? null}
+      />
+
       <InvoiceSummaryCards
         customerName={invoice.customer_name}
         rfc={invoice.receptor_rfc}
@@ -124,6 +131,7 @@ export default function InvoiceDetail() {
         cfdiErrorMessage={invoice.cfdi_error_message}
         showCfdiError={showCfdiError}
       />
+
 
       <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBookings={sourceBookings} />
       <InvoiceFiscalDataCard invoice={invoice} />
