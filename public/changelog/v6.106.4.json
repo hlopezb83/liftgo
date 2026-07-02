@@ -1,0 +1,7 @@
+{
+  "description": "Se corrigió un carácter de comillas mal escapado en la descripción de la entrada v6.106.0 de public/changelog.json que hacía fallar el JSON.parse global. Esto causaba el toast 'No se pudo cargar el historial de cambios' al abrir cualquier página del ERP. El archivo ahora vuelve a parsear correctamente.",
+  "changes": [
+    "public/changelog.json: escapar comillas en la entrada v6.106.0 (sección 'Identificadores').",
+    "Verificado con json.load: 208 entradas parsean correctamente."
+  ]
+}
