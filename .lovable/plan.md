@@ -1,56 +1,89 @@
+# Validación de visibilidad: PAC, CFDI, Acuse y REP
 
 ## Diagnóstico
 
-Hoy `InvoiceDetailBadges` pinta 3 chips que confunden y duplican información:
+Hoy la visibilidad de estos bloques es inconsistente:
 
-1. **`Cancelado`** — `StatusBadge` del estado interno de la factura.
-2. **`CFDI Cancelado`** — estado fiscal ante el SAT.
-3. **`PAC: Producción`** — entorno del PAC (Facturapi).
+- **PAC (Sandbox)**: sólo se pinta si la factura NO está timbrada (`cfdiStatus !== "stamped"`) y el ambiente actual es test. Consecuencia: una factura timbrada en Sandbox se ve idéntica a una de Producción → riesgo de confundir un CFDI de pruebas con uno real.
+- **CFDI PDF/XML**: el botón PDF siempre se renderiza (draft = "PDF borrador"); el XML sólo si `isStamped`. Correcto, pero no explícito.
+- **Acuse PDF/XML**: sólo aparece con `cancellation_status === "accepted"`. Correcto, pero no cubre el caso en el que la factura llega cancelada sin acuse aún sincronizado.
+- **REP**: la columna aparece sólo si la factura padre es PPD timbrada. Por pago, se muestran descargas si `rep_cfdi_status === "stamped"` y "Timbrar REP" si `none/error`. Falta ocultar la columna cuando la factura está cancelada (los REP dejan de tener sentido operativo) y evitar mostrar acciones REP en pagos sin conciliación real.
 
-Problemas:
-- **Redundancia**: cuando la factura está cancelada, los dos primeros dicen lo mismo con distinto wording. Igual pasa con `Pagada` (interno) + `Timbrado` (CFDI), que son ejes distintos pero se leen como ruido.
-- **PAC: Producción es "siempre verde"**: para un usuario operativo no aporta valor en cada factura; sólo importa cuando estás en Sandbox (riesgo real de "creí que era real").
-- **Cancelación en proceso**: hoy no hay chip para el limbo "solicitada · esperando SAT", que sí es información accionable.
+Además, no hay una regla única documentada; cada bloque decide por su cuenta.
 
-## Propuesta
+## Objetivo
 
-Reducir a **máximo 2 chips**, con jerarquía clara:
+Definir una **matriz de visibilidad** basada en el estado fiscal de la factura y aplicarla de forma consistente en `InvoiceDetail`, `InvoiceDetailActions`, `InvoiceDetailBadges` y `usePaymentHistoryColumns`.
 
-### Chip 1 — Estado fiscal (único, combina interno + CFDI)
+## Matriz de visibilidad
 
-Una sola fuente de verdad, calculada así:
+Ejes:
+- **Estado interno**: `draft | sent | partial | paid | overdue | cancelled`
+- **CFDI**: `pending | stamped | cancelled | error`
+- **Cancelación**: `none | pending | accepted | rejected`
+- **Ambiente del CFDI** (por factura): `test | live` — se lee desde la propia factura al momento del timbrado, no del toggle actual de la empresa.
 
-| Situación                                              | Label                    | Tono         |
-| ------------------------------------------------------ | ------------------------ | ------------ |
-| Borrador                                               | `Borrador`               | neutral      |
-| Timbrada, sin pagos                                    | `Timbrada`               | info         |
-| Timbrada, parcial                                      | `Parcial`                | warning      |
-| Timbrada, pagada                                       | `Pagada`                 | success      |
-| Cancelación solicitada (pending_cancellation)          | `Cancelación en proceso` | warning      |
-| Cancelada por SAT                                      | `Cancelada`              | destructive  |
-| Timbrado pendiente / error                             | `Pendiente de timbrado`  | warning      |
+| Situación                         | PDF borrador | CFDI PDF | CFDI XML | Acuse PDF/XML | REP col./acciones | Chip Sandbox    |
+| --------------------------------- | :----------: | :------: | :------: | :-----------: | :---------------: | :-------------: |
+| Borrador (pending, no error)      |      ✅       |    ❌     |    ❌     |       ❌       |         ❌         | sólo si test¹   |
+| Timbrado en error                 |      ✅       |    ❌     |    ❌     |       ❌       |         ❌         | sólo si test¹   |
+| Timbrada (PUE)                    |      ❌       |    ✅     |    ✅     |       ❌       |         ❌         | si env=test     |
+| Timbrada (PPD)                    |      ❌       |    ✅     |    ✅     |       ❌       |         ✅         | si env=test     |
+| Cancelación en proceso (pending)  |      ❌       |    ✅     |    ✅     |       ❌       |     ✅ solo lectura²      | si env=test     |
+| Cancelada + acuse aceptado        |      ❌       |    ✅     |    ✅     |       ✅       |     ✅ solo lectura²      | si env=test     |
+| Cancelada sin acuse (edge)        |      ❌       |    ✅     |    ✅     | ❌ + hint sync |     ✅ solo lectura²      | si env=test     |
+| Cancelación rechazada             |      ❌       |    ✅     |    ✅     |       ❌       |         ✅         | si env=test     |
 
-Esto elimina el doble chip `Cancelado` + `CFDI Cancelado` y hace visible el estado "en proceso" que hoy sólo vive en un badge secundario.
-
-### Chip 2 — Entorno PAC (sólo cuando importa)
-
-- Mostrar **sólo** cuando `isLive === false` → chip `Sandbox` en amarillo.
-- En Producción no se muestra nada (el default silencioso).
-
-Justificación: el objetivo del badge es alertar de facturas de prueba; en producción se convierte en decoración.
-
-### Resultado visual
-
-- Factura FAC-0076 (actual): antes `Cancelado` · `CFDI Cancelado` · `PAC: Producción` → después **`Cancelada`** (solo un chip).
-- Factura recién timbrada en sandbox: `Timbrada` · `Sandbox`.
-- Factura pagada en producción: `Pagada` (un solo chip).
+¹ En borrador el ambiente del CFDI aún no existe; el chip Sandbox se calcula con el toggle actual de la empresa como heads-up.
+² "Solo lectura" en REP = ocultar botones "Timbrar REP" y "Cancelar REP"; mantener descargas de REPs ya timbrados (los complementos ya sellados siguen siendo documentos fiscales válidos).
 
 ## Cambios técnicos
 
-1. `src/features/invoices/components/invoice-detail/InvoiceDetailBadges.tsx`
-   - Reemplazar los 3 badges por una función `resolveFiscalBadge({ invoiceStatus, cfdiStatus, hasPendingCancellation })` que devuelva `{ label, variant }`.
-   - Renderizar el chip PAC sólo si `!isLive`, con label `Sandbox`.
-2. Ajustar el sitio que consume `InvoiceDetailBadges` para pasar `hasPendingCancellation` (ya disponible en el detalle vía `cancellation_status`).
-3. Añadir entrada al changelog `v6.104.10` (patch, UI): "Header de factura: consolidados 3 badges en un solo chip fiscal; PAC solo aparece en Sandbox."
+### 1. Estado fiscal persistido por factura
 
-Sin cambios de lógica de negocio ni de datos.
+Necesitamos saber en qué ambiente se timbró cada factura, no depender del toggle actual:
+
+- Migración: `ALTER TABLE public.invoices ADD COLUMN facturapi_env text CHECK (facturapi_env IN ('test','live'))`.
+- `stamp-cfdi`: al timbrar, escribir `facturapi_env` con el modo actual del PAC.
+- Backfill: `UPDATE invoices SET facturapi_env = 'live' WHERE cfdi_status IN ('stamped','cancelled') AND facturapi_env IS NULL` (o `'test'` según lo que tenga sentido para el histórico; validar con el usuario si hay dudas).
+
+### 2. Helper único de visibilidad
+
+Crear `src/features/invoices/lib/invoiceVisibility.ts`:
+
+```ts
+export type InvoiceVisibility = {
+  showDraftPdf: boolean;
+  showCfdiPdf: boolean;
+  showCfdiXml: boolean;
+  showAcuseButtons: boolean;
+  showAcuseSyncHint: boolean;   // cancelada sin acuse aún
+  showRepColumn: boolean;
+  allowRepMutations: boolean;   // habilita Timbrar/Cancelar REP
+  showSandboxChip: boolean;
+};
+
+export function computeInvoiceVisibility(invoice, company): InvoiceVisibility { … }
+```
+
+Consume esta función `InvoiceDetail` una sola vez y la pasa a hijos por props.
+
+### 3. Aplicación en UI
+
+- `InvoiceDetailBadges`: reemplaza el par `showPacBadge/isLive` por `showSandboxChip`.
+- `InvoicePDFButton`: recibe `mode: "draft" | "cfdi" | "hidden"` en vez de decidir con `cfdiStatus`.
+- `InvoiceDetailActions`: usa `showCfdiXml`, `showAcuseButtons`, `showAcuseSyncHint` para renderizar bloques (el hint es un `Badge` outline "Cancelada · sincronizando acuse" + botón "Actualizar estado SAT" que ya existe).
+- `InvoicePaymentSummary` / `usePaymentHistoryColumns`: recibe `showRepColumn` y `allowRepMutations`. Cuando `allowRepMutations` es false, ocultar botones "Timbrar REP" y "Cancelar REP" pero mantener descargas.
+
+### 4. Changelog
+
+Nueva entrada `v6.104.11` (patch, improvement):
+- Reglas unificadas de visibilidad de PAC/CFDI/Acuse/REP.
+- Nuevo campo `facturapi_env` por factura; el chip Sandbox ahora es fiel al ambiente en que se emitió el CFDI.
+- REP en facturas canceladas: se conservan descargas de REPs ya timbrados; se ocultan acciones de timbrado/cancelación.
+
+## Fuera de alcance
+
+- Rediseño de los botones (ya se hizo en v6.104.9).
+- Cambios en Edge Functions de descarga (`get-cfdi-file` sigue igual; sólo `stamp-cfdi` escribe `facturapi_env`).
+- Cambios de lógica de negocio de cancelación o de timbrado.

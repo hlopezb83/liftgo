@@ -10,10 +10,13 @@ import { downloadCfdiBlob } from "../../lib/downloadCfdiBlob";
 import { notifyError } from "@/lib/ui/appFeedback";
 
 
+import type { InvoiceVisibility } from "../../lib/invoiceVisibility";
+
 interface Props {
   invoice: Tables<"invoices">;
   cfdiStatus: string;
   userRole: string | undefined;
+  visibility: InvoiceVisibility;
   isStamping: boolean;
   onOpenPayment: () => void;
   onEdit: () => void;
@@ -30,10 +33,8 @@ interface Flags {
   canEdit: boolean;
   canDelete: boolean;
   canStamp: boolean;
-  isStamped: boolean;
   isPendingCancel: boolean;
   isRejectedCancel: boolean;
-  isAcuseAvailable: boolean;
 }
 
 
@@ -55,10 +56,8 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, _userRole
     canEdit: isDraft && cfdiStatus !== "stamped" && !isCancelled,
     canDelete: isDraft && cfdiStatus !== "stamped" && !isCancelled,
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
-    isStamped: cfdiStatus === "stamped" || isCancelled,
     isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
-    isAcuseAvailable: cancellationStatus === "accepted",
   };
 }
 
@@ -113,10 +112,15 @@ function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string;
 
 
 export function InvoiceDetailActions({
-  invoice, cfdiStatus, userRole,
+  invoice, cfdiStatus, userRole, visibility,
   isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
   const flags = computeFlags(invoice, cfdiStatus, userRole);
+  const pdfMode: "draft" | "cfdi" | "hidden" = visibility.showCfdiPdf
+    ? "cfdi"
+    : visibility.showDraftPdf
+      ? "draft"
+      : "hidden";
   return (
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
@@ -141,13 +145,19 @@ export function InvoiceDetailActions({
           <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
         </Button>
       )}
-      <InvoicePDFButton invoiceId={invoice.id} cfdiStatus={cfdiStatus} invoiceNumber={invoice.invoice_number} />
-      {flags.isStamped && (
+      {pdfMode !== "hidden" && (
+        <InvoicePDFButton
+          invoiceId={invoice.id}
+          mode={pdfMode}
+          invoiceNumber={invoice.invoice_number}
+        />
+      )}
+      {visibility.showCfdiXml && (
         <Button size="sm" variant="outline" onClick={onDownloadXml}>
           <FileCode2 className="h-4 w-4 mr-1" /> CFDI XML
         </Button>
       )}
-      {flags.isAcuseAvailable && (
+      {visibility.showAcuseButtons && (
         <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
       )}
       {cfdiStatus === "stamped" && !flags.isPendingCancel && (

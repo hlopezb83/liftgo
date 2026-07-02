@@ -7,17 +7,18 @@ import { downloadCfdiBlob } from "../../lib/downloadCfdiBlob";
 
 interface InvoicePDFButtonProps {
   invoiceId: string;
-  cfdiStatus?: string;
+  /** "draft" = PDF interno, "cfdi" = PDF timbrado por Facturapi. */
+  mode: "draft" | "cfdi";
   invoiceNumber?: string;
 }
 
-export function InvoicePDFButton({ invoiceId, cfdiStatus, invoiceNumber }: InvoicePDFButtonProps) {
+export function InvoicePDFButton({ invoiceId, mode, invoiceNumber }: InvoicePDFButtonProps) {
   const { download, loading } = useInvoicePdfDownload();
   const [satLoading, setSatLoading] = useState(false);
-  const isStamped = cfdiStatus === "stamped" || cfdiStatus === "cancelled";
+  const isCfdi = mode === "cfdi";
 
   const handleClick = async () => {
-    if (!isStamped) {
+    if (!isCfdi) {
       await download(invoiceId);
       return;
     }
@@ -35,7 +36,7 @@ export function InvoicePDFButton({ invoiceId, cfdiStatus, invoiceNumber }: Invoi
   return (
     <Button variant="outline" size="sm" onClick={handleClick} disabled={busy}>
       <FileText className="h-4 w-4 mr-1" />
-      {busy ? "Generando…" : isStamped ? "CFDI PDF" : "PDF borrador"}
+      {busy ? "Generando…" : isCfdi ? "CFDI PDF" : "PDF borrador"}
     </Button>
   );
 }

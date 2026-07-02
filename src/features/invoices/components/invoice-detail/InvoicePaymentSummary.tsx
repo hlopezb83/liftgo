@@ -13,13 +13,15 @@ interface Props {
   payments: Payment[];
   /** Si la factura padre es PPD timbrada (muestra capacidades REP). */
   ppdStamped?: boolean;
+  /** Permitir Timbrar/Cancelar REP (false si la factura padre está cancelada). */
+  allowRepMutations?: boolean;
   creditedAmount?: number;
 }
 
 export function InvoicePaymentSummary({
-  totalPaid, balance, payments, ppdStamped = false, creditedAmount = 0,
+  totalPaid, balance, payments, ppdStamped = false, allowRepMutations = ppdStamped, creditedAmount = 0,
 }: Props) {
-  const { columns, editingPayment, setEditingPayment } = usePaymentHistoryColumns(ppdStamped);
+  const { columns, editingPayment, setEditingPayment } = usePaymentHistoryColumns(ppdStamped, allowRepMutations);
 
   const table = useLiftgoTable<Payment>({
     data: payments,

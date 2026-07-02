@@ -26,7 +26,7 @@ async function downloadRep(paymentId: string, format: CfdiFormat) {
  * Construye columnas de la tabla de pagos + estado de edición.
  * Aísla la lógica de las acciones REP (timbrar/cancelar/descargar).
  */
-export function usePaymentHistoryColumns(ppdStamped: boolean) {
+export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations: boolean = ppdStamped) {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const stampRep = useStampPaymentComplement();
   const cancelRep = useCancelPaymentComplement();
@@ -75,20 +75,22 @@ export function usePaymentHistoryColumns(ppdStamped: boolean) {
                   <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" onClick={() => downloadRep(p.id, "xml")}>
                     <FileCode2 className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
-                    variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                    title="Cancelar REP" disabled={cancelRep.isPending}
-                    onClick={() => {
-                      if (confirm("¿Cancelar el Complemento de Pago ante el SAT?")) {
-                        cancelRep.mutate({ paymentId: p.id, motive: "02" });
-                      }
-                    }}
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                  </Button>
+                  {allowRepMutations && (
+                    <Button
+                      variant="ghost" size="icon" className="h-7 w-7 text-destructive"
+                      title="Cancelar REP" disabled={cancelRep.isPending}
+                      onClick={() => {
+                        if (confirm("¿Cancelar el Complemento de Pago ante el SAT?")) {
+                          cancelRep.mutate({ paymentId: p.id, motive: "02" });
+                        }
+                      }}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </>
               )}
-              {(status === "none" || status === "error") && (
+              {allowRepMutations && (status === "none" || status === "error") && (
                 <Button
                   variant="outline" size="sm" className="h-7 text-xs"
                   disabled={stampRep.isPending}
@@ -113,7 +115,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean) {
     });
 
     return base;
-  }, [ppdStamped, stampRep, cancelRep]);
+  }, [ppdStamped, allowRepMutations, stampRep, cancelRep]);
 
   return { columns, editingPayment, setEditingPayment };
 }
