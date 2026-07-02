@@ -2,9 +2,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
-  binaryToBytes,
-  createFacturapiClient,
-  describeFacturapiError,
   resolveFacturapiKey,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
