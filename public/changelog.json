@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.106.0",
+    "date": "2026-07-02",
+    "type": "minor",
+    "title": "Conciliación de facturas y visibilidad de identificadores fiscales",
+    "description": "Nueva sección \"Identificadores\" en el detalle (folio interno + UUID SAT + ID Facturapi con tooltips y copy). Nueva página /invoices/reconciliation con filtros, KPIs, detección de folios faltantes y export XLSX. Microcopy en el modal de recurrentes explica que UUID/ID Facturapi no siguen el orden del folio interno.",
+    "category": "feature"
+  },
+  {
     "version": "6.105.0",
     "date": "2026-07-02",
     "type": "minor",
