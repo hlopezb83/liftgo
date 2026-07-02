@@ -28,6 +28,7 @@ interface Flags {
   isPayable: boolean;
   showPaymentBtn: boolean;
   canEdit: boolean;
+  canDelete: boolean;
   canStamp: boolean;
   isStamped: boolean;
   isPendingCancel: boolean;
@@ -36,7 +37,7 @@ interface Flags {
 }
 
 
-function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?: string): Flags {
+function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, _userRole?: string): Flags {
   const status = invoice.status;
   const isDraft = status === "draft";
   const isPayable = status === "sent" || status === "overdue";
@@ -51,7 +52,8 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?
     isDraft,
     isPayable,
     showPaymentBtn: isPayable || status === "partial",
-    canEdit: isDraft || userRole === "admin",
+    canEdit: isDraft && cfdiStatus !== "stamped" && !isCancelled,
+    canDelete: isDraft && cfdiStatus !== "stamped" && !isCancelled,
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
     isStamped: cfdiStatus === "stamped" || isCancelled,
     isPendingCancel,
@@ -59,6 +61,7 @@ function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, userRole?
     isAcuseAvailable: cancellationStatus === "accepted",
   };
 }
+
 
 
 function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: string }) {
