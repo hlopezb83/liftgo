@@ -45,7 +45,7 @@ export function useCreateInvoice() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number">) => {
-      const { data: numData, error: numError } = await supabase.rpc("next_invoice_number");
+      const { data: numData, error: numError } = await supabase.rpc("next_draft_invoice_number");
       if (numError) throw numError;
       const { data, error } = await supabase
         .from("invoices")
