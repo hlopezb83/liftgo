@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.106.2",
+    "date": "2026-07-02",
+    "type": "patch",
+    "title": "Tests unitarios para la tarjeta Identificadores de factura",
+    "description": "Se agregó la suite InvoiceDetailIdentifiers.test.tsx con 8 tests: renderizado de título, folio interno, visualización de 'Serie · Folio', placeholders en campos vacíos, copia al portapapeles y verificación de los textos de ayuda (tooltips) de los tres identificadores (folio interno, UUID SAT y Serie/Folio del PAC).",
+    "category": "improvement"
+  },
+  {
     "version": "6.106.1",
     "date": "2026-07-02",
     "type": "patch",
