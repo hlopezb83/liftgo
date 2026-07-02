@@ -50,7 +50,6 @@ export function computeInvoiceVisibility(
   const isStamped = cfdiStatus === "stamped";
   const isCancelled = cfdiStatus === "cancelled" || status === "cancelled";
   const hasCfdiDoc = isStamped || isCancelled; // hay CFDI válido descargable
-  const isPpd = invoice.metodo_pago === "PPD";
 
   // Sandbox chip:
   // - Si la factura ya tiene CFDI: usar el ambiente persistido en la factura.
