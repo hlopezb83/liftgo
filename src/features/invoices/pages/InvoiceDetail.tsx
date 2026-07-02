@@ -135,6 +135,7 @@ export default function InvoiceDetail() {
         balance={balance}
         payments={paymentList}
         ppdStamped={ppdStamped}
+        allowRepMutations={visibility.allowRepMutations}
         creditedAmount={creditedAmount}
       />
       {id && <PaymentIntentsSection invoiceId={id} />}
