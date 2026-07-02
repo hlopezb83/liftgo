@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.106.4",
+    "date": "2026-07-02",
+    "type": "patch",
+    "title": "Fix: changelog.json inválido rompía el historial de cambios",
+    "description": "Se corrigió un carácter de comillas mal escapado en la descripción de la entrada v6.106.0 de public/changelog.json que hacía fallar el JSON.parse global. Esto causaba el toast 'No se pudo cargar el historial de cambios' al abrir cualquier página (visible en /invoices/:id). El archivo ahora vuelve a parsear correctamente.",
+    "category": "fix"
+  },
+  {
     "version": "6.106.3",
     "date": "2026-07-02",
     "type": "patch",
