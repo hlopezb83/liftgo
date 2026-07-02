@@ -357,6 +357,15 @@ export async function handleStampCfdi(
 
     const facturApiId = facturApiInvoice.id;
     const cfdiUuid = facturApiInvoice.uuid;
+    const facturApiSeries: string | null =
+      (facturApiInvoice as { series?: string | null }).series ?? null;
+    const facturApiFolioRaw =
+      (facturApiInvoice as { folio_number?: number | string | null })
+        .folio_number ?? null;
+    const facturApiFolio: string | null = facturApiFolioRaw !== null &&
+        facturApiFolioRaw !== undefined
+      ? String(facturApiFolioRaw)
+      : null;
 
     let cfdiXml: string | null = null;
     let xmlStoragePath: string | null = null;
