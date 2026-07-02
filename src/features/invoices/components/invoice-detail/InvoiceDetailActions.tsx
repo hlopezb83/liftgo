@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { Edit, Stamp, XCircle, Download, DollarSign, Trash2, RefreshCw, FileCheck } from "lucide-react";
+import { Edit, Stamp, XCircle, DollarSign, Trash2, RefreshCw, FileText, FileCode2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { useState } from "react";
