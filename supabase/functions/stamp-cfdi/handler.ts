@@ -204,6 +204,7 @@ export async function handleStampCfdi(
           cfdi_uuid: mockUuid,
           cfdi_xml: mockXml,
           cfdi_status: "stamped",
+          facturapi_env: mode === "live" ? "live" : "test",
           ...(inv.status === "draft" ? { status: "sent" } : {}),
         })
         .eq("id", invoice_id);
