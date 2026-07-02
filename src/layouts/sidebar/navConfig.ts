@@ -48,6 +48,7 @@ export const NAV_GROUPS: NavGroup[] = [
     collapsible: true,
     items: [
       { title: "Facturas", url: "/invoices", icon: Receipt },
+      { title: "Conciliación", url: "/invoices/reconciliation", icon: GitCompareArrows },
       { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUp },
       { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: Landmark },
       { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
