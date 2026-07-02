@@ -1,0 +1,14 @@
+{
+  "version": "6.106.3",
+  "date": "2026-07-02",
+  "type": "patch",
+  "title": "Persistencia de Serie y Folio del PAC al timbrar + backfill",
+  "description": "Bugfix: FAC-0076 y otras facturas timbradas mostraban 'pendiente de timbrado' en la fila 'Serie y Folio' del card Identificadores porque el proceso de timbrado nunca guardaba esos campos en la base de datos. Cambios: (1) La Edge Function 'stamp-cfdi' ahora persiste 'series' y 'folio_number' que devuelve Facturapi. (2) Nueva Edge Function administrativa 'backfill-facturapi-serie-folio' que consulta al PAC y rellena Serie/Folio para facturas timbradas antes de este arreglo. Es idempotente. (3) La UI ahora distingue entre 'pendiente de timbrado' (borrador) y 'no informado por el PAC' (timbrada pero sin serie).",
+  "category": "fix",
+  "changes": [
+    "supabase/functions/stamp-cfdi/handler.ts: guardar serie/folio del PAC al timbrar",
+    "supabase/functions/backfill-facturapi-serie-folio/index.ts: backfill retroactivo admin-only",
+    "src/features/invoices/components/invoice-detail/InvoiceDetailIdentifiers.tsx: placeholder contextual",
+    "src/features/invoices/pages/InvoiceDetail.tsx: pasar isStamped al card"
+  ]
+}
