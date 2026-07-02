@@ -3213,6 +3213,10 @@ export type Database = {
         Args: { p_bill_id: string; p_notes?: string }
         Returns: undefined
       }
+      assign_stamped_invoice_number: {
+        Args: { p_folio: string; p_invoice_id: string; p_serie: string }
+        Returns: string
+      }
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
       change_feedback_status: {
         Args: { _comment?: string; _new_status: string; _report_id: string }
@@ -3515,6 +3519,7 @@ export type Database = {
       next_contract_number: { Args: never; Returns: string }
       next_credit_note_number: { Args: never; Returns: string }
       next_delivery_number: { Args: never; Returns: string }
+      next_draft_invoice_number: { Args: never; Returns: string }
       next_inspection_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_invoice_number_e2e: { Args: never; Returns: string }
@@ -3532,6 +3537,7 @@ export type Database = {
         }
         Returns: number
       }
+      peek_next_draft_invoice_number: { Args: never; Returns: string }
       peek_next_invoice_number: { Args: never; Returns: string }
       purge_e2e_data: { Args: never; Returns: Json }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }

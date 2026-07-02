@@ -1,42 +1,66 @@
-## Diagnóstico
+# Folio diferido: asignar `invoice_number` al timbrar
 
-Consulté la base de datos y confirmé que **FAC-0077** (y también FAC-0076) tienen `serie` y `folio` en `NULL`, aunque sí tienen `facturapi_invoice_id` y `cfdi_uuid`:
+## Objetivo
 
-```
-FAC-0077 | sent      | facturapi_invoice_id=6a4588… | serie="" | folio="" | env=live
-FAC-0076 | cancelled | facturapi_invoice_id=6a4580… | serie="" | folio="" | env=live
-```
+Hoy asignamos `invoice_number` (FAC-0087, FAC-0088…) al **crear el borrador**. Como los usuarios timbran los borradores en orden arbitrario, el folio interno se desalinea del folio que devuelve Facturapi. Vamos a diferir la asignación del folio hasta el timbrado, tomando el `folio_number` de Facturapi como fuente de verdad. Los borradores quedan identificados con un placeholder (`BORRADOR-<n>`) y sin ocupar folio de la serie fiscal.
 
-Es decir, se timbraron **antes** de que v6.106.3 empezara a persistir `serie`/`folio` desde la respuesta de Facturapi. El Edge Function `backfill-facturapi-serie-folio` ya existe y es correcto, pero:
+## Cambios
 
-1. Solo se puede invocar por consola de navegador (fricción alta, el usuario no siempre lo recuerda).
-2. Corre en **todas** las facturas afectadas a la vez y no da retroalimentación en la UI.
+### 1. Base de datos
 
-## Propuesta
+- Agregar secuencia `draft_invoice_seq` para numerar borradores (`BORRADOR-0001`, `BORRADOR-0002`…). Se usa solo para tener un identificador humano estable mientras la factura no está timbrada.
+- Nuevo RPC `next_draft_invoice_number()` → devuelve el siguiente `BORRADOR-XXXX`.
+- Nuevo RPC `assign_stamped_invoice_number(invoice_id uuid, serie text, folio text)` → dentro de una transacción:
+  - Verifica que la factura esté en estado permitido (borrador recién timbrado).
+  - Setea `invoice_number = 'FAC-' || lpad(folio, 4, '0')` (o el formato equivalente a la serie), `serie`, `folio`.
+  - Falla con mensaje claro si ese `invoice_number` ya existe (colisión imposible si la serie es exclusiva de LiftGo, pero defendemos el invariante).
+- Retiramos el uso de `next_invoice_number()` en el flujo de **creación**. La secuencia se conserva solo por compatibilidad histórica; no la borramos.
 
-Convertir el backfill en una acción visible desde el card de **Identificadores** cuando falte Serie/Folio en una factura ya timbrada, y ejecutarla puntualmente para esa factura.
+### 2. Backend / Edge Function `stamp-cfdi`
 
-### Cambios
+- Después de recibir la respuesta de Facturapi, en lugar de solo persistir `serie`/`folio`, llamar al RPC `assign_stamped_invoice_number` para setear también `invoice_number` a partir del `folio_number` que devuelve Facturapi.
+- Mantener el fallback stub (sin PAC) generando un folio interno de la secuencia `invoice_number_seq` existente, para no romper el modo demo.
 
-1. `**supabase/functions/backfill-facturapi-serie-folio/index.ts**`
-  - Aceptar body opcional `{ invoiceId?: string }`.
-  - Si se envía `invoiceId`, filtrar la query solo a esa factura.
-  - Mantener comportamiento actual (todas las que falten) cuando el body está vacío.
-2. `**src/features/invoices/components/invoice-detail/InvoiceDetailIdentifiers.tsx**`
-  - Cuando `isStamped && (!serie || !folio)` y el usuario es `admin`, mostrar un botón discreto **"Recuperar del PAC"** junto al placeholder actual.
-  - Al hacer clic: `supabase.functions.invoke('backfill-facturapi-serie-folio', { body: { invoiceId } })`, mostrar toast de éxito/error, invalidar la query de la factura para que se re-renderice con los datos actualizados.
-3. **Ejecutar backfill masivo una sola vez** desde el sandbox contra el proyecto para reparar FAC-0076 y FAC-0077 de inmediato (no cambia código, solo reparación de datos).
-4. **Changelog** v6.106.6 (patch): "Botón admin para recuperar Serie/Folio del PAC en facturas timbradas previas a v6.106.3".
+### 3. Frontend
 
-### Fuera de alcance
+- `useCreateInvoice`: pedir `next_draft_invoice_number()` en vez de `next_invoice_number()`.
+- Preview de recurrentes (`peek_next_invoice_number`) reemplazado por `peek_next_draft_invoice_number` que muestra `BORRADOR-XXXX` para transparentar que aún no es folio fiscal.
+- Header/listas: cuando `status = 'draft'`, mostrar el `invoice_number` (`BORRADOR-XXXX`) con badge visual "Borrador — folio se asigna al timbrar" para evitar confusión.
+- Al timbrar, la UI refetchea el detalle y el `invoice_number` cambia de `BORRADOR-0012` a `FAC-0087`. Toast lo comunica: "CFDI timbrado — folio asignado: FAC-0087".
 
-- No se toca `stamp-cfdi` (ya persiste correctamente desde v6.106.3).
-- No se automatiza el backfill al abrir el detalle (evitar llamadas a Facturapi sin acción explícita).
+### 4. Migración de datos existentes
 
-## Detalles técnicos
+Facturas actuales:
+- **Timbradas**: ya tienen `invoice_number` correcto (o reparado por el backfill anterior). No se tocan.
+- **Borradores actuales (FAC-0087 a FAC-0095 según describes)**: los renombramos a `BORRADOR-XXXX` para liberar esos folios de la serie fiscal. Se hace en la misma migración con un `UPDATE … WHERE status = 'draft'`.
+- Los folios FAC-0087..FAC-0095 quedan libres para que Facturapi los reasigne al siguiente timbrado.
 
-- El botón usa `useMutation` de TanStack Query y llama a `queryClient.invalidateQueries({ queryKey: ['invoice', id] })` (o el key equivalente que use `InvoiceDetail.tsx`) al terminar.
-- Solo visible cuando `hasRole('admin')` y la factura está timbrada pero sin serie/folio, así los usuarios no-admin no ven ruido.
-- El Edge Function sigue exigiendo `requireAdmin`, así que la superficie de seguridad no cambia.
+### 5. Documentos dependientes
 
-No hay que generar código nuevo, como solo son 2 facturas, haz el llenado manual en la BD. Las nuevas facturas ya deben de presentar la información adecuada.
+- Pagos, notas de crédito y complementos referencian por `invoice_id` (FK), no por `invoice_number`. No se rompen.
+- PDFs de borrador: el `invoice_number` que se imprime en el PDF cambia (`BORRADOR-XXXX`). Como los borradores son puramente internos según confirmaste, no hay impacto externo.
+- `activity_feed` / `audit_logs`: el renombrado al timbrar queda registrado como cambio de columna `invoice_number` en `audit_logs` (ya está cubierto por el trigger genérico).
+
+### 6. Tests
+
+- Unit tests del RPC `assign_stamped_invoice_number` (colisión, estado inválido, éxito).
+- Tests del handler `stamp-cfdi` verificando que llama al RPC con los valores de Facturapi.
+- Tests de `useCreateInvoice` verificando que ahora usa `next_draft_invoice_number`.
+- Test de UI: borrador muestra prefijo `BORRADOR-`, después de timbrar muestra `FAC-`.
+
+## Fuera de alcance
+
+- No se cambia el formato de folio para notas de crédito, complementos, cotizaciones ni contratos (mantienen sus propias secuencias).
+- No se implementa reconciliación automática si algún día alguien timbra fuera de LiftGo en la misma serie. Confirmaste que la serie es exclusiva.
+- No se toca el módulo de facturas de proveedor (esas usan folio del proveedor, no nuestro).
+
+## Consideraciones y trade-offs
+
+- **Ventaja principal**: cero desalineación con Facturapi, cero swaps, cero riesgo de colisión.
+- **Cambio visual**: los usuarios verán borradores con prefijo distinto (`BORRADOR-` vs `FAC-`). Es un beneficio (distingue claramente lo fiscal de lo no fiscal), pero requiere comunicarlo.
+- **Sin regresión de idempotencia**: la secuencia `invoice_number_seq` se conserva para el modo stub y no se corrompe.
+- **Reversible**: si algún día se decide volver al esquema anterior, basta con re-poblar `invoice_number` desde `next_invoice_number()` y restaurar el hook.
+
+## Changelog
+
+Entrada v6.107.0 (minor — cambio de comportamiento visible): "Folio interno de factura se asigna al timbrar tomando el folio de Facturapi como fuente de verdad. Borradores usan prefijo `BORRADOR-XXXX`."

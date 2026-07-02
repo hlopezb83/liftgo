@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.107.0",
+    "date": "2026-07-02",
+    "type": "minor",
+    "title": "Folio de factura diferido: Facturapi como fuente de verdad",
+    "description": "Los borradores de factura ya no consumen folio fiscal al crearse: se identifican con prefijo BORRADOR-XXXX. Al timbrar, el sistema toma el folio devuelto por Facturapi y asigna el número interno definitivo (FAC-XXXX), garantizando que folio interno y folio del PAC estén siempre alineados 1:1 sin importar el orden en que se timbren los borradores.",
+    "category": "improvement"
+  },
+  {
     "version": "6.106.5",
     "date": "2026-07-02",
     "type": "patch",

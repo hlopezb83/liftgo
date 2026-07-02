@@ -278,7 +278,7 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
       const total = Math.round((subtotal + taxAmount) * 100) / 100;
 
-      const { data: invNum } = await supabase.rpc("next_invoice_number");
+      const { data: invNum } = await supabase.rpc("next_draft_invoice_number");
       const isSingle = group.length === 1;
 
       const { data: insertedInvoice, error: invErr } = await supabase

@@ -448,11 +448,45 @@ export async function handleStampCfdi(
       );
     }
 
+    // Folio diferido: si el invoice_number todavía es placeholder BORRADOR-XXXX
+    // y Facturapi devolvió folio, promovemos el invoice_number a FAC-<folio>.
+    // Facturapi es la fuente de verdad para mantener 1:1 con su serie.
+    let finalInvoiceNumber: string | null = null;
+    const currentInvNum = (inv.invoice_number as string | null) ?? null;
+    if (
+      facturApiFolio &&
+      currentInvNum &&
+      currentInvNum.startsWith("BORRADOR-")
+    ) {
+      const rpcRes = await (supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: unknown }>;
+      }).rpc("assign_stamped_invoice_number", {
+        p_invoice_id: invoice_id,
+        p_serie: facturApiSeries,
+        p_folio: facturApiFolio,
+      });
+      const rpcErr = rpcRes.error as { message?: string } | null;
+      if (rpcErr) {
+        console.error("[stamp-cfdi] assign_stamped_invoice_number failed", {
+          invoice_id,
+          err: rpcErr.message,
+        });
+        // No abortamos: la factura ya está timbrada. Se puede reparar manualmente.
+      } else {
+        finalInvoiceNumber = rpcRes.data as string;
+      }
+    }
+
+
     return json(
       {
         success: true,
         cfdi_uuid: cfdiUuid,
         facturapi_invoice_id: facturApiId,
+        invoice_number: finalInvoiceNumber ?? currentInvNum,
         stub: false,
       },
       200,
