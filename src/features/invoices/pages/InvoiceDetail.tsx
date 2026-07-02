@@ -116,7 +116,6 @@ export default function InvoiceDetail() {
       />
 
       <InvoiceDetailIdentifiers
-        invoiceNumber={invoice.invoice_number}
         cfdiUuid={invoice.cfdi_uuid}
         serie={invoice.serie}
         folio={invoice.folio}

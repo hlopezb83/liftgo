@@ -25,7 +25,6 @@ describe("InvoiceDetailIdentifiers", () => {
   it("renderiza el título de la tarjeta", () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
         cfdiUuid="abc-123"
         serie="A"
         folio="145"
@@ -34,22 +33,9 @@ describe("InvoiceDetailIdentifiers", () => {
     expect(screen.getByText("Identificadores")).toBeInTheDocument();
   });
 
-  it("muestra el folio interno", () => {
-    render(
-      <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
-        cfdiUuid={null}
-        serie={null}
-        folio={null}
-      />,
-    );
-    expect(screen.getByText("FAC-0073")).toBeInTheDocument();
-  });
-
   it("muestra 'Serie A · Folio 145' cuando serie y folio están presentes", () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
         cfdiUuid="abc-123"
         serie="A"
         folio="145"
@@ -61,7 +47,6 @@ describe("InvoiceDetailIdentifiers", () => {
   it("muestra placeholder en filas sin valor", () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
         cfdiUuid={null}
         serie={null}
         folio={null}
@@ -71,45 +56,26 @@ describe("InvoiceDetailIdentifiers", () => {
     expect(placeholders).toHaveLength(2);
   });
 
-  it("copia el folio interno al portapapeles", async () => {
+  it("copia el UUID al portapapeles", async () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
-        cfdiUuid={null}
+        cfdiUuid="sat-uuid-123"
         serie={null}
         folio={null}
       />,
     );
 
-    const copyBtn = screen.getByLabelText("Copiar Folio interno");
+    const copyBtn = screen.getByLabelText("Copiar Folio fiscal SAT (UUID)");
     await act(async () => {
       fireEvent.click(copyBtn);
     });
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("FAC-0073");
-  });
-
-  it("muestra el tooltip de folio interno con la explicación correcta", () => {
-    render(
-      <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
-        cfdiUuid={null}
-        serie={null}
-        folio={null}
-      />,
-    );
-
-    expect(
-      screen.getByText(
-        "Control administrativo LiftGo. Se asigna al crear el borrador y nunca cambia, incluso si timbras días después o fuera de orden.",
-      ),
-    ).toBeInTheDocument();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("sat-uuid-123");
   });
 
   it("muestra el tooltip de Serie y Folio con la explicación correcta", () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
         cfdiUuid={null}
         serie="B"
         folio="99"
@@ -126,7 +92,6 @@ describe("InvoiceDetailIdentifiers", () => {
   it("muestra el tooltip de Folio fiscal SAT con la explicación correcta", () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
         cfdiUuid="sat-uuid-123"
         serie={null}
         folio={null}
@@ -143,7 +108,6 @@ describe("InvoiceDetailIdentifiers", () => {
   it("muestra '— pendiente de timbrado —' cuando no está timbrada", () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0073"
         cfdiUuid={null}
         serie={null}
         folio={null}
@@ -155,7 +119,6 @@ describe("InvoiceDetailIdentifiers", () => {
   it("muestra '— no informado por el PAC —' en Serie/Folio cuando ya está timbrada sin serie", () => {
     render(
       <InvoiceDetailIdentifiers
-        invoiceNumber="FAC-0076"
         cfdiUuid="sat-uuid-123"
         serie={null}
         folio={null}

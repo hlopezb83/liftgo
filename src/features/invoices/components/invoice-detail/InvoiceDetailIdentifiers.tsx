@@ -6,7 +6,6 @@ import { Check, Copy, Info } from "lucide-react";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface Props {
-  invoiceNumber: string;
   cfdiUuid: string | null;
   serie: string | null;
   folio: string | null;
@@ -65,12 +64,11 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
 }
 
 /**
- * Muestra los tres identificadores independientes de una factura:
- * - Folio interno LiftGo (FAC-XXXX)
+ * Muestra los identificadores fiscales de una factura timbrada:
  * - Folio fiscal SAT (UUID)
  * - Serie y Folio del PAC (Facturapi)
  */
-export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, serie, folio, isStamped }: Props) {
+export function InvoiceDetailIdentifiers({ cfdiUuid, serie, folio, isStamped }: Props) {
   const stamped = isStamped ?? Boolean(cfdiUuid);
   const serieFolio = serie && folio ? `Serie ${serie} · Folio ${folio}` : null;
   const serieFolioPlaceholder = stamped
@@ -83,11 +81,6 @@ export function InvoiceDetailIdentifiers({ invoiceNumber, cfdiUuid, serie, folio
         <CardTitle className="text-base">Identificadores</CardTitle>
       </CardHeader>
       <CardContent className="divide-y">
-        <IdRow
-          label="Folio interno"
-          tooltip="Control administrativo LiftGo. Se asigna al crear el borrador y nunca cambia, incluso si timbras días después o fuera de orden."
-          value={invoiceNumber}
-        />
         <IdRow
           label="Folio fiscal SAT (UUID)"
           tooltip="Identificador oficial ante el SAT (36 caracteres). Se asigna al timbrar y es distinto del folio interno."
