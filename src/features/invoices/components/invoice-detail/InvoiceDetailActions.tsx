@@ -99,12 +99,12 @@ function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string;
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => handle("acuse_pdf")} disabled={loading !== null}>
-        <FileCheck className="h-4 w-4 mr-1" />
-        {loading === "pdf" ? "Descargando..." : "Acuse PDF"}
+        <FileText className="h-4 w-4 mr-1" />
+        {loading === "pdf" ? "Descargando…" : "Acuse PDF"}
       </Button>
       <Button size="sm" variant="outline" onClick={() => handle("acuse_xml")} disabled={loading !== null}>
-        <FileCheck className="h-4 w-4 mr-1" />
-        {loading === "xml" ? "Descargando..." : "Acuse XML"}
+        <FileCode2 className="h-4 w-4 mr-1" />
+        {loading === "xml" ? "Descargando…" : "Acuse XML"}
       </Button>
     </>
   );
