@@ -27,6 +27,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 
+import { computeInvoiceVisibility } from "../lib/invoiceVisibility";
+
 function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; status: string; cancellation_status: string | null; total: number }>): number {
   return creditNotes
     .filter((cn) => cn.cfdi_status === "stamped" && cn.status !== "cancelled" && cn.cancellation_status !== "accepted")
@@ -45,15 +47,17 @@ function deriveInvoiceData(
   const totalPaid = paymentList.reduce((sum, p) => sum + Number(p.amount), 0);
   const creditedAmount = computeCreditedAmount(creditNotes ?? []);
   const total = Number(invoice.total);
-  const pacMode = (company as { facturapi_mode?: string } | null | undefined)?.facturapi_mode ?? "test";
+  const visibility = computeInvoiceVisibility(
+    invoice as Parameters<typeof computeInvoiceVisibility>[0],
+    company as Parameters<typeof computeInvoiceVisibility>[1],
+  );
   return {
     paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total,
     balance: total - totalPaid - creditedAmount,
     showCfdiError: Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped",
     showCollectionNotes: !["paid", "draft"].includes(invoice.status),
-    isLive: pacMode === "live",
-    showPacBadge: cfdiStatus !== "stamped",
-    ppdStamped: invoice.metodo_pago === "PPD" && cfdiStatus === "stamped",
+    visibility,
+    ppdStamped: visibility.showRepColumn,
   };
 }
 
