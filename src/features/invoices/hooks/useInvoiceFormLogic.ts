@@ -6,7 +6,7 @@ import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
 import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useCustomers } from "@/features/customers";
-import { useQuote, useQuoteSaleAssignmentStatus } from "@/features/quotes";
+import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import {
   invoiceFormSchema,
