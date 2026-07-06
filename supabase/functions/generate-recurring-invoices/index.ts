@@ -125,9 +125,11 @@ async function buildPlan(supabase: any): Promise<{
     if (effectiveLastBilled) {
       const { data: linkedInvoice } = await supabase
         .from("invoice_bookings")
-        .select("invoice_id, invoices!inner(billing_period_end)")
+        .select("invoice_id, invoices!inner(billing_period_end, status, cfdi_status)")
         .eq("booking_id", booking.id)
         .eq("invoices.billing_period_end", effectiveLastBilled)
+        .neq("invoices.status", "cancelled")
+        .neq("invoices.cfdi_status", "cancelled")
         .limit(1)
         .maybeSingle();
       if (!linkedInvoice) effectiveLastBilled = null;
@@ -178,11 +180,13 @@ async function buildPlan(supabase: any): Promise<{
     const { data: existing } = await supabase
       .from("invoice_bookings")
       .select(
-        "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)",
+        "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
       )
       .eq("booking_id", booking.id)
       .eq("invoices.billing_period_start", startStr)
       .eq("invoices.billing_period_end", endStr)
+      .neq("invoices.status", "cancelled")
+      .neq("invoices.cfdi_status", "cancelled")
       .limit(1)
       .maybeSingle();
 
@@ -243,11 +247,13 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const { data: existingLink } = await supabase
         .from("invoice_bookings")
         .select(
-          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)",
+          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
         )
         .in("booking_id", bookingIds)
         .eq("invoices.billing_period_start", first.startStr)
         .eq("invoices.billing_period_end", first.endStr)
+        .neq("invoices.status", "cancelled")
+        .neq("invoices.cfdi_status", "cancelled")
         .limit(1)
         .maybeSingle();
 
