@@ -270,7 +270,7 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const lineItems = group.map((i) => ({
         description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
           fmtMx(i.billingStart)
-        } al ${fmtMx(i.billingEnd)})`,
+        } al ${fmtMx(i.billingEnd)})${i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""}`,
         quantity: 1,
         unit_price: i.monthlyRate,
         total: i.monthlyRate,
