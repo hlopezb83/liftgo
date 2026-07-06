@@ -44,7 +44,7 @@ function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefine
   }));
 }
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts }: Props) {
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes }: Props) {
   const handleCustomerSelect = useCallback((selectedCustomerId: string) => {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
     const customer = customers?.find((c) => c.id === selectedCustomerId);
@@ -71,9 +71,22 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts }:
       if (customer) applyCfdiPatch(form, customer);
     }
 
-    const allLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
-    form.setValue("lineItems", allLines, { shouldDirty: true });
-  }, [form, bookings, customers, forklifts]);
+    const rentalLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
+
+    // Arrastrar partidas no-renta (logística/entrega) desde la cotización origen.
+    // Deduplicado por quote_id para no repetirlas si la cotización se dividió en varias reservas.
+    const seenQuoteIds = new Set<string>();
+    const extraLines: LineItemValues[] = [];
+    for (const b of selected) {
+      if (!b.quote_id || seenQuoteIds.has(b.quote_id)) continue;
+      seenQuoteIds.add(b.quote_id);
+      const q = quotes?.find((x) => x.id === b.quote_id);
+      if (!q) continue;
+      extraLines.push(...extractNonRentalLines(q.line_items));
+    }
+
+    form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
+  }, [form, bookings, customers, forklifts, quotes]);
 
   // Compat: handler antiguo single-select (delega al multi).
   const handleBookingSelect = useCallback((id: string) => {
