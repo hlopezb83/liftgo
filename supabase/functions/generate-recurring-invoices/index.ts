@@ -180,11 +180,13 @@ async function buildPlan(supabase: any): Promise<{
     const { data: existing } = await supabase
       .from("invoice_bookings")
       .select(
-        "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)",
+        "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
       )
       .eq("booking_id", booking.id)
       .eq("invoices.billing_period_start", startStr)
       .eq("invoices.billing_period_end", endStr)
+      .neq("invoices.status", "cancelled")
+      .neq("invoices.cfdi_status", "cancelled")
       .limit(1)
       .maybeSingle();
 
