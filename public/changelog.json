@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.107.1",
+    "date": "2026-07-06",
+    "type": "patch",
+    "title": "Serie del equipo en partidas de facturas",
+    "description": "Las partidas de facturas de venta ahora incluyen el número de serie del montacargas al final de la descripción (Serie: XXXX), tanto en facturas manuales generadas desde reserva como en facturas recurrentes automáticas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.107.0",
     "date": "2026-07-02",
     "type": "minor",
