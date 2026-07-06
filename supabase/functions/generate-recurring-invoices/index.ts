@@ -89,6 +89,7 @@ type PlanItem = {
   customerId: string;
   customerName: string | null;
   forkliftName: string | null;
+  forkliftSerial: string | null;
   monthlyRate: number;
   billingStart: Date;
   billingEnd: Date;
