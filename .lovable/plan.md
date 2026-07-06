@@ -1,41 +1,54 @@
+## Diagnóstico
 
-## Objetivo
+Facturas timbradas cuyo `invoice_number` interno no coincide con el folio devuelto por Facturapi:
 
-En **facturas de venta (FAC-)**, cuando la partida provenga de un equipo asignado (reserva o venta), incluir el número de serie del montacargas al final de la descripción entre paréntesis. Solo aplica a partidas **nuevas**; borradores existentes no se tocan.
+| Actual | Estado | Folio PAC | Debería ser |
+|---|---|---|---|
+| FAC-0076 | cancelada | 75 | **FAC-0075** |
+| FAC-0077 | timbrada | 76 | **FAC-0076** |
+| FAC-0085 | timbrada | 78 | **FAC-0078** |
 
-## Formato
+Causa: FAC-0077 se creó antes del sistema de folio diferido; FAC-0085 se creó después pero desde un cliente con bundle cacheado, así que consumió un folio interno directo en lugar de `BORRADOR-XXXX`, y `assign_stamped_invoice_number` no promovió (solo actúa sobre BORRADOR-).
 
-- Con serie: `"MC-01 — Renta mensual (Serie: 12345)"`
-- Sin serie registrada: se omite el sufijo (queda igual que hoy).
-- Venta de equipo (ya existe línea propia): se conserva el `S/N: XXX` actual pero se normaliza al mismo formato `(Serie: XXX)`.
+## Alcance
 
-## Cambios
+Solo el arreglo puntual de datos. **No** se modifica lógica ni edge functions (fuera de alcance según respuesta).
 
-### 1. `src/lib/domain/rentalCalculation.ts`
-- `generateLineItems(forklift, start, end)`: al mapear, si `forklift.serial_number` existe, anexar `` ` (Serie: ${forklift.serial_number})` `` al final de `description`.
-- `generateLineItemsFromModel(...)`: sin cambios (no hay equipo asignado, solo modelo).
+## Migración de datos
 
-### 2. `src/features/invoices/hooks/invoiceForm/invoiceFormBuilders.ts`
-- Línea de venta de equipo (`enriched.description`): reformatear a `` `${manufacturer} ${model} — Venta de equipo (Serie: ${serial_number || "N/A"})` ``.
+Renombrar en cadena para respetar el unique index de `invoice_number`, en una sola transacción:
 
-### 3. `supabase/functions/generate-recurring-invoices/index.ts`
-- Ampliar `select` de bookings a `forklifts(name, monthly_rate, serial_number)`.
-- Agregar `forkliftSerial: string | null` a `PlanItem` (y al tipo `Forklift` local).
-- En el mapeo de `lineItems`, si hay serial, anexar `` ` (Serie: ${i.forkliftSerial})` `` a la descripción.
-- Redeploy de la edge function.
+```sql
+BEGIN;
+-- Paso pivote temporal para evitar cualquier colisión intermedia
+UPDATE invoices SET invoice_number = 'FAC-TMP-0076' WHERE invoice_number = 'FAC-0076';
+UPDATE invoices SET invoice_number = 'FAC-TMP-0077' WHERE invoice_number = 'FAC-0077';
+UPDATE invoices SET invoice_number = 'FAC-TMP-0085' WHERE invoice_number = 'FAC-0085';
 
-### 4. Tests
-- Actualizar snapshots/expects en:
-  - `src/lib/domain/__tests__/rentalCalculation.test.ts` (los casos que arman forklift ya incluyen `serial_number`).
-  - `src/lib/domain/__tests__/invoiceHelpers.test.ts` si aplica.
-- Agregar un caso: forklift sin `serial_number` → descripción sin sufijo.
+-- Reasignaciones finales alineadas al folio del PAC
+UPDATE invoices SET invoice_number = 'FAC-0075' WHERE invoice_number = 'FAC-TMP-0076'; -- folio 75
+UPDATE invoices SET invoice_number = 'FAC-0076' WHERE invoice_number = 'FAC-TMP-0077'; -- folio 76
+UPDATE invoices SET invoice_number = 'FAC-0078' WHERE invoice_number = 'FAC-TMP-0085'; -- folio 78
+COMMIT;
+```
 
-### 5. Changelog
-- Nueva entrada **patch** `v6.107.1` en `public/changelog.json` + `public/changelog/v6.107.1.json`:
-  - Título: "Serie del equipo en partidas de facturas"
-  - Descripción: las facturas de venta ahora incluyen el número de serie del montacargas en la descripción de la partida, tanto en facturas manuales como recurrentes.
+Verificaciones previas confirmadas:
+- No existe FAC-0075 ni FAC-0078 en la tabla.
+- Ninguna otra columna (`payments`, `credit_notes`, `invoice_bookings`, etc.) referencia `invoice_number` como texto — todas usan `invoice_id` (FK), así que renombrar es seguro.
+- `audit_logs` capturará automáticamente el cambio de `invoice_number` para trazabilidad.
+
+## Cambios de código
+
+Ninguno.
+
+## Changelog
+
+Entrada patch `v6.107.2`:
+- Título: "Realineación de folios internos con Facturapi"
+- Detalle: FAC-0076/0077/0085 se renombraron a FAC-0075/0076/0078 para alinear el número interno con el folio devuelto por el PAC.
 
 ## Fuera de alcance
 
-- Cotizaciones, notas de crédito, facturas de proveedor, contratos.
-- Retroactivo: borradores existentes conservan su descripción actual salvo que el usuario regenere las partidas seleccionando la reserva de nuevo.
+- Endurecer stamp-cfdi para autocorregir cuando el invoice_number no empieza con BORRADOR-.
+- Forzar refresh del cliente cuando cambia la versión publicada.
+- (Ambos pueden abordarse después si vuelve a ocurrir.)
