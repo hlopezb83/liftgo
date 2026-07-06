@@ -82,7 +82,7 @@ function enrichLineItem(
   const assignment = assignments?.find((a) => a.line_index === index);
   const forklift = assignment ? forklifts?.find((f) => f.id === assignment.forklift_id) : undefined;
   if (forklift) {
-    enriched.description = `${forklift.manufacturer || ""} ${forklift.model} — S/N: ${forklift.serial_number || "N/A"} (${forklift.name}) - Venta de equipo`;
+    enriched.description = `${forklift.manufacturer || ""} ${forklift.model} — Venta de equipo (${forklift.name}) (Serie: ${forklift.serial_number || "N/A"})`;
   }
   return enriched;
 }
