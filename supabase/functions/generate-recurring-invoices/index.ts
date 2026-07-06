@@ -58,6 +58,7 @@ function lastOfMonth(d: Date): Date {
 type Forklift = {
   name?: string;
   model?: string;
+  serial_number?: string | null;
   daily_rate?: number;
   weekly_rate?: number;
   monthly_rate?: number;
