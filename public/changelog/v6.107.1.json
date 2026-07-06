@@ -1,0 +1,9 @@
+{
+  "description": "Las partidas de facturas de venta ahora incluyen el número de serie del montacargas al final de la descripción (Serie: XXXX), tanto en facturas manuales generadas desde reserva como en facturas recurrentes automáticas. Facilita la conciliación con clientes que requieren el S/N del equipo en cada partida facturada.",
+  "changes": [
+    "Facturas desde reserva: descripción de partidas de renta incluye '(Serie: XXXX)' cuando el equipo tiene número de serie registrado",
+    "Facturas recurrentes: la edge function generate-recurring-invoices también agrega el número de serie",
+    "Venta de equipo: se normaliza el formato de descripción a 'Marca Modelo — Venta de equipo (Nombre) (Serie: XXXX)'",
+    "Si el equipo no tiene serie registrada, la descripción se mantiene sin sufijo"
+  ]
+}
