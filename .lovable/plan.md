@@ -1,54 +1,46 @@
-## Diagnóstico
+## Objetivo
 
-Facturas timbradas cuyo `invoice_number` interno no coincide con el folio devuelto por Facturapi:
+Permitir que el botón "Generar recurrentes" vuelva a generar la factura de un periodo cuando el borrador previo fue **cancelado** (además de eliminado, que ya funciona).
 
-| Actual | Estado | Folio PAC | Debería ser |
-|---|---|---|---|
-| FAC-0076 | cancelada | 75 | **FAC-0075** |
-| FAC-0077 | timbrada | 76 | **FAC-0076** |
-| FAC-0085 | timbrada | 78 | **FAC-0078** |
+## Cambio único
 
-Causa: FAC-0077 se creó antes del sistema de folio diferido; FAC-0085 se creó después pero desde un cliente con bundle cacheado, así que consumió un folio interno directo en lugar de `BORRADOR-XXXX`, y `assign_stamped_invoice_number` no promovió (solo actúa sobre BORRADOR-).
+En `supabase/functions/generate-recurring-invoices/index.ts`, ambos chequeos de idempotencia (`buildPlan` línea ~178 y `executePlan` línea ~243) deben **excluir facturas canceladas** al buscar vínculos existentes en `invoice_bookings`.
 
-## Alcance
+Ajuste al filtro:
 
-Solo el arreglo puntual de datos. **No** se modifica lógica ni edge functions (fuera de alcance según respuesta).
-
-## Migración de datos
-
-Renombrar en cadena para respetar el unique index de `invoice_number`, en una sola transacción:
-
-```sql
-BEGIN;
--- Paso pivote temporal para evitar cualquier colisión intermedia
-UPDATE invoices SET invoice_number = 'FAC-TMP-0076' WHERE invoice_number = 'FAC-0076';
-UPDATE invoices SET invoice_number = 'FAC-TMP-0077' WHERE invoice_number = 'FAC-0077';
-UPDATE invoices SET invoice_number = 'FAC-TMP-0085' WHERE invoice_number = 'FAC-0085';
-
--- Reasignaciones finales alineadas al folio del PAC
-UPDATE invoices SET invoice_number = 'FAC-0075' WHERE invoice_number = 'FAC-TMP-0076'; -- folio 75
-UPDATE invoices SET invoice_number = 'FAC-0076' WHERE invoice_number = 'FAC-TMP-0077'; -- folio 76
-UPDATE invoices SET invoice_number = 'FAC-0078' WHERE invoice_number = 'FAC-TMP-0085'; -- folio 78
-COMMIT;
+```ts
+.eq("invoices.billing_period_start", startStr)
+.eq("invoices.billing_period_end", endStr)
+.neq("invoices.status", "cancelled")
+.neq("invoices.cfdi_status", "cancelled")
 ```
 
-Verificaciones previas confirmadas:
-- No existe FAC-0075 ni FAC-0078 en la tabla.
-- Ninguna otra columna (`payments`, `credit_notes`, `invoice_bookings`, etc.) referencia `invoice_number` como texto — todas usan `invoice_id` (FK), así que renombrar es seguro.
-- `audit_logs` capturará automáticamente el cambio de `invoice_number` para trazabilidad.
+Aplicado en los dos lugares.
 
-## Cambios de código
+Con esto:
+- Borrador **eliminado** → sigue funcionando (cascade borra el pivote).
+- Borrador **cancelado** → el pivote queda, pero la consulta lo ignora y la reserva vuelve a estar elegible para el mismo periodo.
+- Factura timbrada y luego cancelada ante el SAT → también se destraba (comportamiento consistente: si oficialmente no existe, se puede rehacer).
 
-Ninguno.
+## Auto-heal de `last_billed_date`
+
+`buildPlan` ya tiene un bloque (líneas 122-132) que resetea `effectiveLastBilled = null` si no hay factura vinculada al último periodo facturado. Debe hacer el mismo filtro de canceladas ahí para que, tras cancelar, la reserva no quede atascada apuntando a un periodo "facturado" que ya no cuenta.
+
+## Deploy
+
+Redeploy de `generate-recurring-invoices`.
+
+## Tests
+
+Extender `supabase/functions/generate-recurring-invoices/index_test.ts` con un caso: reserva con factura cancelada para el periodo → debe aparecer como `eligible` en el preview y crear una nueva factura al ejecutar.
 
 ## Changelog
 
-Entrada patch `v6.107.2`:
-- Título: "Realineación de folios internos con Facturapi"
-- Detalle: FAC-0076/0077/0085 se renombraron a FAC-0075/0076/0078 para alinear el número interno con el folio devuelto por el PAC.
+Entrada patch `v6.107.3`:
+- Título: "Regenerar recurrentes tras cancelar borrador"
+- Detalle: cancelar una factura (borrador o timbrada-cancelada) ahora libera la reserva para que el botón de recurrentes pueda volver a generar la factura de ese periodo.
 
 ## Fuera de alcance
 
-- Endurecer stamp-cfdi para autocorregir cuando el invoice_number no empieza con BORRADOR-.
-- Forzar refresh del cliente cuando cambia la versión publicada.
-- (Ambos pueden abordarse después si vuelve a ocurrir.)
+- UI de "Cancelar vs Eliminar" en el detalle de borradores.
+- Auto-corrección retroactiva.
