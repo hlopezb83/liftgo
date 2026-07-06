@@ -1,0 +1,8 @@
+{
+  "description": "El botón 'Generar recurrentes' ya no se bloquea cuando el borrador previo del periodo fue cancelado. Antes solo funcionaba si el borrador se eliminaba (por el ON DELETE CASCADE sobre invoice_bookings); si se cancelaba, el vínculo permanecía y el edge function trataba la reserva como 'ya facturada'. Ahora el chequeo de idempotencia ignora facturas con status o cfdi_status = 'cancelled'.",
+  "changes": [
+    "Edge function generate-recurring-invoices: chequeos de idempotencia en buildPlan y executePlan excluyen facturas canceladas",
+    "Auto-heal de last_billed_date también ignora facturas canceladas, evitando reservas atascadas apuntando a un periodo cuya factura fue cancelada",
+    "Aplica tanto a borradores cancelados como a facturas timbradas y luego canceladas ante el SAT"
+  ]
+}
