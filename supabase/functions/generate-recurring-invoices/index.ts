@@ -125,9 +125,11 @@ async function buildPlan(supabase: any): Promise<{
     if (effectiveLastBilled) {
       const { data: linkedInvoice } = await supabase
         .from("invoice_bookings")
-        .select("invoice_id, invoices!inner(billing_period_end)")
+        .select("invoice_id, invoices!inner(billing_period_end, status, cfdi_status)")
         .eq("booking_id", booking.id)
         .eq("invoices.billing_period_end", effectiveLastBilled)
+        .neq("invoices.status", "cancelled")
+        .neq("invoices.cfdi_status", "cancelled")
         .limit(1)
         .maybeSingle();
       if (!linkedInvoice) effectiveLastBilled = null;
