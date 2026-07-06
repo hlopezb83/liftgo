@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.107.3",
+    "date": "2026-07-06",
+    "type": "patch",
+    "title": "Regenerar recurrentes tras cancelar borrador",
+    "description": "El botón 'Generar recurrentes' ahora libera la reserva cuando el borrador previo del periodo fue cancelado (antes solo funcionaba si se eliminaba). El chequeo de idempotencia excluye facturas con status o cfdi_status = cancelled.",
+    "category": "fix"
+  },
+  {
     "version": "6.107.2",
     "date": "2026-07-06",
     "type": "patch",
