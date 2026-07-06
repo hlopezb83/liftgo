@@ -1,0 +1,10 @@
+{
+  "description": "El costo del Servicio de Logística (y otras partidas capturadas en la cotización que no son renta ni venta de equipo) ahora se arrastra automáticamente a la factura cuando se genera desde una o varias reservas. Antes se perdía en el limbo entre cotización y facturación.",
+  "changes": [
+    "Al seleccionar reservas en el formulario de nueva factura, el sistema lee las cotizaciones origen (bookings.quote_id) y anexa la partida de logística/entrega",
+    "Deduplicación por quote_id: si la cotización se convirtió en varias reservas, la partida de logística se agrega solo una vez",
+    "Las partidas arrastradas llevan claves SAT de flete por defecto (clave_prod_serv 78101800, clave_unidad E48)",
+    "Nuevo hook useQuotesByIds para leer cotizaciones puntuales sin traer toda la lista",
+    "Solo aplica a facturas manuales; las recurrentes mensuales siguen siendo puro alquiler"
+  ]
+}
