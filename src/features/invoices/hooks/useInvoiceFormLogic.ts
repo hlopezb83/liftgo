@@ -79,7 +79,13 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
   }, [isEdit, sourceQuote, fromQuoteId, quoteAssignmentStatus]);
 
   const submit = useInvoiceFormSubmit();
-  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts });
+  const uniqueBookingQuoteIds = useMemo(() => {
+    const set = new Set<string>();
+    bookings?.forEach((b) => { if (b.quote_id) set.add(b.quote_id); });
+    return Array.from(set);
+  }, [bookings]);
+  const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
+  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes });
   const totals = useInvoiceFormTotals(form);
 
   const invoicedBookingIds = useMemo(() => {
