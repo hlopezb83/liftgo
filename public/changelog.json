@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.107.4",
+    "date": "2026-07-06",
+    "type": "patch",
+    "title": "Servicio de logística arrastrado a la factura",
+    "description": "Al facturar desde reserva, las partidas no-renta de la cotización origen (logística/entrega) se anexan automáticamente a la factura, una sola vez por cotización aunque se haya dividido en varias reservas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.107.3",
     "date": "2026-07-06",
     "type": "patch",
