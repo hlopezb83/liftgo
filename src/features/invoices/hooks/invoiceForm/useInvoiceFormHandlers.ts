@@ -3,18 +3,25 @@ import type { UseFormReturn } from "react-hook-form";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import type { Forklift } from "@/features/fleet";
+import { extractNonRentalLines } from "@/features/quotes/utils/nonRentalLines";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 
 type Booking = {
   id: string; customer_name?: string | null; customer_id?: string | null;
   forklift_id: string; start_date: string; end_date: string;
+  quote_id?: string | null;
 };
+
+type QuoteSource = { id: string; line_items: unknown };
 
 interface Props {
   form: UseFormReturn<InvoiceFormValues>;
   customers: Customer[] | undefined;
   bookings: Booking[] | undefined;
   forklifts: Forklift[] | undefined;
+  /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
+   *  partidas no-renta (logística/entrega) a la factura. */
+  quotes?: QuoteSource[] | undefined;
 }
 
 function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Customer) {
