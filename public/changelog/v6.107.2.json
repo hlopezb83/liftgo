@@ -1,0 +1,9 @@
+{
+  "description": "Se realinearon los números internos de tres facturas timbradas para que coincidan con el folio devuelto por Facturapi: FAC-0076 → FAC-0075, FAC-0077 → FAC-0076 y FAC-0085 → FAC-0078. Estas facturas se habían creado antes o durante la transición al esquema de folio diferido (BORRADOR-XXXX) y consumieron folios internos que no correspondían al del PAC.",
+  "changes": [
+    "FAC-0076 (cancelada, folio PAC 75) renombrada a FAC-0075",
+    "FAC-0077 (folio PAC 76) renombrada a FAC-0076",
+    "FAC-0085 (folio PAC 78) renombrada a FAC-0078",
+    "Los cambios quedan registrados en el audit trail"
+  ]
+}

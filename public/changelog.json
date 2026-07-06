@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.107.2",
+    "date": "2026-07-06",
+    "type": "patch",
+    "title": "Realineación de folios internos con Facturapi",
+    "description": "Se renombraron FAC-0076/0077/0085 a FAC-0075/0076/0078 para que el número interno coincida con el folio devuelto por el PAC.",
+    "category": "fix"
+  },
+  {
     "version": "6.107.1",
     "date": "2026-07-06",
     "type": "patch",
