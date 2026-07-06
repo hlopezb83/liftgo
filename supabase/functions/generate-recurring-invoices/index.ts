@@ -247,11 +247,13 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const { data: existingLink } = await supabase
         .from("invoice_bookings")
         .select(
-          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end)",
+          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
         )
         .in("booking_id", bookingIds)
         .eq("invoices.billing_period_start", first.startStr)
         .eq("invoices.billing_period_end", first.endStr)
+        .neq("invoices.status", "cancelled")
+        .neq("invoices.cfdi_status", "cancelled")
         .limit(1)
         .maybeSingle();
 
