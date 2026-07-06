@@ -91,6 +91,12 @@ describe("generateLineItems", () => {
     const items = generateLineItems(forklift, "2026-01-01", "2026-01-31");
     expect(items[0].description).toBe("Toyota 8FGCU25 — Renta mensual");
   });
+
+  it("incluye el número de serie entre paréntesis cuando existe", () => {
+    const withSerial = { ...forklift, serial_number: "SN-12345" } as unknown as Forklift;
+    const items = generateLineItems(withSerial, "2026-01-01", "2026-01-31");
+    expect(items[0].description).toBe("Toyota 8FGCU25 — Renta mensual (Serie: SN-12345)");
+  });
 });
 
 describe("generateLineItemsFromModel", () => {
