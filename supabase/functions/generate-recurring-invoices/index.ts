@@ -204,6 +204,7 @@ async function buildPlan(supabase: any): Promise<{
       customerId: booking.customer_id as string,
       customerName: booking.customer_name ?? null,
       forkliftName: forklift?.name ?? null,
+      forkliftSerial: forklift?.serial_number ?? null,
       monthlyRate,
       billingStart,
       billingEnd,
