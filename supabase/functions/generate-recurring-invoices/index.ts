@@ -58,6 +58,7 @@ function lastOfMonth(d: Date): Date {
 type Forklift = {
   name?: string;
   model?: string;
+  serial_number?: string | null;
   daily_rate?: number;
   weekly_rate?: number;
   monthly_rate?: number;
@@ -88,6 +89,7 @@ type PlanItem = {
   customerId: string;
   customerName: string | null;
   forkliftName: string | null;
+  forkliftSerial: string | null;
   monthlyRate: number;
   billingStart: Date;
   billingEnd: Date;
@@ -103,7 +105,7 @@ async function buildPlan(supabase: any): Promise<{
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, start_date, last_billed_date, forklifts(name, monthly_rate)",
+      "id, booking_number, customer_id, customer_name, start_date, last_billed_date, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
@@ -202,6 +204,7 @@ async function buildPlan(supabase: any): Promise<{
       customerId: booking.customer_id as string,
       customerName: booking.customer_name ?? null,
       forkliftName: forklift?.name ?? null,
+      forkliftSerial: forklift?.serial_number ?? null,
       monthlyRate,
       billingStart,
       billingEnd,
@@ -267,7 +270,7 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const lineItems = group.map((i) => ({
         description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
           fmtMx(i.billingStart)
-        } al ${fmtMx(i.billingEnd)})`,
+        } al ${fmtMx(i.billingEnd)})${i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""}`,
         quantity: 1,
         unit_price: i.monthlyRate,
         total: i.monthlyRate,

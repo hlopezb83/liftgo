@@ -98,9 +98,10 @@ export function generateLineItems(
   const start = new Date(startDate);
   const end = new Date(endDate);
   const items = calculateRentalCost(forklift.daily_rate, forklift.weekly_rate, forklift.monthly_rate, start, end);
+  const serieSuffix = forklift.serial_number ? ` (Serie: ${forklift.serial_number})` : "";
   return items.map((item) => ({
     ...item,
-    description: `${forklift.name} — ${item.description}`,
+    description: `${forklift.name} — ${item.description}${serieSuffix}`,
   }));
 }
 
