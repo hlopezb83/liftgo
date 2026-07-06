@@ -36,6 +36,24 @@ export function useQuote(id?: string) {
   });
 }
 
+/** Trae una lista puntual de cotizaciones por sus IDs. Útil al facturar
+ *  desde múltiples reservas para leer las partidas adicionales (logística,
+ *  entrega) que quedaron capturadas en la cotización origen. */
+export function useQuotesByIds(ids: string[] | undefined) {
+  const key = (ids ?? []).slice().sort().join(",");
+  return useQuery({
+    queryKey: ["quotes", "byIds", key],
+    enabled: !!ids && ids.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      if (!ids || ids.length === 0) return [];
+      const { data, error } = await supabase.from("quotes").select("id, line_items").in("id", ids);
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useCreateQuote() {
   const queryClient = useQueryClient();
   return useMutation({
