@@ -1,0 +1,22 @@
+{
+  "version": "6.112.0",
+  "date": "2026-07-07",
+  "type": "minor",
+  "title": "Folio diferido para notas de crédito (BORRADOR-NC- → NC-<folio Facturapi>)",
+  "category": "feature",
+  "symptom": "Cada borrador de NC consumía un folio fiscal (NC-XXXX) incluso si se eliminaba o fallaba al timbrar, generando huecos en la numeración fiscal.",
+  "cause": "El folio se asignaba al crear el borrador con la secuencia `next_credit_note_number()`, en lugar de al momento de timbrar como ya se hacía para facturas.",
+  "changes": [
+    "Migración: nueva secuencia `draft_credit_note_seq` y RPCs `next_draft_credit_note_number()` / `peek_next_draft_credit_note_number()` que devuelven placeholders `BORRADOR-NC-XXXX`.",
+    "Migración: nuevo RPC `assign_stamped_credit_note_number(id, folio)` que promueve el placeholder a `NC-<folio>` usando el folio de Facturapi como fuente de verdad, con validación de colisiones.",
+    "Migración: backfill de borradores actuales (`status='draft'`, sin CFDI ni facturapi_invoice_id) para liberar sus folios fiscales.",
+    "`useCreateCreditNote` usa ahora `next_draft_credit_note_number` en lugar de `next_credit_note_number`.",
+    "`stamp-credit-note`: al timbrar exitosamente, si el número era placeholder se llama al RPC para promover a `NC-<folio_number>` y se devuelve `credit_note_number` en la respuesta."
+  ],
+  "verification": [
+    "Crear un borrador de NC: el número debe ser BORRADOR-NC-XXXX.",
+    "Eliminar el borrador: el siguiente borrador toma BORRADOR-NC-(N+1) sin consumir folios fiscales.",
+    "Timbrar una NC: el número debe promoverse a NC-<folio> devuelto por Facturapi.",
+    "Los folios fiscales de NC quedan continuos y alineados 1:1 con la serie de Facturapi."
+  ]
+}
