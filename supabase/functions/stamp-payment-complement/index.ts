@@ -237,11 +237,16 @@ Deno.serve(async (req) => {
     };
 
     const client = createFacturapiClient(apiKey);
-    let repInvoice: { id: string; uuid: string };
+    let repInvoice: {
+      id: string;
+      uuid: string;
+      folio_number?: number | string | null;
+    };
     try {
       repInvoice = await client.invoices.create(payload) as {
         id: string;
         uuid: string;
+        folio_number?: number | string | null;
       };
     } catch (err) {
       const desc = describeFacturapiError(err);
