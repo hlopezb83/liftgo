@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const toastError = vi.fn();
-vi.mock("sonner", () => ({ toast: { error: (...a: unknown[]) => toastError(...a) } }));
+const toastWarning = vi.fn();
+vi.mock("sonner", () => ({ toast: { warning: (...a: unknown[]) => toastWarning(...a), error: vi.fn() } }));
 
 import { validateQuoteForm } from "../quoteFormValidation";
 import { buildSaleItems, buildRentalItems, type RentalLine, type SaleLine, type EquipmentModel } from "../quoteFormBuilders";
@@ -12,13 +12,13 @@ const models: EquipmentModel[] = [
 ];
 
 describe("validateQuoteForm", () => {
-  beforeEach(() => toastError.mockClear());
+  beforeEach(() => toastWarning.mockClear());
 
   it("rechaza sin cliente", () => {
     const ok = validateQuoteForm({ customerId: "", quoteType: "rental", rentalLines: [], saleLines: [] });
     expect(ok).toBe(false);
-    expect(toastError).toHaveBeenCalledWith(
-      "Error",
+    expect(toastWarning).toHaveBeenCalledWith(
+      "Revisa los datos",
       expect.objectContaining({ description: "Selecciona un cliente" }),
     );
   });
@@ -26,8 +26,8 @@ describe("validateQuoteForm", () => {
   it("rechaza renta sin periodo", () => {
     const ok = validateQuoteForm({ customerId: "c1", quoteType: "rental", rentalLines: [], saleLines: [] });
     expect(ok).toBe(false);
-    expect(toastError).toHaveBeenCalledWith(
-      "Error",
+    expect(toastWarning).toHaveBeenCalledWith(
+      "Revisa los datos",
       expect.objectContaining({ description: "Selecciona el periodo de renta" }),
     );
   });
