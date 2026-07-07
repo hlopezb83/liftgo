@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.6",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Corrige copiado del reporte en el modal de Detalles de error",
+    "description": "El botón 'Copiar reporte' fallaba con 'No se pudo copiar el reporte' cuando el navegador bloqueaba la Clipboard API (iframes de preview, contextos no seguros). Se agregó un fallback usando document.execCommand('copy') sobre un textarea temporal; el mensaje de error ahora sugiere seleccionar el texto manualmente si ambos métodos fallan.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.5",
     "date": "2026-07-07",
     "type": "patch",
