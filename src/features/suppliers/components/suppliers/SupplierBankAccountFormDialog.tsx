@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { FormActions } from "@/components/forms/FormActions";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyValidation } from "@/lib/ui/appFeedback";
 import {
   isValidClabe,
   useCreateSupplierBankAccount,
@@ -67,12 +67,12 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
     const bank = form.bank_name.trim();
     const holder = form.account_holder.trim();
     if (!bank || !holder) {
-      notifyError({ message: "Banco y titular son requeridos" });
+      notifyValidation({ message: "Banco y titular son requeridos" });
       return;
     }
     const clabeTrim = form.clabe.trim();
     if (clabeTrim && !isValidClabe(clabeTrim)) {
-      notifyError({ message: "La CLABE debe tener exactamente 18 dígitos" });
+      notifyValidation({ message: "La CLABE debe tener exactamente 18 dígitos" });
       return;
     }
     const payload = {

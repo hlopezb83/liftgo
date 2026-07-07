@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyValidation } from "@/lib/ui/appFeedback";
 import {
   useMaintenancePolicies,
   useCreateMaintenancePolicy,
@@ -53,7 +53,7 @@ export function MaintenancePoliciesTab() {
 
   const handleSave = () => {
     if (!form.forklift_id || !form.provider_name) {
-      notifyError({ message: "Montacargas y proveedor son requeridos" });
+      notifyValidation({ message: "Montacargas y proveedor son requeridos" });
       return;
     }
     const payload = {

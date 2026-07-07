@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ export function MechanicsTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.name) { notifyError({ message: "El nombre es requerido" }); return; }
+    if (!form.name) { notifyValidation({ message: "El nombre es requerido" }); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, specialization: form.specialization || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
       if (err.message?.includes("mechanics_name_unique")) notifyError({ message: "Ya existe un mecánico con este nombre" });

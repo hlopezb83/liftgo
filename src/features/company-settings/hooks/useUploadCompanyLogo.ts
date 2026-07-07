@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -8,11 +8,11 @@ export function useUploadCompanyLogo() {
 
   const upload = async (file: File): Promise<string | null> => {
     if (file.size > 2 * 1024 * 1024) {
-      notifyError({ message: "El archivo no debe superar 2MB" });
+      notifyValidation({ message: "El archivo no debe superar 2MB" });
       return null;
     }
     if (!file.type.startsWith("image/")) {
-      notifyError({ message: "Solo se permiten archivos de imagen" });
+      notifyValidation({ message: "Solo se permiten archivos de imagen" });
       return null;
     }
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,11 +20,11 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      notifyError({ message: "La contraseña debe tener al menos 6 caracteres" });
+      notifyValidation({ message: "La contraseña debe tener al menos 6 caracteres" });
       return;
     }
     if (password !== confirm) {
-      notifyError({ message: "Las contraseñas no coinciden" });
+      notifyValidation({ message: "Las contraseñas no coinciden" });
       return;
     }
     setLoading(true);

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useParseCsf, type ParsedCsfData } from "@/features/customers/hooks/useParseCsf";
 
 interface Props<T> {
@@ -24,11 +24,11 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
     const file = acceptedFiles[0];
     if (!file) return;
     if (file.type !== "application/pdf") {
-      notifyError({ message: "Solo se aceptan archivos PDF" });
+      notifyValidation({ message: "Solo se aceptan archivos PDF" });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      notifyError({ message: "El archivo no debe superar 10 MB" });
+      notifyValidation({ message: "El archivo no debe superar 10 MB" });
       return;
     }
 
