@@ -1,0 +1,19 @@
+{
+  "version": "6.110.9",
+  "date": "2026-07-07",
+  "type": "minor",
+  "title": "Validación previa contra SAT antes de timbrar NC",
+  "category": "feature",
+  "symptom": "Facturapi rechazaba el timbrado con CFDI40145 (razón social/RFC/régimen no coinciden con SAT) después de consumir la petición al PAC.",
+  "cause": "No existía una comprobación previa: se enviaba el CFDI directamente y el PAC lo rechazaba con un mensaje genérico difícil de accionar.",
+  "changes": [
+    "supabase/functions/stamp-credit-note/handler.ts: nueva función validateTaxIdWithFacturapi() que consulta /v2/tools/tax_id_validation antes de crear la NC.",
+    "Si is_valid=false, se marca la NC como error con mensaje accionable y se devuelve 422 con los datos enviados y los mismatches reportados por el PAC.",
+    "La validación se omite para Público en General (XAXX010101000).",
+    "Se falla abierto (permite continuar) si el endpoint de validación no responde JSON válido, para no bloquear por errores transitorios del PAC."
+  ],
+  "verification": [
+    "Intentar timbrar una NC con razón social distinta a la CSF: debe bloquear con mensaje 422 explicando qué corregir en el cliente.",
+    "Timbrar una NC con datos correctos: debe pasar la validación y timbrar normalmente."
+  ]
+}
