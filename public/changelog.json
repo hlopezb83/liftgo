@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.0",
+    "date": "2026-07-07",
+    "type": "minor",
+    "title": "Facturación recurrente: corrige auto-heal que generaba periodos históricos",
+    "description": "El job 'Generar recurrentes' timbró 7 facturas con periodos de diciembre 2025 a abril 2026 en vez de julio 2026 porque el auto-heal reseteaba last_billed_date cuando las facturas legacy (previas a v5.62.0) tenían billing_period_end nulo. Ahora el edge function deriva el último periodo desde el historial real y bloquea con motivo 'period_too_old' cualquier periodo >1 mes atrasado.",
+    "category": "fix"
+  },
+  {
     "version": "6.109.0",
     "date": "2026-07-07",
     "type": "minor",

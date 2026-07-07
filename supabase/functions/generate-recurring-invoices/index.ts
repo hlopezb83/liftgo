@@ -79,7 +79,8 @@ type PreviewLine = {
     | "already_invoiced"
     | "no_customer"
     | "no_monthly_rate"
-    | "period_in_future";
+    | "period_in_future"
+    | "period_too_old";
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
 };
@@ -119,22 +120,40 @@ async function buildPlan(supabase: any): Promise<{
     const forklift = (booking.forklifts as Forklift | null) ?? null;
     const monthlyRate = forklift?.monthly_rate || 0;
 
-    // Auto-heal: si last_billed_date apunta a un período sin factura vinculada,
-    // tratamos la reserva como nunca facturada.
+    // Derivar last_billed_date desde el historial REAL de facturas vinculadas
+    // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
+    // contradice — es la columna que se desincroniza (v6.110.0).
+    //
+    // Reglas:
+    //  - Si existe al menos una factura no-cancelada con billing_period_end no
+    //    nulo → usar MAX(billing_period_end).
+    //  - Si sólo hay facturas legacy (billing_period_end = null) → conservar
+    //    bookings.last_billed_date sin resetear (evita re-facturar meses viejos).
+    //  - Si no hay facturas vinculadas → null (reserva nueva).
     let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
-    if (effectiveLastBilled) {
-      const { data: linkedInvoice } = await supabase
+    {
+      const { data: linked } = await supabase
         .from("invoice_bookings")
-        .select(
-          "invoice_id, invoices!inner(billing_period_end, status, cfdi_status)",
-        )
+        .select("invoices!inner(billing_period_end, status, cfdi_status)")
         .eq("booking_id", booking.id)
-        .eq("invoices.billing_period_end", effectiveLastBilled)
         .neq("invoices.status", "cancelled")
-        .neq("invoices.cfdi_status", "cancelled")
-        .limit(1)
-        .maybeSingle();
-      if (!linkedInvoice) effectiveLastBilled = null;
+        .neq("invoices.cfdi_status", "cancelled");
+
+      const rows = (linked ?? []) as Array<
+        { invoices: { billing_period_end: string | null } }
+      >;
+      if (rows.length === 0) {
+        effectiveLastBilled = null;
+      } else {
+        const periodEnds = rows
+          .map((r) => r.invoices?.billing_period_end)
+          .filter((v): v is string => !!v);
+        if (periodEnds.length > 0) {
+          periodEnds.sort();
+          effectiveLastBilled = periodEnds[periodEnds.length - 1];
+        }
+        // else: sólo legacy → conservar booking.last_billed_date tal cual.
+      }
     }
 
     let billingStart: Date;
@@ -167,6 +186,20 @@ async function buildPlan(supabase: any): Promise<{
 
     if (nowMty < billingStart) {
       lines.push({ ...baseLine, eligible: false, reason: "period_in_future" });
+      continue;
+    }
+    // Guarda de seguridad: si el periodo termina >1 mes antes del mes actual,
+    // no facturar automáticamente — requiere revisión manual (v6.110.0).
+    const currentMonthStart = firstOfMonth(nowMty);
+    const oneMonthAgoEnd = new Date(
+      Date.UTC(
+        currentMonthStart.getUTCFullYear(),
+        currentMonthStart.getUTCMonth(),
+        0,
+      ),
+    );
+    if (billingEnd < oneMonthAgoEnd) {
+      lines.push({ ...baseLine, eligible: false, reason: "period_too_old" });
       continue;
     }
     if (!booking.customer_id) {
