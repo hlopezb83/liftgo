@@ -231,11 +231,16 @@ export async function handleStampCreditNote(
       ],
     };
 
-    let fa: { id: string; uuid: string };
+    let fa: {
+      id: string;
+      uuid: string;
+      folio_number?: number | string | null;
+    };
     try {
       fa = await client.invoices.create(payload) as {
         id: string;
         uuid: string;
+        folio_number?: number | string | null;
       };
     } catch (err) {
       const desc = describeFacturapiError(err);
