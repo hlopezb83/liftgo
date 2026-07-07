@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.111.0",
+    "date": "2026-07-07",
+    "type": "minor",
+    "title": "Validación contra SAT + edición de datos fiscales del receptor",
+    "description": "Nuevo botón 'Validar contra SAT' en el detalle de factura (edge function validate-receptor-tax-info consulta /tools/tax_id_validation sin consumir timbre) y nuevo diálogo para editar razón social, régimen y CP del receptor directamente sobre la factura, con opción de sincronizar los mismos datos en el cliente.",
+    "category": "feature"
+  },
+  {
     "version": "6.110.10",
     "date": "2026-07-07",
     "type": "patch",
