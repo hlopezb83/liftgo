@@ -226,6 +226,12 @@ export async function handleStampCreditNote(
       };
     } catch (err) {
       const desc = describeFacturapiError(err);
+      console.error("[stamp-credit-note] facturapi rejected", {
+        credit_note_id,
+        status: desc.status,
+        code: desc.code,
+        message: desc.message,
+      });
       await supabase.from("credit_notes")
         .update({
           cfdi_status: "error",
@@ -256,7 +262,18 @@ export async function handleStampCreditNote(
         { contentType: "application/xml", upsert: true },
       );
       if (!upErr) xmlPath = path;
-    } catch (_e) { /* keep null */ }
+      else {
+        console.error("[stamp-credit-note] archive xml upload failed", {
+          credit_note_id,
+          err: upErr,
+        });
+      }
+    } catch (e) {
+      console.error("[stamp-credit-note] archive xml failed", {
+        credit_note_id,
+        err: e instanceof Error ? e.message : String(e),
+      });
+    }
 
     try {
       const bytes = await binaryToBytes(
@@ -269,9 +286,20 @@ export async function handleStampCreditNote(
         { contentType: "application/pdf", upsert: true },
       );
       if (!upErr) pdfPath = path;
-    } catch (_e) { /* keep null */ }
+      else {
+        console.error("[stamp-credit-note] archive pdf upload failed", {
+          credit_note_id,
+          err: upErr,
+        });
+      }
+    } catch (e) {
+      console.error("[stamp-credit-note] archive pdf failed", {
+        credit_note_id,
+        err: e instanceof Error ? e.message : String(e),
+      });
+    }
 
-    await supabase.from("credit_notes").update({
+    const updRes = await supabase.from("credit_notes").update({
       facturapi_invoice_id: facturApiId,
       cfdi_uuid: cfdiUuid,
       cfdi_status: "stamped",
@@ -281,12 +309,31 @@ export async function handleStampCreditNote(
       cfdi_error_message: null,
     }).eq("id", credit_note_id);
 
+    const updErr = (updRes as { error: unknown }).error;
+    if (updErr) {
+      console.error("[stamp-credit-note] DB update failed after stamp", {
+        credit_note_id,
+        cfdiUuid,
+      });
+      return json(
+        { error: "Stamped but failed to save to DB" },
+        500,
+        jsonHeaders,
+      );
+    }
+
     return json(
       { success: true, cfdi_uuid: cfdiUuid, facturapi_invoice_id: facturApiId },
       200,
       jsonHeaders,
     );
-  } catch (_err) {
+  } catch (err) {
+    console.error("[stamp-credit-note] unhandled exception", {
+      credit_note_id,
+      userId,
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    });
     return json({ error: "Internal server error" }, 500, {
       ...getCorsHeaders(req),
       "Content-Type": "application/json",
