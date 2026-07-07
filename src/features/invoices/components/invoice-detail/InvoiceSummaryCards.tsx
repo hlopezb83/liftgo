@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateDisplay } from "@/lib/utils";
+import { formatStoredCfdiError } from "@/features/invoices/lib/formatStoredCfdiError";
+
 
 type Props = {
   customerName: string | null;
@@ -31,7 +33,7 @@ export function InvoiceSummaryCards({
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="py-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Error de timbrado</p>
-            <p className="text-sm text-destructive/90 mt-1 whitespace-pre-wrap break-words">{cfdiErrorMessage}</p>
+            <p className="text-sm text-destructive/90 mt-1 whitespace-pre-wrap break-words">{formatStoredCfdiError(cfdiErrorMessage)}</p>
           </CardContent>
         </Card>
       )}

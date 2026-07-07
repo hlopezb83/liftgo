@@ -1,0 +1,12 @@
+{
+  "version": "6.107.7",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Card de error de timbrado muestra mensaje traducido",
+  "category": "fix",
+  "description": "El card rojo 'Error de timbrado' en la vista de detalle de factura ahora traduce el payload JSON que Facturapi almacena en cfdi_error_message. Se extrae el código CFDI40xxx real de errors[0] y se pasa por el clasificador para mostrar un mensaje accionable en español-MX (código postal, razón social, CSD, etc.) en vez del JSON crudo.",
+  "changes": [
+    "Nuevo helper formatStoredCfdiError que parsea el JSON almacenado y prioriza errors[0].code.",
+    "InvoiceSummaryCards usa el helper antes de renderizar el mensaje de error."
+  ]
+}

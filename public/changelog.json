@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.107.7",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Card de error de timbrado muestra mensaje traducido",
+    "description": "El card rojo 'Error de timbrado' en la vista de factura ahora muestra el mensaje traducido al español en vez del JSON crudo de Facturapi.",
+    "category": "fix"
+  },
+  {
+
     "version": "6.107.6",
     "date": "2026-07-07",
     "type": "patch",
