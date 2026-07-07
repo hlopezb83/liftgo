@@ -1,0 +1,13 @@
+{
+  "version": "6.107.5",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Diálogo de error de timbrado muestra datos enviados al SAT",
+  "category": "fix",
+  "description": "Cuando Facturapi/SAT rechaza una factura por datos del receptor (error CFDI40147/DomicilioFiscalReceptor), el diálogo de error ahora muestra los valores exactos que se enviaron al SAT — RFC, razón social, régimen fiscal y código postal — con botón de copiar en cada campo y un checklist accionable para compararlos carácter por carácter contra la CSF vigente del cliente.",
+  "changes": [
+    "StampErrorDialog: nuevo bloque 'Datos enviados al SAT' con los 4 campos fiscales del receptor y botón copiar por campo.",
+    "Checklist de 3 pasos para verificar contra la CSF y volver a timbrar sin salir de la factura.",
+    "useStampInvoiceFlow: propaga el snapshot del receptor desde la factura hidratada al estado de error."
+  ]
+}
