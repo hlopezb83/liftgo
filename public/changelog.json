@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.107.5",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Diálogo de error de timbrado muestra datos enviados al SAT",
+    "description": "Cuando el SAT rechaza una factura por datos del receptor (RFC/razón social/CP), el diálogo ahora muestra los valores exactos que se enviaron, con botón de copiar y un checklist contra la CSF vigente.",
+    "category": "fix"
+  },
+  {
+
     "version": "6.107.4",
     "date": "2026-07-06",
     "type": "patch",

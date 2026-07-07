@@ -10,7 +10,14 @@ export interface StampErrorState {
   message: string;
   kind: FacturapiErrorKind;
   customerId: string | null;
+  receptor?: {
+    rfc: string | null;
+    razonSocial: string | null;
+    cp: string | null;
+    regimenFiscal: string | null;
+  };
 }
+
 
 export function useStampInvoiceFlow(refetch: () => void) {
   const stampCfdi = useStampCfdi();
@@ -38,10 +45,17 @@ export function useStampInvoiceFlow(refetch: () => void) {
           message: classified.message,
           kind: classified.kind,
           customerId: invoice.customer_id ?? null,
+          receptor: {
+            rfc: hydrated.receptor_rfc ?? null,
+            razonSocial: hydrated.receptor_razon_social ?? null,
+            cp: hydrated.receptor_domicilio_fiscal_cp ?? null,
+            regimenFiscal: hydrated.receptor_regimen_fiscal ?? null,
+          },
         });
       },
     });
   };
+
 
   return {
     stampCfdi,
