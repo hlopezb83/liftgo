@@ -12,7 +12,12 @@ import {
 } from "../_shared/facturapi/client.ts";
 
 export type { SupabaseLike };
-export type StampCreditNoteDeps = StampCfdiDeps;
+export interface StampCreditNoteDeps {
+  createCallerClient: (authHeader: string) => SupabaseLike;
+  createServiceClient: () => SupabaseLike;
+  fetchImpl: typeof fetch;
+  env: (k: string) => string | undefined;
+}
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const BUCKET = "cfdi-files";
