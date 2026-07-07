@@ -196,55 +196,32 @@ export async function handleStampCreditNote(
       }))
       : [];
 
-    const legalName = sanitizeLegalName(
+    // Fuente de verdad para el legal_name: la factura original ya fue aceptada
+    // por el SAT, así que su customer.legal_name coincide con la CSF. Lo
+    // recuperamos de Facturapi para evitar rechazos CFDI40145 por diferencias
+    // con la razón social almacenada localmente.
+    let legalName = sanitizeLegalName(
       String(inv.receptor_razon_social || inv.customer_name || "Público General"),
     );
+    try {
+      const sourceInvoice = await client.invoices.retrieve(
+        String(inv.facturapi_invoice_id),
+      ) as { customer?: { legal_name?: string } };
+      const sourceName = sourceInvoice?.customer?.legal_name;
+      if (sourceName && typeof sourceName === "string" && sourceName.trim()) {
+        legalName = sourceName.trim();
+      }
+    } catch (e) {
+      console.error("[stamp-credit-note] could not retrieve source invoice legal_name", {
+        credit_note_id,
+        facturapi_invoice_id: inv.facturapi_invoice_id,
+        err: e instanceof Error ? e.message : String(e),
+      });
+    }
+
     const taxId = String(inv.receptor_rfc || "XAXX010101000").toUpperCase();
     const taxSystem = String(inv.receptor_regimen_fiscal || "616");
     const zip = String(inv.receptor_domicilio_fiscal_cp || "06600");
-
-    // Pre-validación contra SAT vía Facturapi (no consume timbre).
-    // Bloquea si la razón social/RFC/régimen no coinciden con la Constancia
-    // de Situación Fiscal registrada en el SAT.
-    if (taxId !== "XAXX010101000") {
-      const validation = await validateTaxIdWithFacturapi(deps.fetchImpl, apiKey, {
-        tax_id: taxId,
-        legal_name: legalName,
-        tax_system: taxSystem,
-        zip,
-      });
-      if (validation && validation.is_valid === false) {
-        console.error("[stamp-credit-note] tax_id_validation mismatch", {
-          credit_note_id,
-          taxId,
-          legalName,
-          taxSystem,
-          zip,
-          errors: validation.errors,
-        });
-        await supabase.from("credit_notes")
-          .update({
-            cfdi_status: "error",
-            cfdi_error_message:
-              `Los datos fiscales del receptor no coinciden con la CSF del SAT: ${
-                (validation.errors || []).join("; ") ||
-                "revisa razón social, RFC, régimen y CP"
-              }`,
-          })
-          .eq("id", credit_note_id);
-        return json(
-          {
-            error: "Datos fiscales del receptor no coinciden con el SAT",
-            detail:
-              `El PAC rechazará el timbrado. Verifica en la Constancia de Situación Fiscal del RFC ${taxId} que coincidan exactamente: razón social (sin régimen societario), régimen fiscal y CP.`,
-            mismatches: validation.errors ?? [],
-            sent: { legal_name: legalName, tax_id: taxId, tax_system: taxSystem, zip },
-          },
-          422,
-          jsonHeaders,
-        );
-      }
-    }
 
     const payload: Record<string, unknown> = {
       type: "E",
@@ -397,47 +374,4 @@ function json(
   headers: Record<string, string>,
 ): Response {
   return new Response(JSON.stringify(body), { status, headers });
-}
-
-/**
- * Consulta el endpoint público de Facturapi `/v2/tools/tax_id_validation`
- * para verificar que la combinación RFC + razón social + régimen + CP
- * coincida con la Constancia de Situación Fiscal registrada en el SAT.
- * No consume timbre. Devuelve null si el endpoint no responde JSON válido
- * (fallamos abierto para no bloquear por errores transitorios del PAC).
- */
-async function validateTaxIdWithFacturapi(
-  fetchImpl: typeof fetch,
-  apiKey: string,
-  params: { tax_id: string; legal_name: string; tax_system: string; zip: string },
-): Promise<{ is_valid: boolean; errors?: string[] } | null> {
-  try {
-    const qs = new URLSearchParams({
-      tax_id: params.tax_id,
-      legal_name: params.legal_name,
-      tax_system: params.tax_system,
-      zip: params.zip,
-    }).toString();
-    const res = await fetchImpl(
-      `${FACTURAPI_BASE}/tools/tax_id_validation?${qs}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    if (!res.ok) return null;
-    const data = await res.json().catch(() => null) as
-      | { is_valid?: boolean; errors?: string[] }
-      | null;
-    if (!data || typeof data.is_valid !== "boolean") return null;
-    return { is_valid: data.is_valid, errors: data.errors };
-  } catch (e) {
-    console.error("[stamp-credit-note] tax_id_validation fetch failed", {
-      err: e instanceof Error ? e.message : String(e),
-    });
-    return null;
-  }
 }

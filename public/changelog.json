@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.10",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "NC reutiliza la razón social ya aceptada por el SAT en la factura original",
+    "description": "Antes de armar el payload de la NC se consulta la factura fuente en Facturapi (client.invoices.retrieve) y se reutiliza el customer.legal_name exacto ya aceptado por el SAT, evitando CFDI40145 cuando la razón social local difiere de la CSF.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.9",
     "date": "2026-07-07",
     "type": "minor",

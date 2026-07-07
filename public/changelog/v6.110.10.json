@@ -1,0 +1,17 @@
+{
+  "version": "6.110.10",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "NC reutiliza la razón social ya aceptada por el SAT en la factura original",
+  "category": "fix",
+  "symptom": "El PAC seguía rechazando el timbrado de NC con CFDI40145 aunque la factura fuente sí estaba timbrada.",
+  "cause": "Se enviaba receptor_razon_social almacenado localmente (sanitizado), que no siempre coincide exactamente con la razón social registrada en la CSF del SAT. La validación previa /tools/tax_id_validation no era determinista.",
+  "changes": [
+    "supabase/functions/stamp-credit-note/handler.ts: antes de armar el payload se hace client.invoices.retrieve(facturapi_invoice_id) y se reutiliza el customer.legal_name exacto que ya fue aceptado por el SAT.",
+    "Si la consulta a Facturapi falla, se cae al sanitizeLegalName local como fallback.",
+    "Se eliminó la pre-validación /tools/tax_id_validation en favor de esta estrategia más determinista."
+  ],
+  "verification": [
+    "Timbrar una NC sobre una factura previamente timbrada: debe pasar sin CFDI40145 aunque customers.razon_social difiera de la CSF."
+  ]
+}
