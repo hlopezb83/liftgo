@@ -1,0 +1,15 @@
+{
+  "version": "6.110.8",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Sanitiza razón social del receptor al timbrar NC (CFDI 4.0)",
+  "category": "fix",
+  "symptom": "Facturapi devolvía CFDI40145: 'El nombre o razón social del receptor no coincide con el RFC registrado en el SAT'.",
+  "cause": "stamp-credit-note enviaba receptor_razon_social tal cual (con acentos y 'S.A. DE C.V.'), mientras que stamp-cfdi ya sanitizaba con sanitizeLegalName.",
+  "changes": [
+    "supabase/functions/stamp-credit-note/handler.ts: se importa y aplica sanitizeLegalName al legal_name del receptor."
+  ],
+  "verification": [
+    "Timbrar NC de una factura con razón social en formato societario; ya no debe rechazarse por CFDI40145."
+  ]
+}
