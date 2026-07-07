@@ -1,35 +1,24 @@
-# Fix: nombres de clientes "cambiados" en /invoices (traducción automática de Chrome)
+## Objetivo
+Eliminar las flechas (spinners) del navegador en los inputs de **Cantidad** y **Precio Unitario** de la tabla de líneas del modal "Nueva Nota de Crédito".
 
-## Diagnóstico
+## Cambios propuestos
 
-El pantallazo muestra nombres como `COMERCIO DE INDIMEX`, `HG CAUCHO`, `CRIPTOMÁTICA`, `CANDULACIÓN DE ANILLO DE MÉXICO`, `ALMACENAMIENTO DE REGISTROS`. En la base de datos los mismos registros son `INDIMEX TRADING`, `HG RUBBER`, `CRYPTOVENDING`, `RING LOCK DE MEXICO`, `LOGISTORAGE`. Es la traducción palabra-por-palabra del inglés al español.
+### 1. `src/features/invoices/components/invoice-detail/CreditNoteLinesTable.tsx`
+- Agregar clases CSS para ocultar los spinners de `input type="number"` en los dos campos editables:
+  - `[appearance:textfield]`
+  - `[-moz-appearance:textfield]`
+  - `[&::-webkit-outer-spin-button]:appearance-none`
+  - `[&::-webkit-inner-spin-button]:appearance-none`
+- Aplicarlas a los `<Input type="number">` de **Cantidad** y **Precio Unitario**.
+- No modificar comportamiento, validación ni lógica de cálculo.
 
-Causa raíz: `index.html` declara `<html lang="en">`. Chrome interpreta la app como página en inglés, detecta el contraste con el resto de la UI en español y activa (o el usuario aceptó una vez) el traductor de página, que reemplaza en el DOM cualquier palabra en inglés — incluidos los nombres propios de clientes. No es un bug de datos ni de RLS: `invoices.customer_name` y `customers.name` son idénticos en Supabase.
+### 2. `public/changelog.json` y `public/changelog/v6.110.2.json`
+- Agregar entrada de changelog `v6.110.2` describiendo el ajuste visual.
 
-## Cambios
+## Criterios de aceptación
+- Los inputs de cantidad y precio unitario en el modal de Nueva Nota de Crédito no muestran flechas en Chrome, Edge, Safari ni Firefox.
+- No se afectan otros inputs numéricos de la aplicación (según alcance confirmado).
+- El build/typecheck pasa sin errores ni warnings.
 
-### 1. `index.html`
-- Cambiar `<html lang="en">` → `<html lang="es-MX">`. La app está localizada a español mexicano (core memory), así debe declararse.
-- Agregar `<meta name="google" content="notranslate" />` en `<head>` para pedirle a Chrome/Google Translate que no traduzca automáticamente.
-
-### 2. Marcar celdas con datos "no traducibles" (defensa en profundidad)
-
-Para que aunque el usuario fuerce "Traducir esta página" los nombres propios sobrevivan, agregar `translate="no"` (equivalente a `class="notranslate"`) en los renders de identidades de negocio en la tabla de facturas:
-
-- `src/features/invoices/pages/InvoicesPage.tsx` — celda de `customer_name` y `invoice_number` (columnas ya definidas, línea ~80 y la tarjeta móvil línea ~200).
-- Mismo tratamiento en donde aparezca el nombre del cliente en tablas de alto tráfico visual: `BookingsPage`, `QuotesPage`, `CustomersPage`, `DeliveriesPage`. Un solo helper `<Untranslated>{value}</Untranslated>` en `src/components/ui/Untranslated.tsx` que renderiza `<span translate="no">` mantiene la intención explícita y evita repetir el atributo.
-
-### 3. Verificación
-
-- Refrescar la vista `/invoices` con el traductor de Chrome activo (usar Playwright con `--lang=es` no reproduce; validar visualmente en Chrome real). Se espera que los nombres vuelvan a mostrarse tal cual la BD.
-- Confirmar que la columna sigue en español para el resto de labels (headers "Cliente", "Estado", etc.) — `translate="no"` solo aplica al contenido dinámico, no al chrome de la tabla.
-
-### 4. Changelog
-
-- Nueva entrada `v6.111.0` (patch) en `public/changelog.json` + detalle `v6.111.0.json`: "Corrige la traducción automática de Chrome que alteraba los nombres de clientes en listas".
-
-## Detalles técnicos
-
-- `translate="no"` es estándar HTML y respetado por Google Translate, Edge Translate y Safari Translate.
-- No tocamos ninguna tabla ni RLS: los datos ya son correctos.
-- Fuera de alcance: revisar la superficie completa de tablas para envolver todos los identificadores; se puede iterar después si se detecta el mismo patrón en otra pantalla.
+## Notas
+- El runtime error `409 Credit note already stamped or in progress` es un error de negocio del edge function de timbrado y no está relacionado con este ajuste visual. Si persiste, se recomienda revisar el flujo de timbrado en otro plan.
