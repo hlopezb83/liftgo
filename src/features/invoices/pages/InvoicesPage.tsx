@@ -25,6 +25,7 @@ import { type ColumnDef } from "@/components/dataTable/v2";
 import { useResourceList } from "@/hooks/useResourceList";
 import { usePageActions } from "@/contexts/pageActions";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { Untranslated } from "@/components/ui/Untranslated";
 
 const STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
@@ -74,13 +75,14 @@ export default function InvoicesPage() {
         id: "invoice_number",
         header: "Factura #",
         accessorKey: "invoice_number",
-        cell: ({ row }) => <span className="font-medium">{row.original.invoice_number}</span>,
+        cell: ({ row }) => <Untranslated className="font-medium">{row.original.invoice_number}</Untranslated>,
       },
       {
         id: "customer_name",
         header: "Cliente",
         accessorFn: (i) => i.customer_name || "",
-        cell: ({ row }) => row.original.customer_name || "—",
+        cell: ({ row }) =>
+          row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—",
       },
       {
         id: "total",
@@ -194,10 +196,12 @@ export default function InvoicesPage() {
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/invoices/${inv.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-mono font-semibold text-sm">{inv.invoice_number}</span>
+              <Untranslated className="font-mono font-semibold text-sm">{inv.invoice_number}</Untranslated>
               <StatusBadge status={inv.status} />
             </div>
-            <p className="text-sm text-muted-foreground">{inv.customer_name || "Sin cliente"}</p>
+            <p className="text-sm text-muted-foreground">
+              {inv.customer_name ? <Untranslated>{inv.customer_name}</Untranslated> : "Sin cliente"}
+            </p>
             <div className="flex items-center justify-between mt-3 pt-3 border-t">
               <div className="text-xs text-muted-foreground">
                 <span>{formatDateDisplay(inv.issued_at)}</span>
