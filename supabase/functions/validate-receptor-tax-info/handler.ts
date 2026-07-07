@@ -4,7 +4,7 @@
 // Situación Fiscal registrada en el SAT. No consume timbre.
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
-import { sanitizeLegalName } from "../stamp-cfdi/handler.ts";
+import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { resolveFacturapiKey } from "../_shared/facturapi/client.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 
