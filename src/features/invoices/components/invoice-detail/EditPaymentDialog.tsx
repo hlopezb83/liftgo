@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
 
   const handleSubmit = () => {
     const amt = roundMoney(Number(amount));
-    if (!amt || amt <= 0) { notifyError({ message: "Monto inválido" }); return; }
+    if (!amt || amt <= 0) { notifyValidation({ message: "Monto inválido" }); return; }
     updatePayment.mutate(
       {
         id: payment.id,

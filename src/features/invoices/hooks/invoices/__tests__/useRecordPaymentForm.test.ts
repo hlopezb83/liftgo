@@ -5,13 +5,14 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 const createPaymentMutate = vi.fn();
 const stampMutate = vi.fn();
 const notifyErrorMock = vi.fn();
+const notifyValidationMock = vi.fn();
 
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
   notifySuccess: vi.fn(),
   notifyInfo: vi.fn(),
   notifyWarning: vi.fn(),
-  notifyValidation: vi.fn(),
+  notifyValidation: (...args: unknown[]) => notifyValidationMock(...args),
   notifyAsync: vi.fn(),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
@@ -92,7 +93,7 @@ describe("useRecordPaymentForm", () => {
     const { result } = renderForm({ balance: 0 });
     act(() => result.current.setAmount("0"));
     await act(async () => { await result.current.handleSubmit(); });
-    expect(notifyErrorMock).toHaveBeenCalledWith({ message: "Monto inválido" });
+    expect(notifyValidationMock).toHaveBeenCalledWith({ message: "Monto inválido" });
     expect(createPaymentMutate).not.toHaveBeenCalled();
   });
 
@@ -116,7 +117,7 @@ describe("useRecordPaymentForm", () => {
       result.current.setExchangeRate("0");
     });
     await act(async () => { await result.current.handleSubmit(); });
-    expect(notifyErrorMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
+    expect(notifyValidationMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
     expect(createPaymentMutate).not.toHaveBeenCalled();
   });
 
@@ -127,7 +128,7 @@ describe("useRecordPaymentForm", () => {
       result.current.setExchangeRate("");
     });
     await act(async () => { await result.current.handleSubmit(); });
-    expect(notifyErrorMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
+    expect(notifyValidationMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
     expect(createPaymentMutate).not.toHaveBeenCalled();
   });
 

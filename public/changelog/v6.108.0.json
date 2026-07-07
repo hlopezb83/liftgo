@@ -1,0 +1,30 @@
+{
+  "version": "6.108.0",
+  "date": "2026-07-07",
+  "type": "minor",
+  "title": "Validaciones de formulario usan notifyValidation en vez de notifyError",
+  "category": "improvement",
+  "description": "Auditoría de cobertura de toasts (Hallazgo #1 HIGH): 27 llamadas notifyError({ message }) que eran validaciones puras de UI se migraron a notifyValidation. Ahora esos toasts son advertencias cortas (5s) sin botón 'Ver detalles' — botón que abría un reporte de error vacío porque no había stack real que copiar. notifyError se reserva para errores del backend con reporte estructurado.",
+  "changes": [
+    "quoteFormValidation: 4 validaciones (cliente, periodo, tarifas, cantidad+precio)",
+    "useRecordPaymentForm + EditPaymentDialog: monto y tipo de cambio inválidos",
+    "MaintenancePartsSection: refacción requerida, cantidad, stock",
+    "SupplierContact/BankAccount FormDialog: campos requeridos y CLABE de 18 dígitos",
+    "Operations (Mechanics/Drivers/EquipmentModels/MaintenancePolicies/ContractTemplate/CompanyLogo/FiscalData): campos requeridos y precondiciones",
+    "ChangePasswordDialog: longitud y coincidencia de contraseña",
+    "CsfDropzone + useUploadCompanyLogo: tipo y tamaño de archivo",
+    "PostBookingPolicyDialog, useContractFormLogic: campos requeridos",
+    "Tests de quoteFormValidation y useRecordPaymentForm actualizados para asertar notifyValidation",
+    "Imports de notifyError removidos de archivos donde ya no se usa (7 archivos)"
+  ],
+  "audit": {
+    "reference": "docs/audits/toasts-2026-06-23.md",
+    "coverage": {
+      "notifyCallsProduction": 472,
+      "rawToastCallsProduction": 0,
+      "sonnerDirectImports": 3,
+      "globalHandlers": "QueryCache.onError + MutationCache.onError activos en AppProviders",
+      "optOut": "meta.silent en useDeleteUser + useInvoices"
+    }
+  }
+}

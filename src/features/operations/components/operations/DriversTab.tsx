@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useDrivers, useCreateDriver, useUpdateDriver, useDeleteDriver, Driver } from "@/features/fleet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ export function DriversTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.name) { notifyError({ message: "El nombre es requerido" }); return; }
+    if (!form.name) { notifyValidation({ message: "El nombre es requerido" }); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, license_number: form.license_number || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
       if (err.message?.includes("drivers_name_unique")) notifyError({ message: "Ya existe un operador con este nombre" });

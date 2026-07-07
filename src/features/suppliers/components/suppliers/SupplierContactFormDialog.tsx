@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { FormActions } from "@/components/forms/FormActions";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyValidation } from "@/lib/ui/appFeedback";
 import {
   SUPPLIER_CONTACT_ROLES,
   useCreateSupplierContact,
@@ -61,7 +61,7 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
     e.preventDefault();
     const name = form.name.trim();
     if (!name) {
-      notifyError({ message: "El nombre es requerido" });
+      notifyValidation({ message: "El nombre es requerido" });
       return;
     }
     const payload = {

@@ -10,9 +10,9 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyAsync: vi.fn(),
 }));
 
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyValidation } from "@/lib/ui/appFeedback";
 
-const mocked = vi.mocked(notifyError);
+const mocked = vi.mocked(notifyValidation);
 
 beforeEach(() => { mocked.mockClear(); });
 

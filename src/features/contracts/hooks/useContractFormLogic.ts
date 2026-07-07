@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
 import { useCustomers } from "@/features/customers";
@@ -33,7 +33,7 @@ export function useContractFormLogic() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.customer_id || !form.forklift_id) {
-      notifyError({ message: "Cliente y equipo son requeridos" });
+      notifyValidation({ message: "Cliente y equipo son requeridos" });
       return;
     }
     const payload = buildContractPayload(form, bookingId);

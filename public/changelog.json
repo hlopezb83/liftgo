@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.108.0",
+    "date": "2026-07-07",
+    "type": "minor",
+    "title": "Validaciones de formulario usan notifyValidation en vez de notifyError",
+    "description": "27 validaciones de formulario (contraseñas, archivos, campos requeridos, montos inválidos, CLABE, etc.) ahora emiten un toast de advertencia corto sin botón 'Ver detalles', reservando notifyError para errores reales del backend con reporte copiable.",
+    "category": "improvement"
+  },
+  {
     "version": "6.107.7",
     "date": "2026-07-07",
     "type": "patch",

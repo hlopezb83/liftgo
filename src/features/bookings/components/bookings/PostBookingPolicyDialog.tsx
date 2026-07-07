@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
 
   const handleCreate = () => {
     if (!providerName.trim()) {
-      notifyError({ message: "El nombre del proveedor es requerido" });
+      notifyValidation({ message: "El nombre del proveedor es requerido" });
       return;
     }
     createPolicy.mutate(

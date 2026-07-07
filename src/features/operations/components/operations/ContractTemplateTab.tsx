@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ export function ContractTemplateTab() {
   const handleSave = async () => {
     const invalidClause = clauses.find((c) => !c.title.trim() || !c.body.trim());
     if (invalidClause) {
-      notifyError({ message: "Todas las cláusulas deben tener título y contenido." });
+      notifyValidation({ message: "Todas las cláusulas deben tener título y contenido." });
       return;
     }
     try {

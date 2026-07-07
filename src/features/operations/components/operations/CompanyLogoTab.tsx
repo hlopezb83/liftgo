@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogoUploader, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
@@ -32,7 +32,7 @@ export function CompanyLogoTab() {
 
   const onSubmit = (values: LogoFormValues) => {
     if (!settings?.id) {
-      notifyError({ message: "Primero captura tus datos fiscales" });
+      notifyValidation({ message: "Primero captura tus datos fiscales" });
       return;
     }
     upsert.mutate(
