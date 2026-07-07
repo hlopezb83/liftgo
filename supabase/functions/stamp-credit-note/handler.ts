@@ -1,7 +1,7 @@
 // Pure handler for stamp-credit-note, deps-injected for testability.
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
-import type { StampCfdiDeps } from "../stamp-cfdi/handler.ts";
+import { sanitizeLegalName, type StampCfdiDeps } from "../stamp-cfdi/handler.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
   binaryToBytes,
@@ -200,8 +200,9 @@ export async function handleStampCreditNote(
       type: "E",
       use: "G02",
       customer: {
-        legal_name: inv.receptor_razon_social || inv.customer_name ||
-          "Público General",
+        legal_name: sanitizeLegalName(
+          String(inv.receptor_razon_social || inv.customer_name || "Público General"),
+        ),
         tax_id: inv.receptor_rfc || "XAXX010101000",
         tax_system: inv.receptor_regimen_fiscal || "616",
         address: { zip: inv.receptor_domicilio_fiscal_cp || "06600" },
