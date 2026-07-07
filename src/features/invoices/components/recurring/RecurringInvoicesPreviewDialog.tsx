@@ -26,6 +26,7 @@ const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> 
   no_customer: "Sin cliente asignado",
   no_monthly_rate: "Sin tarifa mensual",
   period_in_future: "Período futuro",
+  period_too_old: "Período atrasado — requiere revisión",
 };
 
 function periodTitle(period: string | null): string {
