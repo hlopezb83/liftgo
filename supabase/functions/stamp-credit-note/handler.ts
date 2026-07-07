@@ -196,12 +196,28 @@ export async function handleStampCreditNote(
       }))
       : [];
 
-    const legalName = sanitizeLegalName(
+    // Fuente de verdad para el legal_name: la factura original ya fue aceptada
+    // por el SAT, así que su customer.legal_name coincide con la CSF. Lo
+    // recuperamos de Facturapi para evitar rechazos CFDI40145 por diferencias
+    // con la razón social almacenada localmente.
+    let legalName = sanitizeLegalName(
       String(inv.receptor_razon_social || inv.customer_name || "Público General"),
     );
-    const taxId = String(inv.receptor_rfc || "XAXX010101000").toUpperCase();
-    const taxSystem = String(inv.receptor_regimen_fiscal || "616");
-    const zip = String(inv.receptor_domicilio_fiscal_cp || "06600");
+    try {
+      const sourceInvoice = await client.invoices.retrieve(
+        String(inv.facturapi_invoice_id),
+      ) as { customer?: { legal_name?: string } };
+      const sourceName = sourceInvoice?.customer?.legal_name;
+      if (sourceName && typeof sourceName === "string" && sourceName.trim()) {
+        legalName = sourceName.trim();
+      }
+    } catch (e) {
+      console.error("[stamp-credit-note] could not retrieve source invoice legal_name", {
+        credit_note_id,
+        facturapi_invoice_id: inv.facturapi_invoice_id,
+        err: e instanceof Error ? e.message : String(e),
+      });
+    }
 
     // Pre-validación contra SAT vía Facturapi (no consume timbre).
     // Bloquea si la razón social/RFC/régimen no coinciden con la Constancia
