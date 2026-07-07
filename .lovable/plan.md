@@ -1,112 +1,90 @@
-# Bug: "Generar recurrentes" produjo facturas con periodos históricos
+# Reemplazar FAC-0079..0085 con facturas del periodo correcto (Julio 2026)
 
-## Diagnóstico
+## Contexto verificado
 
-Hoy (07/07/2026) el job `generate-recurring-invoices` timbró **7 facturas con periodo equivocado** — todas debían ser de julio 2026:
+- Las 7 facturas están **timbradas** (`cfdi_status = stamped`, `status = sent`).
+- **Ninguna tiene pagos registrados** → no hay complementos de pago que cancelar antes.
+- Ninguna es CFDI de crédito ni traslado: son facturas de ingreso PPD normales.
+- Reservas afectadas ya tienen `last_billed_date = 2026-06-30` (sincronizado en v6.110.0), así que el próximo "Generar recurrentes" producirá Julio 2026 automáticamente.
 
-| Folio | Periodo generado | Debería ser |
-|---|---|---|
-| FAC-0079 | 03/2026 | 07/2026 |
-| FAC-0080 | 04/2026 | 07/2026 |
-| FAC-0081 | 12/2025 | 07/2026 |
-| FAC-0082 | 12/2025 | 07/2026 |
-| FAC-0083 | 12/2025 | 07/2026 |
-| FAC-0084 | 01/2026 | 07/2026 |
-| FAC-0085 | 04/2026 | 07/2026 |
+| Folio  | Cliente                              | Periodo INCORRECTO | Total     | Reservas |
+|--------|--------------------------------------|--------------------|-----------|----------|
+| FAC-0079 | INDIMEX TRADING                    | 03/2026            | $40,600   | RSV-0011 |
+| FAC-0080 | INDIMEX TRADING                    | 04/2026            | $139,200  | RSV-0014..0017 |
+| FAC-0081 | STK INDUSTRIAS                     | 12/2025            | $55,680   | RSV-0003, RSV-0004 |
+| FAC-0082 | HG RUBBER                          | 12/2025            | $23,200   | RSV-0006 |
+| FAC-0083 | QUIMERA ESPECIALIDADES             | 12/2025            | $22,040   | RSV-0007 |
+| FAC-0084 | INTERNACIONAL AGROINDUSTRIAL       | 01/2026            | $22,040   | RSV-0009 |
+| FAC-0085 | EMPAQUES Y EMBALAJES GRUPO MACE    | 04/2026            | $25,520   | RSV-0012 |
 
-### Causa raíz
+## Paso a paso (por factura, se puede paralelizar entre clientes)
 
-`bookings.last_billed_date` de **todas** las reservas recurrentes está desincronizado con el historial real:
+### 1. Avisar al cliente (antes de cancelar)
 
-```
-RSV-0003..0017:  last_billed_date = fecha vieja   |  MAX(billing_period_end real) = 2026-06-30
-RSV-0018..0020:  last_billed_date = 2026-07-31    |  MAX(billing_period_end real) = 2026-06-30
-```
+Enviar correo breve — plantilla sugerida:
 
-El "auto-heal" agregado en v6.107.3 (líneas 122-138 de `supabase/functions/generate-recurring-invoices/index.ts`) hace esta consulta:
+> Estimado [cliente]: identificamos que la factura **[FOLIO]** por **$[TOTAL]** se emitió con un periodo equivocado. La cancelaremos ante el SAT hoy mismo y en su lugar recibirá **[FOLIO_NUEVO]** con el mismo importe y el periodo correcto de **julio 2026**. Su acuse de cancelación y la nueva factura llegarán en el mismo correo.
 
-```
-¿Existe una factura vinculada a esta reserva
- con billing_period_end = last_billed_date
- y no cancelada?
-```
+Esto evita rebotes cuando el cliente reciba el acuse de cancelación.
 
-Las facturas antiguas (FAC-0004…FAC-0042) fueron creadas **antes de que existiera la columna `billing_period_end`** (agregada en v5.62.0), por lo que tienen `billing_period_end = NULL`. La consulta no encuentra coincidencia y el auto-heal **resetea `effectiveLastBilled` a `null`**, tratando la reserva como **nunca facturada**. Entonces:
+### 2. Cancelar CFDI ante el SAT
 
-- `billingStart = firstOfMonth(booking.start_date)` → 01/12/2025, 01/01/2026, etc.
-- El check de "already invoiced" (líneas 182-193) filtra por `billing_period_start` + `billing_period_end` exactos, así que tampoco detecta las facturas legacy con periodos NULL.
-- Se inserta la factura del primer mes de la reserva → luego se timbra.
+En LiftGo: **Facturación → abrir la factura → botón "Cancelar CFDI"**.
 
-Es un fallo silencioso: cualquier reserva con al menos una factura legacy (period NULL) es vulnerable.
+- **Motivo SAT: `01 – Comprobante emitido con errores con relación`** (es el motivo correcto porque va a reemplazarse por otra con folio fiscal distinto).
+- Cuando el sistema pida el UUID del CFDI que reemplaza, **déjalo pendiente por ahora** (aún no existe). Alternativas:
+  - Si la UI lo permite, capturar el UUID después de emitir la nueva factura (paso 4) y ligarla vía "sustituir CFDI".
+  - Si la UI lo exige de una vez, cancelar con motivo `02 – Comprobante emitido con errores sin relación` para desbloquear el flujo. Documentar en las notas de la factura que se emitió reemplazo (con folio) por error de periodo.
+- Confirmar en el detalle de la factura que `cfdi_status` cambia a `cancelled` y baja el acuse XML.
 
-## Cambios
+Repetir para las 7 facturas. Como ninguna tiene pagos, no hace falta cancelar complementos previamente.
 
-### 1. `supabase/functions/generate-recurring-invoices/index.ts` — auto-heal robusto
+### 3. Generar las facturas correctas (Julio 2026)
 
-Reemplazar el bloque de auto-heal (líneas 122-138) por una consulta que derive `effectiveLastBilled` desde el historial real:
+Una sola acción cubre las 7:
 
-```
-SELECT MAX(i.billing_period_end) AS last_period_end,
-       MAX(i.issued_at) FILTER (WHERE billing_period_end IS NULL) AS legacy_marker
-  FROM invoice_bookings ib
-  JOIN invoices i ON i.id = ib.invoice_id
- WHERE ib.booking_id = :bookingId
-   AND i.status <> 'cancelled'
-   AND i.cfdi_status <> 'cancelled';
-```
+1. **Facturación → botón "Generar recurrentes"**.
+2. En la vista previa deben aparecer 7 líneas elegibles, todas con periodo **01/07/2026 al 31/07/2026** (agrupadas por cliente — INDIMEX saldrá con 2 líneas separadas: 1 y 4 reservas). Verificar totales antes de confirmar (deben coincidir con la tabla anterior, salvo que alguna tarifa haya cambiado).
+3. Confirmar → se crean como `draft`.
 
-Reglas:
+### 4. Timbrar las nuevas facturas
 
-- Si `last_period_end` existe → usarlo como `effectiveLastBilled` (source of truth, ignora `bookings.last_billed_date`).
-- Si NO existe `last_period_end` pero SÍ hay facturas legacy → conservar `bookings.last_billed_date` (no resetear a null).
-- Si no hay ninguna factura vinculada → `effectiveLastBilled = null` (comportamiento actual para reservas realmente nuevas).
+Desde el listado de facturas en `draft`:
 
-### 2. Guarda de seguridad contra periodos históricos
+1. Abrir cada nueva factura.
+2. Validar RFC, CP fiscal, régimen y uso CFDI del receptor (v6.97.10/6.97.11 muestran diálogo accionable si el SAT rechaza).
+3. Click **"Timbrar CFDI"**.
+4. Anotar el UUID de cada nueva factura para el siguiente paso.
 
-Después de calcular `billingStart`, si `billingEnd` es anterior a `firstOfMonth(nowMty) - 1 mes` (es decir, la reserva quedó "atrás" más de un mes completo), marcar la línea como no elegible con nueva razón `"period_too_old"` y **no generar**. Aparecerá en el preview con motivo explícito para que Admin la resuelva manualmente en vez de facturar en silencio un periodo viejo.
+### 5. (Opcional pero recomendado) Ligar sustitución en cancelación
 
-Añadir el tipo `"period_too_old"` en `PreviewReason` (backend y en `usePreviewRecurringInvoices.ts`) y un label en `RecurringInvoicesResultDialog`/preview UI.
+Si el paso 2 se cerró sin UUID de reemplazo:
 
-### 3. Sincronización de datos existente (migración)
+- Volver a cada factura cancelada, ir a **notas** o al campo "CFDI que sustituye" y capturar el UUID nuevo. Esto mejora la trazabilidad contable aunque el SAT ya no lo requiera post-cancelación.
 
-Migración SQL que recalcula `last_billed_date` para todas las reservas recurrentes desde el historial real:
+### 6. Reenviar al cliente
 
-```
-UPDATE bookings b
-   SET last_billed_date = sub.max_end
-  FROM (
-    SELECT ib.booking_id, MAX(i.billing_period_end) AS max_end
-      FROM invoice_bookings ib
-      JOIN invoices i ON i.id = ib.invoice_id
-     WHERE i.status <> 'cancelled' AND i.cfdi_status <> 'cancelled'
-       AND i.billing_period_end IS NOT NULL
-     GROUP BY ib.booking_id
-  ) sub
- WHERE b.id = sub.booking_id
-   AND (b.last_billed_date IS DISTINCT FROM sub.max_end);
-```
+Desde cada nueva factura: **"Descargar PDF + XML"** o **"Enviar por correo"** con el mensaje anunciado en el paso 1.
 
-Esto deja las 14 reservas listas para facturar el periodo correcto (Julio 2026) en el próximo run.
+### 7. Verificación final (Admin)
 
-### 4. Test
+Correr en el reporte de facturación:
 
-Extender `supabase/functions/generate-recurring-invoices/index_test.ts` (o `_shared/test`) con un caso unitario del auto-heal:
+- Los 7 folios viejos aparecen con `status = cancelled` / `cfdi_status = cancelled`.
+- Las 7 nuevas aparecen `stamped` con `billing_period_start = 2026-07-01`.
+- `bookings.last_billed_date` para las 14 reservas queda en `2026-07-31` (auto-actualizado al generar).
+- El Estado de Resultados de Julio muestra el ingreso; el de meses anteriores **ya no** lo duplica (las canceladas dejan de contar).
 
-- Reserva con `last_billed_date = 2025-12-31` y facturas legacy (period NULL) → **no** debe resetear.
-- Reserva con `last_billed_date = 2026-06-30` y factura con `billing_period_end = 2026-06-30` → mantiene.
-- Reserva sin facturas → `null`.
+## Tiempo estimado
 
-### 5. Acción operativa (fuera de código)
+- Aviso a clientes (correo genérico): 10 min.
+- Cancelaciones (7 × ~1 min timbrado SAT): 10-15 min.
+- Generar recurrentes + timbrar 7: 15-20 min.
+- Envío + verificación: 15 min.
+- **Total: ~1 hora**, con validación en un solo turno.
 
-Las 7 facturas ya timbradas (FAC-0079..0085) deben cancelarse ante el SAT usando el flujo existente de `cancel-cfdi` y re-emitirse con el periodo correcto. Esto lo hace el usuario desde la UI; no es automatizable ni forma parte de este fix.
+## Riesgos y cómo mitigarlos
 
-### 6. Changelog
-
-Nueva entrada `v6.110.0` (minor + fix) documentando causa raíz, corrección y guarda de seguridad.
-
-## Detalles técnicos
-
-- Archivos tocados: `supabase/functions/generate-recurring-invoices/index.ts`, `src/features/invoices/hooks/invoices/recurring/usePreviewRecurringInvoices.ts`, componente(s) de preview para el nuevo motivo, nuevo migration file, `public/changelog/v6.110.0.json` + `public/changelog.json`.
-- El check de "already invoiced" se conserva tal cual — con `last_billed_date` correcto y auto-heal robusto ya no hay ambigüedad.
-- La guarda `period_too_old` protege contra futuros escenarios (data corrupta, resets manuales, migraciones incompletas) sin bloquear el flujo normal.
-- Fuera de alcance: backfill de `billing_period_start/end` en facturas legacy (FAC-0004..0042). No es necesario: con `last_billed_date` correcto, el generador avanza desde ahí.
+- **Rechazo SAT en el timbrado nuevo** (CFDI40148/CFDI40149): revisar CSF del cliente ANTES de timbrar; con `sanitizeLegalName` y v6.97.10 ya sale diálogo accionable.
+- **Cliente ya contabilizó la factura vieja**: el correo del paso 1 lo previene. Si aun así reclama, el acuse de cancelación (paso 2) es suficiente evidencia.
+- **Folios "quemados" 0079..0085**: quedan en la BD como cancelados; el próximo folio será el siguiente disponible. No se recomprime la secuencia (mismo criterio que CXP-0001..0005 en v6.92.1).
