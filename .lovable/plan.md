@@ -1,65 +1,55 @@
 
-# Folio diferido para Notas de Crédito
+# Folio de Facturapi como fuente de verdad para REP (CP-<folio>)
 
-Replicar en las Notas de Crédito el mismo esquema que ya usan las facturas: los borradores llevan un placeholder no fiscal (`BORRADOR-NC-XXXX`) y, al timbrar, se promueven a `NC-<folio>` usando el folio que devuelve Facturapi como fuente de verdad. Esto elimina huecos en la numeración fiscal cuando un borrador se elimina o falla al timbrarse.
+Aplicar a los Recibos Electrónicos de Pago (REP / complementos de pago) el mismo principio: **el folio de Facturapi es la fuente de verdad**. Como los REP no tienen concepto de borrador (sólo existen al momento de timbrar), no hay placeholder `BORRADOR-` que promover; el cambio es: al timbrar, guardar `CP-<folio>` en la fila del pago y mostrarlo en la UI.
 
 ## 1. Migración de base de datos
 
-Crear `supabase/migrations/<timestamp>_credit_note_draft_folio.sql`:
+Nueva migración `<timestamp>_rep_folio.sql`:
 
-- `CREATE SEQUENCE public.draft_credit_note_seq START 1;`
-- `next_draft_credit_note_number()` → `'BORRADOR-NC-' || lpad(nextval(...)::text, 4, '0')` (SECURITY DEFINER, `SET search_path=public`).
-- `peek_next_draft_credit_note_number()` (STABLE) equivalente al de facturas.
-- `assign_stamped_credit_note_number(p_credit_note_id uuid, p_folio text) RETURNS text`:
+- `ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS rep_number text;`
+- `ALTER TABLE public.payments ADD COLUMN IF NOT EXISTS rep_folio text;`
+- Índice único parcial para evitar colisiones cuando ya haya folio:
+  `CREATE UNIQUE INDEX IF NOT EXISTS payments_rep_number_uidx ON public.payments (rep_number) WHERE rep_number IS NOT NULL;`
+- RPC `assign_stamped_rep_number(p_payment_id uuid, p_folio text) RETURNS text` (SECURITY DEFINER, `SET search_path=public`):
   - Valida folio no nulo.
-  - Calcula `v_new := 'NC-' || lpad(p_folio, 4, '0')`.
-  - Verifica que no exista colisión en `public.credit_notes.credit_note_number` con otro id.
-  - `UPDATE public.credit_notes SET credit_note_number = v_new WHERE id = p_credit_note_id`.
-  - Retorna `v_new`.
-- `GRANT EXECUTE` a `authenticated` y `service_role` según patrón existente (assign solo `service_role`).
-- Backfill: `UPDATE public.credit_notes SET credit_note_number = 'BORRADOR-NC-' || lpad(nextval('public.draft_credit_note_seq')::text,4,'0') WHERE status = 'draft' AND cfdi_uuid IS NULL AND facturapi_invoice_id IS NULL AND credit_note_number LIKE 'NC-%';`
+  - `v_new := 'CP-' || lpad(p_folio, 4, '0')`.
+  - Verifica colisiones en `payments.rep_number` (excluyendo p_payment_id).
+  - `UPDATE public.payments SET rep_number = v_new, rep_folio = p_folio WHERE id = p_payment_id`.
+  - Devuelve `v_new`.
+- `GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO service_role;`
+- Sin backfill: los REP históricos quedan con `rep_number = NULL`; la UI mostrará el UUID cuando no exista el folio.
 
-Se conserva `next_credit_note_number()` para no romper otros llamadores; queda como legado sin uso desde el cliente.
+## 2. Edge function `supabase/functions/stamp-payment-complement/index.ts`
 
-## 2. Frontend
+Tras el timbrado exitoso:
 
-**`src/features/invoices/hooks/creditNotes/useCreditNoteMutations.ts`**
-- Cambiar `supabase.rpc("next_credit_note_number")` por `supabase.rpc("next_draft_credit_note_number")` dentro de `useCreateCreditNote`.
-- Si `stamp: true`, tomar el `credit_note_number` promovido que devuelva la edge function (nuevo campo en la respuesta) y usarlo para invalidar cachés; el `notifySuccess` puede mostrar el folio final cuando exista.
-
-**Tests `__tests__/useCreditNoteMutations.test.ts`**
-- Renombrar el mock RPC a `next_draft_credit_note_number` y ajustar aserciones sobre el número inicial (`BORRADOR-NC-0001`).
-- Agregar caso: al timbrar, el número final proviene del payload de la edge function.
-
-Si hay algún selector/preview que muestre el siguiente folio de NC, usar `peek_next_draft_credit_note_number` (buscar y ajustar solo si existe).
-
-## 3. Edge function `supabase/functions/stamp-credit-note/handler.ts`
-
-Después del bloque que actualiza `credit_notes` con `cfdi_status: 'stamped'`:
-
-- Extraer folio de Facturapi igual que `stamp-cfdi`:
+- Extender el tipo de `repInvoice` para incluir `folio_number?: number | string | null`.
+- Después del `UPDATE payments SET rep_cfdi_status='stamped'…`, si `repInvoice.folio_number` no es nulo:
   ```ts
-  const facturApiFolioRaw = (facturApiInvoice as { folio_number?: number | string | null }).folio_number ?? null;
-  const facturApiFolio = facturApiFolioRaw != null ? String(facturApiFolioRaw) : null;
+  const folio = String(repInvoice.folio_number);
+  const { data, error } = await supabase.rpc("assign_stamped_rep_number", {
+    p_payment_id: payment_id,
+    p_folio: folio,
+  });
   ```
-- Si `ncRow.credit_note_number` empieza con `BORRADOR-NC-` y hay `facturApiFolio`, invocar:
-  ```ts
-  supabase.rpc("assign_stamped_credit_note_number", {
-    p_credit_note_id: credit_note_id,
-    p_folio: facturApiFolio,
-  })
-  ```
-  Loggear pero no abortar si falla (la NC ya está timbrada).
-- Devolver `credit_note_number` en la respuesta JSON de éxito.
+  Loggear pero no abortar si falla (el REP ya está timbrado).
+- Devolver `rep_number` en la respuesta JSON de éxito.
+
+## 3. Frontend
+
+- **`src/integrations/supabase/types.ts`** se regenerará automáticamente tras la migración; nada manual.
+- **`RepBadge.tsx`**: cuando `payment.rep_number` esté disponible, mostrar `CP-XXXX` como etiqueta principal (mantener el UUID accesible como tooltip o subtítulo).
+- **`InvoicePaymentSummary.tsx`**: donde se lista el REP de cada pago, mostrar `rep_number` (con fallback al UUID abreviado si no existe, para pagos históricos).
+- **Cualquier PDF/descarga de REP** que use nombre de archivo puede opcionalmente usar `rep_number` como sufijo — sólo revisar `downloadRep`/`downloadPayment` si existen y ya reciben un label; sin renombrar rutas de storage (siguen indexadas por UUID).
 
 ## 4. Documentación y memoria
 
-- Nueva entrada `public/changelog/v6.112.0.json` + índice `public/changelog.json` (minor: cambio de comportamiento en numeración de NC).
-- Actualizar `mem://logic/document-numbering` para mencionar que las NC ahora siguen el mismo patrón diferido de folio que las facturas.
+- Nueva entrada `public/changelog/v6.113.0.json` + índice `public/changelog.json` (minor).
+- Actualizar `mem://logic/document-numbering`: mencionar que los REP también se numeran `CP-<folio Facturapi>` al timbrar.
 
-## Consideraciones técnicas
+## Consideraciones
 
-- `credit_notes.credit_note_number` es `NOT NULL UNIQUE`; los prefijos `BORRADOR-NC-` y `NC-` no colisionan.
-- Se descarta agregar columnas `serie/folio` a `credit_notes` (no existen hoy y no son necesarias: el número final incrusta el folio).
-- La numeración legacy queda como está; solo se libera folios de borradores actuales para evitar huecos futuros.
-- Sin cambios en cancelación, PDF o descargas: usan `credit_note_number` como etiqueta y siguen funcionando con ambos prefijos.
+- No hay migración de datos: los REP existentes conservan `rep_number = NULL` hasta que, si se re-timbraran, tomarían folio nuevo. La UI muestra fallback.
+- Se mantiene la ruta de storage por UUID; no la tocamos para no invalidar enlaces históricos.
+- El índice único es parcial (`WHERE rep_number IS NOT NULL`), permitiendo múltiples pagos históricos sin folio.

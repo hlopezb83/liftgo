@@ -2077,6 +2077,8 @@ export type Database = {
           rep_cfdi_uuid: string | null
           rep_error_message: string | null
           rep_facturapi_id: string | null
+          rep_folio: string | null
+          rep_number: string | null
           rep_pdf_url: string | null
           rep_xml_url: string | null
         }
@@ -2101,6 +2103,8 @@ export type Database = {
           rep_cfdi_uuid?: string | null
           rep_error_message?: string | null
           rep_facturapi_id?: string | null
+          rep_folio?: string | null
+          rep_number?: string | null
           rep_pdf_url?: string | null
           rep_xml_url?: string | null
         }
@@ -2125,6 +2129,8 @@ export type Database = {
           rep_cfdi_uuid?: string | null
           rep_error_message?: string | null
           rep_facturapi_id?: string | null
+          rep_folio?: string | null
+          rep_number?: string | null
           rep_pdf_url?: string | null
           rep_xml_url?: string | null
         }
@@ -3219,6 +3225,10 @@ export type Database = {
       }
       assign_stamped_invoice_number: {
         Args: { p_folio: string; p_invoice_id: string; p_serie: string }
+        Returns: string
+      }
+      assign_stamped_rep_number: {
+        Args: { p_folio: string; p_payment_id: string }
         Returns: string
       }
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
