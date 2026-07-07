@@ -12,6 +12,7 @@ import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTab
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { InvoiceFiscalDataCard } from "../components/invoice-detail/InvoiceFiscalDataCard";
+import { ValidateReceptorButton } from "../components/invoice-detail/ValidateReceptorButton";
 import { InvoicePaymentSummary } from "../components/invoice-detail/InvoicePaymentSummary";
 import { PaymentIntentsSection } from "../components/invoice-detail/PaymentIntentsSection";
 import { InvoiceHistoryCard } from "../components/invoice-detail/InvoiceHistoryCard";
@@ -135,7 +136,7 @@ export default function InvoiceDetail() {
 
 
       <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBookings={sourceBookings} />
-      <InvoiceFiscalDataCard invoice={invoice} />
+      <InvoiceFiscalDataCard invoice={invoice} extraActions={<ValidateReceptorButton invoice={invoice} />} />
       <ReadOnlyLineItemsTable lineItems={lineItems} />
       <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={total} />
 
