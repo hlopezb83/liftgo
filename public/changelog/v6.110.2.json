@@ -1,0 +1,28 @@
+{
+  "version": "6.110.2",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Quita flechas de inputs numéricos en Nueva Nota de Crédito",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Síntoma reportado",
+      "items": [
+        "En el modal 'Nueva Nota de Crédito' los campos de Cantidad y Precio Unitario mostraban flechas (spinners) del navegador al ser inputs type='number'."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "CreditNoteLinesTable.tsx aplica clases CSS [appearance:textfield], [-moz-appearance:textfield] y oculta los pseudo-elementos ::-webkit-outer-spin-button / ::-webkit-inner-spin-button en los dos inputs numéricos.",
+        "No se modifica validación, cálculo ni comportamiento del formulario."
+      ]
+    },
+    {
+      "heading": "Cómo verificar",
+      "items": [
+        "Abrir el modal de Nueva Nota de Crédito; los inputs de Cantidad y Precio Unitario ya no muestran flechas en Chrome, Edge, Safari ni Firefox."
+      ]
+    }
+  ]
+}
