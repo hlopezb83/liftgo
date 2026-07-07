@@ -219,48 +219,9 @@ export async function handleStampCreditNote(
       });
     }
 
-    // Pre-validación contra SAT vía Facturapi (no consume timbre).
-    // Bloquea si la razón social/RFC/régimen no coinciden con la Constancia
-    // de Situación Fiscal registrada en el SAT.
-    if (taxId !== "XAXX010101000") {
-      const validation = await validateTaxIdWithFacturapi(deps.fetchImpl, apiKey, {
-        tax_id: taxId,
-        legal_name: legalName,
-        tax_system: taxSystem,
-        zip,
-      });
-      if (validation && validation.is_valid === false) {
-        console.error("[stamp-credit-note] tax_id_validation mismatch", {
-          credit_note_id,
-          taxId,
-          legalName,
-          taxSystem,
-          zip,
-          errors: validation.errors,
-        });
-        await supabase.from("credit_notes")
-          .update({
-            cfdi_status: "error",
-            cfdi_error_message:
-              `Los datos fiscales del receptor no coinciden con la CSF del SAT: ${
-                (validation.errors || []).join("; ") ||
-                "revisa razón social, RFC, régimen y CP"
-              }`,
-          })
-          .eq("id", credit_note_id);
-        return json(
-          {
-            error: "Datos fiscales del receptor no coinciden con el SAT",
-            detail:
-              `El PAC rechazará el timbrado. Verifica en la Constancia de Situación Fiscal del RFC ${taxId} que coincidan exactamente: razón social (sin régimen societario), régimen fiscal y CP.`,
-            mismatches: validation.errors ?? [],
-            sent: { legal_name: legalName, tax_id: taxId, tax_system: taxSystem, zip },
-          },
-          422,
-          jsonHeaders,
-        );
-      }
-    }
+    const taxId = String(inv.receptor_rfc || "XAXX010101000").toUpperCase();
+    const taxSystem = String(inv.receptor_regimen_fiscal || "616");
+    const zip = String(inv.receptor_domicilio_fiscal_cp || "06600");
 
     const payload: Record<string, unknown> = {
       type: "E",
