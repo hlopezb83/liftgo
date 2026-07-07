@@ -1,90 +1,123 @@
-# Reemplazar FAC-0079..0085 con facturas del periodo correcto (Julio 2026)
+# Auditoría y mejora de la integración de Sentry
 
-## Contexto verificado
+## Estado actual (verificado en `elogistix.sentry.io`)
 
-- Las 7 facturas están **timbradas** (`cfdi_status = stamped`, `status = sent`).
-- **Ninguna tiene pagos registrados** → no hay complementos de pago que cancelar antes.
-- Ninguna es CFDI de crédito ni traslado: son facturas de ingreso PPD normales.
-- Reservas afectadas ya tienen `last_billed_date = 2026-06-30` (sincronizado en v6.110.0), así que el próximo "Generar recurrentes" producirá Julio 2026 automáticamente.
+**Sentry está activo y recibiendo eventos**, pero **no hay una sola línea de código Sentry en el repo**:
 
-| Folio  | Cliente                              | Periodo INCORRECTO | Total     | Reservas |
-|--------|--------------------------------------|--------------------|-----------|----------|
-| FAC-0079 | INDIMEX TRADING                    | 03/2026            | $40,600   | RSV-0011 |
-| FAC-0080 | INDIMEX TRADING                    | 04/2026            | $139,200  | RSV-0014..0017 |
-| FAC-0081 | STK INDUSTRIAS                     | 12/2025            | $55,680   | RSV-0003, RSV-0004 |
-| FAC-0082 | HG RUBBER                          | 12/2025            | $23,200   | RSV-0006 |
-| FAC-0083 | QUIMERA ESPECIALIDADES             | 12/2025            | $22,040   | RSV-0007 |
-| FAC-0084 | INTERNACIONAL AGROINDUSTRIAL       | 01/2026            | $22,040   | RSV-0009 |
-| FAC-0085 | EMPAQUES Y EMBALAJES GRUPO MACE    | 04/2026            | $25,520   | RSV-0012 |
+- `package.json` no lista `@sentry/*`.
+- `index.html` no tiene tag `<script>` de Sentry.
+- `src/lib/telemetry.ts` es un stub que solo hace `console.*` en DEV.
+- `src/layouts/ErrorBoundary.tsx` captura errores React pero solo los `console.error`.
 
-## Paso a paso (por factura, se puede paralelizar entre clientes)
+Aun así, Sentry recibe eventos con:
+- `release: libre-carga@13.213.11` (auto-versionado por el pipeline de hosting, no coincide con nuestro `public/changelog.json` v6.110.0).
+- `environment: production`.
+- Tags custom: `active_organization_id`, `organization_id`, `effective_role`, `feature: react_query`, `query_root`, `is_pwa`.
+- User identificado por UUID (`user.id`).
+- Session Replay activo (con `client_sample_rate: 0.1`).
+- Frames minificados (`zU`, `jF`, `MU`) — **no hay source maps subidos** → stack traces ilegibles.
+- Cobertura parcial de edge functions (aparece `enviar-factura-email/helpers.ts` en un stack, pero es porque el frontend re-lanza el error, no porque Deno instrumente).
 
-### 1. Avisar al cliente (antes de cancelar)
+**Conclusión**: la instrumentación la inyecta el pipeline de despliegue (`librecarga.com`) fuera del repo. Eso significa: **no controlamos** qué se envía, cómo se filtra, cómo se etiqueta, ni podemos subir source maps ni enriquecer contexto por vista. La observabilidad es "mejor que nada" pero opaca.
 
-Enviar correo breve — plantilla sugerida:
+## Hallazgos de las 7 issues abiertas (últimos 30 días)
 
-> Estimado [cliente]: identificamos que la factura **[FOLIO]** por **$[TOTAL]** se emitió con un periodo equivocado. La cancelaremos ante el SAT hoy mismo y en su lugar recibirá **[FOLIO_NUEVO]** con el mismo importe y el periodo correcto de **julio 2026**. Su acuse de cancelación y la nueva factura llegarán en el mismo correo.
+| ID | Título | Prioridad | Diagnóstico |
+|---|---|---|---|
+| **REACT-1M** | `zU (captureException)` — 50 eventos, 7 usuarios, regressed | **P0** | Error real de Postgres `22P02: malformed array literal: "[]"` en query `cliente_defaults_facturacion`. Estamos pasando el string `"[]"` a una columna array. |
+| **REACT-23** | `Objects are not valid as a React child (found: object with keys {$$typeof, render, displayName})` en `/` | **P1** | Render de una referencia a componente (`{Icon}`) en vez de `<Icon />` — probablemente en Dashboard. |
+| **REACT-25** | `Esta organización no tiene FacturApi configurado` | **P2** | Error esperable de UX, no debería llegar a Sentry como unhandled. |
+| **REACT-27** | `FacturApi pdf 404: invoice_not_found` desde `enviar-factura-email/helpers.ts` | **P2** | Error de negocio esperable, mismo caso. |
+| **REACT-24** | `CFDI40149: DomicilioFiscalReceptor debe pertenecer al RFC` | **P2** | Rechazo SAT ya manejado por diálogo v6.97.10 — no debe re-lanzarse a Sentry. |
+| **REACT-1Z** | `HTTP Client Error 502` | Info | Ruido temporal de infra. Filtrar/agrupar. |
+| **REACT-26** | `Failed to send a request to the Edge Function` | Info | Error de red del cliente; agrupar con REACT-1Z. |
 
-Esto evita rebotes cuando el cliente reciba el acuse de cancelación.
+## Objetivos
 
-### 2. Cancelar CFDI ante el SAT
+1. **Traer la instrumentación al repo** (SDK `@sentry/react` + init controlado) para tener autoridad sobre lo que se reporta.
+2. **Subir source maps** en el build para desminificar stacks (fin de los `zU`).
+3. **Silenciar ruido** (errores esperables SAT/FacturApi/red) via `beforeSend` y `notifyError({ severity: "warning" })`.
+4. **Enriquecer contexto** (org, rol, feature area) desde `AuthContext` una sola vez, no depender del auto-inject.
+5. **Cubrir edge functions** con `@sentry/deno` desde un helper compartido.
+6. **PII scrubbing** de datos fiscales (RFC, UUID CFDI, folios) en breadcrumbs y tags.
+7. **Arreglar los 2 bugs P0/P1 visibles** en Sentry.
 
-En LiftGo: **Facturación → abrir la factura → botón "Cancelar CFDI"**.
+## Cambios
 
-- **Motivo SAT: `01 – Comprobante emitido con errores con relación`** (es el motivo correcto porque va a reemplazarse por otra con folio fiscal distinto).
-- Cuando el sistema pida el UUID del CFDI que reemplaza, **déjalo pendiente por ahora** (aún no existe). Alternativas:
-  - Si la UI lo permite, capturar el UUID después de emitir la nueva factura (paso 4) y ligarla vía "sustituir CFDI".
-  - Si la UI lo exige de una vez, cancelar con motivo `02 – Comprobante emitido con errores sin relación` para desbloquear el flujo. Documentar en las notas de la factura que se emitió reemplazo (con folio) por error de periodo.
-- Confirmar en el detalle de la factura que `cfdi_status` cambia a `cancelled` y baja el acuse XML.
+### 1. Instalar y configurar `@sentry/react` (fuente de verdad en el repo)
 
-Repetir para las 7 facturas. Como ninguna tiene pagos, no hace falta cancelar complementos previamente.
+- `bun add @sentry/react` + `@sentry/vite-plugin` (dev dep).
+- Nuevo archivo `src/lib/observability/sentry.ts`:
+  - `initSentry()` con DSN desde `import.meta.env.VITE_SENTRY_DSN`.
+  - `environment` derivado (`production` | `preview` | `development`) desde `import.meta.env.MODE` + hostname.
+  - `release` desde `import.meta.env.VITE_APP_VERSION` (inyectado desde `package.json` en `vite.config.ts`).
+  - `tracesSampleRate: 0.1`, `replaysSessionSampleRate: 0`, `replaysOnErrorSampleRate: 1.0`.
+  - `integrations`: `browserTracingIntegration`, `replayIntegration` (con `maskAllText: false` pero `mask: [".fiscal-sensitive"]` y `blockAllMedia: false`), `reactRouterV6BrowserTracingIntegration` (o el actual).
+  - `beforeSend` que:
+    - Descarta errores marcados con `tags.silenced = true` (ver punto 4).
+    - Descarta patterns conocidos: `/no tiene FacturApi configurado/`, `/CFDI\d{5}/`, `/invoice_not_found/`, `/HTTP Client Error with status code: 5\d\d/`, `/Failed to fetch dynamically imported module/`.
+    - Trunca `extra` y `contexts` que contengan `rfc`, `folio_fiscal`, `receptor_rfc` a `"***"`.
+  - `beforeBreadcrumb` para omitir `console.*` en producción y sanitizar URLs con query params sensibles.
+- `main.tsx`: llamar `initSentry()` antes de `createRoot`.
 
-### 3. Generar las facturas correctas (Julio 2026)
+### 2. Vite plugin para source maps + release
 
-Una sola acción cubre las 7:
+- `vite.config.ts`: agregar `sentryVitePlugin({ org: "elogistix", project: "javascript-react", authToken: process.env.SENTRY_AUTH_TOKEN, release: { name: `liftgo@${pkg.version}` }, sourcemaps: { assets: "./dist/**" } })`.
+- `build.sourcemap: true` en Vite config.
+- Nuevo build secret **`SENTRY_AUTH_TOKEN`** (Workspace Settings → Build Secrets) — el usuario lo crea en `sentry.io/settings/account/api/auth-tokens/` con scope `project:releases`.
+- Release name unifica con `public/changelog.json` para que Sentry y el changelog compartan versión.
 
-1. **Facturación → botón "Generar recurrentes"**.
-2. En la vista previa deben aparecer 7 líneas elegibles, todas con periodo **01/07/2026 al 31/07/2026** (agrupadas por cliente — INDIMEX saldrá con 2 líneas separadas: 1 y 4 reservas). Verificar totales antes de confirmar (deben coincidir con la tabla anterior, salvo que alguna tarifa haya cambiado).
-3. Confirmar → se crean como `draft`.
+### 3. Integrar Auth + Router
 
-### 4. Timbrar las nuevas facturas
+- En `AuthContext.tsx`, tras hidratar sesión: `Sentry.setUser({ id, email, username })` y `Sentry.setTag("active_organization_id", orgId)`, `Sentry.setTag("effective_role", role)`. Limpiar en logout con `Sentry.setUser(null)`.
+- En `App.tsx` con React Router: usar `Sentry.wrapCreateBrowserRouter` (o `withSentryRouting`) para transacciones nombradas por ruta.
 
-Desde el listado de facturas en `draft`:
+### 4. Integrar `notifyError` con Sentry
 
-1. Abrir cada nueva factura.
-2. Validar RFC, CP fiscal, régimen y uso CFDI del receptor (v6.97.10/6.97.11 muestran diálogo accionable si el SAT rechaza).
-3. Click **"Timbrar CFDI"**.
-4. Anotar el UUID de cada nueva factura para el siguiente paso.
+`src/lib/ui/appFeedback.ts::notifyError`:
+- Si `severity !== "warning"` y `error instanceof Error` → `Sentry.captureException(error, { tags: { phase, step, method, errorCode }, extra: sanitize(context) })`.
+- Si `severity === "warning"` → NO enviar a Sentry (silencioso), pero sí a UI. Esto resuelve REACT-25/27/24.
 
-### 5. (Opcional pero recomendado) Ligar sustitución en cancelación
+Migración adicional: revisar los ~15 sitios que hoy pasan errores de FacturApi/SAT a `notifyError` y agregarles `severity: "warning"` cuando el error ya está clasificado (via `classifyFacturapiError`).
 
-Si el paso 2 se cerró sin UUID de reemplazo:
+### 5. Integrar ErrorBoundary con Sentry
 
-- Volver a cada factura cancelada, ir a **notas** o al campo "CFDI que sustituye" y capturar el UUID nuevo. Esto mejora la trazabilidad contable aunque el SAT ya no lo requiera post-cancelación.
+- `componentDidCatch`: `Sentry.captureException(error, { contexts: { react: { componentStack: info.componentStack } }, tags: { boundary_scope: this.props.scope, route_label: this.props.routeLabel } })`.
+- Adjuntar `event_id` al UI para que el usuario pueda referenciarlo al soporte ("ID de reporte: ABC123").
 
-### 6. Reenviar al cliente
+### 6. Instrumentar edge functions críticas
 
-Desde cada nueva factura: **"Descargar PDF + XML"** o **"Enviar por correo"** con el mensaje anunciado en el paso 1.
+- Nuevo `supabase/functions/_shared/sentry.ts` que:
+  - Init lazy con `@sentry/deno` (`https://esm.sh/@sentry/deno`).
+  - DSN desde `Deno.env.get("SENTRY_DSN_EDGE")` (secret runtime).
+  - Helper `withSentry(handler)` que envuelve el `Deno.serve` handler y captura excepciones no atrapadas con tags `function_name`, `request_id`.
+- Aplicar `withSentry` en las funciones con más superficie de error: `stamp-cfdi`, `cancel-cfdi`, `generate-recurring-invoices`, `enviar-factura-email`, `parse-cfdi-expense`, `parse-csf`.
+- Agregar secret `SENTRY_DSN_EDGE` (mismo DSN o uno separado del proyecto Sentry).
 
-### 7. Verificación final (Admin)
+### 7. Arreglar bugs P0/P1 visibles en Sentry
 
-Correr en el reporte de facturación:
+- **REACT-1M** — `cliente_defaults_facturacion` está enviando `"[]"` como literal de array. Localizar el hook (`src/features/customers/hooks/useClienteDefaultsFacturacion*` o similar) y asegurar que se pase `null` o un array real, no un string. Añadir Zod parse en el borde del RPC.
+- **REACT-23** — `Objects are not valid as a React child` en `/`. Buscar en Dashboard/Home un `{SomeIcon}` en vez de `<SomeIcon />` (probablemente en una tarjeta KPI o menú lateral).
+- **REACT-25/27/24** — Marcar sus `notifyError` con `severity: "warning"` para que dejen de contarse como incidentes (paso 4 los filtra en `beforeSend` también).
+- **REACT-1Z/26** — Añadir patrón de red en `beforeSend` para agrupar como "network noise".
 
-- Los 7 folios viejos aparecen con `status = cancelled` / `cfdi_status = cancelled`.
-- Las 7 nuevas aparecen `stamped` con `billing_period_start = 2026-07-01`.
-- `bookings.last_billed_date` para las 14 reservas queda en `2026-07-31` (auto-actualizado al generar).
-- El Estado de Resultados de Julio muestra el ingreso; el de meses anteriores **ya no** lo duplica (las canceladas dejan de contar).
+### 8. Alertas y housekeeping en Sentry
 
-## Tiempo estimado
+Fuera de código, documentar en `docs/observability/sentry.md`:
+- Alert rule: nueva issue con >5 usuarios en 1h → Slack/email.
+- Alert rule: regresión de issue resuelta → notificación inmediata.
+- Regla de auto-resolución a 30 días para issues con `tags.silenced` que se colaron.
+- Convención de ownership: cada issue asignada al admin del proyecto por defecto; ownership rules por path (`src/features/invoices/*` → responsable X).
 
-- Aviso a clientes (correo genérico): 10 min.
-- Cancelaciones (7 × ~1 min timbrado SAT): 10-15 min.
-- Generar recurrentes + timbrar 7: 15-20 min.
-- Envío + verificación: 15 min.
-- **Total: ~1 hora**, con validación en un solo turno.
+### 9. Documentación y changelog
 
-## Riesgos y cómo mitigarlos
+- Nueva sección en `docs/observability/sentry.md` con la arquitectura, cómo agregar tags custom, cómo probar `beforeSend` en local (DEV envía a un DSN dev).
+- Changelog `v6.111.0` — "Observabilidad: integración Sentry en repo, source maps, edge functions y limpieza de ruido".
 
-- **Rechazo SAT en el timbrado nuevo** (CFDI40148/CFDI40149): revisar CSF del cliente ANTES de timbrar; con `sanitizeLegalName` y v6.97.10 ya sale diálogo accionable.
-- **Cliente ya contabilizó la factura vieja**: el correo del paso 1 lo previene. Si aun así reclama, el acuse de cancelación (paso 2) es suficiente evidencia.
-- **Folios "quemados" 0079..0085**: quedan en la BD como cancelados; el próximo folio será el siguiente disponible. No se recomprime la secuencia (mismo criterio que CXP-0001..0005 en v6.92.1).
+## Detalles técnicos
+
+- **Backward compat con la instrumentación del hosting**: cuando iniciemos nuestro propio SDK, verificar que el pipeline de `librecarga.com` no siga inyectando otro Sentry (doble init causa duplicados). Si el hosting lo hace incondicional, coordinar con soporte para deshabilitar o pasarle el DSN vía env var. Alternativa: si detectamos `window.Sentry` ya inicializado, hacer `Sentry.getCurrentHub().bindClient(newClient)` con misma configuración en vez de re-init.
+- **Bundle size**: `@sentry/react` + replay ≈ 90 kB gzip. Cargar `replayIntegration` con lazy import y activarla sólo tras `requestIdleCallback` para no impactar TTI.
+- **DSN público**: `VITE_SENTRY_DSN` es publishable, va en `.env` sin problema.
+- **Test unitario**: mockear `@sentry/react` en `src/test/setup.ts` para que `Sentry.captureException` sea un spy y no llame red.
+- **Fuera de alcance**: cambiar el schema del release (`libre-carga@` → `liftgo@`) requiere coordinación con hosting; propuesto pero opcional. Cambiar a per-user Sentry Feedback widget (queda para fase 2).
