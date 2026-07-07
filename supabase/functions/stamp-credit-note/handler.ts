@@ -340,8 +340,49 @@ export async function handleStampCreditNote(
       );
     }
 
+    // Folio diferido: si el credit_note_number sigue siendo placeholder
+    // BORRADOR-NC-XXXX y Facturapi devolvió folio, promovemos a NC-<folio>.
+    // Facturapi es la fuente de verdad para mantener 1:1 con su serie.
+    let finalCreditNoteNumber: string | null = null;
+    const currentNcNum = (ncRow.credit_note_number as string | null) ?? null;
+    const facturApiFolioRaw = fa.folio_number ?? null;
+    const facturApiFolio: string | null = facturApiFolioRaw !== null &&
+        facturApiFolioRaw !== undefined
+      ? String(facturApiFolioRaw)
+      : null;
+
+    if (
+      facturApiFolio &&
+      currentNcNum &&
+      currentNcNum.startsWith("BORRADOR-NC-")
+    ) {
+      const rpcRes = await (supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: unknown }>;
+      }).rpc("assign_stamped_credit_note_number", {
+        p_credit_note_id: credit_note_id,
+        p_folio: facturApiFolio,
+      });
+      const rpcErr = rpcRes.error as { message?: string } | null;
+      if (rpcErr) {
+        console.error(
+          "[stamp-credit-note] assign_stamped_credit_note_number failed",
+          { credit_note_id, err: rpcErr.message },
+        );
+      } else {
+        finalCreditNoteNumber = rpcRes.data as string;
+      }
+    }
+
     return json(
-      { success: true, cfdi_uuid: cfdiUuid, facturapi_invoice_id: facturApiId },
+      {
+        success: true,
+        cfdi_uuid: cfdiUuid,
+        facturapi_invoice_id: facturApiId,
+        credit_note_number: finalCreditNoteNumber ?? currentNcNum,
+      },
       200,
       jsonHeaders,
     );
