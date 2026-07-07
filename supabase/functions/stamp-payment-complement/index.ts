@@ -237,11 +237,16 @@ Deno.serve(async (req) => {
     };
 
     const client = createFacturapiClient(apiKey);
-    let repInvoice: { id: string; uuid: string };
+    let repInvoice: {
+      id: string;
+      uuid: string;
+      folio_number?: number | string | null;
+    };
     try {
       repInvoice = await client.invoices.create(payload) as {
         id: string;
         uuid: string;
+        folio_number?: number | string | null;
       };
     } catch (err) {
       const desc = describeFacturapiError(err);
@@ -320,11 +325,40 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Folio de Facturapi = fuente de verdad. Guardamos CP-<folio> como rep_number.
+    let repNumber: string | null = null;
+    const facturApiFolioRaw = repInvoice.folio_number ?? null;
+    const facturApiFolio: string | null = facturApiFolioRaw !== null &&
+        facturApiFolioRaw !== undefined
+      ? String(facturApiFolioRaw)
+      : null;
+
+    if (facturApiFolio) {
+      const rpcRes = await (supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: { message?: string } | null }>;
+      }).rpc("assign_stamped_rep_number", {
+        p_payment_id: payment_id,
+        p_folio: facturApiFolio,
+      });
+      if (rpcRes.error) {
+        console.error(
+          "[stamp-payment-complement] assign_stamped_rep_number failed",
+          { payment_id, err: rpcRes.error.message },
+        );
+      } else {
+        repNumber = rpcRes.data as string;
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         rep_cfdi_uuid: repUuid,
         rep_facturapi_id: repId,
+        rep_number: repNumber,
         installment_number: installmentNumber,
       }),
       { headers: jsonHeaders },
