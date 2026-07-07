@@ -38,7 +38,7 @@ export function CreditNoteLinesTable({ lines, onUpdate }: Props) {
                   value={l.quantity}
                   disabled={!l._selected}
                   onChange={(e) => onUpdate(i, { quantity: Number(e.target.value) })}
-                  className="h-8 text-right font-mono text-sm"
+                  className="h-8 text-right font-mono text-sm [appearance:textfield] [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </TableCell>
               <TableCell>
