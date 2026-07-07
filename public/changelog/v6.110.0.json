@@ -1,0 +1,14 @@
+{
+  "version": "6.110.0",
+  "date": "2026-07-07",
+  "type": "minor",
+  "category": "fix",
+  "title": "Facturación recurrente: corrige auto-heal que generaba periodos históricos",
+  "description": "El job 'Generar recurrentes' timbró 7 facturas (FAC-0079..0085) con periodos de diciembre 2025 a abril 2026 cuando debían ser todas de julio 2026. Causa: el auto-heal de v6.107.3 buscaba una factura con billing_period_end = last_billed_date; como las facturas legacy (FAC-0004..0042, previas a v5.62.0) tienen billing_period_end nulo, la consulta no encontraba coincidencia, reseteaba a null y trataba la reserva como nunca facturada, re-emitiendo desde el primer mes. Se reemplaza por una consulta que deriva el último periodo desde MAX(billing_period_end) del historial real. Se agrega guarda de seguridad 'period_too_old' que marca como no elegibles las reservas cuyo periodo termina más de un mes antes del mes actual, forzando revisión manual en vez de timbrar en silencio. Migración sincroniza bookings.last_billed_date con el historial real para las 14 reservas afectadas.",
+  "changes": [
+    "Edge function generate-recurring-invoices: auto-heal usa historial real (MAX billing_period_end) como source of truth; sólo mantiene bookings.last_billed_date cuando todas las facturas vinculadas son legacy (period nulo)",
+    "Nueva razón de no-elegibilidad 'period_too_old' — periodos que terminan >1 mes antes del mes actual requieren generación manual",
+    "Migración: recalcula bookings.last_billed_date desde MAX(billing_period_end) para todas las reservas recurrentes",
+    "Las 7 facturas ya timbradas con periodo incorrecto deben cancelarse ante el SAT desde la UI y re-emitirse manualmente"
+  ]
+}
