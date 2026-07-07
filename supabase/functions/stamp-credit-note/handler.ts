@@ -33,9 +33,12 @@ export async function handleStampCreditNote(
   const corsHeaders = getCorsHeaders(req);
   const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
+  let credit_note_id: unknown = undefined;
+  let userId: string | undefined = undefined;
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
+      console.error("[stamp-credit-note] missing bearer token");
       return json({ error: "Unauthorized" }, 401, jsonHeaders);
     }
     const token = authHeader.replace("Bearer ", "");
@@ -44,38 +47,57 @@ export async function handleStampCreditNote(
     const { data: claimsData, error: claimsErr } = await callerClient.auth
       .getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
+      console.error("[stamp-credit-note] getClaims failed", {
+        err: claimsErr instanceof Error ? claimsErr.message : String(claimsErr),
+      });
       return json({ error: "Unauthorized" }, 401, jsonHeaders);
     }
-    const userId = claimsData.claims.sub;
+    userId = claimsData.claims.sub;
 
     const supabase = deps.createServiceClient();
     const rolesRes = await supabase.from("user_roles").select("role").eq(
       "user_id",
       userId,
     );
-    const roles = (rolesRes as { data: unknown }).data as
+    const roles = (rolesRes as { data: unknown; error: unknown }).data as
       | Array<{ role: string }>
       | null;
+    const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
+    if (rolesErr) {
+      console.error("[stamp-credit-note] roles lookup failed", { userId });
+      return json({ error: "Authorization check failed" }, 500, jsonHeaders);
+    }
     const allowed = (roles ?? []).some((r) =>
       r.role === "admin" || r.role === "administrativo"
     );
     if (!allowed) {
+      console.error("[stamp-credit-note] forbidden", { userId });
       return json({ error: "Forbidden" }, 403, jsonHeaders);
     }
 
     const body = await req.json().catch(() => null);
-    const credit_note_id = body?.credit_note_id;
+    credit_note_id = body?.credit_note_id;
     if (!isUUID(credit_note_id)) {
+      console.error("[stamp-credit-note] invalid credit_note_id", { userId });
       return json({ error: "credit_note_id must be UUID" }, 400, jsonHeaders);
     }
 
     const { data: nc, error: ncErr } = await supabase
       .from("credit_notes").select("*").eq("id", credit_note_id).single();
     if (ncErr || !nc) {
+      console.error("[stamp-credit-note] credit note not found", {
+        credit_note_id,
+        userId,
+        err: ncErr instanceof Error ? ncErr.message : String(ncErr),
+      });
       return json({ error: "Credit note not found" }, 404, jsonHeaders);
     }
     const ncRow = nc as Record<string, unknown>;
     if (ncRow.cfdi_status === "stamped") {
+      console.error("[stamp-credit-note] already stamped", {
+        credit_note_id,
+        uuid: ncRow.cfdi_uuid,
+      });
       return json({ error: "Credit note already stamped" }, 409, jsonHeaders);
     }
     // Claim atómico para evitar doble timbrado concurrente.
@@ -88,6 +110,10 @@ export async function handleStampCreditNote(
       .select("id")
       .maybeSingle();
     if (!(claimRes as { data: unknown }).data) {
+      console.error(
+        "[stamp-credit-note] claim failed — concurrent stamp or unexpected status",
+        { credit_note_id, current_status: ncRow.cfdi_status },
+      );
       return json(
         { error: "Credit note already stamped or in progress" },
         409,
@@ -98,10 +124,20 @@ export async function handleStampCreditNote(
     const { data: invoice, error: invErr } = await supabase
       .from("invoices").select("*").eq("id", ncRow.invoice_id).single();
     if (invErr || !invoice) {
+      console.error("[stamp-credit-note] source invoice not found", {
+        credit_note_id,
+        invoice_id: ncRow.invoice_id,
+      });
       return json({ error: "Invoice not found" }, 404, jsonHeaders);
     }
     const inv = invoice as Record<string, unknown>;
     if (inv.cfdi_status !== "stamped" || !inv.facturapi_invoice_id) {
+      console.error("[stamp-credit-note] source invoice not stamped", {
+        credit_note_id,
+        invoice_id: ncRow.invoice_id,
+        inv_cfdi_status: inv.cfdi_status,
+        has_facturapi_id: !!inv.facturapi_invoice_id,
+      });
       return json(
         { error: "Source invoice must be stamped" },
         400,
