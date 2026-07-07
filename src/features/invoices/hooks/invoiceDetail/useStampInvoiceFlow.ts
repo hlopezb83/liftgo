@@ -10,7 +10,14 @@ export interface StampErrorState {
   message: string;
   kind: FacturapiErrorKind;
   customerId: string | null;
+  receptor?: {
+    rfc: string | null;
+    razonSocial: string | null;
+    cp: string | null;
+    regimenFiscal: string | null;
+  };
 }
+
 
 export function useStampInvoiceFlow(refetch: () => void) {
   const stampCfdi = useStampCfdi();
