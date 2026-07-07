@@ -136,7 +136,7 @@ export default function InvoiceDetail() {
 
 
       <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBookings={sourceBookings} />
-      <InvoiceFiscalDataCard invoice={invoice} />
+      <InvoiceFiscalDataCard invoice={invoice} extraActions={<ValidateReceptorButton invoice={invoice} />} />
       <ReadOnlyLineItemsTable lineItems={lineItems} />
       <TotalsSummary subtotal={Number(invoice.subtotal)} taxRate={Number(invoice.tax_rate)} taxAmount={Number(invoice.tax_amount)} total={total} />
 
