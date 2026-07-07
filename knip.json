@@ -12,5 +12,9 @@
     "src/integrations/supabase/**",
     "src/components/ui/**"
   ],
+  "ignoreDependencies": [
+    "@sentry/react",
+    "@sentry/vite-plugin"
+  ],
   "ignoreExportsUsedInFile": true
 }
