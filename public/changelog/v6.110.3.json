@@ -1,0 +1,31 @@
+{
+  "version": "6.110.3",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Logs de diagnóstico al timbrar Notas de Crédito",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Síntoma reportado",
+      "items": [
+        "Al intentar timbrar una NC para FAC-0089 la operación falló y la NC quedó en borrador (cfdi_status='pending', sin cfdi_error_message).",
+        "La función stamp-credit-note solo registraba boot/shutdown, sin trazas del motivo del non-2xx: imposible saber si fue 401, 403, 404 o 500."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "stamp-credit-note/handler.ts: se añadió console.error estructurado en cada ruta de error (missing bearer, getClaims fallido, roles lookup, forbidden, credit_note_id inválido, NC no encontrada, NC ya timbrada, claim atómico fallido, factura fuente no timbrada, Facturapi rechazado, archive xml/pdf, DB update post-timbrado y excepción no capturada).",
+        "Todas las trazas incluyen credit_note_id y userId cuando ya están resueltos. No se loguean tokens ni datos sensibles.",
+        "Cero cambios de comportamiento: mismos códigos HTTP, mismos mensajes al cliente, misma lógica de negocio."
+      ]
+    },
+    {
+      "heading": "Cómo verificar",
+      "items": [
+        "Reintentar el timbrado desde la card 'Notas de Crédito' de la factura FAC-0089 (botón 'Timbrar' junto a la NC en borrador).",
+        "Si vuelve a fallar, los logs de la función stamp-credit-note ahora indican exactamente en qué punto se detuvo y con qué contexto."
+      ]
+    }
+  ]
+}
