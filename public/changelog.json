@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.9",
+    "date": "2026-07-07",
+    "type": "minor",
+    "title": "Validación previa contra SAT antes de timbrar NC",
+    "description": "Antes de enviar la NC al PAC, se consulta el endpoint /tools/tax_id_validation de Facturapi (no consume timbre). Si el RFC, la razón social sanitizada, el régimen fiscal o el CP no coinciden con la Constancia de Situación Fiscal del SAT, el timbrado se bloquea con un mensaje claro indicando qué corregir en el cliente.",
+    "category": "feature"
+  },
+  {
     "version": "6.110.8",
     "date": "2026-07-07",
     "type": "patch",
