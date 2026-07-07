@@ -11,6 +11,33 @@ import { notifySuccess } from "@/lib/ui/appFeedback";
  * Diálogo global de detalles de error. Montar una sola vez en el root.
  * Se controla vía `openErrorReport()` desde cualquier toast destructive.
  */
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // fall through to legacy fallback
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
 export function ErrorDetailsDialog() {
   const { open, report } = useErrorReport();
   const [copied, setCopied] = useState(false);
