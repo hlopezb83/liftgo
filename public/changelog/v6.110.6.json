@@ -1,0 +1,17 @@
+{
+  "version": "6.110.6",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Corrige copiado del reporte en el modal de Detalles de error",
+  "category": "fix",
+  "symptom": "Al presionar 'Copiar reporte' en el modal de Detalles del error aparecía el toast 'No se pudo copiar el reporte' y nada quedaba en el portapapeles.",
+  "cause": "navigator.clipboard.writeText() lanza excepción cuando la Clipboard API no está disponible o está bloqueada por Permissions-Policy (típico dentro de iframes de preview o contextos no seguros). El handler sólo mostraba el error sin plan B.",
+  "changes": [
+    "src/components/ui/ErrorDetailsDialog.tsx: se agregó helper copyToClipboard() que intenta primero navigator.clipboard.writeText() y, si falla, usa fallback clásico con textarea + document.execCommand('copy').",
+    "El mensaje de error ahora sugiere seleccionar el texto manualmente y usar Ctrl+C si ambos métodos fallan."
+  ],
+  "verification": [
+    "Abrir cualquier toast destructive → 'Ver detalles' → 'Copiar reporte'.",
+    "Verificar toast verde 'Reporte copiado al portapapeles' y que el contenido esté en el portapapeles."
+  ]
+}
