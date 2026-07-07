@@ -1,0 +1,20 @@
+{
+  "version": "6.113.0",
+  "date": "2026-07-07",
+  "type": "minor",
+  "title": "CP-<folio Facturapi> como fuente de verdad para REP",
+  "category": "feature",
+  "symptom": "Los Recibos Electrónicos de Pago (REP) sólo se identificaban por UUID/facturapi_id; no había un folio local alineado con la serie de Facturapi.",
+  "cause": "Al timbrar un REP se guardaba únicamente el UUID; el folio devuelto por Facturapi (folio_number) no se persistía.",
+  "changes": [
+    "Migración: nuevas columnas `payments.rep_number` y `payments.rep_folio`, índice único parcial sobre rep_number.",
+    "Migración: nuevo RPC `assign_stamped_rep_number(payment_id, folio)` que asigna `CP-<folio>` con validación de colisión.",
+    "`stamp-payment-complement`: extrae `folio_number` de Facturapi, invoca el RPC tras el timbrado exitoso y devuelve `rep_number` en la respuesta.",
+    "`usePaymentHistoryColumns`: muestra `CP-XXXX` junto al badge del REP en el historial de pagos (fallback silencioso para pagos históricos sin folio)."
+  ],
+  "verification": [
+    "Timbrar un REP: la fila del pago debe mostrar `CP-<folio>` junto al badge Timbrado.",
+    "El folio debe corresponder 1:1 con el que Facturapi asignó al REP.",
+    "REPs históricos sin `rep_number` siguen mostrando el badge sin folio, sin errores."
+  ]
+}
