@@ -214,7 +214,7 @@ export async function handleStampCreditNote(
       related_documents: [
         {
           relationship: "01",
-          documents: [String(inv.facturapi_invoice_id)],
+          documents: [String(inv.cfdi_uuid)],
         },
       ],
     };
