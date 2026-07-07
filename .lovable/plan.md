@@ -1,54 +1,99 @@
-## Problema
 
-En la vista de detalle de factura hay un card rojo "Error de timbrado" (`InvoiceSummaryCards.tsx` línea 34) que renderiza `invoice.cfdi_error_message` **crudo**. El handler guarda ese campo como `desc.detail` — un JSON stringificado: `{"code":"invoice_stamping_failed","message":"...","errors":[{"code":"CFDI40148",...}],"logId":"..."}`. El usuario ve el blob JSON en pantalla en vez del mensaje traducido.
+# Auditoría · Toasts y reporte de errores (v6.107.x)
 
-El `StampErrorDialog` (v6.107.5/6.107.6) ya traduce bien; este card es un canal distinto que se quedó atrás.
+**Alcance:** `src/**` (prod + tests). Solo diagnóstico, sin cambios de código.
 
-## Cambios
+## 0. Resumen ejecutivo
 
-### 1. Nuevo helper `src/features/invoices/lib/formatStoredCfdiError.ts`
+- **Cobertura global: excelente.** 472 llamadas `notify*` en producción vs. **0** usos crudos de `toast.success/info/warning/error` fuera de `appFeedback.ts` y `ErrorDetailsDialog.tsx`. La migración iniciada en v6.14–v6.15 y auditada en 2026-06-23 se sostiene.
+- **Red de seguridad global activa:** `AppProviders.tsx` cablea `QueryCache.onError` y `MutationCache.onError` → toda query/mutación fallida sin `onError` local dispara `notifyError` con reporte copiable.
+- **Opt-out documentado y usado:** `meta.silent = true` presente en `useDeleteUser` y `useInvoices`. Correcto y minimal.
+- **Deuda concentrada en 3 vectores** (ninguno crítico): validaciones que usan `notifyError` en vez de `notifyValidation`, `catch {}` que silencian errores en UI no-crítica, y `notifyAsync` disponible pero sin usar en flujos largos.
 
-Toma el string almacenado, detecta si es JSON de Facturapi, extrae el `errors[0].code` (donde viene el CFDI40148 real — el `code` outer es el genérico `invoice_stamping_failed`), compone `"CODE: message"` y lo pasa por `classifyFacturapiError` para obtener el mensaje traducido.
+## 1. Inventario
 
-Casos:
-- JSON válido con `errors[]` → usa `errors[0].code + errors[0].message`.
-- JSON válido sin `errors[]` → usa `parsed.code + parsed.message`.
-- String plano → pasa directo al classifier.
-- `null`/vacío → `null`.
-- JSON malformado → usa el string original.
+| Métrica | Valor |
+|---|---:|
+| Llamadas `notify*` en producción | **472** |
+| Llamadas `toast.*` crudas en producción | **0** |
+| Archivos que importan `sonner` directo | 3 (solo `appFeedback.ts`, `sonner.tsx`, `ErrorDetailsDialog.tsx`) |
+| `notifyError` sin objeto `error` (solo `message`) | **47** |
+| `onError` locales en mutaciones | 136 |
+| `catch {}` silenciosos en prod | 20 |
+| Handlers globales query/mutation | ✅ activos en `AppProviders.tsx` |
+| `meta.silent` en producción | 2 (correctos) |
 
-### 2. `InvoiceSummaryCards.tsx`
+## 2. Hallazgos
 
-Sustituir `{cfdiErrorMessage}` por `{formatStoredCfdiError(cfdiErrorMessage)}`. Sin cambios de layout, solo el texto.
+### HIGH — Validaciones usando `notifyError` en vez de `notifyValidation`
 
-### 3. Tests
+47 llamadas `notifyError({ message: "..." })` sin objeto `error`. Muestran botón "Ver detalles" persistente aunque no hay stack real que copiar → ruido para soporte. Casos claros de **validación de formulario** que deberían usar `notifyValidation` (warning, 5s, sin acción):
 
-Crear `src/features/invoices/lib/__tests__/formatStoredCfdiError.test.ts`:
+- `src/features/quotes/hooks/quoteForm/quoteFormValidation.ts` — 4 validaciones (`Selecciona un cliente`, `Selecciona el periodo`, `Agrega un modelo…`).
+- `src/layouts/sidebar/ChangePasswordDialog.tsx:23,27` — longitud y coincidencia de contraseña.
+- `src/components/forms/CsfDropzone.tsx:27,31` — tipo y tamaño de archivo.
+- `src/features/bookings/components/bookings/PostBookingPolicyDialog.tsx:32` — proveedor requerido.
+- `src/features/suppliers/.../SupplierContactFormDialog.tsx:64`, `SupplierBankAccountFormDialog.tsx:70` — campos requeridos.
 
-- Payload real (el JSON del usuario con `errors:[{code:"CFDI40148", message:"El campo DomicilioFiscalReceptor..."}]`) → mensaje traducido menciona "código postal".
-- JSON sin `errors[]` pero con `code:"CFDI40147"` → menciona "razón social".
-- String plano `"certificate expired"` → mensaje de CSD.
-- `null` → `null`.
-- JSON malformado `"{no es json"` → pasa el string al classifier (fallback unknown).
+**Riesgo si no se corrige:** toasts persistentes con botón "Ver detalles" que abren reportes vacíos → confunde al usuario y a soporte.
 
-### 4. Validación en preview (Playwright)
+**Fix propuesto:** codemod dirigido reemplazando estos casos por `notifyValidation({ message })`. Bajo riesgo (misma superficie visual, solo cambia severidad y duración).
 
-Script en `/tmp/browser/stamp-error-card/verify.py`:
-- Restaurar sesión Supabase.
-- Navegar a `http://localhost:8080/invoices/bcada1b1-c25f-4e3b-869f-0fb99e11df92`.
-- Esperar el card "Error de timbrado".
-- Screenshot del card (element screenshot).
-- Imprimir el `textContent` del párrafo del error.
+### MEDIUM — Errores reales enmascarados como `message` string
 
-Verificar que el texto ya NO contiene `{"code":` y SÍ contiene "código postal" o similar.
+Casos donde sí hay un `error` real pero se pasa concatenado como `message`, perdiendo stack/código Postgres en el reporte:
 
-### 5. Changelog `v6.107.7` (patch, fix)
+- `src/features/quotes/hooks/quoteDetail/useQuoteBookingCreator.ts:62` — `message: \`…: ${err.message}\`` en lugar de `{ error: err, message: "…" }`.
+- `src/features/audit/hooks/useAuditLogs.ts:92` — `error?.message || "Error al revertir"`.
+- `src/features/customers/pages/CustomerDetailPage.tsx:31` (catch de PDF), `src/features/changelog/hooks/useChangelog.ts:16` (query.error).
 
-- Índice + detalle.
-- Título: "Card de error de timbrado muestra mensaje traducido".
-- Descripción: "El card rojo 'Error de timbrado' en la vista de factura ahora muestra el mensaje traducido al español (CFDI40148 → código postal, CFDI40147 → razón social) en vez del JSON crudo de Facturapi."
+**Fix propuesto:** pasar `{ error: err, message: "…" }` para que el diálogo de detalles muestre stack real.
 
-## Fuera de alcance
+### MEDIUM — `catch {}` silenciosos en producción
 
-- No se altera lo que se guarda en `invoices.cfdi_error_message` (sigue siendo el JSON completo, útil para diagnóstico y logs).
-- No se toca el handler edge ni el StampErrorDialog.
+20 catches sin `notify*` ni `console.warn`. **Legítimos** (parseo defensivo, screenshots, storage seek): 15 aprox. **Sospechosos** (fallan silenciosamente en flujos de usuario):
+
+- `src/features/bookings/components/bookings/ExtendBookingDialog.tsx:27`
+- `src/features/damage/hooks/useReportDamageForm.ts:71`
+- `src/features/accounts-payable/hooks/useExportPaymentsForm.ts:62`
+- `src/features/operations/components/operations/ContractTemplateTab.tsx:60`
+
+**Recomendación:** revisar caso por caso; los legítimos deben llevar comentario `// silent: <razón>` (patrón que ya existe en `StampErrorDialog.tsx:95`).
+
+### LOW — `notifyAsync` disponible sin uso en producción
+
+Cero usos in-tree. Flujos con spinner + posible fallo — timbrado CFDI, generación recurrente, imports XML — podrían beneficiarse de un solo toast con estados loading/success/error consistentes.
+
+**Recomendación:** aplicar a 2–3 flujos piloto (`useImportSupplierBillCfdi`, `stamp-cfdi`, `useGenerateRecurringInvoices`) y evaluar. Sin urgencia.
+
+### LOW — Traducción de errores backend genérica
+
+`src/lib/errors/index.ts` cubre 8 patrones (RLS, FK, JWT, rate limit…). Errores de dominio recientes (Facturapi CFDI40147/40148) se traducen en helpers separados (`facturapiErrors.ts`, `formatStoredCfdiError.ts`) pero no vía `getErrorMessage`. Fragmentación aceptable dado el volumen, pero conviene documentarlo en `errorCatalog.ts`.
+
+### OK — Handlers globales
+
+- `AppProviders.tsx` correcto: opt-out por `meta.silent`, respeta `onError` local para evitar duplicados.
+- `ErrorDetailsDialog` global montado en `AppProviders`.
+- `AuthSnapshotSync` alimenta el reporte con usuario actual.
+
+### OK — Convención de copy
+
+`docs/audits/toasts-2026-06-23.md` documenta la convención y `feedbackMessages.ts` centraliza labels de dominio (SAT status, etc.). Sin regresiones visibles.
+
+## 3. Recomendaciones priorizadas
+
+1. **Ahora (HIGH):** migrar los 47 `notifyError({ message })` de validación pura → `notifyValidation`. ~10 archivos, riesgo bajo. Cambio incluye actualizar tests que asserten `notifyError` en esos flujos.
+2. **Sprint próximo (MEDIUM):** enriquecer con `error:` los ~6 casos donde se pierde el objeto real.
+3. **Sprint próximo (MEDIUM):** anotar los 20 `catch {}` con `// silent: razón` o convertir los sospechosos en `notifyWarning`.
+4. **Backlog (LOW):** pilotar `notifyAsync` en 2–3 flujos largos.
+5. **Backlog (LOW):** consolidar traducciones de dominio (CFDI, Facturapi) en `errorCatalog.ts` o dejar comentario cruzado.
+
+## 4. Métricas a monitorear post-fix
+
+- `rg -c "notifyError\(\s*\{\s*message:" src` debe bajar de 47 a <10 (los que sí requieren mensaje simple porque no viene error).
+- 0 `toast.*` crudos en producción (mantener).
+- Nuevo test: `appFeedback.test.ts` ya cubre las 6 funciones; no requiere ampliación salvo `notifyAsync` cuando se adopte.
+
+## 5. Siguiente paso sugerido
+
+Aprobar este plan e iniciar el **Hallazgo #1 (HIGH)** como cambio contenido en una sola versión menor, seguido de entrada en changelog. Los demás hallazgos se pueden agendar independientemente.
