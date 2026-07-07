@@ -1,0 +1,20 @@
+{
+  "version": "6.111.0",
+  "date": "2026-07-07",
+  "type": "minor",
+  "title": "Validación contra SAT + edición de datos fiscales del receptor",
+  "category": "feature",
+  "symptom": "El PAC rechazaba NC/CFDI con CFDI40145 y no había forma de diagnosticar qué campo no coincidía con la CSF del cliente sin quemar timbres.",
+  "cause": "Los datos fiscales del receptor (razón social, régimen, CP) sólo eran editables desde la ficha del cliente y no había manera de contrastarlos con el SAT antes de timbrar.",
+  "changes": [
+    "Nueva edge function `validate-receptor-tax-info`: consulta /v2/tools/tax_id_validation de Facturapi con el snapshot fiscal del receptor. No consume timbre. Devuelve is_valid + errores por campo.",
+    "Nuevo botón 'Validar contra SAT' en la tarjeta Datos Fiscales del detalle de factura, con diálogo que muestra los valores enviados y el detalle campo-por-campo del rechazo.",
+    "Nuevo diálogo 'Editar datos fiscales del receptor' que permite corregir razón social, régimen fiscal y CP directamente sobre la factura, con checkbox opcional para sincronizar los mismos valores en el cliente.",
+    "supabase/functions/stamp-credit-note/handler.ts: se removió el fetch a Facturapi para leer el legal_name original (no ayudaba cuando la fuente se timbró en test y la NC en live); ahora se usa `sanitizeLegalName(inv.receptor_razon_social)` — que puede corregirse desde el nuevo diálogo."
+  ],
+  "verification": [
+    "En InvoiceDetail, clic en 'Validar contra SAT' de una factura con datos incorrectos: debe listar exactamente qué campo(s) no coinciden.",
+    "Editar razón social/régimen/CP desde el diálogo y volver a validar: debe pasar.",
+    "Timbrar NC después de corregir: debe pasar sin CFDI40145."
+  ]
+}
