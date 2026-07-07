@@ -17,7 +17,7 @@ export function useCreateCreditNote() {
   return useMutation({
     mutationFn: async (input: Omit<TablesInsert<"credit_notes">, "credit_note_number"> & { stamp?: boolean }) => {
       const { stamp, ...payload } = input;
-      const { data: numberData, error: numErr } = await supabase.rpc("next_credit_note_number");
+      const { data: numberData, error: numErr } = await supabase.rpc("next_draft_credit_note_number");
       if (numErr) throw numErr;
       const insertPayload: TablesInsert<"credit_notes"> = {
         ...payload,

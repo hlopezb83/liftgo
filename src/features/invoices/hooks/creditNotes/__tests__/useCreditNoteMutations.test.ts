@@ -5,7 +5,7 @@ import { createSupabaseChainMock, type ChainCall } from "@/test/helpers/supabase
 
 /**
  * useCreateCreditNote — flujo crítico:
- *   1. RPC next_credit_note_number  → asigna folio
+ *   1. RPC next_draft_credit_note_number  → asigna folio
  *   2. INSERT en credit_notes
  *   3. Si stamp=true → Edge Function stamp-credit-note
  *
@@ -33,11 +33,11 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 
 const creditNotesCalls: ChainCall[] = [];
 let rpcResp: { data: unknown; error: { message: string } | null } = {
-  data: "NC-0001",
+  data: "BORRADOR-NC-0001",
   error: null,
 };
 let insertResp: { data: unknown; error: { message: string } | null } = {
-  data: { id: "cn-1", credit_note_number: "NC-0001" },
+  data: { id: "cn-1", credit_note_number: "BORRADOR-NC-0001" },
   error: null,
 };
 let stampResp: { data: unknown; error: { message: string } | null } = {
@@ -56,8 +56,8 @@ vi.mock("@/integrations/supabase/client", () => ({
       },
     },
     rpcResolvers: {
-      next_credit_note_number: (args) => {
-        rpcCalls.push({ name: "next_credit_note_number", args });
+      next_draft_credit_note_number: (args) => {
+        rpcCalls.push({ name: "next_draft_credit_note_number", args });
         return rpcResp;
       },
     },
@@ -91,8 +91,8 @@ describe("useCreateCreditNote", () => {
     creditNotesCalls.length = 0;
     rpcCalls.length = 0;
     invokeCalls.length = 0;
-    rpcResp = { data: "NC-0001", error: null };
-    insertResp = { data: { id: "cn-1", credit_note_number: "NC-0001" }, error: null };
+    rpcResp = { data: "BORRADOR-NC-0001", error: null };
+    insertResp = { data: { id: "cn-1", credit_note_number: "BORRADOR-NC-0001" }, error: null };
     stampResp = { data: { ok: true }, error: null };
   });
 
@@ -107,7 +107,7 @@ describe("useCreateCreditNote", () => {
     const insertCall = creditNotesCalls.find((c) => c.method === "insert");
     expect(insertCall?.args[0]).toMatchObject({
       invoice_id: "inv-1",
-      credit_note_number: "NC-0001",
+      credit_note_number: "BORRADOR-NC-0001",
       total: 116,
     });
     expect(invokeCalls).toHaveLength(0);
@@ -127,7 +127,7 @@ describe("useCreateCreditNote", () => {
     expect(toastSuccess).toHaveBeenCalledWith("Nota de crédito timbrada");
   });
 
-  it("RPC next_credit_note_number falla → NO se ejecuta insert ni stamp", async () => {
+  it("RPC next_draft_credit_note_number falla → NO se ejecuta insert ni stamp", async () => {
     rpcResp = { data: null, error: { message: "Folio agotado" } };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateCreditNote(), { wrapper: Wrapper });
