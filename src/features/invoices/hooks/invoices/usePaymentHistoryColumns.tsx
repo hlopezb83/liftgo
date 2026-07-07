@@ -64,8 +64,12 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
         cell: ({ row }) => {
           const p = row.original;
           const status = (p.rep_cfdi_status as string | null) ?? "none";
+          const repNumber = (p.rep_number as string | null) ?? null;
           return (
             <div className="flex items-center gap-1.5">
+              {repNumber && (
+                <span className="font-mono text-xs text-muted-foreground">{repNumber}</span>
+              )}
               <RepBadge status={status} />
               {status === "stamped" && (
                 <>
