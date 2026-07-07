@@ -1,7 +1,7 @@
 // Pure handler for stamp-credit-note, deps-injected for testability.
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { isUUID } from "../_shared/validate.ts";
-import { sanitizeLegalName, type StampCfdiDeps } from "../stamp-cfdi/handler.ts";
+import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
   binaryToBytes,
@@ -12,7 +12,12 @@ import {
 } from "../_shared/facturapi/client.ts";
 
 export type { SupabaseLike };
-export type StampCreditNoteDeps = StampCfdiDeps;
+export interface StampCreditNoteDeps {
+  createCallerClient: (authHeader: string) => SupabaseLike;
+  createServiceClient: () => SupabaseLike;
+  fetchImpl: typeof fetch;
+  env: (k: string) => string | undefined;
+}
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const BUCKET = "cfdi-files";
