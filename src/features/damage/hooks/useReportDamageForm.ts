@@ -69,7 +69,7 @@ export function useReportDamageForm(onClose: () => void) {
       reset();
       onClose();
     } catch {
-      // errors handled by mutation hooks
+      // silent: errors handled by mutation hooks (createDamageReport / useUploadDocument)
     } finally {
       setSubmitting(false);
     }

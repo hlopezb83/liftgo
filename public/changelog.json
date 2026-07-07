@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.109.0",
+    "date": "2026-07-07",
+    "type": "minor",
+    "title": "Reporte estructurado en toasts de error y catálogo de códigos",
+    "description": "Toda llamada notifyError en flujos con error real del backend ahora adjunta el objeto error para que 'Ver detalles' muestre el stack, código Postgres y contexto. Se agregó translateByCode() sobre ERROR_CODES para mensajes canónicos en es-MX reutilizables por edge functions.",
+    "category": "improvement"
+  },
+  {
     "version": "6.108.0",
     "date": "2026-07-07",
     "type": "minor",

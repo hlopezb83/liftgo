@@ -57,8 +57,8 @@ export function ContractTemplateTab() {
         pagare_text: pagareText,
       });
       notifySuccess("Plantilla guardada correctamente.");
-    } catch {
-      notifyError({ message: "Error al guardar la plantilla." });
+    } catch (err) {
+      notifyError({ error: err, message: "Error al guardar la plantilla." });
     }
   };
 

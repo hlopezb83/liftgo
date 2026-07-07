@@ -69,8 +69,8 @@ export function useDeleteAuditLog() {
       queryClient.invalidateQueries({ queryKey: ["audit_logs"] });
       notifySuccess("Registro eliminado correctamente");
     },
-    onError: () => {
-      notifyError({ message: "Error al eliminar el registro" });
+    onError: (err) => {
+      notifyError({ error: err, message: "Error al eliminar el registro" });
     },
   });
 }
@@ -89,7 +89,7 @@ export function useRevertAuditLog() {
       notifySuccess("Acción revertida y registro eliminado correctamente");
     },
     onError: (error: Error) => {
-      notifyError({ message: error?.message || "Error al revertir la acción" });
+      notifyError({ error, message: error?.message || "Error al revertir la acción" });
     },
   });
 }

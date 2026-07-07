@@ -1,0 +1,25 @@
+{
+  "version": "6.109.0",
+  "date": "2026-07-07",
+  "type": "minor",
+  "title": "Reporte estructurado en toasts de error y catálogo de códigos",
+  "category": "improvement",
+  "description": "Cierre de hallazgos MEDIUM/LOW de la auditoría de toasts (docs/audits/toasts-2026-06-23.md). notifyError ahora recibe el objeto error en 15 flujos que antes solo pasaban { message }, restaurando el reporte copiable en 'Ver detalles'. Además se agregó translateByCode() al catálogo de códigos para estandarizar mensajes es-MX cuando el backend emita un errorCode.",
+  "changes": [
+    "notifyError enriquecido con { error } en: DragDropImageUploader, RolePermissionsPage, useMaintenanceKanban, IncomeStatementReport, CustomerDetailPage, useChangelog, ChangelogEntryCard, FiscalDataTab, ContractTemplateTab, useForkliftFormSubmit, MechanicsTab, DriversTab, useQuoteBookingCreator, useAuditLogs (delete y revert), ForkliftDetail",
+    "Duplicados de nombre en MechanicsTab/DriversTab marcados como severity: 'warning' (recuperables, no requieren clic para cerrar)",
+    "useReturnInspectionDialog y useQuoteBookingCreator: mensajes de validación migrados a notifyValidation ('Reserva no encontrada', 'No se encontraron montacargas')",
+    "useReportDamageForm: catch silencioso anotado con formato estándar '// silent: <razón>'",
+    "errorCatalog.ts: translateByCode(code) devuelve el mensaje canónico es-MX por ErrorCode; base para que edge functions devuelvan un código estable en vez de texto crudo",
+    "Sección 3 del plan (piloto notifyAsync) documentada como no aplicada: los candidatos (useStampCfdi, useParseCsf, generación de PDF) ya tienen UI de loading dedicada, forzar notifyAsync duplicaría feedback"
+  ],
+  "audit": {
+    "reference": "docs/audits/toasts-2026-06-23.md",
+    "coverage": {
+      "notifyErrorWithoutErrorObject": 0,
+      "notifyErrorProduction": 20,
+      "notifyValidationProduction": 29,
+      "rawToastCallsProduction": 0
+    }
+  }
+}

@@ -33,8 +33,8 @@ export function DriversTab() {
     if (!form.name) { notifyValidation({ message: "El nombre es requerido" }); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, license_number: form.license_number || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
-      if (err.message?.includes("drivers_name_unique")) notifyError({ message: "Ya existe un operador con este nombre" });
-      else notifyError({ message: "Error al guardar operador" });
+      if (err.message?.includes("drivers_name_unique")) notifyError({ error: err, message: "Ya existe un operador con este nombre", severity: "warning" });
+      else notifyError({ error: err, message: "Error al guardar operador" });
     };
     if (editId) {
       update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); }, onError });

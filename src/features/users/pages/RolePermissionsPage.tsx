@@ -39,7 +39,7 @@ export default function RolePermissionsPage() {
       { role, module, access_level: next },
       {
         onSuccess: () => notifySuccess(`${ROLE_LABELS[role]} → ${module}: ${accessConfig[next].label}`),
-        onError: () => notifyError({ message: "Error al actualizar permiso" }),
+        onError: (err) => notifyError({ error: err, message: "Error al actualizar permiso" }),
       }
     );
   };

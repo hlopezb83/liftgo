@@ -51,8 +51,8 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
       notifySuccess(`${previews.length} foto(s) subida(s)`);
       previews.forEach((p) => URL.revokeObjectURL(p.url));
       setPreviews([]);
-    } catch {
-      notifyError({ message: "Error al subir fotos" });
+    } catch (err) {
+      notifyError({ error: err, message: "Error al subir fotos" });
     } finally {
       setUploading(false);
     }

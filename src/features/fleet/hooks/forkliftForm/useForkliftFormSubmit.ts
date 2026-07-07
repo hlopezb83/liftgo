@@ -29,7 +29,7 @@ export function useForkliftFormSubmit({ id, isEdit }: Args) {
     }
 
     const payload = buildForkliftPayload(values);
-    const onError = (err: Error) => notifyError({ message: mapForkliftMutationError(err.message) });
+    const onError = (err: Error) => notifyError({ error: err, message: mapForkliftMutationError(err.message) });
 
     if (isEdit && id) {
       update.mutate({ id, ...payload }, {

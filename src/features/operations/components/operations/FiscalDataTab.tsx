@@ -70,8 +70,8 @@ export function FiscalDataTab() {
         form.setValue("facturapi_live_key", "");
       }
       notifySuccess("Datos fiscales guardados");
-    } catch (_err) {
-      notifyError({ message: "No se pudieron guardar los datos fiscales" });
+    } catch (err) {
+      notifyError({ error: err, message: "No se pudieron guardar los datos fiscales" });
     }
   };
 

@@ -26,7 +26,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
     const url = `${window.location.origin}/changelog#v${entry.version}`;
     navigator.clipboard.writeText(url).then(
       () => notifySuccess("Enlace copiado"),
-      () => notifyError({ message: "No se pudo copiar el enlace" }),
+      (err) => notifyError({ error: err, message: "No se pudo copiar el enlace" }),
     );
   };
 
