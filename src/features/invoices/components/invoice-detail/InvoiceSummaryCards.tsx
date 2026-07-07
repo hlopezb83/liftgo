@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateDisplay } from "@/lib/utils";
+import { formatStoredCfdiError } from "@/features/invoices/lib/formatStoredCfdiError";
+
 
 type Props = {
   customerName: string | null;
