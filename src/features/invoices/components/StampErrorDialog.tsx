@@ -125,7 +125,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
 
 export function StampErrorDialog({ open, onOpenChange, message, kind, customerId, receptor }: Props) {
   const navigate = useNavigate();
-  const copy = getCopy(kind, customerId);
+  const copy = getCopy(kind, customerId, message);
   const showReceptor = kind === "receptor_data" && !!receptor;
 
   return (
