@@ -1,0 +1,2 @@
+ALTER TABLE public.credit_notes DROP CONSTRAINT credit_notes_cfdi_status_check;
+ALTER TABLE public.credit_notes ADD CONSTRAINT credit_notes_cfdi_status_check CHECK (cfdi_status = ANY (ARRAY['pending'::text, 'stamping'::text, 'stamped'::text, 'error'::text, 'cancelled'::text]));
