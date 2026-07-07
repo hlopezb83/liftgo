@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.5",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Corrige formato de related_documents al timbrar Notas de Crédito",
+    "description": "Facturapi rechazaba el timbrado de NC con 'related_documents[0].documents[0] must be a string'. El payload enviaba objetos {document: id} en lugar del ID como string. Se corrigió el formato a documents: [String(facturapi_invoice_id)].",
+    "category": "fix"
+  },
+  {
     "version": "6.110.4",
     "date": "2026-07-07",
     "type": "patch",
