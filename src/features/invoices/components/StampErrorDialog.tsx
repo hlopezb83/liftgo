@@ -87,9 +87,9 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
   const display = value && value.trim() !== "" ? value : "—";
   const canCopy = !!value && value.trim() !== "";
   const handleCopy = async () => {
-    if (!canCopy) return;
+    if (!canCopy || !value) return;
     try {
-      await navigator.clipboard.writeText(value!);
+      await navigator.clipboard.writeText(value);
       notifySuccess(`${label} copiado`);
     } catch {
       // silent
