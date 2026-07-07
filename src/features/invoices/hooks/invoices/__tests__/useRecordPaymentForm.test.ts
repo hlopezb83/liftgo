@@ -5,13 +5,14 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 const createPaymentMutate = vi.fn();
 const stampMutate = vi.fn();
 const notifyErrorMock = vi.fn();
+const notifyValidationMock = vi.fn();
 
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: (...args: unknown[]) => notifyErrorMock(...args),
   notifySuccess: vi.fn(),
   notifyInfo: vi.fn(),
   notifyWarning: vi.fn(),
-  notifyValidation: vi.fn(),
+  notifyValidation: (...args: unknown[]) => notifyValidationMock(...args),
   notifyAsync: vi.fn(),
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
