@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.3",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Logs de diagnóstico al timbrar Notas de Crédito",
+    "description": "La función de timbrado de NC no dejaba rastro cuando fallaba antes de llegar a Facturapi (401/403/404/500), lo que dificultaba diagnosticar por qué una NC quedaba en borrador. Se añadieron console.error estructurados en cada ruta de error del handler (auth, roles, lookup de NC/factura, claim atómico, error de Facturapi y excepciones no capturadas) con credit_note_id y userId. No cambia comportamiento ni respuestas HTTP.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.2",
     "date": "2026-07-07",
     "type": "patch",
