@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.2",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Quita flechas de inputs numéricos en Nueva Nota de Crédito",
+    "description": "En el modal de Nueva Nota de Crédito los campos de Cantidad y Precio Unitario mostraban los spinners del navegador. Se aplican clases CSS para ocultarlos en Chrome, Edge, Safari y Firefox sin alterar la validación ni los cálculos.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.1",
     "date": "2026-07-07",
     "type": "patch",
