@@ -79,7 +79,8 @@ type PreviewLine = {
     | "already_invoiced"
     | "no_customer"
     | "no_monthly_rate"
-    | "period_in_future";
+    | "period_in_future"
+    | "period_too_old";
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
 };
