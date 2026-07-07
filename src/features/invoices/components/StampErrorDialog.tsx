@@ -34,17 +34,21 @@ interface KindCopy {
   cta?: { label: string; to: string };
 }
 
-function getCopy(kind: FacturapiErrorKind, customerId?: string | null): KindCopy {
+function getCopy(kind: FacturapiErrorKind, customerId?: string | null, message?: string): KindCopy {
   switch (kind) {
-    case "receptor_data":
+    case "receptor_data": {
+      const specific = message ? /código postal|razón social/i.test(message) : false;
       return {
         title: "Datos fiscales del receptor incorrectos",
-        hint:
-          "Pide al cliente su CSF actualizada y verifica RFC, razón social, régimen fiscal y código postal. Un solo carácter diferente provoca este rechazo.",
+        hint: specific
+          ? undefined
+          : "Pide al cliente su CSF actualizada y verifica RFC, razón social, régimen fiscal y código postal. Un solo carácter diferente provoca este rechazo.",
         cta: customerId
           ? { label: "Editar cliente", to: `/customers/${customerId}` }
           : undefined,
       };
+    }
+
     case "csd":
       return {
         title: "Certificado de sello digital vencido",
