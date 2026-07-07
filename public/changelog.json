@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.113.0",
+    "date": "2026-07-07",
+    "type": "minor",
+    "title": "CP-<folio Facturapi> como fuente de verdad para REP",
+    "description": "Los Recibos Electrónicos de Pago ahora persisten el folio de Facturapi como CP-XXXX en payments.rep_number y se muestra junto al badge del REP en el historial de pagos.",
+    "category": "feature"
+  },
+  {
     "version": "6.112.0",
     "date": "2026-07-07",
     "type": "minor",
