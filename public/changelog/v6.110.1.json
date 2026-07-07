@@ -1,0 +1,38 @@
+{
+  "version": "6.110.1",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Corrige traducción automática de Chrome que alteraba nombres de clientes",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Síntoma reportado",
+      "items": [
+        "En /invoices los nombres aparecían como COMERCIO DE INDIMEX, HG CAUCHO, CRIPTOMÁTICA, CANDULACIÓN DE ANILLO DE MÉXICO, ALMACENAMIENTO DE REGISTROS — distintos a los guardados en Supabase."
+      ]
+    },
+    {
+      "heading": "Causa raíz",
+      "items": [
+        "index.html declaraba <html lang=\"en\">, así que Chrome trataba la página como inglés.",
+        "Al detectar mezcla con textos en español, activaba el traductor y sustituía nombres propios en el DOM: INDIMEX TRADING → COMERCIO DE INDIMEX, HG RUBBER → HG CAUCHO, CRYPTOVENDING → CRIPTOMÁTICA, RING LOCK DE MEXICO → CANDULACIÓN DE ANILLO DE MÉXICO, LOGISTORAGE → ALMACENAMIENTO DE REGISTROS.",
+        "Los datos en la base nunca se modificaron: invoices.customer_name coincide con customers.name en la BD."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "index.html: lang cambiado a es-MX y se agregó <meta name=\"google\" content=\"notranslate\" /> para desactivar la sugerencia de traducir.",
+        "Nuevo componente src/components/ui/Untranslated.tsx que renderiza <span translate=\"no\" class=\"notranslate\"> como defensa aunque el usuario fuerce la traducción.",
+        "InvoicesPage envuelve invoice_number y customer_name (tabla + tarjeta móvil) en <Untranslated> para que los identificadores nunca se traduzcan."
+      ]
+    },
+    {
+      "heading": "Cómo verificar",
+      "items": [
+        "Refrescar /invoices en Chrome; los nombres vuelven a mostrarse como en la BD (INDIMEX TRADING, HG RUBBER, etc.).",
+        "Aunque el usuario pulse 'Traducir esta página' desde la barra de URL, los folios y nombres siguen intactos."
+      ]
+    }
+  ]
+}

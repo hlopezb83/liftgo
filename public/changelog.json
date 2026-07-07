@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.1",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Corrige traducción automática de Chrome que alteraba nombres de clientes",
+    "description": "index.html declaraba lang=\"en\", por lo que Chrome ofrecía traducir la app y sustituía nombres propios (INDIMEX TRADING → COMERCIO DE INDIMEX, HG RUBBER → HG CAUCHO, CRYPTOVENDING → CRIPTOMÁTICA, etc.) en listas y detalles. Ahora la app se declara como es-MX, incluye meta google=notranslate y los identificadores dinámicos se envuelven en <Untranslated> para blindarlos aun si el usuario fuerza la traducción.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.0",
     "date": "2026-07-07",
     "type": "minor",
