@@ -59,7 +59,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
         buildDeliveryInfos(quote, customers, forklifts, assignments.map((a) => a.forkliftId), bookingIds),
       );
     } catch (err: unknown) {
-      notifyError({ message: `Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}` });
+      notifyError({ error: err, message: `Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}` });
     } finally {
       state.setIsConverting(false);
     }
@@ -70,7 +70,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
     if (!quote || !forklifts) return;
     const ids = resolveLegacyForkliftIds(quote, forklifts);
     if (ids.length === 0) {
-      notifyError({ message: "No se encontraron montacargas para crear reservas" });
+      notifyValidation({ message: "No se encontraron montacargas para crear reservas" });
       return;
     }
     const assignments = ids.map((fId) => ({ forkliftId: fId, dailyRate: 0, weeklyRate: 0, monthlyRate: 0 }));

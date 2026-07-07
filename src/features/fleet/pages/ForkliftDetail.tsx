@@ -44,7 +44,7 @@ export default function ForkliftDetail() {
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {
       onSuccess: () => { notifySuccess("Montacargas archivado"); navigate("/fleet"); },
-      onError: (err) => notifyError({ message: err.message || "Error al archivar" }),
+      onError: (err) => notifyError({ error: err, message: err.message || "Error al archivar" }),
     });
   };
 

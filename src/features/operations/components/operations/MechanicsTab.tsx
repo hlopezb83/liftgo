@@ -33,8 +33,8 @@ export function MechanicsTab() {
     if (!form.name) { notifyValidation({ message: "El nombre es requerido" }); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, specialization: form.specialization || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
-      if (err.message?.includes("mechanics_name_unique")) notifyError({ message: "Ya existe un mecánico con este nombre" });
-      else notifyError({ message: "Error al guardar mecánico" });
+      if (err.message?.includes("mechanics_name_unique")) notifyError({ error: err, message: "Ya existe un mecánico con este nombre", severity: "warning" });
+      else notifyError({ error: err, message: "Error al guardar mecánico" });
     };
     if (editId) {
       update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); }, onError });

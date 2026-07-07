@@ -45,8 +45,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         isComparison, selectedYear, availableYears, startDate, endDate,
       });
       notifySuccess("PDF descargado");
-    } catch {
-      notifyError({ message: "Error al generar PDF" });
+    } catch (err) {
+      notifyError({ error: err, message: "Error al generar PDF" });
     } finally {
       setPdfLoading(false);
     }

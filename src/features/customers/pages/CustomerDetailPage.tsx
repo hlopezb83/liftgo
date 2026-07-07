@@ -27,8 +27,8 @@ export default function CustomerDetailPage() {
       const { exportCustomerStatementPdf } = await import("@/lib/pdf/customerStatement");
       await exportCustomerStatementPdf({ customer: s.customer, summary: s.summary });
       notifySuccess("Estado de cuenta generado");
-    } catch {
-      notifyError({ message: "No se pudo generar el PDF" });
+    } catch (err) {
+      notifyError({ error: err, message: "No se pudo generar el PDF" });
     }
   };
 

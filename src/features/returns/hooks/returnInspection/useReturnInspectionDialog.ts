@@ -44,7 +44,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
     (values: ReturnInspectionFormValues) => {
       const booking = bookings?.find((b) => b.id === values.bookingId);
       if (!booking) {
-        notifyError({ message: "Reserva no encontrada" });
+        notifyValidation({ message: "Reserva no encontrada" });
         return;
       }
       const damageCost = values.damageCost ? parseFloat(values.damageCost) : 0;

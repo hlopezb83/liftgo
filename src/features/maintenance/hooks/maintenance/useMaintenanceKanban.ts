@@ -28,9 +28,9 @@ export function useMaintenanceKanban() {
     updateLog.mutate(
       { id: logId, work_status: newStatus },
       {
-        onError: () => {
+        onError: (err) => {
           queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
-          notifyError({ message: "Error al actualizar estado" });
+          notifyError({ error: err, message: "Error al actualizar estado" });
         },
       },
     );
