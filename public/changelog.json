@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.8",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Sanitiza razón social del receptor al timbrar NC (CFDI 4.0)",
+    "description": "El SAT rechazaba NC con CFDI40145: la razón social incluía régimen societario (S.A. de C.V.) y acentos. Se aplica sanitizeLegalName (mayúsculas, sin acentos, sin sufijo societario) igual que en el timbrado de facturas.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.7",
     "date": "2026-07-07",
     "type": "patch",
