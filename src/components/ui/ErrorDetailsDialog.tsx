@@ -19,13 +19,13 @@ export function ErrorDetailsDialog() {
 
   const handleCopy = async () => {
     if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
+    const ok = await copyToClipboard(text);
+    if (ok) {
       setCopied(true);
       notifySuccess("Reporte copiado al portapapeles");
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("No se pudo copiar el reporte");
+    } else {
+      toast.error("No se pudo copiar. Selecciona el texto manualmente y usa Ctrl+C.");
     }
   };
 
