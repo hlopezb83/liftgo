@@ -1,0 +1,38 @@
+{
+  "version": "6.110.4",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Corrige timbrado de Notas de Crédito atascado en borrador",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Síntoma reportado",
+      "items": [
+        "Al intentar crear/timbrar una NC para FAC-0089 la operación siempre fallaba con error 'Credit note already stamped or in progress'.",
+        "La NC quedaba en borrador (cfdi_status='pending') y ningún reintento avanzaba, incluso siendo la primera vez."
+      ]
+    },
+    {
+      "heading": "Causa raíz",
+      "items": [
+        "credit_notes.cfdi_status tenía un CHECK que solo permitía ('pending','stamped','error','cancelled') — sin 'stamping'.",
+        "El handler stamp-credit-note usa un 'claim atómico' que actualiza cfdi_status='stamping' para evitar doble timbrado concurrente.",
+        "Ese UPDATE violaba el CHECK, fallaba silenciosamente (claimRes.data=null), y el handler asumía 'ya en progreso' devolviendo 409."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "Migración: se amplió credit_notes_cfdi_status_check para incluir 'stamping'. Ahora los estados válidos son 'pending', 'stamping', 'stamped', 'error' y 'cancelled' (mismo espacio de estados que invoices).",
+        "Sin cambios en frontend ni en la lógica del handler; el bug era exclusivamente de esquema."
+      ]
+    },
+    {
+      "heading": "Cómo verificar",
+      "items": [
+        "Ir a FAC-0089 → tarjeta 'Notas de Crédito' → botón 'Timbrar' junto a la NC en borrador.",
+        "La NC debe pasar a 'stamped' y aparecer con UUID de CFDI."
+      ]
+    }
+  ]
+}

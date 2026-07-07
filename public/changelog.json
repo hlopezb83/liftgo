@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.4",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Corrige timbrado de Notas de Crédito atascado en borrador",
+    "description": "El CHECK de cfdi_status en credit_notes no permitía el estado transitorio 'stamping' que usa el claim atómico anti doble-timbrado, por lo que el UPDATE fallaba silenciosamente y el handler devolvía siempre 409 'already stamped or in progress'. Se amplió el constraint para incluir 'stamping'; ahora las NC pueden timbrarse normalmente.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.3",
     "date": "2026-07-07",
     "type": "patch",
