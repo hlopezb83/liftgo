@@ -136,7 +136,10 @@ export async function handleStampCreditNote(
       return json({ error: "Invoice not found" }, 404, jsonHeaders);
     }
     const inv = invoice as Record<string, unknown>;
-    if (inv.cfdi_status !== "stamped" || !inv.facturapi_invoice_id || !inv.cfdi_uuid) {
+    if (
+      inv.cfdi_status !== "stamped" || !inv.facturapi_invoice_id ||
+      !inv.cfdi_uuid
+    ) {
       console.error("[stamp-credit-note] source invoice not stamped", {
         credit_note_id,
         invoice_id: ncRow.invoice_id,
@@ -202,7 +205,9 @@ export async function handleStampCreditNote(
       : [];
 
     const legalName = sanitizeLegalName(
-      String(inv.receptor_razon_social || inv.customer_name || "Público General"),
+      String(
+        inv.receptor_razon_social || inv.customer_name || "Público General",
+      ),
     );
 
     const taxId = String(inv.receptor_rfc || "XAXX010101000").toUpperCase();
