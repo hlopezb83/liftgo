@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.110.7",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Corrige related_documents en NC: usa el UUID (folio fiscal) del CFDI",
+    "description": "Facturapi rechazaba el timbrado de NC con 'related_documents[0].documents[0] must be a valid GUID' porque se enviaba el facturapi_invoice_id (id interno de Facturapi) en lugar del UUID SAT. Ahora se envía inv.cfdi_uuid y se valida su presencia antes de timbrar.",
+    "category": "fix"
+  },
+  {
     "version": "6.110.6",
     "date": "2026-07-07",
     "type": "patch",

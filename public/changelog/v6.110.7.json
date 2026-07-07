@@ -1,0 +1,17 @@
+{
+  "version": "6.110.7",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Corrige related_documents en NC: usa el UUID (folio fiscal) del CFDI",
+  "category": "fix",
+  "symptom": "Facturapi devolvía 400 al timbrar NC: 'related_documents[0].documents[0] must be a valid GUID'.",
+  "cause": "Se enviaba inv.facturapi_invoice_id (id interno tipo '68abc...') en lugar del UUID SAT del CFDI relacionado, que es un GUID.",
+  "changes": [
+    "supabase/functions/stamp-credit-note/handler.ts: related_documents.documents ahora usa String(inv.cfdi_uuid).",
+    "Validación adicional: se exige inv.cfdi_uuid además de facturapi_invoice_id antes de timbrar la NC."
+  ],
+  "verification": [
+    "Timbrar NC de una factura ya timbrada; debe regresar success con cfdi_uuid.",
+    "Revisar logs [stamp-credit-note] sin errores 'facturapi rejected'."
+  ]
+}
