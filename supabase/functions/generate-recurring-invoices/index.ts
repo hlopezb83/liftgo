@@ -125,7 +125,9 @@ async function buildPlan(supabase: any): Promise<{
     if (effectiveLastBilled) {
       const { data: linkedInvoice } = await supabase
         .from("invoice_bookings")
-        .select("invoice_id, invoices!inner(billing_period_end, status, cfdi_status)")
+        .select(
+          "invoice_id, invoices!inner(billing_period_end, status, cfdi_status)",
+        )
         .eq("booking_id", booking.id)
         .eq("invoices.billing_period_end", effectiveLastBilled)
         .neq("invoices.status", "cancelled")
@@ -276,7 +278,9 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const lineItems = group.map((i) => ({
         description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
           fmtMx(i.billingStart)
-        } al ${fmtMx(i.billingEnd)})${i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""}`,
+        } al ${fmtMx(i.billingEnd)})${
+          i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""
+        }`,
         quantity: 1,
         unit_price: i.monthlyRate,
         total: i.monthlyRate,
