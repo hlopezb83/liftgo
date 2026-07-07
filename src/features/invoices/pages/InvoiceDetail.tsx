@@ -12,6 +12,7 @@ import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTab
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { InvoiceFiscalDataCard } from "../components/invoice-detail/InvoiceFiscalDataCard";
+import { ValidateReceptorButton } from "../components/invoice-detail/ValidateReceptorButton";
 import { InvoicePaymentSummary } from "../components/invoice-detail/InvoicePaymentSummary";
 import { PaymentIntentsSection } from "../components/invoice-detail/PaymentIntentsSection";
 import { InvoiceHistoryCard } from "../components/invoice-detail/InvoiceHistoryCard";
