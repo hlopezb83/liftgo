@@ -1,0 +1,27 @@
+{
+  "version": "6.110.5",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Corrige formato de related_documents al timbrar Notas de Crédito",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Síntoma",
+      "items": [
+        "Al timbrar una NC contra FAC-0089, Facturapi respondía 400: 'related_documents[0].documents[0] must be a string'."
+      ]
+    },
+    {
+      "heading": "Causa",
+      "items": [
+        "El payload enviaba documents: [{ document: facturapi_invoice_id }] (objeto), pero Facturapi v2 espera documents: [id] (array de strings con el ID de la factura relacionada)."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "stamp-credit-note/handler.ts: documents ahora es [String(inv.facturapi_invoice_id)]."
+      ]
+    }
+  ]
+}
