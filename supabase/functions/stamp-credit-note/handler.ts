@@ -398,3 +398,46 @@ function json(
 ): Response {
   return new Response(JSON.stringify(body), { status, headers });
 }
+
+/**
+ * Consulta el endpoint público de Facturapi `/v2/tools/tax_id_validation`
+ * para verificar que la combinación RFC + razón social + régimen + CP
+ * coincida con la Constancia de Situación Fiscal registrada en el SAT.
+ * No consume timbre. Devuelve null si el endpoint no responde JSON válido
+ * (fallamos abierto para no bloquear por errores transitorios del PAC).
+ */
+async function validateTaxIdWithFacturapi(
+  fetchImpl: typeof fetch,
+  apiKey: string,
+  params: { tax_id: string; legal_name: string; tax_system: string; zip: string },
+): Promise<{ is_valid: boolean; errors?: string[] } | null> {
+  try {
+    const qs = new URLSearchParams({
+      tax_id: params.tax_id,
+      legal_name: params.legal_name,
+      tax_system: params.tax_system,
+      zip: params.zip,
+    }).toString();
+    const res = await fetchImpl(
+      `${FACTURAPI_BASE}/tools/tax_id_validation?${qs}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null) as
+      | { is_valid?: boolean; errors?: string[] }
+      | null;
+    if (!data || typeof data.is_valid !== "boolean") return null;
+    return { is_valid: data.is_valid, errors: data.errors };
+  } catch (e) {
+    console.error("[stamp-credit-note] tax_id_validation fetch failed", {
+      err: e instanceof Error ? e.message : String(e),
+    });
+    return null;
+  }
+}
