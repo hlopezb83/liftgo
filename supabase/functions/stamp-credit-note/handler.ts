@@ -131,12 +131,13 @@ export async function handleStampCreditNote(
       return json({ error: "Invoice not found" }, 404, jsonHeaders);
     }
     const inv = invoice as Record<string, unknown>;
-    if (inv.cfdi_status !== "stamped" || !inv.facturapi_invoice_id) {
+    if (inv.cfdi_status !== "stamped" || !inv.facturapi_invoice_id || !inv.cfdi_uuid) {
       console.error("[stamp-credit-note] source invoice not stamped", {
         credit_note_id,
         invoice_id: ncRow.invoice_id,
         inv_cfdi_status: inv.cfdi_status,
         has_facturapi_id: !!inv.facturapi_invoice_id,
+        has_cfdi_uuid: !!inv.cfdi_uuid,
       });
       return json(
         { error: "Source invoice must be stamped" },
