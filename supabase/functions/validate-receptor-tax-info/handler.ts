@@ -95,7 +95,11 @@ export async function handleValidateReceptor(
       envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
     });
     if (!apiKey) {
-      return json({ error: "Facturapi API key not configured" }, 400, jsonHeaders);
+      return json(
+        { error: "Facturapi API key not configured" },
+        400,
+        jsonHeaders,
+      );
     }
 
     const sent = {
