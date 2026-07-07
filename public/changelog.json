@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.112.0",
+    "date": "2026-07-07",
+    "type": "minor",
+    "title": "Folio diferido para notas de crédito (BORRADOR-NC- → NC-<folio>)",
+    "description": "Los borradores de NC ahora nacen con placeholder BORRADOR-NC-XXXX y sólo consumen folio fiscal al timbrarse, tomando el folio de Facturapi como fuente de verdad — mismo patrón que las facturas.",
+    "category": "feature"
+  },
+  {
     "version": "6.111.0",
     "date": "2026-07-07",
     "type": "minor",
