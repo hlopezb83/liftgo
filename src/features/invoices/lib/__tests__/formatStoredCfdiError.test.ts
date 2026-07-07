@@ -38,9 +38,9 @@ describe("formatStoredCfdiError", () => {
     expect(formatStoredCfdiError("   ")).toBeNull();
   });
 
-  it("JSON malformado usa el string original", () => {
+  it("JSON malformado usa el string original como fallback", () => {
     const out = formatStoredCfdiError("{no es json válido");
-    expect(out).toBeTruthy();
-    expect(out).not.toMatch(/^\{/);
+    expect(out).toBe("{no es json válido");
   });
+
 });
