@@ -174,7 +174,9 @@ export default function InvoiceDetail() {
         message={actions.stampError?.message ?? ""}
         kind={actions.stampError?.kind ?? "unknown"}
         customerId={actions.stampError?.customerId ?? null}
+        receptor={actions.stampError?.receptor}
       />
+
 
     </PageContainer>
   );
