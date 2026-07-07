@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.107.6",
+    "date": "2026-07-07",
+    "type": "patch",
+    "title": "Mensajes de rechazo del SAT apuntan al campo exacto",
+    "description": "CFDI40148 ahora indica específicamente que el código postal no coincide con el RFC en el SAT; CFDI40147 apunta a la razón social. Antes ambos mostraban un mensaje genérico que listaba los 4 campos posibles.",
+    "category": "fix"
+  },
+  {
+
     "version": "6.107.5",
     "date": "2026-07-07",
     "type": "patch",

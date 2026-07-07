@@ -18,11 +18,24 @@ interface Pattern {
 
 const PATTERNS: Pattern[] = [
   {
-    test: /CFDI40148|CFDI40149|DomicilioFiscalReceptor|debe pertenecer al nombre asociado al RFC/i,
+    test: /CFDI40148|DomicilioFiscalReceptor|domicilio.*fiscal.*receptor/i,
     message:
-      "Los datos fiscales del cliente no coinciden con los que tiene registrados el SAT. Revisa que el RFC, la razón social y el código postal del domicilio fiscal coincidan exactamente con la Constancia de Situación Fiscal (CSF) más reciente del cliente.",
+      "El código postal del domicilio fiscal del cliente no coincide con el que el SAT tiene registrado para su RFC. Descarga la Constancia de Situación Fiscal (CSF) vigente del cliente y corrige el CP en su ficha — debe ser exactamente el que aparece en la sección 'Datos de Ubicación'.",
     kind: "receptor_data",
   },
+  {
+    test: /CFDI40147|NombreRazonSocialReceptor|nombre.*no coincide.*RFC|no coincide con el nombre.*RFC/i,
+    message:
+      "La razón social enviada no coincide con la que el SAT tiene registrada para este RFC. Verifica en la CSF del cliente el nombre exacto (sin 'S.A. de C.V.' ni acentos) y actualízalo en su ficha.",
+    kind: "receptor_data",
+  },
+  {
+    test: /debe pertenecer al nombre asociado al RFC/i,
+    message:
+      "Los datos fiscales del cliente no coinciden con los que tiene registrados el SAT. Revisa que el RFC, la razón social y el código postal coincidan exactamente con la CSF más reciente del cliente.",
+    kind: "receptor_data",
+  },
+
   {
     test: /CFDI40101|tax_id.*required|RFC.*required/i,
     message: "El RFC del receptor es obligatorio y debe ser válido.",

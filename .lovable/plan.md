@@ -1,68 +1,45 @@
 ## Objetivo
 
-El error `CFDI40147/DomicilioFiscalReceptor` significa que uno de los tres campos que se envían a Facturapi (RFC, razón social, CP del domicilio fiscal) no empata **exactamente** con lo que el SAT tiene en la CSF vigente del cliente. Hoy el diálogo solo muestra el mensaje traducido y un botón "Editar cliente" — el usuario no ve **qué valores está enviando la factura**, así que no sabe cuál corregir.
-
-Refuerzo el diálogo para que, cuando el error sea `kind === "receptor_data"`, muestre:
-
-1. Un snapshot con los 3 campos que se enviaron al SAT (RFC, razón social, CP), copiables.
-2. Un checklist accionable contra la CSF.
-3. El CTA existente "Editar cliente".
-
-Sin cambios de backend ni de base de datos.
+Hacer que el mensaje del error CFDI40148 (`DomicilioFiscalReceptor`) apunte específicamente al **código postal**, en vez del mensaje genérico actual que menciona 4 campos posibles. Facturapi devuelve `path: "customer.address.zip"` — sabemos que el problema es exclusivamente el CP.
 
 ## Cambios
 
-### 1. `useStampInvoiceFlow.ts`
-Extender `StampErrorState` con los datos que se intentaron timbrar, tomados del `invoice` hidratado:
+### 1. `src/features/invoices/lib/facturapiErrors.ts`
 
-```ts
-export interface StampErrorState {
-  message: string;
-  kind: FacturapiErrorKind;
-  customerId: string | null;
-  receptor?: {
-    rfc: string | null;
-    razonSocial: string | null;
-    cp: string | null;
-    regimenFiscal: string | null;
-  };
-}
-```
+Reemplazar el patrón único de "receptor_data" por dos patrones específicos + un fallback:
 
-Poblar `receptor` en el `onError` del `stampCfdi.mutate` leyendo de `hydrated` (los mismos campos que valida `getMissingStampFields`).
+- **CFDI40148 — CP no coincide** (patrón: `/CFDI40148|DomicilioFiscalReceptor|domicilio.*fiscal.*receptor/i`):
+  > "El **código postal** del domicilio fiscal del cliente no coincide con el que el SAT tiene registrado para su RFC. Descarga la Constancia de Situación Fiscal (CSF) vigente del cliente y corrige el CP en su ficha — debe ser exactamente el que aparece en la sección 'Datos de Ubicación'."
 
-### 2. `StampErrorDialog.tsx`
-Aceptar prop opcional `receptor`. Cuando `kind === "receptor_data"` y `receptor` existe, renderizar entre el `hint` y el `DialogFooter`:
+- **CFDI40147 — razón social no coincide** (patrón: `/CFDI40147|NombreRazonSocialReceptor|nombre.*no coincide.*RFC|no coincide con el nombre.*RFC/i`):
+  > "La **razón social** enviada no coincide con la que el SAT tiene registrada para este RFC. Verifica en la CSF del cliente el nombre exacto (sin 'S.A. de C.V.' ni acentos) y actualízalo en su ficha."
 
-- Bloque "Datos enviados al SAT" con 4 renglones (`InfoRow`-like, mono para RFC/CP):
-  - RFC
-  - Razón social
-  - Régimen fiscal
-  - Código postal
-- Cada renglón con botón copiar (icono `Copy` de lucide, `navigator.clipboard.writeText`, feedback vía `notifySuccess`).
-- Checklist corto (3 bullets) — literal:
-  1. Pide la **CSF vigente** del cliente (no una copia vieja).
-  2. Compara **RFC, razón social y CP** carácter por carácter — un acento, espacio o coma sobra/falta y el SAT rechaza.
-  3. Si difiere, actualiza el cliente y **vuelve a timbrar** desde esta misma factura.
+- Ambos con `kind: "receptor_data"`.
+- Ordenarlos ANTES del patrón genérico de receptor para que ganen prioridad.
+- Los patrones existentes (CFDI40101/40102/40103/40104 etc.) quedan igual.
 
-Mantener el resto del diálogo igual para los otros `kind`.
+### 2. `src/features/invoices/components/StampErrorDialog.tsx`
 
-### 3. `InvoiceDetail.tsx`
-Pasar `receptor={actions.stampError?.receptor}` al `<StampErrorDialog />`. Cambio mecánico de una prop.
+El `hint` actual para `receptor_data` dice "verifica RFC, razón social, régimen fiscal y código postal" — redundante ahora que el mensaje ya es específico. Cambio: **omitir `hint`** cuando `message` ya contiene "código postal" o "razón social" (indicador de que es uno de los mensajes específicos). Para el resto (fallback), mantener el hint genérico.
 
-### 4. Tests
-Añadir a `src/features/invoices/components/__tests__/StampErrorDialog.test.tsx` (crear si no existe):
-- Renderiza los 4 campos del receptor cuando `kind === "receptor_data"` y `receptor` presente.
-- No renderiza el bloque cuando `kind !== "receptor_data"`.
-- Botón copiar llama a `navigator.clipboard.writeText` con el valor esperado.
+Implementación: en `getCopy`, pasar `message` como segundo parámetro opcional; si `kind === "receptor_data"` y `/código postal|razón social/i.test(message)`, devolver `hint: undefined`.
 
-### 5. Changelog
-Nueva entrada `v6.107.5` (patch, category `fix`):
+### 3. Tests
+
+Ampliar `src/features/invoices/lib/__tests__/facturapiErrors.test.ts` (crear si no existe):
+
+- `CFDI40148` → `kind === "receptor_data"` y `message` contiene "código postal".
+- Mensaje literal `"DomicilioFiscalReceptor del receptor, debe pertenecer al nombre asociado al RFC"` (el que aparece hoy) → matchea CFDI40148 y devuelve mensaje de CP.
+- `CFDI40147` → `kind === "receptor_data"` y `message` contiene "razón social".
+- Error CSD sigue matcheando `kind: "csd"` (regresión).
+
+### 4. Changelog `v6.107.6`
+
 - Índice en `public/changelog.json`.
-- Detalle en `public/changelog/v6.107.5.json` explicando que el diálogo de error de timbrado ahora muestra los datos exactos que se enviaron al SAT para facilitar la comparación contra la CSF.
+- Detalle en `public/changelog/v6.107.6.json` (patch, category `fix`): mensaje de rechazo del SAT ahora indica el campo exacto — CFDI40148 apunta al código postal, CFDI40147 apunta a la razón social.
 
 ## Fuera de alcance
 
-- No se cambia `sanitizeLegalName` ni la lógica del handler.
-- No se agregan nuevos endpoints ni migraciones.
-- No se toca el flujo de generación/cancelación de facturas.
+- No se toca `sanitizeLegalName` ni el handler edge.
+- No se cambia el snapshot de datos enviados al SAT (ya se agregó en v6.107.5).
+- No se agrega parseo del array `errors[]` estructurado — el string ya trae el código CFDI40148 suficiente para clasificar.

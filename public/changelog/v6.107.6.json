@@ -1,0 +1,13 @@
+{
+  "version": "6.107.6",
+  "date": "2026-07-07",
+  "type": "patch",
+  "title": "Mensajes de rechazo del SAT apuntan al campo exacto",
+  "category": "fix",
+  "description": "Cuando el SAT rechaza una factura por datos del receptor, el mensaje ahora indica el campo exacto que falla — código postal (CFDI40148) o razón social (CFDI40147) — en vez del listado genérico anterior. El diálogo de error omite el hint redundante cuando el mensaje ya es específico.",
+  "changes": [
+    "facturapiErrors: nuevo patrón CFDI40148 con mensaje específico de código postal.",
+    "facturapiErrors: nuevo patrón CFDI40147 con mensaje específico de razón social.",
+    "StampErrorDialog: omite el hint genérico cuando el mensaje ya menciona el campo específico."
+  ]
+}
