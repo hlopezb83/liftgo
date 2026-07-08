@@ -98,19 +98,15 @@ Deno.serve(async (req) => {
       .eq("id", payment_id)
       .in("rep_cfdi_status", ["pending", "error", "none", "stamping"])
       .is("rep_cfdi_uuid", null)
-      .select("id, rep_cfdi_status, rep_cfdi_uuid")
+      .select("id")
       .maybeSingle();
-    console.log("[stamp-payment-complement] claim result", {
-      payment_id,
-      data: claimRes.data,
-      error: claimRes.error,
-      status: (claimRes as { status?: number }).status,
-    });
+    if (claimRes.error) {
+      console.error("[stamp-payment-complement] claim failed", claimRes.error);
+    }
     if (!claimRes.data) {
       return new Response(
         JSON.stringify({
           error: "REP ya está siendo timbrado o ya fue timbrado",
-          debug: { claim_error: claimRes.error?.message ?? null },
         }),
         { status: 409, headers: jsonHeaders },
       );
