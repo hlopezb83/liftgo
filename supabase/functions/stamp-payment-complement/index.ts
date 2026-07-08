@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       .from("payments")
       .update({ rep_cfdi_status: "stamping" })
       .eq("id", payment_id)
-      .in("rep_cfdi_status", ["pending", "error", "none"])
+      .in("rep_cfdi_status", ["pending", "error", "none", "stamping"])
       .is("rep_cfdi_uuid", null)
       .select("id")
       .maybeSingle();
