@@ -1,0 +1,2 @@
+ALTER TABLE public.payments DROP CONSTRAINT IF EXISTS payments_rep_cfdi_status_check;
+ALTER TABLE public.payments ADD CONSTRAINT payments_rep_cfdi_status_check CHECK (rep_cfdi_status = ANY (ARRAY['none'::text,'pending'::text,'stamping'::text,'stamped'::text,'cancelled'::text,'error'::text]));

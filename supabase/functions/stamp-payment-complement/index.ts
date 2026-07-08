@@ -100,7 +100,10 @@ Deno.serve(async (req) => {
       .is("rep_cfdi_uuid", null)
       .select("id")
       .maybeSingle();
-    if (!(claimRes as { data: unknown }).data) {
+    if (claimRes.error) {
+      console.error("[stamp-payment-complement] claim failed", claimRes.error);
+    }
+    if (!claimRes.data) {
       return new Response(
         JSON.stringify({
           error: "REP ya está siendo timbrado o ya fue timbrado",
