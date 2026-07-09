@@ -20,16 +20,6 @@ export function maskClabe(clabe: string | null): string {
   return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);
 }
 
-export function maskClabe(clabe: string | null): string {
-  if (!clabe) return "—";
-  const trimmed = clabe.trim();
-  if (trimmed.length < 4) return trimmed;
-  return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);
-}
-  const trimmed = clabe.trim();
-  if (trimmed.length < 4) return trimmed;
-  return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);
-}
 
 export function useSupplierBankAccounts(supplierId: string | undefined) {
   return useQuery({
