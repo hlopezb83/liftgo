@@ -7,6 +7,7 @@ import type { Prospect } from "../hooks/useProspects";
 import { ProspectHistoryCard } from "./ProspectHistoryCard";
 import { ProspectQuoteLink, ProspectNotes, ProspectClosureInfo } from "./prospectDetail/ProspectInfoBlocks";
 import { ProspectActions } from "./prospectDetail/ProspectActions";
+import { DetailRow } from "@/components/domain/DetailRow";
 
 const STAGE_LABELS: Record<string, string> = {
   nuevo_prospecto: "Nuevo Prospecto",
@@ -34,17 +35,8 @@ interface Props {
   quoteNumber?: string;
 }
 
-function DetailRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-3 py-2">
-      <Icon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium">{value || "—"}</p>
-      </div>
-    </div>
-  );
-}
+
+
 
 export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quoteNumber }: Props) {
   if (!prospect) return null;

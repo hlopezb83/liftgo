@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Pencil, Trash2, Package, Hash, Tag, Layers, AlertTriangle, DollarSign } from "lucide-react";
+import { DetailRow } from "@/components/domain/DetailRow";
 
 interface Props {
   part: PartInventory | null;
@@ -32,15 +33,8 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
     });
   };
 
-  const DetailRow = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) => (
-    <div className="flex items-start gap-3 py-2">
-      <Icon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium">{value || "—"}</p>
-      </div>
-    </div>
-  );
+
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
