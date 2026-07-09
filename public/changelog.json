@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.115.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Auditoría visual Fase 2 — cohesión de Dashboard",
+    "description": "Los headers de FleetStatusChart, CashFlowChart y UtilizationCharts ahora usan icono en container tintado igual que CollectionForecast. StatCards adopta el mismo tratamiento tintado (bg-*/10) que FinancialKpiCards, eliminando el gradiente gris que rompía la coherencia entre las dos filas de KPIs. Eje Y de Flujo de Efectivo con formato compacto ($1.0M / $750k) que ya no se recorta.",
+    "category": "improvement"
+  },
+  {
     "version": "6.114.0",
     "date": "2026-07-09",
     "type": "minor",
