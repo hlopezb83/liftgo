@@ -11,6 +11,7 @@ import {
 import { SupplierField } from "@/components/forms/fields";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatDateDisplay } from "@/lib/utils";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import {
   EXPENSE_CATEGORY_LABELS,
   EXPENSE_CATEGORY_GROUPS,
@@ -202,7 +203,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
           <div className="rounded-md bg-muted/50 p-3 flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Total</span>
             <span className="font-mono text-lg font-bold">
-              {total.toLocaleString("es-MX", { style: "currency", currency })}
+              {formatCurrencyWithCode(total, currency)}
             </span>
           </div>
 

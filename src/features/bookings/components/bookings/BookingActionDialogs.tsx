@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { STATUS_LABELS, getValidTransitions } from "../../hooks/useBookingActionsLogic";
+import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/useBookingActionsLogic";
 
 interface StatusChangeDialogProps {
   open: boolean;
