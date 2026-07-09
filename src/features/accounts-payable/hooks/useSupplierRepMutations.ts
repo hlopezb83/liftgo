@@ -8,7 +8,7 @@ import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
 function invalidate(qc: ReturnType<typeof useQueryClient>, billId?: string | null) {
   qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
   qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
-  if (billId) qc.invalidateQueries({ queryKey: ["supplier_bill", billId] });
+  if (billId) qc.invalidateQueries({ queryKey: supplierBillKeys.detail(billId) });
 }
 
 function fileToBase64(file: File): Promise<string> {

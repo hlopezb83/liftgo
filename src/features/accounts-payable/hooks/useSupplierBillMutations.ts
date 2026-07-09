@@ -55,7 +55,7 @@ export function useUpdateSupplierBill() {
     },
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-      qc.invalidateQueries({ queryKey: ["supplier_bill", id] });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
       notifySuccess("Factura actualizada");
     },
     onError: (e: unknown) =>
@@ -73,7 +73,7 @@ export function useDeleteSupplierBill() {
     },
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-      qc.invalidateQueries({ queryKey: ["supplier_bill", id] });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
       notifySuccess("Factura eliminada");
     },
     onError: (e: unknown) =>
@@ -94,7 +94,7 @@ export function useCancelSupplierBill() {
     },
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-      qc.invalidateQueries({ queryKey: ["supplier_bill", id] });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
       notifySuccess("Factura cancelada");
     },
     onError: (e: unknown) =>

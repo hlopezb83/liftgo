@@ -32,7 +32,7 @@ export function useRegisterSupplierPayment() {
     },
     onSuccess: (_id, variables) => {
       qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-      qc.invalidateQueries({ queryKey: ["supplier_bill", variables.bill_id] });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(variables.bill_id) });
       qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
       notifySuccess("Pago registrado");
     },
