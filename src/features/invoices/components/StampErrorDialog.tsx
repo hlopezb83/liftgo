@@ -1,13 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, Copy } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import type { FacturapiErrorKind } from "../lib/facturapiErrors";
@@ -48,7 +41,6 @@ function getCopy(kind: FacturapiErrorKind, customerId?: string | null, message?:
           : undefined,
       };
     }
-
     case "csd":
       return {
         title: "Certificado de sello digital vencido",
@@ -101,11 +93,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
         {label}
       </span>
       <div className="flex items-center gap-2 min-w-0">
-        <span
-          className={`text-sm text-right break-all ${mono ? "font-mono" : ""}`}
-        >
-          {display}
-        </span>
+        <span className={`text-sm text-right break-all ${mono ? "font-mono" : ""}`}>{display}</span>
         {canCopy && (
           <Button
             type="button"
@@ -129,18 +117,22 @@ export function StampErrorDialog({ open, onOpenChange, message, kind, customerId
   const showReceptor = kind === "receptor_data" && !!receptor;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-destructive" />
-            {copy.title}
-          </DialogTitle>
-          <DialogDescription className="pt-2">{message}</DialogDescription>
-        </DialogHeader>
-        {copy.hint && (
-          <p className="text-sm text-muted-foreground">{copy.hint}</p>
-        )}
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      width="lg"
+      title={copy.title}
+      description={
+        <span className="flex flex-col gap-1">
+          <span className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-4 w-4" /> Error al timbrar
+          </span>
+          <span>{message}</span>
+        </span>
+      }
+    >
+      <div className="space-y-3">
+        {copy.hint && <p className="text-sm text-muted-foreground">{copy.hint}</p>}
         {showReceptor && receptor && (
           <div className="space-y-3">
             <div className="rounded-md border bg-muted/30 p-3">
@@ -153,37 +145,30 @@ export function StampErrorDialog({ open, onOpenChange, message, kind, customerId
               <FieldRow label="Código postal" value={receptor.cp} mono />
             </div>
             <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-1">
+              <li>Pide la <strong>CSF vigente</strong> del cliente (no una copia vieja).</li>
               <li>
-                Pide la <strong>CSF vigente</strong> del cliente (no una copia vieja).
+                Compara <strong>RFC, razón social y CP</strong> carácter por carácter — un
+                acento, espacio o coma sobra/falta y el SAT rechaza.
               </li>
-              <li>
-                Compara <strong>RFC, razón social y CP</strong> carácter por carácter —
-                un acento, espacio o coma sobra/falta y el SAT rechaza.
-              </li>
-              <li>
-                Si difiere, actualiza el cliente y <strong>vuelve a timbrar</strong> desde
-                esta misma factura.
-              </li>
+              <li>Si difiere, actualiza el cliente y <strong>vuelve a timbrar</strong> desde esta misma factura.</li>
             </ol>
           </div>
         )}
-        <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cerrar
+      </div>
+      <FormDialogFooter>
+        <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+        {copy.cta && (
+          <Button
+            onClick={() => {
+              const target = copy.cta?.to;
+              onOpenChange(false);
+              if (target) navigate(target);
+            }}
+          >
+            {copy.cta.label}
           </Button>
-          {copy.cta && (
-            <Button
-              onClick={() => {
-                const target = copy.cta?.to;
-                onOpenChange(false);
-                if (target) navigate(target);
-              }}
-            >
-              {copy.cta.label}
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        )}
+      </FormDialogFooter>
+    </FormDialog>
   );
 }
