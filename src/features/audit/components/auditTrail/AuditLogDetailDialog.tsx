@@ -1,6 +1,6 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog } from "@/components/forms/FormDialog";
 import type { AuditLog } from "../../hooks/useAuditLogs";
-import { actionIcon, translateAction, translateTable } from "./auditTrailConstants";
+import { translateAction, translateTable } from "./auditTrailConstants";
 import { AuditLogDetailBody } from "./AuditLogDetailBody";
 
 interface Props {
@@ -9,17 +9,18 @@ interface Props {
 }
 
 export function AuditLogDetailDialog({ log, onClose }: Props) {
+  const title = log
+    ? `${translateAction(log.action)} — ${translateTable(log.table_name)}`
+    : "Detalle de bitácora";
+
   return (
-    <Dialog open={!!log} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {log && actionIcon(log.action)}
-            {log && translateAction(log.action)} — {log && translateTable(log.table_name)}
-          </DialogTitle>
-        </DialogHeader>
-        {log && <AuditLogDetailBody log={log} />}
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      open={!!log}
+      onOpenChange={(open) => !open && onClose()}
+      width="2xl"
+      title={title}
+    >
+      {log && <AuditLogDetailBody log={log} />}
+    </FormDialog>
   );
 }

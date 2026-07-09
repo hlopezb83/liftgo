@@ -1,27 +1,23 @@
-import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { FormDialogFooter } from "@/components/forms/FormDialog";
 import { ProspectStageBadge } from "./ProspectStageBadge";
 import type { Prospect } from "../../hooks/useProspects";
 
-export function ProspectDialogHeader({
+export function prospectDialogTitle(prospect?: Prospect | null): string {
+  return prospect ? "Editar Prospecto" : "Nuevo Prospecto";
+}
+
+export function prospectDialogDescription(prospect?: Prospect | null, overrideStage?: string): string {
+  if (overrideStage && prospect) return "Confirma los datos antes de mover el prospecto de etapa.";
+  return prospect ? "Actualiza la información del prospecto." : "Agrega un nuevo prospecto al pipeline.";
+}
+
+export function ProspectStageBadgeBlock({
   prospect, overrideStage,
 }: { prospect?: Prospect | null; overrideStage?: string }) {
-  const title = prospect ? "Editar Prospecto" : "Nuevo Prospecto";
-  const description = overrideStage && prospect
-    ? "Confirma los datos antes de mover el prospecto de etapa."
-    : prospect
-      ? "Actualiza la información del prospecto."
-      : "Agrega un nuevo prospecto al pipeline.";
-  return (
-    <DialogHeader>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogDescription>{description}</DialogDescription>
-      {overrideStage && prospect && (
-        <ProspectStageBadge fromStage={prospect.stage} toStage={overrideStage} />
-      )}
-    </DialogHeader>
-  );
+  if (!overrideStage || !prospect) return null;
+  return <ProspectStageBadge fromStage={prospect.stage} toStage={overrideStage} />;
 }
 
 export function ProspectCreatorBlock({ createdByName }: { createdByName?: string | null }) {
@@ -42,7 +38,7 @@ interface FooterProps {
 
 export function ProspectDialogFooter({ isClosingWonBlocked, onCancel, onDelete }: FooterProps) {
   return (
-    <DialogFooter className="flex justify-between sm:justify-between pt-4">
+    <FormDialogFooter className="flex justify-between sm:justify-between">
       {onDelete && (
         <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(); onCancel(); }}>
           Eliminar
@@ -52,6 +48,6 @@ export function ProspectDialogFooter({ isClosingWonBlocked, onCancel, onDelete }
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" disabled={isClosingWonBlocked}>Guardar</Button>
       </div>
-    </DialogFooter>
+    </FormDialogFooter>
   );
 }
