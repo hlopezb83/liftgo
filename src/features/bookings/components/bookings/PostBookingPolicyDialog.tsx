@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useCreateMaintenancePolicy } from "@/features/maintenance";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { ShieldCheck } from "lucide-react";
-
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { CurrencyField, SelectField, TextField, TextareaField } from "@/components/forms/fields";
+import { useCreateMaintenancePolicy } from "@/features/maintenance";
 import { SERVICE_TYPES } from "@/lib/constants";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PostBookingPolicyDialogProps {
   open: boolean;
@@ -19,95 +19,98 @@ interface PostBookingPolicyDialogProps {
   onSkip: () => void;
 }
 
+const schema = z.object({
+  providerName: z.string().trim().min(1, "El nombre del proveedor es requerido"),
+  monthlyCost: z.number().min(0).nullable().default(null),
+  serviceType: z.string().min(1),
+  description: z.string().default(""),
+});
+type FormValues = z.infer<typeof schema>;
+
+const DEFAULTS: FormValues = {
+  providerName: "",
+  monthlyCost: null,
+  serviceType: "Póliza de Mantenimiento",
+  description: "",
+};
+
 export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkliftName, onSkip }: PostBookingPolicyDialogProps) {
   const createPolicy = useCreateMaintenancePolicy();
   const [showForm, setShowForm] = useState(false);
-  const [providerName, setProviderName] = useState("");
-  const [monthlyCost, setMonthlyCost] = useState("");
-  const [serviceType, setServiceType] = useState("Póliza de Mantenimiento");
-  const [description, setDescription] = useState("");
 
-  const handleCreate = () => {
-    if (!providerName.trim()) {
-      notifyValidation({ message: "El nombre del proveedor es requerido" });
-      return;
-    }
+  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: DEFAULTS });
+
+  useEffect(() => {
+    if (!open) { setShowForm(false); form.reset(DEFAULTS); }
+  }, [open, form]);
+
+  const handleCreate = form.handleSubmit((values) => {
     createPolicy.mutate(
       {
         forklift_id: forkliftId,
-        provider_name: providerName.trim(),
-        monthly_cost: parseFloat(monthlyCost) || 0,
-        service_type: serviceType,
-        description: description.trim() || undefined,
+        provider_name: values.providerName.trim(),
+        monthly_cost: values.monthlyCost ?? 0,
+        service_type: values.serviceType,
+        description: values.description.trim() || undefined,
       },
       {
-        onSuccess: () => {
-          notifySuccess("Póliza de mantenimiento creada");
-          onSkip();
-        },
+        onSuccess: () => { notifySuccess("Póliza de mantenimiento creada"); onSkip(); },
       }
     );
-  };
+  });
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onSkip(); onOpenChange(o); }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-warning" />
-            Póliza de Mantenimiento
-          </DialogTitle>
-          <DialogDescription>
-            El montacargas <span className="font-medium">{forkliftName}</span> no tiene una póliza de mantenimiento activa. ¿Deseas crear una?
-          </DialogDescription>
-        </DialogHeader>
-        {!showForm ? (
-          <DialogFooter className="flex-col gap-2 sm:flex-col">
-            <Button className="w-full" onClick={() => setShowForm(true)}>
-              <ShieldCheck className="h-4 w-4 mr-2" /> Crear Póliza
-            </Button>
-            <Button variant="outline" className="w-full" onClick={onSkip}>
-              Omitir por Ahora
-            </Button>
-          </DialogFooter>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label>Proveedor *</Label>
-                <Input value={providerName} onChange={(e) => setProviderName(e.target.value)} placeholder="Nombre del proveedor" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Costo Mensual</Label>
-                  <Input type="number" min="0" step="0.01" value={monthlyCost} onChange={(e) => setMonthlyCost(e.target.value)} placeholder="0.00" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Tipo de Servicio</Label>
-                  <Select value={serviceType} onValueChange={setServiceType}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {SERVICE_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Descripción</Label>
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descripción opcional de la póliza" rows={2} />
-              </div>
+    <FormDialog
+      open={open}
+      onOpenChange={(o) => { if (!o) onSkip(); onOpenChange(o); }}
+      width="md"
+      title="Póliza de Mantenimiento"
+      description={
+        <span className="flex items-start gap-2">
+          <ShieldCheck className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+          <span>El montacargas <span className="font-medium">{forkliftName}</span> no tiene una póliza de mantenimiento activa. ¿Deseas crear una?</span>
+        </span>
+      }
+    >
+      {!showForm ? (
+        <FormDialogFooter className="flex-col gap-2 sm:flex-col">
+          <Button className="w-full" onClick={() => setShowForm(true)}>
+            <ShieldCheck className="h-4 w-4 mr-2" /> Crear Póliza
+          </Button>
+          <Button variant="outline" className="w-full" onClick={onSkip}>
+            Omitir por Ahora
+          </Button>
+        </FormDialogFooter>
+      ) : (
+        <Form {...form}>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <TextField control={form.control} name="providerName" label="Proveedor" required placeholder="Nombre del proveedor" />
+            <div className="grid grid-cols-2 gap-3">
+              <CurrencyField control={form.control} name="monthlyCost" label="Costo Mensual" currency="MXN" />
+              <SelectField
+                control={form.control}
+                name="serviceType"
+                label="Tipo de Servicio"
+                options={SERVICE_TYPES.map((t) => ({ value: t, label: t }))}
+              />
             </div>
-            <DialogFooter className="flex-col gap-2 sm:flex-row">
-              <Button variant="outline" onClick={onSkip}>Omitir</Button>
-              <Button onClick={handleCreate} disabled={createPolicy.isPending}>
+            <TextareaField
+              control={form.control}
+              name="description"
+              label="Descripción"
+              rows={2}
+              placeholder="Descripción opcional de la póliza"
+            />
+
+            <FormDialogFooter className="flex-col gap-2 sm:flex-row">
+              <Button type="button" variant="outline" onClick={onSkip}>Omitir</Button>
+              <Button type="submit" disabled={createPolicy.isPending}>
                 {createPolicy.isPending ? "Creando..." : "Crear Póliza"}
               </Button>
-            </DialogFooter>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+            </FormDialogFooter>
+          </form>
+        </Form>
+      )}
+    </FormDialog>
   );
 }

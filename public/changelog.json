@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.123.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 2 de Fase B: 5 dialogs de Bookings/Deliveries/Damage al pipeline RHF (DRY)",
+    "description": "Segundo lote del sprint DRY: 5 modales migrados al shell FormDialog y al pipeline React Hook Form + Zod usando los field-wrappers. ReportDamageDialog: useReportDamageForm reescrito sobre useForm — schema Zod, SelectField para montacargas y cliente, TextareaField, CurrencyField (costo estimado). PostBookingPolicyDialog y PostBookingDeliveryDialog: RHF + TextField/CurrencyField/SelectField/NumberField/TextareaField, se elimina useState local por campo. PostDeliveryPickupDialog: idem, con valores inicializados desde la delivery previa. BookingActionDialogs (StatusChange + Extend): migrados al shell FormDialog con FormDialogFooter (la lógica de estado sigue en useBookingActionsLogic). TextField expandido para aceptar type='time' | 'date'. Preservadas todas las firmas públicas — call-sites intactos.",
+    "category": "improvement"
+  },
+  {
     "version": "6.122.0",
     "date": "2026-07-09",
     "type": "minor",

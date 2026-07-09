@@ -11,7 +11,7 @@ interface TextFieldProps<TFieldValues extends FieldValues> {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-  type?: "text" | "email" | "url" | "tel" | "password";
+  type?: "text" | "email" | "url" | "tel" | "password" | "time" | "date";
   autoComplete?: string;
   className?: string;
 }
