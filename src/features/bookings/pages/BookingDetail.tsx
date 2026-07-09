@@ -56,7 +56,6 @@ export default function BookingDetail() {
   const subtitleName = forkliftName || "Equipo";
   const subtitleCustomer = booking.customer_name ?? "Sin cliente";
   const subtitle = `${subtitleName} · ${subtitleCustomer}`;
-  const canExtend = booking.status === "confirmed";
   const extensionsList = extensions ?? [];
 
   return (
