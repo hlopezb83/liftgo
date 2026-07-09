@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { User } from "lucide-react";
 
 interface Props {
   customerName: string | null | undefined;
@@ -9,7 +10,11 @@ interface Props {
 export function QuoteCustomerCard({ customerName, rfc, cp }: Props) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <User className="h-4 w-4 text-muted-foreground" /> Cliente
+        </CardTitle>
+      </CardHeader>
       <CardContent>
         <p className="font-medium">{customerName ?? "—"}</p>
         {rfc && <p className="text-sm text-muted-foreground">RFC: {rfc}</p>}
@@ -18,3 +23,4 @@ export function QuoteCustomerCard({ customerName, rfc, cp }: Props) {
     </Card>
   );
 }
+
