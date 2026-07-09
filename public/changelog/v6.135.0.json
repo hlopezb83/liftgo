@@ -1,0 +1,18 @@
+{
+  "version": "6.135.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 4b: createEntityKeys + useEntityMutation en deliveries, returns y cuentas por pagar",
+  "summary": "Deliveries, returns y accounts-payable adoptan createEntityKeys + useEntityMutation; keys unificadas y toasts de error garantizados.",
+  "highlights": [
+    "deliveryKeys en features/deliveries: useDelivery→detail(id), useDeliveries(bookingId)→byFilter({bookingId}); create/update/delete via useEntityMutation.",
+    "returnInspectionKeys en features/returns: byFilter({forkliftId}); useCreateReturnInspection invalida return_inspections/bookings/forklifts/status_logs de forma centralizada.",
+    "supplierBillKeys en features/accounts-payable: unifica la key singular 'supplier_bill' → plural supplierBillKeys.detail(id) en 7 hooks; SUPPLIER_BILLS_QK queda como alias @deprecated.",
+    "useDeleteDelivery ahora muestra toast de error (antes silenciosa).",
+    "39 tests verdes en deliveries+returns+accounts-payable."
+  ],
+  "internal_notes": [
+    "Lote 5 (siguiente): extraer DetailRow, ReportChartCard, ListFilterBar y KpiTile como componentes compartidos."
+  ],
+  "category": "improvement"
+}
