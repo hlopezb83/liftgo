@@ -18,9 +18,7 @@ import { BookingBillingCard } from "../components/booking-detail/BookingBillingC
 import { BookingHourometerCard } from "../components/booking-detail/BookingHourometerCard";
 import { BookingExtensionsCard } from "../components/booking-detail/BookingExtensionsCard";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarPlus } from "lucide-react";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -58,7 +56,6 @@ export default function BookingDetail() {
   const subtitleName = forkliftName || "Equipo";
   const subtitleCustomer = booking.customer_name ?? "Sin cliente";
   const subtitle = `${subtitleName} · ${subtitleCustomer}`;
-  const canExtend = booking.status === "confirmed";
   const extensionsList = extensions ?? [];
 
   return (
@@ -68,17 +65,9 @@ export default function BookingDetail() {
         subtitle={subtitle}
         badges={<StatusBadge status={booking.status} />}
         backTo="/bookings"
-        actions={
-          <div className="flex gap-2">
-            {canExtend && (
-              <Button variant="outline" size="sm" onClick={() => setExtendOpen(true)}>
-                <CalendarPlus className="h-4 w-4 mr-1" /> Extender Renta
-              </Button>
-            )}
-            <BookingActions booking={booking} />
-          </div>
-        }
+        actions={<BookingActions booking={booking} />}
       />
+
 
       <div className="grid gap-6 md:grid-cols-2">
         <BookingEquipmentCard name={forkliftName} model={forkliftModel} />

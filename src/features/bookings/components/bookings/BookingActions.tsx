@@ -50,8 +50,8 @@ export function BookingActions({ booking }: BookingActionsProps) {
 
   const deleteButton = (
     <>
-      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteOpen(true)}>
-        <Trash2 className="h-3.5 w-3.5 mr-1" />Eliminar
+      <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+        <Trash2 className="h-4 w-4 mr-1" />Eliminar
       </Button>
       {deleteDialog}
     </>
@@ -60,9 +60,9 @@ export function BookingActions({ booking }: BookingActionsProps) {
   if (booking.status !== "confirmed") {
     if (!isAdmin) return null;
     return (
-      <div className="flex gap-1">
-        <Button variant="ghost" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
-          <RefreshCw className="h-3.5 w-3.5 mr-1" />Cambiar Estatus
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
+          <RefreshCw className="h-4 w-4 mr-1" />Cambiar Estatus
         </Button>
         {deleteButton}
         {statusChangeDialog}
@@ -71,28 +71,28 @@ export function BookingActions({ booking }: BookingActionsProps) {
   }
 
   return (
-    <div className="flex gap-1">
-      <Button variant="ghost" size="sm" onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
-        <FileText className="h-3.5 w-3.5 mr-1" />Crear Contrato
+    <div className="flex gap-2">
+      <Button size="sm" onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
+        <FileText className="h-4 w-4 mr-1" />Crear Contrato
       </Button>
-      <Button variant="ghost" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
-        <CalendarPlus className="h-3.5 w-3.5 mr-1" />Extender
+      <Button variant="outline" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
+        <CalendarPlus className="h-4 w-4 mr-1" />Extender
       </Button>
-      <Button variant="ghost" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}`)}>
-        <Undo2 className="h-3.5 w-3.5 mr-1" />Devolución Anticipada
+      <Button variant="outline" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}`)}>
+        <Undo2 className="h-4 w-4 mr-1" />Devolución Anticipada
       </Button>
 
       {isAdmin && (
         <>
-          <Button variant="ghost" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
-            <RefreshCw className="h-3.5 w-3.5 mr-1" />Cambiar Estatus
+          <Button variant="outline" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
+            <RefreshCw className="h-4 w-4 mr-1" />Cambiar Estatus
           </Button>
           {deleteButton}
         </>
       )}
 
-      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setCancelOpen(true)}>
-        <XCircle className="h-3.5 w-3.5 mr-1" />Cancelar
+      <Button variant="destructive" size="sm" onClick={() => setCancelOpen(true)}>
+        <XCircle className="h-4 w-4 mr-1" />Cancelar
       </Button>
       <ConfirmDialog
         open={cancelOpen}

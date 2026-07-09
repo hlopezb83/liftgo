@@ -1,0 +1,29 @@
+{
+  "version": "6.120.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Jerarquía de botones propagada cross-módulo",
+  "description": "Propagación de la convención Cotizaciones → Reservas / Equipos / Mantenimiento / CRM.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Reservas — BookingActions con jerarquía semántica",
+      "description": "Todos los botones dejaron ghost h-3.5. Crear Contrato = default (acción principal), Extender / Devolución Anticipada / Cambiar Estatus = outline, Eliminar / Cancelar = destructive. Iconos h-4 mr-1 y gap-2 uniformes."
+    },
+    {
+      "type": "fix",
+      "title": "Reservas — 'Extender Renta' duplicado eliminado",
+      "description": "El header de detalle mostraba un botón 'Extender Renta' outline redundante con el 'Extender' de BookingActions. Se eliminó el del header."
+    },
+    {
+      "type": "improvement",
+      "title": "Equipos — icono Plus en 'Agregar Montacargas'",
+      "description": "PlusCircle → Plus para paridad con Nueva Reserva / Cotización / Factura."
+    },
+    {
+      "type": "docs",
+      "title": "Mantenimiento y CRM verificados",
+      "description": "MaintenancePageActions, MaintenanceDetailSheet, CRMToolbar, CloseWonDialog y CloseLostDialog ya cumplían la convención — no requerían cambios."
+    }
+  ]
+}

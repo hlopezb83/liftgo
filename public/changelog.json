@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.120.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Jerarquía de botones propagada a Reservas, Equipos, Mantenimiento y CRM",
+    "description": "Se aplicó cross-módulo la convención de variantes de Cotizaciones: default para la acción principal (Crear Contrato en Reservas), outline para acciones secundarias (Extender, Devolución Anticipada, Cambiar Estatus), destructive para acciones irreversibles (Eliminar, Cancelar). El botón duplicado 'Extender Renta' del header de reserva se eliminó ya que BookingActions ya lo incluye. Fleet: ícono PlusCircle → Plus en 'Agregar Montacargas' para paridad con Nueva Reserva/Cotización/Factura. Mantenimiento y CRM ya estaban alineados con la convención.",
+    "category": "improvement"
+  },
+  {
     "version": "6.119.0",
     "date": "2026-07-09",
     "type": "patch",
