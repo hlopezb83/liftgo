@@ -9,7 +9,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { PlusCircle, Download, Forklift as ForkliftIcon } from "lucide-react";
+import { Plus, Download, Forklift as ForkliftIcon } from "lucide-react";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
