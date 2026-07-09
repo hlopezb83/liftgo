@@ -80,7 +80,7 @@ function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string;
 
 
 export function InvoiceDetailActions({
-  invoice, cfdiStatus, userRole, visibility,
+  invoice, cfdiStatus, userRole: _userRole, visibility,
   isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
   const flags = computeInvoiceFlags(invoice, cfdiStatus, null);
