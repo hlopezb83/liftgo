@@ -2,21 +2,30 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { CLABE_REGEX, isValidClabe } from "@/lib/schemas/common";
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];
 type Insert = Database["public"]["Tables"]["supplier_bank_accounts"]["Insert"];
 type Update = Database["public"]["Tables"]["supplier_bank_accounts"]["Update"];
 
-export const CLABE_REGEX = /^[0-9]{18}$/;
+// Re-export para preservar los consumidores actuales; la fuente canónica vive
+// en `@/lib/schemas/common`.
+export { CLABE_REGEX, isValidClabe };
 
-export function isValidClabe(clabe: string | null | undefined): boolean {
-  if (!clabe) return true;
-  return CLABE_REGEX.test(clabe.trim());
+export function maskClabe(clabe: string | null): string {
+  if (!clabe) return "—";
+  const trimmed = clabe.trim();
+  if (trimmed.length < 4) return trimmed;
+  return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);
 }
 
 export function maskClabe(clabe: string | null): string {
   if (!clabe) return "—";
+  const trimmed = clabe.trim();
+  if (trimmed.length < 4) return trimmed;
+  return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);
+}
   const trimmed = clabe.trim();
   if (trimmed.length < 4) return trimmed;
   return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);

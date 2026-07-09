@@ -30,12 +30,7 @@ interface Props {
 const schema = z.object({
   name: z.string().trim().min(1, "El nombre es requerido"),
   role: z.string().default("Principal"),
-  email: z
-    .string()
-    .default("")
-    .refine((v) => !v || z.string().email().safeParse(v).success, {
-      message: "Correo electrónico inválido",
-    }),
+  email: optionalEmail(),
   phone: z.string().default(""),
   notes: z.string().default(""),
   is_primary: z.boolean().default(false),

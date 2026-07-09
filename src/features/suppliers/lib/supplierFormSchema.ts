@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalEmail, rfcOptional } from "@/lib/schemas/common";
 
 /**
  * Schema validacional del formulario de Proveedor.
@@ -7,16 +8,11 @@ import { z } from "zod";
 export const supplierFormSchema = z.object({
   name: z.string().trim().min(1, "El nombre es requerido"),
   contact_person: z.string().default(""),
-  email: z
-    .string()
-    .default("")
-    .refine((v) => !v || z.string().email().safeParse(v).success, {
-      message: "Correo electrónico inválido",
-    }),
+  email: optionalEmail(),
   phone: z.string().default(""),
   website: z.string().default(""),
   address: z.string().default(""),
-  rfc: z.string().default(""),
+  rfc: rfcOptional(),
   regimen_fiscal: z.string().default(""),
   category: z.string().default(""),
   notes: z.string().default(""),
