@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.130.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 9 (final) de Fase B: formularios financieros al pipeline RHF (DRY)",
+    "description": "Cierre del sprint DRY. SupplierBillFormDialog: migrado a shell FormDialog + Form (RHF ya existente) con SupplierField, DateField (fecha emisión y vencimiento), NumberField (tipo de cambio), CurrencyField (subtotal/IVA/retenciones), TextField (UUID) y TextareaField (descripción). RegisterSupplierPaymentDialog: campos migrados a CurrencyField/DateField/SelectField/TextField/TextareaField; ReceiptField (file) se conserva como control custom envuelto en FormItem. BankAccountFormDialog: reescrito de useState<FormState> a RHF + Zod con SwitchField, SelectField (moneda), NumberField (saldo inicial). DeliveryFormFields: 8 FormField manuales colapsados a SelectField/DateField/TextField/TextareaField preservando auto-fill del teléfono del operador vía watch+useEffect. Firmas públicas preservadas. Fin de la Fase B: 41 dialogs y formularios ahora comparten el shell FormDialog y el ecosistema field-wrappers RHF+Zod.",
+    "category": "improvement"
+  },
+  {
     "version": "6.129.0",
     "date": "2026-07-09",
     "type": "minor",
