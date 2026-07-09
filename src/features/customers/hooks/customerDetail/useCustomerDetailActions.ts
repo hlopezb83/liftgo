@@ -21,25 +21,21 @@ function customerFormToUpdate(form: CustomerFormData) {
 
 interface Params {
   id: string | undefined;
-  inviteEmail: string;
   setInviteOpen: (open: boolean) => void;
-  setInviteEmail: (email: string) => void;
   setEditOpen: (open: boolean) => void;
 }
 
-export function useCustomerDetailActions({
-  id, inviteEmail, setInviteOpen, setInviteEmail, setEditOpen,
-}: Params) {
+export function useCustomerDetailActions({ id, setInviteOpen, setEditOpen }: Params) {
   const navigate = useNavigate();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
   const inviteCustomer = useInviteCustomer();
 
-  const handleInvite = () => {
-    if (!inviteEmail || !id) return;
+  const handleInvite = (email: string) => {
+    if (!email || !id) return;
     inviteCustomer.mutate(
-      { customerId: id, email: inviteEmail },
-      { onSuccess: () => { setInviteOpen(false); setInviteEmail(""); } },
+      { customerId: id, email },
+      { onSuccess: () => setInviteOpen(false) },
     );
   };
 
