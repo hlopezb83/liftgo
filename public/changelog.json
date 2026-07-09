@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.138.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 7: useEntityMutation en invoices, payments, credit notes y contract templates",
+    "description": "Séptimo barrido de la migración a `useEntityMutation`. Hooks migrados (5 archivos, 10 mutations): (1) `useInvoices` — useCreateInvoice y useUpdateInvoice (useDeleteInvoice se mantiene manual porque requiere `removeQueries` del detalle ANTES de invalidar para evitar PGRST116). (2) `usePayments` — useCreatePayment y useUpdatePayment con invalidación unificada de `paymentKeys.all + invoiceKeys.all` (antes usaba `paymentKeys.byInvoice(id)` puntual, ahora refresca todo el árbol tras `syncInvoiceStatus`). (3) `useCollectionNotes` — useCreateCollectionNote. (4) `useContractTemplates` — useUpdateContractTemplate (ahora sí muestra toast de error, antes silencioso). (5) `useCreditNoteMutations` — las 4 mutaciones (create, stamp, cancel, delete) con constante compartida `CREDIT_NOTE_INVALIDATIONS = [creditNoteKeys.all, invoiceKeys.all]`; los flujos con toast condicional (create con/sin timbre, cancel con estados SAT accepted/in_progress) usan `onSuccess` custom en lugar de `successMsg` fijo. Efecto: -85 LOC de boilerplate, `notifyError` usa `title` uniformemente (test de credit notes actualizado). Typecheck limpio. Vitest: 137 tests verdes en features/invoices + features/contracts.",
+    "category": "improvement"
+  },
+  {
     "version": "6.137.1",
     "date": "2026-07-09",
     "type": "patch",

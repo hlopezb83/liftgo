@@ -1,0 +1,39 @@
+{
+  "version": "6.138.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 7: useEntityMutation en invoices, payments, credit notes y contract templates",
+  "summary": "Extensión del pipeline DRY del Lote 4 a los hooks restantes del área financiera: 10 mutations en 5 archivos migradas a useEntityMutation, con invalidaciones jerárquicas y toasts consistentes.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "useInvoices · Create y Update migrados",
+      "description": "`useCreateInvoice` y `useUpdateInvoice` ahora usan `useEntityMutation` con `invalidateKeys: [invoiceKeys.all]` (cubre listas y detalle jerárquicamente en una sola invalidación). `useDeleteInvoice` se mantiene manual porque requiere `queryClient.removeQueries({ queryKey: invoiceKeys.detail(id), exact: true })` ANTES de invalidar lists para evitar refetch de fila borrada (PGRST116) — decisión documentada en el comentario del hook."
+    },
+    {
+      "type": "improvement",
+      "title": "usePayments · Create y Update migrados",
+      "description": "`useCreatePayment` y `useUpdatePayment` migrados. Se unifican las invalidaciones a `[paymentKeys.all, invoiceKeys.all]` (antes se invalidaba `paymentKeys.byInvoice(id)` puntual; ahora se refresca todo el árbol de pagos + facturas tras `syncInvoiceStatus`, garantizando que los saldos derivados y el status de la factura queden en sync sin importar el consumer). Se añade `errorTitle` obligatorio ('Error al registrar pago' / 'Error al actualizar pago')."
+    },
+    {
+      "type": "improvement",
+      "title": "useCollectionNotes · Create migrada",
+      "description": "`useCreateCollectionNote` migrada con `successMsg: 'Nota de cobranza registrada'` y `invalidateKeys: [collectionNoteKeys.all]` (antes invalidaba solo `byInvoice(id)`, ahora todo el árbol para consistencia con otros paneles que muestran contadores agregados)."
+    },
+    {
+      "type": "improvement",
+      "title": "useContractTemplates · Update migrada",
+      "description": "`useUpdateContractTemplate` migrada a `useEntityMutation`. Antes era silencioso en errores; ahora muestra toast 'Error al actualizar plantilla' consistente con el resto del sistema."
+    },
+    {
+      "type": "improvement",
+      "title": "useCreditNoteMutations · 4 mutations migradas + constante compartida",
+      "description": "Las 4 mutaciones (`useCreateCreditNote`, `useStampCreditNote`, `useCancelCreditNote`, `useDeleteCreditNote`) migradas a `useEntityMutation`. Se extrae `CREDIT_NOTE_INVALIDATIONS = [creditNoteKeys.all, invoiceKeys.all]` como constante para evitar drift entre las 3 mutations que la comparten (delete solo invalida creditNoteKeys.all). Los flujos con toast condicional (create con/sin timbre; cancel con estados SAT `accepted`/`in_progress` vía `satStatusLabel`) usan `onSuccess` custom en lugar de `successMsg` fijo. La `mutationFn` de `useCreateCreditNote` ahora retorna `{ created, stamped }` (el consumer `useCreditNoteForm` solo usa `mutate` con `onSuccess: () => { reset(); onClose(); }`, no lee el payload)."
+    },
+    {
+      "type": "fix",
+      "title": "notifyError uniforme con campo `title`",
+      "description": "`useEntityMutation` invoca `notifyError({ title, error })`, no `{ message, error }`. El test `useCreateCreditNote: RPC next_draft_credit_note_number falla` verificaba `message`; actualizado a `title` para reflejar el patrón unificado del helper. El resto del sistema ya usaba `title` desde Lote 4."
+    }
+  ]
+}
