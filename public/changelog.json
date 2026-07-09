@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.131.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 1: infraestructura compartida (schemas, query keys, useEntityMutation, toMxn)",
+    "description": "Arranque del nuevo sprint DRY tras auditoría con 3 subagentes especializados (hooks/data-access, reglas/validaciones, componentes UI). Este lote crea la infraestructura reutilizable que consumirán los lotes 2-5, sin cambios de comportamiento visible. Nuevos módulos: (1) src/lib/schemas/common.ts — fábricas Zod optionalEmail(), rfcOptional()/rfcRequired() con regex AAAA000000AAA + normalización uppercase/trim, clabeOptional() + isValidClabe() + CLABE_REGEX, positiveAmount(msg?). (2) src/lib/query/createEntityKeys.ts — factory de query keys con all/lists()/byFilter(f)/details()/detail(id) para eliminar strings crudos y typos silenciosos en invalidaciones. (3) src/lib/hooks/useEntityMutation.ts — wrapper de useMutation con invalidateKeys[], errorTitle, successMsg?, onSuccess? y errorSeverity opcional; encapsula el patrón notifyError+invalidateQueries repetido 121 veces en la app. (4) src/lib/supabase/fetchNextDocNumber.ts — helper tipado sobre callRpc para RPCs next_*_number con narrowing NextDocNumberRpc. (5) src/lib/money — se movió toMxn desde cash-flow/lib/cashFlowTransformers a la ubicación canónica y se endureció el guard (fx no numérico también devuelve el monto sin colapsar a 0); cash-flow re-exporta para retro-compatibilidad. Tests: 50 pruebas unitarias verdes (schemas.common, createEntityKeys, money con toMxn, y suite existente de cashFlowTransformers). Sin migración de consumidores todavía — eso llega en el Lote 2.",
+    "category": "improvement"
+  },
+  {
     "version": "6.130.0",
     "date": "2026-07-09",
     "type": "minor",
