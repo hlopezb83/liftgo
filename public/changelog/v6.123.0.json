@@ -1,0 +1,38 @@
+{
+  "version": "6.123.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Lote 2 de Fase B: 5 dialogs de Bookings/Deliveries/Damage al pipeline RHF (DRY)",
+  "summary": "Segundo lote del sprint DRY: 5 modales migrados al shell FormDialog + pipeline React Hook Form + Zod con field-wrappers unificados.",
+  "changes": [
+    {
+      "area": "Damage · ReportDamageDialog + useReportDamageForm",
+      "detail": "Hook reescrito sobre useForm({ resolver: zodResolver(reportDamageSchema) }). El diálogo pasa a FormDialog width='md' con SelectField (montacargas, cliente con opción 'Sin cliente'), TextareaField (descripción, required) y CurrencyField (costo estimado MXN). Previews de evidencia siguen fuera de RHF con cleanup en unmount."
+    },
+    {
+      "area": "Bookings · PostBookingPolicyDialog",
+      "detail": "RHF + Zod con TextField (proveedor, required), CurrencyField (costo mensual), SelectField (tipo de servicio desde SERVICE_TYPES) y TextareaField (descripción). El paso 'CTA vs formulario' se conserva vía useState local. Ícono ShieldCheck movido a description para respetar title:string de FormDialog."
+    },
+    {
+      "area": "Bookings · PostBookingDeliveryDialog",
+      "detail": "RHF con TextField (dirección, operador, teléfono), TextField type='time' (hora programada), NumberField (horómetro) y TextareaField (notas). Payload al backend preserva shape original (null cuando string vacío)."
+    },
+    {
+      "area": "Deliveries · PostDeliveryPickupDialog",
+      "detail": "Mismo patrón que PostBookingDeliveryDialog. Los valores se rehidratan desde la delivery previa cada vez que el modal se abre."
+    },
+    {
+      "area": "Bookings · BookingActionDialogs (StatusChange + Extend)",
+      "detail": "Ambos submodales migrados a FormDialog con FormDialogFooter sticky. Su estado sigue viviendo en useBookingActionsLogic — solo cambia el shell visual/estructural."
+    },
+    {
+      "area": "forms/fields · TextField",
+      "detail": "Type union extendido a 'time' | 'date' para cubrir inputs de hora y fecha nativos sin necesidad de escapar al primitivo <Input>."
+    }
+  ],
+  "notes": [
+    "Progreso Fase B: 11 / 24 dialogs migrados. Siguientes lotes: Invoices/Quotes/Returns/AP.",
+    "Compatibilidad: firmas públicas (props) de los 5 dialogs preservadas — sin cambios en call-sites.",
+    "useReportDamageForm ahora expone { form, previews, onDrop, removePreview, reset, handleSubmit, isProcessing } en vez de setters por campo."
+  ]
+}
