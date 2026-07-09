@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
-import { RequiredMark } from "@/components/forms/RequiredMark";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { FormActions } from "@/components/forms/FormActions";
-import { notifyValidation } from "@/lib/ui/appFeedback";
+import { Form } from "@/components/ui/form";
+import {
+  TextField,
+  TextareaField,
+  SelectField,
+  SwitchField,
+  type SelectOption,
+} from "@/components/forms/fields";
 import {
   SUPPLIER_CONTACT_ROLES,
   useCreateSupplierContact,
@@ -23,54 +27,62 @@ interface Props {
   contact: SupplierContact | null;
 }
 
-interface FormState {
-  name: string;
-  role: string;
-  email: string;
-  phone: string;
-  notes: string;
-  is_primary: boolean;
-}
+const schema = z.object({
+  name: z.string().trim().min(1, "El nombre es requerido"),
+  role: z.string().default("Principal"),
+  email: z
+    .string()
+    .default("")
+    .refine((v) => !v || z.string().email().safeParse(v).success, {
+      message: "Correo electrónico inválido",
+    }),
+  phone: z.string().default(""),
+  notes: z.string().default(""),
+  is_primary: z.boolean().default(false),
+});
+type FormValues = z.input<typeof schema>;
 
-const empty: FormState = { name: "", role: "Principal", email: "", phone: "", notes: "", is_primary: false };
+const empty: FormValues = {
+  name: "", role: "Principal", email: "", phone: "", notes: "", is_primary: false,
+};
+
+const ROLE_OPTIONS: SelectOption[] = SUPPLIER_CONTACT_ROLES.map((r) => ({ value: r, label: r }));
+
+function nn(v: string): string | null { return v.trim() ? v.trim() : null; }
 
 export function SupplierContactFormDialog({ open, onOpenChange, supplierId, contact }: Props) {
-  const [form, setForm] = useState<FormState>(empty);
   const create = useCreateSupplierContact();
   const update = useUpdateSupplierContact();
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: empty,
+  });
+
   useEffect(() => {
     if (!open) return;
-    if (contact) {
-      setForm({
-        name: contact.name,
-        role: contact.role || "Otro",
-        email: contact.email || "",
-        phone: contact.phone || "",
-        notes: contact.notes || "",
-        is_primary: contact.is_primary,
-      });
-    } else {
-      setForm(empty);
-    }
-  }, [open, contact]);
+    form.reset(
+      contact
+        ? {
+            name: contact.name,
+            role: contact.role || "Otro",
+            email: contact.email || "",
+            phone: contact.phone || "",
+            notes: contact.notes || "",
+            is_primary: contact.is_primary,
+          }
+        : empty,
+    );
+  }, [open, contact, form]);
 
-  const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((p) => ({ ...p, [k]: v }));
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const name = form.name.trim();
-    if (!name) {
-      notifyValidation({ message: "El nombre es requerido" });
-      return;
-    }
+  const onSubmit = form.handleSubmit((values) => {
     const payload = {
-      name,
-      role: form.role || null,
-      email: form.email.trim() || null,
-      phone: form.phone.trim() || null,
-      notes: form.notes.trim() || null,
-      is_primary: form.is_primary,
+      name: values.name.trim(),
+      role: values.role || null,
+      email: nn(values.email),
+      phone: nn(values.phone),
+      notes: nn(values.notes),
+      is_primary: values.is_primary,
     };
     if (contact) {
       update.mutate(
@@ -83,7 +95,7 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
         { onSuccess: () => onOpenChange(false) },
       );
     }
-  };
+  });
 
   return (
     <FormDialog
@@ -92,55 +104,36 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
       title={contact ? "Editar contacto" : "Nuevo contacto"}
       width="md"
     >
-      <form onSubmit={onSubmit} className="space-y-4">
-        <FormSection title="Identidad" first>
-          <div className="space-y-1.5">
-            <Label>Nombre <RequiredMark /></Label>
-            <Input value={form.name} onChange={(e) => set("name", e.target.value)} maxLength={100} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Rol</Label>
-              <Select value={form.role} onValueChange={(v) => set("role", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {SUPPLIER_CONTACT_ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                </SelectContent>
-              </Select>
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <FormSection title="Identidad" first>
+            <TextField control={form.control} name="name" label="Nombre" required />
+            <div className="grid grid-cols-2 gap-3">
+              <SelectField control={form.control} name="role" label="Rol" options={ROLE_OPTIONS} />
+              <TextField control={form.control} name="phone" label="Teléfono" />
             </div>
-            <div className="space-y-1.5">
-              <Label>Teléfono</Label>
-              <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} maxLength={30} />
-            </div>
-          </div>
-        </FormSection>
-        <FormSection title="Contacto">
-          <div className="space-y-1.5">
-            <Label>Correo</Label>
-            <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} maxLength={255} />
-          </div>
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <Label>Contacto primario</Label>
-              <p className="text-xs text-muted-foreground">Solo uno por proveedor.</p>
-            </div>
-            <Switch checked={form.is_primary} onCheckedChange={(v) => set("is_primary", v)} />
-          </div>
-        </FormSection>
-        <FormSection title="Interno">
-          <div className="space-y-1.5">
-            <Label>Notas</Label>
-            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} />
-          </div>
-        </FormSection>
-        <FormDialogFooter>
-          <FormActions
-            submitLabel={contact ? "Guardar" : "Agregar contacto"}
-            isPending={create.isPending || update.isPending}
-            onCancel={() => onOpenChange(false)}
-          />
-        </FormDialogFooter>
-      </form>
+          </FormSection>
+          <FormSection title="Contacto">
+            <TextField control={form.control} name="email" label="Correo" type="email" />
+            <SwitchField
+              control={form.control}
+              name="is_primary"
+              label="Contacto primario"
+              description="Solo uno por proveedor."
+            />
+          </FormSection>
+          <FormSection title="Interno">
+            <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
+          </FormSection>
+          <FormDialogFooter>
+            <FormActions
+              submitLabel={contact ? "Guardar" : "Agregar contacto"}
+              isPending={create.isPending || update.isPending}
+              onCancel={() => onOpenChange(false)}
+            />
+          </FormDialogFooter>
+        </form>
+      </Form>
     </FormDialog>
   );
 }
