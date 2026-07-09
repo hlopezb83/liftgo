@@ -4,7 +4,6 @@ import {
   TextField,
   TextareaField,
   SelectField,
-  NumberField,
   type SelectOption,
 } from "@/components/forms/fields";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
@@ -22,7 +21,7 @@ const CATEGORY_OPTIONS: SelectOption[] = Object.entries(SUPPLIER_CATEGORIES).map
 }));
 
 export function SupplierFormFields() {
-  const { control, setValue, getValues } = useFormContext<SupplierFormData>();
+  const { control } = useFormContext<SupplierFormData>();
 
   return (
     <div className="space-y-5">
@@ -43,6 +42,7 @@ export function SupplierFormFields() {
             name="rfc"
             label="RFC"
             placeholder="XAXX010101000"
+            description="Se normaliza a mayúsculas al guardar."
           />
           <SelectField
             control={control}
@@ -52,14 +52,6 @@ export function SupplierFormFields() {
             placeholder="Seleccionar"
           />
         </div>
-        {/* Force RFC uppercase on blur without breaking wrapper abstraction */}
-        <input
-          type="hidden"
-          onBlur={() => {
-            const rfc = getValues("rfc");
-            if (rfc) setValue("rfc", rfc.toUpperCase(), { shouldDirty: true });
-          }}
-        />
       </FormSection>
 
       <FormSection title="Contacto">
@@ -110,12 +102,10 @@ export function SupplierFormFields() {
             options={CATEGORY_OPTIONS}
             placeholder="Seleccionar"
           />
-          <NumberField
+          <TextField
             control={control}
             name="default_payment_terms_days"
             label="Días de crédito"
-            min={0}
-            max={365}
             placeholder="Ej. 30"
             description="Se aplicará como vencimiento al registrar nuevas CxP."
           />
