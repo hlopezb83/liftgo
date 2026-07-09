@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.117.0",
+    "date": "2026-07-09",
+    "type": "patch",
+    "title": "Auditoría visual Fase 4 — Cotizaciones alineado a Reservas",
+    "description": "Los cards Cliente y Fechas del detalle de cotización recibieron íconos User y Calendar en el header, igualando el patrón de Reservas. El botón principal Nueva Cotización cambió de PlusCircle a Plus para unificar la iconografía de acciones nuevo entre módulos (Reservas ya usaba Plus). El FAB mobile mantiene PlusCircle por ser un contexto visual distinto.",
+    "category": "improvement"
+  },
+  {
     "version": "6.116.0",
     "date": "2026-07-09",
     "type": "minor",
