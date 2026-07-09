@@ -1,0 +1,34 @@
+{
+  "version": "6.137.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 6: KpiTile y ReportChartCard compartidos",
+  "summary": "Se extraen dos componentes reutilizables (KpiTile y ReportChartCard) y se migran los consumers del dashboard. ListFilterBar se descarta por redundancia con ListPageLayout.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Nuevo componente KpiTile",
+      "description": "`src/components/domain/KpiTile.tsx` unifica las tarjetas KPI del dashboard. Props: `label`, `value` (ReactNode, aplica `tabular-nums`), `icon?`, `iconColor?`, `iconBg?`, `hint?`, `href?`, `onClick?`, `valueSize?`. Mapea automáticamente `text-token` a `bg-token/10` (heredado de StatCards). Renderiza `Link` con `ArrowRight` de hover cuando recibe `href`, o `button` con `onClick`."
+    },
+    {
+      "type": "improvement",
+      "title": "StatCards y FinancialKpiCards migrados a KpiTile",
+      "description": "`StatCards` (dashboard genérico) y `FinancialKpiCards` (KPIs financieros con navegación a /mrr, /reports, /invoices) ahora se implementan sobre `KpiTile`. Se preserva la API pública de ambos componentes y su layout responsive. Cero cambios visuales."
+    },
+    {
+      "type": "improvement",
+      "title": "Nuevo componente ReportChartCard",
+      "description": "`src/components/domain/ReportChartCard.tsx` extrae el patrón repetido de `Card > CardHeader (icono tintado + title + action slot) > CardContent + footer opcional` para gráficas. El caller sigue proveyendo su propio `ResponsiveContainer` y componentes de recharts."
+    },
+    {
+      "type": "improvement",
+      "title": "Charts del dashboard migrados a ReportChartCard",
+      "description": "`CashFlowChart`, `FleetStatusChart` y `UtilizationCharts` migrados. Las leyendas debajo del gráfico se pasan al slot `footer`; el badge de tendencia de utilización va al slot `action`. Se mantienen alturas fijas originales (280/240/220px)."
+    },
+    {
+      "type": "note",
+      "title": "ListFilterBar descartado del sprint DRY",
+      "description": "`ListPageLayout` (`src/components/layout/ListPageLayout.tsx`) ya provee la abstracción de header sticky con slots `filters` y `actions`, consumida por todos los listados del sistema. Crear un `ListFilterBar` adicional sería redundante y añadiría una capa sin beneficio. Se cierra el punto del plan sin acción."
+    }
+  ]
+}
