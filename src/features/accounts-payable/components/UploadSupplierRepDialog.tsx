@@ -1,7 +1,18 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Upload, Loader2 } from "lucide-react";
 import { useUploadSupplierRep } from "../hooks/useSupplierRepMutations";
@@ -14,61 +25,106 @@ interface Props {
   paymentAmountLabel: string;
 }
 
+const schema = z.object({
+  xml: z
+    .custom<File | null>((v) => v instanceof File, { message: "El XML del REP es obligatorio" }),
+  pdf: z
+    .custom<File | null>((v) => v === null || v instanceof File, { message: "Archivo inválido" })
+    .nullable()
+    .default(null),
+});
+type FormValues = z.input<typeof schema>;
+
 export function UploadSupplierRepDialog({
   open, onOpenChange, paymentId, billId, paymentAmountLabel,
 }: Props) {
-  const [xml, setXml] = useState<File | null>(null);
-  const [pdf, setPdf] = useState<File | null>(null);
   const upload = useUploadSupplierRep();
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { xml: null, pdf: null },
+    mode: "onChange",
+  });
 
-  const handleSubmit = () => {
-    if (!xml) return;
+  useEffect(() => {
+    if (open) form.reset({ xml: null, pdf: null });
+  }, [open, form]);
+
+  const onSubmit = form.handleSubmit((values) => {
+    if (!(values.xml instanceof File)) return;
     upload.mutate(
-      { paymentId, xmlFile: xml, pdfFile: pdf, billId },
-      { onSuccess: () => { setXml(null); setPdf(null); onOpenChange(false); } },
+      { paymentId, xmlFile: values.xml, pdfFile: values.pdf ?? null, billId },
+      { onSuccess: () => onOpenChange(false) },
     );
+  });
+
+  const handleOpenChange = (o: boolean) => {
+    if (!upload.isPending) onOpenChange(o);
   };
 
   return (
     <FormDialog
       open={open}
-      onOpenChange={(o) => { if (!upload.isPending) onOpenChange(o); }}
+      onOpenChange={handleOpenChange}
       title="Cargar Complemento de Pago"
       description={`Carga el XML del REP que envió el proveedor por el pago de ${paymentAmountLabel}. Se valida tipo P, RFC del emisor, UUID de la factura y monto.`}
     >
-      <div className="space-y-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="rep-xml">XML del REP (obligatorio)</Label>
-          <Input
-            id="rep-xml"
-            type="file"
-            accept=".xml,application/xml,text/xml"
-            onChange={(e) => setXml(e.target.files?.[0] ?? null)}
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <Controller
+            control={form.control}
+            name="xml"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>
+                  XML del REP<RequiredMark />
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept=".xml,application/xml,text/xml"
+                    onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
+                  />
+                </FormControl>
+                {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="rep-pdf">PDF del REP (opcional)</Label>
-          <Input
-            id="rep-pdf"
-            type="file"
-            accept="application/pdf"
-            onChange={(e) => setPdf(e.target.files?.[0] ?? null)}
+          <FormField
+            control={form.control}
+            name="pdf"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>PDF del REP (opcional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-      </div>
-
-      <FormDialogFooter>
-        <Button variant="outline" disabled={upload.isPending} onClick={() => onOpenChange(false)}>
-          Cancelar
-        </Button>
-        <Button disabled={!xml || upload.isPending} onClick={handleSubmit}>
-          {upload.isPending ? (
-            <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Validando…</>
-          ) : (
-            <><Upload className="h-4 w-4 mr-1" /> Cargar y validar</>
-          )}
-        </Button>
-      </FormDialogFooter>
+          <FormDialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={upload.isPending}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={!form.formState.isValid || upload.isPending}>
+              {upload.isPending ? (
+                <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Validando…</>
+              ) : (
+                <><Upload className="h-4 w-4 mr-1" /> Cargar y validar</>
+              )}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
     </FormDialog>
   );
 }

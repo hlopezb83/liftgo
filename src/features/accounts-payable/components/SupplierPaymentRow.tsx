@@ -32,7 +32,6 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
 
   const [uploadOpen, setUploadOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
-  const [rejectNotes, setRejectNotes] = useState("");
   const [resetOpen, setResetOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const reject = useRejectSupplierRep();
@@ -46,11 +45,9 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
     billCancelled ? "La factura está cancelada" : null;
   const canDelete = isAdmin && !deleteBlocked;
 
-  const confirmReject = () => {
-    const notes = rejectNotes.trim();
-    if (!notes) return;
+  const confirmReject = (notes: string) => {
     reject.mutate({ paymentId: p.id, notes, billId }, {
-      onSuccess: () => { setRejectOpen(false); setRejectNotes(""); },
+      onSuccess: () => setRejectOpen(false),
     });
   };
 
@@ -136,12 +133,9 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
 
       <SupplierPaymentRejectDialog
         open={rejectOpen}
-        onOpenChange={(o) => { setRejectOpen(o); if (!o) setRejectNotes(""); }}
-        notes={rejectNotes}
-        onNotesChange={setRejectNotes}
+        onOpenChange={setRejectOpen}
         onConfirm={confirmReject}
         pending={reject.isPending}
-        inputId={`reject-notes-${p.id}`}
       />
 
       <ConfirmDialog

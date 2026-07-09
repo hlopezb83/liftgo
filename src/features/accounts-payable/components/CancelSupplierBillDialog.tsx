@@ -1,7 +1,11 @@
-import { useState } from "react";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form } from "@/components/ui/form";
+import { TextareaField } from "@/components/forms/fields";
+import { Button } from "@/components/ui/button";
 import { useCancelSupplierBill } from "../hooks/useSupplierBillMutations";
 
 interface Props {
@@ -12,45 +16,61 @@ interface Props {
   onCancelled?: () => void;
 }
 
+const schema = z.object({
+  reason: z.string().default(""),
+});
+type FormValues = z.infer<typeof schema>;
+
 export function CancelSupplierBillDialog({
   open, onOpenChange, billId, billNumber, onCancelled,
 }: Props) {
   const cancel = useCancelSupplierBill();
-  const [reason, setReason] = useState("");
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { reason: "" },
+  });
 
-  const handleConfirm = () => {
+  useEffect(() => {
+    if (open) form.reset({ reason: "" });
+  }, [open, form]);
+
+  const onSubmit = form.handleSubmit((values) => {
     cancel.mutate(
-      { id: billId, reason: reason || undefined },
+      { id: billId, reason: values.reason.trim() || undefined },
       {
         onSuccess: () => {
-          setReason("");
           onOpenChange(false);
           onCancelled?.();
         },
       },
     );
-  };
+  });
 
   return (
-    <ConfirmDialog
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title={`Cancelar factura ${billNumber}`}
-      descriptionNode={
-        <div className="space-y-3">
-          <p>Esta acción marcará la factura como cancelada. Solo se permite cuando no tiene pagos aplicados.</p>
-          <div className="space-y-1.5">
-            <Label>Motivo (opcional)</Label>
-            <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
-          </div>
-        </div>
-      }
-      confirmLabel="Cancelar factura"
-      cancelLabel="Volver"
-      destructive
-      loading={cancel.isPending}
-      onConfirm={handleConfirm}
-    />
+      description="Esta acción marcará la factura como cancelada. Solo se permite cuando no tiene pagos aplicados."
+    >
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <TextareaField
+            control={form.control}
+            name="reason"
+            label="Motivo (opcional)"
+            rows={3}
+          />
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Volver
+            </Button>
+            <Button type="submit" variant="destructive" disabled={cancel.isPending}>
+              {cancel.isPending ? "Cancelando…" : "Cancelar factura"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }
-
