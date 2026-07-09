@@ -1,8 +1,11 @@
-import { useState, useMemo, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { useEffect, useMemo } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { RentalLineMeta } from "@/lib/domain/lineItems";
@@ -42,11 +45,30 @@ function buildAssignmentSlots(rentalMeta: RentalLineMeta[], models: EquipmentMod
     const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
     const { daily, weekly, monthly } = resolveRates(line, model);
     for (let i = 0; i < line.quantity; i++) {
-      result.push({ modelId: line.modelId, modelName, forkliftId: "", dailyRate: daily, weeklyRate: weekly, monthlyRate: monthly });
+      result.push({
+        modelId: line.modelId, modelName, forkliftId: "",
+        dailyRate: daily, weeklyRate: weekly, monthlyRate: monthly,
+      });
     }
   }
   return result;
 }
+
+const schema = z.object({
+  assignments: z
+    .array(
+      z.object({
+        modelId: z.string(),
+        modelName: z.string(),
+        forkliftId: z.string().min(1, "Selecciona un montacargas"),
+        dailyRate: z.number(),
+        weeklyRate: z.number(),
+        monthlyRate: z.number(),
+      }),
+    )
+    .min(1),
+});
+type FormValues = z.infer<typeof schema>;
 
 interface EquipmentAssignmentDialogProps {
   open: boolean;
@@ -63,87 +85,101 @@ export function EquipmentAssignmentDialog({
 }: EquipmentAssignmentDialogProps) {
   const slots = useMemo(() => buildAssignmentSlots(rentalMeta, models), [rentalMeta, models]);
 
-  const [assignments, setAssignments] = useState<AssignmentSlot[]>(slots);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { assignments: slots },
+    mode: "onChange",
+  });
+  const { fields } = useFieldArray({ control: form.control, name: "assignments" });
 
-  useEffect(() => { setAssignments(slots); }, [slots]);
+  useEffect(() => { form.reset({ assignments: slots }); }, [slots, form]);
 
-  const getAvailableForModel = (modelId: string, currentSlotIndex: number) => {
+  const watched = form.watch("assignments");
+
+  const getAvailableForModel = (modelId: string, currentIndex: number) => {
     const model = models.find((m) => m.id === modelId);
     if (!model) return [];
     const alreadyAssigned = new Set(
-      assignments.filter((a, i) => i !== currentSlotIndex && a.forkliftId).map((a) => a.forkliftId)
+      watched.filter((a, i) => i !== currentIndex && a.forkliftId).map((a) => a.forkliftId),
     );
     return forklifts.filter(
       (f) =>
         f.status === "available" &&
         f.manufacturer === model.manufacturer &&
         f.model === model.model &&
-        !alreadyAssigned.has(f.id)
+        !alreadyAssigned.has(f.id),
     );
   };
 
-  const updateAssignment = (index: number, forkliftId: string) => {
-    setAssignments((prev) => prev.map((a, i) => (i === index ? { ...a, forkliftId } : a)));
-  };
-
-  const allAssigned = assignments.every((a) => a.forkliftId);
+  const onSubmit = form.handleSubmit((values) => {
+    onConfirm(
+      values.assignments.map((a) => ({
+        forkliftId: a.forkliftId,
+        dailyRate: a.dailyRate,
+        weeklyRate: a.weeklyRate,
+        monthlyRate: a.monthlyRate,
+      })),
+    );
+  });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Asignar Equipos</DialogTitle>
-          <DialogDescription>
-            Selecciona el montacargas específico para cada unidad cotizada. Las tarifas pactadas en la cotización
-            se aplicarán al equipo asignado.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 max-h-[50vh] overflow-y-auto py-2">
-          {assignments.map((slot, index) => {
-            const available = getAvailableForModel(slot.modelId, index);
-            return (
-              <div key={index} className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm">{slot.modelName}</Label>
-                  <Badge variant="outline" className="text-xs">Unidad {index + 1}</Badge>
-                </div>
-                <Select value={slot.forkliftId} onValueChange={(v) => updateAssignment(index, v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar montacargas disponible" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {available.length === 0 && (
-                      <SelectItem value="__none" disabled>No hay unidades disponibles</SelectItem>
-                    )}
-                    {available.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.manufacturer} {f.model} — {f.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Tarifa pactada: {formatCurrency(slot.monthlyRate)} / mes · {formatCurrency(slot.dailyRate)} / día
-                </p>
-              </div>
-            );
-          })}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button
-            onClick={() => onConfirm(assignments.map((a) => ({
-              forkliftId: a.forkliftId,
-              dailyRate: a.dailyRate,
-              weeklyRate: a.weeklyRate,
-              monthlyRate: a.monthlyRate,
-            })))}
-            disabled={!allAssigned || isLoading}
-          >
-            {isLoading ? "Creando reservas..." : "Confirmar y Crear Reservas"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Asignar Equipos"
+      description="Selecciona el montacargas específico para cada unidad cotizada. Las tarifas pactadas en la cotización se aplicarán al equipo asignado."
+    >
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="space-y-4 max-h-[50vh] overflow-y-auto py-1">
+            {fields.map((slot, index) => {
+              const available = getAvailableForModel(slot.modelId, index);
+              return (
+                <FormField
+                  key={slot.id}
+                  control={form.control}
+                  name={`assignments.${index}.forkliftId`}
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <FormLabel className="text-sm">{slot.modelName}</FormLabel>
+                        <Badge variant="outline" className="text-xs">Unidad {index + 1}</Badge>
+                      </div>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar montacargas disponible" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {available.length === 0 && (
+                            <SelectItem value="__none" disabled>No hay unidades disponibles</SelectItem>
+                          )}
+                          {available.map((f) => (
+                            <SelectItem key={f.id} value={f.id}>
+                              {f.manufacturer} {f.model} — {f.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Tarifa pactada: {formatCurrency(slot.monthlyRate)} / mes · {formatCurrency(slot.dailyRate)} / día
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              );
+            })}
+          </div>
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={!form.formState.isValid || isLoading}>
+              {isLoading ? "Creando reservas..." : "Confirmar y Crear Reservas"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }
