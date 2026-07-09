@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { roundMoney, sumMoney } from "@/lib/money";
+import { roundMoney, sumMoney, toMxn } from "@/lib/money";
 
 describe("roundMoney", () => {
   it("removes binary tails from common float ops", () => {
@@ -43,5 +43,33 @@ describe("sumMoney", () => {
   it("handles large arrays without drift", () => {
     const arr = Array.from({ length: 1000 }, () => 0.1);
     expect(sumMoney(arr)).toBe(100);
+  });
+});
+
+describe("toMxn", () => {
+  it("devuelve el monto sin conversión si moneda es MXN", () => {
+    expect(toMxn(100, "MXN", 20)).toBe(100);
+  });
+  it("trata null/undefined como MXN por defecto", () => {
+    expect(toMxn(100, null, 20)).toBe(100);
+    expect(toMxn(100, undefined, 20)).toBe(100);
+  });
+  it("convierte USD a MXN multiplicando por fx", () => {
+    expect(toMxn(10, "USD", 17.5)).toBe(175);
+  });
+  it("acepta fx como string numérico", () => {
+    expect(toMxn(10, "USD", "17.5")).toBe(175);
+  });
+  it("con fx = 0 devuelve el monto original (NO colapsa a 0)", () => {
+    expect(toMxn(50, "USD", 0)).toBe(50);
+  });
+  it("con fx null/undefined/no-numérico devuelve el monto original", () => {
+    expect(toMxn(50, "USD", null)).toBe(50);
+    expect(toMxn(50, "USD", undefined)).toBe(50);
+    expect(toMxn(50, "USD", "abc")).toBe(50);
+  });
+  it("es case-insensitive para el código de moneda", () => {
+    expect(toMxn(10, "usd", 17)).toBe(170);
+    expect(toMxn(10, "mxn", 17)).toBe(10);
   });
 });

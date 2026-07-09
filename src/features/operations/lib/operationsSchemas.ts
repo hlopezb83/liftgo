@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { rfcRequired } from "@/lib/schemas/common";
 
 export const fiscalSchema = z.object({
-  rfc: z.string().min(1, "RFC requerido"),
+  rfc: rfcRequired(),
   razon_social: z.string().min(1, "Razón social requerida"),
   regimen_fiscal: z.string().min(1, "Régimen fiscal requerido"),
   lugar_expedicion: z.string().min(1, "Lugar de expedición requerido"),

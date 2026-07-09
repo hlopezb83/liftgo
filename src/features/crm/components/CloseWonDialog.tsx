@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { positiveAmount } from "@/lib/schemas/common";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -20,7 +21,7 @@ interface Props {
 }
 
 const schema = z.object({
-  finalAmount: z.number({ invalid_type_error: "Requerido" }).positive("Debe ser mayor a 0"),
+  finalAmount: positiveAmount("Debe ser mayor a 0"),
   closedAt: z.date({ required_error: "Requerido" }),
   extraNote: z.string().default(""),
 });

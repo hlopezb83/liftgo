@@ -28,3 +28,29 @@ export function sumMoney(values: ReadonlyArray<number | null | undefined>): numb
   }
   return roundMoney(acc);
 }
+
+/**
+ * Convierte un monto a MXN usando el tipo de cambio del documento.
+ *
+ * Reglas:
+ *  - Si la moneda ya es MXN (o `null`, tratado como MXN por defecto), devuelve el monto tal cual.
+ *  - Para monedas foráneas, multiplica por `fx` cuando es un número finito > 0.
+ *  - Si `fx` es 0, `null`, `undefined` o no numérico, devuelve el monto SIN convertir
+ *    y evita colapsar silenciosamente a 0. Los consumidores agregadores (cash-flow,
+ *    accounts-payable, reportes) deben validar la calidad de datos si detectan
+ *    `exchange_rate` inválido — este helper NO lo enmascara devolviendo 0.
+ *
+ * Centraliza la lógica que antes vivía en `cash-flow/lib/cashFlowTransformers.ts`
+ * y estaba re-implementada de forma divergente en `accounts-payable`.
+ */
+export function toMxn(
+  amount: number,
+  currency: string | null | undefined,
+  fx: number | string | null | undefined,
+): number {
+  const code = (currency ?? "MXN").toUpperCase();
+  if (code === "MXN") return amount;
+  const rate = Number(fx ?? 0);
+  return Number.isFinite(rate) && rate > 0 ? amount * rate : amount;
+}
+

@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { STATUS_LABELS, getValidTransitions } from "../../hooks/useBookingActionsLogic";
+import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/useBookingActionsLogic";
 
 interface StatusChangeDialogProps {
   open: boolean;
@@ -32,7 +32,7 @@ export function BookingStatusChangeDialog({
             <SelectTrigger><SelectValue placeholder="Seleccionar estatus" /></SelectTrigger>
             <SelectContent>
               {getValidTransitions(currentStatus).map((s) => (
-                <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
+                <SelectItem key={s} value={s}>{BOOKING_STATUS_LABELS[s] || s}</SelectItem>
               ))}
             </SelectContent>
           </Select>

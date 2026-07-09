@@ -1,20 +1,16 @@
 import { z } from "zod";
+import { optionalEmail, rfcOptional } from "@/lib/schemas/common";
 
 export const customerFormSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
-  email: z
-    .string()
-    .default("")
-    .refine((v) => !v || z.string().email().safeParse(v).success, {
-      message: "Correo electrónico inválido",
-    }),
+  email: optionalEmail(),
   phone: z.string().default(""),
   address: z.string().default(""),
   notes: z.string().default(""),
   website: z.string().default(""),
   contact_person: z.string().default(""),
 
-  rfc: z.string().default(""),
+  rfc: rfcOptional(),
   regimen_fiscal: z.string().default(""),
   uso_cfdi: z.string().default(""),
   domicilio_fiscal_cp: z.string().default(""),

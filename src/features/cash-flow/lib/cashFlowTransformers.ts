@@ -4,7 +4,12 @@
  * Aislados del cliente Supabase para poder testearse sin mocks y
  * mantener `useCashFlowProjection` reducido a orquestación de queries.
  */
+import { toMxn } from "@/lib/money";
 import type { CashFlowItem } from "./cashFlowUtils";
+
+// Re-export para preservar retro-compatibilidad con importadores existentes.
+// La implementación canónica vive en `@/lib/money`.
+export { toMxn };
 
 export interface InvoiceRow {
   id: string;
@@ -33,17 +38,6 @@ export interface PaymentRow {
   exchange_rate: number | string | null;
 }
 
-/** Convierte un monto a MXN usando el tipo de cambio del documento. */
-export function toMxn(
-  amount: number,
-  currency: string | null,
-  fx: number | string | null | undefined,
-): number {
-  const code = (currency ?? "MXN").toUpperCase();
-  if (code === "MXN") return amount;
-  const rate = Number(fx ?? 0);
-  return rate > 0 ? amount * rate : amount;
-}
 
 /** Mapa de pagos acumulados (en MXN) agrupados por invoice_id. */
 export function buildPaidByInvoice(payments: ReadonlyArray<PaymentRow>): Map<string, number> {

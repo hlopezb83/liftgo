@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { positiveAmount } from "@/lib/schemas/common";
 
 export const supplierPaymentSchema = z.object({
-  amount: z.coerce.number().positive("El monto debe ser mayor a 0"),
+  amount: positiveAmount(),
   payment_date: z.date(),
   payment_method: z.string().default("transferencia"),
   bank_account: z.string().default(""),
