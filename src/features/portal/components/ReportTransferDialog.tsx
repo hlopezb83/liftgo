@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { TextField, CurrencyField, DateField } from "@/components/forms/fields";
 import { useCreatePaymentIntent } from "../hooks/usePortalExtras";
 import { nowMty } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
-import { DatePickerField } from "@/components/forms/DatePickerField";
 
 interface Props {
   open: boolean;
@@ -16,71 +19,121 @@ interface Props {
   balance: number;
 }
 
+const schema = z.object({
+  transferDate: z.date({ required_error: "La fecha es obligatoria" }),
+  amount: z
+    .number({ invalid_type_error: "Monto inválido" })
+    .positive("El monto debe ser mayor a 0"),
+  senderBank: z.string().default(""),
+  senderLast4: z
+    .string()
+    .default("")
+    .refine((v) => !v || /^\d{4}$/.test(v), { message: "Debe ser 4 dígitos" }),
+  trackingKey: z.string().default(""),
+  proofFile: z
+    .custom<File | null>((v) => v === null || v instanceof File, { message: "Archivo inválido" })
+    .nullable()
+    .default(null),
+});
+type FormValues = z.input<typeof schema>;
+
 export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId, balance }: Props) {
   const { mutate, isPending } = useCreatePaymentIntent();
-  const [transferDate, setTransferDate] = useState<Date | undefined>(() => nowMty());
-  const [amount, setAmount] = useState(balance.toFixed(2));
-  const [senderBank, setSenderBank] = useState("");
-  const [senderLast4, setSenderLast4] = useState("");
-  const [trackingKey, setTrackingKey] = useState("");
-  const [proofFile, setProofFile] = useState<File | null>(null);
 
-  const handleSubmit = () => {
-    const amt = Number(amount);
-    const ymd = toYMD(transferDate);
-    if (!Number.isFinite(amt) || amt <= 0 || !ymd) return;
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      transferDate: nowMty(),
+      amount: Number(balance.toFixed(2)),
+      senderBank: "",
+      senderLast4: "",
+      trackingKey: "",
+      proofFile: null,
+    },
+    mode: "onChange",
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    form.reset({
+      transferDate: nowMty(),
+      amount: Number(balance.toFixed(2)),
+      senderBank: "",
+      senderLast4: "",
+      trackingKey: "",
+      proofFile: null,
+    });
+  }, [open, balance, form]);
+
+  const onSubmit = form.handleSubmit((values) => {
+    const ymd = toYMD(values.transferDate);
+    if (!ymd) return;
     mutate(
       {
         invoice_id: invoiceId,
         customer_id: customerId,
-        amount: amt,
+        amount: Number(values.amount),
         transfer_date: ymd,
-        sender_bank: senderBank.trim() || null,
-        sender_last4: senderLast4.trim() || null,
-        tracking_key: trackingKey.trim() || null,
-        proof_file: proofFile,
+        sender_bank: values.senderBank?.trim() || null,
+        sender_last4: values.senderLast4?.trim() || null,
+        tracking_key: values.trackingKey?.trim() || null,
+        proof_file: values.proofFile ?? null,
       },
       { onSuccess: () => onOpenChange(false) },
     );
-  };
+  });
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title="Reportar transferencia" width="md">
-
-        <div className="space-y-3">
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <DatePickerField label="Fecha" date={transferDate} onSelect={setTransferDate} required />
-            <div>
-              <Label className="text-xs">Monto (MXN)</Label>
-              <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </div>
+            <DateField control={form.control} name="transferDate" label="Fecha" required />
+            <CurrencyField control={form.control} name="amount" label="Monto" required currency="MXN" />
           </div>
-          <div>
-            <Label className="text-xs">Banco emisor</Label>
-            <Input value={senderBank} onChange={(e) => setSenderBank(e.target.value)} placeholder="Ej. BBVA, Banorte" />
-          </div>
-          <div>
-            <Label className="text-xs">Últimos 4 dígitos cuenta origen</Label>
-            <Input value={senderLast4} maxLength={4} onChange={(e) => setSenderLast4(e.target.value.replace(/\D/g, ""))} />
-          </div>
-          <div>
-            <Label className="text-xs">Clave de rastreo SPEI (opcional)</Label>
-            <Input value={trackingKey} onChange={(e) => setTrackingKey(e.target.value)} />
-          </div>
-          <div>
-            <Label className="text-xs">Comprobante (PDF o imagen, opcional)</Label>
-            <Input
-              type="file"
-              accept="application/pdf,image/*"
-              onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
-            />
-          </div>
-        </div>
-        <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={isPending}>Enviar reporte</Button>
-        </FormDialogFooter>
+          <TextField
+            control={form.control}
+            name="senderBank"
+            label="Banco emisor"
+            placeholder="Ej. BBVA, Banorte"
+          />
+          <TextField
+            control={form.control}
+            name="senderLast4"
+            label="Últimos 4 dígitos cuenta origen"
+          />
+          <TextField
+            control={form.control}
+            name="trackingKey"
+            label="Clave de rastreo SPEI (opcional)"
+          />
+          <Controller
+            control={form.control}
+            name="proofFile"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>Comprobante (PDF o imagen, opcional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="application/pdf,image/*"
+                    onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
+                  />
+                </FormControl>
+                {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
+              </FormItem>
+            )}
+          />
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isPending || !form.formState.isValid}>
+              Enviar reporte
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
     </FormDialog>
   );
 }
-
