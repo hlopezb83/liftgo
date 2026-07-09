@@ -1,0 +1,17 @@
+{
+  "version": "6.136.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 5: DetailRow compartido para sheets de detalle",
+  "summary": "Nuevo componente DetailRow reemplaza 4 copias locales byte-idénticas en los sheets de damage, inventory, CRM y maintenance.",
+  "highlights": [
+    "src/components/domain/DetailRow.tsx: icono + label pequeña + valor apilado con fallback '—' y layout consistente.",
+    "DamageDetailSheet, PartDetailSheet, ProspectDetailSheet, MaintenanceDetailSheet eliminan su DetailRow local (~36 LOC menos).",
+    "Documentado que coexiste con InfoRow (layout horizontal usado en bookings/deliveries/returns).",
+    "Cero cambios de comportamiento. Typecheck limpio. 54 tests verdes en las 4 features afectadas."
+  ],
+  "internal_notes": [
+    "KpiTile, ReportChartCard, ListFilterBar quedan aparcados: requieren rastrear duplicación real por feature antes de extraer."
+  ],
+  "category": "improvement"
+}
