@@ -1,0 +1,37 @@
+{
+  "version": "6.122.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Lote 1 de Fase B: 6 dialogs migrados a FormDialog + RHF (DRY)",
+  "summary": "Primer lote de la Fase B del sprint DRY: 6 modales (CRM, Fleet, Audit) migrados al shell FormDialog y —cuando aplica— al pipeline RHF + Zod con field-wrappers.",
+  "changes": [
+    {
+      "area": "CRM · CloseWonDialog",
+      "detail": "Reescrito con useForm + zodResolver. Reemplaza useState local por CurrencyField (monto final MXN), DateField (fecha de cierre) y TextareaField (nota opcional). Validación positiva > 0 y fecha requerida vía schema. FormDialog width='md' con footer sticky."
+    },
+    {
+      "area": "CRM · CloseLostDialog",
+      "detail": "Reescrito con RHF + Zod. SelectField para razones LOST_REASONS, TextareaField para nota (required cuando reason === 'otro' vía refine). Se elimina lógica manual isValid."
+    },
+    {
+      "area": "Fleet · MarkAvailableDialog",
+      "detail": "Migrado al shell FormDialog (width='sm'). El ícono CheckCircle se movió al bloque description para respetar la firma title:string de FormDialog. Footer sticky con FormDialogFooter."
+    },
+    {
+      "area": "Audit · DeleteAuditLogDialog",
+      "detail": "Migrado a FormDialog (width='md'). Se preserva la lógica de revertHint/isRevertDisabled. Header ahora es sticky con border-b."
+    },
+    {
+      "area": "Audit · AuditLogDetailDialog",
+      "detail": "Migrado a FormDialog (width='2xl'). El ícono de acción se retira del título (title:string); el cuerpo (AuditLogDetailBody) permanece intacto."
+    },
+    {
+      "area": "CRM · ProspectFormDialog",
+      "detail": "Envuelto en FormDialog manteniendo useProspectForm y sus sub-componentes (migración RHF completa reservada para Fase C dado el acoplamiento del hook). ProspectDialogParts se refactorizó: se retira ProspectDialogHeader y se exponen helpers puros (prospectDialogTitle, prospectDialogDescription) + ProspectStageBadgeBlock; ProspectDialogFooter ahora usa FormDialogFooter para footer sticky."
+    }
+  ],
+  "notes": [
+    "Progreso Fase B: 6 / 24 dialogs migrados. Siguientes lotes: Bookings/Deliveries/Damage y luego Invoices/Quotes/Returns/AP.",
+    "Compatibilidad: firmas públicas (props) de los 6 dialogs se preservaron — los call-sites no requieren cambios."
+  ]
+}
