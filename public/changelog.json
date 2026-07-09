@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.135.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 4b: createEntityKeys + useEntityMutation en deliveries, returns y cuentas por pagar",
+    "description": "Extensión del pipeline DRY del Lote 1 a las últimas 3 features con hooks CRUD manuales. (1) deliveries/hooks/useDeliveries: nuevo `deliveryKeys = createEntityKeys('deliveries')`; useDelivery→detail(id), useDeliveries(bookingId)→byFilter({bookingId}); useCreateDelivery/useUpdateDelivery/useDeleteDelivery migradas a useEntityMutation (useDeleteDelivery ahora sí muestra toast de error, antes silenciosa). (2) returns/hooks/useReturnInspections: `returnInspectionKeys` análogo; useReturnInspections(forkliftId) usa byFilter({forkliftId}); useCreateReturnInspection migrada a useEntityMutation con invalidateKeys centralizado (return_inspections/bookings/forklifts/status_logs). (3) accounts-payable/hooks: nuevo `supplierBillKeys = createEntityKeys('supplier_bills')` reemplaza `SUPPLIER_BILLS_QK` (alias @deprecated preservado) y unifica la key divergente `['supplier_bill', id]` singular → `supplierBillKeys.detail(id)` plural en useSupplierBill, useSupplierBillMutations (create/update/delete/cancel), useSupplierRepMutations, useBillApprovalMutations, useRegisterSupplierPayment, useDeleteSupplierPayment y useCreatePaymentBatch. Efecto: -60 LOC de boilerplate, invalidaciones consistentes en un espacio de nombres, y toasts de error garantizados en el CRUD de entregas. Vitest: 39 tests verdes en las 3 features migradas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.134.0",
     "date": "2026-07-09",
     "type": "minor",
