@@ -1,0 +1,22 @@
+{
+  "version": "6.131.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 1: infraestructura compartida (schemas, query keys, useEntityMutation, toMxn)",
+  "summary": "Nuevos módulos base reutilizables: src/lib/schemas/common.ts, src/lib/query/createEntityKeys.ts, src/lib/hooks/useEntityMutation.ts, src/lib/supabase/fetchNextDocNumber.ts y toMxn movido a src/lib/money. Sin cambios de comportamiento; prepara los Lotes 2-5.",
+  "highlights": [
+    "src/lib/schemas/common.ts: optionalEmail(), rfcOptional(), rfcRequired(), clabeOptional(), isValidClabe(), CLABE_REGEX, positiveAmount(msg?).",
+    "src/lib/query/createEntityKeys.ts: factory con all/lists()/byFilter/details()/detail(id) para query keys estables (elimina strings crudos y typos en invalidaciones).",
+    "src/lib/hooks/useEntityMutation.ts: wrapper de useMutation (mutationFn + invalidateKeys[] + errorTitle + successMsg? + onSuccess?) que absorbe el boilerplate repetido 121 veces.",
+    "src/lib/supabase/fetchNextDocNumber.ts: helper tipado sobre callRpc con NextDocNumberRpc = Extract<RpcName, `next_${string}_number`>.",
+    "toMxn movido de features/cash-flow/lib/cashFlowTransformers.ts a src/lib/money con guard más estricto: fx no numérico/finito/positivo devuelve el monto original (nunca 0 silencioso). Re-exportado desde el origen para retro-compatibilidad.",
+    "50 tests unitarios verdes (schemas.common: 19, createEntityKeys: 7, money con toMxn: 15, cashFlowTransformers existente: 9)."
+  ],
+  "internal_notes": [
+    "Lote 2 aplicará los helpers a customers, suppliers, operations, accounts-payable, portal, invoices y crm.",
+    "Lote 3 introducirá src/lib/rules/{quotes,invoices}.ts.",
+    "Lote 4 migrará contracts/quotes/deliveries/returns/AP a createEntityKeys y ~15 mutaciones piloto a useEntityMutation.",
+    "Lote 5 extraerá DetailRow, ReportChartCard, ListFilterBar y KpiTile."
+  ],
+  "category": "improvement"
+}
