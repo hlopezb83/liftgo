@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
-import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
+import { supplierBillKeys } from "./useSupplierBills";
 
 export interface RegisterPaymentInput {
   bill_id: string;
@@ -31,8 +31,8 @@ export function useRegisterSupplierPayment() {
       });
     },
     onSuccess: (_id, variables) => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-      qc.invalidateQueries({ queryKey: ["supplier_bill", variables.bill_id] });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(variables.bill_id) });
       qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
       notifySuccess("Pago registrado");
     },

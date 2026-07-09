@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { callRpc } from "@/lib/rpc";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
+import { supplierBillKeys } from "./useSupplierBills";
 import { EXPORTABLE_PAYABLES_QK } from "./useExportablePayables";
 import { PAYMENT_BATCHES_QK } from "./usePaymentBatches";
 
@@ -22,7 +22,7 @@ export function useCreatePaymentBatch() {
       });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
       qc.invalidateQueries({ queryKey: EXPORTABLE_PAYABLES_QK });
       qc.invalidateQueries({ queryKey: PAYMENT_BATCHES_QK });
       qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });

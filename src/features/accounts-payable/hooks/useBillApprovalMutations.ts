@@ -2,11 +2,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
-import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
+import { supplierBillKeys } from "./useSupplierBills";
 
 function buildInvalidator(qc: ReturnType<typeof useQueryClient>, billId: string) {
-  qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
-  qc.invalidateQueries({ queryKey: ["supplier_bill", billId] });
+  qc.invalidateQueries({ queryKey: supplierBillKeys.all });
+  qc.invalidateQueries({ queryKey: supplierBillKeys.detail(billId) });
   qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
   qc.invalidateQueries({ queryKey: ["supplier_bill_approvals", billId] });
 }
