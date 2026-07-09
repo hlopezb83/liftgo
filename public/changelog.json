@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.125.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 4 de Fase B: 5 dialogs de Cuentas por Pagar al pipeline RHF (DRY)",
+    "description": "Cuarto lote del sprint DRY enfocado en Accounts Payable. ApproveBillDialog, RejectBillDialog y CancelSupplierBillDialog: migrados al shell FormDialog + React Hook Form + Zod con TextareaField (motivo/notas) — la validación de longitud mínima (min 3) y el disabled del CTA se derivan del schema Zod y form.formState.isValid. SupplierPaymentRejectDialog: se elimina el manejo externo de notas (props notes/onNotesChange/inputId retirados); ahora el diálogo posee su propio estado RHF y expone onConfirm(notes) al caller — SupplierPaymentRow simplificado en consecuencia. UploadSupplierRepDialog: migrado a RHF con Controller para archivos XML/PDF y validación Zod (custom File), preservando el flujo de invoke a validate-supplier-rep y los estados de pending/loader. Firmas públicas preservadas salvo SupplierPaymentRejectDialog cuyo caller único fue actualizado.",
+    "category": "improvement"
+  },
+  {
     "version": "6.124.0",
     "date": "2026-07-09",
     "type": "minor",
