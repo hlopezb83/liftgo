@@ -18,6 +18,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   quotes: "Cotizaciones",
   contracts: "Contratos",
   invoices: "Facturas",
+  reconciliation: "Conciliación",
   expenses: "Gastos",
   reports: "Reportes",
   "income-statement": "Estado de Resultados",
