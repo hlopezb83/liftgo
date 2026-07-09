@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, Pencil, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
   useValidateReceptorTaxInfo,
@@ -56,91 +49,79 @@ export function ValidateReceptorButton({ invoice }: Props) {
         <ShieldCheck className="h-4 w-4 mr-1" /> Validar contra SAT
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Validación de datos fiscales del receptor</DialogTitle>
-            <DialogDescription>
-              Consulta directa a la Constancia de Situación Fiscal del SAT vía
-              Facturapi. No consume timbre.
-            </DialogDescription>
-          </DialogHeader>
+      <FormDialog
+        open={open}
+        onOpenChange={setOpen}
+        width="lg"
+        title="Validación de datos fiscales del receptor"
+        description="Consulta directa a la Constancia de Situación Fiscal del SAT vía Facturapi. No consume timbre."
+      >
+        {validate.isPending && (
+          <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Consultando al SAT…
+          </div>
+        )}
 
-          {validate.isPending && (
-            <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Consultando al SAT…
+        {result && (
+          <div className="space-y-4">
+            <div className="rounded-md border p-3 text-xs space-y-1 bg-muted/30">
+              <div><span className="text-muted-foreground">RFC:</span> <span className="font-mono">{result.sent.tax_id}</span></div>
+              <div><span className="text-muted-foreground">Razón social:</span> <span className="font-mono">{result.sent.legal_name}</span></div>
+              <div><span className="text-muted-foreground">Régimen:</span> <span className="font-mono">{result.sent.tax_system}</span></div>
+              <div><span className="text-muted-foreground">CP:</span> <span className="font-mono">{result.sent.zip}</span></div>
             </div>
-          )}
 
-          {result && (
-            <div className="space-y-4">
-              <div className="rounded-md border p-3 text-xs space-y-1 bg-muted/30">
-                <div><span className="text-muted-foreground">RFC:</span> <span className="font-mono">{result.sent.tax_id}</span></div>
-                <div><span className="text-muted-foreground">Razón social:</span> <span className="font-mono">{result.sent.legal_name}</span></div>
-                <div><span className="text-muted-foreground">Régimen:</span> <span className="font-mono">{result.sent.tax_system}</span></div>
-                <div><span className="text-muted-foreground">CP:</span> <span className="font-mono">{result.sent.zip}</span></div>
+            {result.is_valid ? (
+              <div className="flex items-start gap-2 rounded-md border border-success/30 bg-success/10 p-3 text-sm">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 text-success" />
+                <div>
+                  <p className="font-medium">Los datos coinciden con la CSF del SAT.</p>
+                  {result.note && <p className="text-xs text-muted-foreground mt-1">{result.note}</p>}
+                </div>
               </div>
-
-              {result.is_valid ? (
-                <div className="flex items-start gap-2 rounded-md border border-success/30 bg-success/10 p-3 text-sm">
-                  <CheckCircle2 className="h-4 w-4 mt-0.5 text-success" />
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
+                  <AlertCircle className="h-4 w-4 mt-0.5 text-destructive" />
                   <div>
-                    <p className="font-medium">Los datos coinciden con la CSF del SAT.</p>
-                    {result.note && <p className="text-xs text-muted-foreground mt-1">{result.note}</p>}
+                    <p className="font-medium text-destructive">El SAT rechazaría el timbrado.</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Corrige el/los campos indicados antes de timbrar.
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
-                    <AlertCircle className="h-4 w-4 mt-0.5 text-destructive" />
-                    <div>
-                      <p className="font-medium text-destructive">
-                        El SAT rechazaría el timbrado.
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Corrige el/los campos indicados antes de timbrar.
-                      </p>
-                    </div>
-                  </div>
-                  <ul className="text-sm space-y-1">
-                    {result.errors.length === 0 && (
-                      <li className="text-muted-foreground">
-                        El PAC no detalló el campo. Verifica la CSF completa.
-                      </li>
-                    )}
-                    {result.errors.map((e, i) => (
-                      <li key={i} className="rounded border-l-2 border-destructive pl-2 py-1">
-                        <span className="font-medium">{labelFor(e.path)}:</span>{" "}
-                        <span className="text-muted-foreground">{e.message}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+                <ul className="text-sm space-y-1">
+                  {result.errors.length === 0 && (
+                    <li className="text-muted-foreground">
+                      El PAC no detalló el campo. Verifica la CSF completa.
+                    </li>
+                  )}
+                  {result.errors.map((e, i) => (
+                    <li key={i} className="rounded border-l-2 border-destructive pl-2 py-1">
+                      <span className="font-medium">{labelFor(e.path)}:</span>{" "}
+                      <span className="text-muted-foreground">{e.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cerrar
-            </Button>
-            <Button
-              onClick={() => {
-                setOpen(false);
-                setEditOpen(true);
-              }}
-            >
-              <Pencil className="h-4 w-4 mr-1" /> Editar datos fiscales
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <FormDialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cerrar</Button>
+          <Button
+            onClick={() => {
+              setOpen(false);
+              setEditOpen(true);
+            }}
+          >
+            <Pencil className="h-4 w-4 mr-1" /> Editar datos fiscales
+          </Button>
+        </FormDialogFooter>
+      </FormDialog>
 
-      <EditReceptorFiscalDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        invoice={invoice}
-      />
+      <EditReceptorFiscalDialog open={editOpen} onOpenChange={setEditOpen} invoice={invoice} />
     </>
   );
 }
