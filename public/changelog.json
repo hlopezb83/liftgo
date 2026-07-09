@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.127.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 6 de Fase B: dialogs informativos de Invoices al shell FormDialog (DRY)",
+    "description": "Sexto lote del sprint DRY: unificación visual de diálogos informativos en Invoices. StampErrorDialog, RecurringInvoicesPreviewDialog y RecurringInvoicesResultDialog: migrados al shell FormDialog + FormDialogFooter (ancho tokenizado sm/md/lg/xl/2xl, header sticky con border-b, footer sticky) sin cambiar su lógica ni sus toasts. ValidateReceptorButton: el diálogo inline de resultado de validación fiscal ahora usa FormDialog. PaymentIntentsSection: el sub-diálogo inline de rechazo de intento de pago migrado a FormDialog + React Hook Form + Zod con TextareaField (motivo min 3 caracteres). ImageGalleryLightbox se mantiene fuera del shell FormDialog por ser un visor de imágenes con controles propios (excepción documentada). Firmas públicas intactas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.126.0",
     "date": "2026-07-09",
     "type": "minor",
