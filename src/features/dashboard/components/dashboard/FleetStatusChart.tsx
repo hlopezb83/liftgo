@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart as PieChartIcon } from "lucide-react";
 
 interface PieDataItem {
   name: string;
@@ -15,7 +16,14 @@ interface FleetStatusChartProps {
 export const FleetStatusChart = memo(function FleetStatusChart({ data }: FleetStatusChartProps) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Estado de la Flota</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-info/10">
+            <PieChartIcon className="h-4 w-4 text-info" />
+          </div>
+          Estado de la Flota
+        </CardTitle>
+      </CardHeader>
       <CardContent>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height={240}>
