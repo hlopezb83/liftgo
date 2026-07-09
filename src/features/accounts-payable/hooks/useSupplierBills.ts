@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 
 type Row = Database["public"]["Tables"]["supplier_bills"]["Row"];
@@ -18,7 +19,10 @@ export interface SupplierBillListItem extends Row {
   rep_summary: BillRepSummary;
 }
 
-export const SUPPLIER_BILLS_QK = ["supplier_bills"] as const;
+export const supplierBillKeys = createEntityKeys("supplier_bills");
+/** @deprecated usar `supplierBillKeys.all` (alias mantenido por retro-compatibilidad). */
+export const SUPPLIER_BILLS_QK = supplierBillKeys.all;
+
 
 type PaymentRepRow = {
   bill_id: string;
@@ -50,7 +54,7 @@ function accumulatePayment(summaryMap: Map<string, BillRepSummary>, p: PaymentRe
 
 export function useSupplierBills() {
   return useQuery({
-    queryKey: SUPPLIER_BILLS_QK,
+    queryKey: supplierBillKeys.lists(),
     staleTime: 60_000,
     queryFn: async (): Promise<SupplierBillListItem[]> => {
       const [billsRes, paymentsRes] = await Promise.all([
