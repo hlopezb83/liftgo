@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.116.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Auditoría visual Fase 3 — cohesión de headers de tabla",
+    "description": "Los headers sortables de DataTableV2 no heredaban `text-transform: uppercase` del <th> padre (UA reset de <button>). Ahora todos los headers de tabla del app se renderizan uniformemente en MAYÚSCULAS con tracking-wider, alineados a los headers no-sortables. Fix global que impacta todas las tablas del sistema.",
+    "category": "improvement"
+  },
+  {
     "version": "6.115.0",
     "date": "2026-07-09",
     "type": "minor",
