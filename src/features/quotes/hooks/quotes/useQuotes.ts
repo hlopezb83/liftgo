@@ -1,14 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { callRpc } from "@/lib/rpc";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 export type { Quote } from "@/types/rental";
 import type { Quote } from "@/types/rental";
 
+export const quoteKeys = createEntityKeys("quotes");
+
 export function useQuotes() {
   return useQuery({
-    queryKey: ["quotes"],
+    queryKey: quoteKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,7 +28,7 @@ export function useQuotes() {
 
 export function useQuote(id?: string) {
   return useQuery({
-    queryKey: ["quotes", id],
+    queryKey: id ? quoteKeys.detail(id) : quoteKeys.details(),
     enabled: !!id,
     queryFn: async () => {
       if (!id) throw new Error("Quote ID is required");
@@ -36,13 +39,11 @@ export function useQuote(id?: string) {
   });
 }
 
-/** Trae una lista puntual de cotizaciones por sus IDs. Útil al facturar
- *  desde múltiples reservas para leer las partidas adicionales (logística,
- *  entrega) que quedaron capturadas en la cotización origen. */
+/** Trae una lista puntual de cotizaciones por sus IDs. */
 export function useQuotesByIds(ids: string[] | undefined) {
   const key = (ids ?? []).slice().sort().join(",");
   return useQuery({
-    queryKey: ["quotes", "byIds", key],
+    queryKey: quoteKeys.byFilter({ byIds: key }),
     enabled: !!ids && ids.length > 0,
     staleTime: 60_000,
     queryFn: async () => {
@@ -55,55 +56,49 @@ export function useQuotesByIds(ids: string[] | undefined) {
 }
 
 export function useCreateQuote() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (quote: TablesInsert<"quotes">) => {
       const { data, error } = await supabase.from("quotes").insert(quote).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al crear cotización", error: err });
-    },
+    invalidateKeys: [quoteKeys.all],
+    errorTitle: "Error al crear cotización",
   });
 }
 
 export function useUpdateQuote() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"quotes"> & { id: string }) => {
       const { data, error } = await supabase.from("quotes").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["quotes"] }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al actualizar cotización", error: err });
-    },
+    invalidateKeys: [quoteKeys.all],
+    errorTitle: "Error al actualizar cotización",
   });
 }
 
 export function useDeleteQuote() {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       await callRpc<void>("delete_quote_with_unassign", { p_quote_id: id });
       return id;
     },
+    invalidateKeys: [
+      quoteKeys.all,
+      ["forklifts"],
+      ["forklift-options"],
+      ["quote_assigned_forklifts"],
+      ["status_logs"],
+    ],
+    errorTitle: "Error al eliminar cotización",
     onSuccess: (deletedId) => {
-      queryClient.setQueryData<Quote[]>(["quotes"], (old) =>
+      queryClient.setQueryData<Quote[]>(quoteKeys.lists(), (old) =>
         old ? old.filter((q) => q.id !== deletedId) : []
       );
-      queryClient.removeQueries({ queryKey: ["quotes", deletedId] });
-      queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
-      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al eliminar cotización", error: err });
+      queryClient.removeQueries({ queryKey: quoteKeys.detail(deletedId) });
     },
   });
 }

@@ -1,13 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import type { ContractViewModel } from "@/types/rental";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 type Contract = ContractViewModel;
 
+export const contractKeys = createEntityKeys("contracts");
+
 export function useContracts() {
   return useQuery({
-    queryKey: ["contracts"],
+    queryKey: contractKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -26,7 +30,7 @@ export function useContracts() {
 
 export function useContract(id: string | undefined) {
   return useQuery({
-    queryKey: ["contracts", id],
+    queryKey: id ? contractKeys.detail(id) : contractKeys.details(),
     enabled: !!id,
     queryFn: async () => {
       if (!id) throw new Error("Contract ID is required");
@@ -41,10 +45,11 @@ export function useContract(id: string | undefined) {
   });
 }
 
+type NewContract = Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name">;
+
 export function useCreateContract() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (contract: Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name">) => {
+  return useEntityMutation({
+    mutationFn: async (contract: NewContract) => {
       const { data: num, error: numErr } = await supabase.rpc("next_contract_number");
       if (numErr) throw numErr;
       const { data, error } = await supabase
@@ -55,13 +60,13 @@ export function useCreateContract() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contracts"] }),
+    invalidateKeys: [contractKeys.all],
+    errorTitle: "Error al crear contrato",
   });
 }
 
 export function useUpdateContract() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"contracts"> & { id: string }) => {
       const { data, error } = await supabase
         .from("contracts")
@@ -72,9 +77,7 @@ export function useUpdateContract() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_d, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      queryClient.invalidateQueries({ queryKey: ["contracts", vars.id] });
-    },
+    invalidateKeys: [contractKeys.all],
+    errorTitle: "Error al actualizar contrato",
   });
 }
