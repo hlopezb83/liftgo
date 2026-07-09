@@ -11,6 +11,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 
 
 import type { InvoiceVisibility } from "../../lib/invoiceVisibility";
+import { computeInvoiceFlags, type InvoiceActionFlags } from "@/lib/rules/invoices";
 
 interface Props {
   invoice: Tables<"invoices">;
@@ -26,40 +27,7 @@ interface Props {
   onDelete: () => void;
 }
 
-interface Flags {
-  isDraft: boolean;
-  isPayable: boolean;
-  showPaymentBtn: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-  canStamp: boolean;
-  isPendingCancel: boolean;
-  isRejectedCancel: boolean;
-}
-
-
-function computeFlags(invoice: Tables<"invoices">, cfdiStatus: string, _userRole?: string): Flags {
-  const status = invoice.status;
-  const isDraft = status === "draft";
-  const isPayable = status === "sent" || status === "overdue";
-  const raw = invoice as unknown as { cancellation_status?: string; cancellation_motive?: string | null };
-  const cancellationStatus = raw.cancellation_status ?? "none";
-  const hasMotive = Boolean(raw.cancellation_motive);
-  const isPendingCancel =
-    cancellationStatus === "pending" ||
-    (hasMotive && status !== "cancelled" && cfdiStatus !== "cancelled" && cancellationStatus !== "rejected");
-  const isCancelled = cfdiStatus === "cancelled" || status === "cancelled";
-  return {
-    isDraft,
-    isPayable,
-    showPaymentBtn: isPayable || status === "partial",
-    canEdit: isDraft && cfdiStatus !== "stamped" && !isCancelled,
-    canDelete: isDraft && cfdiStatus !== "stamped" && !isCancelled,
-    canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
-    isPendingCancel,
-    isRejectedCancel: cancellationStatus === "rejected",
-  };
-}
+type Flags = InvoiceActionFlags;
 
 
 
@@ -115,7 +83,7 @@ export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole, visibility,
   isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
-  const flags = computeFlags(invoice, cfdiStatus, userRole);
+  const flags = computeInvoiceFlags(invoice, cfdiStatus, null);
   const pdfMode: "draft" | "cfdi" | "hidden" = visibility.showCfdiPdf
     ? "cfdi"
     : visibility.showDraftPdf
