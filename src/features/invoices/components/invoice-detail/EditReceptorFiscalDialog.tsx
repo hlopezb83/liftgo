@@ -1,27 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  CheckboxField,
+  SelectField,
+  TextField,
+} from "@/components/forms/fields";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useUpdateReceptorFiscalInfo } from "../../hooks/invoiceDetail/useReceptorTaxInfo";
 import type { Tables } from "@/integrations/supabase/types";
+
+const schema = z.object({
+  razonSocial: z.string().trim().min(1, "Requerido").max(254),
+  regimen: z.string().min(1, "Requerido"),
+  cp: z.string().regex(/^\d{5}$/, "CP debe tener 5 dígitos"),
+  syncCustomer: z.boolean().default(true),
+});
+
+type FormValues = z.infer<typeof schema>;
 
 interface Props {
   open: boolean;
@@ -31,32 +34,37 @@ interface Props {
 
 export function EditReceptorFiscalDialog({ open, onOpenChange, invoice }: Props) {
   const update = useUpdateReceptorFiscalInfo();
-  const [razonSocial, setRazonSocial] = useState("");
-  const [regimen, setRegimen] = useState("");
-  const [cp, setCp] = useState("");
-  const [syncCustomer, setSyncCustomer] = useState(true);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      razonSocial: "",
+      regimen: "",
+      cp: "",
+      syncCustomer: true,
+    },
+  });
 
   useEffect(() => {
     if (open) {
-      setRazonSocial(invoice.receptor_razon_social ?? invoice.customer_name ?? "");
-      setRegimen(invoice.receptor_regimen_fiscal ?? "");
-      setCp(invoice.receptor_domicilio_fiscal_cp ?? "");
-      setSyncCustomer(true);
+      form.reset({
+        razonSocial: invoice.receptor_razon_social ?? invoice.customer_name ?? "",
+        regimen: invoice.receptor_regimen_fiscal ?? "",
+        cp: invoice.receptor_domicilio_fiscal_cp ?? "",
+        syncCustomer: true,
+      });
     }
-  }, [open, invoice]);
+  }, [open, invoice, form]);
 
-  const canSubmit = razonSocial.trim().length > 0 && regimen && /^\d{5}$/.test(cp);
-
-  const handleSubmit = () => {
+  const onSubmit = (values: FormValues) => {
     update.mutate(
       {
         invoiceId: invoice.id,
         customerId: invoice.customer_id ?? null,
-        syncCustomer,
+        syncCustomer: values.syncCustomer,
         patch: {
-          receptor_razon_social: razonSocial.trim(),
-          receptor_regimen_fiscal: regimen,
-          receptor_domicilio_fiscal_cp: cp.trim(),
+          receptor_razon_social: values.razonSocial.trim().toUpperCase(),
+          receptor_regimen_fiscal: values.regimen,
+          receptor_domicilio_fiscal_cp: values.cp.trim(),
         },
       },
       {
@@ -69,94 +77,79 @@ export function EditReceptorFiscalDialog({ open, onOpenChange, invoice }: Props)
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Editar datos fiscales del receptor</DialogTitle>
-          <DialogDescription>
-            Estos valores se enviarán al PAC al timbrar CFDIs y notas de crédito
-            de esta factura. Deben coincidir <strong>exactamente</strong> con la
-            Constancia de Situación Fiscal del cliente.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Editar datos fiscales del receptor"
+      width="lg"
+      description={
+        <>
+          Estos valores se enviarán al PAC al timbrar CFDIs y notas de crédito de esta factura.
+          Deben coincidir <strong>exactamente</strong> con la Constancia de Situación Fiscal del cliente.
+        </>
+      }
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-1.5">
             <Label>RFC</Label>
             <Input value={invoice.receptor_rfc ?? ""} disabled className="font-mono" />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               El RFC no se edita aquí; modifícalo desde la ficha del cliente.
             </p>
           </div>
 
-          <div>
-            <Label>Razón social *</Label>
-            <Input
-              value={razonSocial}
-              onChange={(e) => setRazonSocial(e.target.value.toUpperCase())}
-              placeholder="EJ: LOGISTORAGE"
-              maxLength={254}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Mayúsculas, sin acentos, sin régimen societario (S.A. de C.V.).
-            </p>
-          </div>
+          <TextField
+            control={form.control}
+            name="razonSocial"
+            label="Razón social"
+            required
+            placeholder="EJ: LOGISTORAGE"
+            description="Mayúsculas, sin acentos, sin régimen societario (S.A. de C.V.)."
+          />
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Régimen fiscal *</Label>
-              <Select value={regimen} onValueChange={setRegimen}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  {REGIMEN_FISCAL.map((r) => (
-                    <SelectItem key={r.code} value={r.code}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>CP fiscal *</Label>
-              <Input
-                value={cp}
-                onChange={(e) => setCp(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                placeholder="64000"
-                maxLength={5}
-                inputMode="numeric"
-              />
-            </div>
+            <SelectField
+              control={form.control}
+              name="regimen"
+              label="Régimen fiscal"
+              required
+              options={REGIMEN_FISCAL.map((r) => ({ value: r.code, label: r.label }))}
+            />
+            <TextField
+              control={form.control}
+              name="cp"
+              label="CP fiscal"
+              required
+              placeholder="64000"
+            />
           </div>
 
           {invoice.customer_id && (
-            <div className="flex items-start gap-2 rounded-md border p-3 bg-muted/30">
-              <Checkbox
-                id="sync-customer"
-                checked={syncCustomer}
-                onCheckedChange={(v) => setSyncCustomer(v === true)}
+            <div className="rounded-md border p-3 bg-muted/30">
+              <CheckboxField
+                control={form.control}
+                name="syncCustomer"
+                label="Actualizar también estos datos en la ficha del cliente para futuras facturas."
               />
-              <Label htmlFor="sync-customer" className="text-sm font-normal cursor-pointer">
-                Actualizar también estos datos en la ficha del cliente para futuras facturas.
-              </Label>
             </div>
           )}
-        </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={update.isPending}
-          >
-            Cancelar
-          </Button>
-          <Button onClick={handleSubmit} disabled={!canSubmit || update.isPending}>
-            {update.isPending ? "Guardando…" : "Guardar"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <FormDialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={update.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={update.isPending}>
+              {update.isPending ? "Guardando…" : "Guardar"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }
