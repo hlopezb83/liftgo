@@ -1,0 +1,29 @@
+{
+  "version": "6.115.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Auditoría visual Fase 2 — cohesión de Dashboard",
+  "summary": "Unificación del lenguaje visual de los widgets del Panel a un único patrón (icono tintado en container + tipografía consistente).",
+  "changes": [
+    {
+      "category": "improvement",
+      "title": "Headers de charts unificados",
+      "description": "FleetStatusChart y CashFlowChart estaban sin icono; UtilizationCharts tenía icono suelto. Ahora los tres usan el mismo patrón que CollectionForecast: <div className=\"p-2 rounded-lg bg-*/10\"><Icon className=\"h-4 w-4 text-*\" /></div>."
+    },
+    {
+      "category": "improvement",
+      "title": "KPIs con lenguaje visual único",
+      "description": "StatCards usaba bg-gradient-to-br from-muted mientras FinancialKpiCards usaba bg-success/10 tintado. Ambas filas eran KPIs uno encima de otro con dos tratamientos distintos. Se agregó un mapa BG_BY_COLOR y ahora StatCards deriva el tinte del token `color` para que ambas filas se lean como un mismo sistema."
+    },
+    {
+      "category": "fix",
+      "title": "Eje Y de Flujo de Efectivo se recortaba",
+      "description": "El YAxis usaba formatCurrency directamente y renderizaba '0,000.00' porque el ancho por defecto (60px) recortaba el prefijo. Se agregó formatCompactMxn ($1.0M / $750k / $0) y width={64} con margin.left=12."
+    },
+    {
+      "category": "improvement",
+      "title": "CalendarStatCards con token de tema",
+      "description": "El color 'Utilización' usaba arbitrary value text-[hsl(var(--chart-5))]. Ahora usa el token registrado text-chart-5 (aprovecha el registro de Fase 1)."
+    }
+  ]
+}
