@@ -1,0 +1,19 @@
+{
+  "version": "6.118.0",
+  "date": "2026-07-09",
+  "type": "patch",
+  "title": "Auditoría visual Fase 5 — Facturación",
+  "description": "Alineación del módulo Facturación con los patrones establecidos en Fases 3 y 4.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Iconos en cards de detalle",
+      "description": "InvoiceSummaryCards (Cliente y Fechas) recibió íconos User y Calendar en el header, replicando el patrón de Reservas y Cotizaciones."
+    },
+    {
+      "type": "fix",
+      "title": "Localización de breadcrumb",
+      "description": "El segmento '/invoices/reconciliation' se muestra ahora como 'Conciliación' en el breadcrumb (antes 'Reconciliation')."
+    }
+  ]
+}

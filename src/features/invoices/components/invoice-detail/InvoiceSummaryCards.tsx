@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { User, Calendar } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils";
 import { formatStoredCfdiError } from "@/features/invoices/lib/formatStoredCfdiError";
 
@@ -40,14 +41,22 @@ export function InvoiceSummaryCards({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" /> Cliente
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <p className="font-medium">{customerName || "—"}</p>
             {rfc && <p><span className="text-muted-foreground">RFC:</span> {rfc}</p>}
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-base">Fechas</CardTitle></CardHeader>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" /> Fechas
+            </CardTitle>
+          </CardHeader>
           <CardContent className="space-y-1 text-sm">
             <p><span className="text-muted-foreground">Emitida:</span> {formatDateDisplay(issuedAt)}</p>
             <p><span className="text-muted-foreground">Vencimiento:</span> {formatDateDisplay(dueDate)}</p>
