@@ -25,7 +25,7 @@ describe("rules/invoices computeInvoiceFlags", () => {
   });
 
   it("stamped: no edit/delete/stamp, allows cancel and CFDI docs", () => {
-    const f = computeInvoiceFlags(inv({ status: "sent" }), "stamped", null);
+    const f = computeInvoiceFlags(inv({ status: "sent", cfdi_status: "stamped" }), "stamped", null);
     expect(f.canEdit).toBe(false);
     expect(f.canDelete).toBe(false);
     expect(f.canStamp).toBe(false);
