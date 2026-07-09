@@ -1,10 +1,9 @@
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { MapPin, Target, X, Loader2 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
+import { TextField, TextareaField } from "@/components/forms/fields";
 import type { FeedbackFormValues } from "../lib/schema";
 import type { SelectedElementInfo } from "../lib/cssPath";
 
@@ -52,26 +51,21 @@ export function FeedbackFormFields({
         <span className="truncate font-mono">{route}</span>
       </div>
 
-      <div className="space-y-1.5">
-        <Label>Título</Label>
-        <Input maxLength={120} {...form.register("title")} placeholder="Resumen breve" />
-        {form.formState.errors.title && (
-          <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
-        )}
-      </div>
+      <TextField
+        control={form.control}
+        name="title"
+        label="Título"
+        placeholder="Resumen breve"
+      />
 
-      <div className="space-y-1.5">
-        <Label>Descripción</Label>
-        <Textarea
-          rows={4}
-          maxLength={2000}
-          {...form.register("description")}
-          placeholder="¿Qué pasó? ¿Qué esperabas? Pasos para reproducir…"
-        />
-        {form.formState.errors.description && (
-          <p className="text-xs text-destructive">{form.formState.errors.description.message}</p>
-        )}
-      </div>
+      <TextareaField
+        control={form.control}
+        name="description"
+        label="Descripción"
+        rows={4}
+        maxLength={2000}
+        placeholder="¿Qué pasó? ¿Qué esperabas? Pasos para reproducir…"
+      />
 
       <div className="space-y-2 rounded-md border p-3">
         <div className="flex items-center justify-between">
