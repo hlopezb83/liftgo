@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { KpiTile } from "@/components/domain/KpiTile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -110,18 +110,16 @@ export default function InventoryPage() {
         filters={
           <div className="space-y-3">
             {lowStockCount > 0 && (
-              <Card>
-                <CardContent className="flex items-center gap-4 py-5">
-                  <div className="rounded-full bg-destructive/10 p-3">
-                    <Package className="h-5 w-5 text-destructive" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Refacciones con stock bajo</p>
-                    <p className="text-2xl font-bold font-mono text-destructive">{lowStockCount}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <KpiTile
+                label="Refacciones con stock bajo"
+                value={lowStockCount}
+                icon={Package}
+                iconColor="text-destructive"
+                iconBg="bg-destructive/10"
+                valueSize="lg"
+              />
             )}
+
             <div className="flex flex-col sm:flex-row gap-3">
               <SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre o SKU…" className="sm:max-w-xs" />
               <Select value={filterCategory} onValueChange={setFilterCategory}>

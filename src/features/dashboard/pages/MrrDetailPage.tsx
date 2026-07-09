@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { DollarSign, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KpiTile } from "@/components/domain/KpiTile";
+
 
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -102,17 +104,15 @@ export default function MrrDetailPage() {
         backLabel="Panel"
       />
 
-      <Card>
-        <CardContent className="p-4 flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-success/10">
-            <DollarSign className="h-6 w-6 text-success" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">MRR Total</p>
-            <p className="text-2xl font-bold">{isLoading ? "…" : formatCurrency(data?.total_mrr ?? 0)}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <KpiTile
+        label="MRR Total"
+        value={isLoading ? "…" : formatCurrency(data?.total_mrr ?? 0)}
+        icon={DollarSign}
+        iconColor="text-success"
+        iconBg="bg-success/10"
+        valueSize="lg"
+      />
+
 
       <Card>
         <CardHeader className="pb-2">
