@@ -18,9 +18,7 @@ import { BookingBillingCard } from "../components/booking-detail/BookingBillingC
 import { BookingHourometerCard } from "../components/booking-detail/BookingHourometerCard";
 import { BookingExtensionsCard } from "../components/booking-detail/BookingExtensionsCard";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarPlus } from "lucide-react";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
