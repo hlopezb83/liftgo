@@ -1,16 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { nowMty } from "@/lib/utils";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 const SELECT_WITH_JOINS =
   "*, bookings(customer_name, start_date, end_date), forklifts(name, model)";
 
+export const returnInspectionKeys = createEntityKeys("return_inspections");
+
 export function useReturnInspection(id?: string) {
   return useQuery({
-    queryKey: ["return_inspections", "detail", id],
+    queryKey: id ? returnInspectionKeys.detail(id) : returnInspectionKeys.details(),
     enabled: !!id,
     queryFn: async (): Promise<ReturnInspectionWithJoins> => {
       const { data, error } = await supabase
@@ -27,7 +30,7 @@ export function useReturnInspection(id?: string) {
 
 export function useReturnInspections(forkliftId?: string) {
   return useQuery({
-    queryKey: ["return_inspections", forkliftId],
+    queryKey: returnInspectionKeys.byFilter({ forkliftId: forkliftId ?? null }),
     staleTime: 60_000,
     queryFn: async (): Promise<ReturnInspectionWithJoins[]> => {
       let query = supabase
@@ -43,8 +46,7 @@ export function useReturnInspections(forkliftId?: string) {
 }
 
 export function useCreateReturnInspection() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (inspection: Omit<TablesInsert<"return_inspections">, "inspection_number">) => {
       const { data, error } = await supabase.rpc("complete_return_inspection", {
         p_booking_id: inspection.booking_id,
@@ -60,14 +62,12 @@ export function useCreateReturnInspection() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["return_inspections"] });
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["forklifts"] });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al completar inspección de retorno", error: err });
-    },
+    invalidateKeys: [
+      returnInspectionKeys.all,
+      ["bookings"],
+      ["forklifts"],
+      ["status_logs"],
+    ],
+    errorTitle: "Error al completar inspección de retorno",
   });
 }
