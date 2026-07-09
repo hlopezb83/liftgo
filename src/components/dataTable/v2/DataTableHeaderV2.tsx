@@ -36,7 +36,7 @@ function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
   const className = buildHeaderClass(meta, sortDir);
   if (header.isPlaceholder) return <TableHead key={header.id} className={className} />;
   const innerClass = cn(
-    "flex items-center gap-1 w-full",
+    "flex items-center gap-1 w-full uppercase tracking-wider",
     meta?.align === "right" && "justify-end",
     meta?.align === "center" && "justify-center",
   );
