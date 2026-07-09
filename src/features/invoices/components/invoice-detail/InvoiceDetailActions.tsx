@@ -128,7 +128,7 @@ export function InvoiceDetailActions({
       {visibility.showAcuseButtons && (
         <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
       )}
-      {cfdiStatus === "stamped" && !flags.isPendingCancel && (
+      {flags.canCancelCfdi && (
         <Button
           size="sm"
           variant="outline"
