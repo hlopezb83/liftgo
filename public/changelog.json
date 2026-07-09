@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.139.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 8: useEntityMutation en bookings, fleet, customers, crm, maintenance, inventory y suppliers",
+    "description": "Barrido final de la migración a `useEntityMutation`. Hooks migrados (11 archivos, 30 mutations): useBookingMutations (create/update/delete/cancel), useDrivers (3), useEquipmentModels (3), useMechanics (3), useMaintenancePolicies (3), useMaintenanceLogs (3), useCustomers (3), useProspectMutations (3), usePartInventoryMutations (4), useSupplierContacts (3), useSupplierBankAccounts (3). Nuevas factories `createEntityKeys` en `crm/lib/queryKeys` (prospectKeys), `inventory/lib/queryKeys` (partInventoryKeys), `maintenance/lib/queryKeys` (mechanicKeys, maintenancePolicyKeys, maintenanceLogKeys) y `suppliers/lib/queryKeys` (supplierKeys, supplierContactKeys, supplierBankAccountKeys). Fuera de alcance por lógica especial: useForkliftMutations (optimistic updates + setQueryData), useCreateSupplier/useUpdateSupplier (translateSupplierError). Efecto: -140 LOC de boilerplate, toasts de error garantizados en ~10 mutations que antes eran silenciosas, typecheck limpio, 121 tests verdes en los módulos afectados.",
+    "category": "improvement"
+  },
+  {
     "version": "6.138.0",
     "date": "2026-07-09",
     "type": "minor",

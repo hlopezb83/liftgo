@@ -1,8 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { CLABE_REGEX, isValidClabe } from "@/lib/schemas/common";
+import { supplierBankAccountKeys } from "../lib/queryKeys";
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];
@@ -23,7 +24,7 @@ export function maskClabe(clabe: string | null): string {
 
 export function useSupplierBankAccounts(supplierId: string | undefined) {
   return useQuery({
-    queryKey: ["supplier_bank_accounts", supplierId],
+    queryKey: supplierBankAccountKeys.detail(supplierId ?? "none"),
     enabled: Boolean(supplierId),
     staleTime: 60_000,
     queryFn: async () => {
@@ -52,8 +53,7 @@ async function clearPrimary(supplierId: string, exceptId?: string) {
 }
 
 export function useCreateSupplierBankAccount() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: Insert) => {
       if (input.is_primary && input.supplier_id) await clearPrimary(input.supplier_id);
       const { data, error } = await supabase
@@ -64,43 +64,35 @@ export function useCreateSupplierBankAccount() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["supplier_bank_accounts", vars.supplier_id] });
-      notifySuccess("Cuenta bancaria agregada");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo crear la cuenta bancaria" }),
+    invalidateKeys: [supplierBankAccountKeys.all],
+    successMsg: "Cuenta bancaria agregada",
+    errorTitle: "No se pudo crear la cuenta bancaria",
   });
 }
 
 export function useUpdateSupplierBankAccount() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, supplier_id, patch }: { id: string; supplier_id: string; patch: Update }) => {
       if (patch.is_primary === true) await clearPrimary(supplier_id, id);
       const { error } = await supabase.from("supplier_bank_accounts").update(patch).eq("id", id);
       if (error) throw error;
       return id;
     },
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["supplier_bank_accounts", vars.supplier_id] });
-      notifySuccess("Cuenta bancaria actualizada");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo actualizar la cuenta bancaria" }),
+    invalidateKeys: [supplierBankAccountKeys.all],
+    successMsg: "Cuenta bancaria actualizada",
+    errorTitle: "No se pudo actualizar la cuenta bancaria",
   });
 }
 
 export function useDeleteSupplierBankAccount() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, supplier_id: _s }: { id: string; supplier_id: string }) => {
+  return useEntityMutation({
+    mutationFn: async ({ id }: { id: string; supplier_id: string }) => {
       const { error } = await supabase.from("supplier_bank_accounts").delete().eq("id", id);
       if (error) throw error;
       return id;
     },
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["supplier_bank_accounts", vars.supplier_id] });
-      notifySuccess("Cuenta bancaria eliminada");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo eliminar la cuenta bancaria" }),
+    invalidateKeys: [supplierBankAccountKeys.all],
+    successMsg: "Cuenta bancaria eliminada",
+    errorTitle: "No se pudo eliminar la cuenta bancaria",
   });
 }

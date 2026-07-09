@@ -1,5 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { equipmentModelKeys } from "../lib/queryKeys";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -18,7 +20,7 @@ type EquipmentModelInput = {
 
 export function useEquipmentModels() {
   return useQuery({
-    queryKey: ["equipment_models"],
+    queryKey: equipmentModelKeys.all,
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -34,36 +36,36 @@ export function useEquipmentModels() {
 }
 
 export function useCreateEquipmentModel() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: EquipmentModelInput) => {
       const { data, error } = await supabase.from("equipment_models").insert(input).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["equipment_models"] }),
+    invalidateKeys: [equipmentModelKeys.all],
+    errorTitle: "Error al crear modelo",
   });
 }
 
 export function useUpdateEquipmentModel() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...input }: EquipmentModelInput & { id: string }) => {
       const { data, error } = await supabase.from("equipment_models").update(input).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["equipment_models"] }),
+    invalidateKeys: [equipmentModelKeys.all],
+    errorTitle: "Error al actualizar modelo",
   });
 }
 
 export function useDeleteEquipmentModel() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("equipment_models").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["equipment_models"] }),
+    invalidateKeys: [equipmentModelKeys.all],
+    errorTitle: "Error al eliminar modelo",
   });
 }

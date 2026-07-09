@@ -1,5 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { driverKeys } from "../lib/queryKeys";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -16,7 +18,7 @@ type DriverInput = {
 
 export function useDrivers() {
   return useQuery({
-    queryKey: ["drivers"],
+    queryKey: driverKeys.all,
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,7 +33,7 @@ export function useDrivers() {
 
 export function useActiveDrivers() {
   return useQuery({
-    queryKey: ["drivers", "active"],
+    queryKey: [...driverKeys.all, "active"] as const,
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,36 +48,36 @@ export function useActiveDrivers() {
 }
 
 export function useCreateDriver() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: DriverInput) => {
       const { data, error } = await supabase.from("drivers").insert(input).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drivers"] }),
+    invalidateKeys: [driverKeys.all],
+    errorTitle: "Error al crear chofer",
   });
 }
 
 export function useUpdateDriver() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...input }: DriverInput & { id: string }) => {
       const { data, error } = await supabase.from("drivers").update(input).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drivers"] }),
+    invalidateKeys: [driverKeys.all],
+    errorTitle: "Error al actualizar chofer",
   });
 }
 
 export function useDeleteDriver() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("drivers").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["drivers"] }),
+    invalidateKeys: [driverKeys.all],
+    errorTitle: "Error al eliminar chofer",
   });
 }

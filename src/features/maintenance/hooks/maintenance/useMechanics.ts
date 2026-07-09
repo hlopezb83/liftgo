@@ -1,5 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { mechanicKeys } from "../../lib/queryKeys";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -16,7 +18,7 @@ type MechanicInput = {
 
 export function useMechanics() {
   return useQuery({
-    queryKey: ["mechanics"],
+    queryKey: mechanicKeys.all,
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -31,7 +33,7 @@ export function useMechanics() {
 
 export function useActiveMechanics() {
   return useQuery({
-    queryKey: ["mechanics", "active"],
+    queryKey: [...mechanicKeys.all, "active"] as const,
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,36 +48,36 @@ export function useActiveMechanics() {
 }
 
 export function useCreateMechanic() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: MechanicInput) => {
       const { data, error } = await supabase.from("mechanics").insert(input).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mechanics"] }),
+    invalidateKeys: [mechanicKeys.all],
+    errorTitle: "Error al crear mecánico",
   });
 }
 
 export function useUpdateMechanic() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...input }: MechanicInput & { id: string }) => {
       const { data, error } = await supabase.from("mechanics").update(input).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mechanics"] }),
+    invalidateKeys: [mechanicKeys.all],
+    errorTitle: "Error al actualizar mecánico",
   });
 }
 
 export function useDeleteMechanic() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("mechanics").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["mechanics"] }),
+    invalidateKeys: [mechanicKeys.all],
+    errorTitle: "Error al eliminar mecánico",
   });
 }

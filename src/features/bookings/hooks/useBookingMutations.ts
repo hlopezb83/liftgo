@@ -1,13 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { bookingKeys } from "../lib/queryKeys";
 import { forkliftKeys } from "@/features/fleet";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useCreateBooking() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (booking: Omit<TablesInsert<"bookings">, "booking_number">) => {
       const { data, error } = await supabase.rpc("create_booking", {
         p_forklift_id: booking.forklift_id,
@@ -22,65 +20,41 @@ export function useCreateBooking() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al crear reserva", error: err });
-    },
+    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    errorTitle: "Error al crear reserva",
   });
 }
 
 export function useUpdateBooking() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"bookings"> & { id: string }) => {
       const { data, error } = await supabase.from("bookings").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al actualizar reserva", error: err });
-    },
+    invalidateKeys: [bookingKeys.all],
+    errorTitle: "Error al actualizar reserva",
   });
 }
 
 export function useDeleteBooking() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (bookingId: string) => {
       const { error } = await supabase.from("bookings").delete().eq("id", bookingId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al eliminar reserva", error: err });
-    },
+    invalidateKeys: [bookingKeys.all, forkliftKeys.all],
+    errorTitle: "Error al eliminar reserva",
   });
 }
 
 export function useCancelBooking() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (bookingId: string) => {
       const { error } = await supabase.rpc("cancel_booking", { p_booking_id: bookingId });
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al cancelar reserva", error: err });
-    },
+    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    errorTitle: "Error al cancelar reserva",
   });
 }
