@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.114.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Auditoría visual Fase 1 — consolidación de tokens del design system",
+    "description": "Se registraron `accent-gold` y `crm.*` en tailwind.config.ts, se eliminaron los arbitrary-values `bg-[hsl(var(--x))]` en SidebarBranding y ROLE_COLORS, se reemplazó `bg-white`/`text-white` por tokens semánticos que respetan dark mode y se unificó la tipografía del Input a `text-sm` desktop-first.",
+    "category": "improvement"
+  },
+  {
     "version": "6.113.0",
     "date": "2026-07-07",
     "type": "minor",
