@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { SUPPLIER_BILLS_QK, supplierBillKeys } from "./useSupplierBills";
+import { supplierBillKeys } from "./useSupplierBills";
 
 interface DeleteSupplierPaymentInput {
   paymentId: string;
@@ -27,7 +27,7 @@ export function useDeleteSupplierPayment() {
       return paymentId;
     },
     onSuccess: (paymentId, vars) => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
       qc.invalidateQueries({ queryKey: supplierBillKeys.detail(vars.billId) });
       qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
       qc.invalidateQueries({ queryKey: ["reconciliation_status", `supplier:${paymentId}`] });

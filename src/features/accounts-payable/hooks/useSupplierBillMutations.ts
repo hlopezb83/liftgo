@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
 import type { Database } from "@/integrations/supabase/types";
-import { SUPPLIER_BILLS_QK, supplierBillKeys } from "./useSupplierBills";
+import { supplierBillKeys } from "./useSupplierBills";
 
 type Insert = Database["public"]["Tables"]["supplier_bills"]["Insert"];
 type Update = Database["public"]["Tables"]["supplier_bills"]["Update"];
@@ -31,7 +31,7 @@ export function useCreateSupplierBill() {
       return data;
     },
     onSuccess: (row) => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
       notifySuccess("Factura registrada", { description: row.bill_number });
     },
     onError: (e: unknown) =>
@@ -54,7 +54,7 @@ export function useUpdateSupplierBill() {
       return id;
     },
     onSuccess: (id) => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
       qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
       notifySuccess("Factura actualizada");
     },
@@ -72,7 +72,7 @@ export function useDeleteSupplierBill() {
       return id;
     },
     onSuccess: (id) => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
       qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
       notifySuccess("Factura eliminada");
     },
@@ -93,7 +93,7 @@ export function useCancelSupplierBill() {
       return id;
     },
     onSuccess: (id) => {
-      qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });
+      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
       qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
       notifySuccess("Factura cancelada");
     },
