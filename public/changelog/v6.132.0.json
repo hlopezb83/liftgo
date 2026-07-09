@@ -1,0 +1,20 @@
+{
+  "version": "6.132.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 2: adopción de schemas y formatter compartidos",
+  "summary": "12 archivos migrados a optionalEmail/rfcOptional/rfcRequired/positiveAmount/CLABE compartidos y formatCurrencyWithCode. Cero cambios de comportamiento; 794 tests verdes.",
+  "highlights": [
+    "optionalEmail(): customerFormSchema, supplierFormSchema, SupplierContactFormDialog (elimina 3 copias del refine inline).",
+    "rfcOptional() / rfcRequired(): customerFormSchema, supplierFormSchema, operationsSchemas (operations gana validación de formato AAAA000000AAA que antes no tenía).",
+    "CLABE_REGEX / isValidClabe re-exportados desde useSupplierBankAccounts para preservar imports; fuente canónica en @/lib/schemas/common.",
+    "positiveAmount(): supplierPaymentSchema, ReportTransferDialog, EditPaymentDialog, CloseWonDialog.",
+    "formatCurrencyWithCode() en SupplierBillFormDialog reemplaza toLocaleString inline (respeta caché Intl.NumberFormat).",
+    "Alias STATUS_LABELS eliminado de useBookingActionsLogic; único consumidor migrado a BOOKING_STATUS_LABELS."
+  ],
+  "internal_notes": [
+    "Lote 3 (siguiente): src/lib/rules/{quotes,invoices}.ts para centralizar guards de estado (canEditQuote, canConvertQuote, computeInvoiceFlags).",
+    "Ajuste técnico: positiveAmount() usa z.number() (no coerce) porque los formularios reciben number desde CurrencyField; RHF preserva inferencia estricta."
+  ],
+  "category": "improvement"
+}

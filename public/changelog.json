@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.132.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 2: adopción de schemas y formatter compartidos",
+    "description": "Migración de 12 archivos a los helpers del Lote 1, eliminando ~120 LOC de refinements duplicados y una inconsistencia de formatting. (1) Email opcional: customers/lib/customerFormSchema, suppliers/lib/supplierFormSchema y suppliers/components/SupplierContactFormDialog ahora usan optionalEmail() en lugar de repetir el refine inline. (2) RFC: customerFormSchema y supplierFormSchema usan rfcOptional() (normaliza uppercase+trim y valida regex AAAA000000AAA); operations/lib/operationsSchemas usa rfcRequired() (antes era z.string().min(1) sin validación de formato — ahora impone formato SAT). (3) CLABE: suppliers/hooks/useSupplierBankAccounts re-exporta CLABE_REGEX/isValidClabe desde @/lib/schemas/common (fuente canónica) preservando la API pública. (4) Monto positivo: accounts-payable/lib/supplierPaymentSchema, portal/ReportTransferDialog, invoices/EditPaymentDialog y crm/CloseWonDialog usan positiveAmount() unificando mensaje y validación. (5) formatCurrencyWithCode: SupplierBillFormDialog reemplaza toLocaleString inline por el formatter cacheado para respetar el contrato de rendimiento en tablas. (6) STATUS_LABELS: se elimina el alias en useBookingActionsLogic; único consumidor (BookingActionDialogs) importa BOOKING_STATUS_LABELS directo. Cero cambios de comportamiento. Vitest: 134 archivos / 794 tests verdes. tsgo limpio.",
+    "category": "improvement"
+  },
+  {
     "version": "6.131.0",
     "date": "2026-07-09",
     "type": "minor",
