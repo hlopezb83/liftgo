@@ -16,6 +16,7 @@ import {
   useAcceptPortalQuote,
   useRejectPortalQuote,
 } from "../hooks/usePortalExtras";
+import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
 
 interface LineItem {
   description?: string;
@@ -37,8 +38,8 @@ export default function PortalQuoteDetail() {
   if (!quote) return <p className="text-muted-foreground">Cotización no encontrada</p>;
 
   const items: LineItem[] = Array.isArray(quote.line_items) ? (quote.line_items as LineItem[]) : [];
-  const canAct = quote.status === "sent";
-  const wasAccepted = quote.status === "accepted" || !!quote.accepted_at;
+  const canAct = canActOnPortalQuote(quote);
+  const wasAccepted = isQuoteAccepted(quote);
 
   const subtitle = (
     <span className="inline-flex items-center gap-2">

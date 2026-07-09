@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Receipt } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 
 interface Props {
   quote: Tables<"quotes">;
@@ -24,8 +25,7 @@ interface Props {
 function ConvertButton({ quote, isSale, alreadyConverted, isConverting, onConvertClick }: {
   quote: Tables<"quotes">; isSale: boolean; alreadyConverted: boolean; isConverting: boolean; onConvertClick: () => void;
 }) {
-  const canConvert = !isSale && !alreadyConverted &&
-    (quote.status === "draft" || quote.status === "sent" || quote.status === "accepted");
+  const canConvert = canConvertQuote(quote, { isSale, alreadyConverted });
   if (alreadyConverted) {
     return (
       <Button size="sm" variant="outline" disabled className="opacity-70">
@@ -103,7 +103,7 @@ export function QuoteDetailActions({
   onSetStatus, onConvertClick, onDelete,
 }: Props) {
   const navigate = useNavigate();
-  const isEditable = quote.status === "draft" || quote.status === "sent";
+  const isEditable = isQuoteEditable(quote);
   return (
     <>
       <QuotePDFButton quoteId={quote.id} />

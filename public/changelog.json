@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.133.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 3: reglas de dominio centralizadas (quotes/invoices)",
+    "description": "Nueva capa src/lib/rules/ como fuente única de verdad para decisiones de dominio previamente duplicadas en componentes. (1) rules/quotes.ts expone isQuoteEditable (draft/sent), isQuoteAccepted (status accepted o accepted_at presente), canConvertQuote({isSale, alreadyConverted}) sobre draft/sent/accepted y canActOnPortalQuote (solo sent) — reemplaza checks inline en QuoteDetailActions (isEditable, canConvert) y PortalQuoteDetail (canAct, wasAccepted). (2) rules/invoices.ts expone computeInvoiceFlags(invoice, cfdiStatus, company) que devuelve InvoiceActionFlags + visibility (compone computeInvoiceVisibility). Unifica la fórmula de isCancelled/isStamped/isPendingCancel y añade canCancelCfdi (antes: chequeo suelto `cfdiStatus === 'stamped' && !isPendingCancel` en el JSX). InvoiceDetailActions reemplazó su computeFlags local por esta regla. Tests: 8 nuevos (rules/quotes 4, rules/invoices 4); 198 pruebas verdes en el bloque afectado. Cero cambios de comportamiento (mismos disparadores/render), la deuda queda lista para invocar las reglas también desde permisos y edge functions futuras.",
+    "category": "improvement"
+  },
+  {
     "version": "6.132.0",
     "date": "2026-07-09",
     "type": "minor",
