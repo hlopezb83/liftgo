@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Form } from "@/components/ui/form";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { CurrencyField, SelectField, TextareaField } from "@/components/forms/fields";
 import { useForklifts } from "@/features/fleet";
 import { useCustomers } from "@/features/customers";
 import { useReportDamageForm } from "../../hooks/useReportDamageForm";
@@ -21,87 +20,75 @@ export function ReportDamageDialog() {
   const [open, setOpen] = useState(false);
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
-  const form = useReportDamageForm(() => setOpen(false));
+  const { form, previews, onDrop, removePreview, reset, handleSubmit, isProcessing } =
+    useReportDamageForm(() => setOpen(false));
+
+  const forkliftOptions = (forklifts ?? []).map((f) => ({
+    value: f.id,
+    label: `${f.manufacturer} ${f.model} — ${f.name}`,
+  }));
+  const customerOptions = [
+    { value: "", label: "Sin cliente" },
+    ...(customers ?? []).map((c) => ({
+      value: c.id,
+      label: c.company && c.company !== c.name ? `${c.name} — ${c.company}` : c.name,
+    })),
+  ];
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) form.reset(); }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
       <DialogTrigger asChild>
         <Button>
           <AlertTriangle className="h-4 w-4 mr-2" />
           Reportar Daño
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Reportar Daño Manual</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Montacargas *</Label>
-            <Select value={form.forkliftId} onValueChange={form.setForkliftId}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar montacargas" /></SelectTrigger>
-              <SelectContent>
-                {forklifts?.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>
-                    {f.manufacturer} {f.model} — {f.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Cliente (opcional)</Label>
-            <Select value={form.customerId} onValueChange={form.setCustomerId}>
-              <SelectTrigger><SelectValue placeholder="Sin cliente asociado" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sin cliente</SelectItem>
-                {customers?.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}{c.company && c.company !== c.name ? ` — ${c.company}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Descripción del daño *</Label>
-            <Textarea
-              value={form.description}
-              onChange={(e) => form.setDescription(e.target.value)}
+      <FormDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }} width="md" title="Reportar Daño Manual">
+        <Form {...form}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <SelectField
+              control={form.control}
+              name="forkliftId"
+              label="Montacargas"
+              options={forkliftOptions}
+              placeholder="Seleccionar montacargas"
+              required
+            />
+            <SelectField
+              control={form.control}
+              name="customerId"
+              label="Cliente (opcional)"
+              options={customerOptions}
+              placeholder="Sin cliente asociado"
+            />
+            <TextareaField
+              control={form.control}
+              name="description"
+              label="Descripción del daño"
               placeholder="Describe el daño encontrado..."
               rows={3}
+              required
             />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Costo estimado (opcional)</Label>
-            <Input
-              type="number"
-              min={0}
-              step={0.01}
-              value={form.estimatedCost}
-              onChange={(e) => form.setEstimatedCost(e.target.value)}
-              placeholder="0.00"
+            <CurrencyField
+              control={form.control}
+              name="estimatedCost"
+              label="Costo estimado (opcional)"
+              currency="MXN"
             />
-          </div>
 
-          <DamageEvidenceSection
-            previews={form.previews}
-            onDrop={form.onDrop}
-            onRemove={form.removePreview}
-          />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={form.handleSubmit} disabled={form.isProcessing}>
-            {form.isProcessing
-              ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Guardando…</>
-              : getReportButtonLabel(form.previews.length)}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+            <DamageEvidenceSection previews={previews} onDrop={onDrop} onRemove={removePreview} />
+
+            <FormDialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={isProcessing}>
+                {isProcessing
+                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Guardando…</>
+                  : getReportButtonLabel(previews.length)}
+              </Button>
+            </FormDialogFooter>
+          </form>
+        </Form>
+      </FormDialog>
     </Dialog>
   );
 }

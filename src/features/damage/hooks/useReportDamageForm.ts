@@ -1,18 +1,36 @@
-import { useCallback, useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 
 import { useCreateDamageRecord } from "./useDamageRecords";
 import { useUploadDocument } from "@/hooks/useDocuments";
 
 export interface DamagePreview { file: File; url: string }
 
+export const reportDamageSchema = z.object({
+  forkliftId: z.string().min(1, "Selecciona un montacargas"),
+  customerId: z.string().default(""),
+  description: z.string().trim().min(1, "Describe el daño"),
+  estimatedCost: z.number().min(0).nullable().default(null),
+});
+
+export type ReportDamageValues = z.infer<typeof reportDamageSchema>;
+
+const DEFAULTS: ReportDamageValues = {
+  forkliftId: "",
+  customerId: "",
+  description: "",
+  estimatedCost: null,
+};
+
 export function useReportDamageForm(onClose: () => void) {
-  const [forkliftId, setForkliftId] = useState("");
-  const [customerId, setCustomerId] = useState("");
-  const [description, setDescription] = useState("");
-  const [estimatedCost, setEstimatedCost] = useState("");
+  const form = useForm<ReportDamageValues>({
+    resolver: zodResolver(reportDamageSchema),
+    defaultValues: DEFAULTS,
+  });
   const [previews, setPreviews] = useState<DamagePreview[]>([]);
-  const [submitting, setSubmitting] = useState(false);
 
   const createDamage = useCreateDamageRecord();
   const uploadDoc = useUploadDocument();
@@ -29,27 +47,25 @@ export function useReportDamageForm(onClose: () => void) {
     });
   };
 
-  const reset = () => {
-    previews.forEach((p) => URL.revokeObjectURL(p.url));
-    setForkliftId("");
-    setCustomerId("");
-    setDescription("");
-    setEstimatedCost("");
-    setPreviews([]);
-  };
+  const reset = useCallback(() => {
+    setPreviews((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.url));
+      return [];
+    });
+    form.reset(DEFAULTS);
+  }, [form]);
 
-  const handleSubmit = async () => {
-    if (!forkliftId || !description.trim()) {
-      notifyError({ title: "Campos requeridos", description: "Selecciona un montacargas y describe el daño." });
-      return;
-    }
-    setSubmitting(true);
+  useEffect(() => () => {
+    previews.forEach((p) => URL.revokeObjectURL(p.url));
+  }, [previews]);
+
+  const handleSubmit = form.handleSubmit(async (values) => {
     try {
       const newRecord = await createDamage.mutateAsync({
-        forklift_id: forkliftId,
-        customer_id: customerId || null,
-        description: description.trim(),
-        estimated_cost: estimatedCost ? Number(estimatedCost) : 0,
+        forklift_id: values.forkliftId,
+        customer_id: values.customerId || null,
+        description: values.description,
+        estimated_cost: values.estimatedCost ?? 0,
         status: "reported",
       });
 
@@ -69,19 +85,14 @@ export function useReportDamageForm(onClose: () => void) {
       reset();
       onClose();
     } catch {
-      // silent: errors handled by mutation hooks (createDamageReport / useUploadDocument)
-    } finally {
-      setSubmitting(false);
+      // silent: errors handled by mutation hooks
     }
-  };
+  });
 
   return {
-    forkliftId, setForkliftId,
-    customerId, setCustomerId,
-    description, setDescription,
-    estimatedCost, setEstimatedCost,
+    form,
     previews, onDrop, removePreview, reset,
     handleSubmit,
-    isProcessing: submitting || createDamage.isPending,
+    isProcessing: form.formState.isSubmitting || createDamage.isPending,
   };
 }
