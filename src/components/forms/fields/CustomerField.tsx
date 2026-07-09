@@ -52,7 +52,7 @@ export function CustomerField<TFieldValues extends FieldValues>({
               {customers?.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
-                  {c.company_name && c.company_name !== c.name ? ` — ${c.company_name}` : ""}
+                  {c.company && c.company !== c.name ? ` — ${c.company}` : ""}
                 </SelectItem>
               ))}
             </SelectContent>
