@@ -57,14 +57,21 @@ function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: Tool
 export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Flujo de Efectivo</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-status-rented/10">
+            <Wallet className="h-4 w-4 text-status-rented" />
+          </div>
+          Flujo de Efectivo
+        </CardTitle>
+      </CardHeader>
       <CardContent>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data} barGap={4}>
+            <BarChart data={data} barGap={4} margin={{ top: 5, right: 12, left: 12, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
+              <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCompactMxn(Number(v))} width={64} />
               <Tooltip content={<CashFlowTooltip />} />
               <Bar dataKey="invoiced" name="Facturado" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
               <Bar dataKey="paid" name="Pagado" fill="hsl(var(--status-available))" radius={[4, 4, 0, 0]} />
