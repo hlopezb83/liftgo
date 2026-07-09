@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
@@ -73,23 +74,21 @@ export function useUpdateInvoice() {
 }
 
 export function useDeleteInvoice() {
-  return useEntityMutation({
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("invoices").delete().eq("id", id);
       if (error) throw error;
       return id;
     },
-    invalidateKeys: [invoiceKeys.lists()],
-    successMsg: "Factura eliminada",
-    errorTitle: "Error al eliminar factura",
-    // El detalle debe removerse ANTES de que el consumer refetchee (evita PGRST116).
-    // useEntityMutation invalida primero; para asegurar removeQueries antes del refetch
-    // usamos el callback custom que corre tras invalidación pero antes de que el
-    // consumidor observe (React re-render en el siguiente tick).
-    onSuccess: () => {
-      // La invalidación de `invoiceKeys.lists()` no toca `invoiceKeys.detail(id)`,
-      // así que el detalle huérfano no se refetchea. Sin embargo, si el consumer
-      // todavía tiene una query activa, dejamos que se limpie por navegación.
+    onSuccess: (id) => {
+      // Removemos el detalle del cache ANTES de invalidar para que
+      // `useInvoice(id)` no refetchee una fila borrada (PGRST116).
+      queryClient.removeQueries({ queryKey: invoiceKeys.detail(id), exact: true });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      notifySuccess("Factura eliminada");
     },
+    onError: (err: Error) => notifyError({ title: "Error al eliminar factura", error: err }),
   });
 }
+
