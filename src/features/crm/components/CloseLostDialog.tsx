@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { XCircle } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { SelectField, TextareaField } from "@/components/forms/fields";
 import { nowMty } from "@/lib/utils";
-import { LOST_REASONS, type LostReason } from "../lib/constants";
+import { LOST_REASONS } from "../lib/constants";
 import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
@@ -18,84 +20,92 @@ interface Props {
   isPending?: boolean;
 }
 
+const schema = z
+  .object({
+    reason: z.string().min(1, "Selecciona una razón"),
+    extraNote: z.string().default(""),
+  })
+  .refine((v) => v.reason !== "otro" || v.extraNote.trim().length > 0, {
+    message: "Describe la razón cuando eliges 'Otro'",
+    path: ["extraNote"],
+  });
+
+type FormValues = z.infer<typeof schema>;
+
 export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPending }: Props) {
-  const [reason, setReason] = useState<LostReason | "">("");
-  const [extraNote, setExtraNote] = useState("");
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { reason: "", extraNote: "" },
+  });
 
   useEffect(() => {
-    if (open) {
-      setReason("");
-      setExtraNote("");
-    }
-  }, [open]);
+    if (open) form.reset({ reason: "", extraNote: "" });
+  }, [open, form]);
 
   if (!prospect) return null;
 
+  const reason = form.watch("reason");
   const requiresNote = reason === "otro";
-  const isValid = reason !== "" && (!requiresNote || extraNote.trim().length > 0);
 
-  const handleConfirm = () => {
-    if (!isValid) return;
+  const handleSubmit = form.handleSubmit((values) => {
     const today = format(nowMty(), "yyyy-MM-dd");
     const baseNotes = prospect.notes ? `${prospect.notes}\n\n` : "";
-    const reasonLabel = LOST_REASONS.find((r) => r.value === reason)?.label ?? reason;
-    const closingNote = `[Cierre Perdido ${today}] Razón: ${reasonLabel}${extraNote ? ` — ${extraNote}` : ""}`;
+    const reasonLabel = LOST_REASONS.find((r) => r.value === values.reason)?.label ?? values.reason;
+    const trimmedNote = values.extraNote.trim();
+    const closingNote = `[Cierre Perdido ${today}] Razón: ${reasonLabel}${trimmedNote ? ` — ${trimmedNote}` : ""}`;
     onConfirm({
-      lost_reason: reason,
+      lost_reason: values.reason,
       closed_at: new Date().toISOString(),
       notes: `${baseNotes}${closingNote}`,
     });
-  };
+  });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <XCircle className="h-5 w-5 text-destructive" />
-            Marcar como Perdido
-          </DialogTitle>
-          <DialogDescription>
-            Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Saldrá del pipeline activo.
-          </DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      width="md"
+      title="Marcar como Perdido"
+      description={
+        <>
+          Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Saldrá del pipeline activo.
+        </>
+      }
+    >
+      <Form {...form}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <SelectField
+            control={form.control}
+            name="reason"
+            label="Razón de pérdida"
+            options={LOST_REASONS.map((r) => ({ value: r.value, label: r.label }))}
+            placeholder="Selecciona una razón"
+            required
+          />
+          <TextareaField
+            control={form.control}
+            name="extraNote"
+            label="Nota"
+            required={requiresNote}
+            rows={3}
+            placeholder={
+              requiresNote
+                ? "Describe la razón (obligatorio si seleccionaste Otro)"
+                : "Detalles adicionales (opcional)"
+            }
+          />
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="lost-reason">Razón de pérdida *</Label>
-            <Select value={reason} onValueChange={(v) => setReason(v as LostReason)}>
-              <SelectTrigger id="lost-reason">
-                <SelectValue placeholder="Selecciona una razón" />
-              </SelectTrigger>
-              <SelectContent>
-                {LOST_REASONS.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lost-note">Nota {requiresNote && "*"}</Label>
-            <Textarea
-              id="lost-note"
-              rows={3}
-              value={extraNote}
-              onChange={(e) => setExtraNote(e.target.value)}
-              placeholder={requiresNote ? "Describe la razón (obligatorio si seleccionaste Otro)" : "Detalles adicionales (opcional)"}
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancelar
-          </Button>
-          <Button variant="destructive" onClick={handleConfirm} disabled={isPending || !isValid}>
-            <XCircle className="h-4 w-4 mr-1" />
-            Confirmar Perdido
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="destructive" disabled={isPending}>
+              <XCircle className="h-4 w-4 mr-1" />
+              Confirmar Perdido
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }

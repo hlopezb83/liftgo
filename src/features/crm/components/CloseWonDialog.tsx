@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { CurrencyField, DateField, TextareaField } from "@/components/forms/fields";
 import { nowMty, formatDateDisplay } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
-import { DatePickerField } from "@/components/forms/DatePickerField";
 import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
@@ -18,83 +19,89 @@ interface Props {
   isPending?: boolean;
 }
 
+const schema = z.object({
+  finalAmount: z.number({ invalid_type_error: "Requerido" }).positive("Debe ser mayor a 0"),
+  closedAt: z.date({ required_error: "Requerido" }),
+  extraNote: z.string().default(""),
+});
+
+type FormValues = z.infer<typeof schema>;
+
 export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPending }: Props) {
-  const [amount, setAmount] = useState("0");
-  const [date, setDate] = useState<Date | undefined>(() => nowMty());
-  const [extraNote, setExtraNote] = useState("");
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { finalAmount: 0, closedAt: nowMty(), extraNote: "" },
+  });
 
   useEffect(() => {
     if (open && prospect) {
-      setAmount(String(prospect.dealValue ?? 0));
-      setDate(nowMty());
-      setExtraNote("");
+      form.reset({
+        finalAmount: Number(prospect.dealValue ?? 0),
+        closedAt: nowMty(),
+        extraNote: "",
+      });
     }
-  }, [open, prospect]);
+  }, [open, prospect, form]);
 
   if (!prospect) return null;
 
-  const handleConfirm = () => {
-    const numAmount = Number(amount);
-    if (!numAmount || numAmount <= 0 || !date) return;
-    const ymd = toYMD(date);
+  const handleSubmit = form.handleSubmit((values) => {
+    const ymd = toYMD(values.closedAt);
     const baseNotes = prospect.notes ? `${prospect.notes}\n\n` : "";
-    const closingNote = extraNote ? `[Cierre Ganado ${formatDateDisplay(ymd)}] ${extraNote}` : null;
+    const trimmedNote = values.extraNote.trim();
+    const closingNote = trimmedNote ? `[Cierre Ganado ${formatDateDisplay(ymd)}] ${trimmedNote}` : null;
     onConfirm({
-      final_amount: numAmount,
-      closed_at: date.toISOString(),
+      final_amount: values.finalAmount,
+      closed_at: values.closedAt.toISOString(),
       notes: closingNote ? `${baseNotes}${closingNote}` : prospect.notes,
     });
-  };
+  });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-success" />
-            Marcar como Ganado
-          </DialogTitle>
-          <DialogDescription>
-            Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Se moverá fuera del pipeline activo.
-          </DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      width="md"
+      title="Marcar como Ganado"
+      description={
+        <>
+          Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Se moverá fuera del pipeline activo.
+        </>
+      }
+    >
+      <Form {...form}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <CurrencyField
+            control={form.control}
+            name="finalAmount"
+            label="Monto final cerrado"
+            currency="MXN"
+            required
+          />
+          <DateField control={form.control} name="closedAt" label="Fecha de cierre" required />
+          <TextareaField
+            control={form.control}
+            name="extraNote"
+            label="Nota (opcional)"
+            rows={3}
+            placeholder="Detalles del cierre, contrato firmado, etc."
+          />
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="final-amount">Monto final cerrado (MXN)</Label>
-            <Input
-              id="final-amount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-          <DatePickerField label="Fecha de cierre" date={date} onSelect={setDate} required />
-          <div className="space-y-2">
-            <Label htmlFor="close-note">Nota (opcional)</Label>
-            <Textarea
-              id="close-note"
-              rows={3}
-              value={extraNote}
-              onChange={(e) => setExtraNote(e.target.value)}
-              placeholder="Detalles del cierre, contrato firmado, etc."
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancelar
-          </Button>
-          <Button onClick={handleConfirm} disabled={isPending || Number(amount) <= 0 || !date} className="bg-success hover:bg-success/90 text-success-foreground">
-            <Trophy className="h-4 w-4 mr-1" />
-            Confirmar Ganado
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="bg-success hover:bg-success/90 text-success-foreground"
+            >
+              <Trophy className="h-4 w-4 mr-1" />
+              Confirmar Ganado
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }
-
