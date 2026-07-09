@@ -138,7 +138,7 @@ describe("useCreateCreditNote", () => {
     expect(creditNotesCalls.find((c) => c.method === "insert")).toBeUndefined();
     expect(invokeCalls).toHaveLength(0);
     expect(notifyErrorMock).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Error al crear nota de crédito" }),
+      expect.objectContaining({ title: "Error al crear nota de crédito" }),
     );
     expect(toastSuccess).not.toHaveBeenCalled();
   });
