@@ -34,7 +34,7 @@ export const StatCards = memo(function StatCards({ cards }: StatCardsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
       {cards.map((card) => {
-        const bg = card.bgColor ?? deriveBg(card.color);
+        const bg = card.bgColor ?? BG_BY_COLOR[card.color] ?? "bg-muted";
         return (
           <Card key={card.label} className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 overflow-hidden">
