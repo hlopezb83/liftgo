@@ -133,12 +133,9 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
 
       <SupplierPaymentRejectDialog
         open={rejectOpen}
-        onOpenChange={(o) => { setRejectOpen(o); if (!o) setRejectNotes(""); }}
-        notes={rejectNotes}
-        onNotesChange={setRejectNotes}
+        onOpenChange={setRejectOpen}
         onConfirm={confirmReject}
         pending={reject.isPending}
-        inputId={`reject-notes-${p.id}`}
       />
 
       <ConfirmDialog
