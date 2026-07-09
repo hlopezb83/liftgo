@@ -1,0 +1,34 @@
+{
+  "version": "6.121.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Ecosistema de field-wrappers RHF (DRY Fase A)",
+  "description": "12 componentes reutilizables + 1 piloto migrado.",
+  "changes": [
+    {
+      "type": "feature",
+      "title": "Set base de fields",
+      "description": "TextField, TextareaField (con contador opcional), SelectField, CheckboxField, SwitchField, NumberField (coerción a number|null en submit)."
+    },
+    {
+      "type": "feature",
+      "title": "CurrencyField",
+      "description": "Prefijo $, sufijo MXN/USD, alineación derecha tabular-nums, min=0 por defecto, almacena number|null."
+    },
+    {
+      "type": "feature",
+      "title": "DateField y DateRangeField",
+      "description": "Wrappers RHF sobre DatePickerField/DateRangePickerField existentes. En submit mapear con toYMD() para columnas date."
+    },
+    {
+      "type": "feature",
+      "title": "Autocompletados CustomerField, SupplierField, ForkliftField",
+      "description": "Wrappers RHF sobre selectores existentes. SupplierField soporta allowEmpty (Sin proveedor → null). ForkliftField recibe la lista pre-filtrada."
+    },
+    {
+      "type": "improvement",
+      "title": "Piloto: MaintenanceFormDialog",
+      "description": "127 → 106 LOC. Reemplaza 6 bloques FormField/FormItem/Select/Input anidados por llamadas de una línea a los nuevos wrappers."
+    }
+  ]
+}
