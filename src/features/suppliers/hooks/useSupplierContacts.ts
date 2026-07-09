@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { supplierContactKeys } from "../lib/queryKeys";
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierContact = Database["public"]["Tables"]["supplier_contacts"]["Row"];
@@ -20,7 +21,7 @@ export const SUPPLIER_CONTACT_ROLES = [
 
 export function useSupplierContacts(supplierId: string | undefined) {
   return useQuery({
-    queryKey: ["supplier_contacts", supplierId],
+    queryKey: supplierContactKeys.detail(supplierId ?? "none"),
     enabled: Boolean(supplierId),
     staleTime: 60_000,
     queryFn: async () => {
@@ -49,8 +50,7 @@ async function clearPrimary(supplierId: string, exceptId?: string) {
 }
 
 export function useCreateSupplierContact() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: Insert) => {
       if (input.is_primary && input.supplier_id) {
         await clearPrimary(input.supplier_id);
@@ -63,17 +63,14 @@ export function useCreateSupplierContact() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["supplier_contacts", vars.supplier_id] });
-      notifySuccess("Contacto agregado");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo crear el contacto" }),
+    invalidateKeys: [supplierContactKeys.all],
+    successMsg: "Contacto agregado",
+    errorTitle: "No se pudo crear el contacto",
   });
 }
 
 export function useUpdateSupplierContact() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, supplier_id, patch }: { id: string; supplier_id: string; patch: Update }) => {
       if (patch.is_primary === true) {
         await clearPrimary(supplier_id, id);
@@ -82,26 +79,21 @@ export function useUpdateSupplierContact() {
       if (error) throw error;
       return id;
     },
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["supplier_contacts", vars.supplier_id] });
-      notifySuccess("Contacto actualizado");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo actualizar el contacto" }),
+    invalidateKeys: [supplierContactKeys.all],
+    successMsg: "Contacto actualizado",
+    errorTitle: "No se pudo actualizar el contacto",
   });
 }
 
 export function useDeleteSupplierContact() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, supplier_id: _s }: { id: string; supplier_id: string }) => {
+  return useEntityMutation({
+    mutationFn: async ({ id }: { id: string; supplier_id: string }) => {
       const { error } = await supabase.from("supplier_contacts").delete().eq("id", id);
       if (error) throw error;
       return id;
     },
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ["supplier_contacts", vars.supplier_id] });
-      notifySuccess("Contacto eliminado");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo eliminar el contacto" }),
+    invalidateKeys: [supplierContactKeys.all],
+    successMsg: "Contacto eliminado",
+    errorTitle: "No se pudo eliminar el contacto",
   });
 }

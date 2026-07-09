@@ -1,52 +1,49 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { partInventoryKeys } from "../lib/queryKeys";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { PartInventory } from "./usePartsInventory";
 
 export function useCreatePart() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (part: TablesInsert<"parts_inventory">) => {
       const { data, error } = await supabase
         .from("parts_inventory").insert(part).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
-    onError: (err: Error) => notifyError({ title: "Error al crear refacción", error: err }),
+    invalidateKeys: [partInventoryKeys.all],
+    errorTitle: "Error al crear refacción",
   });
 }
 
 export function useUpdatePart() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<PartInventory>) => {
       const { data, error } = await supabase
         .from("parts_inventory").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
+    invalidateKeys: [partInventoryKeys.all],
+    errorTitle: "Error al actualizar refacción",
   });
 }
 
 export function useDeletePart() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("parts_inventory").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["parts_inventory"] }),
-    onError: (err: Error) => notifyError({ title: "Error al eliminar refacción", error: err }),
+    invalidateKeys: [partInventoryKeys.all],
+    errorTitle: "Error al eliminar refacción",
   });
 }
 
 export function useAddMaintenancePart() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (row: TablesInsert<"maintenance_parts"> & { currentLogCost?: number }) => {
       const { currentLogCost, ...insertRow } = row;
 
@@ -64,11 +61,11 @@ export function useAddMaintenancePart() {
       assertRowsAffected(logUpdated, "Actualizar costo de mantenimiento");
       return data;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance_parts", variables.maintenance_log_id] });
-      queryClient.invalidateQueries({ queryKey: ["parts_inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
-    },
-    onError: (err: Error) => notifyError({ title: "Error al agregar refacción", error: err }),
+    invalidateKeys: [
+      ["maintenance_parts"] as const,
+      partInventoryKeys.all,
+      ["maintenance_logs"] as const,
+    ],
+    errorTitle: "Error al agregar refacción",
   });
 }

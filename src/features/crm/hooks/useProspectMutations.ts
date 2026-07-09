@@ -1,14 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { prospectKeys } from "../lib/queryKeys";
 
 import type { ProspectInsert, ProspectUpdate } from "./useProspects";
 
-const QUERY_KEY = ["prospects"];
-
 export function useCreateProspect() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (p: Omit<ProspectInsert, "stage_order" | "customer_id">) => {
       const { data: existing } = await supabase
         .from("prospects")
@@ -25,39 +22,33 @@ export function useCreateProspect() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      notifySuccess("Prospecto creado");
-    },
-    onError: (e: Error) => notifyError({ title: "Error", error: e }),
+    invalidateKeys: [prospectKeys.all],
+    successMsg: "Prospecto creado",
+    errorTitle: "Error al crear prospecto",
   });
 }
 
 export function useUpdateProspect() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: ProspectUpdate) => {
       const { data, error } = await supabase
         .from("prospects").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
-    onError: (e: Error) => notifyError({ title: "Error", error: e }),
+    invalidateKeys: [prospectKeys.all],
+    errorTitle: "Error al actualizar prospecto",
   });
 }
 
 export function useDeleteProspect() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("prospects").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      notifySuccess("Prospecto eliminado");
-    },
-    onError: (e: Error) => notifyError({ title: "Error", error: e }),
+    invalidateKeys: [prospectKeys.all],
+    successMsg: "Prospecto eliminado",
+    errorTitle: "Error al eliminar prospecto",
   });
 }

@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { maintenancePolicyKeys } from "../../lib/queryKeys";
 
 export interface MaintenancePolicy {
   id: string;
@@ -19,7 +20,7 @@ export interface MaintenancePolicy {
 
 export function useMaintenancePolicies() {
   return useQuery({
-    queryKey: ["maintenance_policies"],
+    queryKey: maintenancePolicyKeys.all,
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -37,8 +38,7 @@ export function useMaintenancePolicies() {
 }
 
 export function useCreateMaintenancePolicy() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (policy: {
       forklift_id: string;
       provider_name: string;
@@ -54,17 +54,14 @@ export function useCreateMaintenancePolicy() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
-      notifySuccess("Póliza de mantenimiento creada");
-    },
-    onError: (err: Error) => notifyError({ error: err }),
+    invalidateKeys: [maintenancePolicyKeys.all],
+    successMsg: "Póliza de mantenimiento creada",
+    errorTitle: "Error al crear póliza",
   });
 }
 
 export function useUpdateMaintenancePolicy() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenancePolicy>) => {
       // Excluir campos sintéticos (joins) que no son columnas reales.
       const { forklift_name: _fn, forklift_status: _fs, ...dbUpdates } = updates;
@@ -79,17 +76,14 @@ export function useUpdateMaintenancePolicy() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
-      notifySuccess("Póliza actualizada");
-    },
-    onError: (err: Error) => notifyError({ error: err }),
+    invalidateKeys: [maintenancePolicyKeys.all],
+    successMsg: "Póliza actualizada",
+    errorTitle: "Error al actualizar póliza",
   });
 }
 
 export function useDeleteMaintenancePolicy() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("maintenance_policies")
@@ -97,10 +91,8 @@ export function useDeleteMaintenancePolicy() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["maintenance_policies"] });
-      notifySuccess("Póliza eliminada");
-    },
-    onError: (err: Error) => notifyError({ error: err }),
+    invalidateKeys: [maintenancePolicyKeys.all],
+    successMsg: "Póliza eliminada",
+    errorTitle: "Error al eliminar póliza",
   });
 }

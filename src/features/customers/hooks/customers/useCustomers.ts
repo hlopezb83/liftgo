@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { customerKeys } from "../../lib/queryKeys";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
@@ -26,46 +26,37 @@ export function useCustomers() {
 }
 
 export function useCreateCustomer() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (customer: TablesInsert<"customers">) => {
       const { data, error } = await supabase.from("customers").insert(customer).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: customerKeys.all }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al crear cliente", error: err });
-    },
+    invalidateKeys: [customerKeys.all],
+    errorTitle: "Error al crear cliente",
   });
 }
 
 export function useUpdateCustomer() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"customers"> & { id: string }) => {
       const { data, error } = await supabase.from("customers").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: customerKeys.all }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al actualizar cliente", error: err });
-    },
+    invalidateKeys: [customerKeys.all],
+    errorTitle: "Error al actualizar cliente",
   });
 }
 
 export function useDeleteCustomer() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       // Soft delete: preserva historial de facturas y bookings
       const { error } = await supabase.rpc("soft_delete_customer", { p_customer_id: id });
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: customerKeys.all }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al archivar cliente", error: err });
-    },
+    invalidateKeys: [customerKeys.all],
+    errorTitle: "Error al archivar cliente",
   });
 }
