@@ -1,20 +1,21 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { notifyError, notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 import { satStatusLabel } from "@/lib/domain/feedbackMessages";
 
 import type { TablesInsert } from "@/integrations/supabase/types";
 
 import { creditNoteKeys, invoiceKeys } from "../../lib/queryKeys";
-function invalidateCreditNotes(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({ queryKey: creditNoteKeys.all });
-  qc.invalidateQueries({ queryKey: invoiceKeys.all });
-}
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+
+/**
+ * Keys invalidadas tras cualquier mutación de nota de crédito:
+ * el árbol de credit_notes + invoices (afecta saldos, status y timbrado).
+ */
+const CREDIT_NOTE_INVALIDATIONS = [creditNoteKeys.all, invoiceKeys.all] as const;
 
 export function useCreateCreditNote() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: Omit<TablesInsert<"credit_notes">, "credit_note_number"> & { stamp?: boolean }) => {
       const { stamp, ...payload } = input;
       const { data: numberData, error: numErr } = await supabase.rpc("next_draft_credit_note_number");
@@ -34,35 +35,32 @@ export function useCreateCreditNote() {
           body: { credit_note_id: created.id },
         });
       }
-      return created;
+      return { created, stamped: !!stamp };
     },
-    onSuccess: (_d, vars) => {
-      notifySuccess(vars.stamp ? "Nota de crédito timbrada" : "Nota de crédito creada");
-      invalidateCreditNotes(qc);
+    invalidateKeys: CREDIT_NOTE_INVALIDATIONS,
+    errorTitle: "Error al crear nota de crédito",
+    // Toast condicional según si se timbró — no encaja en `successMsg` fijo.
+    onSuccess: ({ stamped }) => {
+      notifySuccess(stamped ? "Nota de crédito timbrada" : "Nota de crédito creada");
     },
-    onError: (err) => notifyError({ error: err, message: "Error al crear nota de crédito" }),
   });
 }
 
 export function useStampCreditNote() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (creditNoteId: string) => {
       return await invokeEdgeFunction("stamp-credit-note", {
         body: { credit_note_id: creditNoteId },
       });
     },
-    onSuccess: () => {
-      notifySuccess("Nota de crédito timbrada");
-      invalidateCreditNotes(qc);
-    },
-    onError: (err) => notifyError({ error: err, message: "Error al timbrar nota de crédito" }),
+    invalidateKeys: CREDIT_NOTE_INVALIDATIONS,
+    successMsg: "Nota de crédito timbrada",
+    errorTitle: "Error al timbrar nota de crédito",
   });
 }
 
 export function useCancelCreditNote() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: { creditNoteId: string; motive: string; substitutionUuid?: string | null }) => {
       return await invokeEdgeFunction<{ cancellation_status: string }>(
         "cancel-credit-note",
@@ -75,27 +73,26 @@ export function useCancelCreditNote() {
         },
       );
     },
+    invalidateKeys: CREDIT_NOTE_INVALIDATIONS,
+    errorTitle: "Error al cancelar nota de crédito",
+    // El SAT puede devolver `accepted`, `in_progress`, etc. — mostramos toast
+    // diferenciado según el estado real de la cancelación.
     onSuccess: (data) => {
       const s = data?.cancellation_status;
       if (s === "accepted") notifySuccess("Nota de crédito cancelada");
       else notifyInfo(satStatusLabel(s));
-      invalidateCreditNotes(qc);
     },
-    onError: (err) => notifyError({ error: err, message: "Error al cancelar nota de crédito" }),
   });
 }
 
 export function useDeleteCreditNote() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (creditNoteId: string) => {
       const { error } = await supabase.from("credit_notes").delete().eq("id", creditNoteId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      notifySuccess("Nota de crédito eliminada");
-      qc.invalidateQueries({ queryKey: creditNoteKeys.all });
-    },
-    onError: (err) => notifyError({ error: err, message: "Error al eliminar" }),
+    invalidateKeys: [creditNoteKeys.all],
+    successMsg: "Nota de crédito eliminada",
+    errorTitle: "Error al eliminar",
   });
 }

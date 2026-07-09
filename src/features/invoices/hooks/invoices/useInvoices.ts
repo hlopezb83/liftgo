@@ -1,9 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export function useInvoices() {
@@ -42,8 +43,7 @@ export function useInvoice(id: string | undefined) {
 
 
 export function useCreateInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number">) => {
       const { data: numData, error: numError } = await supabase.rpc("next_draft_invoice_number");
       if (numError) throw numError;
@@ -55,28 +55,21 @@ export function useCreateInvoice() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: invoiceKeys.all }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al crear factura", error: err });
-    },
+    invalidateKeys: [invoiceKeys.all],
+    errorTitle: "Error al crear factura",
   });
 }
 
 export function useUpdateInvoice() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"invoices"> & { id: string }) => {
       const { data, error } = await supabase.from("invoices").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(data.id) });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al actualizar factura", error: err });
-    },
+    // `invoiceKeys.all` cubre listas y detalle (jerárquico), evitando invalidar dos veces.
+    invalidateKeys: [invoiceKeys.all],
+    errorTitle: "Error al actualizar factura",
   });
 }
 
@@ -95,9 +88,7 @@ export function useDeleteInvoice() {
       queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
       notifySuccess("Factura eliminada");
     },
-
-    onError: (err: Error) => {
-      notifyError({ title: "Error al eliminar factura", error: err });
-    },
+    onError: (err: Error) => notifyError({ title: "Error al eliminar factura", error: err }),
   });
 }
+
