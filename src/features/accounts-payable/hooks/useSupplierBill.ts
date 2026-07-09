@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { supplierBillKeys } from "./useSupplierBills";
 
 type Bill = Database["public"]["Tables"]["supplier_bills"]["Row"];
 export type SupplierPayment = Database["public"]["Tables"]["supplier_payments"]["Row"];
@@ -12,7 +13,7 @@ export interface SupplierBillDetail extends Bill {
 
 export function useSupplierBill(id: string | null | undefined) {
   return useQuery({
-    queryKey: ["supplier_bill", id],
+    queryKey: id ? supplierBillKeys.detail(id) : supplierBillKeys.details(),
     enabled: !!id,
     staleTime: 30_000,
     queryFn: async (): Promise<SupplierBillDetail | null> => {
