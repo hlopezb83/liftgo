@@ -1,0 +1,24 @@
+{
+  "version": "6.137.1",
+  "date": "2026-07-09",
+  "type": "patch",
+  "title": "Sprint DRY · Lote 6.1: KpiTile aplicado a tarjetas restantes",
+  "summary": "Migración de las tarjetas KPI ad-hoc restantes a KpiTile. Se documentan los componentes descartados por incompatibilidad de layout.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "MrrDetailPage · Tarjeta 'MRR Total' migrada",
+      "description": "La tarjeta de encabezado de `/mrr` ahora usa `KpiTile` con `icon=DollarSign`, `iconColor='text-success'`, `iconBg='bg-success/10'` y `valueSize='lg'` (variante de valor destacado `text-2xl font-bold tabular-nums`). Se elimina la Card + CardContent + wrapper manual."
+    },
+    {
+      "type": "improvement",
+      "title": "InventoryPage · Alerta 'Refacciones con stock bajo' migrada",
+      "description": "La tarjeta condicional que aparece cuando `lowStockCount > 0` en `/inventory` migrada a `KpiTile` con `icon=Package`, `iconColor='text-destructive'`, `iconBg='bg-destructive/10'` y `valueSize='lg'`. Se conserva `Card` para el resto del layout de filtros."
+    },
+    {
+      "type": "note",
+      "title": "Tarjetas descartadas del refactor",
+      "description": "Se revisaron y NO se migran por incompatibilidad de layout con KpiTile (icon-left/label/value): `CollectionForecast` — tres celdas horizontales dentro de una sola `Card` sin wrapper individual; `ActivityKPIs` — layout con label a la izquierda + icono arriba-derecha y hint tipográfico bajo el valor; `AlertCard` — `Card` con borde tintado y `children` arbitrarios para listar filas de alerta. Se documentan para evitar reintentos en futuros lotes."
+    }
+  ]
+}
