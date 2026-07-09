@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.137.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 6: KpiTile y ReportChartCard compartidos",
+    "description": "Se extraen dos componentes de dominio en `src/components/domain/`: (1) `KpiTile` — tarjeta KPI compacta con icono a la izquierda, label, valor `tabular-nums` y variantes opcionales `href` (Link con ArrowRight hover) y `onClick`. Consume el mapeo `text-token→bg-token/10` compartido entre StatCards y FinancialKpiCards y unifica ambas implementaciones. (2) `ReportChartCard` — wrapper de gráfica con `CardHeader` tintado (icon + title + action slot), `CardContent` y footer opcional. Migrados CashFlowChart, FleetStatusChart y UtilizationCharts del dashboard. Cero cambios visuales ni de comportamiento; solo eliminación de boilerplate (~120 LOC agregadas). `ListFilterBar` queda descartado del sprint: `ListPageLayout` ya provee esa abstracción (sticky header + filters/actions slots) y crear un componente adicional sería redundante. Typecheck limpio. Vitest: 54 tests verdes en dashboard/reports. Knip: sin archivos huérfanos.",
+    "category": "improvement"
+  },
+  {
     "version": "6.136.0",
     "date": "2026-07-09",
     "type": "minor",

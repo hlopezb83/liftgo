@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, TrendingUp, CalendarClock, AlertTriangle, ArrowRight } from "lucide-react";
+import { DollarSign, TrendingUp, CalendarClock, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { KpiTile } from "@/components/domain/KpiTile";
 
 interface FinancialKpiCardsProps {
   mrr: number;
@@ -49,20 +48,15 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       {kpis.map((kpi) => (
-        <Link key={kpi.label} to={kpi.href} className="group">
-          <Card className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group-hover:ring-2 group-hover:ring-primary/20">
-            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-              <div className={`p-2 sm:p-2.5 rounded-xl shrink-0 ${kpi.bgColor}`}>
-                <kpi.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${kpi.color}`} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight truncate" title={kpi.label}>{kpi.label}</p>
-                <p className="text-sm sm:text-base font-bold truncate tabular-nums" title={kpi.value}>{kpi.value}</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hidden sm:block" />
-            </CardContent>
-          </Card>
-        </Link>
+        <KpiTile
+          key={kpi.label}
+          label={kpi.label}
+          value={kpi.value}
+          icon={kpi.icon}
+          iconColor={kpi.color}
+          iconBg={kpi.bgColor}
+          href={kpi.href}
+        />
       ))}
     </div>
   );
