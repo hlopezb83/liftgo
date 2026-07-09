@@ -1,53 +1,100 @@
-## Alcance restante del sprint DRY (Fase B)
+# Sprint DRY — Auditoría y refactor por lotes
 
-Auditoría de lo pendiente:
+Consolidación de hallazgos de 3 auditorías paralelas (hooks/data-access, reglas/validaciones, componentes UI). Cada lote es una versión (`patch` o `minor`) con changelog obligatorio y **cero cambios funcionales**. Orden por severidad + dependencias.
 
-**Dialogs sin migrar al shell `FormDialog`** (6):
-- `damage/ImageGalleryLightbox.tsx`
-- `invoices/StampErrorDialog.tsx`
-- `invoices/invoice-detail/PaymentIntentsSection.tsx` (dialog inline)
-- `invoices/invoice-detail/ValidateReceptorButton.tsx` (dialog inline)
-- `invoices/recurring/RecurringInvoicesPreviewDialog.tsx`
-- `invoices/recurring/RecurringInvoicesResultDialog.tsx`
+## Objetivos
 
-**Formularios ya en `FormDialog` pero sin RHF+Zod / field-wrappers** (15):
-- AP: `SupplierBillFormDialog`, `RegisterSupplierPaymentDialog`, `ExportPaymentsDialog`
-- Suppliers: `SupplierFormDialog`, `SupplierContactFormDialog`, `SupplierBankAccountFormDialog`
-- Customers: `CustomerFormDialog`, `CustomerInviteDialog`
-- Inventory: `PartFormDialog`
-- Deliveries: `DeliveryFormDialog`
-- Bank reconciliation: `BankAccountFormDialog`
-- Feedback: `FeedbackFormDialog`
-- Invoices: `RecordPaymentDialog`, `CreateCreditNoteDialog`
-- Portal: `ReportTransferDialog`
+- Eliminar ~1,400 LOC de código duplicado.
+- Centralizar cálculos financieros, validaciones Zod y reglas de dominio en `src/lib/`.
+- Extraer 4 componentes UI reutilizables.
+- Corregir 3 bugs latentes descubiertos durante la auditoría (drift de centavos en credit notes, `exchange_rate=0`, invalidaciones rotas por typo).
 
-## Plan por lotes
+## Reglas de ejecución
 
-### Lote 6 — Dialogs informativos/visuales de Invoices y Damage (v6.127.0)
-- `StampErrorDialog`, `RecurringInvoicesPreviewDialog`, `RecurringInvoicesResultDialog` → migrar al shell `FormDialog` + `FormDialogFooter` (no llevan formulario, solo unificación visual).
-- `PaymentIntentsSection` y `ValidateReceptorButton`: extraer los sub-dialogs inline al shell `FormDialog` conservando su lógica y toasts.
-- `ImageGalleryLightbox`: no migrar (es un visor de imágenes con controles propios; no encaja en `FormDialog`). Documentar la excepción en el changelog.
+- Preservar firmas públicas de componentes/hooks.
+- Cada lote incluye entrada en `public/changelog.json` + `public/changelog/vX.Y.Z.json`.
+- Un solo cambio conceptual por lote → PR pequeño, fácil de revisar/revertir.
+- Sin `any`, sin `!`, sin `as` — reglas Power of 10 vigentes.
 
-### Lote 7 — Formularios de catálogo (Suppliers + Inventory) (v6.128.0)
-- `SupplierFormDialog`, `SupplierContactFormDialog`, `SupplierBankAccountFormDialog`, `PartFormDialog`: reescritos con RHF + Zod y field-wrappers (`TextField`, `SelectField`, `TextareaField`, `NumberField`, `CurrencyField`, `CheckboxField`). Los hooks de mutación se preservan; se elimina el `useState` por campo y la validación manual.
+---
 
-### Lote 8 — Formularios de Customers y Portal (v6.129.0)
-- `CustomerFormDialog`, `CustomerInviteDialog`, `ReportTransferDialog`, `FeedbackFormDialog`: migrados a RHF+Zod con field-wrappers. `CsfDropzone` y demás componentes de dominio quedan como children del form.
+## Lote 1 — Utilidades y schemas comunes (v6.131.0) · CRITICAL · S
 
-### Lote 9 — Formularios financieros pesados (AP + Invoices + Deliveries + Bank) (v6.130.0)
-- `SupplierBillFormDialog`, `RegisterSupplierPaymentDialog`, `RecordPaymentDialog`, `CreateCreditNoteDialog`, `ExportPaymentsDialog`, `DeliveryFormDialog`, `BankAccountFormDialog`: reescritos sobre RHF+Zod con `CurrencyField`/`DateField`/`SupplierField`/`CustomerField`/`SelectField`/`TextareaField`. Estos son los más grandes (150–210 LOC); el diff neto esperado es −25% a −40% por archivo.
+Crear la infraestructura compartida que consumen los lotes 2-5.
 
-## Reglas transversales por lote
+**Nuevos archivos:**
+- `src/lib/schemas/common.ts` → `optionalEmail()`, `rfcOptional()`, `rfcRequired()`, `clabeOptional()`, `CLABE_REGEX`, `isValidClabe`, `positiveAmount(msg?)`.
+- `src/lib/query/createEntityKeys.ts` → factory `{ all, lists, details, detail(id), byFilter(f) }`.
+- `src/lib/hooks/useEntityMutation.ts` → wrapper de `useMutation` con `invalidateKeys`, `errorTitle`, `successMsg`, `onSuccess` opcional.
+- `src/lib/supabase/fetchNextDocNumber.ts` → helper tipado para RPCs `next_*_number`.
+- Mover `toMxn` de `src/features/cash-flow/lib/cashFlowTransformers.ts` → `src/lib/money/index.ts` (junto a `roundMoney`, `computeTotals`). Corregir guard `rate > 0` para no devolver 0 silencioso.
 
-- Preservar la **firma pública** de cada componente; adaptar el caller sólo si el diálogo expone estado local que ya no aplica (como el caso previo de `SupplierPaymentRejectDialog`).
-- Un schema Zod por archivo (o un archivo `lib/xxxSchema.ts` cuando el schema pese >30 líneas).
-- `defaultValues` reseteados con `form.reset` en el efecto de `open` para edición limpia.
-- CTA `disabled` derivado de `form.formState.isValid` + `mutation.isPending`.
-- Cero llamadas nuevas a `useState<string>` para campos.
-- Agregar entrada al `public/changelog.json` + `public/changelog/v{X.Y.Z}.json` al cierre de cada lote (minor por lote).
+**Tests:** unitarios para cada util (Vitest) — RFC formato, CLABE 18 dígitos, `toMxn` con fx=0/null, `computeEntityKeys` estabilidad.
 
-## Entregables
+## Lote 2 — Adopción de schemas y formatters comunes (v6.132.0) · CRITICAL · S-M
 
-- 4 lotes secuenciales (v6.127.0 → v6.130.0).
-- Reducción esperada: ≈ 800–1,200 LOC netas en total al terminar.
-- Sin cambios de comportamiento visible; se preservan mensajes, toasts y flujos.
+Reemplazar copias inline por los helpers del Lote 1. **Solo búsqueda-y-reemplazo dirigido**, sin refactor estructural.
+
+**Archivos a tocar (12):**
+- `customers/lib/customerFormSchema.ts`, `suppliers/lib/supplierFormSchema.ts`, `suppliers/components/.../SupplierContactFormDialog.tsx` → `optionalEmail()`, `rfcOptional()`.
+- `operations/lib/operationsSchemas.ts` → `rfcRequired()`.
+- `suppliers/hooks/useSupplierBankAccounts.ts` → re-exportar desde `@/lib/schemas/common`; `SupplierBankAccountFormDialog.tsx` importar de allí.
+- `accounts-payable/lib/supplierPaymentSchema.ts`, `portal/.../ReportTransferDialog.tsx`, `invoices/.../EditPaymentDialog.tsx`, `crm/components/CloseWonDialog.tsx` → `positiveAmount()`.
+- `accounts-payable/.../SupplierBillFormDialog.tsx:205` → `formatCurrencyWithCode()` en lugar de `toLocaleString` inline.
+- Eliminar alias `STATUS_LABELS` en `useBookingActionsLogic.ts`; consumers usan `BOOKING_STATUS_LABELS`.
+
+## Lote 3 — Reglas de dominio centralizadas (v6.133.0) · HIGH · M
+
+Extraer guards de estado dispersas a `src/lib/rules/`. Puro (sin efectos), testeable.
+
+**Nuevos archivos:**
+- `src/lib/rules/quotes.ts` → `canEditQuote(q)`, `canConvertQuote(q, isSale, alreadyConverted)`, `canActOnPortalQuote(q)`.
+- `src/lib/rules/invoices.ts` → `computeInvoiceFlags(invoice, cfdiStatus)` fusionando `computeFlags` (de `InvoiceDetailActions`) y la parte booleana de `invoiceVisibility.ts`. La función existente `computeInvoiceVisibility` se refactoriza para consumir `computeInvoiceFlags` internamente.
+
+**Consumidores actualizados:**
+- `quotes/components/quotes/QuoteDetailActions.tsx` (líneas 29, 110)
+- `portal/pages/PortalQuoteDetail.tsx:56`
+- `invoices/components/invoice-detail/InvoiceDetailActions.tsx` (borra `computeFlags` local)
+
+**Corrección de bug latente:** unificar la fórmula de `isCancelled`/`isStamped` (hoy divergente entre los dos archivos).
+
+## Lote 4 — Query keys factory + `useEntityMutation` (v6.134.0) · HIGH · M
+
+Aplicar factories del Lote 1 a las 5 features que aún manejan strings crudos.
+
+**Archivos a migrar:**
+- `contracts/hooks/useContracts.ts`, `quotes/hooks/quotes/useQuotes.ts`, `deliveries/hooks/useDeliveries.ts`, `returns/hooks/useReturnInspections.ts`, `accounts-payable/hooks/*` (6 archivos que usan literal `"supplier_bill"` mal-pluralizado).
+- Crear `contractKeys`, `quoteKeys`, `deliveryKeys`, `returnKeys`, `supplierBillKeys` con `createEntityKeys`.
+- Migrar ~15 mutaciones piloto (create/update/delete de `contracts`, `deliveries`, `returns`, `prospects`) a `useEntityMutation`. **No** migrar todas las 121 en este lote — solo estas 5 features para validar el patrón. Lote de seguimiento futuro cubrirá el resto.
+
+**Corrección de bug latente:** unificar `queryKey: ["deliveries", bookingId]` vs `["deliveries", "detail", id]` (hoy ambigüedad hace que invalidar detail no refresque list).
+
+## Lote 5 — Componentes UI reutilizables (v6.135.0) · HIGH · S-M
+
+Extraer 4 componentes; refactor visual puro, sin cambio de comportamiento.
+
+**Nuevos componentes:**
+
+1. `src/components/ui/DetailRow.tsx` — reemplaza la definición local en `damage/DamageDetailSheet.tsx`, `maintenance/MaintenanceDetailSheet.tsx`, `crm/ProspectDetailSheet.tsx`, `inventory/PartDetailSheet.tsx`.
+2. `src/features/reports/components/reports/ReportChartCard.tsx` — cabecera Card + botón Export CSV. Consumida por los 5 reports (`RevenueReport`, `UtilizationReport`, `MaintenanceCostReport`, `ProfitabilityByModelReport`, `UtilizationByModelReport`).
+3. `src/components/layout/ListFilterBar.tsx` — props `search, onSearchChange, statusFilter?, onStatusChange?, statuses?, extra?` (slot). Adoptado en `BookingsPage`, `ContractsPage`, `InvoicesPage`, `QuotesPage`, `DamageTrackingPage`.
+4. `src/components/ui/KpiTile.tsx` — extraído del cuerpo de `StatCards`; `StatCards`, `FinancialKpiCards`, `MrrDetailPage:105-115` lo consumen. `href?` opcional para tiles linkeables.
+
+**Cierre:** `ConfirmDialog` ya está adoptado en 15+ sitios — no requiere trabajo.
+
+## Lotes futuros (fuera de este sprint, referencia)
+
+- **Lote 6 (post-sprint):** aplicar `useEntityMutation` al resto de features (~106 mutaciones restantes) y `DetailSheet` shell + `DetailPageSkeleton` (H7/H6 del audit UI). Se difiere porque la superficie es amplia y conviene validar el patrón con el Lote 4 antes.
+- **Lote 7 (post-sprint):** aplicar `computeTotals` en `useCreditNoteForm.ts` y sustituir `.toFixed(2)` por `roundMoney` en `accounts-payable/hooks/useExportPaymentsForm.ts` + `lib/buildPaymentsXlsx.ts`. Requiere validación numérica caso-por-caso.
+
+## Notas técnicas
+
+- Todos los lotes son **retro-compatibles**: los helpers nuevos son aditivos; el reemplazo en consumidores preserva firmas.
+- La factorización de mutaciones cuida los `onSuccess` custom (navegación, toast personalizado, cache manual) — quedan como callback opcional del helper.
+- Tests actuales deben seguir verdes sin cambio; agregar tests unitarios solo para los helpers nuevos del Lote 1.
+
+## Entregables por lote
+
+Cada versión: código + changelog entry + actualización de `mem://` si aplica (Lote 1 introduce `src/lib/schemas/common.ts` y `src/lib/rules/*` — merecen entrada en memoria).
+
+**¿Arranco por Lote 1 al aprobar?**
