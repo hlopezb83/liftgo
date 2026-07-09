@@ -1,0 +1,19 @@
+{
+  "version": "6.134.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 4a: createEntityKeys + useEntityMutation en contracts y quotes",
+  "summary": "Hooks base de contracts y quotes migrados al pipeline DRY: query keys tipadas por factory y mutaciones vía useEntityMutation.",
+  "highlights": [
+    "contracts/hooks/useContracts: contractKeys = createEntityKeys('contracts'); useContracts→lists(), useContract→detail(id).",
+    "useCreateContract y useUpdateContract migradas a useEntityMutation con errorTitle (antes silenciosas ante error).",
+    "quotes/hooks/quotes/useQuotes: quoteKeys equivalente; useQuotesByIds usa byFilter({byIds}) en vez de tupla ad-hoc.",
+    "useCreateQuote, useUpdateQuote y useDeleteQuote migradas a useEntityMutation (deleteQuote conserva setQueryData+removeQueries custom).",
+    "77 tests verdes en features/quotes y features/contracts. Sin invalidaciones cruzadas externas rotas."
+  ],
+  "internal_notes": [
+    "Lote 4b: aplicar createEntityKeys a deliveries, returns y accounts-payable.",
+    "Lote 5: extraer DetailRow, ReportChartCard, ListFilterBar, KpiTile."
+  ],
+  "category": "improvement"
+}
