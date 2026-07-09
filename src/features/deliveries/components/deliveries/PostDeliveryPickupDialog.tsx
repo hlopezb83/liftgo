@@ -111,7 +111,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
               <TextField control={form.control} name="driverPhone" label="Teléfono del Operador" type="tel" />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <TextField control={form.control} name="scheduledTime" label="Hora Programada" />
+              <TextField control={form.control} name="scheduledTime" label="Hora Programada" type="time" />
               <NumberField control={form.control} name="hoursReading" label="Horómetro (hrs)" min={0} step={0.1} placeholder="Ej: 1250" />
             </div>
             <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
