@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.124.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 3 de Fase B: 4 dialogs de Invoices al pipeline RHF (DRY)",
+    "description": "Tercer lote del sprint DRY enfocado en el detalle de facturas. CancelCfdiDialog y CancelCreditNoteDialog: migrados al shell FormDialog + React Hook Form + Zod con SelectField (motivo SAT) y TextField (UUID sustituto) — validación de UUID centralizada en el schema Zod con .refine. EditPaymentDialog: reescrito sobre RHF con CurrencyField (monto), DateField, SelectField (método), TextField y TextareaField — se elimina el useState local por campo y el efecto de hidratación se reduce a form.reset. EditReceptorFiscalDialog: FormDialog + RHF con TextField, SelectField y CheckboxField para 'syncCustomer', normalización de razón social y CP en el submit. Preservadas todas las firmas públicas de los componentes.",
+    "category": "improvement"
+  },
+  {
     "version": "6.123.0",
     "date": "2026-07-09",
     "type": "minor",

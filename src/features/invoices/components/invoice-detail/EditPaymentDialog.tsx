@@ -1,16 +1,22 @@
-import { useState, useEffect } from "react";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { parseISO } from "date-fns";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";
+import { toYMD } from "@/lib/date/toYMD";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePickerField } from "@/components/forms/DatePickerField";
+import {
+  CurrencyField,
+  DateField,
+  SelectField,
+  TextField,
+  TextareaField,
+} from "@/components/forms/fields";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
-
-import { format, parseISO } from "date-fns";
 
 const METHODS = [
   { value: "transfer", label: "Transferencia" },
@@ -19,6 +25,16 @@ const METHODS = [
   { value: "card", label: "Tarjeta" },
 ];
 
+const schema = z.object({
+  amount: z.number().positive("Monto inválido"),
+  date: z.date(),
+  method: z.string().min(1),
+  reference: z.string().default(""),
+  notes: z.string().default(""),
+});
+
+type FormValues = z.infer<typeof schema>;
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,35 +42,40 @@ interface Props {
 }
 
 export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState<Date>(new Date());
-  const [method, setMethod] = useState("transfer");
-  const [reference, setReference] = useState("");
-  const [notes, setNotes] = useState("");
   const updatePayment = useUpdatePayment();
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      amount: payment.amount,
+      date: parseISO(payment.payment_date),
+      method: payment.payment_method || "transfer",
+      reference: payment.reference_number || "",
+      notes: payment.notes || "",
+    },
+  });
 
   useEffect(() => {
     if (open && payment) {
-      setAmount(String(payment.amount));
-      setDate(parseISO(payment.payment_date));
-      setMethod(payment.payment_method || "transfer");
-      setReference(payment.reference_number || "");
-      setNotes(payment.notes || "");
+      form.reset({
+        amount: payment.amount,
+        date: parseISO(payment.payment_date),
+        method: payment.payment_method || "transfer",
+        reference: payment.reference_number || "",
+        notes: payment.notes || "",
+      });
     }
-  }, [open, payment]);
+  }, [open, payment, form]);
 
-  const handleSubmit = () => {
-    const amt = roundMoney(Number(amount));
-    if (!amt || amt <= 0) { notifyValidation({ message: "Monto inválido" }); return; }
+  const onSubmit = (values: FormValues) => {
     updatePayment.mutate(
       {
         id: payment.id,
         invoice_id: payment.invoice_id,
-        amount: amt,
-        payment_date: format(date, "yyyy-MM-dd"),
-        payment_method: method,
-        reference_number: reference || null,
-        notes: notes || null,
+        amount: roundMoney(values.amount),
+        payment_date: toYMD(values.date) ?? "",
+        payment_method: values.method,
+        reference_number: values.reference.trim() || null,
+        notes: values.notes.trim() || null,
       },
       {
         onSuccess: () => {
@@ -62,49 +83,41 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
           onOpenChange(false);
         },
         onError: (err) => notifyError({ error: err }),
-      }
+      },
     );
   };
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title="Editar Pago" width="md">
-        <div className="space-y-4">
-          <div>
-            <Label>Monto</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-              <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="pl-7" />
-            </div>
-          </div>
-          <DatePickerField
-            label="Fecha"
-            date={date}
-            onSelect={(d) => { if (d) setDate(d); }}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <CurrencyField control={form.control} name="amount" label="Monto" required />
+          <DateField control={form.control} name="date" label="Fecha" required />
+          <SelectField
+            control={form.control}
+            name="method"
+            label="Método de Pago"
+            required
+            options={METHODS}
           />
-          <div>
-            <Label>Método de Pago</Label>
-            <Select value={method} onValueChange={setMethod}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {METHODS.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Referencia</Label>
-            <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Número de referencia bancaria" />
-          </div>
-          <div>
-            <Label>Notas</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
-          </div>
-        </div>
-        <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={updatePayment.isPending}>
-            {updatePayment.isPending ? "Guardando..." : "Guardar Cambios"}
-          </Button>
-        </FormDialogFooter>
+          <TextField
+            control={form.control}
+            name="reference"
+            label="Referencia"
+            placeholder="Número de referencia bancaria"
+          />
+          <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
+
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={updatePayment.isPending}>
+              {updatePayment.isPending ? "Guardando..." : "Guardar Cambios"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
     </FormDialog>
   );
 }
