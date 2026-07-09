@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { syncInvoiceStatus } from "../lib/syncInvoiceStatus";
 import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
@@ -25,8 +26,7 @@ export function usePayments(invoiceId: string | undefined) {
 }
 
 export function useCreatePayment() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (payment: TablesInsert<"payments">) => {
       const { data, error } = await supabase
         .from("payments")
@@ -37,16 +37,14 @@ export function useCreatePayment() {
       await syncInvoiceStatus(payment.invoice_id, payment.payment_date ?? null);
       return data;
     },
-    onSuccess: (_d, vars) => {
-      queryClient.invalidateQueries({ queryKey: paymentKeys.byInvoice(vars.invoice_id) });
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
-    },
+    // Invalidamos por factura y todo el árbol de invoices (status se recalcula).
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all],
+    errorTitle: "Error al registrar pago",
   });
 }
 
 export function useUpdatePayment() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, invoice_id, ...fields }: { id: string; invoice_id: string } & Partial<Omit<Payment, "id" | "created_at" | "invoice_id">>) => {
       const { data, error } = await supabase
         .from("payments")
@@ -58,9 +56,7 @@ export function useUpdatePayment() {
       await syncInvoiceStatus(invoice_id, null);
       return data;
     },
-    onSuccess: (_d, vars) => {
-      queryClient.invalidateQueries({ queryKey: paymentKeys.byInvoice(vars.invoice_id) });
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
-    },
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all],
+    errorTitle: "Error al actualizar pago",
   });
 }

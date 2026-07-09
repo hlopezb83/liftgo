@@ -1,8 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 import { collectionNoteKeys } from "../../../lib/queryKeys";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+
 export function useCollectionNotes(invoiceId?: string) {
   return useQuery({
     queryKey: invoiceId ? collectionNoteKeys.byInvoice(invoiceId) : collectionNoteKeys.all,
@@ -21,8 +22,7 @@ export function useCollectionNotes(invoiceId?: string) {
 }
 
 export function useCreateCollectionNote() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (note: { invoice_id: string; note: string; next_followup_date?: string | null }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
@@ -33,10 +33,8 @@ export function useCreateCollectionNote() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: collectionNoteKeys.byInvoice(variables.invoice_id) });
-      notifySuccess("Nota de cobranza registrada");
-    },
-    onError: (err: Error) => notifyError({ title: "Error al registrar nota", error: err }),
+    invalidateKeys: [collectionNoteKeys.all],
+    successMsg: "Nota de cobranza registrada",
+    errorTitle: "Error al registrar nota",
   });
 }

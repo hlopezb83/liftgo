@@ -1,10 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/lib/domain/contractTypes`.
@@ -50,8 +51,7 @@ export function useDefaultContractTemplate() {
 }
 
 export function useUpdateContractTemplate() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (template: Partial<ContractTemplate> & { id: string }) => {
       const { id, ...rest } = template;
       const updatePayload = {
@@ -66,8 +66,7 @@ export function useUpdateContractTemplate() {
       if (error) throw error;
       assertRowsAffected(data, "Actualizar plantilla de contrato");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contract_templates"] });
-    },
+    invalidateKeys: [["contract_templates"]],
+    errorTitle: "Error al actualizar plantilla",
   });
 }
