@@ -16,11 +16,19 @@ interface StatCardsProps {
   cards: StatCard[];
 }
 
-/** Derive `bg-x/10` from a `text-x` token so KPI icon containers match FinancialKpiCards. */
-function deriveBg(color: string): string {
-  const token = color.replace(/^text-/, "");
-  return `bg-${token}/10`;
-}
+/** Map text-token → matching bg/10 token so KPI icon containers match FinancialKpiCards. */
+const BG_BY_COLOR: Record<string, string> = {
+  "text-primary": "bg-primary/10",
+  "text-status-available": "bg-status-available/10",
+  "text-status-rented": "bg-status-rented/10",
+  "text-status-maintenance": "bg-status-maintenance/10",
+  "text-status-sold": "bg-status-sold/10",
+  "text-success": "bg-success/10",
+  "text-info": "bg-info/10",
+  "text-warning": "bg-warning/10",
+  "text-destructive": "bg-destructive/10",
+  "text-chart-5": "bg-chart-5/10",
+};
 
 export const StatCards = memo(function StatCards({ cards }: StatCardsProps) {
   return (
