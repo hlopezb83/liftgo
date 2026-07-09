@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.122.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 1 de Fase B: 6 dialogs migrados a FormDialog + RHF (DRY)",
+    "description": "Se migró el Lote 1 al ecosistema DRY: CloseWonDialog y CloseLostDialog ahora usan React Hook Form + Zod con CurrencyField, DateField, SelectField y TextareaField (validación centralizada y error states nativos, sin useState local para campos). MarkAvailableDialog, DeleteAuditLogDialog y AuditLogDetailDialog adoptaron el shell FormDialog (header sticky con border-b, ancho tokenizado sm/md/2xl). ProspectFormDialog envuelto en FormDialog conservando su hook useProspectForm; ProspectDialogParts pasa a FormDialogFooter y expone helpers de título/descripción reutilizables. Resultado: -1 wrapper Dialog/DialogContent/DialogHeader/DialogTitle/DialogDescription por archivo, footer sticky consistente y estilo unificado.",
+    "category": "improvement"
+  },
+  {
     "version": "6.121.0",
     "date": "2026-07-09",
     "type": "minor",
