@@ -58,7 +58,12 @@ export const UtilizationCharts = memo(function UtilizationCharts({ monthlyUtiliz
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Utilización de Flota — Últimos 6 meses (%)</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </div>
+            Utilización de Flota — Últimos 6 meses (%)
+          </CardTitle>
           {monthlyUtilization.length >= 2 && (
             <div className={`flex items-center gap-1.5 text-xs font-medium ${trendLabel.cls}`}>
               <TrendIcon className="h-3.5 w-3.5" />
