@@ -82,8 +82,8 @@ describe("schemas/common — CLABE", () => {
 
 describe("schemas/common — positiveAmount", () => {
   const schema = positiveAmount();
-  it("acepta string numérico > 0 (coerce)", () => {
-    const r = schema.safeParse("100.5");
+  it("acepta número > 0", () => {
+    const r = schema.safeParse(100.5);
     expect(r.success).toBe(true);
     if (r.success) expect(r.data).toBe(100.5);
   });
@@ -93,10 +93,11 @@ describe("schemas/common — positiveAmount", () => {
   it("rechaza negativos", () => {
     expect(schema.safeParse(-5).success).toBe(false);
   });
-  it("respeta mensaje custom", () => {
+  it("rechaza tipos no numéricos con mensaje custom", () => {
     const custom = positiveAmount("Monto inválido");
-    const r = custom.safeParse(0);
+    const r = custom.safeParse("abc");
     expect(r.success).toBe(false);
     if (!r.success) expect(r.error.issues[0].message).toBe("Monto inválido");
   });
 });
+
