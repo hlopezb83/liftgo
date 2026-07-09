@@ -19,8 +19,8 @@ export const ROLE_COLORS: Record<AppRole, string> = {
   administrativo: "bg-info text-info-foreground",
   dispatcher: "bg-warning text-warning-foreground",
   mechanic: "bg-success text-success-foreground",
-  auditor: "bg-[hsl(var(--chart-5))] text-white",
-  ventas: "bg-[hsl(var(--chart-2))] text-white",
+  auditor: "bg-chart-5 text-primary-foreground",
+  ventas: "bg-chart-2 text-primary-foreground",
   customer: "bg-muted text-muted-foreground",
 };
 

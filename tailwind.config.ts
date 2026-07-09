@@ -89,6 +89,13 @@ export default {
           draft: "hsl(var(--status-draft))",
           warning: "hsl(var(--status-warning))",
         },
+        "accent-gold": "hsl(var(--accent-gold))",
+        crm: {
+          new: "hsl(var(--crm-stage-new))",
+          contacted: "hsl(var(--crm-stage-contacted))",
+          quoted: "hsl(var(--crm-stage-quoted))",
+          negotiating: "hsl(var(--crm-stage-negotiating))",
+        },
         gantt: {
           "1": "hsl(var(--gantt-1))",
           "2": "hsl(var(--gantt-2))",
