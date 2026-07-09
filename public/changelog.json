@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.134.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 4a: createEntityKeys + useEntityMutation en contracts y quotes",
+    "description": "Migración de los hooks base de contracts y quotes al pipeline DRY del Lote 1. (1) contracts/hooks/useContracts.ts: exporta `contractKeys = createEntityKeys('contracts')`; useContracts pasa a `contractKeys.lists()`, useContract a `contractKeys.detail(id)`; useCreateContract y useUpdateContract sustituyen useMutation+queryClient.invalidate+notifyError manual por useEntityMutation con `invalidateKeys: [contractKeys.all]` y errorTitle canónico (antes: 0 toast de error, ahora sí). (2) quotes/hooks/quotes/useQuotes.ts: `quoteKeys` análogo; useQuotes/useQuote/useQuotesByIds ahora usan lists()/detail()/byFilter({byIds}); useCreateQuote y useUpdateQuote migran a useEntityMutation; useDeleteQuote conserva el onSuccess custom (setQueryData + removeQueries) pero declara invalidateKeys como [quoteKeys.all, forklifts, forklift-options, quote_assigned_forklifts, status_logs] centralizando la lista de caches afectadas. Efecto: -70 LOC de boilerplate, invalidaciones tipadas y consistentes, toasts de error garantizados. Sin invalidaciones cruzadas externas rotas (verificado en toda la app). Vitest: 77 tests verdes en quotes+contracts.",
+    "category": "improvement"
+  },
+  {
     "version": "6.133.0",
     "date": "2026-07-09",
     "type": "minor",
