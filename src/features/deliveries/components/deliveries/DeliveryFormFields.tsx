@@ -1,10 +1,10 @@
 import type { UseFormReturn } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerField } from "@/components/forms/DatePickerField";
-import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from "@/components/ui/form";
 import { formatDateRange } from "@/lib/utils";
+import { Form } from "@/components/ui/form";
+import { FormSection } from "@/components/forms/FormSection";
+import {
+  TextField, TextareaField, DateField, SelectField, type SelectOption,
+} from "@/components/forms/fields";
 
 export type DeliveryFormValues = {
   forkliftId: string; bookingId: string; type: string;
@@ -23,107 +23,83 @@ interface Props {
   activeDrivers: Driver[] | undefined;
 }
 
+const TYPE_OPTIONS: SelectOption[] = [
+  { value: "delivery", label: "Entrega" },
+  { value: "pickup", label: "Recolección" },
+];
+
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
+  const forkliftOptions: SelectOption[] =
+    forklifts?.map((f) => ({ value: f.id, label: `${f.name} — ${f.model}` })) ?? [];
+
+  const bookingOptions: SelectOption[] =
+    bookings?.map((b) => ({
+      value: b.id,
+      label: `${b.customer_name || "Desconocido"} (${formatDateRange(b.start_date, b.end_date)})`,
+    })) ?? [];
+
+  const driverOptions: SelectOption[] =
+    activeDrivers?.map((d) => ({ value: d.name, label: d.name })) ?? [];
+
   return (
     <Form {...form}>
-      <div className="space-y-4">
+      <FormSection title="Detalles" first>
         <div className="grid grid-cols-2 gap-4">
-          <FormField control={form.control} name="type" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Tipo *</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                <SelectContent>
-                  <SelectItem value="delivery">Entrega</SelectItem>
-                  <SelectItem value="pickup">Recolección</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="forkliftId" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Montacargas *</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {forklifts?.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} — {f.model}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
+          <SelectField control={form.control} name="type" label="Tipo" required options={TYPE_OPTIONS} />
+          <SelectField
+            control={form.control}
+            name="forkliftId"
+            label="Montacargas"
+            required
+            options={forkliftOptions}
+            placeholder="Seleccionar"
+          />
         </div>
 
-        <FormField control={form.control} name="bookingId" render={({ field }) => (
-          <FormItem className="space-y-1.5">
-            <FormLabel>Reserva Vinculada</FormLabel>
-            <Select value={field.value} onValueChange={field.onChange}>
-              <FormControl><SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger></FormControl>
-              <SelectContent>
-                {bookings?.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.customer_name || "Desconocido"} ({formatDateRange(b.start_date, b.end_date)})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormItem>
-        )} />
+        <SelectField
+          control={form.control}
+          name="bookingId"
+          label="Reserva Vinculada"
+          options={bookingOptions}
+          placeholder="Opcional"
+        />
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField control={form.control} name="scheduledDate" render={({ field }) => (
-            <FormItem>
-              <DatePickerField label="Fecha *" date={field.value} onSelect={(d) => d && field.onChange(d)} />
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="scheduledTime" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Hora</FormLabel>
-              <FormControl><Input type="time" {...field} /></FormControl>
-            </FormItem>
-          )} />
+          <DateField control={form.control} name="scheduledDate" label="Fecha" required />
+          <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
         </div>
 
-        <FormField control={form.control} name="address" render={({ field }) => (
-          <FormItem className="space-y-1.5">
-            <FormLabel>Dirección de Entrega</FormLabel>
-            <FormControl><Input {...field} placeholder="Av. Reforma 123, CDMX" /></FormControl>
-          </FormItem>
-        )} />
+        <TextField
+          control={form.control}
+          name="address"
+          label="Dirección de Entrega"
+          placeholder="Av. Reforma 123, CDMX"
+        />
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField control={form.control} name="driverName" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Operador</FormLabel>
-              <Select
-                value={field.value}
-                onValueChange={(v) => {
-                  field.onChange(v);
-                  const driver = activeDrivers?.find((d) => d.name === v);
-                  if (driver?.phone) form.setValue("driverPhone", driver.phone);
-                }}
-              >
-                <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar operador" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {activeDrivers?.map((d) => <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="driverPhone" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Teléfono del Operador</FormLabel>
-              <FormControl><Input {...field} placeholder="+52 55 1234 5678" /></FormControl>
-            </FormItem>
-          )} />
+          <SelectField
+            control={form.control}
+            name="driverName"
+            label="Operador"
+            options={driverOptions}
+            placeholder="Seleccionar operador"
+          />
+          <TextField
+            control={form.control}
+            name="driverPhone"
+            label="Teléfono del Operador"
+            placeholder="+52 55 1234 5678"
+          />
         </div>
 
-        <FormField control={form.control} name="notes" render={({ field }) => (
-          <FormItem className="space-y-1.5">
-            <FormLabel>Notas</FormLabel>
-            <FormControl><Textarea {...field} placeholder="Instrucciones especiales..." rows={2} /></FormControl>
-          </FormItem>
-        )} />
-      </div>
+        <TextareaField
+          control={form.control}
+          name="notes"
+          label="Notas"
+          rows={2}
+          placeholder="Instrucciones especiales..."
+        />
+      </FormSection>
     </Form>
   );
 }
