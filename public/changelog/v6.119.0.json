@@ -1,0 +1,24 @@
+{
+  "version": "6.119.0",
+  "date": "2026-07-09",
+  "type": "patch",
+  "title": "Auditoría visual Fase 6 — barrido global",
+  "description": "Cierre de auditoría cross-módulo: breadcrumbs 100% en es-MX y guía escrita para íconos y jerarquía de botones.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Breadcrumbs — traducción completa",
+      "description": "Agregadas al mapa SEGMENT_LABELS: conciliacion-bancaria → 'Conciliación Bancaria', cuentas-bancarias → 'Cuentas Bancarias', flujo-de-caja → 'Flujo de Caja', mis-reportes → 'Mis Reportes', leaderboard → 'Ranking', feedback → 'Reportes de Usuarios', permissions → 'Permisos', historial → 'Historial', cerrados → 'Cerrados'. Ningún segmento de las 55 rutas activas cae ya al fallback en inglés."
+    },
+    {
+      "type": "docs",
+      "title": "Regla semántica de íconos (Fase 6)",
+      "description": "Dashboard: contenedor tintado + ícono (bg-*/10) para KPIs y widgets destacados. Detalle: ícono monocromo `h-4 w-4 text-muted-foreground` como prefijo del CardTitle. No mezclar patrones dentro del mismo módulo."
+    },
+    {
+      "type": "docs",
+      "title": "Jerarquía de botones (Fase 6)",
+      "description": "default = acción principal única, outline = acciones secundarias/info, destructive = borrar/cancelar irreversible, ghost sólo en toolbars densas. Cotizaciones y Facturación son la referencia; a propagar en próximos ciclos por módulo."
+    }
+  ]
+}

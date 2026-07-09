@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.119.0",
+    "date": "2026-07-09",
+    "type": "patch",
+    "title": "Auditoría visual Fase 6 — barrido global de breadcrumbs",
+    "description": "Se completó el mapa SEGMENT_LABELS del breadcrumb (TopbarBreadcrumbs) para eliminar segmentos que caían al fallback en inglés o sin acentos: conciliacion-bancaria, cuentas-bancarias, flujo-de-caja, mis-reportes, leaderboard, feedback, permissions, historial, cerrados. Todo el árbol de rutas ahora se muestra en es-MX. Se documentó además la regla semántica de íconos (dashboard tinted vs detalle monocromo) y la jerarquía recomendada de botones para futuros refactors por módulo.",
+    "category": "improvement"
+  },
+  {
     "version": "6.118.0",
     "date": "2026-07-09",
     "type": "patch",
