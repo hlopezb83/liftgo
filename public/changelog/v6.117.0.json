@@ -1,0 +1,19 @@
+{
+  "version": "6.117.0",
+  "date": "2026-07-09",
+  "type": "patch",
+  "title": "Auditoría visual Fase 4 — Cotizaciones alineado a Reservas",
+  "summary": "Cierre de brechas de cohesión entre el módulo Cotizaciones y el módulo Reservas ya auditado en Fase 3.",
+  "changes": [
+    {
+      "category": "improvement",
+      "title": "Cards de detalle con ícono en header",
+      "description": "QuoteCustomerCard y QuoteDatesCard renderizaban solo texto (`<CardTitle>Cliente</CardTitle>`). Reservas ya usaba `<Icon className='h-4 w-4 text-muted-foreground' /> Título`. Se agregaron los íconos User y Calendar respectivamente para que ambos módulos compartan el mismo lenguaje visual de detail cards."
+    },
+    {
+      "category": "improvement",
+      "title": "Iconografía Plus unificada entre módulos",
+      "description": "El botón Nueva Cotización usaba PlusCircle mientras Nueva Reserva usa Plus. Se estandarizó a Plus en el botón principal desktop. El FAB mobile mantiene PlusCircle porque en ese contexto el ícono rellenado se lee mejor sobre fondo oscuro y no compite con otro botón."
+    }
+  ]
+}
