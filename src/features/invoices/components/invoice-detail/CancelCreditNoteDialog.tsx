@@ -1,13 +1,27 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectField, TextField } from "@/components/forms/fields";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
 import { useCancelCreditNote, type CreditNote } from "../../hooks/creditNotes/useCreditNotes";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const schema = z
+  .object({
+    motive: z.string().min(1),
+    substitutionUuid: z.string().default(""),
+  })
+  .refine((v) => v.motive !== "01" || UUID_RE.test(v.substitutionUuid.trim()), {
+    path: ["substitutionUuid"],
+    message: "UUID inválido",
+  });
+
+type FormValues = z.infer<typeof schema>;
 
 interface Props {
   open: boolean;
@@ -16,66 +30,63 @@ interface Props {
 }
 
 export function CancelCreditNoteDialog({ open, onOpenChange, creditNote }: Props) {
-  const [motive, setMotive] = useState("02");
-  const [substitutionUuid, setSubstitutionUuid] = useState("");
   const cancelMutation = useCancelCreditNote();
-  const needsSub = motive === "01";
-  const validSub = !needsSub || UUID_RE.test(substitutionUuid.trim());
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { motive: "02", substitutionUuid: "" },
+  });
 
-  const submit = () => {
+  useEffect(() => {
+    if (open) form.reset({ motive: "02", substitutionUuid: "" });
+  }, [open, form]);
+
+  const needsSub = form.watch("motive") === "01";
+
+  const onSubmit = (values: FormValues) => {
     cancelMutation.mutate(
       {
         creditNoteId: creditNote.id,
-        motive,
-        substitutionUuid: needsSub ? substitutionUuid.trim() : null,
+        motive: values.motive,
+        substitutionUuid: needsSub ? values.substitutionUuid.trim() : null,
       },
-      {
-        onSuccess: () => {
-          onOpenChange(false);
-          setMotive("02");
-          setSubstitutionUuid("");
-        },
-      },
+      { onSuccess: () => onOpenChange(false) },
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Cancelar Nota de Crédito {creditNote.credit_note_number}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label>Motivo</Label>
-            <Select value={motive} onValueChange={setMotive}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {CANCELLATION_REASONS.map((r) => (
-                  <SelectItem key={r.code} value={r.code}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Cancelar Nota de Crédito ${creditNote.credit_note_number}`}
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <SelectField
+            control={form.control}
+            name="motive"
+            label="Motivo"
+            required
+            options={CANCELLATION_REASONS.map((r) => ({ value: r.code, label: r.label }))}
+          />
           {needsSub && (
-            <div>
-              <Label>UUID de NC sustituta</Label>
-              <Input
-                value={substitutionUuid}
-                onChange={(e) => setSubstitutionUuid(e.target.value)}
-                placeholder="00000000-0000-0000-0000-000000000000"
-                className="font-mono text-xs"
-              />
-            </div>
+            <TextField
+              control={form.control}
+              name="substitutionUuid"
+              label="UUID de NC sustituta"
+              required
+              placeholder="00000000-0000-0000-0000-000000000000"
+            />
           )}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
-          <Button variant="destructive" onClick={submit} disabled={cancelMutation.isPending || !validSub}>
-            {cancelMutation.isPending ? "Cancelando..." : "Confirmar Cancelación"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cerrar
+            </Button>
+            <Button type="submit" variant="destructive" disabled={cancelMutation.isPending}>
+              {cancelMutation.isPending ? "Cancelando..." : "Confirmar Cancelación"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }

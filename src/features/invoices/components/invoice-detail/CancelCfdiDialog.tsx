@@ -1,15 +1,27 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectField, TextField } from "@/components/forms/fields";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
 import { useCancelCfdi } from "../../hooks/invoices/cfdi/useCancelCfdi";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const isUUID = (s: string) => UUID_RE.test(s);
 
+const schema = z
+  .object({
+    motive: z.string().min(1),
+    substitutionUuid: z.string().default(""),
+  })
+  .refine((v) => v.motive !== "01" || UUID_RE.test(v.substitutionUuid.trim()), {
+    path: ["substitutionUuid"],
+    message: "UUID inválido",
+  });
+
+type FormValues = z.infer<typeof schema>;
 
 interface CancelCfdiDialogProps {
   open: boolean;
@@ -19,26 +31,32 @@ interface CancelCfdiDialogProps {
   onSuccess: () => void;
 }
 
-export function CancelCfdiDialog({ open, onOpenChange, invoiceId, invoiceTotal, onSuccess }: CancelCfdiDialogProps) {
-  const [motive, setMotive] = useState("02");
-  const [substitutionUuid, setSubstitutionUuid] = useState("");
+export function CancelCfdiDialog({
+  open, onOpenChange, invoiceId, invoiceTotal, onSuccess,
+}: CancelCfdiDialogProps) {
   const cancelCfdi = useCancelCfdi();
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { motive: "02", substitutionUuid: "" },
+  });
 
+  useEffect(() => {
+    if (open) form.reset({ motive: "02", substitutionUuid: "" });
+  }, [open, form]);
+
+  const motive = form.watch("motive");
   const needsSubstitution = motive === "01";
-  const validSubstitution = !needsSubstitution || isUUID(substitutionUuid.trim());
 
-  const handleCancel = () => {
+  const onSubmit = (values: FormValues) => {
     cancelCfdi.mutate(
       {
         invoiceId,
-        motive,
-        substitutionUuid: needsSubstitution ? substitutionUuid.trim() : null,
+        motive: values.motive,
+        substitutionUuid: needsSubstitution ? values.substitutionUuid.trim() : null,
       },
       {
         onSuccess: () => {
           onOpenChange(false);
-          setSubstitutionUuid("");
-          setMotive("02");
           onSuccess();
         },
       },
@@ -46,57 +64,46 @@ export function CancelCfdiDialog({ open, onOpenChange, invoiceId, invoiceTotal, 
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Cancelar CFDI</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Selecciona el motivo de cancelación según el SAT.
-          </p>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Cancelar CFDI"
+      description="Selecciona el motivo de cancelación según el SAT."
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {invoiceTotal > 1000 && (
             <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
               ⚠️ Facturas mayores a $1,000 MXN requieren aprobación del receptor ante el SAT.
             </div>
           )}
-          <div>
-            <Label>Motivo</Label>
-            <Select value={motive} onValueChange={setMotive}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {CANCELLATION_REASONS.map((r) => (
-                  <SelectItem key={r.code} value={r.code}>{r.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SelectField
+            control={form.control}
+            name="motive"
+            label="Motivo"
+            required
+            options={CANCELLATION_REASONS.map((r) => ({ value: r.code, label: r.label }))}
+          />
           {needsSubstitution && (
-            <div>
-              <Label>UUID de factura sustituta</Label>
-              <Input
-                value={substitutionUuid}
-                onChange={(e) => setSubstitutionUuid(e.target.value)}
-                placeholder="00000000-0000-0000-0000-000000000000"
-                className="font-mono text-xs"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Captura el UUID (folio fiscal) del CFDI que sustituye a este.
-              </p>
-            </div>
+            <TextField
+              control={form.control}
+              name="substitutionUuid"
+              label="UUID de factura sustituta"
+              required
+              placeholder="00000000-0000-0000-0000-000000000000"
+              description="Captura el UUID (folio fiscal) del CFDI que sustituye a este."
+            />
           )}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
-          <Button
-            variant="destructive"
-            onClick={handleCancel}
-            disabled={cancelCfdi.isPending || !validSubstitution}
-          >
-            {cancelCfdi.isPending ? "Cancelando..." : "Confirmar Cancelación"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cerrar
+            </Button>
+            <Button type="submit" variant="destructive" disabled={cancelCfdi.isPending}>
+              {cancelCfdi.isPending ? "Cancelando..." : "Confirmar Cancelación"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
+    </FormDialog>
   );
 }
