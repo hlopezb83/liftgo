@@ -32,7 +32,7 @@ export function BookingStatusChangeDialog({
             <SelectTrigger><SelectValue placeholder="Seleccionar estatus" /></SelectTrigger>
             <SelectContent>
               {getValidTransitions(currentStatus).map((s) => (
-                <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
+                <SelectItem key={s} value={s}>{BOOKING_STATUS_LABELS[s] || s}</SelectItem>
               ))}
             </SelectContent>
           </Select>
