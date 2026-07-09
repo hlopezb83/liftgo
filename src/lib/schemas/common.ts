@@ -81,12 +81,17 @@ export const clabeOptional = () =>
     .refine(isValidClabe, { message: "La CLABE debe tener 18 dígitos" });
 
 // ---------------------------------------------------------------------------
-// Monto positivo (usa coerce para inputs number/text de RHF).
+// Monto positivo.
 // ---------------------------------------------------------------------------
 
 /**
- * Monto numérico > 0 con coerción desde string (RHF inputs de tipo text/number).
- * Mensaje por defecto en es-MX; se puede sobreescribir por contexto.
+ * Monto numérico > 0. Mensaje por defecto en es-MX; se puede sobreescribir por contexto.
+ *
+ * Usa `z.number()` (no `coerce`) para preservar la inferencia estricta que RHF
+ * espera cuando el input proviene de `CurrencyField`/`NumberField` (que ya
+ * emiten `number`). Si el formulario recibe strings sin transformar, envuelve
+ * con `z.preprocess(Number, positiveAmount())` en el schema del feature.
  */
 export const positiveAmount = (message = "El monto debe ser mayor a 0") =>
-  z.coerce.number().positive(message);
+  z.number({ invalid_type_error: message }).positive(message);
+
