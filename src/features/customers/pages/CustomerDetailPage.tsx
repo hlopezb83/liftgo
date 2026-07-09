@@ -55,7 +55,7 @@ export default function CustomerDetailPage() {
               </Button>
             )}
             {s.role === "admin" && !s.hasPortalAccess && (
-              <Button variant="outline" onClick={() => { s.setInviteEmail(s.customer?.email || ""); s.setInviteOpen(true); }}>
+              <Button variant="outline" onClick={() => s.setInviteOpen(true)}>
                 <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
               </Button>
             )}
