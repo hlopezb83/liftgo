@@ -79,10 +79,10 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
     const payload = {
       name: values.name.trim(),
       role: values.role || null,
-      email: nn(values.email),
-      phone: nn(values.phone),
-      notes: nn(values.notes),
-      is_primary: values.is_primary,
+      email: nn(values.email ?? ""),
+      phone: nn(values.phone ?? ""),
+      notes: nn(values.notes ?? ""),
+      is_primary: values.is_primary ?? false,
     };
     if (contact) {
       update.mutate(
