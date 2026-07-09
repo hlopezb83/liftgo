@@ -1,0 +1,35 @@
+{
+  "version": "6.114.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Auditoría visual Fase 1 — consolidación de tokens del design system",
+  "category": "improvement",
+  "summary": "Cohesión visual reforzada: se eliminan los últimos arbitrary-values de color, se registran los tokens faltantes en Tailwind y se unifica la tipografía de inputs para el estándar desktop 1920×1080.",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Tokens `accent-gold` y `crm.*` registrados en Tailwind",
+      "description": "El branding del sidebar y los stages de CRM ya no requieren sintaxis `bg-[hsl(var(--x))]`; ahora se consumen como `bg-accent-gold`, `bg-crm-new`, etc."
+    },
+    {
+      "type": "improvement",
+      "title": "ROLE_COLORS migrados a tokens semánticos",
+      "description": "Auditor y Ventas ahora usan `bg-chart-5` / `bg-chart-2` con `text-primary-foreground`, respetando dark mode automáticamente."
+    },
+    {
+      "type": "improvement",
+      "title": "SidebarBranding sin `bg-white` hardcoded",
+      "description": "El contenedor del logo pasa a `bg-sidebar-accent` para armonizar con el sidebar oscuro sin choque de contraste en dark mode."
+    },
+    {
+      "type": "improvement",
+      "title": "Input con tipografía unificada `text-sm`",
+      "description": "Se elimina la doble regla `text-base md:text-sm` legado móvil. Ahora coincide con Select y Textarea en todos los formularios."
+    },
+    {
+      "type": "documentation",
+      "title": "Reporte de auditoría UI 1920×1080",
+      "description": "Reporte con capturas antes/después de 7 rutas críticas disponible en /mnt/documents/ui-audit/report.md."
+    }
+  ]
+}
