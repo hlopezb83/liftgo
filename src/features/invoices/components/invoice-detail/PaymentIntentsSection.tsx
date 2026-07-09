@@ -1,19 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  useAdminPaymentIntents,
-  useReviewPaymentIntent,
-} from "@/features/portal";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form } from "@/components/ui/form";
+import { TextareaField } from "@/components/forms/fields";
+import { useAdminPaymentIntents, useReviewPaymentIntent } from "@/features/portal";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
@@ -23,17 +18,50 @@ interface Props {
   invoiceId: string;
 }
 
+const schema = z.object({
+  notes: z
+    .string()
+    .transform((v) => v.trim())
+    .pipe(z.string().min(3, "Describe el motivo (mínimo 3 caracteres)")),
+});
+type FormValues = z.input<typeof schema>;
 
 export function PaymentIntentsSection({ invoiceId }: Props) {
   const { data: intents } = useAdminPaymentIntents(invoiceId);
   const review = useReviewPaymentIntent();
   const [rejectId, setRejectId] = useState<string | null>(null);
-  const [rejectNotes, setRejectNotes] = useState("");
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { notes: "" },
+    mode: "onChange",
+  });
+
+  useEffect(() => {
+    if (rejectId) form.reset({ notes: "" });
+  }, [rejectId, form]);
 
   if (!intents || intents.length === 0) return null;
 
   const openProof = (path: string) =>
     openStorageFile("payment-proofs", path, { errorMessage: "No se pudo abrir el comprobante" });
+
+  const submitReject = form.handleSubmit((values) => {
+    if (!rejectId) return;
+    const intent = intents.find((x) => x.id === rejectId);
+    if (!intent) return;
+    review.mutate(
+      {
+        intentId: rejectId,
+        action: "reject",
+        notes: values.notes.trim(),
+        invoiceId,
+        amount: Number(intent.amount),
+        transferDate: intent.transfer_date,
+        trackingKey: intent.tracking_key,
+      },
+      { onSuccess: () => setRejectId(null) },
+    );
+  });
 
   return (
     <Card>
@@ -88,7 +116,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
                         >
                           Aprobar
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => { setRejectId(i.id); setRejectNotes(""); }}>
+                        <Button size="sm" variant="destructive" onClick={() => setRejectId(i.id)}>
                           Rechazar
                         </Button>
                       </>
@@ -101,42 +129,35 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
         </table>
       </CardContent>
 
-      <Dialog open={!!rejectId} onOpenChange={(o) => !o && setRejectId(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Rechazar reporte de pago</DialogTitle></DialogHeader>
-          <Textarea
-            value={rejectNotes}
-            onChange={(e) => setRejectNotes(e.target.value)}
-            placeholder="Motivo del rechazo (visible para el cliente)"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectId(null)}>Cancelar</Button>
-            <Button
-              variant="destructive"
-              disabled={!rejectNotes.trim()}
-              onClick={() => {
-                if (!rejectId) return;
-                const intent = intents.find((x) => x.id === rejectId);
-                if (!intent) return;
-                review.mutate(
-                  {
-                    intentId: rejectId,
-                    action: "reject",
-                    notes: rejectNotes.trim(),
-                    invoiceId,
-                    amount: Number(intent.amount),
-                    transferDate: intent.transfer_date,
-                    trackingKey: intent.tracking_key,
-                  },
-                  { onSuccess: () => setRejectId(null) },
-                );
-              }}
-            >
-              Confirmar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FormDialog
+        open={!!rejectId}
+        onOpenChange={(o) => !o && setRejectId(null)}
+        title="Rechazar reporte de pago"
+        description="El motivo será visible para el cliente en el portal."
+      >
+        <Form {...form}>
+          <form onSubmit={submitReject} className="space-y-4">
+            <TextareaField
+              control={form.control}
+              name="notes"
+              label="Motivo del rechazo"
+              required
+              rows={3}
+              placeholder="Motivo del rechazo (visible para el cliente)"
+            />
+            <FormDialogFooter>
+              <Button type="button" variant="outline" onClick={() => setRejectId(null)}>Cancelar</Button>
+              <Button
+                type="submit"
+                variant="destructive"
+                disabled={!form.formState.isValid || review.isPending}
+              >
+                Confirmar
+              </Button>
+            </FormDialogFooter>
+          </form>
+        </Form>
+      </FormDialog>
     </Card>
   );
 }
