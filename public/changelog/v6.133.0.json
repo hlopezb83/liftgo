@@ -1,0 +1,19 @@
+{
+  "version": "6.133.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 3: reglas de dominio centralizadas (quotes/invoices)",
+  "summary": "Nueva capa src/lib/rules/ con reglas de dominio de cotizaciones e invoices, sustituyendo checks de status duplicados en componentes.",
+  "highlights": [
+    "rules/quotes.ts: isQuoteEditable, isQuoteAccepted, canConvertQuote({isSale, alreadyConverted}), canActOnPortalQuote.",
+    "rules/invoices.ts: computeInvoiceFlags(invoice, cfdiStatus, company) → InvoiceActionFlags + visibility (compone computeInvoiceVisibility). Unifica isCancelled/isStamped/isPendingCancel y expone canCancelCfdi.",
+    "QuoteDetailActions y PortalQuoteDetail migrados a las reglas (elimina ~4 chequeos inline duplicados).",
+    "InvoiceDetailActions reemplaza su computeFlags local por computeInvoiceFlags; `Cancelar CFDI` ahora depende de flags.canCancelCfdi.",
+    "8 tests nuevos (4 quotes + 4 invoices); 198 tests verdes en el bloque afectado."
+  ],
+  "internal_notes": [
+    "Lote 4 aplicará createEntityKeys a contracts/quotes/deliveries/returns/AP y migrará 5 mutaciones piloto a useEntityMutation.",
+    "Lote 5 extraerá DetailRow, ReportChartCard, ListFilterBar y KpiTile."
+  ],
+  "category": "improvement"
+}
