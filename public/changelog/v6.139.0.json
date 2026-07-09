@@ -1,0 +1,20 @@
+{
+  "version": "6.139.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 8: useEntityMutation en bookings, fleet, customers, crm, maintenance, inventory y suppliers",
+  "summary": "Cierre del sprint DRY sobre mutations: 11 hooks CRUD (30 mutations) migrados al patrón unificado `useEntityMutation` + `createEntityKeys`.",
+  "details": [
+    "Bookings: useCreateBooking, useUpdateBooking, useDeleteBooking, useCancelBooking (4 mutations, invalidan bookingKeys.all + forkliftKeys.all + status_logs cuando aplica).",
+    "Fleet: useDrivers (create/update/delete) y useEquipmentModels (create/update/delete) usando driverKeys y equipmentModelKeys.",
+    "Maintenance: useMechanics, useMaintenancePolicies, useMaintenanceLogs con nuevas factories `mechanicKeys`, `maintenancePolicyKeys`, `maintenanceLogKeys`.",
+    "Customers: useCreateCustomer, useUpdateCustomer, useDeleteCustomer (soft delete vía RPC) usando customerKeys.all.",
+    "CRM: useProspectMutations (create/update/delete) con nueva `prospectKeys`. `useCreateProspect` conserva su lógica de `stage_order` previa al insert.",
+    "Inventory: usePartInventoryMutations (create/update/delete/addMaintenancePart) con nueva `partInventoryKeys`. `useAddMaintenancePart` invalida en paralelo maintenance_parts, parts_inventory y maintenance_logs.",
+    "Suppliers: useSupplierContacts y useSupplierBankAccounts con `supplierContactKeys` y `supplierBankAccountKeys`. Se preservó `clearPrimary` como paso previo al insert/update.",
+    "Fuera de alcance (documentado): useForkliftMutations (optimistic updates + setQueryData en onSuccess) y useCreateSupplier/useUpdateSupplier (usan `translateSupplierError` con mensajes personalizados).",
+    "Toasts de error garantizados en ~10 mutations que antes eran silenciosas (mechanics, equipment_models, drivers, update maintenance log, update part).",
+    "Verificación: `tsgo` limpio; `vitest` 121 tests verdes en features/bookings, fleet, customers, crm, maintenance, inventory y suppliers."
+  ],
+  "category": "improvement"
+}
