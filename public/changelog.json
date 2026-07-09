@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.137.1",
+    "date": "2026-07-09",
+    "type": "patch",
+    "title": "Sprint DRY · Lote 6.1: KpiTile aplicado a tarjetas restantes",
+    "description": "Segundo barrido tras el Lote 6. Se migran las tarjetas KPI ad-hoc pendientes: (1) MrrDetailPage — tarjeta 'MRR Total' con icono DollarSign/success ahora usa `KpiTile` con `valueSize='lg'`. (2) InventoryPage — tarjeta 'Refacciones con stock bajo' (Package/destructive) migrada de igual forma. Se revisaron otros candidatos y se descartaron por no encajar en el patrón icon-left/label/value: `CollectionForecast` (3 celdas dentro de una sola Card, sin wrapper per-cell), `ActivityKPIs` (layout con icono arriba-derecha y label izquierda), `AlertCard` (Card tintada con children arbitrarios). Se mantienen sin cambios. Typecheck limpio. Vitest: 30 tests verdes en dashboard/inventory.",
+    "category": "improvement"
+  },
+  {
     "version": "6.137.0",
     "date": "2026-07-09",
     "type": "minor",
