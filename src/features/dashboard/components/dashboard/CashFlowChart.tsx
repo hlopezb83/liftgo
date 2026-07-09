@@ -1,7 +1,15 @@
 import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Wallet } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+
+function formatCompactMxn(v: number): string {
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `$${Math.round(v / 1_000)}k`;
+  return `$${v}`;
+}
 
 interface CashFlowItem {
   month: string;
