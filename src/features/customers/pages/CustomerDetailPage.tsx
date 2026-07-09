@@ -108,8 +108,6 @@ export default function CustomerDetailPage() {
         open={s.inviteOpen}
         onOpenChange={s.setInviteOpen}
         customerName={s.customer.name}
-        email={s.inviteEmail}
-        setEmail={s.setInviteEmail}
         isPending={s.inviteCustomer.isPending}
         onInvite={s.handleInvite}
       />
