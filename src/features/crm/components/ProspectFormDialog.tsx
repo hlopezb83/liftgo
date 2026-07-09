@@ -1,10 +1,13 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useProspectForm, type ProspectFormPayload } from "../hooks/useProspectForm";
+import { FormDialog } from "@/components/forms/FormDialog";
 import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActions";
 import { ProspectFormFields } from "./prospect-form/ProspectFormFields";
 import {
-  ProspectDialogHeader, ProspectCreatorBlock, ProspectDialogFooter,
+  ProspectCreatorBlock,
+  ProspectDialogFooter,
+  ProspectStageBadgeBlock,
+  prospectDialogDescription,
+  prospectDialogTitle,
 } from "./prospect-form/ProspectDialogParts";
 import type { Prospect } from "../hooks/useProspects";
 
@@ -40,37 +43,37 @@ export function ProspectFormDialog({
   const handleCancel = () => onOpenChange(false);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <ProspectDialogHeader prospect={prospect} overrideStage={overrideStage} />
-        <form onSubmit={handleSubmit} className="flex flex-col">
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-4 pb-1 pr-4">
-              <ProspectCreatorBlock createdByName={prospect?.createdByName} />
-              <ProspectFormFields
-                fields={fields}
-                setters={setters}
-                matchingQuotes={matchingQuotes}
-                selectedQuote={selectedQuote}
-                requiresDealValue={requiresDealValue}
-              />
-              {showCloseDeal && prospect && (
-                <ProspectCloseDealActions
-                  prospect={prospect}
-                  canCloseDeal={canCloseDeal}
-                  onClose={handleCancel}
-                />
-              )}
-            </div>
-          </ScrollArea>
-
-          <ProspectDialogFooter
-            isClosingWonBlocked={isClosingWonBlocked}
-            onCancel={handleCancel}
-            onDelete={prospect && onDelete ? onDelete : undefined}
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      width="md"
+      title={prospectDialogTitle(prospect)}
+      description={prospectDialogDescription(prospect, overrideStage)}
+    >
+      <ProspectStageBadgeBlock prospect={prospect} overrideStage={overrideStage} />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <ProspectCreatorBlock createdByName={prospect?.createdByName} />
+        <ProspectFormFields
+          fields={fields}
+          setters={setters}
+          matchingQuotes={matchingQuotes}
+          selectedQuote={selectedQuote}
+          requiresDealValue={requiresDealValue}
+        />
+        {showCloseDeal && prospect && (
+          <ProspectCloseDealActions
+            prospect={prospect}
+            canCloseDeal={canCloseDeal}
+            onClose={handleCancel}
           />
-        </form>
-      </DialogContent>
-    </Dialog>
+        )}
+
+        <ProspectDialogFooter
+          isClosingWonBlocked={isClosingWonBlocked}
+          onCancel={handleCancel}
+          onDelete={prospect && onDelete ? onDelete : undefined}
+        />
+      </form>
+    </FormDialog>
   );
 }
