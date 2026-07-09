@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.126.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 5 de Fase B: dialogs de Cotizaciones y Devoluciones al pipeline RHF (DRY)",
+    "description": "Quinto lote del sprint DRY sobre Quotes y Returns. EquipmentAssignmentDialog: reescrito sobre React Hook Form + Zod con useFieldArray para los slots de asignación — la validación de 'todos asignados' se deriva de form.formState.isValid en lugar de un cálculo manual. QuoteConversionDialogs: los sub-diálogos de facturación recurrente y de reasignación de cliente migrados al shell FormDialog + FormDialogFooter, eliminando la boilerplate de Dialog/DialogHeader/DialogTitle/DialogDescription. ReturnInspectionDialog: shell FormDialog y campos migrados a los wrappers unificados (SelectField para reserva/condición/combustible, DateField para fecha de inspección, TextareaField para notas, TextField para costo/horas/inspector); se preservan el schema Zod y la firma pública del componente. Firmas públicas intactas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.125.0",
     "date": "2026-07-09",
     "type": "minor",
