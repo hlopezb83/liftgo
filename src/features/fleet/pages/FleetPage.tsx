@@ -79,7 +79,7 @@ export default function FleetPage() {
       <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", filtered.map((f) => ({ Nombre: f.name, Modelo: f.model, "No. de Serie": f.serial_number || "", Combustible: f.fuel_type || "", Estado: f.status })))}>
         <Download className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
-      <Button onClick={() => navigate("/fleet/new")} size="sm"><PlusCircle className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
+      <Button onClick={() => navigate("/fleet/new")} size="sm"><Plus className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
     </div>
   );
 
