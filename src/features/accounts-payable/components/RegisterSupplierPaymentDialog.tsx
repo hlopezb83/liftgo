@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
-import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
+import {
+  CurrencyField, DateField, SelectField, TextField, TextareaField, type SelectOption,
+} from "@/components/forms/fields";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
@@ -25,6 +24,8 @@ interface Props {
   billNumber: string;
   balance: number;
 }
+
+const METHOD_OPTIONS: SelectOption[] = PAYMENT_METHODS.map((m) => ({ value: m.value, label: m.label }));
 
 const buildDefaults = (balance: number): SupplierPaymentFormData => ({
   amount: balance,
@@ -95,7 +96,7 @@ export function RegisterSupplierPaymentDialog({
       setReceiptFile(null);
       form.reset(buildDefaults(balance));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, balance]);
 
   const onSubmit = async (data: SupplierPaymentFormData) => {
@@ -121,62 +122,45 @@ export function RegisterSupplierPaymentDialog({
 
   const isPending = register.isPending || uploader.isPending;
 
-
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
-
-        <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Saldo actual</span>
-          <span className="font-mono font-bold">{formatCurrency(balance)}</span>
-        </div>
+      <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Saldo actual</span>
+        <span className="font-mono font-bold">{formatCurrency(balance)}</span>
+      </div>
+      <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Monto *</Label>
-              <Input type="number" step="0.01" {...form.register("amount")} />
-              {form.formState.errors.amount && (
-                <p className="text-xs text-destructive">{form.formState.errors.amount.message}</p>
-              )}
-            </div>
-            <DatePickerField
-              label="Fecha"
-              required
-              date={form.watch("payment_date")}
-              onSelect={(d) => d && form.setValue("payment_date", d)}
-            />
+            <CurrencyField control={form.control} name="amount" label="Monto" required />
+            <DateField control={form.control} name="payment_date" label="Fecha" required />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Método</Label>
-              <Select
-                value={form.watch("payment_method")}
-                onValueChange={(v) => form.setValue("payment_method", v)}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {PAYMENT_METHODS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Cuenta bancaria</Label>
-              <Input placeholder="Banco / últimos 4" {...form.register("bank_account")} />
-            </div>
+            <SelectField
+              control={form.control}
+              name="payment_method"
+              label="Método"
+              options={METHOD_OPTIONS}
+            />
+            <TextField
+              control={form.control}
+              name="bank_account"
+              label="Cuenta bancaria"
+              placeholder="Banco / últimos 4"
+            />
           </div>
-          <div className="space-y-1.5">
-            <Label>Referencia</Label>
-            <Input placeholder="Folio de transferencia, cheque…" {...form.register("reference")} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Comprobante (PDF/JPG/PNG, máx 5 MB)</Label>
-            <ReceiptField file={receiptFile} onChange={setReceiptFile} disabled={isPending} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Notas</Label>
-            <Textarea rows={2} {...form.register("notes")} />
-          </div>
+          <TextField
+            control={form.control}
+            name="reference"
+            label="Referencia"
+            placeholder="Folio de transferencia, cheque…"
+          />
+          <FormItem>
+            <FormLabel>Comprobante (PDF/JPG/PNG, máx 5 MB)</FormLabel>
+            <FormControl>
+              <ReceiptField file={receiptFile} onChange={setReceiptFile} disabled={isPending} />
+            </FormControl>
+          </FormItem>
+          <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
           <FormDialogFooter>
             <FormActions
               submitLabel={uploader.isPending ? "Subiendo…" : "Registrar pago"}
@@ -184,8 +168,8 @@ export function RegisterSupplierPaymentDialog({
               onCancel={() => onOpenChange(false)}
             />
           </FormDialogFooter>
-
         </form>
+      </Form>
     </FormDialog>
   );
 }

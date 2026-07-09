@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
-import { RequiredMark } from "@/components/forms/RequiredMark";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  TextField,
+  NumberField,
+  SelectField,
+  SwitchField,
+  type SelectOption,
+} from "@/components/forms/fields";
 import { useUpsertBankAccount, type BankAccount } from "../hooks/useBankAccounts";
 
 interface Props {
@@ -15,58 +21,69 @@ interface Props {
   initial?: BankAccount | null;
 }
 
-const EMPTY_DEFAULTS = {
-  name: "", bank: "", last4: "", currency: "MXN",
-  initialBalance: "0", isActive: true, notes: "",
-} as const;
+const schema = z.object({
+  name: z.string().trim().min(1, "El nombre es requerido"),
+  bank: z.string().trim().min(1, "El banco es requerido"),
+  last4: z
+    .string()
+    .default("")
+    .refine((v) => !v || /^\d{1,4}$/.test(v), { message: "Solo dígitos, máx 4" }),
+  currency: z.enum(["MXN", "USD"]).default("MXN"),
+  initialBalance: z.number({ invalid_type_error: "Monto inválido" }).default(0),
+  isActive: z.boolean().default(true),
+  notes: z.string().default(""),
+});
+type FormValues = z.input<typeof schema>;
 
-function defaultsFor(initial?: BankAccount | null) {
-  if (!initial) return { ...EMPTY_DEFAULTS };
+const emptyValues: FormValues = {
+  name: "", bank: "", last4: "", currency: "MXN",
+  initialBalance: 0, isActive: true, notes: "",
+};
+
+function valuesFor(initial?: BankAccount | null): FormValues {
+  if (!initial) return { ...emptyValues };
   return {
     name: initial.name,
     bank: initial.bank,
     last4: initial.last4 ?? "",
-    currency: initial.currency,
-    initialBalance: String(initial.initial_balance),
+    currency: initial.currency === "USD" ? "USD" : "MXN",
+    initialBalance: Number(initial.initial_balance) || 0,
     isActive: initial.is_active,
     notes: initial.notes ?? "",
   };
 }
 
-function useBankAccountFormState(initial?: BankAccount | null) {
-  const d = defaultsFor(initial);
-  const [name, setName] = useState(d.name);
-  const [bank, setBank] = useState(d.bank);
-  const [last4, setLast4] = useState(d.last4);
-  const [currency, setCurrency] = useState(d.currency);
-  const [initialBalance, setInitialBalance] = useState(d.initialBalance);
-  const [isActive, setIsActive] = useState(d.isActive);
-  const [notes, setNotes] = useState(d.notes);
-  return {
-    name, setName, bank, setBank, last4, setLast4, currency, setCurrency,
-    initialBalance, setInitialBalance, isActive, setIsActive, notes, setNotes,
-  };
-}
+const CURRENCY_OPTIONS: SelectOption[] = [
+  { value: "MXN", label: "MXN" },
+  { value: "USD", label: "USD" },
+];
 
 export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
-  const s = useBankAccountFormState(initial);
   const upsert = useUpsertBankAccount();
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: emptyValues,
+  });
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (open) form.reset(valuesFor(initial));
+  }, [open, initial, form]);
+
+  const onSubmit = form.handleSubmit((values) => {
     upsert.mutate(
       {
         id: initial?.id,
-        name: s.name.trim(),
-        bank: s.bank.trim(),
-        last4: s.last4.trim() || null,
-        currency: s.currency,
-        initial_balance: Number(s.initialBalance) || 0,
-        is_active: s.isActive,
-        notes: s.notes.trim() || null,
+        name: values.name.trim(),
+        bank: values.bank.trim(),
+        last4: (values.last4 ?? "").trim() || null,
+        currency: (values.currency ?? "MXN") as "MXN" | "USD",
+        initial_balance: Number(values.initialBalance ?? 0) || 0,
+        is_active: values.isActive ?? true,
+        notes: (values.notes ?? "").trim() || null,
       },
       { onSuccess: () => onOpenChange(false) },
     );
-  };
+  });
 
   return (
     <FormDialog
@@ -74,56 +91,52 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
       onOpenChange={onOpenChange}
       title={initial ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}
     >
-      <FormSection title="Identidad" first>
-        <div className="grid gap-1.5">
-          <Label>Nombre interno <RequiredMark /></Label>
-          <Input value={s.name} onChange={(e) => s.setName(e.target.value)} placeholder="BBVA Operaciones" />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="grid gap-1.5">
-            <Label>Banco <RequiredMark /></Label>
-            <Input value={s.bank} onChange={(e) => s.setBank(e.target.value)} placeholder="BBVA" />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Últimos 4</Label>
-            <Input maxLength={4} value={s.last4} onChange={(e) => s.setLast4(e.target.value.replace(/\D/g, ""))} />
-          </div>
-        </div>
-      </FormSection>
-      <FormSection title="Condiciones">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="grid gap-1.5">
-            <Label>Moneda</Label>
-            <Select value={s.currency} onValueChange={s.setCurrency}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MXN">MXN</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Saldo inicial</Label>
-            <Input type="number" step="0.01" value={s.initialBalance} onChange={(e) => s.setInitialBalance(e.target.value)} />
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <Label>Activa</Label>
-          <Switch checked={s.isActive} onCheckedChange={s.setIsActive} />
-        </div>
-      </FormSection>
-      <FormSection title="Interno">
-        <div className="grid gap-1.5">
-          <Label>Notas</Label>
-          <Input value={s.notes} onChange={(e) => s.setNotes(e.target.value)} />
-        </div>
-      </FormSection>
-      <FormDialogFooter>
-        <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-        <Button onClick={handleSave} disabled={!s.name.trim() || !s.bank.trim() || upsert.isPending}>
-          {initial ? "Guardar" : "Agregar cuenta"}
-        </Button>
-      </FormDialogFooter>
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <FormSection title="Identidad" first>
+            <TextField
+              control={form.control}
+              name="name"
+              label="Nombre interno"
+              required
+              placeholder="BBVA Operaciones"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <TextField control={form.control} name="bank" label="Banco" required placeholder="BBVA" />
+              <TextField control={form.control} name="last4" label="Últimos 4" />
+            </div>
+          </FormSection>
+          <FormSection title="Condiciones">
+            <div className="grid grid-cols-2 gap-3">
+              <SelectField
+                control={form.control}
+                name="currency"
+                label="Moneda"
+                options={CURRENCY_OPTIONS}
+              />
+              <NumberField
+                control={form.control}
+                name="initialBalance"
+                label="Saldo inicial"
+                step={0.01}
+                nullOnEmpty={false}
+              />
+            </div>
+            <SwitchField control={form.control} name="isActive" label="Activa" />
+          </FormSection>
+          <FormSection title="Interno">
+            <TextField control={form.control} name="notes" label="Notas" />
+          </FormSection>
+          <FormDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={upsert.isPending || !form.formState.isValid}>
+              {initial ? "Guardar" : "Agregar cuenta"}
+            </Button>
+          </FormDialogFooter>
+        </form>
+      </Form>
     </FormDialog>
   );
 }

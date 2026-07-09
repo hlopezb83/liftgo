@@ -1,102 +1,59 @@
 import { useFormContext } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FormSection } from "@/components/forms/FormSection";
+import { TextField, SelectField, type SelectOption } from "@/components/forms/fields";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/domain/satCatalogs";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
+
+const REGIMEN_OPTIONS: SelectOption[] = REGIMEN_FISCAL.map((r) => ({
+  value: r.code,
+  label: `${r.code} — ${r.label}`,
+}));
+
+const USO_CFDI_OPTIONS: SelectOption[] = USO_CFDI.map((u) => ({
+  value: u.code,
+  label: `${u.code} — ${u.label}`,
+}));
 
 export function FiscalSection() {
   const { control } = useFormContext<CustomerFormData>();
   return (
     <FormSection title="Datos Fiscales (CFDI)">
       <div className="grid grid-cols-2 gap-4">
-        <FormField
+        <TextField
           control={control}
           name="rfc"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>RFC</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="XAXX010101000"
-                  maxLength={13}
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="RFC"
+          placeholder="XAXX010101000"
+          description="Se normaliza a mayúsculas al guardar."
         />
-        <FormField
+        <TextField
           control={control}
           name="domicilio_fiscal_cp"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>C.P. Fiscal</FormLabel>
-              <FormControl>
-                <Input placeholder="64000" maxLength={5} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="C.P. Fiscal"
+          placeholder="64000"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <FormField
+        <SelectField
           control={control}
           name="regimen_fiscal"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Régimen Fiscal</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {REGIMEN_FISCAL.map((r) => (
-                    <SelectItem key={r.code} value={r.code}>{r.code} — {r.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Régimen Fiscal"
+          options={REGIMEN_OPTIONS}
+          placeholder="Seleccionar"
         />
-        <FormField
+        <SelectField
           control={control}
           name="uso_cfdi"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Uso CFDI</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {USO_CFDI.map((u) => (
-                    <SelectItem key={u.code} value={u.code}>{u.code} — {u.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Uso CFDI"
+          options={USO_CFDI_OPTIONS}
+          placeholder="Seleccionar"
         />
       </div>
-      <FormField
+      <TextField
         control={control}
         name="representante_legal"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Representante Legal (opcional)</FormLabel>
-            <FormControl>
-              <Input placeholder="Lic. Juan Pérez" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        label="Representante Legal (opcional)"
+        placeholder="Lic. Juan Pérez"
       />
     </FormSection>
   );

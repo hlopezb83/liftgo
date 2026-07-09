@@ -1,0 +1,8 @@
+{
+  "version": "6.128.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Lote 7 de Fase B: formularios de Suppliers e Inventory al pipeline RHF (DRY)",
+  "description": "Séptimo lote del sprint DRY. SupplierFormFields: 8 campos reescritos con TextField/TextareaField/SelectField — se eliminan los FormField/FormItem/FormLabel/FormControl repetidos y las opciones de Régimen Fiscal / Categoría se derivan una sola vez como SelectOption[]. SupplierContactFormDialog y SupplierBankAccountFormDialog: migrados de useState<FormState>/notifyValidation manual a React Hook Form + Zod con SwitchField (contacto/cuenta primaria), SelectField (rol/moneda) y validación centralizada — CLABE validada vía isValidClabe en el schema con .refine. PartFormDialog: campos migrados a TextField, SelectField, NumberField (nullOnEmpty=false para stocks) y CurrencyField (costo unitario). Cero campos con useState local, footers sticky consistentes, firmas públicas preservadas.",
+  "category": "improvement"
+}

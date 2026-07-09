@@ -34,9 +34,7 @@ export function useCustomerDetailPage(id: string | undefined) {
   const dialogs = useCustomerDetailDialogs();
   const actions = useCustomerDetailActions({
     id,
-    inviteEmail: dialogs.inviteEmail,
     setInviteOpen: dialogs.setInviteOpen,
-    setInviteEmail: dialogs.setInviteEmail,
     setEditOpen: dialogs.setEditOpen,
   });
 

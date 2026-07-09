@@ -1,13 +1,24 @@
 import { useFormContext } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { FormSection } from "@/components/forms/FormSection";
-import { RequiredMark } from "@/components/forms/RequiredMark";
+import {
+  TextField,
+  TextareaField,
+  SelectField,
+  type SelectOption,
+} from "@/components/forms/fields";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 import { SUPPLIER_CATEGORIES } from "../../hooks/useSuppliers";
 import type { SupplierFormData } from "../../lib/supplierFormSchema";
+
+const REGIMEN_OPTIONS: SelectOption[] = REGIMEN_FISCAL.map((r) => ({
+  value: r.code,
+  label: `${r.code} — ${r.label}`,
+}));
+
+const CATEGORY_OPTIONS: SelectOption[] = Object.entries(SUPPLIER_CATEGORIES).map(([k, v]) => ({
+  value: k,
+  label: v,
+}));
 
 export function SupplierFormFields() {
   const { control } = useFormContext<SupplierFormData>();
@@ -15,191 +26,99 @@ export function SupplierFormFields() {
   return (
     <div className="space-y-5">
       <FormSection title="Identidad" first>
-        <FormField
+        <TextField
           control={control}
           name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre / Razón Social <RequiredMark /></FormLabel>
-              <FormControl>
-                <Input placeholder="GRUPO INDUSTRIAL DEL NORTE" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Nombre / Razón Social"
+          required
+          placeholder="GRUPO INDUSTRIAL DEL NORTE"
         />
       </FormSection>
 
       <FormSection title="Datos Fiscales (CFDI)">
         <div className="grid grid-cols-2 gap-4">
-          <FormField
+          <TextField
             control={control}
             name="rfc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>RFC</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="XAXX010101000"
-                    maxLength={13}
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="RFC"
+            placeholder="XAXX010101000"
+            description="Se normaliza a mayúsculas al guardar."
           />
-          <FormField
+          <SelectField
             control={control}
             name="regimen_fiscal"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Régimen Fiscal</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {REGIMEN_FISCAL.map((r) => (
-                      <SelectItem key={r.code} value={r.code}>{r.code} — {r.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Régimen Fiscal"
+            options={REGIMEN_OPTIONS}
+            placeholder="Seleccionar"
           />
         </div>
       </FormSection>
 
       <FormSection title="Contacto">
-        <FormField
+        <TextField
           control={control}
           name="contact_person"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Persona de Contacto</FormLabel>
-              <FormControl>
-                <Input placeholder="Lic. Juan Pérez" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Persona de Contacto"
+          placeholder="Lic. Juan Pérez"
         />
         <div className="grid grid-cols-2 gap-4">
-          <FormField
+          <TextField
             control={control}
             name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Correo</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="contacto@proveedor.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Correo"
+            type="email"
+            placeholder="contacto@proveedor.com"
           />
-          <FormField
+          <TextField
             control={control}
             name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Teléfono</FormLabel>
-                <FormControl>
-                  <Input placeholder="+52 81 1234 5678" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Teléfono"
+            placeholder="+52 81 1234 5678"
           />
         </div>
-        <FormField
+        <TextField
           control={control}
           name="website"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sitio Web</FormLabel>
-              <FormControl>
-                <Input placeholder="https://proveedor.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Sitio Web"
+          placeholder="https://proveedor.com"
         />
       </FormSection>
 
       <FormSection title="Dirección">
-        <FormField
+        <TextField
           control={control}
           name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dirección</FormLabel>
-              <FormControl>
-                <Input placeholder="Av. Industrial 123, Col. Centro, 64000, Monterrey" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Dirección"
+          placeholder="Av. Industrial 123, Col. Centro, 64000, Monterrey"
         />
       </FormSection>
 
       <FormSection title="Condiciones Comerciales">
         <div className="grid grid-cols-2 gap-4">
-          <FormField
+          <SelectField
             control={control}
             name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categoría</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.entries(SUPPLIER_CATEGORIES).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Categoría"
+            options={CATEGORY_OPTIONS}
+            placeholder="Seleccionar"
           />
-          <FormField
+          <TextField
             control={control}
             name="default_payment_terms_days"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Días de crédito</FormLabel>
-                <FormControl>
-                  <Input type="number" min={0} max={365} placeholder="Ej. 30" {...field} />
-                </FormControl>
-                <p className="text-xs text-muted-foreground">
-                  Se aplicará como vencimiento al registrar nuevas CxP.
-                </p>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Días de crédito"
+            placeholder="Ej. 30"
+            description="Se aplicará como vencimiento al registrar nuevas CxP."
           />
         </div>
       </FormSection>
 
       <FormSection title="Interno">
-        <FormField
+        <TextareaField
           control={control}
           name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notas</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Notas internas sobre el proveedor…" rows={3} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Notas"
+          rows={3}
+          placeholder="Notas internas sobre el proveedor…"
         />
       </FormSection>
     </div>

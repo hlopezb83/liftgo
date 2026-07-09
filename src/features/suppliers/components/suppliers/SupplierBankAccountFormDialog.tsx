@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
-import { RequiredMark } from "@/components/forms/RequiredMark";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { FormActions } from "@/components/forms/FormActions";
-import { notifyValidation } from "@/lib/ui/appFeedback";
+import { Form } from "@/components/ui/form";
+import {
+  TextField,
+  TextareaField,
+  SelectField,
+  SwitchField,
+  type SelectOption,
+} from "@/components/forms/fields";
 import {
   isValidClabe,
   useCreateSupplierBankAccount,
@@ -23,66 +27,67 @@ interface Props {
   account: SupplierBankAccount | null;
 }
 
-interface FormState {
-  bank_name: string;
-  account_holder: string;
-  clabe: string;
-  account_number: string;
-  currency: "MXN" | "USD";
-  notes: string;
-  is_primary: boolean;
-}
+const schema = z.object({
+  bank_name: z.string().trim().min(1, "El banco es requerido"),
+  account_holder: z.string().trim().min(1, "El titular es requerido"),
+  clabe: z
+    .string()
+    .default("")
+    .refine((v) => !v || isValidClabe(v), { message: "La CLABE debe tener exactamente 18 dígitos" }),
+  account_number: z.string().default(""),
+  currency: z.enum(["MXN", "USD"]).default("MXN"),
+  notes: z.string().default(""),
+  is_primary: z.boolean().default(false),
+});
+type FormValues = z.input<typeof schema>;
 
-const empty: FormState = {
+const empty: FormValues = {
   bank_name: "", account_holder: "", clabe: "", account_number: "",
   currency: "MXN", notes: "", is_primary: false,
 };
 
+const CURRENCY_OPTIONS: SelectOption[] = [
+  { value: "MXN", label: "MXN" },
+  { value: "USD", label: "USD" },
+];
+
+function nn(v: string): string | null { return v.trim() ? v.trim() : null; }
+
 export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, account }: Props) {
-  const [form, setForm] = useState<FormState>(empty);
   const create = useCreateSupplierBankAccount();
   const update = useUpdateSupplierBankAccount();
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: empty,
+  });
+
   useEffect(() => {
     if (!open) return;
-    if (account) {
-      setForm({
-        bank_name: account.bank_name,
-        account_holder: account.account_holder,
-        clabe: account.clabe || "",
-        account_number: account.account_number || "",
-        currency: (account.currency === "USD" ? "USD" : "MXN"),
-        notes: account.notes || "",
-        is_primary: account.is_primary,
-      });
-    } else {
-      setForm(empty);
-    }
-  }, [open, account]);
+    form.reset(
+      account
+        ? {
+            bank_name: account.bank_name,
+            account_holder: account.account_holder,
+            clabe: account.clabe || "",
+            account_number: account.account_number || "",
+            currency: account.currency === "USD" ? "USD" : "MXN",
+            notes: account.notes || "",
+            is_primary: account.is_primary,
+          }
+        : empty,
+    );
+  }, [open, account, form]);
 
-  const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((p) => ({ ...p, [k]: v }));
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const bank = form.bank_name.trim();
-    const holder = form.account_holder.trim();
-    if (!bank || !holder) {
-      notifyValidation({ message: "Banco y titular son requeridos" });
-      return;
-    }
-    const clabeTrim = form.clabe.trim();
-    if (clabeTrim && !isValidClabe(clabeTrim)) {
-      notifyValidation({ message: "La CLABE debe tener exactamente 18 dígitos" });
-      return;
-    }
+  const onSubmit = form.handleSubmit((values) => {
     const payload = {
-      bank_name: bank,
-      account_holder: holder,
-      clabe: clabeTrim || null,
-      account_number: form.account_number.trim() || null,
-      currency: form.currency,
-      notes: form.notes.trim() || null,
-      is_primary: form.is_primary,
+      bank_name: values.bank_name.trim(),
+      account_holder: values.account_holder.trim(),
+      clabe: nn(values.clabe ?? ""),
+      account_number: nn(values.account_number ?? ""),
+      currency: (values.currency ?? "MXN") as "MXN" | "USD",
+      notes: nn(values.notes ?? ""),
+      is_primary: values.is_primary ?? false,
     };
     if (account) {
       update.mutate(
@@ -95,7 +100,7 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
         { onSuccess: () => onOpenChange(false) },
       );
     }
-  };
+  });
 
   return (
     <FormDialog
@@ -104,65 +109,62 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
       title={account ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}
       width="md"
     >
-      <form onSubmit={onSubmit} className="space-y-4">
-        <FormSection title="Identidad" first>
-          <div className="space-y-1.5">
-            <Label>Banco <RequiredMark /></Label>
-            <Input value={form.bank_name} onChange={(e) => set("bank_name", e.target.value)} placeholder="BBVA, Banorte..." maxLength={80} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Titular <RequiredMark /></Label>
-            <Input value={form.account_holder} onChange={(e) => set("account_holder", e.target.value)} maxLength={120} />
-          </div>
-        </FormSection>
-        <FormSection title="Datos bancarios">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>CLABE (18 dígitos)</Label>
-              <Input
-                value={form.clabe}
-                onChange={(e) => set("clabe", e.target.value.replace(/\D/g, "").slice(0, 18))}
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <FormSection title="Identidad" first>
+            <TextField
+              control={form.control}
+              name="bank_name"
+              label="Banco"
+              required
+              placeholder="BBVA, Banorte..."
+            />
+            <TextField
+              control={form.control}
+              name="account_holder"
+              label="Titular"
+              required
+            />
+          </FormSection>
+          <FormSection title="Datos bancarios">
+            <div className="grid grid-cols-2 gap-3">
+              <TextField
+                control={form.control}
+                name="clabe"
+                label="CLABE (18 dígitos)"
                 placeholder="012345678901234567"
-                inputMode="numeric"
+              />
+              <SelectField
+                control={form.control}
+                name="currency"
+                label="Moneda"
+                options={CURRENCY_OPTIONS}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Moneda</Label>
-              <Select value={form.currency} onValueChange={(v) => set("currency", v === "USD" ? "USD" : "MXN")}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MXN">MXN</SelectItem>
-                  <SelectItem value="USD">USD</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Núm. de cuenta (opcional)</Label>
-            <Input value={form.account_number} onChange={(e) => set("account_number", e.target.value)} maxLength={30} />
-          </div>
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <Label>Cuenta primaria</Label>
-              <p className="text-xs text-muted-foreground">Solo una por proveedor.</p>
-            </div>
-            <Switch checked={form.is_primary} onCheckedChange={(v) => set("is_primary", v)} />
-          </div>
-        </FormSection>
-        <FormSection title="Interno">
-          <div className="space-y-1.5">
-            <Label>Notas</Label>
-            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} />
-          </div>
-        </FormSection>
-        <FormDialogFooter>
-          <FormActions
-            submitLabel={account ? "Guardar" : "Agregar cuenta"}
-            isPending={create.isPending || update.isPending}
-            onCancel={() => onOpenChange(false)}
-          />
-        </FormDialogFooter>
-      </form>
+            <TextField
+              control={form.control}
+              name="account_number"
+              label="Núm. de cuenta (opcional)"
+            />
+            <SwitchField
+              control={form.control}
+              name="is_primary"
+              label="Cuenta primaria"
+              description="Solo una por proveedor."
+            />
+          </FormSection>
+          <FormSection title="Interno">
+            <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
+          </FormSection>
+          <FormDialogFooter>
+            <FormActions
+              submitLabel={account ? "Guardar" : "Agregar cuenta"}
+              isPending={create.isPending || update.isPending}
+              onCancel={() => onOpenChange(false)}
+            />
+          </FormDialogFooter>
+        </form>
+      </Form>
     </FormDialog>
   );
 }

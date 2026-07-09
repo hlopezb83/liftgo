@@ -1,0 +1,8 @@
+{
+  "version": "6.129.0",
+  "date": "2026-07-09",
+  "type": "minor",
+  "title": "Lote 8 de Fase B: formularios de Customers, Portal y Feedback al pipeline RHF (DRY)",
+  "description": "Octavo lote del sprint DRY. CustomerFormSections (Identity/Fiscal/Contact/AddressNotes): 12 FormField/FormItem/FormLabel/FormControl reemplazados por TextField/SelectField/TextareaField unificados; catálogos SAT (Régimen Fiscal, Uso CFDI) mapeados una sola vez como SelectOption[]. CustomerInviteDialog: reescrito sobre React Hook Form + Zod (email trim + email()) — se elimina el par de props email/setEmail y el caller (useCustomerDetailActions/useCustomerDetailDialogs/CustomerDetailPage) queda simplificado: handleInvite ahora recibe el email como argumento. ReportTransferDialog: migrado de 6 useState a RHF + Zod con DateField, CurrencyField, TextField y Controller para el comprobante (File) — validación de 4 dígitos, fecha y monto en el schema. FeedbackFormFields: title/description migrados a TextField/TextareaField (elimina Input/Label/Textarea + rendering manual de errors); toggler bug/mejora y selector de elemento intactos por ser controles no-form. Firmas públicas preservadas salvo CustomerInviteDialog (caller único actualizado).",
+  "category": "improvement"
+}

@@ -1,5 +1,37 @@
 [
   {
+    "version": "6.130.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 9 (final) de Fase B: formularios financieros al pipeline RHF (DRY)",
+    "description": "Cierre del sprint DRY. SupplierBillFormDialog: migrado a shell FormDialog + Form (RHF ya existente) con SupplierField, DateField (fecha emisión y vencimiento), NumberField (tipo de cambio), CurrencyField (subtotal/IVA/retenciones), TextField (UUID) y TextareaField (descripción). RegisterSupplierPaymentDialog: campos migrados a CurrencyField/DateField/SelectField/TextField/TextareaField; ReceiptField (file) se conserva como control custom envuelto en FormItem. BankAccountFormDialog: reescrito de useState<FormState> a RHF + Zod con SwitchField, SelectField (moneda), NumberField (saldo inicial). DeliveryFormFields: 8 FormField manuales colapsados a SelectField/DateField/TextField/TextareaField preservando auto-fill del teléfono del operador vía watch+useEffect. Firmas públicas preservadas. Fin de la Fase B: 41 dialogs y formularios ahora comparten el shell FormDialog y el ecosistema field-wrappers RHF+Zod.",
+    "category": "improvement"
+  },
+  {
+    "version": "6.129.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 8 de Fase B: formularios de Customers, Portal y Feedback al pipeline RHF (DRY)",
+    "description": "Octavo lote del sprint DRY. CustomerFormSections (Identity/Fiscal/Contact/AddressNotes): 12 FormField/FormItem/FormLabel/FormControl reemplazados por TextField/SelectField/TextareaField unificados; catálogos SAT (Régimen Fiscal, Uso CFDI) mapeados una sola vez como SelectOption[]. CustomerInviteDialog: reescrito sobre React Hook Form + Zod (email trim + email()) — se elimina el par de props email/setEmail y el caller (useCustomerDetailActions/useCustomerDetailDialogs/CustomerDetailPage) queda simplificado: handleInvite ahora recibe el email como argumento. ReportTransferDialog: migrado de 6 useState a RHF + Zod con DateField, CurrencyField, TextField y Controller para el comprobante (File) — validación de 4 dígitos, fecha y monto en el schema. FeedbackFormFields: title/description migrados a TextField/TextareaField (elimina Input/Label/Textarea + rendering manual de errors); toggler bug/mejora y selector de elemento intactos por ser controles no-form. Firmas públicas preservadas salvo CustomerInviteDialog (caller único actualizado).",
+    "category": "improvement"
+  },
+  {
+    "version": "6.128.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 7 de Fase B: formularios de Suppliers e Inventory al pipeline RHF (DRY)",
+    "description": "Séptimo lote del sprint DRY. SupplierFormFields: 8 campos reescritos con TextField/TextareaField/SelectField — se eliminan los FormField/FormItem/FormLabel/FormControl repetidos y las opciones de Régimen Fiscal / Categoría se derivan una sola vez como SelectOption[]. SupplierContactFormDialog y SupplierBankAccountFormDialog: migrados de useState<FormState>/notifyValidation manual a React Hook Form + Zod con SwitchField (contacto/cuenta primaria), SelectField (rol/moneda) y validación centralizada — CLABE validada vía isValidClabe en el schema con .refine. PartFormDialog: campos migrados a TextField, SelectField, NumberField (nullOnEmpty=false para stocks) y CurrencyField (costo unitario). Cero campos con useState local, footers sticky consistentes, firmas públicas preservadas.",
+    "category": "improvement"
+  },
+  {
+    "version": "6.127.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Lote 6 de Fase B: dialogs informativos de Invoices al shell FormDialog (DRY)",
+    "description": "Sexto lote del sprint DRY: unificación visual de diálogos informativos en Invoices. StampErrorDialog, RecurringInvoicesPreviewDialog y RecurringInvoicesResultDialog: migrados al shell FormDialog + FormDialogFooter (ancho tokenizado sm/md/lg/xl/2xl, header sticky con border-b, footer sticky) sin cambiar su lógica ni sus toasts. ValidateReceptorButton: el diálogo inline de resultado de validación fiscal ahora usa FormDialog. PaymentIntentsSection: el sub-diálogo inline de rechazo de intento de pago migrado a FormDialog + React Hook Form + Zod con TextareaField (motivo min 3 caracteres). ImageGalleryLightbox se mantiene fuera del shell FormDialog por ser un visor de imágenes con controles propios (excepción documentada). Firmas públicas intactas.",
+    "category": "improvement"
+  },
+  {
     "version": "6.126.0",
     "date": "2026-07-09",
     "type": "minor",
