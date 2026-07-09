@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { positiveAmount } from "@/lib/schemas/common";
 import { parseISO } from "date-fns";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";
@@ -26,7 +27,7 @@ const METHODS = [
 ];
 
 const schema = z.object({
-  amount: z.number().positive("Monto inválido"),
+  amount: positiveAmount("Monto inválido"),
   date: z.date(),
   method: z.string().min(1),
   reference: z.string().default(""),

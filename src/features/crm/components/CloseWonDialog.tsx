@@ -20,7 +20,7 @@ interface Props {
 }
 
 const schema = z.object({
-  finalAmount: z.number({ invalid_type_error: "Requerido" }).positive("Debe ser mayor a 0"),
+  finalAmount: positiveAmount("Debe ser mayor a 0"),
   closedAt: z.date({ required_error: "Requerido" }),
   extraNote: z.string().default(""),
 });
