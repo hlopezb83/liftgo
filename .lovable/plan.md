@@ -1,92 +1,107 @@
 
-# Auditoría Visual LiftGo — 1920×1080
+# Sprint DRY — Modales genéricos + Ecosistema de formularios
 
-Objetivo: cohesión visual total. Un solo lenguaje de diseño en toda la app, sin parches, sin estilos mezclados.
+Alcance seleccionado: **C — barrido completo**. ~50 archivos tocados, dividido en 4 fases secuenciales para poder validar por lote.
 
-Entregable por fase: reporte estructurado + capturas antes/después (Playwright a 1920×1080) + fixes aplicados al código en el mismo pase. Todo el reporte final se guarda en `/mnt/documents/ui-audit/`.
+## Diagnóstico previo
 
----
+Infraestructura que **ya existe** y NO se reemplaza (se reutiliza):
 
-## Fase 0 — Instrumentación (una sola vez)
+- `FormDialog` + `FormDialogFooter` — modal shell agnóstico con `width: sm|md|lg|xl|2xl`, sticky header/footer, animaciones (Radix) y backdrop. Cumple lo solicitado como "Modal Base".
+- `FormSection`, `FormActions`, `ConfirmDialog`, `SectionHeading`, `RequiredMark`, `InfoRow`.
+- shadcn `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage` (labels, focus y estados de error nativos).
+- Primitivas: `Input`, `Select`, `Textarea`, `Checkbox`, `Switch`, `Label`.
+- Selectors especializados: `CustomerSelector`, `SupplierSelector`, `ForkliftSelector`, `DatePickerField`, `DateRangePickerField`.
 
-- Script Playwright reutilizable `/tmp/audit/capture.py` que:
-  - Restaura sesión Supabase (hlopezb@gmail.com, admin).
-  - Navega a lista de rutas, captura viewport 1920×1080 (no full_page).
-  - Guarda en `/mnt/documents/ui-audit/before/<ruta>.png` y `after/<ruta>.png`.
-- Índice de hallazgos: `/mnt/documents/ui-audit/report.md` (categorizado por severidad).
+Gaps reales medidos:
 
-## Fase 1 — Auditoría global del Design System
+- **24 dialogs** usan `DialogContent` crudo en lugar de `FormDialog`.
+- **68 archivos** usan `<Input>` con `useState` local en vez de RHF + `<FormField>` (solo 19 lo hacen). Sin field-wrappers, cada campo repite ~7 líneas de boilerplate.
+- No hay wrappers RHF sobre los selectors especializados (Customer/Supplier/Forklift) ni sobre fecha/moneda.
 
-Alcance: `src/index.css`, `tailwind.config.ts`, `src/components/ui/*` (Button, Card, Dialog, Table, Input, Select, Badge, Tabs, Tooltip, Sheet), layouts (`MainLayout`, `AppSidebar`, headers).
+## Fase A — Ecosistema de campos (`src/components/forms/fields/`)
 
-Checklist:
-1. **Tokens de color**: verificar que todos los `--status-*`, `--gantt-*`, `--sidebar-*` estén en HSL y usados vía `hsl(var(--x))`. Detectar `text-white`, `bg-black`, `bg-[#...]`, `text-gray-*` hardcoded en componentes.
-2. **Tipografía**: una sola familia (Inter) + mono (JetBrains). Escala documentada (text-xs 12, sm 13, base 14, lg 16, xl 18, 2xl 20, 3xl 24). Pesos permitidos: 400/500/600/700. Detectar mezclas (font-medium vs font-semibold para el mismo rol) y usos de font-bold sueltos.
-3. **Spacing**: escala Tailwind (1, 2, 3, 4, 6, 8). Prohibir valores arbitrarios `p-[13px]`, `gap-[7px]`. Padding de página unificado (`p-6` en desktop). Gaps de card unificados (`space-y-4` internos, `gap-4` entre cards).
-4. **Radios y sombras**: un solo `--radius`. Sombras vía tokens (`shadow-sm`, `shadow`, `shadow-md`), no `shadow-[...]` arbitrarias.
-5. **Componentes base**: Button (5 variantes máx), Card (header/content/footer con padding fijo), Dialog (header sticky, footer sticky, max-w consistente), Input/Select (misma altura h-9 o h-10 — elegir una), Badge (mismo padding y radius), Table (misma densidad, header sticky, zebra opcional).
-6. **Sidebar & Header**: alturas fijas, alineación de iconos 20×20, gap consistente, colores desde `--sidebar-*`.
-7. **Estados**: hover, focus-visible (ring token), disabled (opacity-50 estándar), loading (mismo Skeleton).
+Un archivo por wrapper, cada uno < 60 LOC, genérico y tipado con `FieldValues`/`FieldPath` de RHF. Firma unificada: `{ control, name, label, description?, placeholder?, required?, disabled?, ...primitiveProps }`. Todos combinan internamente `FormField + FormItem + FormLabel + FormControl + FormMessage` + primitiva.
 
-Fix inmediato: parche a `index.css` + `tailwind.config.ts` para consolidar escala y radio; refactor de componentes base violatorios; util `cn` para reemplazar clases hardcoded.
+Set base:
+- `TextField.tsx`
+- `TextareaField.tsx` — con `rows` y contador opcional.
+- `SelectField.tsx` — recibe `options: { value; label }[]` o children.
+- `CheckboxField.tsx`
+- `SwitchField.tsx`
+- `NumberField.tsx` — inputMode numérico, min/max, coerción a `number|null`.
 
-## Fase 2 — Top 5 módulos críticos
+Fecha:
+- `DateField.tsx` — wrapper RHF sobre `DatePickerField` (mantiene `pointer-events-auto`).
+- `DateRangeField.tsx` — wrapper RHF sobre `DateRangePickerField`.
 
-Auditoría pantalla por pantalla, viewport 1920×1080, sesión admin real:
+Moneda:
+- `CurrencyField.tsx` — MXN por defecto (`formatCurrency` es-MX ya existente), prefijo `$`, sufijo configurable (`MXN`/`USD`), coerción a `number|null` en submit y toYMD/nn() según memoria de nullable.
 
-1. **Dashboard** (`/`) — KPIs, alertas, gráficas.
-2. **Reservas / Calendario** (`/bookings`, `/calendar`) — Gantt, listas, drill-down.
-3. **Cotizaciones** (`/quotes`, detalle) — formulario multi-equipo, totales.
-4. **Facturación** (`/invoices`, detalle, PDF preview) — tablas de pagos, CFDI, complementos.
-5. **Cuentas por Pagar** (`/accounts-payable`, detalle) — aprobaciones, pagos, batches.
+Autocompletados (wrappers sobre selectors existentes, no reescribirlos):
+- `CustomerField.tsx`
+- `SupplierField.tsx`
+- `ForkliftField.tsx`
 
-Por cada pantalla:
-- Captura antes 1920×1080.
-- Checklist:
-  - Bugs de layout (elementos que no ocupan el ancho disponible, tablas encogidas a 60% con hueco a la derecha).
-  - Overflows (texto cortado, tooltips ausentes en celdas con truncate).
-  - Alineaciones (columnas numéricas a la derecha, headers alineados con datos).
-  - Spacing (padding de sección, gaps entre cards, márgenes de headers).
-  - Tipografía (jerarquía H1/H2/H3, tamaños de KPI, labels de tabla).
-  - Consistencia con Fase 1 (botones, badges, dialogs).
-- Fix aplicado en el mismo pase.
-- Captura después.
+Barrel: `src/components/forms/fields/index.ts` exporta todos.
 
-## Fase 3 — Reporte final
+## Fase B — Migración de 24 dialogs a `FormDialog`
 
-`/mnt/documents/ui-audit/report.md` con:
-- Resumen ejecutivo (nº hallazgos por categoría y severidad).
-- Sección global (Fase 1) con diff de tokens y componentes.
-- Sección por módulo (Fase 2) con: hallazgo, severidad, captura antes, captura después, snippet aplicado.
-- Anexo: reglas de estilo para prevenir regresiones (para agregar a `mem://design/*`).
+Todos pasan de `<Dialog><DialogContent>…` a `<FormDialog title=… width=…>` para uniformar sticky header/footer, tamaños y microcopy.
 
-`<presentation-artifact path="ui-audit/report.md" mime_type="text/markdown"></presentation-artifact>` al final.
+Lote 1 (crm / fleet / audit — bajo riesgo):
+`CloseWonDialog`, `CloseLostDialog`, `ProspectFormDialog`, `MarkAvailableDialog`, `DeleteAuditLogDialog`, `AuditLogDetailDialog`.
 
-## Reglas de ejecución
+Lote 2 (bookings / deliveries / damage):
+`PostBookingPolicyDialog`, `PostBookingDeliveryDialog`, `BookingActionDialogs`, `PostDeliveryPickupDialog`, `ReportDamageDialog`, `ImageGalleryLightbox` (mantener sin sticky header, sólo backdrop).
 
-- No tocar lógica de negocio, hooks de datos, RPCs. Solo presentación (`className`, tokens CSS, estructura JSX).
-- Cero `!important`, cero `as any`, cero valores arbitrarios nuevos.
-- Cada archivo tocado registra entrada en `public/changelog.json` + `public/changelog/vX.Y.Z.json` al cerrar cada fase (no por cada archivo).
-- Si un fix cambia altura/estructura de un componente compartido, verificar los 5 módulos antes de commit.
+Lote 3 (invoices / quotes / returns / AP — más críticos):
+`StampErrorDialog`, `CancelCfdiDialog`, `CancelCreditNoteDialog`, `EditReceptorFiscalDialog`, `PaymentIntentsSection` (dialog interno), `ValidateReceptorButton`, `RecurringInvoicesPreviewDialog`, `RecurringInvoicesResultDialog`, `EquipmentAssignmentDialog`, `QuoteConversionDialogs`, `ReturnInspectionDialog`, `SupplierBillFormDialog`.
 
-## Fuera de alcance
+## Fase C — Refactor de los 10 formularios más grandes con RHF + Zod + nuevos fields
 
-- Móvil / tablet (usuario confirmó solo 1920×1080).
-- Dark mode (a menos que aparezca roto en la auditoría global — se reporta pero no se corrige en esta iteración).
-- Módulos fuera del top 5 (Flota, Mantenimiento, CRM, Reportes, Configuración): se reportan hallazgos globales que los afectan vía Fase 1, pero no se auditan pantalla por pantalla.
+Meta por archivo: reducción del 40-60% en LOC. Cada uno mantiene su schema Zod (crear si no existe) y usa `useForm` + `<Form>` + fields nuevos.
 
-## Detalle técnico
+1. `SupplierBillFormDialog.tsx` (8 KB)
+2. `InvoiceForm.tsx` (8 KB)
+3. `ContractForm.tsx` (7 KB)
+4. `SupplierFormFields.tsx` + `SupplierFormDialog.tsx` (6 KB c/u)
+5. `RegisterSupplierPaymentDialog.tsx` (6 KB)
+6. `QuoteForm.tsx` (6 KB)
+7. `MaintenanceFormDialog.tsx` (5 KB)
+8. `PartFormDialog.tsx` (5 KB)
+9. `DeliveryFormFields.tsx` (5 KB)
+10. `EditReceptorFiscalDialog.tsx` (5 KB) y `RecordPaymentDialog.tsx` (5 KB)
 
-- Playwright ya instalado, Chromium bundled. Viewport `{width: 1920, height: 1080}`.
-- Sesión inyectada vía `LOVABLE_BROWSER_SUPABASE_*` (status: injected).
-- Screenshots PNG sin `full_page`.
-- Diffs de tokens: unified diff en el reporte.
-- Snippets: bloques ```tsx / ```css con path y line range.
+Regla dura por archivo migrado: sin `any`/`!`/`as`, cleanup de useEffect, sin prop drilling > 3 niveles, hooks ≤ 80 LOC, componentes ≤ 150 LOC (Power of 10).
 
-## Estimación
+## Fase D — Documentación y validación
 
-- Fase 1: 1 iteración grande (tokens + componentes base).
-- Fase 2: 1 iteración por módulo (5 iteraciones).
-- Fase 3: 1 iteración de consolidación.
+- `mem://design/form-dialogs` actualizada con firma de cada field wrapper y microcopy.
+- Reporte `/mnt/documents/refactor-dry/report.md` con métricas antes/después (LOC total, número de dialogs migrados, ejemplo por wrapper).
+- Ejemplo antes/después para cada componente nuevo (basado en un campo real migrado).
+- Changelog: entrada `minor` (creación de fields) + `patch` por cada lote de dialogs/forms.
 
-Total: ~7 iteraciones. Puedo empezar por Fase 1 y pausar para tu revisión antes de Fase 2.
+## Detalles técnicos
+
+- **Coerción de valores nullable**: usar `nn()` en el boundary del submit (memoria vigente); los defaults del RHF form son `""`/`false`/`undefined`, la conversión a `null` ocurre en `onSubmit`.
+- **Fechas**: `toYMD()` para columnas `date`, `toISOString()` sólo para `timestamptz`.
+- **Moneda**: `CurrencyField` almacena `number`, formatea en render con `formatCurrency` (es-MX).
+- **Autocompletados**: no duplicar la lógica de `CustomerSelector`; el wrapper solo enlaza `field.value`/`field.onChange`.
+- **Tamaños de `FormDialog`**: `sm` confirmaciones de una línea, `md` forms cortos (<6 campos), `lg` default, `xl` forms con múltiples secciones, `2xl` reservado para split-layouts (asignación de equipos).
+- **Sin regresiones visuales**: cada lote se valida con capturas Playwright 1920×1080 vs baseline previa (usar convención `/mnt/documents/refactor-dry/{fase}/`).
+
+## Riesgos
+
+- Formularios con hooks caseros (`useCustomerFormLogic`) requieren revisión del contrato del hook. Se mantiene el hook si sólo cambian los JSX; se adapta si expone controlled inputs.
+- `EquipmentAssignmentDialog` y `RecurringInvoicesPreviewDialog` tienen tablas internas con estado; su migración se limita al wrapper del modal, no al contenido tabular.
+- `ImageGalleryLightbox` es un dialog no-form; se migrará a `FormDialog` con `width="2xl"` pero sin sticky footer.
+
+## Entregables finales
+
+- ~15 componentes nuevos en `src/components/forms/fields/` (+ barrel).
+- 24 dialogs migrados a `FormDialog`.
+- ~10 formularios reescritos con RHF+Zod+fields.
+- Reporte con métricas de reducción y guía de uso.
+- Memoria `mem://design/form-dialogs` actualizada.
+- Changelog versionado por lote.
