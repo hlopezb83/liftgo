@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.121.0",
+    "date": "2026-07-09",
+    "type": "minor",
+    "title": "Ecosistema de field-wrappers RHF + Zod (DRY Fase A)",
+    "description": "Se añadieron 12 componentes reutilizables en src/components/forms/fields/ que combinan FormField + FormItem + FormLabel + FormControl + FormMessage sobre las primitivas shadcn: TextField, TextareaField, SelectField, CheckboxField, SwitchField, NumberField, CurrencyField (MXN/USD con prefijo $ y sufijo), DateField, DateRangeField, y wrappers RHF sobre los selectores existentes (CustomerField, SupplierField, ForkliftField). Firma unificada { control, name, label, required?, disabled? } — cada campo pasa de ~7 líneas de boilerplate a 1 llamada. Piloto migrado: MaintenanceFormDialog (127 → 106 LOC, código plano sin FormField/FormItem anidado).",
+    "category": "improvement"
+  },
+  {
     "version": "6.120.0",
     "date": "2026-07-09",
     "type": "minor",
