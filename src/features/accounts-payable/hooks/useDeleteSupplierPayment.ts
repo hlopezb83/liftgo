@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
+import { SUPPLIER_BILLS_QK, supplierBillKeys } from "./useSupplierBills";
 
 interface DeleteSupplierPaymentInput {
   paymentId: string;

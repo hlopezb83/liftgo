@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
-import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
+import { SUPPLIER_BILLS_QK, supplierBillKeys } from "./useSupplierBills";
 
 export interface RegisterPaymentInput {
   bill_id: string;

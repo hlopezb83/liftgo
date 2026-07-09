@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
-import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
+import { SUPPLIER_BILLS_QK, supplierBillKeys } from "./useSupplierBills";
 
 function invalidate(qc: ReturnType<typeof useQueryClient>, billId?: string | null) {
   qc.invalidateQueries({ queryKey: SUPPLIER_BILLS_QK });

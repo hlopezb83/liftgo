@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
 import type { Database } from "@/integrations/supabase/types";
-import { SUPPLIER_BILLS_QK } from "./useSupplierBills";
+import { SUPPLIER_BILLS_QK, supplierBillKeys } from "./useSupplierBills";
 
 type Insert = Database["public"]["Tables"]["supplier_bills"]["Insert"];
 type Update = Database["public"]["Tables"]["supplier_bills"]["Update"];
