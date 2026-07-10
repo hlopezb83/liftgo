@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.3.1",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "CI · Knip verde tras Lote B",
+    "description": "Los 4 primitivos creados en `v7.3.0` (`CardListSkeleton`, `FormSkeleton`, `ListToolbar`, `DetailLayout`) aún no tienen consumidores porque su adopción es incremental (piloto planeado en Lote C). Se añaden al `ignore` de `knip.json` para desbloquear el CI hasta que se migren las primeras pantallas. Sin impacto funcional.",
+    "category": "chore"
+  },
+  {
     "version": "7.3.0",
     "date": "2026-07-10",
     "type": "minor",

@@ -1,0 +1,17 @@
+{
+  "version": "7.3.1",
+  "date": "2026-07-10",
+  "type": "patch",
+  "title": "CI · Knip verde tras Lote B",
+  "summary": "Desbloquea el job de Knip en CI listando los 4 primitivos aún no consumidos como archivos ignorados temporalmente.",
+  "sections": [
+    {
+      "heading": "Cambio",
+      "items": [
+        "`knip.json` — se agregan al `ignore`: `src/components/feedback/CardListSkeleton.tsx`, `src/components/feedback/FormSkeleton.tsx`, `src/components/layout/ListToolbar.tsx`, `src/components/layout/DetailLayout.tsx`.",
+        "Razón: fueron creados en `v7.3.0` como parte de la auditoría Lego y se adoptarán de forma incremental en Lote C (unificación de tablas y detalle). Sin ellos en el ignore, Knip los reporta como 'Unused files' y el CI falla con exit 1.",
+        "Cuando cada primitivo tenga su primer consumidor real se removerá del ignore."
+      ]
+    }
+  ]
+}

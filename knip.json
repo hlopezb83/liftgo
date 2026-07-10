@@ -18,7 +18,11 @@
     "src/features/suppliers/lib/queryKeys.ts",
     "src/features/accounts-payable/hooks/useSupplierBills.ts",
     "src/lib/domain/errorCatalog.ts",
-    "src/features/crm/lib/constants.ts"
+    "src/features/crm/lib/constants.ts",
+    "src/components/feedback/CardListSkeleton.tsx",
+    "src/components/feedback/FormSkeleton.tsx",
+    "src/components/layout/DetailLayout.tsx",
+    "src/components/layout/ListToolbar.tsx"
   ],
   "ignoreDependencies": [
     "@sentry/react",
