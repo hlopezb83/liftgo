@@ -1,5 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import {
   createFacturapiClient,
@@ -24,13 +24,8 @@ Deno.serve(async (req) => {
       });
     }
     const token = authHeader.replace("Bearer ", "");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const callerClient = getCallerClient(req);
     const { data: claimsData, error: claimsErr } = await callerClient.auth
       .getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
@@ -41,7 +36,7 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.claims.sub as string;
 
-    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+    const supabase = getAdminClient();
     const { data: roles } = await supabase.from("user_roles").select("role").eq(
       "user_id",
       userId,
