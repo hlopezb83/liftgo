@@ -63,27 +63,10 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
 
     if (selected.length === 0) return;
 
-    const first = selected[0];
-    form.setValue("customerName", first.customer_name || "", { shouldDirty: true });
-    form.setValue("customerId", first.customer_id || null, { shouldDirty: true });
-    if (first.customer_id && customers) {
-      const customer = customers.find((c) => c.id === first.customer_id);
-      if (customer) applyCfdiPatch(form, customer);
-    }
+    applyPrimaryCustomer(form, selected[0], customers);
 
     const rentalLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
-
-    // Arrastrar partidas no-renta (logística/entrega) desde la cotización origen.
-    // Deduplicado por quote_id para no repetirlas si la cotización se dividió en varias reservas.
-    const seenQuoteIds = new Set<string>();
-    const extraLines: LineItemValues[] = [];
-    for (const b of selected) {
-      if (!b.quote_id || seenQuoteIds.has(b.quote_id)) continue;
-      seenQuoteIds.add(b.quote_id);
-      const q = quotes?.find((x) => x.id === b.quote_id);
-      if (!q) continue;
-      extraLines.push(...extractNonRentalLines(q.line_items));
-    }
+    const extraLines = collectExtraLinesFromQuotes(selected, quotes);
 
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
   }, [form, bookings, customers, forklifts, quotes]);
