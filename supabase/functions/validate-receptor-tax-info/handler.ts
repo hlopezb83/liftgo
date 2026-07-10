@@ -2,7 +2,8 @@
 // Consulta el endpoint público de Facturapi `/v2/tools/tax_id_validation`
 // para descubrir qué campo del receptor no coincide con la Constancia de
 // Situación Fiscal registrada en el SAT. No consume timbre.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { resolveFacturapiKey } from "../_shared/facturapi/client.ts";
