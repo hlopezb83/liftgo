@@ -1,15 +1,13 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { supplierBillKeys } from "./useSupplierBills";
 
-function invalidate(qc: ReturnType<typeof useQueryClient>, billId?: string | null) {
-  qc.invalidateQueries({ queryKey: supplierBillKeys.all });
-  qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
-  if (billId) qc.invalidateQueries({ queryKey: supplierBillKeys.detail(billId) });
-}
+const invalidationKeys = (billId?: string | null) => {
+  const base = [supplierBillKeys.all, ["accounts_payable_kpis"] as const];
+  return billId ? [...base, supplierBillKeys.detail(billId)] : base;
+};
+
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -39,8 +37,7 @@ function parseFunctionsError(error: unknown): never {
 }
 
 export function useUploadSupplierRep() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({
       paymentId, xmlFile, pdfFile,
     }: { paymentId: string; xmlFile: File; pdfFile?: File | null; billId?: string | null }) => {
@@ -53,36 +50,28 @@ export function useUploadSupplierRep() {
       if (data?.error) throw new Error(data.error);
       return data;
     },
-    onSuccess: (_d, vars) => {
-      invalidate(qc, vars.billId ?? null);
-      notifySuccess("REP recibido y validado");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo validar el REP" }),
+    invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId ?? null),
+    successMsg: "REP recibido y validado",
+    errorTitle: "No se pudo validar el REP",
   });
 }
 
 export function useRejectSupplierRep() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ paymentId, notes }: { paymentId: string; notes: string; billId?: string | null }) =>
       callRpc<null>("mark_supplier_rep_rejected", { p_payment_id: paymentId, p_notes: notes }),
-    onSuccess: (_d, vars) => {
-      invalidate(qc, vars.billId ?? null);
-      notifySuccess("REP marcado como rechazado");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo rechazar el REP" }),
+    invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId ?? null),
+    successMsg: "REP marcado como rechazado",
+    errorTitle: "No se pudo rechazar el REP",
   });
 }
 
 export function useResetSupplierRep() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ paymentId }: { paymentId: string; billId?: string | null }) =>
       callRpc<null>("reset_supplier_rep_pending", { p_payment_id: paymentId }),
-    onSuccess: (_d, vars) => {
-      invalidate(qc, vars.billId ?? null);
-      notifySuccess("REP reiniciado a pendiente");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo reiniciar el REP" }),
+    invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId ?? null),
+    successMsg: "REP reiniciado a pendiente",
+    errorTitle: "No se pudo reiniciar el REP",
   });
 }
