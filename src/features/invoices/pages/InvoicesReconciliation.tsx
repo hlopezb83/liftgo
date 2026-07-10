@@ -152,60 +152,10 @@ export default function InvoicesReconciliation() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Folio interno</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Estado fiscal</TableHead>
-                <TableHead>UUID SAT</TableHead>
-                <TableHead>ID Facturapi</TableHead>
-                <TableHead>Ambiente</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={8}>
-                      <Skeleton className="h-6 w-full" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                    Sin facturas en el rango seleccionado.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>
-                      <Link to={`/invoices/${r.id}`} className="font-mono underline">
-                        {r.invoice_number}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{formatDateDisplay(r.issued_at)}</TableCell>
-                    <TableCell className="max-w-[220px] truncate">{r.customer_name ?? "—"}</TableCell>
-                    <TableCell>{fiscalBadge(r.cfdi_status, r.status)}</TableCell>
-                    <TableCell className="font-mono text-xs max-w-[220px] truncate" title={r.cfdi_uuid ?? undefined}>
-                      {r.cfdi_uuid ?? "—"}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs max-w-[180px] truncate" title={r.facturapi_invoice_id ?? undefined}>
-                      {r.facturapi_invoice_id ?? "—"}
-                    </TableCell>
-                    <TableCell>{envBadge(r.facturapi_env)}</TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(Number(r.total))}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <ReconciliationTable rows={rows} isLoading={isLoading} />
         </CardContent>
       </Card>
+
     </PageContainer>
   );
 }
