@@ -37,8 +37,9 @@ export async function handleValidateReceptor(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+  const json = (body: unknown, status: number, _headers?: unknown) =>
+    jsonResponse(req, body, { status });
+
 
   try {
     const authHeader = req.headers.get("Authorization");
