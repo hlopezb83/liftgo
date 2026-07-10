@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +12,22 @@ interface SearchBarProps {
   className?: string;
   /** Delay en ms para emitir el onChange. 0 = sin debounce. Default 200ms. */
   debounceMs?: number;
+  /**
+   * Si es `true`, Ctrl/Cmd+K enfoca este input. Sólo debe habilitarse en un
+   * SearchBar por pantalla para evitar colisiones (GlobalSearch ya usa Ctrl+K).
+   * Default: false.
+   */
+  captureCtrlK?: boolean;
 }
 
-export function SearchBar({ value, onChange, placeholder = "Buscar…", className = "max-w-sm", debounceMs = 200 }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChange,
+  placeholder = "Buscar…",
+  className = "max-w-sm",
+  debounceMs = 200,
+  captureCtrlK = false,
+}: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [local, setLocal] = useState(value);
   const debounced = useDebouncedValue(local, debounceMs);
@@ -29,16 +43,14 @@ export function SearchBar({ value, onChange, placeholder = "Buscar…", classNam
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounced]);
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
+  useHotkeys(
+    "mod+k",
+    (e) => {
+      e.preventDefault();
+      inputRef.current?.focus();
+    },
+    { enabled: captureCtrlK, enableOnFormTags: true },
+  );
 
   return (
     <div className={`relative flex-1 ${className}`}>
@@ -48,11 +60,16 @@ export function SearchBar({ value, onChange, placeholder = "Buscar…", classNam
         placeholder={placeholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
-        className="pl-9 pr-16"
+        className={captureCtrlK ? "pl-9 pr-16" : "pl-9"}
       />
-      <Badge variant="secondary" className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0 font-mono pointer-events-none opacity-60">
-        Ctrl+K
-      </Badge>
+      {captureCtrlK && (
+        <Badge
+          variant="secondary"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0 font-mono pointer-events-none opacity-60"
+        >
+          Ctrl+K
+        </Badge>
+      )}
     </div>
   );
 }
